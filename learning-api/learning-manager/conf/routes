@@ -1,0 +1,6 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+GET		/health						controllers.HealthController.health
+
+POST /content/v3/create             controllers.v3.ContentController.create
