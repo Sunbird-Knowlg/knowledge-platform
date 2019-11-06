@@ -15,4 +15,33 @@ object DefinitionNode {
         definition.validate(inputNode, "create")
     }
 
+    def getExternalProps(graphId: String, version: String, objectType: String): List[String] = {
+        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+        definition.getExternalProps()
+    }
+
+    def fetchJsonProps(graphId: String, version: String, objectType: String): List[String] = {
+        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+        definition.fetchJsonProps()
+    }
+
+    def getInRelations(graphId: String, version: String, objectType: String): List[Map[String, AnyRef]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+        definition.getInRelations()
+    }
+
+    def getOutRelations(graphId: String, version: String, objectType: String): List[Map[String, AnyRef]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+        definition.getOutRelations()
+    }
+
+    def getRelationDefinitionMap(graphId: String, version: String, objectType: String): Map[String, AnyRef] = {
+        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+        definition.getRelationDefinitionMap()
+    }
+
+    def getNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+        val definition = DefinitionFactory.getDefinition(request.getContext.get("graphId").asInstanceOf[String], request.getObjectType, request.getContext.get("version").asInstanceOf[String])
+        definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
+    }
 }
