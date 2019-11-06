@@ -200,7 +200,9 @@ public class SearchAsyncOperations {
                                 throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
                                         DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
 
-                            return null;
+                            else
+                                throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                        "Error! Something went wrong while fetching node object. ", error);
                         });
 
                 return FutureConverters.toScala(cs)
