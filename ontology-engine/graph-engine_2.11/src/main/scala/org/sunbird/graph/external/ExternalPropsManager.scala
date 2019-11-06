@@ -15,4 +15,11 @@ object ExternalPropsManager {
         store.insert(request.getRequest)
     }
 
+    def fetchProps(request: Request, fields: List[String])(implicit ec: ExecutionContext): Future[Response] = {
+        val objectType: String = request.getObjectType
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(objectType, version))
+        store.read(request.get("identifier").asInstanceOf[String], fields)
+    }
+
 }

@@ -32,6 +32,19 @@ object DataNode {
         }).flatMap(f => f)
     }
 
+    @throws[Exception]
+    def read(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+        val resultNode: Future[Node] = DefinitionNode.fetchNode(request)
+        resultNode.map(node => {
+            val fields: List[String] = request.get("fields").asInstanceOf[util.ArrayList[String]].toList
+            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getObjectType)
+            if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.filter(field => extPropNameList.contains(field)).nonEmpty)
+                populateExternalProperties(fields, node, request, extPropNameList)
+            else
+                Future(node)
+        }).flatMap(f => f)
+    }
+
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)
@@ -55,5 +68,18 @@ object DataNode {
         } else {
             Future(new Response)
         }
+    }
+    // Todo: To provide backward compatibility for mobile app
+    private def updateContentTaggedProperty(node: Node)(implicit ec:ExecutionContext): Future[Node] = {
+        val contentTaggedKeys = List("subject", "medium")
+        Future{node}
+    }
+
+    private def populateExternalProperties(fields: List[String], node: Node, request: Request, externalProps: List[String])(implicit ec: ExecutionContext): Future[Node] = {
+        val externalPropsResponse = ExternalPropsManager.fetchProps(request, externalProps.filter(prop => fields.contains(prop)))
+        externalPropsResponse.map(response => {
+            node.getMetadata.putAll(response.getResult)
+            Future{node}
+        }).flatMap(f => f)
     }
 }
