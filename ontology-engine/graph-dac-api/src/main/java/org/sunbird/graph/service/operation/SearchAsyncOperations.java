@@ -1,11 +1,13 @@
 package org.sunbird.graph.service.operation;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.sunbird.common.dto.Property;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.MiddlewareException;
@@ -169,8 +171,9 @@ public class SearchAsyncOperations {
                 parameterMap.put(GraphDACParams.getTags.name(), getTags);
                 parameterMap.put(GraphDACParams.request.name(), request);
                 CompletionStage<Node> cs = session.runAsync(SearchQueryGenerationUtil.generateGetNodeByUniqueIdCypherQuery(parameterMap))
-                        .thenCompose(fn -> fn.singleAsync()).thenApply(record -> {
-                            if (null == record)
+                        .thenCompose(fn -> fn.listAsync()).thenApply(records -> {
+                            Node node = null;
+                            if (CollectionUtils.isEmpty(records))
                                 throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
                                         DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
 
@@ -178,18 +181,31 @@ public class SearchAsyncOperations {
                             Map<Long, Object> relationMap = new HashMap<Long, Object>();
                             Map<Long, Object> startNodeMap = new HashMap<Long, Object>();
                             Map<Long, Object> endNodeMap = new HashMap<Long, Object>();
+                            for (Record record : records) {
+                                if (null != record)
+                                    getRecordValues(record, nodeMap, relationMap, startNodeMap, endNodeMap);
+                            }
 
-                            getRecordValues(record, nodeMap, relationMap, startNodeMap, endNodeMap);
-                            Node node = null;
                             if (!nodeMap.isEmpty()) {
                                 for (Map.Entry<Long, Object> entry : nodeMap.entrySet())
-                                    node = Neo4jNodeUtil.getNode(graphId, (org.neo4j.driver.v1.types.Node) entry.getValue(), relationMap,
+                                    node= Neo4jNodeUtil.getNode(graphId, (org.neo4j.driver.v1.types.Node) entry.getValue(), relationMap,
                                             startNodeMap, endNodeMap);
                             }
+                            if (StringUtils.equalsIgnoreCase("Concept", node.getObjectType())) {
+                                TelemetryManager.info("Saving concept to in-memory cache: "+node.getIdentifier());
+                            }
                             return node;
+                        }).exceptionally(error -> {
+                            if(error instanceof NoSuchRecordException)
+                                throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                                        DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
+
+                            else
+                                throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                        "Error! Something went wrong while fetching node object. ", error);
                         });
 
-                return FutureConverters.toScala(cs);
+                return FutureConverters.toScala(cs)
         }
     }
 

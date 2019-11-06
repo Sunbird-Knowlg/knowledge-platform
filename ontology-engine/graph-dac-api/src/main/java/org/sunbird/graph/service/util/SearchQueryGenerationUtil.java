@@ -129,7 +129,7 @@ public class SearchQueryGenerationUtil {
 								+ " | ['Get Node Property' Query Generation Failed.]");
 
 			query.append("MATCH (ee:" + graphId + " {" + SystemProperties.IL_UNIQUE_ID.name() + ": '" + nodeId
-					+ "'}) OPTIONAL MATCH (ee)-[r]-() RETURN ee." + key + " as " + key + "");
+					+ "'}) RETURN ee." + key + " as " + key + "");
 		}
 
 		TelemetryManager.log("Returning Get Node Property Cypher Query: " + query);
