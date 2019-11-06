@@ -205,7 +205,7 @@ public class SearchAsyncOperations {
                                         "Error! Something went wrong while fetching node object. ", error);
                         });
 
-                return FutureConverters.toScala(cs);
+                return FutureConverters.toScala(cs)
         }
     }
 

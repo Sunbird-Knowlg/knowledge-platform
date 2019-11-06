@@ -2,15 +2,6 @@
     "externalProperties": {
         "body": {
             "type": "string"
-        },
-        "oldBody": {
-            "type": "string"
-        },
-        "stageIcons": {
-            "type": "string"
-        },
-        "screenshots": {
-            "type": "string"
         }
     },
     "relations": {

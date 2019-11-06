@@ -26,25 +26,5 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult("org.sunbird.content.create", contentActor, contentRequest)
     }
 
-    /**
-      * This Api end point takes 3 parameters
-      * Content Identifier the unique identifier of a content
-      * Mode in which the content can be viewed (default read or edit)
-      * Fields are metadata that should be returned to visualize
-      * @param identifier
-      * @param mode
-      * @param fields
-      * @return
-      */
-    def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-        content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asInstanceOf[Map[String, Object]])
-        val readRequest = getRequest(content, headers, "readContent")
-        setRequestContext(readRequest, version, objectType)
-        getResult("org.sunbird.content.read", contentActor, readRequest)
-    }
-
 
 }
