@@ -4,6 +4,7 @@ import java.util
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.engine.RelationManager
@@ -38,13 +39,15 @@ object DataNode {
         resultNode.map(node => {
             val fields: List[String] = request.get("fields").asInstanceOf[util.ArrayList[String]].toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getObjectType)
-            val finalNodeFuture:Future[Node] = {
-                if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.filter(field => extPropNameList.contains(field)).nonEmpty)
-                    populateExternalProperties(fields, node, request, extPropNameList)
-                else
-                    Future(node)
-            }
-            finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f=>f)
+            val finalNodeFuture: Future[Node] = if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
+                populateExternalProperties(fields, node, request, extPropNameList)
+            else
+                Future(node)
+            val isBackwardCompatible = if (Platform.config.hasPath("content.tagging.backward_enable")) Platform.config.getBoolean("content.tagging.backward_enable") else false
+            if(isBackwardCompatible)
+                finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f => f)
+            else
+                finalNodeFuture
         }).flatMap(f => f)
     }
 
@@ -81,7 +84,10 @@ object DataNode {
       */
     @Deprecated
     private def updateContentTaggedProperty(node: Node)(implicit ec:ExecutionContext): Future[Node] = {
-        val contentTaggedKeys = List("subject", "medium")
+        val contentTaggedKeys = if(Platform.config.hasPath("content.tagging.property"))
+            (for (prop <- Platform.config.getString("content.tagging.property").split(",")) yield prop ) (collection.breakOut)
+        else
+            List("subject", "medium")
         contentTaggedKeys.map(prop => populateContentTaggedProperty(prop, node.getMetadata.getOrDefault(prop, ""), node))
         Future{node}
     }
