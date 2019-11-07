@@ -17,7 +17,13 @@ import java.util.stream.Collectors;
 public class NodeUtils {
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static Map<String, Object> getSerializedMap(Node node, List<String> fields) {
+    /**
+     * This method will convert a Node to map
+     * @param node
+     * @param fields
+     * @return
+     */
+    public static Map<String, Object> serialize(Node node, List<String> fields) {
         Map<String, Object> metadataMap = node.getMetadata();
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);

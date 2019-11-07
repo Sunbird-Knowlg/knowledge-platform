@@ -51,7 +51,7 @@ public class ContentActor extends BaseActor {
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
-                        Map<String, Object> metadata = NodeUtils.getSerializedMap(node, fields);
+                        Map<String, Object> metadata = NodeUtils.serialize(node, fields);
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
                         return response;
