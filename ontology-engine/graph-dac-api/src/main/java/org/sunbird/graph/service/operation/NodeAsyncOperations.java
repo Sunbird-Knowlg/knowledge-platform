@@ -63,6 +63,9 @@ public class NodeAsyncOperations {
                 if (StringUtils.isNotBlank(versionKey))
                     node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                 return node;
+            }).exceptionally(error -> {
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
             });
             return FutureConverters.toScala(cs);
         } catch (Throwable e) {
@@ -105,8 +108,7 @@ public class NodeAsyncOperations {
                 Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
                 return tx.runAsync(statement, statementParams);
             })
-            .thenCompose(fn -> fn.singleAsync())
-            .thenApply(record -> {
+            .thenCompose(fn -> fn.singleAsync()).thenApply(record -> {
                 org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
                 String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
                 String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
@@ -115,6 +117,9 @@ public class NodeAsyncOperations {
                 if (StringUtils.isNotBlank(versionKey))
                     node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                 return node;
+            }).exceptionally(error -> {
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
             });
             return FutureConverters.toScala(cs);
         } catch (Exception e) {
