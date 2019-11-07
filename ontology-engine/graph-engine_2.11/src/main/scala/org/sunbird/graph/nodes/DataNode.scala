@@ -3,13 +3,13 @@ package org.sunbird.graph.nodes
 import java.util
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
-import org.sunbird.common.JsonUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.engine.RelationManager
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.relations.{IRelation, RelationHandler}
-import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 import org.sunbird.parseq.Task
 
@@ -38,10 +38,13 @@ object DataNode {
         resultNode.map(node => {
             val fields: List[String] = request.get("fields").asInstanceOf[util.ArrayList[String]].toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getObjectType)
-            if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.filter(field => extPropNameList.contains(field)).nonEmpty)
-                populateExternalProperties(fields, node, request, extPropNameList)
-            else
-                Future(node)
+            val finalNodeFuture:Future[Node] = {
+                if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.filter(field => extPropNameList.contains(field)).nonEmpty)
+                    populateExternalProperties(fields, node, request, extPropNameList)
+                else
+                    Future(node)
+            }
+            finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f=>f)
         }).flatMap(f => f)
     }
 
@@ -69,10 +72,31 @@ object DataNode {
             Future(new Response)
         }
     }
-    // Todo: To provide backward compatibility for mobile app
+
+    /**
+      * To support backward compatibility to mobile team.
+      * @param node
+      * @param ec
+      * @return
+      */
+    @Deprecated
     private def updateContentTaggedProperty(node: Node)(implicit ec:ExecutionContext): Future[Node] = {
         val contentTaggedKeys = List("subject", "medium")
+        contentTaggedKeys.map(prop => populateContentTaggedProperty(prop, node.getMetadata.getOrDefault(prop, ""), node))
         Future{node}
+    }
+
+    private def populateContentTaggedProperty(key:String, value: Any, node:Node)(implicit ec: ExecutionContext): Future[Node] = {
+        val contentValue:String = value match {
+            case v: String => v.asInstanceOf[String]
+            case v: List[Any] => v.head.asInstanceOf[String]
+            case v: Array[String] => v.head
+        }
+        if(!StringUtils.isAllBlank(contentValue))
+            node.getMetadata.put(key, contentValue)
+        else
+            node.getMetadata.remove(key)
+        Future(node)
     }
 
     private def populateExternalProperties(fields: List[String], node: Node, request: Request, externalProps: List[String])(implicit ec: ExecutionContext): Future[Node] = {

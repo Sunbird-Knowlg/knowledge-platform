@@ -51,8 +51,8 @@ public class NodeUtils {
     }
 
     private static void getRelationMap(Node node, Map<String, Object> metadata, Map<String, Object> relationMap) {
-        List<Relation> inRelations = node.getInRelations();
-        List<Relation> outRelations = node.getOutRelations();
+        List<Relation> inRelations = CollectionUtils.isEmpty(node.getInRelations()) ? new ArrayList<>(): node.getInRelations();
+        List<Relation> outRelations = CollectionUtils.isEmpty(node.getOutRelations()) ? new ArrayList<>(): node.getOutRelations();
         Map<String, List<Map<String, Object>>> relMap = new HashMap<>();
         for (Relation rel : inRelations) {
             if (relMap.containsKey(relationMap.get(rel.getRelationType() + "_in_" + rel.getStartNodeObjectType()))) {
