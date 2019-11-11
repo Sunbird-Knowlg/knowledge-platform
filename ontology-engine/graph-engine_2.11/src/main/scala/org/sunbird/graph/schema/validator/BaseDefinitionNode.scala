@@ -82,7 +82,6 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
                         }).toList
             }
             val inRelations = getRelations(inRelationsSchema,"in").asJava
-            println("inRelations ::"+inRelations)
             node.setInRelations(inRelations)
             val outRelations = getRelations(outRelationsSchema,"out").asJava
             node.setOutRelations(outRelations)
