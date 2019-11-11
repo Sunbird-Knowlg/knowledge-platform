@@ -23,7 +23,6 @@ import scala.concurrent.Future;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.Executors;
 
 public class NodeAsyncOperations {
 

@@ -17,7 +17,6 @@ import java.util.HashMap;
 public class LicenseActor extends BaseActor {
 
     public Future<Response> onReceive(Request request) throws Throwable {
-        System.out.println("Reached License Actor");
         String operation = request.getOperation();
         if (LicenseOperations.createLicense.name().equals(operation)) {
             return create(request);
@@ -66,9 +65,20 @@ public class LicenseActor extends BaseActor {
         return Futures.successful(response);
     }
     private Future<Response> update(Request request) throws Exception {
-        return null;
+        Response response = new Response();
+        ResponseParams responseParams = new ResponseParams();
+        responseParams.setResmsgid("b7430a32-b055-438c-b209-c81d37558979");
+        responseParams.setStatus("successful");
+        response.setParams(responseParams);
+        response.put("identifier", request.get("identifier"));
+        return Futures.successful(response);
     }
     private Future<Response> retire(Request request) throws Exception {
-        return null;
-    }
+        Response response = new Response();
+        ResponseParams responseParams = new ResponseParams();
+        responseParams.setResmsgid("b7430a32-b055-438c-b209-c81d37558979");
+        responseParams.setStatus("successful");
+        response.setParams(responseParams);
+        response.put("identifier", request.get("identifier"));
+        return Futures.successful(response);    }
 }

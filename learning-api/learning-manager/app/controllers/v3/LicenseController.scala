@@ -30,9 +30,30 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     val headers = commonHeaders()
     val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]];
     license.putAll(headers);
-    license.putAll(Map("identifier"->identifier));
+    license.putAll(Map("identifier" -> identifier));
     val licenseRequest = getRequest(license, headers, LicenseOperations.readLicense.name())
     setRequestContext(licenseRequest, version, objectType)
     getResult(LicenseApiIds.read, licenseActor, licenseRequest)
+  }
+
+  def update(identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    val license = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    license.putAll(headers)
+    license.putAll(Map("identifier" -> identifier))
+    val licenseRequest = getRequest(license, headers, LicenseOperations.updateLicense.name())
+    setRequestContext(licenseRequest, version, objectType)
+    getResult(LicenseApiIds.update, licenseActor, licenseRequest)
+  }
+
+  def retire(identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+    license.putAll(headers)
+    license.putAll(Map("identifier" -> identifier))
+    val licenseRequest = getRequest(license, headers, LicenseOperations.retireLicense.name())
+    setRequestContext(licenseRequest, version, objectType)
+    getResult(LicenseApiIds.retire, licenseActor, licenseRequest)
   }
 }
