@@ -25,4 +25,14 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     setRequestContext(contentRequest, version, objectType)
     getResult(LicenseApiIds.create, licenseActor, contentRequest)
   }
+
+  def read(identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]];
+    license.putAll(headers);
+    license.putAll(Map("identifier"->identifier));
+    val licenseRequest = getRequest(license, headers, LicenseOperations.readLicense.name())
+    setRequestContext(licenseRequest, version, objectType)
+    getResult(LicenseApiIds.read, licenseActor, licenseRequest)
+  }
 }

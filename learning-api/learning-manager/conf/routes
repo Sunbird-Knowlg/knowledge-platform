@@ -13,6 +13,6 @@ POST /content/v3/create             controllers.v3.ContentController.create
 
 #These are routes for License Creation
 POST    /license/v3/create             controllers.v3.LicenseController.create
-GET     /license/v3/read               controllers.v3.LicenseController.create
+GET     /license/v3/read/:identifier   controllers.v3.LicenseController.read(identifier: String)
 PATCH   /license/v3/update             controllers.v3.LicenseController.create
 DELETE  /license/v3/retire             controllers.v3.LicenseController.create
