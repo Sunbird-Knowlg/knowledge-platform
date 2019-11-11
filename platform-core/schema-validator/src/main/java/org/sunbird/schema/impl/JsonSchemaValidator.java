@@ -20,7 +20,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
     }
 
     private void loadSchema() throws Exception {
-        URI uri = getClass().getClassLoader().getResource( basePath + "schema.json").toURI();
+        URI uri = getClass().getClassLoader().getResource( basePath + "schemas.json").toURI();
         Path schemaPath = Paths.get(uri);
         this.schema = readSchema(schemaPath);
     }
@@ -34,13 +34,13 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
 
 
     /**
-     * Resolves the referenced JSON schema.
+     * Resolves the referenced JSON schemas.
      *
-     * @param id the identifier of the referenced JSON schema.
-     * @return referenced JSON schema.
+     * @param id the identifier of the referenced JSON schemas.
+     * @return referenced JSON schemas.
      */
     public JsonSchema resolveSchema(URI id) {
-        // The schema is available in the local filesystem.
+        // The schemas is available in the local filesystem.
         try {
             Path path = Paths.get( getClass().getClassLoader().getResource(basePath + id.getPath()).toURI());
             return readSchema(path);

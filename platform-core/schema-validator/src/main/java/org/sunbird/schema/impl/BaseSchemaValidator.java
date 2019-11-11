@@ -53,10 +53,10 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     /**
-     * Reads the JSON schema from the specified path.
+     * Reads the JSON schemas from the specified path.
      *
-     * @param path the path to the schema.
-     * @return the read schema.
+     * @param path the path to the schemas.
+     * @return the read schemas.
      */
     protected JsonSchema readSchema(Path path) {
         try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(path)) {
