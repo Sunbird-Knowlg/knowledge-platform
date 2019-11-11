@@ -5,7 +5,7 @@ import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
 import play.api.mvc.ControllerComponents
-import utils.ActorNames
+import utils.{ActorNames, ApiId}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
@@ -23,8 +23,17 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType)
-        getResult("org.sunbird.content.create", contentActor, contentRequest)
+        getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
     }
 
-
+    def update(identifier:String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "updateContent")
+        setRequestContext(contentRequest, version, objectType)
+        contentRequest.getContext.put("identifier",identifier);
+        getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
+    }
 }
