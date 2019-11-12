@@ -18,6 +18,7 @@ import org.sunbird.schema.dto.ValidationResult;
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URI;
 import java.nio.file.Path;
@@ -41,7 +42,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         this.name = name;
         this.version = version;
         this.schemaReaderFactory = service.createSchemaReaderFactoryBuilder()
-                .withSchemaResolver(this::resolveSchema)
+//                .withSchemaResolver(this::resolveSchema)
                 .build();
 
     }
@@ -59,11 +60,12 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     /**
      * Reads the JSON schemas from the specified path.
      *
-     * @param path the path to the schemas.
-     * @return the read schemas.
+
+     * @param stream the InputStream for the schema.
+     * @return the read schema.
      */
-    protected JsonSchema readSchema(Path path) {
-        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(path)) {
+    protected JsonSchema readSchema(InputStream stream) {
+        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(stream)) {
             return reader.read();
         }
     }

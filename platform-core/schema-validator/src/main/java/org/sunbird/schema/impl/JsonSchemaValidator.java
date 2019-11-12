@@ -3,32 +3,34 @@ package org.sunbird.schema.impl;
 import com.typesafe.config.ConfigFactory;
 import org.leadpony.justify.api.JsonSchema;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
-    private static String basePath = "schemas/";
+    private static String basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
-        basePath = basePath + name.toLowerCase() + "-" + version + "/";
+        basePath = basePath + name.toLowerCase() + "/" + version + "/";
         loadSchema();
         loadConfig();
     }
 
     private void loadSchema() throws Exception {
-        URI uri = getClass().getClassLoader().getResource( basePath + "schema.json").toURI();
-        Path schemaPath = Paths.get(uri);
-        this.schema = readSchema(schemaPath);
+        System.out.println("Schema path: " + basePath + "schema.json");
+        InputStream stream = new URL( basePath + "schema.json").openStream();
+        this.schema = readSchema(stream);
     }
 
     private void loadConfig() throws Exception {
-        URI uri = getClass().getClassLoader().getResource( basePath + "config.json").toURI();
-        Path configPath = Paths.get(uri);
-        this.config = ConfigFactory.parseFile(configPath.toFile());
+//        URI uri = getClass().getClassLoader().getResource( basePath + "config.json").toURI();
+        System.out.println("Config path: " + basePath + "config.json");
+        this.config = ConfigFactory.parseURL(new URL( basePath + "config.json"));
 
     }
 
@@ -40,13 +42,13 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
      * @return referenced JSON schemas.
      */
     public JsonSchema resolveSchema(URI id) {
-        // The schemas is available in the local filesystem.
-        try {
-            Path path = Paths.get( getClass().getClassLoader().getResource(basePath + id.getPath()).toURI());
-            return readSchema(path);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // The schema is available in the local filesystem.
+//        try {
+//            Path path = Paths.get( getClass().getClassLoader().getResource(basePath + id.getPath()).toURI());
+//            return readSchema(path);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
         return null;
     }
 }
