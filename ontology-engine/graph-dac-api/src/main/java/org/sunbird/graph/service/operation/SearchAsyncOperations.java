@@ -86,8 +86,10 @@ public class SearchAsyncOperations {
                             }
                         }
                         return nodes;
+                    }).exceptionally(error -> {
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
                     });
-
             return FutureConverters.toScala(cs);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -196,17 +198,23 @@ public class SearchAsyncOperations {
                             }
                             return node;
                         }).exceptionally(error -> {
-                            if(error instanceof NoSuchRecordException)
+                            if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
                                 throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
                                         DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
-
                             else
                                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                        "Error! Something went wrong while fetching node object. ", error);
+                                        "Error! Something went wrong while fetching node object. ", error.getCause());
                         });
-
                 return FutureConverters.toScala(cs);
+        } catch (Throwable e) {
+        e.printStackTrace();
+        if (!(e instanceof MiddlewareException)) {
+            throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                    DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+        } else {
+            throw e;
         }
+    }
     }
 
 
@@ -253,9 +261,23 @@ public class SearchAsyncOperations {
                     property.setPropertyValue(record.get(key));
                 }
                 return property;
-            });
-
+            }).exceptionally(error -> {
+                        if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
+                            throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                                    DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
+                        else
+                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                    "Error! Something went wrong while fetching node object. ", error.getCause());
+                    });
             return FutureConverters.toScala(cs);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            if (!(e instanceof MiddlewareException)) {
+                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+            } else {
+                throw e;
+            }
         }
     }
 }

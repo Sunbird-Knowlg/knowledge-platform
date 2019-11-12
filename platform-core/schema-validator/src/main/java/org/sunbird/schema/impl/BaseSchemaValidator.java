@@ -1,19 +1,23 @@
 package org.sunbird.schema.impl;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonSchemaReader;
 import org.leadpony.justify.api.JsonSchemaReaderFactory;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.ProblemHandler;
 import org.leadpony.justify.api.ValidationConfig;
+import org.leadpony.justify.internal.schema.BasicJsonSchema;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.schema.ISchemaValidator;
 import org.sunbird.schema.dto.ValidationResult;
 
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
+import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.nio.file.Path;
@@ -118,5 +122,19 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Fetch all the properties of type JSON from the definition
+     * @return
+     */
+    public List<String> getJsonProps() {
+        try {
+            return ((Map<String, Object>)(new ObjectMapper().readValue(((BasicJsonSchema) schema).get("properties")
+                    .getValueAsJson().asJsonObject().toString(), Map.class))).entrySet().stream().filter(entry -> StringUtils.equalsIgnoreCase("object", (String)((Map<String, Object>)entry.getValue()).get("type"))).map(entry -> entry.getKey()).collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
     }
 }
