@@ -1,4 +1,5 @@
 {
   "version": "enable",
-  "versionCheckMode": "OFF"
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [""]
 }
