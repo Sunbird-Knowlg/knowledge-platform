@@ -108,4 +108,8 @@ public class NodeUtils {
             }};
         }
     }
+
+    public static Boolean isRetired(Node node) {
+        return StringUtils.equalsIgnoreCase((String) node.getMetadata().get("status"), "Retired") ? true : false;
+    }
 }
