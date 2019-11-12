@@ -31,12 +31,12 @@ import java.util.stream.Collectors;
 
 public abstract class BaseSchemaValidator implements ISchemaValidator {
 
-    public static String name;
-    public static String version;
+    public String name;
+    public String version;
     protected static final JsonValidationService service = JsonValidationService.newInstance();
-    public static JsonSchema schema;
-    protected static JsonSchemaReaderFactory schemaReaderFactory;
-    protected static Config config;
+    public JsonSchema schema;
+    protected JsonSchemaReaderFactory schemaReaderFactory;
+    protected Config config;
 
     public BaseSchemaValidator(String name, String version) {
         this.name = name;

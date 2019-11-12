@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
-    private static String basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
+    private String basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
