@@ -21,7 +21,7 @@
         <scala.version>2.11.8</scala.version>
     </properties>
     <modules>
-        <module>learning-manager</module>
+        <module>learning-service</module>
         <module>orchestrator</module>
     </modules>
     <dependencies>
