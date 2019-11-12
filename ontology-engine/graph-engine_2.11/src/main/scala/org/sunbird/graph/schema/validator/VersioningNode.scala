@@ -37,7 +37,7 @@ trait VersioningNode extends IDefinition {
             } else {
                 Future{node}
             }
-        }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
     }
 
     private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext) = {
