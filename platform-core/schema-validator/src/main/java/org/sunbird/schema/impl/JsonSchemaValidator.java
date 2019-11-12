@@ -20,7 +20,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
     }
 
     private void loadSchema() throws Exception {
-        URI uri = getClass().getClassLoader().getResource( basePath + "schemas.json").toURI();
+        URI uri = getClass().getClassLoader().getResource( basePath + "schema.json").toURI();
         Path schemaPath = Paths.get(uri);
         this.schema = readSchema(schemaPath);
     }
