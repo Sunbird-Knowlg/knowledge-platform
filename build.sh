@@ -3,7 +3,7 @@
 set -eo pipefail
 
 build_tag=$1
-name=learning_service
+name=learning-service
 node=$2
 org=$3
 
