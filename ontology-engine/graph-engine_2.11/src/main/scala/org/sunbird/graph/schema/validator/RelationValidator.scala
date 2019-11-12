@@ -2,8 +2,11 @@ package org.sunbird.graph.schema.validator
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.dac.enums.SystemNodeTypes
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.relations.{IRelation, RelationHandler}
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.validator.NodeValidator
 
@@ -14,7 +17,7 @@ trait RelationValidator extends IDefinition {
 
     @throws[Exception]
     abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
-        val relations = node.getAddedRelations
+        val relations: java.util.List[Relation] = node.getAddedRelations
         if (CollectionUtils.isNotEmpty(relations)) {
             val ids = relations.asScala.map(r => List(r.getStartNodeId, r.getEndNodeId)).flatten
                     .filter(id => StringUtils.isNotBlank(id) && !StringUtils.equals(id, node.getIdentifier)).toList.distinct
@@ -23,11 +26,19 @@ trait RelationValidator extends IDefinition {
                 node.setNodeType(SystemNodeTypes.DATA_NODE.name)
                 relNodes.put(node.getIdentifier, node)
                 node.setRelationNodes(relNodes)
+                //Behaviour Validation
+                relations.asScala.map(relNode => {
+                    val iRel:IRelation = RelationHandler.getRelation(node.getGraphId, node.getRelationNode(relNode.getStartNodeId),
+                        relNode.getRelationType, node.getRelationNode(relNode.getEndNodeId), relNode.getMetadata)
+                    val errList = iRel.validate(new Request())
+                    if (null != errList && !errList.isEmpty) {
+                        throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Error while validating relations :: " + errList)
+                    }
+                })
                 node
             }).map(node => {
                 super.validate(node, operation)
             }).flatMap(f => f)
-            // TODO: behavior validation should be here.
         } else {
             super.validate(node, operation)
         }

@@ -1,9 +1,13 @@
 package org.sunbird.graph.schema
 
-import org.sunbird.common.dto.Request
-import org.sunbird.graph.dac.model.Node
+import java.util
+
+import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.common.dto.{Request, ResponseHandler}
+import org.sunbird.graph.dac.model.{Node, Relation}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConversions._
 
 object DefinitionNode {
 
@@ -14,5 +18,54 @@ object DefinitionNode {
         val inputNode = definition.getNode(request.getRequest)
         definition.validate(inputNode, "create")
     }
+
+    def validate(identifier: String, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
+        val dbNodeFuture = definition.getNode(identifier, "update", null)
+        val validationResult: Future[Node] = dbNodeFuture.map(dbNode => {
+            val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
+	        setRelationship(dbNode,inputNode)
+	        dbNode.getMetadata.putAll(inputNode.getMetadata)
+	        dbNode.setInRelations(inputNode.getInRelations)
+	        dbNode.setOutRelations(inputNode.getOutRelations)
+	        dbNode.setExternalData(inputNode.getExternalData)
+            definition.validate(dbNode,"update")
+        }).flatMap(f => f)
+        validationResult
+    }
+
+	private def setRelationship(dbNode: Node, inputNode: Node): Unit = {
+		var addRels: util.List[Relation] = new util.ArrayList[Relation]()
+		var delRels: util.List[Relation] = new util.ArrayList[Relation]()
+		val inRel: util.List[Relation] = dbNode.getInRelations
+		val outRel: util.List[Relation] = dbNode.getOutRelations
+		val inRelReq: util.List[Relation] = inputNode.getInRelations
+		val outRelReq: util.List[Relation] = inputNode.getOutRelations
+		if (CollectionUtils.isNotEmpty(inRelReq))
+			getNewRelationsList(inRel, inRelReq, addRels, delRels)
+		if (CollectionUtils.isNotEmpty(outRelReq))
+			getNewRelationsList(outRel, outRelReq, addRels, delRels)
+		if (CollectionUtils.isNotEmpty(addRels))
+			dbNode.setAddedRelations(addRels)
+		if (CollectionUtils.isNotEmpty(delRels))
+			dbNode.setDeletedRelations(delRels)
+	}
+
+	private def getNewRelationsList(dbRelations: util.List[Relation], newRelations: util.List[Relation], addRels: util.List[Relation], delRels: util.List[Relation]): Unit = {
+		val relList = new util.ArrayList[String]
+		for (rel <- newRelations) {
+			addRels.add(rel)
+			val relKey = rel.getStartNodeId + rel.getRelationType + rel.getEndNodeId
+			if (!relList.contains(relKey)) relList.add(relKey)
+		}
+		if (null != dbRelations && !dbRelations.isEmpty) {
+			for (rel <- dbRelations) {
+				val relKey = rel.getStartNodeId + rel.getRelationType + rel.getEndNodeId
+				if (!relList.contains(relKey)) delRels.add(rel)
+			}
+		}
+	}
 
 }
