@@ -53,7 +53,7 @@ public class ContentActor extends BaseActor {
                     @Override
                     public Response apply(Node node) {
                         if(NodeUtils.isRetired(node))
-                            ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code(), "Content not found with identifier: " + node.getIdentifier())
+                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code(), "Content not found with identifier: " + node.getIdentifier())
                         Map<String, Object> metadata = NodeUtils.serialize(node, fields);
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
