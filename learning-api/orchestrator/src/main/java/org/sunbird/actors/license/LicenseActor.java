@@ -8,6 +8,7 @@ import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
 import org.sunbird.common.dto.ResponseParams;
+import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
@@ -59,6 +60,8 @@ public class LicenseActor extends BaseActor {
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
+                        if(NodeUtils.isRetired(node))
+                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "License not found with identifier: " + node.getIdentifier());
                         Map<String, Object> metadata = NodeUtils.serialize(node, fields);
                         Response response = ResponseHandler.OK();
                         response.put("license", metadata);
