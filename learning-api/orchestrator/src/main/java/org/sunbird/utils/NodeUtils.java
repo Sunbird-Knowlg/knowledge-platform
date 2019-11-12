@@ -25,6 +25,7 @@ public class NodeUtils {
      */
     public static Map<String, Object> serialize(Node node, List<String> fields) {
         Map<String, Object> metadataMap = node.getMetadata();
+        metadataMap.put("identifier", node.getIdentifier());
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
         List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", node.getObjectType()));
