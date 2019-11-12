@@ -41,9 +41,9 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     val body = requestBody()
     val license = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     license.putAll(headers)
-    license.putAll(Map("identifier" -> identifier))
     val licenseRequest = getRequest(license, headers, LicenseOperations.updateLicense.name())
     setRequestContext(licenseRequest, version, objectType)
+    licenseRequest.getContext.put("identifier", identifier)
     getResult(LicenseApiIds.update, licenseActor, licenseRequest)
   }
 
@@ -51,9 +51,9 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     val headers = commonHeaders()
     val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
     license.putAll(headers)
-    license.putAll(Map("identifier" -> identifier))
     val licenseRequest = getRequest(license, headers, LicenseOperations.retireLicense.name())
     setRequestContext(licenseRequest, version, objectType)
+    licenseRequest.getContext.put("identifier", identifier)
     getResult(LicenseApiIds.retire, licenseActor, licenseRequest)
   }
 }
