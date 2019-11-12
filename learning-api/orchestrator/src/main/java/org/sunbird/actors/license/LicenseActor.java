@@ -2,6 +2,7 @@ package org.sunbird.actors.license;
 
 import akka.dispatch.Futures;
 import akka.dispatch.Mapper;
+import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
@@ -9,10 +10,15 @@ import org.sunbird.common.dto.ResponseHandler;
 import org.sunbird.common.dto.ResponseParams;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
+import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
 import utils.LicenseOperations;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class LicenseActor extends BaseActor {
 
@@ -46,24 +52,21 @@ public class LicenseActor extends BaseActor {
     }
 
     private Future<Response> read(Request request) throws Exception {
-        ResponseParams responseParams = new ResponseParams();
-        responseParams.setResmsgid("b7430a32-b055-438c-b209-c81d37558979");
-        responseParams.setMsgid(null);
-        responseParams.setErr(null);
-        responseParams.setStatus("successful");
-        responseParams.setErrmsg(null);
-        Response response = new Response();
-        response.setParams(responseParams);
-        response.put("license", new HashMap<String, Object>() {{
-            put("identifier",request.get("identifier"));
-            put("name", "TestObject");
-            put("description","TestDesc");
-            put("url","www.url.com");
-            put("code","TestObject");
-            put("status","Live");
-        }});
-        return Futures.successful(response);
+        List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
+                .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
+        request.getRequest().put("fields", fields);
+        return DataNode.read(request, getContext().dispatcher())
+                .map(new Mapper<Node, Response>() {
+                    @Override
+                    public Response apply(Node node) {
+                        Map<String, Object> metadata = NodeUtils.serialize(node, fields);
+                        Response response = ResponseHandler.OK();
+                        response.put("license", metadata);
+                        return response;
+                    }
+                }, getContext().dispatcher());
     }
+
     private Future<Response> update(Request request) throws Exception {
         request.getRequest().put("status", "Live");
         return DataNode.update(request, getContext().dispatcher())
