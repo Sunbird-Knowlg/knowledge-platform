@@ -19,7 +19,9 @@ public class ContentActor extends BaseActor {
         String operation = request.getOperation();
         if ("createContent".equals(operation)) {
             return create(request);
-        } else {
+        } else if("updateContent".equals(operation)){
+            return update(request);
+        }else {
             return ERROR(operation);
         }
     }
@@ -38,7 +40,18 @@ public class ContentActor extends BaseActor {
                 }, getContext().dispatcher());
     }
 
-    private void update(Request request) {
+    private Future<Response> update(Request request) throws Exception {
+        return DataNode.update(request, getContext().dispatcher())
+                .map(new Mapper<Node, Response>() {
+                    @Override
+                    public Response apply(Node node) {
+                        Response response = ResponseHandler.OK();
+                        response.put("node_id", node.getIdentifier());
+                        response.put("identifier", node.getIdentifier());
+                        response.put("versionKey", node.getMetadata().get("versionKey"));
+                        return response;
+                    }
+                }, getContext().dispatcher());
     }
 
     private static void populateDefaultersForCreation(Request request) {

@@ -76,7 +76,6 @@ public class NodeAsyncOperations {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static Future<Node> upsertNode(String graphId, Node node, Request request) {
         TelemetryManager.log("Applying the Consumer Authorization Check for Node Id: " + node.getIdentifier());
         setRequestContextToNode(node, request);
@@ -100,22 +99,19 @@ public class NodeAsyncOperations {
 
 
         try(Session session = driver.session()) {
-            CompletionStage<Node> cs = session.writeTransactionAsync(tx -> {
-                String statement = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
-                Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
-                return tx.runAsync(statement, statementParams);
-            })
-            .thenCompose(fn -> fn.singleAsync())
-            .thenApply(record -> {
-                org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
-                String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                node.setGraphId(graphId);
-                node.setIdentifier(identifier);
-                if (StringUtils.isNotBlank(versionKey))
-                    node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
-                return node;
-            });
+            String statement = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
+            Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
+            CompletionStage<Node> cs = session.runAsync(statement, statementParams).thenCompose(fn -> fn.singleAsync())
+                    .thenApply(record -> {
+                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                        String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
+                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                        node.setGraphId(graphId);
+                        node.setIdentifier(identifier);
+                        if (StringUtils.isNotBlank(versionKey))
+                            node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
+                        return node;
+                    });
             return FutureConverters.toScala(cs);
         } catch (Exception e) {
             if (!(e instanceof MiddlewareException)) {

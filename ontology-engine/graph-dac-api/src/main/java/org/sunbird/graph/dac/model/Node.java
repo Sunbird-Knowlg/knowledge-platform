@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -27,13 +27,16 @@ public class Node implements Serializable {
 	private Map<String, Object> externalData;
 
     public Node() {
-
+        addedRelations = new ArrayList<>();
+        deletedRelations = new ArrayList<>();
     }
 
     public Node(String identifier, String nodeType, String objectType) {
         this.identifier = identifier;
         this.nodeType = nodeType;
         this.objectType = objectType;
+        addedRelations = new ArrayList<>();
+        deletedRelations = new ArrayList<>();
     }
 
     public Node(String graphId, Map<String, Object> metadata) {
@@ -47,6 +50,8 @@ public class Node implements Serializable {
             if (null != metadata.get(SystemProperties.IL_FUNC_OBJECT_TYPE.name()))
                 this.objectType = metadata.get(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).toString();
         }
+        addedRelations = new ArrayList<>();
+        deletedRelations = new ArrayList<>();
     }
 
 
@@ -126,7 +131,7 @@ public class Node implements Serializable {
 	}
 
 	public void setAddedRelations(List<Relation> addedRelations) {
-		this.addedRelations = addedRelations;
+		this.addedRelations.addAll(addedRelations);
 	}
 
 	public List<Relation> getDeletedRelations() {
@@ -146,8 +151,7 @@ public class Node implements Serializable {
     }
 
     public void setRelationNodes(Map<String, Node> relationNodes) {
-        this.relationNodes = new HashMap<String, Node>();
-        this.relationNodes.putAll(relationNodes);
+        this.relationNodes = relationNodes;
     }
 
     public void setExternalData(Map<String, Object> externalData) {
