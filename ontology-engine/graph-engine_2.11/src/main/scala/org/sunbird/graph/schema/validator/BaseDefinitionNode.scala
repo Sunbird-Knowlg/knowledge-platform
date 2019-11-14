@@ -43,6 +43,8 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
         val node = new Node(graphId, result.getMetadata)
         node.setNodeType(SystemNodeTypes.DATA_NODE.name)
         node.setObjectType(objectType)
+        node.setIdentifier(input.getOrDefault("identifier", "").asInstanceOf[String])
+        input.remove("identifier")
         if (StringUtils.isBlank(node.getIdentifier)) node.setIdentifier(Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp))
         setRelations(node, result.getRelations)
         if (CollectionUtils.isNotEmpty(node.getInRelations)) node.setAddedRelations(node.getInRelations)
