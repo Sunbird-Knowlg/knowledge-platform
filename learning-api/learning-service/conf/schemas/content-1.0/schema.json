@@ -833,8 +833,7 @@
             "type": "string"
         },
         "lastStatusChangedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "uploadError": {
             "type": "string"

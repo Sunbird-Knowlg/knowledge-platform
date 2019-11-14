@@ -20,12 +20,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ContentActor extends BaseActor {
+
     public Future<Response> onReceive(Request request) throws Throwable {
         String operation = request.getOperation();
         if ("createContent".equals(operation)) {
             return create(request);
         } else if("readContent".equals(operation)) {
             return read(request);
+        } else if("updateContent".equals(operation)){
+            return update(request);
         }else {
             return ERROR(operation);
         }
@@ -54,7 +57,7 @@ public class ContentActor extends BaseActor {
                     @Override
                     public Response apply(Node node) {
                         if(NodeUtils.isRetired(node))
-                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier())
+                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
                         Map<String, Object> metadata = NodeUtils.serialize(node, fields);
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
@@ -63,7 +66,18 @@ public class ContentActor extends BaseActor {
                 }, getContext().dispatcher());
     }
 
-    private void update(Request request) {
+    private Future<Response> update(Request request) throws Exception {
+        return DataNode.update(request, getContext().dispatcher())
+                .map(new Mapper<Node, Response>() {
+                    @Override
+                    public Response apply(Node node) {
+                        Response response = ResponseHandler.OK();
+                        response.put("node_id", node.getIdentifier());
+                        response.put("identifier", node.getIdentifier());
+                        response.put("versionKey", node.getMetadata().get("versionKey"));
+                        return response;
+                    }
+                }, getContext().dispatcher());
     }
 
     private static void populateDefaultersForCreation(Request request) {
