@@ -4,6 +4,7 @@ import akka.dispatch.Futures;
 import akka.dispatch.Mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
+import org.sunbird.common.Slug;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
@@ -40,6 +41,11 @@ public class LicenseActor extends BaseActor {
     }
 
     private Future<Response> create(Request request) throws Exception {
+        if(request.getRequest().containsKey("identifier")){
+            request.getRequest().put("identifier",Slug.makeSlug((String)request.getRequest().get("identifier")));
+         } else {
+            request.getRequest().put("identifier",Slug.makeSlug((String)request.getRequest().get("code")));
+        }
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
