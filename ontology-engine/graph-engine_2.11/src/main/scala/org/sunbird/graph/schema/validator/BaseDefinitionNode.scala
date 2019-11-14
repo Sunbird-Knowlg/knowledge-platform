@@ -44,7 +44,8 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
         // TODO: set SYS_NODE_TYPE, FUNC_OBJECT_TYPE
         node.setNodeType(SystemNodeTypes.DATA_NODE.name)
         node.setObjectType(objectType)
-        if (StringUtils.isBlank(node.getIdentifier)) node.setIdentifier(Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp))
+        node.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
+        input.remove("identifier")
         setRelations(node, result.getRelations)
         //new ProcessingNode(node, result.getExternalData)
         if (CollectionUtils.isNotEmpty(node.getInRelations)) node.setAddedRelations(node.getInRelations)
