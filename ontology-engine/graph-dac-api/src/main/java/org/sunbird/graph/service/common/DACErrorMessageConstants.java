@@ -109,6 +109,8 @@ public class DACErrorMessageConstants {
 	public static final String INVALID_LAST_UPDATED_ON_TIMESTAMP = "Error! Invalid 'lastUpdatedOn' Time Stamp.";
 	
 	public static final String CACHE_ERROR = "Error! Redis cache error.";
+
+	public static final String CONSTRAINT_VALIDATION_FAILED = "Object already exists with identifier: ";
 	
 	private DACErrorMessageConstants() {
 		  throw new AssertionError();
