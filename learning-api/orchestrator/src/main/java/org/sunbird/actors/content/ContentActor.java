@@ -7,11 +7,17 @@ import org.sunbird.common.ContentParams;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
+import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
+import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ContentActor extends BaseActor {
 
@@ -19,6 +25,8 @@ public class ContentActor extends BaseActor {
         String operation = request.getOperation();
         if ("createContent".equals(operation)) {
             return create(request);
+        } else if("readContent".equals(operation)) {
+            return read(request);
         } else if("updateContent".equals(operation)){
             return update(request);
         }else {
@@ -35,6 +43,24 @@ public class ContentActor extends BaseActor {
                         Response response = ResponseHandler.OK();
                         response.put("node_id", node.getIdentifier());
                         response.put("versionKey", node.getMetadata().get("versionKey"));
+                        return response;
+                    }
+                }, getContext().dispatcher());
+    }
+
+    private Future<Response> read(Request request) throws Exception {
+        List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
+                .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
+        request.getRequest().put("fields", fields);
+        return DataNode.read(request, getContext().dispatcher())
+                .map(new Mapper<Node, Response>() {
+                    @Override
+                    public Response apply(Node node) {
+                        if(NodeUtils.isRetired(node))
+                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
+                        Map<String, Object> metadata = NodeUtils.serialize(node, fields);
+                        Response response = ResponseHandler.OK();
+                        response.put("content", metadata);
                         return response;
                     }
                 }, getContext().dispatcher());

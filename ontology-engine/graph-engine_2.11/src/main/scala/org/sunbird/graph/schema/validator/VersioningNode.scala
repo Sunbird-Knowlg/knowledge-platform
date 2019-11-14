@@ -1,11 +1,14 @@
 package org.sunbird.graph.schema.validator
 
+import java.util.concurrent.CompletionException
+
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphEngineErrorCodes
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,30 +37,26 @@ trait VersioningNode extends IDefinition {
             } else {
                 Future{node}
             }
-        }).flatMap(f => f)
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
     }
 
     private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext) = {
         val node: Future[Node] = {
             if("edit".equalsIgnoreCase(mode)){
-                try{
-                    val imageNode = super.getNode(identifier + IMAGE_SUFFIX , "read", mode)
-                    imageNode
-                } catch {
-                    case e: ResourceNotFoundException => {
-                        super.getNode(identifier , "read", mode)
+                val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
+                imageNode recoverWith {
+                    case e: CompletionException => {
+                        TelemetryManager.error("Exception occured while fetching image node, may not be found", e.getCause)
+                        if (e.getCause.isInstanceOf[ResourceNotFoundException])
+                            super.getNode(identifier, "read", mode)
+                        else
+                           throw e.getCause
                     }
                 }
             } else {
                 super.getNode(identifier , "read", mode)
             }
-        }.map(dataNode => {
-            if(null == dataNode)
-                throw new ResourceNotFoundException(GraphEngineErrorCodes.ERR_INVALID_NODE.name, "Node Not Found With Identifier : " + identifier)
-            else {
-                dataNode
-            }
-        })
+        }.map(dataNode => dataNode) recoverWith { case e: CompletionException => throw e.getCause}
         node
     }
 
