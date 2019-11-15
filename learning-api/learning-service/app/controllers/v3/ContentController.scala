@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
+import org.sunbird.telemetry.logger.TelemetryManager
 import play.api.mvc.ControllerComponents
 import utils.ActorNames
 

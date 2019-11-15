@@ -1,0 +1,17 @@
+version: 2.1
+jobs:
+  lp-build:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          key: lp-dependency-cache-{{ checksum "pom.xml" }}
+      - run:
+          name: Setup VM and Build
+          command: bash vmsetup.sh
+
+workflows:
+  version: 2.1
+  workflow:
+    jobs:
+      - lp-build
