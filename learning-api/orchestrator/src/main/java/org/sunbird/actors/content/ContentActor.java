@@ -27,11 +27,11 @@ public class ContentActor extends BaseActor {
         String operation = request.getOperation();
         if ("createContent".equals(operation)) {
             return create(request);
-        } else if ("updateContent".equals(operation)) {
-            return update(request);
-        } else if ("readContent".equals(operation)) {
+        } else if("readContent".equals(operation)) {
             return read(request);
-        } else {
+        } else if("updateContent".equals(operation)){
+            return update(request);
+        }else {
             return ERROR(operation);
         }
     }

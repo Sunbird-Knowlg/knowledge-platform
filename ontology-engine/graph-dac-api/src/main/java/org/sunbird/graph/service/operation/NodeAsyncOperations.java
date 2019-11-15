@@ -118,9 +118,9 @@ public class NodeAsyncOperations {
                             node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                         return node;
                     }).exceptionally(error -> {
-            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                    "Error! Something went wrong while creating node object. ", error.getCause());
-        });
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
+                    });
             return FutureConverters.toScala(cs);
         } catch (Exception e) {
             if (!(e instanceof MiddlewareException)) {
