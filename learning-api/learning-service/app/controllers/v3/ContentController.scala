@@ -22,7 +22,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         val content = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
-        TelemetryManager.info("!!!!Started Executing the createContent !!!!!!")
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType)
         getResult("org.sunbird.content.create", contentActor, contentRequest)
