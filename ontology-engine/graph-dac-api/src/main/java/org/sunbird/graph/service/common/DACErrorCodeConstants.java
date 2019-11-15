@@ -33,7 +33,8 @@ public enum DACErrorCodeConstants {
 	INVALID_TIMESTAMP(28, "Invalid TimeStamp."),
 	ERR_STALE_VERSION_KEY(29, "Stale Version Key."), 
 	CONVERSION_ERROR(30, "Data Type Conversion Error."),
-	CACHE_ERROR(30, "Redis cache Error."),;
+	CACHE_ERROR(30, "Redis cache Error."),
+	CONSTRAINT_VALIDATION_FAILED(31, "Node Already Exists with identifier and graph id");
 	
 	private final int code;
 	private final String description;
