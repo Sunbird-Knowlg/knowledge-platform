@@ -130,14 +130,15 @@ object DataNode {
         if (CollectionUtils.isEmpty(node.getAddedRelations) && CollectionUtils.isEmpty(node.getDeletedRelations)) {
             Future(new Response)
         } else {
+            if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
+                GraphAsyncOperations.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
             if (CollectionUtils.isNotEmpty(node.getAddedRelations))
                 GraphAsyncOperations.createRelation(graphId,getRelationMap(node.getAddedRelations))
-            if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
-               GraphAsyncOperations.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
             Future(new Response)
         }
     }
 
+    // TODO: this method should be in GraphAsyncOperations.
     private def getRelationMap(relations:util.List[Relation]):java.util.List[util.Map[String, AnyRef]]={
         val list = new util.ArrayList[util.Map[String, AnyRef]]
         for (rel <- relations) {

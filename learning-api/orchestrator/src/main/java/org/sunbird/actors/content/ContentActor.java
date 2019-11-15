@@ -42,6 +42,7 @@ public class ContentActor extends BaseActor {
                     public Response apply(Node node) {
                         Response response = ResponseHandler.OK();
                         response.put("node_id", node.getIdentifier());
+                        response.put("identifier", node.getIdentifier());
                         response.put("versionKey", node.getMetadata().get("versionKey"));
                         return response;
                     }
