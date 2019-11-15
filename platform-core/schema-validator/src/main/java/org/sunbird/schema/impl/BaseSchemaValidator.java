@@ -19,9 +19,9 @@ import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
 import java.io.IOException;
 import java.io.InputStream;
+
 import java.io.StringReader;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

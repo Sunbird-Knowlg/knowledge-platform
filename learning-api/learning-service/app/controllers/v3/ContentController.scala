@@ -36,6 +36,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         contentRequest.getContext.put("identifier",identifier);
         getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
     }
+
     /**
       * This Api end point takes 3 parameters
       * Content Identifier the unique identifier of a content
@@ -54,5 +55,16 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType)
         getResult("org.sunbird.content.read", contentActor, readRequest)
+    }
+
+    def update(identifier:String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "updateContent")
+        setRequestContext(contentRequest, version, objectType)
+        contentRequest.getContext.put("identifier",identifier);
+        getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
     }
 }

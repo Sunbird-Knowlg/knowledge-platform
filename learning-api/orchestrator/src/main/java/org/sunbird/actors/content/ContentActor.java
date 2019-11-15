@@ -25,10 +25,10 @@ public class ContentActor extends BaseActor {
         String operation = request.getOperation();
         if ("createContent".equals(operation)) {
             return create(request);
-        } else if("updateContent".equals(operation)){
-            return update(request);
         } else if("readContent".equals(operation)) {
             return read(request);
+        } else if("updateContent".equals(operation)){
+            return update(request);
         }else {
             return ERROR(operation);
         }
@@ -61,6 +61,7 @@ public class ContentActor extends BaseActor {
                     }
                 }, getContext().dispatcher());
     }
+
     private Future<Response> read(Request request) throws Exception {
         List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
                 .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
@@ -70,7 +71,7 @@ public class ContentActor extends BaseActor {
                     @Override
                     public Response apply(Node node) {
                         if(NodeUtils.isRetired(node))
-                            return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
+                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
                         Map<String, Object> metadata = NodeUtils.serialize(node, fields);
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);

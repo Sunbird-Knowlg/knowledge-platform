@@ -6,13 +6,13 @@ import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 
 import org.sunbird.common.Platform
+
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOperations}
-
 import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._
@@ -150,7 +150,40 @@ object DataNode {
         val externalPropsResponse = ExternalPropsManager.fetchProps(request, externalProps.filter(prop => fields.contains(prop)))
         externalPropsResponse.map(response => {
             node.getMetadata.putAll(response.getResult)
-            Future{node}
+            Future {
+                node
+            }
         }).flatMap(f => f)
+    }
+    private def updateRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext) : Future[Response] = {
+        val request: Request = new Request
+        request.setContext(context)
+
+        if (CollectionUtils.isEmpty(node.getAddedRelations) && CollectionUtils.isEmpty(node.getDeletedRelations)) {
+            Future(new Response)
+        } else {
+            if (CollectionUtils.isNotEmpty(node.getAddedRelations))
+                GraphAsyncOperations.createRelation(graphId,getRelationMap(node.getAddedRelations))
+            if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
+               GraphAsyncOperations.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
+            Future(new Response)
+        }
+    }
+
+    private def getRelationMap(relations:util.List[Relation]):java.util.List[util.Map[String, AnyRef]]={
+        val list = new util.ArrayList[util.Map[String, AnyRef]]
+        for (rel <- relations) {
+            if ((StringUtils.isNotBlank(rel.getStartNodeId) && StringUtils.isNotBlank(rel.getEndNodeId)) && StringUtils.isNotBlank(rel.getRelationType)) {
+                val map = new util.HashMap[String, AnyRef]
+                map.put("startNodeId", rel.getStartNodeId)
+                map.put("endNodeId", rel.getEndNodeId)
+                map.put("relation", rel.getRelationType)
+                if (MapUtils.isNotEmpty(rel.getMetadata)) map.put("relMetadata", rel.getMetadata)
+                else map.put("relMetadata", new util.HashMap[String,AnyRef]())
+                list.add(map)
+            }
+            else throw new ClientException("ERR_INVALID_RELATION_OBJECT", "Invalid Relation Object Found.")
+        }
+        list
     }
 }
