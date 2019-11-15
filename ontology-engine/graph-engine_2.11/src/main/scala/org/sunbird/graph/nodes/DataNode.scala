@@ -1,11 +1,11 @@
 package org.sunbird.graph.nodes
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
-
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -29,7 +29,7 @@ object DataNode {
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     createRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatMap(f => f)
+            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         }).flatMap(f => f)
     }
 
