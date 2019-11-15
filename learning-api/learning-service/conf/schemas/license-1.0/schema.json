@@ -33,5 +33,6 @@
         "url": {
             "type": "string"
         }
-    }
+    },
+    "additionalProperties": true
 }
