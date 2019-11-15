@@ -64,8 +64,11 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                 return node;
             }).exceptionally(error -> {
-                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                "Error! Something went wrong while creating node object. ", error.getCause());
+                        if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ClientException)
+                            throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + node.getIdentifier());
+                        else
+                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                    "Error! Something went wrong while creating node object. ", error.getCause());
             });
             return FutureConverters.toScala(cs);
         } catch (Throwable e) {

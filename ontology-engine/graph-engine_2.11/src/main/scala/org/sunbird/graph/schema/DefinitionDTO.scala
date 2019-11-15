@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
-
 import org.sunbird.graph.schema.validator._
 
 import scala.collection.JavaConverters._

@@ -11,13 +11,13 @@ import scala.collection.JavaConversions._
 
 object DefinitionNode {
 
-    def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
-        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
-        val version: String = request.getContext.get("version").asInstanceOf[String]
-        val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
-        val inputNode = definition.getNode(request.getRequest)
-        definition.validate(inputNode, "create")
-    }
+  def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+    val version: String = request.getContext.get("version").asInstanceOf[String]
+    val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
+    val inputNode = definition.getNode(request.getRequest)
+    definition.validate(inputNode, "create")
+  }
 
     def getExternalProps(graphId: String, version: String, objectType: String): List[String] = {
         val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
@@ -96,5 +96,6 @@ object DefinitionNode {
 			}
 		}
 	}
-
+  
 }
+

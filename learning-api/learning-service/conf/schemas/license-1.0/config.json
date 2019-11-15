@@ -4,7 +4,7 @@
   "frameworkCategories": [],
   "restrictProps": {
     "create" : [
-      "status", "identifier"
+      "status"
     ],
     "update": [
       "status", "identifier", "code"

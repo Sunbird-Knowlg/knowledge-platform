@@ -44,6 +44,9 @@ public class GraphAsyncOperations {
 			CompletionStage<Response> cs = session.runAsync(query, dataMap)
 					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
 						return ResponseHandler.OK();
+					}).exceptionally(error -> {
+						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+								"Error! Something went wrong while creating node object. ", error.getCause());
 					});
 			return FutureConverters.toScala(cs);
 		} catch (Throwable e) {
@@ -76,6 +79,9 @@ public class GraphAsyncOperations {
 			CompletionStage<Response> cs = session.runAsync(query, dataMap)
 					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
 						return ResponseHandler.OK();
+					}).exceptionally(error -> {
+						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+								"Error! Something went wrong while creating node object. ", error.getCause());
 					});
 			return FutureConverters.toScala(cs);
 		} catch (Throwable e) {

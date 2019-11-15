@@ -11,6 +11,7 @@ import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
 import org.sunbird.common.dto.ResponseParams;
+import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
@@ -44,19 +45,20 @@ public class LicenseActor extends BaseActor {
     }
 
     private Future<Response> create(Request request) throws Exception {
-        if(request.getRequest().containsKey("identifier")){
-            request.getRequest().put("identifier",Slug.makeSlug((String)request.getRequest().get("identifier")));
-         } else {
-            request.getRequest().put("identifier",Slug.makeSlug((String)request.getRequest().get("code")));
-        }
         RequestUtils.restrictProperties(request);
+        if (request.getRequest().containsKey("identifier")) {
+            throw new ClientException("ERR_CODE_SET_AS_IDENTIFIER", "code will be set as identifier");
+        }
+        if (request.getRequest().containsKey("code")) {
+            request.getRequest().put("code", Slug.makeSlug((String) request.getRequest().get("code")));
+            request.getRequest().put("identifier", request.getRequest().get("code"));
+        }
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
                         Response response = ResponseHandler.OK();
                         response.put("node_id", node.getIdentifier());
-                        response.put("versionKey", node.getMetadata().get("versionKey"));
                         return response;
                     }
                 }, getContext().dispatcher());

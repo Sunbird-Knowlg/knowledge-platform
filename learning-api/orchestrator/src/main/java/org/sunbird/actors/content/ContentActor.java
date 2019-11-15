@@ -7,8 +7,10 @@ import org.sunbird.common.ContentParams;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
+
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResponseCode;
+
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
@@ -19,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 public class ContentActor extends BaseActor {
+
     public Future<Response> onReceive(Request request) throws Throwable {
         String operation = request.getOperation();
         if ("createContent".equals(operation)) {
@@ -70,8 +72,8 @@ public class ContentActor extends BaseActor {
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
-                        if(NodeUtils.isRetired(node))
-                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
+                        if (NodeUtils.isRetired(node))
+                            return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
                         Map<String, Object> metadata = NodeUtils.serialize(node, fields);
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
@@ -93,7 +95,7 @@ public class ContentActor extends BaseActor {
 
         String mimeType = (String) request.get(ContentParams.mimeType.name());
         if (StringUtils.isNotBlank(mimeType) && operation.equalsIgnoreCase(ContentParams.create.name())) {
-            if(StringUtils.equalsIgnoreCase("application/vnd.ekstep.plugin-archive", mimeType)) {
+            if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.plugin-archive", mimeType)) {
                 String code = (String) request.get(ContentParams.code.name());
                 if (null == code || StringUtils.isBlank(code))
                     throw new ClientException("ERR_PLUGIN_CODE_REQUIRED", "Unique code is mandatory for plugins");
