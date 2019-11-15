@@ -1,5 +1,13 @@
 {
   "version": "disable",
   "versionCheckMode": "OFF",
-  "frameworkCategories": []
+  "frameworkCategories": [],
+  "restrictProps": {
+    "create" : [
+      "status", "identifier"
+    ],
+    "update": [
+      "status", "identifier", "code"
+    ]
+  }
 }

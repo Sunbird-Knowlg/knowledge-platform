@@ -72,6 +72,16 @@ class DefinitionDTO(graphId: String, objectType: String, version: String = "1.0"
             Map()
     }
 
+    def getRestrictPropsConfig(operation: String): List[String] = {
+        if (schemaValidator.getConfig.hasPath("restrictProps")) {
+            val restrictProps = schemaValidator.getConfig.getAnyRef("restrictProps")
+                                    .asInstanceOf[java.util.HashMap[String, Object]].get(operation).asInstanceOf[java.util.ArrayList[String]]
+            restrictProps.asScala.toList
+        } else
+            List()
+    }
+
+
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {
         val relationMetadata = relation._2.asInstanceOf[java.util.HashMap[String, Object]]
         val objects = relationMetadata.get("objects").asInstanceOf[java.util.List[String]].asScala

@@ -17,6 +17,7 @@ import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
 import utils.LicenseOperations;
+import utils.RequestUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ public class LicenseActor extends BaseActor {
          } else {
             request.getRequest().put("identifier",Slug.makeSlug((String)request.getRequest().get("code")));
         }
+        RequestUtils.restrictProperties(request);
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
@@ -79,6 +81,7 @@ public class LicenseActor extends BaseActor {
     }
 
     private Future<Response> update(Request request) throws Exception {
+        RequestUtils.restrictProperties(request);
         request.getRequest().put("status", "Live");
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {

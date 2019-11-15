@@ -93,6 +93,13 @@ object DefinitionNode {
         definition.getRelationDefinitionMap()
     }
 
+
+
+    def getRestrictedProperties(graphId: String, version: String, objectType: String, operation: String): List[String] = {
+      val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+      definition.getRestrictPropsConfig(operation)
+    }
+
     def getNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String], request.getObjectType, request.getContext.get("version").asInstanceOf[String])
         definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
