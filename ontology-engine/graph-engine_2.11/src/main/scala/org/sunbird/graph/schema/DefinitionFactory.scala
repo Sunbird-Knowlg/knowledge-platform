@@ -8,7 +8,7 @@ object DefinitionFactory {
         val key = getKey(graphId, objectType, version)
         val definition = definitions.getOrElse(key, new DefinitionDTO(graphId, objectType, version))
         if (!definitions.contains(key))
-            definitions + (key -> definition)
+            definitions += (key -> definition)
         definition
     }
 

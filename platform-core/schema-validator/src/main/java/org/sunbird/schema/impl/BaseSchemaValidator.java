@@ -22,7 +22,6 @@ import java.io.InputStream;
 
 import java.io.StringReader;
 import java.net.URI;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,12 +31,12 @@ import java.util.stream.Collectors;
 
 public abstract class BaseSchemaValidator implements ISchemaValidator {
 
-    public static String name;
-    public static String version;
+    public String name;
+    public String version;
     protected static final JsonValidationService service = JsonValidationService.newInstance();
-    public static JsonSchema schema;
-    protected static JsonSchemaReaderFactory schemaReaderFactory;
-    protected static Config config;
+    public JsonSchema schema;
+    protected JsonSchemaReaderFactory schemaReaderFactory;
+    protected Config config;
 
     public BaseSchemaValidator(String name, String version) {
         this.name = name;
@@ -59,8 +58,9 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     /**
-     * Reads the JSON schema from the specified path.
+     * Reads the JSON schemas from the specified path.
      *
+
      * @param stream the InputStream for the schema.
      * @return the read schema.
      */

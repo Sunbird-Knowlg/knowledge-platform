@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
-    private static String basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
+    private String basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
@@ -36,10 +36,10 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
 
 
     /**
-     * Resolves the referenced JSON schema.
+     * Resolves the referenced JSON schemas.
      *
-     * @param id the identifier of the referenced JSON schema.
-     * @return referenced JSON schema.
+     * @param id the identifier of the referenced JSON schemas.
+     * @return referenced JSON schemas.
      */
     public JsonSchema resolveSchema(URI id) {
         // The schema is available in the local filesystem.

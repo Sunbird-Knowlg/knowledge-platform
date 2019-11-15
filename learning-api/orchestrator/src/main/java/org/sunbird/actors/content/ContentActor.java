@@ -7,8 +7,10 @@ import org.sunbird.common.ContentParams;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
-import org.sunbird.common.exception.ResponseCode;
+
 import org.sunbird.common.exception.ClientException;
+import org.sunbird.common.exception.ResponseCode;
+
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
@@ -49,24 +51,6 @@ public class ContentActor extends BaseActor {
                 }, getContext().dispatcher());
     }
 
-    private Future<Response> read(Request request) throws Exception {
-        List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
-                .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
-        request.getRequest().put("fields", fields);
-        return DataNode.read(request, getContext().dispatcher())
-                .map(new Mapper<Node, Response>() {
-                    @Override
-                    public Response apply(Node node) {
-                        if(NodeUtils.isRetired(node))
-                           return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
-                        Map<String, Object> metadata = NodeUtils.serialize(node, fields);
-                        Response response = ResponseHandler.OK();
-                        response.put("content", metadata);
-                        return response;
-                    }
-                }, getContext().dispatcher());
-    }
-
     private Future<Response> update(Request request) throws Exception {
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
@@ -76,6 +60,24 @@ public class ContentActor extends BaseActor {
                         response.put("node_id", node.getIdentifier());
                         response.put("identifier", node.getIdentifier());
                         response.put("versionKey", node.getMetadata().get("versionKey"));
+                        return response;
+                    }
+                }, getContext().dispatcher());
+    }
+
+    private Future<Response> read(Request request) throws Exception {
+        List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
+                .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
+        request.getRequest().put("fields", fields);
+        return DataNode.read(request, getContext().dispatcher())
+                .map(new Mapper<Node, Response>() {
+                    @Override
+                    public Response apply(Node node) {
+                        if (NodeUtils.isRetired(node))
+                            return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
+                        Map<String, Object> metadata = NodeUtils.serialize(node, fields);
+                        Response response = ResponseHandler.OK();
+                        response.put("content", metadata);
                         return response;
                     }
                 }, getContext().dispatcher());
@@ -94,7 +96,7 @@ public class ContentActor extends BaseActor {
 
         String mimeType = (String) request.get(ContentParams.mimeType.name());
         if (StringUtils.isNotBlank(mimeType) && operation.equalsIgnoreCase(ContentParams.create.name())) {
-            if(StringUtils.equalsIgnoreCase("application/vnd.ekstep.plugin-archive", mimeType)) {
+            if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.plugin-archive", mimeType)) {
                 String code = (String) request.get(ContentParams.code.name());
                 if (null == code || StringUtils.isBlank(code))
                     throw new ClientException("ERR_PLUGIN_CODE_REQUIRED", "Unique code is mandatory for plugins");
@@ -115,6 +117,4 @@ public class ContentActor extends BaseActor {
                 request.put(ContentParams.contentDisposition.name(), ContentParams.inline.name());
         }
     }
-
-
 }
