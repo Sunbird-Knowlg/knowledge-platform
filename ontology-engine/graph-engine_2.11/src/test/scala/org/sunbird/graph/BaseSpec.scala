@@ -25,9 +25,9 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
     def setUpEmbeddedNeo4j(): Unit = {
         if(null == graphDb) {
             val bolt: BoltConnector = new BoltConnector("0")
-
+            println("GraphDB : " + Platform.config.getString("graph.dir"))
             graphDb = new GraphDatabaseFactory()
-                            .newEmbeddedDatabaseBuilder(new File("/data/testingGraphDB"))
+                            .newEmbeddedDatabaseBuilder(new File(Platform.config.getString("graph.dir")))
                             .setConfig(bolt.`type`, ConnectorType.BOLT.name())
                     .setConfig(bolt.enabled, "true").setConfig(bolt.listen_address, "localhost:7687").newGraphDatabase
             registerShutdownHook(graphDb)
