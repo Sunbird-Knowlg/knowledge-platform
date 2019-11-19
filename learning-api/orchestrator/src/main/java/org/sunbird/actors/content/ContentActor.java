@@ -1,6 +1,8 @@
 package org.sunbird.actors.content;
 
+import akka.dispatch.Futures;
 import akka.dispatch.Mapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.ContentParams;
@@ -9,6 +11,7 @@ import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
 
 import org.sunbird.common.exception.ClientException;
+import org.sunbird.common.exception.ErrorCodes;
 import org.sunbird.common.exception.ResponseCode;
 
 import org.sunbird.graph.dac.model.Node;
@@ -16,6 +19,7 @@ import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
 
+import javax.xml.crypto.Data;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -25,14 +29,13 @@ public class ContentActor extends BaseActor {
 
     public Future<Response> onReceive(Request request) throws Throwable {
         String operation = request.getOperation();
-        if ("createContent".equals(operation)) {
-            return create(request);
-        } else if("readContent".equals(operation)) {
-            return read(request);
-        } else if("updateContent".equals(operation)){
-            return update(request);
-        }else {
-            return ERROR(operation);
+        switch(operation) {
+            case "createContent": return create(request);
+            case "readContent": return read(request);
+            case "updateContent": return update(request);
+            case "addHierarchy":
+            case "removeHierarchy": return partialHierarchy(request);
+            default: return ERROR(operation);
         }
     }
 
@@ -117,4 +120,44 @@ public class ContentActor extends BaseActor {
                 request.put(ContentParams.contentDisposition.name(), ContentParams.inline.name());
         }
     }
+
+    private Future<Response> partialHierarchy(Request request) {
+        String rootId = (String) request.get("rootId");
+        String unitId = (String) request.get("unitId");
+        List<String> leafNodes = (List<String>) request.get("leafNodes");
+
+        if (StringUtils.isEmpty(rootId))
+            throw new ClientException("ERR_BAD_REQUEST", "rootId is mandatory");
+        if (StringUtils.isEmpty(rootId))
+            throw new ClientException("ERR_BAD_REQUEST", "clientId is mandatory");
+        if (CollectionUtils.isEmpty(leafNodes))
+            throw new ClientException("ERR_BAD_REQUEST", "leafNodes are mandatory");
+
+        String operation = request.getOperation();
+        if (StringUtils.equalsIgnoreCase(operation, "addHierarchy")) {
+            Response response = ResponseHandler.OK();
+            response.put("identifier", rootId);
+            response.put(unitId, leafNodes);
+            return Futures.successful(response);
+        } else {
+            Response response = ResponseHandler.OK();
+            response.put("identifier", rootId);
+            return Futures.successful(response);
+        }
+    }
+
+/*
+
+        return DataNode.partialHierarchy(request, getContext().dispatcher())
+                .map(new Mapper<Node, Response>() {
+                    @Override
+                    public Response apply(Node node) {
+                        Response response = ResponseHandler.OK();
+                        response.put("node_id", node.getIdentifier());
+                        response.put("identifier", node.getIdentifier());
+                        response.put("versionKey", node.getMetadata().get("versionKey"));
+                        return response;
+                    }
+                }, getContext().dispatcher());
+    }*/
 }
