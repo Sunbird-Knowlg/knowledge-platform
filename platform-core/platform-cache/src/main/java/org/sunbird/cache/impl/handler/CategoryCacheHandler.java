@@ -3,6 +3,7 @@ package org.sunbird.cache.impl.handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.cache.common.CacheHandlerOperation;
 import org.sunbird.cache.handler.ICacheHandler;
 import org.sunbird.cache.util.RedisCacheUtil;
 
@@ -15,18 +16,22 @@ import java.util.stream.Collectors;
 public class CategoryCacheHandler implements ICacheHandler {
 	@Override
 	public Object execute(String operation, String cacheKey, String objectKey) {
-		List<String> result = new ArrayList<String>();
-		Map<String, Object> objectHierarchy = getHierarchy(objectKey);
-		refreshCache(objectKey, cacheKey, objectHierarchy, result);
-		return result;
+        if (StringUtils.equals(CacheHandlerOperation.READ_LIST.name(), operation)) {
+            List<String> result = new ArrayList<String>();
+            Map<String, Object> objectHierarchy = getHierarchy(objectKey);
+            refreshCache(objectKey, cacheKey, objectHierarchy, result);
+            return result;
+        } else {
+            return null;
+        }
 	}
 
-	private Map<String, Object> getHierarchy(String objectKey) {
+	public Map<String, Object> getHierarchy(String objectKey) {
 		//TODO: Get the framework hierarchy from Hierarchy Store
 		return new HashMap<String, Object>();
 	}
 
-	private void refreshCache(String objectKey, String cacheKey, Map<String, Object> hierarchy, List<String> result) {
+	public void refreshCache(String objectKey, String cacheKey, Map<String, Object> hierarchy, List<String> result) {
 		try {
 			if (MapUtils.isNotEmpty(hierarchy)) {
 				List<Map<String, Object>> categories = (List<Map<String, Object>>) hierarchy.get("categories");
@@ -48,11 +53,11 @@ public class CategoryCacheHandler implements ICacheHandler {
 		}
 	}
 
-	private static String getKey(String framework, String category) {
+	public static String getKey(String framework, String category) {
 		return "cat_" + framework + category;
 	}
 
-	private static List<String> getTerms(Map<String, Object> category, String key) {
+	public static List<String> getTerms(Map<String, Object> category, String key) {
 		List<String> returnTerms = new ArrayList<String>();
 		if (null != category && !category.isEmpty()) {
 			List<Map<String, Object>> terms = (List<Map<String, Object>>) category.get(key);
