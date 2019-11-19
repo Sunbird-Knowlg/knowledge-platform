@@ -1,7 +1,10 @@
 package controllers
 
+import java.util.UUID
+
 import akka.actor.ActorRef
 import akka.pattern.Patterns
+import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import play.api.mvc._
@@ -42,6 +45,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         future.map(f => {
             val result = f.asInstanceOf[Response]
             result.setId(apiId)
+            setResponseEnvelope(result)
             val response = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
@@ -50,6 +54,11 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 case _ => play.api.mvc.Results.InternalServerError(response).as("application/json")
             }
         })
+    }
+
+    def setResponseEnvelope(response: Response) = {
+        response.setTs(DateUtils.formatCurrentDate("yyyy-MM-dd'T'HH:mm:ss'Z'XXX"))
+        response.getParams.setResmsgid(UUID.randomUUID().toString)
     }
 
     def setRequestContext(request:org.sunbird.common.dto.Request, version: String, objectType: String): Unit = {
