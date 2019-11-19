@@ -11,6 +11,7 @@ public class CategoryCache extends RedisCacheManager {
         handler = new CategoryCacheHandler();
     }
 
+    // 1st param should be framework, 2nd param should be category name
     @Override
     public String getKey(String... params) {
         return "cat_" + params[0].toLowerCase() + "_" + params[1].toLowerCase();
