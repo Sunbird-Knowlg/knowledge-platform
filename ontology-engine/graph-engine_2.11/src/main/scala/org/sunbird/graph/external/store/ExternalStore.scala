@@ -20,9 +20,9 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
 
     def insert(request: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Response] = {
         val insertQuery: Insert = QueryBuilder.insertInto(keySpace, table)
-        val identifier = request.get("identifier")
-        insertQuery.value("identifier", identifier)
-        request.remove("identifier")
+        val identifier = request.get("content_id")
+        insertQuery.value("content_id", identifier)
+        request.remove("content_id")
         request.remove("last_updated_on")
         insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         for ((key, value) <- request.asScala) {
@@ -52,7 +52,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         val select = QueryBuilder.select()
         extProps.foreach(prop => select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop))
         val selectQuery = select.from(keySpace, table)
-        val clause: Clause = QueryBuilder.eq("identifier", identifier)
+        val clause: Clause = QueryBuilder.eq("content_id", identifier)
         selectQuery.where.and(clause)
         try {
             val session: Session = CassandraConnector.getSession
