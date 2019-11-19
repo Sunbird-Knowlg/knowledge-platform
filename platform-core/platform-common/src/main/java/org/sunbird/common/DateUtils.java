@@ -37,4 +37,10 @@ public class DateUtils {
     public static String formatCurrentDate() {
         return format(new Date());
     }
+
+
+    public static String formatCurrentDate(String pattern) {
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        return sdf.format(new Date());
+    }
 }
