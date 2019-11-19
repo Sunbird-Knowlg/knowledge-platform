@@ -20,9 +20,9 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
 
     def insert(request: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Response] = {
         val insertQuery: Insert = QueryBuilder.insertInto(keySpace, table)
-        val identifier = request.get("content_id")
+        val identifier = request.get("identifier")
         insertQuery.value("content_id", identifier)
-        request.remove("content_id")
+        request.remove("identifier")
         request.remove("last_updated_on")
         insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         for ((key, value) <- request.asScala) {
