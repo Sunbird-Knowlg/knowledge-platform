@@ -26,12 +26,12 @@ public class CategoryCacheHandler implements ICacheHandler {
         }
 	}
 
-	public Map<String, Object> getHierarchy(String objectKey) {
+	private Map<String, Object> getHierarchy(String objectKey) {
 		//TODO: Get the framework hierarchy from Hierarchy Store
 		return new HashMap<String, Object>();
 	}
 
-	public void refreshCache(String objectKey, String cacheKey, Map<String, Object> hierarchy, List<String> result) {
+	private void refreshCache(String objectKey, String cacheKey, Map<String, Object> hierarchy, List<String> result) {
 		try {
 			if (MapUtils.isNotEmpty(hierarchy)) {
 				List<Map<String, Object>> categories = (List<Map<String, Object>>) hierarchy.get("categories");
@@ -53,11 +53,11 @@ public class CategoryCacheHandler implements ICacheHandler {
 		}
 	}
 
-	public static String getKey(String framework, String category) {
-		return "cat_" + framework + category;
+	private static String getKey(String framework, String category) {
+		return StringUtils.isNotBlank(framework) && StringUtils.isNotBlank(category)? ("cat_" + framework + category):"";
 	}
 
-	public static List<String> getTerms(Map<String, Object> category, String key) {
+	private static List<String> getTerms(Map<String, Object> category, String key) {
 		List<String> returnTerms = new ArrayList<String>();
 		if (null != category && !category.isEmpty()) {
 			List<Map<String, Object>> terms = (List<Map<String, Object>>) category.get(key);
