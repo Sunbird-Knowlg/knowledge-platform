@@ -48,5 +48,6 @@
     "version": "enable",
     "versionCheckMode": "ON",
     "frameworkCategories": ["board","medium","subject","gradeLevel"],
-    "externalStoreName": "content_store.content_data"
+    "externalStoreName": "content_store.content_data",
+    "validateLicense": true
 }

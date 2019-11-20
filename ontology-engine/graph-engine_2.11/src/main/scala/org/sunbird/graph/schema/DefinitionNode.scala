@@ -1,6 +1,7 @@
 package org.sunbird.graph.schema
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.common.dto.{Request, ResponseHandler}
@@ -16,7 +17,7 @@ object DefinitionNode {
     val version: String = request.getContext.get("version").asInstanceOf[String]
     val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
     val inputNode = definition.getNode(request.getRequest)
-    definition.validate(inputNode, "create")
+    definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
   }
 
     def getExternalProps(graphId: String, version: String, objectType: String): List[String] = {
