@@ -5,6 +5,7 @@ import akka.dispatch.Mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
 
+import org.sunbird.cache.impl.LicenseCache;
 import org.sunbird.common.Slug;
 
 import org.sunbird.common.dto.Request;
@@ -20,10 +21,7 @@ import scala.concurrent.Future;
 import utils.LicenseOperations;
 import utils.RequestUtils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LicenseActor extends BaseActor {
@@ -58,6 +56,16 @@ public class LicenseActor extends BaseActor {
                     public Response apply(Node node) {
                         Response response = ResponseHandler.OK();
                         response.put("node_id", node.getIdentifier());
+                        String responseCode = response.getResponseCode().name();
+                        if(responseCode.equals("OK")){
+                            LicenseCache licenseCache = new LicenseCache();
+                            List<String> licenseList = new ArrayList<>();
+                            licenseList = licenseCache.getList("license");
+                            if(!licenseList.contains((String)node.getMetadata().get("name"))){
+                                licenseList.add((String)node.getMetadata().get("name"));
+                                licenseCache.setList("license", licenseList,0);
+                            }
+                        }
                         return response;
                     }
                 }, getContext().dispatcher());
