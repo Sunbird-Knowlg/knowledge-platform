@@ -46,7 +46,7 @@ object DataNode {
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     updateRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatMap(f => f)
+            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         }).flatMap(f => f)
     }
 

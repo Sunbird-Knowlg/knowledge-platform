@@ -42,7 +42,7 @@ public class LicenseCache extends RedisCacheManager {
     @Override
     public void setList(String key, List<String> list, int ttl) {
         List<Object> objectList = new ArrayList<>(list);
-        setListData(key, "license", objectList);
+        setListData(key, object, objectList);
     }
 
     @Override

@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConversions._
 
 object DefinitionNode {
-
+  @throws[Exception]
   def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
     val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
     val version: String = request.getContext.get("version").asInstanceOf[String]
@@ -54,6 +54,7 @@ object DefinitionNode {
         val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String], request.getObjectType, request.getContext.get("version").asInstanceOf[String])
         definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
     }
+    @throws[Exception]
     def validate(identifier: String, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
@@ -67,7 +68,7 @@ object DefinitionNode {
 	        dbNode.setOutRelations(inputNode.getOutRelations)
 	        dbNode.setExternalData(inputNode.getExternalData)
             definition.validate(dbNode,"update")
-        }).flatMap(f => f)
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         validationResult
     }
 

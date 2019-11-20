@@ -2,7 +2,7 @@ package org.sunbird.graph.schema.validator
 
 import java.util.concurrent.CompletionException
 
-import org.apache.commons.collections4.{CollectionUtils, ListUtils}
+import org.apache.commons.collections4.{CollectionUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.LicenseCache
 import org.sunbird.common.Slug
@@ -22,19 +22,15 @@ trait LicenseValidator extends IDefinition {
     @throws[Exception]
     abstract override def validate(node: Node, operation: String = "create")(implicit ec: ExecutionContext): Future[Node] = {
         if (schemaValidator.getConfig.hasPath("validateLicense") && schemaValidator.getConfig.getBoolean("validateLicense")) {
-            node.getMetadata.getOrDefault("license",  setLicense(node))
-            val license: AnyRef = node.getMetadata.getOrDefault("license", setLicense(node))
-            license match {
-                case element: Future[Node] => element
-                case element: String => validateLicenseInCache(node, element) recoverWith { case e: CompletionException => throw e.getCause }
-            }
-
-            //            if (StringUtils.isNoneBlank(license)) {
-            //            } else
-            //                setLicense(node)
-        } else {
+            val license: String = node.getMetadata.getOrDefault("license", "").asInstanceOf[String]
+            if (StringUtils.isNotEmpty(license) && StringUtils.isNoneBlank(license)) {
+                if (node.getMetadata.containsKey("origin"))
+                    throw new ClientException("ERR_LICENSE_VALIDATION", "License can't be updated for content which is copied")
+                validateLicenseInCache(node, license) recoverWith { case e: CompletionException => throw e.getCause }
+            } else
+                setLicense(node) recoverWith { case e: CompletionException => throw e.getCause }
+        } else
             Future(node)
-        }
     }
 
     /**
@@ -49,18 +45,17 @@ trait LicenseValidator extends IDefinition {
         val licenseList = licenseCache.getList("license")
         if (CollectionUtils.isEmpty(licenseList) || (CollectionUtils.isNotEmpty(licenseList) && !licenseList.contains(license))) {
             val resultFuture: Future[Node] = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, Slug.makeSlug(license), false, new Request())
-            resultFuture recoverWith {
+            resultFuture.map(resultNode => {
+                licenseList.add(license)
+                licenseCache.setList("license", licenseList, 0)
+                Future(node)
+            }).flatMap(f => f) recoverWith {
                 case e: CompletionException => {
                     TelemetryManager.error("Exception occurred while fetching license", e.getCause)
                     if (e.getCause.isInstanceOf[ResourceNotFoundException])
                         throw new ClientException("ERR_INVALID_LICENSE", "Invalid license name for content with id: " + node.getIdentifier)
                     else
                         throw e.getCause
-                }
-                case _ => {
-                    licenseList.add(license)
-                    licenseCache.setList("license", licenseList, 0)
-                    Future(node)
                 }
             }
         } else
@@ -76,21 +71,17 @@ trait LicenseValidator extends IDefinition {
     private def setLicense(node: Node)(implicit ec: ExecutionContext): Future[Node] = {
         val channel: String = node.getMetadata.getOrDefault("channel", "in.ekstep").asInstanceOf[String]
         val resultFuture: Future[Node] = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, channel, false, new Request())
-        resultFuture recoverWith {
+        resultFuture.map(channel => {
+            //TODO: Get the default value from environment
+            node.getMetadata.put("license", channel.getMetadata.getOrDefault("defaultLicense", "defaultLicense123"))
+            Future(node)
+        }).flatMap(f => f) recoverWith {
             case e: CompletionException => {
                 TelemetryManager.error("Exception occurred while fetching channel", e.getCause)
-                if (e.getCause.isInstanceOf[ResourceNotFoundException]) {
-                    node.getMetadata.put("license", "defaultLicense")
-                    Future(node)
-                }
+                if (e.getCause.isInstanceOf[ResourceNotFoundException])
+                    throw new ClientException("ERR_INVALID_CHANNEL", "Invalid channel id " + channel + " is provided")
                 else
                     throw e.getCause
-            }
-            case _ => {
-                resultFuture.map(channel => {
-                    node.getMetadata.put("license", channel.getMetadata.get("name"))
-                })
-                Future(node)
             }
         }
     }
