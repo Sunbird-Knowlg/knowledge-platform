@@ -47,11 +47,10 @@ public class LicenseActor extends BaseActor {
     private Future<Response> create(Request request) throws Exception {
         RequestUtils.restrictProperties(request);
         if (request.getRequest().containsKey("identifier")) {
-            throw new ClientException("ERR_CODE_SET_AS_IDENTIFIER", "code will be set as identifier");
+            throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier");
         }
-        if (request.getRequest().containsKey("code")) {
-            request.getRequest().put("code", Slug.makeSlug((String) request.getRequest().get("code")));
-            request.getRequest().put("identifier", request.getRequest().get("code"));
+        if (request.getRequest().containsKey("name")) {
+            request.getRequest().put("identifier", Slug.makeSlug((String) request.getRequest().get("name")));
         }
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {

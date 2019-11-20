@@ -4,6 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
+import org.sunbird.telemetry.logger.TelemetryManager
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
@@ -13,13 +14,13 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
-    val objectType = "content"
+    val objectType = "Content"
     val version = "1.0"
 
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType)
@@ -49,12 +50,30 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def update(identifier:String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse(objectType, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType)
         contentRequest.getContext.put("identifier",identifier);
         getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
+    }
+
+    def addHierarchy() = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        val contentRequest = getRequest(body, headers, "addHierarchy")
+        setRequestContext(contentRequest, version, objectType)
+        getResult(ApiId.ADD_HIERARCHY, contentActor, contentRequest)
+    }
+
+    def removeHierarchy() = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        val contentRequest = getRequest(body, headers, "removeHierarchy")
+        setRequestContext(contentRequest, version, objectType)
+        getResult(ApiId.REMOVE_HIERARCHY, contentActor, contentRequest)
     }
 
 }
