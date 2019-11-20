@@ -51,6 +51,15 @@ public abstract class RedisCacheManager implements ICacheManager {
         return null;
     }
 
+    protected void setListData(String cacheKey, String objectKey, List<Object> values) {
+        try {
+            RedisCacheUtil.saveList(cacheKey, values);
+        } catch (Exception e) {
+            TelemetryManager.error("Exception Occurred While  Fetching Data For Key : " + cacheKey + " | Exception is : ", e);
+            throw e;
+        }
+    }
+
     @Override
     public Object getObject(String key) {
         return null;

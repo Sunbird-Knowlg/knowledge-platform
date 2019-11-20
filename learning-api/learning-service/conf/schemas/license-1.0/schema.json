@@ -5,16 +5,12 @@
     "type": "object",
     "required": [
         "name",
-        "code",
         "url"
     ],
     "properties": {
         "name": {
             "type": "string",
             "minLength": 5
-        },
-        "code": {
-            "type": "string"
         },
         "status": {
             "type": "string",
