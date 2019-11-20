@@ -22,7 +22,7 @@ trait LicenseValidator extends IDefinition {
     @throws[Exception]
     abstract override def validate(node: Node, operation: String = "create")(implicit ec: ExecutionContext): Future[Node] = {
         if (schemaValidator.getConfig.hasPath("validateLicense") && schemaValidator.getConfig.getBoolean("validateLicense")) {
-            node.getMetadata.computeIfAbsent("license", key => setLicense(node)))
+            node.getMetadata.getOrDefault("license",  setLicense(node))
             val license: AnyRef = node.getMetadata.getOrDefault("license", setLicense(node))
             license match {
                 case element: Future[Node] => element
