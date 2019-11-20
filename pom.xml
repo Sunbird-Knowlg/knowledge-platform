@@ -23,7 +23,8 @@
 		<module>platform-core</module>
 		<module>ontology-engine</module>
 		<module>learning-api</module>
-    </modules>
+		<module>platform-modules</module>
+	</modules>
 	<dependencies>
 	</dependencies>
 	<build>

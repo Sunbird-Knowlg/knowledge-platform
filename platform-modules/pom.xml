@@ -8,16 +8,10 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>platform-core</artifactId>
+    <artifactId>platform-modules</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>platform-common</module>
-        <module>platform-telemetry</module>
-        <module>actor-core</module>
-        <module>schema-validator</module>
-        <module>platform-cache</module>
-        <module>cassandra-connector</module>
-        <module>unit-test</module>
+        <module>cloud-storage-util</module>
     </modules>
 
     <dependencies>
