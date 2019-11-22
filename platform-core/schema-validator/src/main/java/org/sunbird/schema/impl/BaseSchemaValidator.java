@@ -3,6 +3,8 @@ package org.sunbird.schema.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.typesafe.config.Config;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonSchemaReader;
@@ -22,11 +24,7 @@ import java.io.InputStream;
 
 import java.io.StringReader;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseSchemaValidator implements ISchemaValidator {
@@ -71,6 +69,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     public ValidationResult getStructuredData(Map<String, Object> input) {
+        input = cleanEmptyKeys(input);
         Map<String, Object> relations = getRelations(input);
         Map<String, Object> externalData = getExternalProps(input);
         return new ValidationResult(input, relations, externalData);
@@ -83,6 +82,25 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         Map<String, Object> externalData = getExternalProps(dataMap);
         Map<String, Object> relations = getRelations(dataMap);
         return new ValidationResult(messages, dataMap, relations, externalData);
+    }
+
+    private Map<String, Object> cleanEmptyKeys(Map<String, Object> input) {
+        return input.entrySet().stream().filter(entry -> {
+            Object value = entry.getValue();
+            if(value instanceof String) {
+                return StringUtils.isNotBlank((String) value);
+            } else if (value instanceof List) {
+                return CollectionUtils.isNotEmpty((List) value);
+            } else if (value instanceof String[]) {
+                return CollectionUtils.isNotEmpty(Arrays.asList((String[]) value));
+            } else if(value instanceof Map[]) {
+                return CollectionUtils.isNotEmpty(Arrays.asList((Map[])value));
+            } else if (value instanceof Map) {
+                return MapUtils.isNotEmpty((Map) value);
+            } else {
+                return true;
+            }
+        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private List<String> validate(StringReader input) {
