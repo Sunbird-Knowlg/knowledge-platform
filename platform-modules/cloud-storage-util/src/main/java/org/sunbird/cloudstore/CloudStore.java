@@ -13,7 +13,9 @@ import scala.Option;
 import scala.collection.immutable.List;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
-
+/**
+ * Utility Class for Cloud Storage Operations.
+ */
 import java.io.File;
 
 public class CloudStore {
@@ -36,10 +38,18 @@ public class CloudStore {
 		}
 	}
 
+	/**
+	 * This Method Returns Storage Service Instance
+	 * @return BaseStorageService
+	 */
 	public static BaseStorageService getCloudStoreService() {
 		return storageService;
 	}
 
+	/**
+	 * This Method Returns Storage Container Name.
+	 * @return String
+	 */
 	public static String getContainerName() {
 		if(StringUtils.equalsIgnoreCase(cloudStoreType, "azure")) {
 			return Platform.config.getString("azure_storage_container");
@@ -50,6 +60,14 @@ public class CloudStore {
 		}
 	}
 
+	/**
+	 * This Method Upload File To Given Folder Within Cloud Storage Container
+	 * @param folderName
+	 * @param file
+	 * @param slugFile
+	 * @return String[]
+	 * @throws Exception
+	 */
 	public static String[] uploadFile(String folderName, File file, boolean slugFile) throws Exception {
 		if (BooleanUtils.isTrue(slugFile))
 			file = Slug.createSlugFile(file);
@@ -60,6 +78,13 @@ public class CloudStore {
 		return new String[] { objectKey, url};
 	}
 
+	/**
+	 * This Method Upload Folder To Given Folder Within Cloud Storage Container
+	 * @param folderName
+	 * @param directory
+	 * @param slugFile
+	 * @return String[]
+	 */
 	public static String[] uploadDirectory(String folderName, File directory, boolean slugFile) {
 		File file = directory;
 		if (BooleanUtils.isTrue(slugFile))
@@ -71,7 +96,14 @@ public class CloudStore {
 		return new String[] { objectKey, url };
 	}
 
-
+	/**
+	 *
+	 * @param folderName
+	 * @param directory
+	 * @param slugFile
+	 * @param context
+	 * @return Future<List<String>>
+	 */
 	public static Future<List<String>> uploadH5pDirectory(String folderName, File directory, boolean slugFile,
 	                                                      ExecutionContext context) {
 		File file = directory;
@@ -83,6 +115,12 @@ public class CloudStore {
 				.empty(), Option.empty(), 1, context);
 	}
 
+	/**
+	 * This Method Returns Object Size
+	 * @param key
+	 * @return double
+	 * @throws Exception
+	 */
 	public static double getObjectSize(String key) throws Exception {
 		String container = getContainerName();
 		Model.Blob blob = null;
@@ -90,17 +128,33 @@ public class CloudStore {
 		return blob.contentLength();
 	}
 
+	/**
+	 * This Method Copy Data From One Location To Another Location
+	 * @param sourcePrefix
+	 * @param destinationPrefix
+	 */
 	public static void copyObjectsByPrefix(String sourcePrefix, String destinationPrefix) {
 		String container = getContainerName();
 		storageService.copyObjects(container, sourcePrefix, container, destinationPrefix, Option.apply(true));
 	}
 
+	/**
+	 *
+	 * @param prefix
+	 * @param isDirectory
+	 * @return String
+	 */
 	public static String getURI(String prefix, Option<Object> isDirectory) {
 		String container = getContainerName();
 		return storageService.getUri(container, prefix, isDirectory);
 	}
 
-
+	/**
+	 *
+	 * @param key
+	 * @param isDirectory
+	 * @throws Exception
+	 */
 	public static void deleteFile(String key, boolean isDirectory) throws Exception {
 		String container = getContainerName();
 		storageService.deleteObject(container, key, Option.apply(isDirectory));

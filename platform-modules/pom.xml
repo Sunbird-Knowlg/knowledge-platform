@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>cloud-storage-util</module>
+        <module>url-manager</module>
     </modules>
 
     <dependencies>
