@@ -1,8 +1,6 @@
 package org.sunbird.cache.impl.handler;
 
-import org.sunbird.cache.common.CacheHandlerOperation;
 import org.sunbird.cache.handler.ICacheHandler;
-import org.sunbird.cache.util.RedisCacheUtil;
 
 
 public class LicenseCacheHandler implements ICacheHandler {
@@ -12,6 +10,10 @@ public class LicenseCacheHandler implements ICacheHandler {
         switch (operation.toLowerCase()) {
             case "READ_LIST" : {
                 System.out.println("Handling read list operation failure");
+                break;
+            }
+            case "READ_STRING" : {
+                System.out.println("Handling read string operation failure");
                 break;
             }
             default: {

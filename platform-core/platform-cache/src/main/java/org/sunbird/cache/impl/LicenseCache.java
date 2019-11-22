@@ -1,9 +1,10 @@
 package org.sunbird.cache.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.sunbird.cache.impl.handler.CategoryCacheHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.sunbird.cache.impl.handler.LicenseCacheHandler;
 import org.sunbird.cache.mgr.RedisCacheManager;
+import org.sunbird.telemetry.logger.TelemetryManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 public class LicenseCache extends RedisCacheManager {
     private static String object = "license";
 
-    public LicenseCache(){
+    public LicenseCache() {
         handler = new LicenseCacheHandler();
     }
 
@@ -22,18 +23,21 @@ public class LicenseCache extends RedisCacheManager {
 
     @Override
     public String getString(String key) {
-        return null;
+        return getStringData(key, object);
     }
 
     @Override
     public void setString(String key, String data, int ttl) {
-
+        if (StringUtils.isNotBlank(key) || StringUtils.isNotBlank(data))
+            setStringData(key, object, data);
+        else
+            TelemetryManager.error("Failed to save data into cache for key: " + key);
     }
 
     @Override
     public List<String> getList(String key) {
         List<String> valueList = getListData(key, object);
-        if(CollectionUtils.isNotEmpty(valueList))
+        if (CollectionUtils.isNotEmpty(valueList))
             return valueList;
         else
             return new ArrayList<>();

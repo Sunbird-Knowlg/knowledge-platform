@@ -1,5 +1,7 @@
 package org.sunbird.graph.schema.validator
 
+import java.util.concurrent.CompletionException
+
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
@@ -38,7 +40,7 @@ trait RelationValidator extends IDefinition {
                 node
             }).map(node => {
                 super.validate(node, operation)
-            }).flatMap(f => f)
+            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         } else {
             super.validate(node, operation)
         }
