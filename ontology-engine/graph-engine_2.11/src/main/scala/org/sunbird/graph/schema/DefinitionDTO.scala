@@ -22,7 +22,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         node.setGraphId(graphId)
         node.setNodeType(SystemNodeTypes.DATA_NODE.name)
         node.setObjectType(objectType)
-        if (MapUtils.isNotEmpty(input)) node.setMetadata(input) else node.setMetadata(new util.HashMap[String, AnyRef]())
+        if (MapUtils.isNotEmpty(input)) node.setMetadata(result.getMetadata) else node.setMetadata(new util.HashMap[String, AnyRef]())
         if (StringUtils.isBlank(node.getIdentifier)) node.setIdentifier(Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp))
         setRelations(node, result.getRelations)
         if (MapUtils.isNotEmpty(result.getExternalData)) node.setExternalData(result.getExternalData) else node.setExternalData(new util.HashMap[String, AnyRef]())

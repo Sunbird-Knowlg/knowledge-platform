@@ -1,8 +1,10 @@
 package org.sunbird.graph.service.operation;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
+import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.MiddlewareException;
@@ -21,8 +23,10 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 public class NodeAsyncOperations {
 
@@ -44,7 +48,7 @@ public class NodeAsyncOperations {
 
         Map<String, Object> parameterMap = new HashMap<String, Object>();
         parameterMap.put(GraphDACParams.graphId.name(), graphId);
-        parameterMap.put(GraphDACParams.node.name(), node);
+        parameterMap.put(GraphDACParams.node.name(), setPrimitiveData(node));
         NodeQueryGenerationUtil.generateCreateNodeCypherQuery(parameterMap);
         Map<String, Object> queryMap = (Map<String, Object>) parameterMap.get(GraphDACParams.queryStatementMap.name());
         Map<String, Object> entry = (Map<String, Object>) queryMap.entrySet().stream().findFirst().get().getValue();
@@ -97,7 +101,7 @@ public class NodeAsyncOperations {
 
         Map<String, Object> parameterMap = new HashMap<String, Object>();
         parameterMap.put(GraphDACParams.graphId.name(), graphId);
-        parameterMap.put(GraphDACParams.node.name(), node);
+        parameterMap.put(GraphDACParams.node.name(), setPrimitiveData(node));
         parameterMap.put(GraphDACParams.request.name(), request);
         NodeQueryGenerationUtil.generateUpsertNodeCypherQuery(parameterMap);
         Map<String, Object> queryMap = (Map<String, Object>) parameterMap.get(GraphDACParams.queryStatementMap.name());
@@ -130,6 +134,31 @@ public class NodeAsyncOperations {
                 throw e;
             }
         }
+    }
+
+    private static Node setPrimitiveData(Node node) {
+        Map<String, Object> metadata = node.getMetadata();
+        metadata.entrySet().stream()
+                .map(entry -> {
+                    Object value = entry.getValue();
+                    try {
+                        if(value instanceof Map) {
+                            value = JsonUtils.serialize(value);
+                        } else if (value instanceof List) {
+                            List listValue = (List) value;
+                            if(CollectionUtils.isNotEmpty(listValue) && listValue.get(0) instanceof Map) {
+                                value = JsonUtils.serialize(value);
+                            }
+                        }
+                        entry.setValue(value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    return entry;
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return node;
     }
 
 

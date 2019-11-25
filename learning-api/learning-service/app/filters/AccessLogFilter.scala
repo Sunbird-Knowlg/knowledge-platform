@@ -11,7 +11,7 @@ import play.core.server.akkahttp.AkkaHeadersWrapper
 import scala.concurrent.ExecutionContext
 import scala.collection.JavaConverters._
 
-class AccessLog @Inject()(implicit ec: ExecutionContext) extends EssentialFilter with Logging {
+class AccessLogFilter @Inject()(implicit ec: ExecutionContext) extends EssentialFilter with Logging {
     def apply(nextFilter: EssentialAction) = new EssentialAction {
       def apply(requestHeader: RequestHeader) = {
 
