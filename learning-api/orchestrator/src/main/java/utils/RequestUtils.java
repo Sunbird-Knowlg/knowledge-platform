@@ -17,8 +17,9 @@ public class RequestUtils {
         String graphId = (String) request.getContext().get("graph_id");
         String version = (String) request.getContext().get("version");
         String objectType = (String) request.getContext().get("objectType");
-        String operation = request.getOperation().toLowerCase().replace(objectType, "");
-        List<String> restrictedProps = JavaConversions.seqAsJavaList(DefinitionNode.getRestrictedProperties(graphId, version, objectType, operation));
+        String schemaName = (String) request.getContext().get("schemaName");
+        String operation = request.getOperation().toLowerCase().replace(objectType.toLowerCase(), "");
+        List<String> restrictedProps = JavaConversions.seqAsJavaList(DefinitionNode.getRestrictedProperties(graphId, version, operation, schemaName));
         if (restrictedProps.stream().anyMatch(prop -> request.getRequest().containsKey(prop)))
             throw new ClientException("ERROR_RESTRICTED_PROP", "Properties in list " + restrictedProps + " are not allowed in request");
     }

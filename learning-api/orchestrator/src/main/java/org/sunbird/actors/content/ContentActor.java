@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 
 public class ContentActor extends BaseActor {
 
+    private static final String SCHEMA_NAME = "content";
+
     public Future<Response> onReceive(Request request) throws Throwable {
         String operation = request.getOperation();
         switch(operation) {
@@ -41,6 +43,7 @@ public class ContentActor extends BaseActor {
 
     private Future<Response> create(Request request) throws Exception {
         populateDefaultersForCreation(request);
+        request.getContext().put("schemaName", SCHEMA_NAME);
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
@@ -55,6 +58,7 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> update(Request request) throws Exception {
+        request.getContext().put("schemaName", SCHEMA_NAME);
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
@@ -69,6 +73,7 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> read(Request request) throws Exception {
+        request.getContext().put("schemaName", SCHEMA_NAME);
         List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
                 .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
         request.getRequest().put("fields", fields);
@@ -122,6 +127,7 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> partialHierarchy(Request request) {
+        request.getContext().put("schemaName", SCHEMA_NAME);
         String rootId = (String) request.get("rootId");
         String unitId = (String) request.get("unitId");
         List<String> leafNodes = (List<String>) request.get("leafNodes");
@@ -145,19 +151,4 @@ public class ContentActor extends BaseActor {
             return Futures.successful(response);
         }
     }
-
-/*
-
-        return DataNode.partialHierarchy(request, getContext().dispatcher())
-                .map(new Mapper<Node, Response>() {
-                    @Override
-                    public Response apply(Node node) {
-                        Response response = ResponseHandler.OK();
-                        response.put("node_id", node.getIdentifier());
-                        response.put("identifier", node.getIdentifier());
-                        response.put("versionKey", node.getMetadata().get("versionKey"));
-                        return response;
-                    }
-                }, getContext().dispatcher());
-    }*/
 }

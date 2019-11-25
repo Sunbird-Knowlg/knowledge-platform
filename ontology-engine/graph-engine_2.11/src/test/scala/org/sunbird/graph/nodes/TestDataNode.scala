@@ -1,7 +1,9 @@
 package org.sunbird.graph.nodes
 
 import java.util
+import java.util.concurrent.CompletionException
 
+import org.scalatest.concurrent.ScalaFutures
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.graph.BaseSpec
@@ -18,13 +20,14 @@ class TestDataNode extends BaseSpec {
             put("graph_id", "domain")
             put("version" , "1.0")
             put("objectType" , "Content")
+            put("schemaName", "content")
         }}
     }
-
     "createNode" should "create a node successfully" in {
         val request = new Request()
         request.setObjectType("Content")
         request.setContext(getContextMap())
+
         request.put("code", "test")
         request.put("name", "testResource")
         request.put("mimeType", "application/pdf")
@@ -65,6 +68,7 @@ class TestDataNode extends BaseSpec {
             print(node)
             assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
             assert(!node.getOutRelations.isEmpty)
+            assert(node.getOutRelations.get(0).getEndNodeId.equalsIgnoreCase("Num:C3:SC2"))
         }}
     }
 
@@ -86,7 +90,7 @@ class TestDataNode extends BaseSpec {
     }
 
 
-    "createNode with invalid relation" should "throw resource not found exception" ignore  {
+    "createNode with invalid relation" should "throw resource not found exception" in  {
         val request = new Request()
         request.setObjectType("Content")
         request.setContext(getContextMap())
@@ -102,14 +106,12 @@ class TestDataNode extends BaseSpec {
             }})
         }})
 
+        recoverToSucceededIf[CompletionException](DataNode.create(request))
+/*
         val future: Future[Node] = DataNode.create(request)
-        val caught = intercept[ResourceNotFoundException] {
-            future onComplete {
-                case Failure(e) => throw e;
-            }
-            Await.result(future, 10 second)
-        }
-        assert(404 == caught.getResponseCode.code())
+        ScalaFutures.whenReady(future.failed) {
+            e => assert(e.isInstanceOf[ResourceNotFoundException])
+        }*/
     }
 
 }

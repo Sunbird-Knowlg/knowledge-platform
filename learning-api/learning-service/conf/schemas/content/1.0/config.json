@@ -1,8 +1,22 @@
 {
-    "externalProperties": {
-        "body": {
-            "type": "string"
-        }
+    "objectType": "Content",
+    "external": {
+        "storeName": "content_store.content_data",
+        "properties": {
+            "body": {
+                "type": "blob"
+            },
+            "oldBody": {
+                "type": "blob"
+            },
+            "stageIcons": {
+                "type": "blob"
+            },
+            "screenshots": {
+                "type": "blob"
+            }
+        },
+        "primaryKey": ["content_id"]
     },
     "relations": {
         "concepts": {
@@ -38,6 +52,5 @@
     },
     "version": "enable",
     "versionCheckMode": "ON",
-    "frameworkCategories": ["board","medium","subject","gradeLevel"],
-    "externalStoreName": "content_store.content_data"
+    "frameworkCategories": ["board","medium","subject","gradeLevel"]
 }

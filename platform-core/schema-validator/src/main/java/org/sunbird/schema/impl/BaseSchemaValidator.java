@@ -22,6 +22,7 @@ import java.io.InputStream;
 
 import java.io.StringReader;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,10 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
 
     }
 
+    public BaseSchemaValidator() {
+
+    }
+
     public abstract JsonSchema resolveSchema(URI id);
 
     /**
@@ -69,6 +74,13 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
             return reader.read();
         }
     }
+
+    protected JsonSchema readSchema(Path path) {
+        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(path)) {
+            return reader.read();
+        }
+    }
+
 
     public ValidationResult getStructuredData(Map<String, Object> input) {
         Map<String, Object> relations = getRelations(input);
@@ -104,8 +116,8 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
 
     private Map<String, Object> getExternalProps(Map<String, Object> input) {
         Map<String, Object> externalData = new HashMap<>();
-        if (config != null && config.hasPath("externalProperties")) {
-            Set<String> extProps = config.getObject("externalProperties").keySet();
+        if (config != null && config.hasPath("external.properties")) {
+            Set<String> extProps = config.getObject("external.properties").keySet();
             externalData = input.entrySet().stream().filter(f -> extProps.contains(f.getKey())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             input.keySet().removeAll(extProps);
         }

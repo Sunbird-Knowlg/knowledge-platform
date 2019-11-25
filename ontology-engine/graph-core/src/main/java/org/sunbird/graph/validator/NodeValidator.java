@@ -56,14 +56,15 @@ public class NodeValidator {
      * @param identifiers
      * @return List<Node>
      */
-    private static Future<List<Node>> getDataNodes(String graphId, List<String> identifiers) {
+    public static Future<List<Node>> getDataNodes(String graphId, List<String> identifiers) {
         SearchCriteria searchCriteria = new SearchCriteria();
         MetadataCriterion mc = null;
         if (identifiers.size() == 1) {
             mc = MetadataCriterion
                     .create(Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_EQUAL, identifiers.get(0))));
         } else {
-            mc = MetadataCriterion.create(Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, identifiers)));
+            mc = MetadataCriterion.create(Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, identifiers),
+                    new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")));
         }
         searchCriteria.addMetadata(mc);
         searchCriteria.setCountQuery(false);

@@ -1,7 +1,10 @@
 package org.sunbird.schema.impl;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
+import org.sunbird.common.Platform;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -12,7 +15,11 @@ import java.nio.file.Paths;
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
-    private String basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
+    private String basePath = Platform.config.getString("schema.base_path");//"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
+
+    public JsonSchemaValidator(){
+        super();
+    }
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
@@ -21,17 +28,43 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
         loadConfig();
     }
 
+    public JsonSchemaValidator(String name, String version, String configfallback) throws Exception {
+        super(name, version);
+        loadSchema();
+        loadConfig(name, version, configfallback);
+    }
+
     private void loadSchema() throws Exception {
         System.out.println("Schema path: " + basePath + "schema.json");
-        InputStream stream = new URL( basePath + "schema.json").openStream();
-        this.schema = readSchema(stream);
+        if(basePath.startsWith("http")){
+            InputStream stream = new URL( basePath + "schema.json").openStream();
+            this.schema = readSchema(stream);
+        }else {
+            Path schemaPath = Paths.get(getClass().getClassLoader().getResource( basePath + "schema.json").toURI());
+            this.schema = readSchema(schemaPath);
+        }
     }
 
     private void loadConfig() throws Exception {
 //        URI uri = getClass().getClassLoader().getResource( basePath + "config.json").toURI();
         System.out.println("Config path: " + basePath + "config.json");
-        this.config = ConfigFactory.parseURL(new URL( basePath + "config.json"));
+        if(basePath.startsWith("http")){
+            this.config = ConfigFactory.parseURL(new URL( basePath + "config.json"));
+        } else {
+            Path configPath = Paths.get(getClass().getClassLoader().getResource( basePath + "config.json").toURI());
+            this.config = ConfigFactory.parseFile(configPath.toFile());
+        }
 
+    }
+
+    private void loadConfig(String name, String version, String fallbackPath) throws Exception {
+        if(StringUtils.isEmpty(fallbackPath))
+            loadConfig();
+        else {
+            Config fallbackConfig = ConfigFactory.parseURL(new URL(basePath + fallbackPath.toLowerCase() + "/" + version + "/" +  "config.json"));
+            basePath = basePath + name.toLowerCase() + "/" + version + "/";
+            this.config = ConfigFactory.parseURL(new URL( basePath + "config.json")).withFallback(fallbackConfig);
+        }
     }
 
 

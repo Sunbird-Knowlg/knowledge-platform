@@ -1,4 +1,5 @@
 {
+  "objectType": "License",
   "version": "disable",
   "versionCheckMode": "OFF",
   "frameworkCategories": [],
@@ -7,7 +8,7 @@
       "status"
     ],
     "update": [
-      "status", "identifier", "code"
+      "status", "identifier", "name"
     ]
   }
 }

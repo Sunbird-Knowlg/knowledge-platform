@@ -1,0 +1,7 @@
+{
+  "$id": "collection-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Collection",
+  "type": "object",
+  "$ref" : "content-schema.json"
+}

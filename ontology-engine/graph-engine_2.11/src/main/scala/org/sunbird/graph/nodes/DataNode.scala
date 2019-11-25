@@ -5,9 +5,7 @@ import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-
 import org.sunbird.common.Platform
-
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -53,9 +51,10 @@ object DataNode {
     @throws[Exception]
     def read(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val resultNode: Future[Node] = DefinitionNode.getNode(request)
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         resultNode.map(node => {
             val fields: List[String] = request.get("fields").asInstanceOf[util.ArrayList[String]].toList
-            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getObjectType)
+            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schemaName)
             val finalNodeFuture: Future[Node] = if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
@@ -66,6 +65,18 @@ object DataNode {
             else
                 finalNodeFuture
         }).flatMap(f => f)
+    }
+
+    def partialHierarchy(request: Request)(implicit ec: ExecutionContext) : Future[Node] = {
+        val rootId: String = request.get("rootId").asInstanceOf[String]
+        val unitId: String = request.get("unitId").asInstanceOf[String]
+        val leafNodes: List[String] = request.get("leafNodes").asInstanceOf[util.List[String]].toList
+
+        // get data Node - throws exception
+        // get data from cassandra - throws exception
+        // validate leafNodes for Live - Not Live throws Client error
+        // partial update hierarchy
+        null
     }
 
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
