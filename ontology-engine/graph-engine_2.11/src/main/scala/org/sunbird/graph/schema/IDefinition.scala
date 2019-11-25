@@ -13,5 +13,6 @@ abstract class IDefinition(graphId: String, objectType: String, version: String 
     @throws[Exception]
     def validate(node: Node, operation: String = "update")(implicit ec: ExecutionContext): Future[Node]
 
+    @throws[Exception]
     def getNode(identifier: String, operation: String = "read", mode: String)(implicit ec: ExecutionContext): Future[Node]
 }

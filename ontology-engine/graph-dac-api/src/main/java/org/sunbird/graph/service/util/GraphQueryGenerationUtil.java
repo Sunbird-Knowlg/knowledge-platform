@@ -806,4 +806,32 @@ public class GraphQueryGenerationUtil extends BaseQueryGenerationUtil {
 		return query.toString();
 	}
 
+	public static String generateCreateBulkRelationsCypherQuery(String graphId) {
+		StringBuilder query = new StringBuilder();
+		query.append("UNWIND {data} ");
+		query.append("AS ROW WITH ROW.startNodeId AS startNode, ROW.endNodeId AS endNode, ROW.relation AS relation, ROW.relMetadata as relMetadata ");
+		query.append("MATCH(n:"+graphId+" {"+SystemProperties.IL_UNIQUE_ID.name()+":startNode}) ");
+		query.append("MATCH(m:"+graphId+" {"+SystemProperties.IL_UNIQUE_ID.name()+":endNode}) \n");
+		RelationTypes[] types = RelationTypes.values();
+		for (RelationTypes type : types) {
+			query.append("FOREACH (_ IN case WHEN relation='"+type.relationName()+"' then [1] else[] end| merge (n)-[r:"+type.relationName()+"]->(m) on create set r += relMetadata)\n");
+		}
+		query.append("RETURN COUNT(*) AS RESULT;");
+		return query.toString();
+	}
+
+	public static String generateDeleteBulkRelationsCypherQuery(String graphId) {
+		StringBuilder query = new StringBuilder();
+		query.append("UNWIND {data} ");
+		query.append("AS ROW WITH ROW.startNodeId AS startNode, ROW.endNodeId AS endNode, ROW.relation AS relation, ROW.relMetadata as relMetadata ");
+		query.append("MATCH(n:domain {"+SystemProperties.IL_UNIQUE_ID.name()+":startNode})-[r]->(m:domain {"+SystemProperties.IL_UNIQUE_ID.name()+":endNode})");
+		RelationTypes[] types = RelationTypes.values();
+		for (RelationTypes type : types) {
+			query.append("FOREACH (_ IN case WHEN relation='"+type.relationName()+"' then [1] else[] end| delete r\n" +
+					")\n");
+		}
+		query.append("RETURN COUNT(*) AS RESULT;");
+		return query.toString();
+	}
+
 }

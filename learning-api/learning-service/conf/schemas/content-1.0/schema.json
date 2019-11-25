@@ -654,19 +654,16 @@
             "type": "string"
         },
         "lastSubmittedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "lastPublishedBy": {
             "type": "string"
         },
         "lastPublishedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "versionDate": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "origin": {
             "type": "string"
@@ -732,12 +729,10 @@
             "type": "number"
         },
         "me_lastUsedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "me_lastRemovedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "me_hierarchyLevel": {
             "type": "number"
@@ -767,8 +762,7 @@
             "type": "array"
         },
         "lastFlaggedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "tempData": {
             "type": "string"
@@ -833,8 +827,7 @@
             "type": "string"
         },
         "lastStatusChangedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "uploadError": {
             "type": "string"

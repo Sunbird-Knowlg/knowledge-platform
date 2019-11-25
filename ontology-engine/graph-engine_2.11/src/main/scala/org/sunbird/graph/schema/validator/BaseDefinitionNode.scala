@@ -41,13 +41,11 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
     override def getNode(input: java.util.Map[String, Object]): Node = {
         val result = schemaValidator.getStructuredData(input)
         val node = new Node(graphId, result.getMetadata)
-        // TODO: set SYS_NODE_TYPE, FUNC_OBJECT_TYPE
         node.setNodeType(SystemNodeTypes.DATA_NODE.name)
         node.setObjectType(objectType)
         node.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
         input.remove("identifier")
         setRelations(node, result.getRelations)
-        //new ProcessingNode(node, result.getExternalData)
         if (CollectionUtils.isNotEmpty(node.getInRelations)) node.setAddedRelations(node.getInRelations)
         if (CollectionUtils.isNotEmpty(node.getOutRelations)) node.setAddedRelations(node.getOutRelations)
         node.setExternalData(result.getExternalData)
@@ -66,21 +64,27 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
     }
 
 
-    private def setRelations(node: Node, relations: java.util.Map[String, AnyRef]): Unit = {
+    protected def setRelations(node: Node, relations: java.util.Map[String, AnyRef]): Unit = {
         if (MapUtils.isNotEmpty(relations)) {
-            def getRelations(schema: Map[String, AnyRef]): List[Relation] = {
+            def getRelations(schema: Map[String, AnyRef], direction:String): List[Relation] = {
                 relations.asScala.filterKeys(key => schema.keySet.contains(key))
                         .flatten(entry => {
                             val relSchema = schema.get(entry._1).get.asInstanceOf[java.util.Map[String, AnyRef]].asScala
                             val relData = entry._2.asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                             relData.asScala.map(r => {
-                                new Relation(node.getIdentifier, relSchema.get("type").get.asInstanceOf[String], r.get("identifier").asInstanceOf[String])
+                                val relation = {
+                                    if(StringUtils.equalsAnyIgnoreCase("out", direction))
+                                        new Relation(node.getIdentifier, relSchema.get("type").get.asInstanceOf[String], r.get("identifier").asInstanceOf[String])
+                                    else
+                                        new Relation(r.get("identifier").asInstanceOf[String], relSchema.get("type").get.asInstanceOf[String], node.getIdentifier)
+                                }
+                                relation
                             })
                         }).toList
             }
-            val inRelations = getRelations(inRelationsSchema).asJava
+            val inRelations = getRelations(inRelationsSchema,"in").asJava
             node.setInRelations(inRelations)
-            val outRelations = getRelations(outRelationsSchema).asJava
+            val outRelations = getRelations(outRelationsSchema,"out").asJava
             node.setOutRelations(outRelations)
         }
     }

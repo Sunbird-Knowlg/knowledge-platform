@@ -1,8 +1,10 @@
 package org.sunbird.graph.service.operation;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
+import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.MiddlewareException;
@@ -21,8 +23,10 @@ import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
 
 public class NodeAsyncOperations {
 
@@ -44,7 +48,7 @@ public class NodeAsyncOperations {
 
         Map<String, Object> parameterMap = new HashMap<String, Object>();
         parameterMap.put(GraphDACParams.graphId.name(), graphId);
-        parameterMap.put(GraphDACParams.node.name(), node);
+        parameterMap.put(GraphDACParams.node.name(), setPrimitiveData(node));
         NodeQueryGenerationUtil.generateCreateNodeCypherQuery(parameterMap);
         Map<String, Object> queryMap = (Map<String, Object>) parameterMap.get(GraphDACParams.queryStatementMap.name());
         Map<String, Object> entry = (Map<String, Object>) queryMap.entrySet().stream().findFirst().get().getValue();
@@ -63,6 +67,12 @@ public class NodeAsyncOperations {
                 if (StringUtils.isNotBlank(versionKey))
                     node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                 return node;
+            }).exceptionally(error -> {
+                        if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ClientException)
+                            throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + node.getIdentifier());
+                        else
+                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                    "Error! Something went wrong while creating node object. ", error.getCause());
             });
             return FutureConverters.toScala(cs);
         } catch (Throwable e) {
@@ -76,7 +86,6 @@ public class NodeAsyncOperations {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public static Future<Node> upsertNode(String graphId, Node node, Request request) {
         TelemetryManager.log("Applying the Consumer Authorization Check for Node Id: " + node.getIdentifier());
         setRequestContextToNode(node, request);
@@ -92,7 +101,7 @@ public class NodeAsyncOperations {
 
         Map<String, Object> parameterMap = new HashMap<String, Object>();
         parameterMap.put(GraphDACParams.graphId.name(), graphId);
-        parameterMap.put(GraphDACParams.node.name(), node);
+        parameterMap.put(GraphDACParams.node.name(), setPrimitiveData(node));
         parameterMap.put(GraphDACParams.request.name(), request);
         NodeQueryGenerationUtil.generateUpsertNodeCypherQuery(parameterMap);
         Map<String, Object> queryMap = (Map<String, Object>) parameterMap.get(GraphDACParams.queryStatementMap.name());
@@ -100,22 +109,22 @@ public class NodeAsyncOperations {
 
 
         try(Session session = driver.session()) {
-            CompletionStage<Node> cs = session.writeTransactionAsync(tx -> {
-                String statement = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
-                Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
-                return tx.runAsync(statement, statementParams);
-            })
-            .thenCompose(fn -> fn.singleAsync())
-            .thenApply(record -> {
-                org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
-                String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                node.setGraphId(graphId);
-                node.setIdentifier(identifier);
-                if (StringUtils.isNotBlank(versionKey))
-                    node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
-                return node;
-            });
+            String statement = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
+            Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
+            CompletionStage<Node> cs = session.runAsync(statement, statementParams).thenCompose(fn -> fn.singleAsync())
+                    .thenApply(record -> {
+                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                        String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
+                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                        node.setGraphId(graphId);
+                        node.setIdentifier(identifier);
+                        if (StringUtils.isNotBlank(versionKey))
+                            node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
+                        return node;
+                    }).exceptionally(error -> {
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
+                    });
             return FutureConverters.toScala(cs);
         } catch (Exception e) {
             if (!(e instanceof MiddlewareException)) {
@@ -125,6 +134,31 @@ public class NodeAsyncOperations {
                 throw e;
             }
         }
+    }
+
+    private static Node setPrimitiveData(Node node) {
+        Map<String, Object> metadata = node.getMetadata();
+        metadata.entrySet().stream()
+                .map(entry -> {
+                    Object value = entry.getValue();
+                    try {
+                        if(value instanceof Map) {
+                            value = JsonUtils.serialize(value);
+                        } else if (value instanceof List) {
+                            List listValue = (List) value;
+                            if(CollectionUtils.isNotEmpty(listValue) && listValue.get(0) instanceof Map) {
+                                value = JsonUtils.serialize(value);
+                            }
+                        }
+                        entry.setValue(value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    return entry;
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return node;
     }
 
 
