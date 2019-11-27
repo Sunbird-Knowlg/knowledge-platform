@@ -111,12 +111,11 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     private List<String> validate(StringReader input) {
-        List<String> messages = new ArrayList<>();
-        ProblemHandler handler = service.createProblemPrinter(s -> {messages.add(s);});
+        CustomProblemHandler handler = new CustomProblemHandler();
         try (JsonReader reader = service.createReader(input, schema, handler)) {
             reader.readValue();
+            return handler.getProblemMessages();
         }
-        return messages;
     }
 
     public String withDefaultValues(String data) {
