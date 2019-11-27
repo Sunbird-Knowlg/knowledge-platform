@@ -24,6 +24,7 @@ import java.io.InputStream;
 
 import java.io.StringReader;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,12 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
      */
     protected JsonSchema readSchema(InputStream stream) {
         try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(stream)) {
+            return reader.read();
+        }
+    }
+
+    protected JsonSchema readSchema(Path path) {
+        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(path)) {
             return reader.read();
         }
     }
