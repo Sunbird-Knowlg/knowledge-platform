@@ -59,7 +59,7 @@ class TestHierarchy extends BaseSpec {
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
-            val removeFuture = HierarchyManager.addLeafNodesToHierarchy(request)
+            val removeFuture = HierarchyManager.removeLeafNodesFromHierarchy(request)
             removeFuture.map(resp => {
                 assert(resp.getResponseCode.code() == 200)
             })

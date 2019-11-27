@@ -1,17 +1,13 @@
 package org.sunbird.graph.nodes
 
 import java.util
-import java.util.concurrent.CompletionException
 
-import org.scalatest.concurrent.ScalaFutures
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 
-import scala.concurrent.{Await, Future}
-import scala.util.Failure
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
 class TestDataNode extends BaseSpec {
 
@@ -106,7 +102,7 @@ class TestDataNode extends BaseSpec {
             }})
         }})
 
-        recoverToSucceededIf[CompletionException](DataNode.create(request))
+        recoverToSucceededIf[ResourceNotFoundException](DataNode.create(request))
     }
 
 }

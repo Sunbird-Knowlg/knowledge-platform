@@ -34,7 +34,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
         try {
             val session: Session = CassandraConnector.getSession
-            println("Cassandra Insert Query: "  + insertQuery)
             session.executeAsync(insertQuery).asScala.map( resultset => {
                 ResponseHandler.OK()
             })

@@ -1,4 +1,5 @@
 {
+  "objectType": "Content",
   "external": {
     "storeName": "hierarchy_store.content_hierarchy",
     "properties": {
@@ -7,5 +8,40 @@
       }
     },
     "primaryKey": ["identifier"]
-  }
+  },
+  "relations": {
+    "concepts": {
+      "type": "associatedTo",
+      "direction": "out",
+      "objects": ["Concept"]
+    },
+    "questions": {
+      "type": "associatedTo",
+      "direction": "out",
+      "objects": ["AssessmentItem"]
+    },
+    "children": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": ["Content", "ContentImage"]
+    },
+    "collections": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["Content", "ContentImage"]
+    },
+    "usedByContent": {
+      "type": "associatedTo",
+      "direction": "in",
+      "objects": ["Content"]
+    },
+    "usesContent": {
+      "type": "associatedTo",
+      "direction": "out",
+      "objects": ["Content"]
+    }
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"]
 }

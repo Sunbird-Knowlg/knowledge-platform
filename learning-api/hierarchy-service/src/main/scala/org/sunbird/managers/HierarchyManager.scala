@@ -30,7 +30,7 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, util.Arrays.asList("childNodes"))
+            val rootNodeMap =  NodeUtil.serialize(rootNode, util.Arrays.asList("childNodes"), schemaName)
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -67,7 +67,7 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, util.Arrays.asList("childNodes"))
+            val rootNodeMap =  NodeUtil.serialize(rootNode, util.Arrays.asList("childNodes"), schemaName)
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -165,7 +165,7 @@ object HierarchyManager {
 
     def convertNodeToMap(leafNodes: List[Node]): util.List[util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
-            val nodeMap = NodeUtil.serialize(node, null)
+            val nodeMap = NodeUtil.serialize(node, null, schemaName)
             nodeMap.remove("collections")
             nodeMap.remove("children")
             nodeMap.remove("usedByContent")
@@ -210,7 +210,7 @@ object HierarchyManager {
         DataNode.update(req)
     }
 
-    def removeLeafNodes(unitId: String, hierarchy: Map[String, AnyRef], request: Request)(implicit ec: ExecutionContext) = {
+    def removeLeafNodes(unitId: String, hierarchy: util.Map[String, AnyRef], request: Request)(implicit ec: ExecutionContext) = {
         val children =  hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
         val leafNodeIds = request.get("leafNodes").asInstanceOf[java.util.List[String]]
         val rootId = request.get("rootId").asInstanceOf[String]
