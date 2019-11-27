@@ -1,6 +1,7 @@
 package org.sunbird.graph.schema
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.common.dto.{Request, ResponseHandler}
@@ -20,7 +21,7 @@ object DefinitionNode {
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
       val inputNode = definition.getNode(request.getRequest)
-      definition.validate(inputNode, "create")
+      definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
   }
 
     def getExternalProps(graphId: String, version: String, schemaName: String): List[String] = {
@@ -59,6 +60,8 @@ object DefinitionNode {
             , schemaName, request.getContext.get("version").asInstanceOf[String])
         definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
     }
+
+    @throws[Exception]
     def validate(identifier: String, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
@@ -76,7 +79,7 @@ object DefinitionNode {
             if(!skipValidation)
                 definition.validate(dbNode,"update")
             else Future{dbNode}
-        }).flatMap(f => f)
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         validationResult
     }
 

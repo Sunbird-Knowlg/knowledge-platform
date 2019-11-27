@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseSchemaValidator implements ISchemaValidator {
@@ -84,7 +83,6 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         }
     }
 
-
     public ValidationResult getStructuredData(Map<String, Object> input) {
         input = cleanEmptyKeys(input);
         Map<String, Object> relations = getRelations(input);
@@ -121,12 +119,11 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     private List<String> validate(StringReader input) {
-        List<String> messages = new ArrayList<>();
-        ProblemHandler handler = service.createProblemPrinter(s -> {messages.add(s);});
+        CustomProblemHandler handler = new CustomProblemHandler();
         try (JsonReader reader = service.createReader(input, schema, handler)) {
             reader.readValue();
+            return handler.getProblemMessages();
         }
-        return messages;
     }
 
     public String withDefaultValues(String data) {

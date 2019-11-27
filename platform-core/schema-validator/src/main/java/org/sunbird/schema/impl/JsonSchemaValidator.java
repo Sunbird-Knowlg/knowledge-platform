@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
-    private String basePath = Platform.config.getString("schema.base_path");//"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/";
+    private String basePath = Platform.config.hasPath("schema.base_path") ? Platform.config.getString("schema.base_path") : "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local";
 
     public JsonSchemaValidator(){
         super();
@@ -46,7 +46,6 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
     }
 
     private void loadConfig() throws Exception {
-//        URI uri = getClass().getClassLoader().getResource( basePath + "config.json").toURI();
         System.out.println("Config path: " + basePath + "config.json");
         if(basePath.startsWith("http")){
             this.config = ConfigFactory.parseURL(new URL( basePath + "config.json"));
@@ -54,7 +53,6 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
             Path configPath = Paths.get(getClass().getClassLoader().getResource( basePath + "config.json").toURI());
             this.config = ConfigFactory.parseFile(configPath.toFile());
         }
-
     }
 
     private void loadConfig(String name, String version, String fallbackPath) throws Exception {
