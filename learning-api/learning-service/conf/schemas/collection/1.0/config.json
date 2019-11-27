@@ -43,5 +43,5 @@
   },
   "version": "enable",
   "versionCheckMode": "ON",
-  "frameworkCategories": ["board","medium","subject","gradeLevel"]
+  "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"]
 }
