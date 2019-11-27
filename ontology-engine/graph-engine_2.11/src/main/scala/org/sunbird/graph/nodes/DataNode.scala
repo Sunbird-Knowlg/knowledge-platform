@@ -46,7 +46,7 @@ object DataNode {
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     updateRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatMap(f => f)
+            }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
         }).flatMap(f => f)
     }
 
@@ -65,7 +65,7 @@ object DataNode {
                 finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f => f)
             else
                 finalNodeFuture
-        }).flatMap(f => f)
+        }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
     }
 
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
