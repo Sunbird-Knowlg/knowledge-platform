@@ -107,11 +107,6 @@ class TestDataNode extends BaseSpec {
         }})
 
         recoverToSucceededIf[CompletionException](DataNode.create(request))
-/*
-        val future: Future[Node] = DataNode.create(request)
-        ScalaFutures.whenReady(future.failed) {
-            e => assert(e.isInstanceOf[ResourceNotFoundException])
-        }*/
     }
 
 }

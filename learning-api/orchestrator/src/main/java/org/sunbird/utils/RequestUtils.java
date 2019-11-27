@@ -1,4 +1,4 @@
-package utils;
+package org.sunbird.utils;
 
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;

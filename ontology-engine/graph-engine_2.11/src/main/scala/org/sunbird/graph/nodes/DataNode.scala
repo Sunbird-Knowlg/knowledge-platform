@@ -1,17 +1,19 @@
 package org.sunbird.graph.nodes
 
 import java.util
+import java.util.Optional
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.ClientException
-import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.common.exception.{ClientException, ErrorCodes}
+import org.sunbird.graph.common.enums.SystemProperties
+import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.DefinitionNode
-import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOperations}
+import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOperations, SearchAsyncOperations}
 import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._
@@ -53,7 +55,7 @@ object DataNode {
         val resultNode: Future[Node] = DefinitionNode.getNode(request)
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         resultNode.map(node => {
-            val fields: List[String] = request.get("fields").asInstanceOf[util.ArrayList[String]].toList
+            val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.ArrayList[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schemaName)
             val finalNodeFuture: Future[Node] = if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
@@ -65,6 +67,30 @@ object DataNode {
             else
                 finalNodeFuture
         }).flatMap(f => f)
+    }
+
+
+    @throws[Exception]
+    def list(request: Request)(implicit ec: ExecutionContext): Future[util.List[Node]] = {
+        val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
+
+        if(null == identifiers || identifiers.isEmpty) {
+            throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "identifiers is mandatory")
+        } else {
+            val mc: MetadataCriterion = MetadataCriterion.create(new util.ArrayList[Filter](){{
+                if(identifiers.size() == 1)
+                    add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_EQUAL, identifiers.get(0)))
+                if(identifiers.size() > 1)
+                    add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, identifiers))
+                new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")
+            }})
+
+            val searchCriteria =  new SearchCriteria {{
+                addMetadata(mc)
+                setCountQuery(false)
+            }}
+            SearchAsyncOperations.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
+        }
     }
 
     def partialHierarchy(request: Request)(implicit ec: ExecutionContext) : Future[Node] = {

@@ -56,7 +56,7 @@ public class NodeValidator {
      * @param identifiers
      * @return List<Node>
      */
-    public static Future<List<Node>> getDataNodes(String graphId, List<String> identifiers) {
+    private static Future<List<Node>> getDataNodes(String graphId, List<String> identifiers) {
         SearchCriteria searchCriteria = new SearchCriteria();
         MetadataCriterion mc = null;
         if (identifiers.size() == 1) {

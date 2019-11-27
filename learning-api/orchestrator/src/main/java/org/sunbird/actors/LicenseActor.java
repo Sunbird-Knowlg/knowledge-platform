@@ -1,6 +1,5 @@
-package org.sunbird.actors.license;
+package org.sunbird.actors;
 
-import akka.dispatch.Futures;
 import akka.dispatch.Mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
@@ -10,18 +9,16 @@ import org.sunbird.common.Slug;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
-import org.sunbird.common.dto.ResponseParams;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
-import utils.LicenseOperations;
-import utils.RequestUtils;
+import org.sunbird.utils.LicenseOperations;
+import org.sunbird.utils.RequestUtils;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

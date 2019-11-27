@@ -1,7 +1,6 @@
 
 import com.google.inject.AbstractModule
-import org.sunbird.actors.content.ContentActor
-import org.sunbird.actors.license.LicenseActor
+import org.sunbird.actors.{ContentActor, LicenseActor}
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 

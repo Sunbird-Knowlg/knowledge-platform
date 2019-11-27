@@ -63,6 +63,7 @@ object DefinitionNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         val dbNodeFuture = definition.getNode(identifier, "update", null)
         val validationResult: Future[Node] = dbNodeFuture.map(dbNode => {
@@ -72,7 +73,9 @@ object DefinitionNode {
             dbNode.setInRelations(inputNode.getInRelations)
             dbNode.setOutRelations(inputNode.getOutRelations)
             dbNode.setExternalData(inputNode.getExternalData)
-            definition.validate(dbNode,"update")
+            if(!skipValidation)
+                definition.validate(dbNode,"update")
+            else Future{dbNode}
         }).flatMap(f => f)
         validationResult
     }

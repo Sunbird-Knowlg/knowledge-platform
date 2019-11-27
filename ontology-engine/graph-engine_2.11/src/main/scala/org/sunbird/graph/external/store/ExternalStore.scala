@@ -24,7 +24,8 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         insertQuery.value(primaryKey.get(0), identifier)
         request.remove("identifier")
         request.remove("last_updated_on")
-        insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
+        if(propsMapping.keySet.contains("last_updated_on"))
+            insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         for ((key, value) <- request.asScala) {
             if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
                 insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
@@ -33,6 +34,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
         try {
             val session: Session = CassandraConnector.getSession
+            println("Cassandra Insert Query: "  + insertQuery)
             session.executeAsync(insertQuery).asScala.map( resultset => {
                 ResponseHandler.OK()
             })

@@ -15,7 +15,7 @@ object ExternalPropsManager {
         val objectType: String = request.getObjectType
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
-        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(objectType, version)
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
         store.insert(request.getRequest, getPropsDataType(schemaName, version))
     }
@@ -24,7 +24,7 @@ object ExternalPropsManager {
         val objectType: String = request.getObjectType
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
-        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(objectType, version)
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
         store.read(request.get("identifier").asInstanceOf[String], fields, getPropsDataType(schemaName, version))
     }

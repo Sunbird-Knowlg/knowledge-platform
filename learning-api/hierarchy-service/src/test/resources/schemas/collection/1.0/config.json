@@ -1,0 +1,12 @@
+{
+  "objectType": "Content",
+  "external": {
+    "storeName": "hierarchy_store.content_hierarchy",
+    "properties": {
+      "hierarchy": {
+        "type": "string"
+      }
+    },
+    "primaryKey": ["identifier"]
+  }
+}
