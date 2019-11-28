@@ -5,6 +5,7 @@ import akka.dispatch.Mapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
+import org.sunbird.cache.util.RedisCacheUtil;
 import org.sunbird.common.ContentParams;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
@@ -88,11 +89,15 @@ public class ContentActor extends BaseActor {
 
     private static void populateDefaultersForCreation(Request request) {
         setDefaultsBasedOnMimeType(request, ContentParams.create.name());
-        validateLicense(request);
+        setDefaultLicense(request);
     }
 
-    private static void validateLicense(Request request) {
-        //TODO: for license validation
+    private static void setDefaultLicense(Request request) {
+        if(StringUtils.isEmpty((String)request.getRequest().get("license"))){
+            String defaultLicense = RedisCacheUtil.getString("channel_" + (String)request.getRequest().get("channel") + "_license");
+            if(StringUtils.isNoneEmpty(defaultLicense))
+                request.getRequest().put("license", defaultLicense);
+        }
     }
 
     private static void setDefaultsBasedOnMimeType(Request request, String operation) {
