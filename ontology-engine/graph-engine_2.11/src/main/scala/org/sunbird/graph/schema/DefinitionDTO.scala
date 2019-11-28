@@ -11,12 +11,13 @@ import org.sunbird.graph.schema.validator._
 
 import scala.collection.JavaConverters._
 
-class DefinitionDTO(graphId: String, objectType: String, version: String = "1.0") extends BaseDefinitionNode(graphId , objectType, version) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
+class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0") extends BaseDefinitionNode(graphId , schemaName, version) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
 
     def getOutRelationObjectTypes: List[String] = outRelationObjectTypes
 
     def getNode(identifier: String, input: java.util.Map[String, AnyRef], nodeType: String): Node = {
         val result = schemaValidator.getStructuredData(input)
+        val objectType = schemaValidator.getConfig.getString("objectType")
         val node = new Node(identifier, objectType, nodeType)
         node.setGraphId(graphId)
         node.setNodeType(SystemNodeTypes.DATA_NODE.name)
@@ -29,8 +30,8 @@ class DefinitionDTO(graphId: String, objectType: String, version: String = "1.0"
     }
 
     def getExternalProps(): List[String] = {
-        if (schemaValidator.getConfig.hasPath("externalProperties")) {
-            val propsSet = Set.empty ++ schemaValidator.getConfig.getObject("externalProperties").keySet().asScala
+        if (schemaValidator.getConfig.hasPath("external.properties")) {
+            val propsSet = Set.empty ++ schemaValidator.getConfig.getObject("external.properties").keySet().asScala
             (for (prop <- propsSet) yield prop) (collection.breakOut)
         }
         else

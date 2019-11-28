@@ -2,7 +2,7 @@ package org.sunbird.graph.external.store
 
 import java.sql.Timestamp
 import java.util
-import java.util.{Date, Map}
+import java.util.Date
 
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
@@ -18,15 +18,19 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 class ExternalStore(keySpace: String , table: String , primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
 
-    def insert(request: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Response] = {
+    def insert(request: util.Map[String, AnyRef], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
         val insertQuery: Insert = QueryBuilder.insertInto(keySpace, table)
         val identifier = request.get("identifier")
-        insertQuery.value("content_id", identifier)
+        insertQuery.value(primaryKey.get(0), identifier)
         request.remove("identifier")
         request.remove("last_updated_on")
-        insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
+        if(propsMapping.keySet.contains("last_updated_on"))
+            insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         for ((key, value) <- request.asScala) {
-            insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+            if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
+                insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+            else
+                insertQuery.value(key, value)
         }
         try {
             val session: Session = CassandraConnector.getSession
@@ -48,11 +52,16 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
       * @param ec
       * @return
       */
-    def read(identifier: String, extProps: List[String])(implicit ec: ExecutionContext): Future[Response] = {
+    def read(identifier: String, extProps: List[String], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
         val select = QueryBuilder.select()
-        extProps.foreach(prop => select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop))
+        extProps.foreach(prop => {
+            if("blob".equalsIgnoreCase(propsMapping.getOrElse(prop, "")))
+                select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop)
+            else
+                select.column(prop).as(prop)
+        })
         val selectQuery = select.from(keySpace, table)
-        val clause: Clause = QueryBuilder.eq("content_id", identifier)
+        val clause: Clause = QueryBuilder.eq(primaryKey.get(0), identifier)
         selectQuery.where.and(clause)
         try {
             val session: Session = CassandraConnector.getSession

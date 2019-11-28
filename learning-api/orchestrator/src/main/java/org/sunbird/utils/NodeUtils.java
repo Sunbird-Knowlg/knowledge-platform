@@ -23,14 +23,14 @@ public class NodeUtils {
      * @param fields
      * @return
      */
-    public static Map<String, Object> serialize(Node node, List<String> fields) {
+    public static Map<String, Object> serialize(Node node, List<String> fields, String schemaName) {
         Map<String, Object> metadataMap = node.getMetadata();
         metadataMap.put("identifier", node.getIdentifier());
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
-        List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", node.getObjectType()));
+        List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", schemaName));
         Map<String, Object> updatedMetadataMap = metadataMap.entrySet().stream().collect(Collectors.toMap(entry -> handleKeyNames(entry, fields), entry -> convertJsonProperties(entry, jsonProps)));
-        Map<String, Object> definitionMap = JavaConversions.mapAsJavaMap(DefinitionNode.getRelationDefinitionMap(node.getGraphId(), "1.0", node.getObjectType()));
+        Map<String, Object> definitionMap = JavaConversions.mapAsJavaMap(DefinitionNode.getRelationDefinitionMap(node.getGraphId(), "1.0", schemaName));
         getRelationMap(node, updatedMetadataMap, definitionMap);
         return updatedMetadataMap;
     }
