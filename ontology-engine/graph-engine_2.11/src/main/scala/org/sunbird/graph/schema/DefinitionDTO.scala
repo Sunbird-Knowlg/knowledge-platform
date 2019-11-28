@@ -80,6 +80,15 @@ class DefinitionDTO(graphId: String, objectType: String, version: String = "1.0"
             List()
     }
 
+    def getEdgeKey(): String = {
+        val flag = schemaValidator.getConfig.hasPath("edge.key")
+        val result: String = flag match {
+            case true => schemaValidator.getConfig.getString("edge.key")
+            case _ => ""
+        }
+        result
+    }
+
 
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {
         val relationMetadata = relation._2.asInstanceOf[java.util.HashMap[String, Object]]

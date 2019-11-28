@@ -4,6 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.cache.util.RedisCacheUtil
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, Relation}
 
@@ -73,6 +74,28 @@ object DefinitionNode {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         validationResult
     }
+
+	def postProcessor(request: Request, node: Node)(implicit ec: ExecutionContext): Node = {
+		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+		val version: String = request.getContext.get("version").asInstanceOf[String]
+		val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
+		val edgeKey = definition.getEdgeKey()
+		if (null != edgeKey && !edgeKey.isEmpty) {
+			val metadata = node.getMetadata
+			val cacheKey = "edge_" + request.getObjectType.toLowerCase()
+			val data = metadata.containsKey(edgeKey) match {
+				case true => List(metadata.get(cacheKey))
+				case _ => List()
+			}
+			if (!data.isEmpty) {
+				metadata.get("status") match {
+					case "Live" => RedisCacheUtil.saveToList(cacheKey, data)
+					case "Retired" => RedisCacheUtil.deleteFromList(cacheKey, data)
+				}
+			}
+		}
+		node
+	}
 
     private def setRelationship(dbNode: Node, inputNode: Node): Unit = {
         var addRels: util.List[Relation] = new util.ArrayList[Relation]()

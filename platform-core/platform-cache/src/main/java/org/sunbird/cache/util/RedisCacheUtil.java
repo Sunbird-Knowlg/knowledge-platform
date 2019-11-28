@@ -141,7 +141,7 @@ public class RedisCacheUtil {
                 }
             } catch (Exception e) {
                 TelemetryManager.error("Exception Occurred While Deleting Records From Redis Cache for Pattern : " + pattern + " | Exception is : ", e);
-                throw new ServerException(CacheErrorCode.ERR_CACHE_SAVE_PROPERTY_ERROR.name(), e.getMessage());
+                throw new ServerException(CacheErrorCode.ERR_CACHE_DELETE_PROPERTY_ERROR.name(), e.getMessage());
             } finally {
                 returnConnection(jedis);
             }
@@ -203,6 +203,44 @@ public class RedisCacheUtil {
                 TelemetryManager.error("Exception Occurred While Subscribing to Redis Channel : " + channel + " | Exception is : ", e);
                 throw new ServerException(CacheErrorCode.ERR_CACHE_SUBSCRIBE_CHANNEL_ERROR.name(), e.getMessage());
             }
+        }
+    }
+
+    /**
+     * This Method Save Given Data To Existing List For Given Key
+     * @param key
+     * @param values
+     */
+    public static void saveToList(String key, List<Object> values) {
+        Jedis jedis = getConnection();
+        try {
+            for (Object val : values) {
+                jedis.sadd(key, (String) val);
+            }
+        } catch (Exception e) {
+            TelemetryManager.error("Exception Occurred While Saving Partial List Data to Redis Cache for Key : " + key + "| Exception is:", e);
+            throw new ServerException(CacheErrorCode.ERR_CACHE_SAVE_PROPERTY_ERROR.name(), e.getMessage());
+        } finally {
+            returnConnection(jedis);
+        }
+    }
+
+    /**
+     * This Method Remove Given Data From Existing List For Given Key
+     * @param key
+     * @param values
+     */
+    public static void deleteFromList(String key, List<Object> values) {
+        Jedis jedis = getConnection();
+        try {
+            for (Object val : values) {
+                jedis.srem(key, (String)val);
+            }
+        } catch (Exception e) {
+            TelemetryManager.error("Exception Occurred While Deleting Partial Data From Redis Cache for Key : " + key + "| Exception is:", e);
+            throw new ServerException(CacheErrorCode.ERR_CACHE_DELETE_PROPERTY_ERROR.name(), e.getMessage());
+        } finally {
+            returnConnection(jedis);
         }
     }
 }
