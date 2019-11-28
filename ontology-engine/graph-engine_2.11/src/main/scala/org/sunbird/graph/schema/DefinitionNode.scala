@@ -92,7 +92,7 @@ object DefinitionNode {
 			val metadata = node.getMetadata
 			val cacheKey = "edge_" + request.getObjectType.toLowerCase()
 			val data = metadata.containsKey(edgeKey) match {
-				case true => List(metadata.get(cacheKey))
+				case true => List(metadata.get(edgeKey))
 				case _ => List()
 			}
 			if (!data.isEmpty) {
