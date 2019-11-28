@@ -51,7 +51,6 @@ object NodeUtil {
             if (relMap.containsKey(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType))) relMap.get(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType)).add(populateRelationMaps(rel, "out"))
             else relMap.put(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
         }
-        println("UpdatedMetadataMap:: " + updatedMetadataMap.toString)
         relMap
     }
     def convertJsonProperties(entry: Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
