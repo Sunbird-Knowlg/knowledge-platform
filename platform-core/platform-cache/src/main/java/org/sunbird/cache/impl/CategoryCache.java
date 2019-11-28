@@ -13,7 +13,7 @@ public class CategoryCache extends RedisCacheManager {
 
     @Override
     public String getKey(String... params) {
-        return "cat_" + params[0].toLowerCase() + "_" + params[1].toLowerCase();
+        return "cat_" + params[0] + params[1];
     }
 
     @Override
