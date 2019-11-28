@@ -4,7 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
-import org.sunbird.common.dto.{Request, ResponseHandler}
+import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, Relation}
 
 import scala.concurrent.{ExecutionContext, Future}

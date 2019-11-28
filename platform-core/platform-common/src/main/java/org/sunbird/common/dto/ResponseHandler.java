@@ -138,7 +138,6 @@ public class ResponseHandler {
     }
 
     public static Response getErrorResponse(Throwable e) {
-        e.printStackTrace();
         Response response = new Response();
         ResponseParams params = new ResponseParams();
         params.setStatus(ResponseParams.StatusType.failed.name());
@@ -147,9 +146,10 @@ public class ResponseHandler {
             params.setErr(mwException.getErrCode());
             response.put("messages", mwException.getMessages());
         } else {
+            e.printStackTrace();
             params.setErr("ERR_SYSTEM_EXCEPTION");
         }
-        System.out.println("Exception occurred in class :" + e.getClass().getName() + " with message :" + e.getMessage());
+        System.out.println("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage());
         params.setErrmsg(setErrMessage(e));
         response.setParams(params);
         setResponseCode(response, e);

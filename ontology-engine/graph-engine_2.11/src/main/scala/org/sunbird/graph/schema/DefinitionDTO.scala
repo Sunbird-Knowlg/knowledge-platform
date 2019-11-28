@@ -11,7 +11,7 @@ import org.sunbird.graph.schema.validator._
 
 import scala.collection.JavaConverters._
 
-class DefinitionDTO(graphId: String, objectType: String, version: String = "1.0") extends BaseDefinitionNode(graphId , objectType, version) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with SchemaValidator {
+class DefinitionDTO(graphId: String, objectType: String, version: String = "1.0") extends BaseDefinitionNode(graphId , objectType, version) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
 
     def getOutRelationObjectTypes: List[String] = outRelationObjectTypes
 

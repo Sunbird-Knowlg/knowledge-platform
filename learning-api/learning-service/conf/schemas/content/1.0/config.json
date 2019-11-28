@@ -13,6 +13,7 @@
             "type": "string"
         }
     },
+    "externalStoreName": "content_store.content_data",
     "relations": {
         "concepts": {
             "type": "associatedTo",
@@ -48,5 +49,9 @@
     "version": "enable",
     "versionCheckMode": "ON",
     "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
-    "externalStoreName": "content_store.content_data"
+    "edge": {
+        "properties": {
+            "license": "License"
+        }
+    }
 }
