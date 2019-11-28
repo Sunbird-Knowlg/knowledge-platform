@@ -162,15 +162,18 @@ object HierarchyManager {
         val childNodes = children.filter(child => ("Parent".equalsIgnoreCase(child.get("visibility").asInstanceOf[String]) && unitId.equalsIgnoreCase(child.get("identifier").asInstanceOf[String]))).toList
         if(null != childNodes && !childNodes.isEmpty){
             val child = childNodes.get(0)
-            var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
-                !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
-            })
+            var filteredLeafNodes = new java.util.ArrayList[java.util.Map[String,AnyRef]]()
+            if(null != child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty) {
+                var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
+                    !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
+                })
+            }
             if(null == filteredLeafNodes) filteredLeafNodes = new java.util.ArrayList[java.util.Map[String,AnyRef]]()
             filteredLeafNodes.addAll(leafNodes)
             child.put("children", filteredLeafNodes)
         } else {
             for(child <- children) {
-                if(!child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty)
+                if(null !=child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty)
                     addChildrenToUnit(child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]], unitId, leafNodes, leafNodeIds)
             }
         }
@@ -180,13 +183,15 @@ object HierarchyManager {
         val childNodes = children.filter(child => ("Parent".equalsIgnoreCase(child.get("visibility").asInstanceOf[String]) && unitId.equalsIgnoreCase(child.get("identifier").asInstanceOf[String]))).toList
         if(null != childNodes && !childNodes.isEmpty){
             val child = childNodes.get(0)
-            var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
-                !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
-            })
-            child.put("children", filteredLeafNodes)
+            if(null != child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty) {
+                var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
+                    !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
+                })
+                child.put("children", filteredLeafNodes)
+            }
         } else {
             for(child <- children) {
-                if(!child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty)
+                if(null !=child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty)
                     removeChildrenFromUnit(child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]], unitId, leafNodeIds)
             }
         }
