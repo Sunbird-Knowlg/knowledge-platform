@@ -67,12 +67,17 @@ trait VersioningNode extends IDefinition {
             val imageId = node.getIdentifier + IMAGE_SUFFIX
             try{
                 val imageNode = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
-                imageNode
-            } catch {
-                case e: ResourceNotFoundException => {
-                    node.setIdentifier(imageId)
-                    node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
-                    NodeAsyncOperations.addNode(node.getGraphId, node)
+                imageNode recoverWith {
+                    case e: CompletionException => {
+                        TelemetryManager.error("Exception occured while fetching image node, may not be found", e.getCause)
+                        if (e.getCause.isInstanceOf[ResourceNotFoundException]) {
+                            node.setIdentifier(imageId)
+                            node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
+                            node.getMetadata.put("status", "Draft")
+                            NodeAsyncOperations.addNode(node.getGraphId, node)
+                        } else
+                            throw e.getCause
+                    }
                 }
             }
         } else

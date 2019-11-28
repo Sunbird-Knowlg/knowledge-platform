@@ -1,6 +1,8 @@
 package org.sunbird.schema.impl;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.sunbird.common.Platform;
 
@@ -12,13 +14,20 @@ import java.nio.file.Paths;
 
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
-    private String basePath = Platform.config.hasPath("schema.base_path") ? Platform.config.getString("schema.base_path") : "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local";
+
+    private String basePath = Platform.config.hasPath("schema.base_path") ? Platform.config.getString("schema.base_path") : "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/";
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
         basePath = basePath + name.toLowerCase() + "/" + version + "/";
         loadSchema();
         loadConfig();
+    }
+
+    public JsonSchemaValidator(String name, String version, String configfallback) throws Exception {
+        super(name, version);
+        loadSchema();
+        loadConfig(name, version, configfallback);
     }
 
     private void loadSchema() throws Exception {
@@ -40,7 +49,16 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
             Path configPath = Paths.get(getClass().getClassLoader().getResource( basePath + "config.json").toURI());
             this.config = ConfigFactory.parseFile(configPath.toFile());
         }
+    }
 
+    private void loadConfig(String name, String version, String fallbackPath) throws Exception {
+        if(StringUtils.isEmpty(fallbackPath))
+            loadConfig();
+        else {
+            Config fallbackConfig = ConfigFactory.parseURL(new URL(basePath + fallbackPath.toLowerCase() + "/" + version + "/" +  "config.json"));
+            basePath = basePath + name.toLowerCase() + "/" + version + "/";
+            this.config = ConfigFactory.parseURL(new URL( basePath + "config.json")).withFallback(fallbackConfig);
+        }
     }
 
 

@@ -4,55 +4,59 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Request, ResponseHandler}
+import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.validator.NodeValidator
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConversions._
 
 object DefinitionNode {
 
-    @throws[Exception]
-    def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
-        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
-        val version: String = request.getContext.get("version").asInstanceOf[String]
-        val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
-        val inputNode = definition.getNode(request.getRequest)
-        definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
-    }
+  def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+      val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+      val version: String = request.getContext.get("version").asInstanceOf[String]
+      val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+      val inputNode = definition.getNode(request.getRequest)
+      definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
+  }
 
-    def getExternalProps(graphId: String, version: String, objectType: String): List[String] = {
-        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+    def getExternalProps(graphId: String, version: String, schemaName: String): List[String] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getExternalProps()
     }
 
-    def fetchJsonProps(graphId: String, version: String, objectType: String): List[String] = {
-        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+    def fetchJsonProps(graphId: String, version: String, schemaName: String): List[String] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.fetchJsonProps()
     }
 
-    def getInRelations(graphId: String, version: String, objectType: String): List[Map[String, AnyRef]] = {
-        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+    def getInRelations(graphId: String, version: String, schemaName: String): List[Map[String, AnyRef]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getInRelations()
     }
 
-    def getOutRelations(graphId: String, version: String, objectType: String): List[Map[String, AnyRef]] = {
-        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+    def getOutRelations(graphId: String, version: String, schemaName: String): List[Map[String, AnyRef]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getOutRelations()
     }
 
-    def getRelationDefinitionMap(graphId: String, version: String, objectType: String): Map[String, AnyRef] = {
-        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
+    def getRelationDefinitionMap(graphId: String, version: String, schemaName: String): Map[String, AnyRef] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getRelationDefinitionMap()
     }
 
-    def getRestrictedProperties(graphId: String, version: String, objectType: String, operation: String): List[String] = {
-        val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
-        definition.getRestrictPropsConfig(operation)
+    def getRestrictedProperties(graphId: String, version: String, operation: String, schemaName: String): List[String] = {
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+      definition.getRestrictPropsConfig(operation)
     }
 
     def getNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
-        val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String], request.getObjectType, request.getContext.get("version").asInstanceOf[String])
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
+            , schemaName, request.getContext.get("version").asInstanceOf[String])
         definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
     }
 
@@ -60,7 +64,9 @@ object DefinitionNode {
     def validate(identifier: String, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
-        val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         val dbNodeFuture = definition.getNode(identifier, "update", null)
         val validationResult: Future[Node] = dbNodeFuture.map(dbNode => {
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
@@ -69,7 +75,9 @@ object DefinitionNode {
             dbNode.setInRelations(inputNode.getInRelations)
             dbNode.setOutRelations(inputNode.getOutRelations)
             dbNode.setExternalData(inputNode.getExternalData)
-            definition.validate(dbNode,"update")
+            if(!skipValidation)
+                definition.validate(dbNode,"update")
+            else Future{dbNode}
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         validationResult
     }
@@ -105,6 +113,5 @@ object DefinitionNode {
             }
         }
     }
-
 }
 

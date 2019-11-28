@@ -63,7 +63,8 @@ public class NodeValidator {
             mc = MetadataCriterion
                     .create(Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_EQUAL, identifiers.get(0))));
         } else {
-            mc = MetadataCriterion.create(Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, identifiers)));
+            mc = MetadataCriterion.create(Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, identifiers),
+                    new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")));
         }
         searchCriteria.addMetadata(mc);
         searchCriteria.setCountQuery(false);

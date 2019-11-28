@@ -1,17 +1,25 @@
 {
-    "externalProperties": {
-        "body": {
-            "type": "string"
+    "objectType": "Content",
+    "external": {
+        "storeName": "content_store.content_data",
+        "properties": {
+            "body": {
+                "type": "blob"
+            },
+            "oldBody": {
+                "type": "blob"
+            },
+            "stageIcons": {
+                "type": "blob"
+            },
+            "screenshots": {
+                "type": "blob"
+            },
+            "last_update_on": {
+                "type": "timestamp"
+            }
         },
-        "oldBody": {
-            "type": "string"
-        },
-        "stageIcons": {
-            "type": "string"
-        },
-        "screenshots": {
-            "type": "string"
-        }
+        "primaryKey": ["content_id"]
     },
     "externalStoreName": "content_store.content_data",
     "relations": {
