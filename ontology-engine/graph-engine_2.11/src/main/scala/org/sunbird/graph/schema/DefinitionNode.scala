@@ -14,7 +14,6 @@ import scala.collection.JavaConversions._
 
 object DefinitionNode {
 
-
   def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
