@@ -4,8 +4,9 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
+import org.sunbird.utils.LicenseOperations
 import play.api.mvc.ControllerComponents
-import utils.{ActorNames, LicenseApiIds, LicenseOperations}
+import utils.{ActorNames, LicenseApiIds}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext

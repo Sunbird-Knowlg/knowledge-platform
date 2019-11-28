@@ -7,7 +7,12 @@
         "name",
         "status",
         "mimeType",
-        "channel"
+        "channel",
+        "contentType",
+        "code",
+        "contentEncoding",
+        "contentDisposition",
+        "mediaType"
     ],
     "properties": {
         "name": {
@@ -46,7 +51,6 @@
         },
         "mimeType": {
             "type": "string",
-            "default": "application/vnd.ekstep.ecml-archive",
             "enum": [
                 "application/vnd.ekstep.ecml-archive",
                 "application/vnd.ekstep.html-archive",
@@ -55,7 +59,33 @@
                 "application/vnd.ekstep.content-collection",
                 "application/vnd.ekstep.plugin-archive",
                 "application/vnd.ekstep.h5p-archive",
-                "application/pdf"
+                "application/epub",
+                "text/x-url",
+                "video/x-youtube",
+                "application/octet-stream",
+                "application/msword",
+                "application/pdf",
+                "image/jpeg",
+                "image/jpg",
+                "image/png",
+                "image/tiff",
+                "image/bmp",
+                "image/gif",
+                "image/svg+xml",
+                "video/avi",
+                "video/mpeg",
+                "video/quicktime",
+                "video/3gpp",
+                "video/mp4",
+                "video/ogg",
+                "video/webm",
+                "audio/mp3",
+                "audio/mp4",
+                "audio/mpeg",
+                "audio/ogg",
+                "audio/webm",
+                "audio/x-wav",
+                "audio/wav"
             ]
         },
         "osId": {
@@ -71,7 +101,7 @@
                 "gzip",
                 "identity"
             ],
-            "default": "identity"
+            "default": "gzip"
         },
         "contentDisposition": {
             "type": "string",
@@ -189,9 +219,6 @@
         },
         "size": {
             "type": "number"
-        },
-        "dimensionse": {
-            "type": "array"
         },
         "idealScreenSize": {
             "type": "string",
@@ -654,19 +681,16 @@
             "type": "string"
         },
         "lastSubmittedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "lastPublishedBy": {
             "type": "string"
         },
         "lastPublishedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "versionDate": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "origin": {
             "type": "string"
@@ -732,12 +756,10 @@
             "type": "number"
         },
         "me_lastUsedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "me_lastRemovedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "me_hierarchyLevel": {
             "type": "number"
@@ -767,8 +789,7 @@
             "type": "array"
         },
         "lastFlaggedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "tempData": {
             "type": "string"
@@ -833,8 +854,7 @@
             "type": "string"
         },
         "lastStatusChangedOn": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
         },
         "uploadError": {
             "type": "string"
@@ -927,6 +947,30 @@
         },
         "certTemplate": {
             "type": "object"
+        },
+        "subject" : {
+            "type": "array"
+        },
+        "medium" : {
+            "type": "array"
+        },
+        "gradeLevel" : {
+            "type": "array"
+        },
+        "topic" : {
+            "type": "array"
+        },
+        "subDomains" : {
+            "type": "array"
+        },
+        "subjectCodes" : {
+            "type": "array"
+        },
+        "difficultyLevel" : {
+            "type": "string"
+        },
+        "board" : {
+            "type": "string"
         }
     }
 }

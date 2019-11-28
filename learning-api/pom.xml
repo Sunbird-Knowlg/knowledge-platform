@@ -22,6 +22,7 @@
     </properties>
     <modules>
         <module>learning-service</module>
+        <module>hierarchy-service</module>
         <module>orchestrator</module>
     </modules>
     <dependencies>

@@ -9,7 +9,6 @@ public class CategoryCacheHandler  implements ICacheHandler {
     public Object execute(String operation, String cacheKey, String objectKey) {
         //TODO: Get the Framework Hierarchy from Cassandra and load it to cache
         //TODO: Filter out required category and return the data.
-        System.out.println("CategoryCacheHandler :: execute");
-        return Arrays.asList("Science","English");
+        return Arrays.asList();
     }
 }
