@@ -23,8 +23,11 @@ object NodeUtil {
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, "1.0", schemaName)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, "1.0", schemaName).asJava
-        getRelationMap(node, updatedMetadataMap, definitionMap)
-        updatedMetadataMap
+        val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
+        var finalMetadata = new util.HashMap[String, AnyRef]()
+        finalMetadata.putAll(updatedMetadataMap)
+        finalMetadata.putAll(relMap)
+        finalMetadata
     }
 
     def handleKeyNames(entry: Map.Entry[String, AnyRef], fields: util.List[String]) = {
@@ -35,7 +38,7 @@ object NodeUtil {
         }
     }
 
-    def getRelationMap(node: Node, updatedMetadataMap: util.Map[String, AnyRef], relationMap: util.Map[String, AnyRef]) = {
+    def getRelationMap(node: Node, updatedMetadataMap: util.Map[String, AnyRef], relationMap: util.Map[String, AnyRef]):util.Map[String, util.List[util.Map[String, AnyRef]]] = {
         val inRelations:util.List[Relation] = { if (CollectionUtils.isEmpty(node.getInRelations)) new util.ArrayList[Relation] else node.getInRelations }
         val outRelations:util.List[Relation] = { if (CollectionUtils.isEmpty(node.getOutRelations)) new util.ArrayList[Relation] else node.getOutRelations }
         val relMap = new util.HashMap[String, util.List[util.Map[String, AnyRef]]]
@@ -49,7 +52,7 @@ object NodeUtil {
             else relMap.put(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
         }
         println("UpdatedMetadataMap:: " + updatedMetadataMap.toString)
-        updatedMetadataMap.putAll(relMap)
+        relMap
     }
     def convertJsonProperties(entry: Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
         if(jsonProps.contains(entry.getKey)) {
