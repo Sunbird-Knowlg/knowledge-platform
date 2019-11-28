@@ -157,7 +157,7 @@ public class NodeAsyncOperations {
 
                     return entry;
                 })
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(HashMap::new, (m,v)->m.put(v.getKey(), v.getValue()), HashMap::putAll);
         return node;
     }
 
