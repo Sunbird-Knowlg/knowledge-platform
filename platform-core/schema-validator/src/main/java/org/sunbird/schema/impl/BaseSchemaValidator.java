@@ -51,10 +51,6 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
 
     }
 
-    public BaseSchemaValidator() {
-
-    }
-
     public abstract JsonSchema resolveSchema(URI id);
 
     /**

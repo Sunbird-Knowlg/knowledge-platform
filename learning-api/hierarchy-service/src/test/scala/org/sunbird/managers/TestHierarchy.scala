@@ -2,10 +2,7 @@ package org.sunbird.managers
 
 import java.util
 
-import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
-
-import scala.collection.JavaConversions._
 
 class TestHierarchy extends BaseSpec {
 
@@ -34,10 +31,13 @@ class TestHierarchy extends BaseSpec {
 
         request.put("rootId", "do_11283193441064550414")
         request.put("unitId", "do_11283193463014195215")
-        request.put("leafNodes", util.Arrays.asList("do_112831862871203840114"))
+        request.put("children", util.Arrays.asList("do_112831862871203840114"))
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
+            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+                    .one().getString("hierarchy")
+            assert(hierarchy.contains("do_112831862871203840114"))
         })
     }
 
@@ -55,13 +55,19 @@ class TestHierarchy extends BaseSpec {
 
         request.put("rootId", "do_11283193441064550414")
         request.put("unitId", "do_11283193463014195215")
-        request.put("leafNodes", util.Arrays.asList("do_112831862871203840114"))
+        request.put("children", util.Arrays.asList("do_112831862871203840114"))
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
+            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+                    .one().getString("hierarchy")
+            assert(hierarchy.contains("do_112831862871203840114"))
             val removeFuture = HierarchyManager.removeLeafNodesFromHierarchy(request)
             removeFuture.map(resp => {
                 assert(resp.getResponseCode.code() == 200)
+                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+                        .one().getString("hierarchy")
+                assert(!hierarchy.contains("do_112831862871203840114"))
             })
         }).flatMap(f => f)
     }

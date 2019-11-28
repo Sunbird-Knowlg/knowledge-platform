@@ -2,7 +2,7 @@ package org.sunbird.managers
 
 import java.io.{File, IOException}
 
-import com.datastax.driver.core.Session
+import com.datastax.driver.core.{ResultSet, Session}
 import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.neo4j.graphdb.GraphDatabaseService
@@ -88,6 +88,13 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         for(query <- queries) {
             session.execute(query)
         }
+    }
+
+    def readFromCassandra(query: String) : ResultSet = {
+        if(null == session || session.isClosed){
+            session = CassandraConnector.getSession
+        }
+        session.execute(query)
     }
 
     def createRelationData(): Unit = {

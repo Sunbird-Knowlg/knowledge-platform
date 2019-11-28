@@ -1,26 +1,19 @@
 package org.sunbird.actors;
 
-import akka.dispatch.Futures;
 import akka.dispatch.Mapper;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.ContentParams;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
-
 import org.sunbird.common.exception.ClientException;
-import org.sunbird.common.exception.ErrorCodes;
 import org.sunbird.common.exception.ResponseCode;
-
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
-import org.sunbird.managers.HierarchyManager;
 import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
 
-import javax.xml.crypto.Data;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +29,6 @@ public class ContentActor extends BaseActor {
             case "createContent": return create(request);
             case "readContent": return read(request);
             case "updateContent": return update(request);
-            case "addHierarchy": return addLeafNodesToHierarchy(request);
-            case "removeHierarchy": return removeLeafNodesFromHierarchy(request);
             default: return ERROR(operation);
         }
     }
@@ -127,13 +118,4 @@ public class ContentActor extends BaseActor {
         }
     }
 
-    private Future<Response> addLeafNodesToHierarchy(Request request) throws Exception {
-        request.getContext().put("schemaName", SCHEMA_NAME);
-        return HierarchyManager.addLeafNodesToHierarchy(request, getContext().dispatcher());
-    }
-
-    private Future<Response> removeLeafNodesFromHierarchy(Request request) throws Exception {
-        request.getContext().put("schemaName", SCHEMA_NAME);
-        return HierarchyManager.removeLeafNodesFromHierarchy(request, getContext().dispatcher());
-    }
 }

@@ -15,11 +15,7 @@ import java.nio.file.Paths;
 
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
-    private String basePath = Platform.config.hasPath("schema.base_path") ? Platform.config.getString("schema.base_path") : "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local";
-
-    public JsonSchemaValidator(){
-        super();
-    }
+    private String basePath = Platform.config.hasPath("schema.base_path") ? Platform.config.getString("schema.base_path") : "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/";
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);

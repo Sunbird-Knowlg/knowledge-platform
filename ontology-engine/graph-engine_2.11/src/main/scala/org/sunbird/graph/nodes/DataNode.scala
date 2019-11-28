@@ -93,18 +93,6 @@ object DataNode {
         }
     }
 
-    def partialHierarchy(request: Request)(implicit ec: ExecutionContext) : Future[Node] = {
-        val rootId: String = request.get("rootId").asInstanceOf[String]
-        val unitId: String = request.get("unitId").asInstanceOf[String]
-        val leafNodes: List[String] = request.get("leafNodes").asInstanceOf[util.List[String]].toList
-
-        // get data Node - throws exception
-        // get data from cassandra - throws exception
-        // validate leafNodes for Live - Not Live throws Client error
-        // partial update hierarchy
-        null
-    }
-
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)
