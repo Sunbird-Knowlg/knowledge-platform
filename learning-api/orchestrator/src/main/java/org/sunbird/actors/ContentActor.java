@@ -92,7 +92,7 @@ public class ContentActor extends BaseActor {
     private static void setDefaultLicense(Request request) {
         if(StringUtils.isEmpty((String)request.getRequest().get("license"))){
             String defaultLicense = RedisCacheUtil.getString("channel_" + (String)request.getRequest().get("channel") + "_license");
-            if(StringUtils.isNoneEmpty(defaultLicense))
+            if(StringUtils.isNotEmpty(defaultLicense))
                 request.getRequest().put("license", defaultLicense);
         }
     }
