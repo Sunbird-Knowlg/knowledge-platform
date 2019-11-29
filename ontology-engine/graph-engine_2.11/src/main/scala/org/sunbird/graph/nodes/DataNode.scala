@@ -26,7 +26,7 @@ object DataNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
             val response = NodeAsyncOperations.addNode(graphId, node)
-            response.map(result => {
+            response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     createRelations(graphId, node, request.getContext))
@@ -41,7 +41,7 @@ object DataNode {
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
             val response = NodeAsyncOperations.upsertNode(graphId, node, request)
-            response.map(result => {
+            response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     updateRelations(graphId, node, request.getContext))
@@ -62,7 +62,7 @@ object DataNode {
             else
                 Future(node)
             val isBackwardCompatible = if (Platform.config.hasPath("content.tagging.backward_enable")) Platform.config.getBoolean("content.tagging.backward_enable") else false
-            if(isBackwardCompatible)
+            if(isBackwardCompatible && !StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
                 finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f => f)
             else
                 finalNodeFuture

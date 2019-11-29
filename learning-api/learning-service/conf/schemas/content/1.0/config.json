@@ -1,4 +1,12 @@
 {
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "update": [
+            "status", "identifier", "framework", "dialcodes", "code", "mimeType", "contentType", "channel"
+        ]
+    },
     "objectType": "Content",
     "external": {
         "storeName": "content_store.content_data",
@@ -21,7 +29,6 @@
         },
         "primaryKey": ["content_id"]
     },
-    "externalStoreName": "content_store.content_data",
     "relations": {
         "concepts": {
             "type": "associatedTo",
