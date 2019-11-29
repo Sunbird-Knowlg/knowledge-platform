@@ -4,7 +4,6 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
-import org.apache.commons.lang3
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response}
