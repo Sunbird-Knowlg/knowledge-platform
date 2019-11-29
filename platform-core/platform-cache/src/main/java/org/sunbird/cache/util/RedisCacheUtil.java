@@ -68,16 +68,15 @@ public class RedisCacheUtil {
 
     /**
      * This method store/save list data into cache for given Key
-     *
-     * @param key
+     *  @param key
      * @param values
      */
-    public static void saveList(String key, List<Object> values) {
+    public static void saveList(String key, List<String> values) {
         Jedis jedis = getConnection();
         try {
             jedis.del(key);
-            for (Object val : values) {
-                jedis.sadd(key, (String) val);
+            for (String val : values) {
+                jedis.sadd(key, val);
             }
         } catch (Exception e) {
             TelemetryManager.error("Exception Occurred While Saving List Data to Redis Cache for Key : " + key + "| Exception is:", e);
@@ -211,11 +210,11 @@ public class RedisCacheUtil {
      * @param key
      * @param values
      */
-    public static void saveToList(String key, List<Object> values) {
+    public static void saveToList(String key, List<String> values) {
         Jedis jedis = getConnection();
         try {
-            for (Object val : values) {
-                jedis.sadd(key, (String) val);
+            for (String val : values) {
+                jedis.sadd(key, val);
             }
         } catch (Exception e) {
             TelemetryManager.error("Exception Occurred While Saving Partial List Data to Redis Cache for Key : " + key + "| Exception is:", e);
@@ -230,11 +229,11 @@ public class RedisCacheUtil {
      * @param key
      * @param values
      */
-    public static void deleteFromList(String key, List<Object> values) {
+    public static void deleteFromList(String key, List<String> values) {
         Jedis jedis = getConnection();
         try {
-            for (Object val : values) {
-                jedis.srem(key, (String)val);
+            for (String val : values) {
+                jedis.srem(key, val);
             }
         } catch (Exception e) {
             TelemetryManager.error("Exception Occurred While Deleting Partial Data From Redis Cache for Key : " + key + "| Exception is:", e);

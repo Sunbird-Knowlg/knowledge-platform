@@ -82,12 +82,10 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     }
 
     def getEdgeKey(): String = {
-        val flag = schemaValidator.getConfig.hasPath("edge.key")
-        val result: String = flag match {
+        schemaValidator.getConfig.hasPath("edge.key") match {
             case true => schemaValidator.getConfig.getString("edge.key")
             case _ => ""
         }
-        result
     }
 
 
