@@ -25,7 +25,7 @@ public class ValidationResult {
             this.relations = relations;
             this.externalData = externalData;
         } else {
-            throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Validation errors.", messages);
+            throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Validation Errors", messages);
         }
     }
 

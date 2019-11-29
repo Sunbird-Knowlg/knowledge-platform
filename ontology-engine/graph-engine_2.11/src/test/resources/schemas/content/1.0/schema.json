@@ -318,17 +318,11 @@
         "license": {
             "type": "string",
             "enum": [
-                "Against DRM license",
-                "Creative Commons Attribution-NoDerivs (CC-BY-ND)",
-                "Creative Commons Attribution (CC BY)",
-                "Creative Commons Attribution-ShareAlike (CC BY-SA)",
-                "Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)",
-                "Creative Commons Zero (CC0)",
-                "Free Art License",
-                "Open Audio License",
-                "Open Game License",
-                "Standard YouTube License",
-                "Other"
+                "CC BY-NC-SA 4.0",
+                "CC BY-NC 4.0",
+                "CC BY-SA 4.0",
+                "CC BY 4.0",
+                "Standard YouTube License"
             ],
             "default": "Creative Commons Attribution (CC BY)"
         },

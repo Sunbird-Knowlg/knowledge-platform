@@ -16,7 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait VersionKeyValidator extends IDefinition {
 
-    private val graphPassportKey = Platform.config.getString(DACConfigurationConstants.PASSPORT_KEY_BASE_PROPERTY)
+    private val graphPassportKey = ""
 
     @throws[Exception]
     abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
