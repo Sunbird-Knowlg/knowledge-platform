@@ -4,10 +4,9 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.lang3
 import org.apache.commons.lang3.StringUtils
-
 import org.sunbird.common.Platform
-
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -61,7 +60,7 @@ object DataNode {
             else
                 Future(node)
             val isBackwardCompatible = if (Platform.config.hasPath("content.tagging.backward_enable")) Platform.config.getBoolean("content.tagging.backward_enable") else false
-            if(isBackwardCompatible)
+            if(isBackwardCompatible && !StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
                 finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f => f)
             else
                 finalNodeFuture
