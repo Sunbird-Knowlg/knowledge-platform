@@ -1,8 +1,10 @@
 package org.sunbird.schema;
 
+import org.apache.commons.lang3.StringUtils;
 import org.sunbird.schema.impl.JsonSchemaValidator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SchemaValidatorFactory {
@@ -18,9 +20,24 @@ public class SchemaValidatorFactory {
         }
     }
 
+    public static ISchemaValidator getInstance(String name, String version, String fallback) throws Exception {
+        String key = getKey(name, version);
+        key += ":" + fallback;
+        if (schemaMap.containsKey(key)) {
+            return schemaMap.get(key);
+        } else {
+            return initSchema(name, version, fallback);
+        }
+    }
+
     public static String getExternalStoreName(String name, String version) throws Exception {
         ISchemaValidator schemaValidator = SchemaValidatorFactory.getInstance(name, version);
-        return schemaValidator.getConfig().getString("externalStoreName");
+        return schemaValidator.getConfig().getString("external.storeName");
+    }
+
+    public static List<String> getExternalPrimaryKey(String name, String version) throws Exception {
+        ISchemaValidator schemaValidator = SchemaValidatorFactory.getInstance(name, version);
+        return schemaValidator.getConfig().getStringList("external.primaryKey");
     }
 
     private static ISchemaValidator initSchema(String name, String version) throws Exception {
@@ -29,7 +46,17 @@ public class SchemaValidatorFactory {
         return schema;
     }
 
+    private static ISchemaValidator initSchema(String name, String version, String fallback) throws Exception {
+        ISchemaValidator schema = new JsonSchemaValidator(name, version, fallback);
+        schemaMap.put(getKey(name, version), schema);
+        return schema;
+    }
+
     private static String getKey(String name, String version) {
-        return name +":"+version;
+        return StringUtils.joinWith(":", name, version);
+    }
+
+    private static String getKey(String name, String version, String fallback) {
+        return StringUtils.joinWith(":", name, version, fallback);
     }
 }

@@ -25,7 +25,12 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class BaseSchemaValidator implements ISchemaValidator {
@@ -132,8 +137,8 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
 
     private Map<String, Object> getExternalProps(Map<String, Object> input) {
         Map<String, Object> externalData = new HashMap<>();
-        if (config != null && config.hasPath("externalProperties")) {
-            Set<String> extProps = config.getObject("externalProperties").keySet();
+        if (config != null && config.hasPath("external.properties")) {
+            Set<String> extProps = config.getObject("external.properties").keySet();
             externalData = input.entrySet().stream().filter(f -> extProps.contains(f.getKey())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             input.keySet().removeAll(extProps);
         }

@@ -12,7 +12,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
+class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef,@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
     val objectType = "Content"
     val version = "1.0"
@@ -64,7 +64,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         body.putAll(headers)
         val contentRequest = getRequest(body, headers, "addHierarchy")
         setRequestContext(contentRequest, version, objectType)
-        getResult(ApiId.ADD_HIERARCHY, contentActor, contentRequest)
+        getResult(ApiId.ADD_HIERARCHY, collectionActor, contentRequest)
     }
 
     def removeHierarchy() = Action.async { implicit request =>
@@ -73,7 +73,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         body.putAll(headers)
         val contentRequest = getRequest(body, headers, "removeHierarchy")
         setRequestContext(contentRequest, version, objectType)
-        getResult(ApiId.REMOVE_HIERARCHY, contentActor, contentRequest)
+        getResult(ApiId.REMOVE_HIERARCHY, collectionActor, contentRequest)
     }
 
 }

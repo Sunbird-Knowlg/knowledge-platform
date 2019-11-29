@@ -68,16 +68,15 @@ public class RedisCacheUtil {
 
     /**
      * This method store/save list data into cache for given Key
-     *
-     * @param key
+     *  @param key
      * @param values
      */
-    public static void saveList(String key, List<Object> values) {
+    public static void saveList(String key, List<String> values) {
         Jedis jedis = getConnection();
         try {
             jedis.del(key);
-            for (Object val : values) {
-                jedis.sadd(key, (String) val);
+            for (String val : values) {
+                jedis.sadd(key, val);
             }
         } catch (Exception e) {
             TelemetryManager.error("Exception Occurred While Saving List Data to Redis Cache for Key : " + key + "| Exception is:", e);
@@ -141,7 +140,7 @@ public class RedisCacheUtil {
                 }
             } catch (Exception e) {
                 TelemetryManager.error("Exception Occurred While Deleting Records From Redis Cache for Pattern : " + pattern + " | Exception is : ", e);
-                throw new ServerException(CacheErrorCode.ERR_CACHE_SAVE_PROPERTY_ERROR.name(), e.getMessage());
+                throw new ServerException(CacheErrorCode.ERR_CACHE_DELETE_PROPERTY_ERROR.name(), e.getMessage());
             } finally {
                 returnConnection(jedis);
             }
@@ -203,6 +202,44 @@ public class RedisCacheUtil {
                 TelemetryManager.error("Exception Occurred While Subscribing to Redis Channel : " + channel + " | Exception is : ", e);
                 throw new ServerException(CacheErrorCode.ERR_CACHE_SUBSCRIBE_CHANNEL_ERROR.name(), e.getMessage());
             }
+        }
+    }
+
+    /**
+     * This Method Save Given Data To Existing List For Given Key
+     * @param key
+     * @param values
+     */
+    public static void saveToList(String key, List<String> values) {
+        Jedis jedis = getConnection();
+        try {
+            for (String val : values) {
+                jedis.sadd(key, val);
+            }
+        } catch (Exception e) {
+            TelemetryManager.error("Exception Occurred While Saving Partial List Data to Redis Cache for Key : " + key + "| Exception is:", e);
+            throw new ServerException(CacheErrorCode.ERR_CACHE_SAVE_PROPERTY_ERROR.name(), e.getMessage());
+        } finally {
+            returnConnection(jedis);
+        }
+    }
+
+    /**
+     * This Method Remove Given Data From Existing List For Given Key
+     * @param key
+     * @param values
+     */
+    public static void deleteFromList(String key, List<String> values) {
+        Jedis jedis = getConnection();
+        try {
+            for (String val : values) {
+                jedis.srem(key, val);
+            }
+        } catch (Exception e) {
+            TelemetryManager.error("Exception Occurred While Deleting Partial Data From Redis Cache for Key : " + key + "| Exception is:", e);
+            throw new ServerException(CacheErrorCode.ERR_CACHE_DELETE_PROPERTY_ERROR.name(), e.getMessage());
+        } finally {
+            returnConnection(jedis);
         }
     }
 }

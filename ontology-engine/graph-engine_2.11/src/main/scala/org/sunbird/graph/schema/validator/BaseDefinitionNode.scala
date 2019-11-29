@@ -14,7 +14,7 @@ import org.sunbird.graph.service.operation.SearchAsyncOperations
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class BaseDefinitionNode(graphId: String, objectType: String, version: String = "1.0") extends IDefinition(graphId, objectType, version) {
+class BaseDefinitionNode(graphId: String, schemaName: String, version: String = "1.0") extends IDefinition(graphId, schemaName, version) {
 
     val inRelationsSchema: Map[String, AnyRef] = relationsSchema("in")
     val outRelationsSchema: Map[String, AnyRef] = relationsSchema("out")
@@ -41,6 +41,7 @@ class BaseDefinitionNode(graphId: String, objectType: String, version: String = 
     override def getNode(input: java.util.Map[String, Object]): Node = {
         val result = schemaValidator.getStructuredData(input)
         val node = new Node(graphId, result.getMetadata)
+        val objectType = schemaValidator.getConfig.getString("objectType")
         node.setNodeType(SystemNodeTypes.DATA_NODE.name)
         node.setObjectType(objectType)
         node.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
