@@ -344,14 +344,7 @@
         },
         "license": {
             "type": "string",
-            "enum": [
-                "CC BY-NC-SA 4.0",
-                "CC BY-NC 4.0",
-                "CC BY-SA 4.0",
-                "CC BY 4.0",
-                "Standard YouTube License"
-            ],
-            "default": "Creative Commons Attribution (CC BY)"
+            "default": "CC BY 4.0"
         },
         "language": {
             "type": "array",
@@ -437,7 +430,9 @@
                 "CuriosityQuestionSet",
                 "MarkingSchemeRubric",
                 "ExplanationResource",
-                "ExperientialResource"
+                "ExperientialResource",
+                "ConceptMap",
+                "SelfAssess"
             ]
         },
         "resourceType": {
@@ -845,7 +840,8 @@
             "type": "object"
         },
         "framework": {
-            "type": "string"
+            "type": "string",
+            "default": "NCF"
         },
         "lastStatusChangedOn": {
             "type": "string"

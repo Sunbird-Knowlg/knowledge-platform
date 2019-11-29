@@ -1,4 +1,12 @@
 {
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "update": [
+            "status", "identifier", "framework", "dialcodes", "code", "mimeType", "contentType", "channel"
+        ]
+    },
     "objectType": "Content",
     "external": {
         "storeName": "content_store.content_data",
@@ -55,5 +63,10 @@
     },
     "version": "enable",
     "versionCheckMode": "ON",
-    "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"]
+    "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "edge": {
+        "properties": {
+            "license": "License"
+        }
+    }
 }
