@@ -17,7 +17,7 @@
 		<scala.maj.version>2.11</scala.maj.version>
 		<scala.version>2.11.8</scala.version>
 		<scalatest.version>3.0.5</scalatest.version>
-		<fasterxml.jackson.version>2.7.8</fasterxml.jackson.version>
+		<fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
 	</properties>
 	<modules>
 		<module>platform-core</module>
