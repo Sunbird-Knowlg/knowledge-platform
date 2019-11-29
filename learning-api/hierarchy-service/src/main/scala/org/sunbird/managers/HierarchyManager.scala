@@ -2,6 +2,7 @@ package org.sunbird.managers
 
 import java.util
 import java.util.concurrent.CompletionException
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.Collectors
 
 import org.apache.commons.lang3.StringUtils
@@ -183,6 +184,11 @@ object HierarchyManager {
             if(null != child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty) {
                 var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
                     !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
+                })
+                var index: Integer = 1
+                filteredLeafNodes.toList.sortBy(x => x.get("index").asInstanceOf[Integer]).foreach(node => {
+                    node.put("index", index)
+                    index += 1
                 })
                 child.put("children", filteredLeafNodes)
             }
