@@ -430,7 +430,9 @@
                 "CuriosityQuestionSet",
                 "MarkingSchemeRubric",
                 "ExplanationResource",
-                "ExperientialResource"
+                "ExperientialResource",
+                "ConceptMap",
+                "SelfAssess"
             ]
         },
         "resourceType": {
@@ -838,7 +840,8 @@
             "type": "object"
         },
         "framework": {
-            "type": "string"
+            "type": "string",
+            "default": "NCF"
         },
         "lastStatusChangedOn": {
             "type": "string"
