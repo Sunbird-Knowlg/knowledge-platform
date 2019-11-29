@@ -2,8 +2,6 @@ package org.sunbird.managers
 
 import java.util
 import java.util.concurrent.CompletionException
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.stream.Collectors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -15,7 +13,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
-import scala.collection.{JavaConverters, mutable}
+import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 object HierarchyManager {
