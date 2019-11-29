@@ -86,7 +86,8 @@ object DefinitionNode {
 	def postProcessor(request: Request, node: Node)(implicit ec: ExecutionContext): Node = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
 		val version: String = request.getContext.get("version").asInstanceOf[String]
-		val definition = DefinitionFactory.getDefinition(graphId, request.getObjectType, version)
+		val objectType: String = request.getContext.get("objectType").asInstanceOf[String]
+		val definition = DefinitionFactory.getDefinition(graphId, objectType, version)
 		val edgeKey = definition.getEdgeKey()
 		if (null != edgeKey && !edgeKey.isEmpty) {
 			val metadata = node.getMetadata
