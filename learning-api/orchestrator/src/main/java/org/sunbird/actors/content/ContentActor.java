@@ -18,6 +18,7 @@ import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
+import utils.RequestUtils;
 
 import javax.xml.crypto.Data;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> create(Request request) throws Exception {
+        RequestUtils.restrictProperties(request);
         populateDefaultersForCreation(request);
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
@@ -55,6 +57,7 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> update(Request request) throws Exception {
+        RequestUtils.restrictProperties(request);
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override

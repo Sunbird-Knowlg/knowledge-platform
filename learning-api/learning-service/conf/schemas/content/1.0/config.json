@@ -1,4 +1,12 @@
 {
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "update": [
+            "status", "identifier", "framework", "dialcodes", "code", "mimeType", "contentType", "channel"
+        ]
+    },
     "externalProperties": {
         "body": {
             "type": "string"
