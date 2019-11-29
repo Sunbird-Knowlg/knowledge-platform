@@ -2,6 +2,8 @@ package utils
 
 object ApiId {
 
+	final val APPLICATION_HEALTH = "api.content-service.health"
+
 	//Content APIs
 	final val CREATE_CONTENT = "ekstep.learning.content.create"
 	final val READ_CONTENT = "ekstep.content.find"

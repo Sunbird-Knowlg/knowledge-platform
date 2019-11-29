@@ -1,21 +1,16 @@
 package controllers
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import javax.inject._
 import play.api.mvc._
+import utils.{ActorNames, ApiId}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
-class HealthController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends AbstractController(cc) {
+class HealthController @Inject()(@Named(ActorNames.HEALTH_ACTOR) healthActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
     def health() = Action.async { implicit request =>
-        getFutureMessage(1.second).map { msg => Ok("Health API Testing...") }
-    }
-
-    private def getFutureMessage(delayTime: FiniteDuration): Future[String] = {
-        val promise: Promise[String] = Promise[String]()
-        promise.success("Health API Testing!...")
-        promise.future
+        getResult(ApiId.APPLICATION_HEALTH, healthActor, new org.sunbird.common.dto.Request())
     }
 }
