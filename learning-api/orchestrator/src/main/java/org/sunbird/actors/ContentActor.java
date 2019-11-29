@@ -36,9 +36,9 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> create(Request request) throws Exception {
-        RequestUtils.restrictProperties(request);
         populateDefaultersForCreation(request);
         request.getContext().put("schemaName", SCHEMA_NAME);
+        RequestUtils.restrictProperties(request);
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
@@ -53,9 +53,9 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> update(Request request) throws Exception {
-        RequestUtils.restrictProperties(request);
         populateDefaultersForUpdation(request);
         request.getContext().put("schemaName", SCHEMA_NAME);
+        RequestUtils.restrictProperties(request);
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
