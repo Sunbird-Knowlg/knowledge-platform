@@ -35,6 +35,8 @@ class TestHierarchy extends BaseSpec {
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
+            assert(response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].containsAll(request.get("children").asInstanceOf[util.List[String]]))
+            assert(!response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].contains("do_11283193463014195215"))
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                     .one().getString("hierarchy")
             assert(hierarchy.contains("do_112831862871203840114"))

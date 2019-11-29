@@ -48,7 +48,7 @@ object HierarchyManager {
                                     updateRootNode(rootNode, request, "add").map(node => {
                                         val resp: Response = ResponseHandler.OK
                                         resp.put("rootId", rootNode.getIdentifier)
-                                        resp.put(unitId, node.getMetadata.get("childNodes"))
+                                        resp.put(unitId, request.get("children"))
                                         resp
                                     })
                                 } else {

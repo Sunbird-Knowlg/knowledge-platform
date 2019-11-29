@@ -6,7 +6,7 @@ import controllers.BaseController
 import javax.inject.{Inject, Named}
 import org.sunbird.utils.LicenseOperations
 import play.api.mvc.ControllerComponents
-import utils.{ActorNames, LicenseApiIds}
+import utils.{ActorNames, ApiId}
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
@@ -24,7 +24,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseOperations.createLicense.name())
         setRequestContext(licenseRequest, version, objectType)
-        getResult(LicenseApiIds.create, licenseActor, licenseRequest)
+        getResult(ApiId.CREATE_LICENSE, licenseActor, licenseRequest)
     }
 
     def read(identifier: String, fields: Option[String]) = Action.async { implicit request =>
@@ -34,7 +34,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         license.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")))
         val licenseRequest = getRequest(license, headers, LicenseOperations.readLicense.name())
         setRequestContext(licenseRequest, version, objectType)
-        getResult(LicenseApiIds.read, licenseActor, licenseRequest)
+        getResult(ApiId.READ_LICENSE, licenseActor, licenseRequest)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
@@ -45,7 +45,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val licenseRequest = getRequest(license, headers, LicenseOperations.updateLicense.name())
         setRequestContext(licenseRequest, version, objectType)
         licenseRequest.getContext.put("identifier", identifier)
-        getResult(LicenseApiIds.update, licenseActor, licenseRequest)
+        getResult(ApiId.UPDATE_LICENSE, licenseActor, licenseRequest)
     }
 
     def retire(identifier: String) = Action.async { implicit request =>
@@ -55,6 +55,6 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val licenseRequest = getRequest(license, headers, LicenseOperations.retireLicense.name())
         setRequestContext(licenseRequest, version, objectType)
         licenseRequest.getContext.put("identifier", identifier)
-        getResult(LicenseApiIds.retire, licenseActor, licenseRequest)
+        getResult(ApiId.RETIRE_LICENSE, licenseActor, licenseRequest)
     }
 }
