@@ -3,15 +3,13 @@ package org.sunbird.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.dac.model.Relation;
 import org.sunbird.graph.schema.DefinitionNode;
 import scala.collection.JavaConversions;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class NodeUtils {
@@ -26,6 +24,10 @@ public class NodeUtils {
     public static Map<String, Object> serialize(Node node, List<String> fields, String schemaName) {
         Map<String, Object> metadataMap = node.getMetadata();
         metadataMap.put("identifier", node.getIdentifier());
+        List<String> languages = Arrays.asList( (String[]) node.getMetadata().get("language"));
+        List<String> languageCodes = new ArrayList<String>();
+        languageCodes.addAll(languages.stream().map(lang -> Platform.config.getConfig("languageCode").hasPath(lang.toLowerCase()) ? Platform.config.getConfig("languageCode").getString(lang.toLowerCase()) : "").collect(Collectors.toList()));
+        metadataMap.put("languageCode",languageCodes);
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
         List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", schemaName));

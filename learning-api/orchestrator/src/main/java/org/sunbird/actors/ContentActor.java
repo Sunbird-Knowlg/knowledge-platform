@@ -13,6 +13,7 @@ import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.NodeUtils;
+import org.sunbird.utils.RequestUtils;
 import scala.concurrent.Future;
 
 import java.util.Arrays;
@@ -37,6 +38,7 @@ public class ContentActor extends BaseActor {
     private Future<Response> create(Request request) throws Exception {
         populateDefaultersForCreation(request);
         request.getContext().put("schemaName", SCHEMA_NAME);
+        RequestUtils.restrictProperties(request);
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
@@ -51,7 +53,9 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> update(Request request) throws Exception {
+        populateDefaultersForUpdation(request);
         request.getContext().put("schemaName", SCHEMA_NAME);
+        RequestUtils.restrictProperties(request);
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
                     @Override
@@ -87,6 +91,11 @@ public class ContentActor extends BaseActor {
     private static void populateDefaultersForCreation(Request request) {
         setDefaultsBasedOnMimeType(request, ContentParams.create.name());
         setDefaultLicense(request);
+    }
+
+    private static void populateDefaultersForUpdation(Request request){
+        if(request.getRequest().containsKey(ContentParams.body.name()))
+            request.put(ContentParams.artifactUrl.name(), null);
     }
 
     private static void setDefaultLicense(Request request) {
