@@ -5,9 +5,9 @@ import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-abstract class IDefinition(graphId: String, objectType: String, version: String = "1.0") extends CoreDomainObject(graphId, objectType, version) {
+abstract class IDefinition(graphId: String, schemaName: String, version: String = "1.0") extends CoreDomainObject(graphId, schemaName, version) {
 
-    val schemaValidator: ISchemaValidator = SchemaValidatorFactory.getInstance(objectType, version)
+    var schemaValidator: ISchemaValidator = SchemaValidatorFactory.getInstance(schemaName, version)
     def getNode(input: java.util.Map[String, AnyRef]): Node
 
     @throws[Exception]
@@ -15,4 +15,8 @@ abstract class IDefinition(graphId: String, objectType: String, version: String 
 
     @throws[Exception]
     def getNode(identifier: String, operation: String = "read", mode: String)(implicit ec: ExecutionContext): Future[Node]
+
+    def getSchemaName(): String ={
+        schemaName
+    }
 }

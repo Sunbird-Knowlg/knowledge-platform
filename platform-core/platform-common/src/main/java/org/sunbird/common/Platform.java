@@ -18,7 +18,7 @@ import java.util.Map;
 public class Platform {
 	private static Config defaultConf = ConfigFactory.load();
 	private static Config envConf = ConfigFactory.systemEnvironment();
-	public static Config config = defaultConf.withFallback(envConf);
+	public static Config config = envConf.withFallback(defaultConf);
 
 	private static int requestTimeout = 30;
 	private static Map<String, List<String>> graphIds = new HashMap<>();

@@ -31,9 +31,9 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         else null
     }
 
-    def validateObjectTypes(startNodeObjectType: String, endNodeObjectType: String): String = {
+    def validateObjectTypes(startNodeObjectType: String, endNodeObjectType: String, schemaName: String): String = {
         if(StringUtils.isNotBlank(startNodeObjectType) && StringUtils.isNotBlank(endNodeObjectType)) {
-            val objectTypes = DefinitionFactory.getDefinition("domain", startNodeObjectType, "1.0").getOutRelationObjectTypes
+            val objectTypes = DefinitionFactory.getDefinition("domain", schemaName, "1.0").getOutRelationObjectTypes
             if(!objectTypes.contains(getRelationType + ":" + endNodeObjectType)) getRelationType + " is not allowed between " + startNodeObjectType + " and " + endNodeObjectType
             else null
         }

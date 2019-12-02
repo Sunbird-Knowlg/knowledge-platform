@@ -8,6 +8,7 @@ import org.sunbird.cache.util.RedisCacheUtil;
 import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -36,19 +37,19 @@ public abstract class RedisCacheManager implements ICacheManager {
         return null;
     }
 
-    protected List<String> getListData(String cacheKey, String objectKey){
-        try{
+    protected List<String> getListData(String cacheKey, String objectKey) {
+        try {
             List<String> data = RedisCacheUtil.getList(cacheKey);
-            if(CollectionUtils.isEmpty(data) && null!=handler){
-                data = (List<String>)handler.execute(CacheHandlerOperation.READ_LIST.name(),cacheKey,objectKey);
+            if (CollectionUtils.isEmpty(data) && null != handler) {
+                data = (List<String>) handler.execute(CacheHandlerOperation.READ_LIST.name(), cacheKey, objectKey);
             }
             return data;
-        }catch(Exception e){
+        } catch (Exception e) {
             TelemetryManager.error("Exception Occurred While  Fetching Data For Key : " + cacheKey + " | Exception is : ", e);
             if (e instanceof ResourceNotFoundException)
                 throw e;
         }
-        return null;
+        return Arrays.asList();
     }
 
     @Override

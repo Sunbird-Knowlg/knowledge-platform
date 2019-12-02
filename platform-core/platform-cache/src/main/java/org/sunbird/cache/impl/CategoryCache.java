@@ -7,13 +7,15 @@ import java.util.List;
 
 public class CategoryCache extends RedisCacheManager {
 
-    public CategoryCache(){
+    public CategoryCache() {
         handler = new CategoryCacheHandler();
     }
 
     @Override
     public String getKey(String... params) {
-        return "cat_" + params[0].toLowerCase() + "_" + params[1].toLowerCase();
+        //TODO: Revert to commented return statement during handler implementation.
+        //return "cat_" + params[0].toLowerCase() + "_" + params[1].toLowerCase();
+        return "cat_" + params[0] + params[1];
     }
 
     @Override

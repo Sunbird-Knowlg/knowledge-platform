@@ -10,4 +10,4 @@ COPY ./learning-api/learning-service/target/learning-service-1.0-SNAPSHOT-dist.z
 RUN unzip /home/sunbird/learning-service-1.0-SNAPSHOT-dist.zip -d /home/sunbird/
 RUN rm /home/sunbird/learning-service-1.0-SNAPSHOT-dist.zip
 WORKDIR /home/sunbird/
-CMD java  -cp '/home/sunbird/learning-service-1.0-SNAPSHOT/lib/*' play.core.server.ProdServerStart /home/sunbird/learning-service-1.0-SNAPSHOT
+CMD java  -cp '/home/sunbird/learning-service-1.0-SNAPSHOT/lib/*' -Dconfig.file=/home/sunbird/learning-service-1.0-SNAPSHOT/config/application.conf play.core.server.ProdServerStart /home/sunbird/learning-service-1.0-SNAPSHOT

@@ -33,8 +33,13 @@ trait FrameworkValidator extends IDefinition {
             case _ => throw new ClientException("CLIENT_ERROR", "Validation errors.", util.Arrays.asList("Please provide correct value for [" + cat + "]"))
           }
 
-          if (!result)
-            errors.add("Metadata " + cat + " should belong from:" + list.asJava)
+            if (!result) {
+                if (list.isEmpty) {
+                    errors.add(cat + " range data is empty from the given framework.")
+                } else {
+                    errors.add("Metadata " + cat + " should belong from:" + list.asJava)
+                }
+            }
         }
         if (!errors.isEmpty)
           throw new ClientException("CLIENT_ERROR", "Validation errors.", errors)
