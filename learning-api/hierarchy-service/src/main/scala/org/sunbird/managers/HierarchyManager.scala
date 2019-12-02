@@ -238,17 +238,18 @@ object HierarchyManager {
         for(leafNode <- leafNodes){
             leafNodeMap.put(leafNode.get("identifier").asInstanceOf[String], JavaConverters.mapAsJavaMapConverter(leafNode).asJava)
         }
+        var filteredLeafNodes: java.util.List[java.util.Map[String, AnyRef]] = new util.ArrayList[java.util.Map[String, AnyRef]]()
         if(null != childList && !childList.isEmpty) {
             val childMap:Map[String, java.util.Map[String, AnyRef]] = childList.toList.map(f => f.get("identifier").asInstanceOf[String] -> f).toMap
             val existingLeafNodes = childMap.filter(p => leafNodeIds.contains(p._1))
                 existingLeafNodes.map(en => {
                     leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
                 })
+            filteredLeafNodes = bufferAsJavaList(childList.filter(existingLeafNode => {
+                !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
+            }))
             maxIndex = childMap.values.toList.map(child => child.get("index").asInstanceOf[Integer]).toList.max.asInstanceOf[Integer]
         }
-        var filteredLeafNodes = childList.filter(existingLeafNode => {
-            !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
-        })
         leafNodeIds.foreach(id => {
             var node = leafNodeMap.get(id)
             node.put("parent", parent)
