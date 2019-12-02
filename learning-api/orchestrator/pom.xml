@@ -19,7 +19,7 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>hierarchy-service</artifactId>
+            <artifactId>hierarchy-manager</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
