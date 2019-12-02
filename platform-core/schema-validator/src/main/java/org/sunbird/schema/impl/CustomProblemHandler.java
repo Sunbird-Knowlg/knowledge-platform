@@ -1,9 +1,11 @@
 package org.sunbird.schema.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.Problem;
 import org.leadpony.justify.api.ProblemHandler;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +21,8 @@ public class CustomProblemHandler implements ProblemHandler {
     @Override
     public void handleProblems(List<Problem> problems) {
         List<String> tempMessageList = problems.stream()
-                .map(problem -> "Metadata " + problem.getPointer().replace("/", "") + " should " + problem.getMessage().substring(0, problem.getMessage().length() - 1).replace("The value must", "").replace("\"", ""))
+                .map(problem -> processMessage(problem))
+                .filter(message -> StringUtils.isNotBlank(message))
                 .collect(Collectors.toList());
         Collections.reverse(tempMessageList);
         this.messages.addAll(tempMessageList);
@@ -27,5 +30,26 @@ public class CustomProblemHandler implements ProblemHandler {
 
     protected List<String> getProblemMessages() {
         return this.messages;
+    }
+
+    private String processMessage(Problem problem) {
+        switch (problem.getKeyword()) {
+            case "enum":
+                return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
+                        .filter(StringUtils::isNotBlank)
+                        .findFirst().get()
+                        + " should be one of: "
+                        + problem.parametersAsMap().get("expected")).replace("\"", "");
+            case "required":
+                return "Required Metadata "
+                        + problem.parametersAsMap().get(problem.getKeyword())
+                        .toString().replace("\"", "")
+                        + " not set";
+            case "type": {
+
+            }
+            default:
+                return "";
+        }
     }
 }

@@ -62,7 +62,7 @@ object DataNode {
             else
                 Future(node)
             val isBackwardCompatible = if (Platform.config.hasPath("content.tagging.backward_enable")) Platform.config.getBoolean("content.tagging.backward_enable") else false
-            if(isBackwardCompatible)
+            if(isBackwardCompatible && !StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
                 finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f => f)
             else
                 finalNodeFuture

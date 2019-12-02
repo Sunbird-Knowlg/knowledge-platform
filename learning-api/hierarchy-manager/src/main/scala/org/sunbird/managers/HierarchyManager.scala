@@ -1,5 +1,6 @@
 package org.sunbird.managers
 
+import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.lang3.StringUtils
@@ -12,6 +13,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 object HierarchyManager {
@@ -152,9 +154,9 @@ object HierarchyManager {
 
     def convertNodeToMap(leafNodes: List[Node]): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
-            val nodeMap = NodeUtil.serialize(node, null, schemaName)
-            val filteredNodeMap: java.util.Map[String, AnyRef] = nodeMap.toMap.filterNot(p => keyTobeRemoved.contains(p._1))
-            filteredNodeMap
+            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, schemaName)
+            nodeMap.keySet().removeAll(keyTobeRemoved)
+            nodeMap
         })
     }
 
@@ -162,15 +164,9 @@ object HierarchyManager {
         val childNodes = children.filter(child => ("Parent".equalsIgnoreCase(child.get("visibility").asInstanceOf[String]) && unitId.equalsIgnoreCase(child.get("identifier").asInstanceOf[String]))).toList
         if(null != childNodes && !childNodes.isEmpty){
             val child = childNodes.get(0)
-            var filteredLeafNodes = new java.util.ArrayList[java.util.Map[String,AnyRef]]()
-            if(null != child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty) {
-                var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
-                    !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
-                })
-            }
-            if(null == filteredLeafNodes) filteredLeafNodes = new java.util.ArrayList[java.util.Map[String,AnyRef]]()
-            filteredLeafNodes.addAll(leafNodes)
-            child.put("children", filteredLeafNodes)
+            val childList = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]]
+            val restructuredChildren: java.util.List[java.util.Map[String,AnyRef]] = restructureUnit(childList, leafNodes, leafNodeIds, (child.get("depth").asInstanceOf[Integer] + 1), unitId)
+            child.put("children", restructuredChildren)
         } else {
             for(child <- children) {
                 if(null !=child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty)
@@ -186,6 +182,11 @@ object HierarchyManager {
             if(null != child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty) {
                 var filteredLeafNodes = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].filter(existingLeafNode => {
                     !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
+                })
+                var index: Integer = 1
+                filteredLeafNodes.toList.sortBy(x => x.get("index").asInstanceOf[Integer]).foreach(node => {
+                    node.put("index", index)
+                    index += 1
                 })
                 child.put("children", filteredLeafNodes)
             }
@@ -231,5 +232,36 @@ object HierarchyManager {
         ExternalPropsManager.saveProps(req)
     }
 
+    def restructureUnit(childList: java.util.List[java.util.Map[String, AnyRef]], leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], depth: Integer, parent: String): java.util.List[java.util.Map[String, AnyRef]] = {
+        var maxIndex:Integer = 0
+        var leafNodeMap: java.util.Map[String, java.util.Map[String, AnyRef]] =  new util.HashMap[String, java.util.Map[String, AnyRef]]()
+        for(leafNode <- leafNodes){
+            leafNodeMap.put(leafNode.get("identifier").asInstanceOf[String], JavaConverters.mapAsJavaMapConverter(leafNode).asJava)
+        }
+        var filteredLeafNodes: java.util.List[java.util.Map[String, AnyRef]] = new util.ArrayList[java.util.Map[String, AnyRef]]()
+        if(null != childList && !childList.isEmpty) {
+            val childMap:Map[String, java.util.Map[String, AnyRef]] = childList.toList.map(f => f.get("identifier").asInstanceOf[String] -> f).toMap
+            val existingLeafNodes = childMap.filter(p => leafNodeIds.contains(p._1))
+                existingLeafNodes.map(en => {
+                    leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
+                })
+            filteredLeafNodes = bufferAsJavaList(childList.filter(existingLeafNode => {
+                !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
+            }))
+            maxIndex = childMap.values.toList.map(child => child.get("index").asInstanceOf[Integer]).toList.max.asInstanceOf[Integer]
+        }
+        leafNodeIds.foreach(id => {
+            var node = leafNodeMap.get(id)
+            node.put("parent", parent)
+            node.put("depth", depth)
+            if( null == node.get("index")) {
+                val index:Integer = maxIndex + 1
+                node.put("index", index)
+                maxIndex += 1
+            }
+            filteredLeafNodes.add(node)
+        })
+        filteredLeafNodes
+    }
 
 }
