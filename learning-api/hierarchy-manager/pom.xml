@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>hierarchy-service</artifactId>
+    <artifactId>hierarchy-manager</artifactId>
 
     <dependencies>
         <dependency>
