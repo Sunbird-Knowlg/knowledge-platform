@@ -3,6 +3,7 @@ package org.sunbird.schema.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.Problem;
 import org.leadpony.justify.api.ProblemHandler;
+import scala.collection.immutable.StringOps;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +47,12 @@ public class CustomProblemHandler implements ProblemHandler {
                         .toString().replace("\"", "")
                         + " not set";
             case "type": {
-
+                return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
+                        .filter(StringUtils::isNotBlank)
+                        .findFirst().get()
+                        + " should be a/an "
+                        + StringUtils.capitalize(((Enum) problem.parametersAsMap().get("expected")).name().toLowerCase())).replace("\"", "")
+                        + " value";
             }
             default:
                 return "";
