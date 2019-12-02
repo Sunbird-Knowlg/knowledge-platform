@@ -21,7 +21,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val license = body.getOrElse(objectType.toLowerCase, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseOperations.createLicense.name())
         setRequestContext(licenseRequest, version, objectType, schemaName)
@@ -41,7 +41,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val license = body.getOrElse(objectType.toLowerCase, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseOperations.updateLicense.name())
         setRequestContext(licenseRequest, version, objectType, schemaName)
