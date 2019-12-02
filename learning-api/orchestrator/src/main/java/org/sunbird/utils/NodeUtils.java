@@ -27,7 +27,7 @@ public class NodeUtils {
         List<String> languages = Arrays.asList( (String[]) node.getMetadata().get("language"));
         List<String> languageCodes = new ArrayList<String>();
         languageCodes.addAll(languages.stream().map(lang -> Platform.config.getConfig("languageCode").hasPath(lang.toLowerCase()) ? Platform.config.getConfig("languageCode").getString(lang.toLowerCase()) : "").collect(Collectors.toList()));
-        metadataMap.put("laguageCode",languageCodes);
+        metadataMap.put("languageCode",languageCodes);
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
         List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", schemaName));
