@@ -17,8 +17,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
-
-
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
         JavaJsonUtils.deserialize[java.util.Map[String, Object]](body).getOrDefault("request", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
@@ -61,11 +59,12 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         response.getParams.setResmsgid(UUID.randomUUID().toString)
     }
 
-    def setRequestContext(request:org.sunbird.common.dto.Request, version: String, objectType: String): Unit = {
+    def setRequestContext(request:org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
         var contextMap: java.util.Map[String, AnyRef] = new mutable.HashMap[String, AnyRef](){{
             put("graph_id", "domain")
             put("version" , version)
             put("objectType" , objectType)
+            put("schemaName", schemaName)
         }};
         request.setObjectType(objectType);
         request.setContext(contextMap)

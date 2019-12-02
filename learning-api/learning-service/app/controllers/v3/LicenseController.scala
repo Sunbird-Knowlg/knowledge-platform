@@ -15,15 +15,16 @@ import scala.concurrent.ExecutionContext
 class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
     val objectType = "License"
+    val schemaName: String = "license"
     val version = "1.0"
 
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val license = body.getOrElse(objectType.toLowerCase, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseOperations.createLicense.name())
-        setRequestContext(licenseRequest, version, objectType)
+        setRequestContext(licenseRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_LICENSE, licenseActor, licenseRequest)
     }
 
@@ -33,17 +34,17 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         license.putAll(headers)
         license.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")))
         val licenseRequest = getRequest(license, headers, LicenseOperations.readLicense.name())
-        setRequestContext(licenseRequest, version, objectType)
+        setRequestContext(licenseRequest, version, objectType, schemaName)
         getResult(ApiId.READ_LICENSE, licenseActor, licenseRequest)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val license = body.getOrElse(objectType.toLowerCase, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseOperations.updateLicense.name())
-        setRequestContext(licenseRequest, version, objectType)
+        setRequestContext(licenseRequest, version, objectType, schemaName)
         licenseRequest.getContext.put("identifier", identifier)
         getResult(ApiId.UPDATE_LICENSE, licenseActor, licenseRequest)
     }
@@ -53,7 +54,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseOperations.retireLicense.name())
-        setRequestContext(licenseRequest, version, objectType)
+        setRequestContext(licenseRequest, version, objectType, schemaName)
         licenseRequest.getContext.put("identifier", identifier)
         getResult(ApiId.RETIRE_LICENSE, licenseActor, licenseRequest)
     }

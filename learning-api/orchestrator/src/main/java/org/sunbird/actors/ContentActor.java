@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 
 public class ContentActor extends BaseActor {
 
-    private static final String SCHEMA_NAME = "content";
-
     public Future<Response> onReceive(Request request) throws Throwable {
         String operation = request.getOperation();
         switch(operation) {
@@ -37,7 +35,6 @@ public class ContentActor extends BaseActor {
 
     private Future<Response> create(Request request) throws Exception {
         populateDefaultersForCreation(request);
-        request.getContext().put("schemaName", SCHEMA_NAME);
         RequestUtils.restrictProperties(request);
         return DataNode.create(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
@@ -54,7 +51,6 @@ public class ContentActor extends BaseActor {
 
     private Future<Response> update(Request request) throws Exception {
         populateDefaultersForUpdation(request);
-        request.getContext().put("schemaName", SCHEMA_NAME);
         RequestUtils.restrictProperties(request);
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
@@ -70,7 +66,6 @@ public class ContentActor extends BaseActor {
     }
 
     private Future<Response> read(Request request) throws Exception {
-        request.getContext().put("schemaName", SCHEMA_NAME);
         List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
                 .filter(field -> StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).collect(Collectors.toList());
         request.getRequest().put("fields", fields);
@@ -80,7 +75,7 @@ public class ContentActor extends BaseActor {
                     public Response apply(Node node) {
                         if (NodeUtils.isRetired(node))
                             return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "Content not found with identifier: " + node.getIdentifier());
-                        Map<String, Object> metadata = NodeUtils.serialize(node, fields, SCHEMA_NAME);
+                        Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"));
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
                         return response;
