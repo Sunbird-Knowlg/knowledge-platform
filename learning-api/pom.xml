@@ -21,8 +21,8 @@
         <scala.version>2.11.8</scala.version>
     </properties>
     <modules>
-        <module>learning-service</module>
-        <module>hierarchy-service</module>
+        <module>content-service</module>
+        <module>hierarchy-manager</module>
         <module>orchestrator</module>
     </modules>
     <dependencies>

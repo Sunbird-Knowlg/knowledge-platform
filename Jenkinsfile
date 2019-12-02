@@ -38,7 +38,7 @@ node('build-slave') {
 
             stage('Package') {
                 dir('learning-api') {
-                    sh 'mvn play2:dist -pl learning-service'
+                    sh 'mvn play2:dist -pl content-service'
                 }
                 sh('chmod 777 ./build.sh')
                 sh("./build.sh ${build_tag} ${env.NODE_NAME} ${hub_org}")
