@@ -1,6 +1,8 @@
 package org.sunbird.schema;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
+import org.sunbird.common.exception.ServerException;
 import org.sunbird.schema.impl.JsonSchemaValidator;
 
 import java.util.HashMap;
@@ -32,7 +34,10 @@ public class SchemaValidatorFactory {
 
     public static String getExternalStoreName(String name, String version) throws Exception {
         ISchemaValidator schemaValidator = SchemaValidatorFactory.getInstance(name, version);
-        return schemaValidator.getConfig().getString("external.storeName");
+        String keyspaceName = Platform.config.getString(name + ".keyspace");
+        if(StringUtils.isEmpty(keyspaceName))
+            throw new ServerException("ERR_KEYSPACE_NOT_DEFINED", "Key space for " + name + " is not configured.");
+        return keyspaceName + "." + schemaValidator.getConfig().getString("external.tableName");
     }
 
     public static List<String> getExternalPrimaryKey(String name, String version) throws Exception {
