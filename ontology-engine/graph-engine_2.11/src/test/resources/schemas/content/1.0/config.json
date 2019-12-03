@@ -9,7 +9,7 @@
     },
     "objectType": "Content",
     "external": {
-        "storeName": "content_store.content_data",
+        "tableName": "content_data",
         "properties": {
             "body": {
                 "type": "blob"
