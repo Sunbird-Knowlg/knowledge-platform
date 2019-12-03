@@ -25,7 +25,7 @@ object DataNode {
     def create(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
-            val response = NodeAsyncOperations.addNode(graphId, node)
+            val response = NodeAsyncOperations.addNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),

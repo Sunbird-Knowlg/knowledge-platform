@@ -74,7 +74,7 @@ trait VersioningNode extends IDefinition {
                             node.setIdentifier(imageId)
                             node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
                             node.getMetadata.put("status", "Draft")
-                            NodeAsyncOperations.addNode(node.getGraphId, node)
+                            NodeAsyncOperations.addNode(node.getGraphId, node, null)
                         } else
                             throw e.getCause
                     }
