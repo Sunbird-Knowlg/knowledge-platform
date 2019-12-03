@@ -58,7 +58,12 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
     @throws[IOException]
     private def deleteEmbeddedNeo4j(emDb: File): Unit = {
-        FileUtils.deleteDirectory(emDb)
+        try{
+            FileUtils.deleteDirectory(emDb)
+        }catch{
+            case e: Exception =>
+                e.printStackTrace()
+        }
     }
 
 
