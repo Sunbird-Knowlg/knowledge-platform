@@ -67,10 +67,13 @@ public class NodeUtils {
             if (relMap.containsKey(relationMap.get(rel.getRelationType() + "_in_" + rel.getStartNodeObjectType()))) {
                 relMap.get(relationMap.get(rel.getRelationType() + "_in_" + rel.getStartNodeObjectType())).add(populateRelationMaps(rel, "in"));
             } else {
-                relMap.put((String) relationMap.get(rel.getRelationType() + "_in_" + rel.getStartNodeObjectType()),
-                        new ArrayList<Map<String, Object>>() {{
-                            add(populateRelationMaps(rel, "in"));
-                        }});
+                String relKey = (String) relationMap.get(rel.getRelationType() + "_in_" + rel.getStartNodeObjectType());
+                if (StringUtils.isNotBlank(relKey)) {
+                    relMap.put(relKey,
+                            new ArrayList<Map<String, Object>>() {{
+                                add(populateRelationMaps(rel, "in"));
+                            }});
+                }
             }
 
         }
@@ -79,10 +82,13 @@ public class NodeUtils {
             if (relMap.containsKey(relationMap.get(rel.getRelationType() + "_out_" + rel.getEndNodeObjectType()))) {
                 relMap.get(relationMap.get(rel.getRelationType() + "_out_" + rel.getEndNodeObjectType())).add(populateRelationMaps(rel, "out"));
             } else {
-                relMap.put((String) relationMap.get(rel.getRelationType() + "_out_" + rel.getEndNodeObjectType()),
-                        new ArrayList<Map<String, Object>>() {{
-                            add(populateRelationMaps(rel, "out"));
-                        }});
+                String relKey = (String) relationMap.get(rel.getRelationType() + "_out_" + rel.getEndNodeObjectType());
+                if (StringUtils.isNotBlank(relKey)) {
+                    relMap.put(relKey,
+                            new ArrayList<Map<String, Object>>() {{
+                                add(populateRelationMaps(rel, "out"));
+                            }});
+                }
             }
 
         }
