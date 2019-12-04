@@ -257,14 +257,17 @@
         },
         "resources": {
             "type": "array",
-            "enum": [
-                "Speaker",
-                "Touch",
-                "Microphone",
-                "GPS",
-                "Motion Sensor",
-                "Compass"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Speaker",
+                    "Touch",
+                    "Microphone",
+                    "GPS",
+                    "Motion Sensor",
+                    "Compass"
+                ]
+            }
         },
         "downloadUrl": {
             "type": "string",
@@ -390,15 +393,18 @@
         },
         "ageGroup": {
             "type": "array",
-            "enum": [
-                "<5",
-                "5-6",
-                "6-7",
-                "7-8",
-                "8-10",
-                ">10",
-                "Other"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "<5",
+                    "5-6",
+                    "6-7",
+                    "7-8",
+                    "8-10",
+                    ">10",
+                    "Other"
+                ]
+            }
         },
         "interactivityLevel": {
             "type": "string",
@@ -456,20 +462,23 @@
         },
         "category": {
             "type": "array",
-            "enum": [
-                "core",
-                "learning",
-                "literacy",
-                "math",
-                "science",
-                "time",
-                "wordnet",
-                "game",
-                "mcq",
-                "mtf",
-                "ftb",
-                "library"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "core",
+                    "learning",
+                    "literacy",
+                    "math",
+                    "science",
+                    "time",
+                    "wordnet",
+                    "game",
+                    "mcq",
+                    "mtf",
+                    "ftb",
+                    "library"
+                ]
+            }
         },
         "templateType": {
             "type": "string",
@@ -487,42 +496,48 @@
         },
         "genre": {
             "type": "array",
-            "enum": [
-                "Picture Books",
-                "Chapter Books",
-                "Flash Cards",
-                "Serial Books",
-                "Alphabet Books",
-                "Folktales",
-                "Fiction",
-                "Non-Fiction",
-                "Poems/Rhymes",
-                "Plays",
-                "Comics",
-                "Words"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Picture Books",
+                    "Chapter Books",
+                    "Flash Cards",
+                    "Serial Books",
+                    "Alphabet Books",
+                    "Folktales",
+                    "Fiction",
+                    "Non-Fiction",
+                    "Poems/Rhymes",
+                    "Plays",
+                    "Comics",
+                    "Words"
+                ]
+            }
         },
         "theme": {
             "type": "array",
-            "enum": [
-                "History",
-                "Adventure",
-                "Mystery",
-                "Science",
-                "Nature",
-                "Art",
-                "Music",
-                "Funny",
-                "Family",
-                "Life Skills",
-                "Scary",
-                "School Stories",
-                "Holidays",
-                "Hobby",
-                "Geography",
-                "Rural",
-                "Urban"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "History",
+                    "Adventure",
+                    "Mystery",
+                    "Science",
+                    "Nature",
+                    "Art",
+                    "Music",
+                    "Funny",
+                    "Family",
+                    "Life Skills",
+                    "Scary",
+                    "School Stories",
+                    "Holidays",
+                    "Hobby",
+                    "Geography",
+                    "Rural",
+                    "Urban"
+                ]
+            }
         },
         "themes": {
             "type": "array"
@@ -559,32 +574,41 @@
         },
         "scaffolding": {
             "type": "array",
-            "enum": [
-                "Tutorial",
-                "Help",
-                "Practice"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Tutorial",
+                    "Help",
+                    "Practice"
+                ]
+            }
         },
         "feedback": {
             "type": "array",
-            "enum": [
-                "Right/Wrong",
-                "Reflection",
-                "Guidance",
-                "Learn from Mistakes",
-                "Adaptive Feedback",
-                "Interrupts",
-                "Rich Feedback"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Right/Wrong",
+                    "Reflection",
+                    "Guidance",
+                    "Learn from Mistakes",
+                    "Adaptive Feedback",
+                    "Interrupts",
+                    "Rich Feedback"
+                ]
+            }
         },
         "feedbackType": {
             "type": "array",
-            "enum": [
-                "Audio",
-                "Visual",
-                "Textual",
-                "Tactile"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Audio",
+                    "Visual",
+                    "Textual",
+                    "Tactile"
+                ]
+            }
         },
         "teachingMode": {
             "type": "string",
@@ -596,15 +620,18 @@
         },
         "skills": {
             "type": "array",
-            "enum": [
-                "Listening",
-                "Speaking",
-                "Reading",
-                "Writing",
-                "Touch",
-                "Gestures",
-                "Draw"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Listening",
+                    "Speaking",
+                    "Reading",
+                    "Writing",
+                    "Touch",
+                    "Gestures",
+                    "Draw"
+                ]
+            }
         },
         "keywords": {
             "type": "array"
@@ -764,12 +791,15 @@
         },
         "flagReasons": {
             "type": "array",
-            "enum": [
-                "Inappropriate Content",
-                "Copyright Violation",
-                "Privacy Violation",
-                "Other"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Inappropriate Content",
+                    "Copyright Violation",
+                    "Privacy Violation",
+                    "Other"
+                ]
+            }
         },
         "flaggedBy": {
             "type": "array"
@@ -788,10 +818,13 @@
         },
         "pragma": {
             "type": "array",
-            "enum": [
-                "external",
-                "ads"
-            ]
+            "items": {
+                "type": "string",
+                "enum": [
+                    "external",
+                    "ads"
+                ]
+            }
         },
         "publishChecklist": {
             "type": "array"
