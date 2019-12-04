@@ -4,14 +4,13 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
-import org.sunbird.common.dto.{Request, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.cache.util.RedisCacheUtil
+import org.sunbird.common.JsonUtils
+import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, Relation}
-import org.sunbird.graph.validator.NodeValidator
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConversions._
+import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
 
@@ -70,6 +69,7 @@ object DefinitionNode {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         val dbNodeFuture = definition.getNode(identifier, "update", null)
         val validationResult: Future[Node] = dbNodeFuture.map(dbNode => {
+            resetJsonProperties(dbNode, graphId, version, schemaName)
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             setRelationship(dbNode,inputNode)
             dbNode.getMetadata.putAll(inputNode.getMetadata)
@@ -136,6 +136,18 @@ object DefinitionNode {
                 if (!relList.contains(relKey)) delRels.add(rel)
             }
         }
+    }
+
+    def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String):Node = {
+        val jsonPropList = fetchJsonProps(graphId, version, schemaName)
+        if(!jsonPropList.isEmpty){
+            node.getMetadata.entrySet().map(entry => {
+                if(jsonPropList.contains(entry.getKey)){
+                    entry.setValue(JsonUtils.deserialize(entry.getValue.asInstanceOf[String], classOf[Object]))
+                }
+            })
+        }
+        node
     }
 }
 
