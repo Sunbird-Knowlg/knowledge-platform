@@ -3,9 +3,7 @@
         "create" : [
             "status", "dialcodes"
         ],
-        "update": [
-            "status", "identifier", "framework", "dialcodes", "code", "mimeType", "contentType", "channel"
-        ]
+        "update": []
     },
     "objectType": "Content",
     "external": {
