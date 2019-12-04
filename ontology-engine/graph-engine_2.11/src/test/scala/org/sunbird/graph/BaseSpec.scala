@@ -56,9 +56,14 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         deleteEmbeddedNeo4j(new File(Platform.config.getString("graph.dir")))
     }
 
-    @throws[IOException]
     private def deleteEmbeddedNeo4j(emDb: File): Unit = {
-        FileUtils.deleteDirectory(emDb)
+        try{
+            if(emDb.exists() && emDb.isDirectory)
+                FileUtils.deleteDirectory(emDb)
+        }catch{
+            case e: Exception =>
+                e.printStackTrace()
+        }
     }
 
 
