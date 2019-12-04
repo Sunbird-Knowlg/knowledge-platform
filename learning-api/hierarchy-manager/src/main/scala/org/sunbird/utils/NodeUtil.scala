@@ -44,15 +44,23 @@ object NodeUtil {
         val relMap = new util.HashMap[String, util.List[util.Map[String, AnyRef]]]
         for (rel <- inRelations.asScala) {
             if (relMap.containsKey(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType))) relMap.get(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType)).add(populateRelationMaps(rel, "in"))
-            else relMap.put(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+            else {
+                if(null != relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType)) {
+                    relMap.put(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+                }
+            }
         }
-
         for (rel <- outRelations.asScala) {
             if (relMap.containsKey(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType))) relMap.get(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType)).add(populateRelationMaps(rel, "out"))
-            else relMap.put(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+            else {
+                if(null != relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType)) {
+                    relMap.put(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+                }
+            }
         }
         relMap
     }
+    
     def convertJsonProperties(entry: Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
         if(jsonProps.contains(entry.getKey)) {
             try {mapper.readTree(entry.getValue.toString)}
