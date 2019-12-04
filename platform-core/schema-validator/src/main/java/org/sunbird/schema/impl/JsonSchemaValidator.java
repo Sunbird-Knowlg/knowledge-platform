@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.sunbird.common.Platform;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -36,7 +37,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
             InputStream stream = new URL( basePath + "schema.json").openStream();
             this.schema = readSchema(stream);
         }else {
-            Path schemaPath = Paths.get(getClass().getClassLoader().getResource( basePath + "schema.json").toURI());
+            Path schemaPath = new File( basePath + "schema.json").toPath();
             this.schema = readSchema(schemaPath);
         }
     }
@@ -46,8 +47,8 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
         if(basePath.startsWith("http")){
             this.config = ConfigFactory.parseURL(new URL( basePath + "config.json"));
         } else {
-            Path configPath = Paths.get(getClass().getClassLoader().getResource( basePath + "config.json").toURI());
-            this.config = ConfigFactory.parseFile(configPath.toFile());
+            File configFile = new File(basePath + "config.json");
+            this.config = ConfigFactory.parseFile(configFile);
         }
     }
 
