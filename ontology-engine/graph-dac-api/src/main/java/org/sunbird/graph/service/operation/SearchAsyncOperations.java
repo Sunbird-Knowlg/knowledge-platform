@@ -92,7 +92,6 @@ public class SearchAsyncOperations {
                     });
             return FutureConverters.toScala(cs);
         } catch (Throwable e) {
-            e.printStackTrace();
             if (!(e instanceof MiddlewareException)) {
                 throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
                         DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -207,7 +206,6 @@ public class SearchAsyncOperations {
                         });
                 return FutureConverters.toScala(cs);
         } catch (Throwable e) {
-        e.printStackTrace();
         if (!(e instanceof MiddlewareException)) {
             throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
                     DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);

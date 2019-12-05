@@ -21,7 +21,7 @@
             "screenshots": {
                 "type": "blob"
             },
-            "last_update_on": {
+            "last_updated_on": {
                 "type": "timestamp"
             }
         },
