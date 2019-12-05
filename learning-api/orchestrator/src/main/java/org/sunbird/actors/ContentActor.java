@@ -57,8 +57,9 @@ public class ContentActor extends BaseActor {
                     @Override
                     public Response apply(Node node) {
                         Response response = ResponseHandler.OK();
-                        response.put("node_id", node.getIdentifier());
-                        response.put("identifier", node.getIdentifier());
+                        String identifier = node.getIdentifier().replace(".img","");
+                        response.put("node_id", identifier);
+                        response.put("identifier", identifier);
                         response.put("versionKey", node.getMetadata().get("versionKey"));
                         return response;
                     }

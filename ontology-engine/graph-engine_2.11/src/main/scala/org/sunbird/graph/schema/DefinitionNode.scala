@@ -4,9 +4,8 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import jdk.internal.org.objectweb.asm.TypeReference
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.cache.util.RedisCacheUtil
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
@@ -122,9 +121,12 @@ object DefinitionNode {
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             setRelationship(dbNode,inputNode)
             dbNode.getMetadata.putAll(inputNode.getMetadata)
-            dbNode.setInRelations(inputNode.getInRelations)
-            dbNode.setOutRelations(inputNode.getOutRelations)
-            dbNode.setExternalData(inputNode.getExternalData)
+            if(MapUtils.isNotEmpty(inputNode.getExternalData)){
+                if(MapUtils.isNotEmpty(dbNode.getExternalData))
+                    dbNode.getExternalData.putAll(inputNode.getExternalData)
+                else
+                    dbNode.setExternalData(inputNode.getExternalData)
+            }
             if(!skipValidation)
                 definition.validate(dbNode,"update")
             else Future{dbNode}

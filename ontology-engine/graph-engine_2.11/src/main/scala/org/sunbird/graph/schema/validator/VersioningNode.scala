@@ -1,15 +1,18 @@
 package org.sunbird.graph.schema.validator
 
+import java.util
 import java.util.concurrent.CompletionException
 
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphEngineErrorCodes
+import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
 import org.sunbird.telemetry.logger.TelemetryManager
 
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait VersioningNode extends IDefinition {
@@ -46,7 +49,6 @@ trait VersioningNode extends IDefinition {
                 val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
                 imageNode recoverWith {
                     case e: CompletionException => {
-                        TelemetryManager.error("Exception occured while fetching image node, may not be found", e.getCause)
                         if (e.getCause.isInstanceOf[ResourceNotFoundException])
                             super.getNode(identifier, "read", mode)
                         else
@@ -59,7 +61,6 @@ trait VersioningNode extends IDefinition {
         }.map(dataNode => dataNode) recoverWith { case e: CompletionException => throw e.getCause}
         node
     }
-
 
     private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext): Future[Node] = {
         val status = node.getMetadata.get("status").asInstanceOf[String]
@@ -74,7 +75,15 @@ trait VersioningNode extends IDefinition {
                             node.setIdentifier(imageId)
                             node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
                             node.getMetadata.put("status", "Draft")
-                            NodeAsyncOperations.addNode(node.getGraphId, node)
+                            NodeAsyncOperations.addNode(node.getGraphId, node).map(imgNode => {
+                                copyExternalProps(identifier, node.getGraphId).map(response => {
+                                    if(!ResponseHandler.checkError(response)) {
+                                        if(null != response.getResult && !response.getResult.isEmpty)
+                                            imgNode.setExternalData(response.getResult)
+                                    }
+                                    imgNode
+                                })
+                            }).flatMap(f=>f)
                         } else
                             throw e.getCause
                     }
@@ -82,6 +91,25 @@ trait VersioningNode extends IDefinition {
             }
         } else
             Future{node}
+    }
+
+    private def copyExternalProps(identifier: String, graphId: String)(implicit ec : ExecutionContext) = {
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef](){{
+            put("schemaName", getSchemaName())
+            put("version", "1.0")
+            put("graph_id", graphId)
+        }})
+        request.put("identifier", identifier)
+        ExternalPropsManager.fetchProps(request, getExternalPropsList())
+    }
+
+    private def getExternalPropsList(): List[String] ={
+        if(schemaValidator.getConfig.hasPath("external.properties")){
+            new util.ArrayList[String](schemaValidator.getConfig.getObject("external.properties").keySet()).toList
+        }else{
+            List[String]()
+        }
     }
 
 }
