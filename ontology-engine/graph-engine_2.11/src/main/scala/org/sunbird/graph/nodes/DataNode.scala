@@ -52,7 +52,7 @@ object DataNode {
 
     @throws[Exception]
     def read(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
-        val resultNode: Future[Node] = DefinitionNode.getNode(request)
+        val resultNode: Future[Node] = DefinitionNode.getNodeWithFallback(request)
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         resultNode.map(node => {
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
