@@ -168,11 +168,14 @@ class TestDataNode extends BaseSpec {
                 }})
             }})
             val updateFuture = DataNode.update(req)
-            updateFuture map { node => {
-                assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
-                assert(node.getOutRelations.get(0).getEndNodeId().equalsIgnoreCase("Num:C3:SC2"))
-            }
-            }
+            updateFuture.map(node => {
+                val readRequest = new Request(request)
+                readRequest.put("identifier", node.getIdentifier)
+                DataNode.read(readRequest).map(node => {
+                    assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
+                    assert(node.getOutRelations.get(0).getEndNodeId().equalsIgnoreCase("Num:C3:SC2"))
+                })
+            }) flatMap(f => f)
         }
         } flatMap(f => f)
     }

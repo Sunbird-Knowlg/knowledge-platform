@@ -73,8 +73,6 @@ object DefinitionNode {
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             setRelationship(dbNode,inputNode)
             dbNode.getMetadata.putAll(inputNode.getMetadata)
-            dbNode.setInRelations(inputNode.getInRelations)
-            dbNode.setOutRelations(inputNode.getOutRelations)
             if(MapUtils.isNotEmpty(inputNode.getExternalData)){
                 if(MapUtils.isNotEmpty(dbNode.getExternalData))
                     dbNode.getExternalData.putAll(inputNode.getExternalData)
