@@ -66,5 +66,6 @@
         "properties": {
             "license": "License"
         }
-    }
+    },
+    "cacheEnabled": true
 }

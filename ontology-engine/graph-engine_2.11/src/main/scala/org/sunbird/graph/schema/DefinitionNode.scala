@@ -18,6 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
     val mapper = new ObjectMapper()
+    val liveStatus = List("Live", "Unlisted")
 
   def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
@@ -60,17 +61,18 @@ object DefinitionNode {
 
     def getNodeWithFallback(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val mode: String = request.get("mode").asInstanceOf[String]
-        if (StringUtils.isNotEmpty(mode) && StringUtils.equalsIgnoreCase(mode, "edit")) {
-            val futureNode: Future[Node] = getNode(request)
-            futureNode.map(node => saveToCache(node))
-            futureNode
-        } else
-            getNodeFromCache(request)
+        val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String],
+            request.getContext.get("schemaName").asInstanceOf[String],
+            request.getContext.get("version").asInstanceOf[String])
+        if (StringUtils.isNotEmpty(mode) && StringUtils.equalsIgnoreCase(mode, "edit"))
+            getNode(request)
+        else
+            getNodeFromCache(request, definition.isCacheEnabled())
     }
 
-    def getNodeFromCache(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def getNodeFromCache(request: Request, cacheEnabled: Boolean)(implicit ec: ExecutionContext): Future[Node] = {
         val cacheString: String = RedisCacheUtil.getString(request.get("identifier").asInstanceOf[String])
-        if(StringUtils.isNotEmpty(cacheString) || StringUtils.isNoneBlank(cacheString)) {
+        if((StringUtils.isNotEmpty(cacheString) || StringUtils.isNoneBlank(cacheString)) && cacheEnabled) {
             try {
                 val cacheMap = mapper.readValue(cacheString, classOf[java.util.Map[String, Object]])
                 val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String],
@@ -98,7 +100,13 @@ object DefinitionNode {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
             , schemaName, request.getContext.get("version").asInstanceOf[String])
-        definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
+        val cacheEnabled: Boolean = definition.isCacheEnabled()
+        val futureNode:Future[Node] = definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
+        futureNode.map(node => {
+            if (cacheEnabled && CollectionUtils.containsAny(liveStatus, node.getMetadata.get("status")) )
+                saveToCache(node)
+        })
+        futureNode
     }
 
     @throws[Exception]

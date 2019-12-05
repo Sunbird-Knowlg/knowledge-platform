@@ -94,4 +94,8 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         val objects = relationMetadata.get("objects").asInstanceOf[java.util.List[String]].asScala
         objects.flatMap(objectType => Map((relationMetadata.get("type").asInstanceOf[String] + "_" + relationMetadata.get("direction") + "_" + objectType) -> relation._1)).toMap
     }
+
+    def isCacheEnabled(): Boolean = {
+        if (schemaValidator.getConfig.hasPath("cacheEnabled")) schemaValidator.getConfig.getBoolean("cacheEnabled") else false
+    }
 }
