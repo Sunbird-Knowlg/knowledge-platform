@@ -143,7 +143,7 @@ object DataNode {
 
     private def populateExternalProperties(fields: List[String], node: Node, request: Request, externalProps: List[String])(implicit ec: ExecutionContext): Future[Node] = {
         if(StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
-           request.put("identifier", request.get("identifier") + ".img")
+           request.put("identifier", node.getIdentifier)
         val externalPropsResponse = ExternalPropsManager.fetchProps(request, externalProps.filter(prop => fields.contains(prop)))
         externalPropsResponse.map(response => {
             node.getMetadata.putAll(response.getResult)
