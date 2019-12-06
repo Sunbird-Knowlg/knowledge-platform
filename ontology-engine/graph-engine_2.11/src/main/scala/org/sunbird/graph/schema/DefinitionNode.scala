@@ -4,7 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
-import org.apache.commons.lang3.{BooleanUtils, StringUtils}
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.util.RedisCacheUtil
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
