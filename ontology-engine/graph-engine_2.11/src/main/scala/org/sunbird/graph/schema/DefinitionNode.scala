@@ -4,6 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.sunbird.cache.util.RedisCacheUtil
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
@@ -72,6 +73,10 @@ object DefinitionNode {
             resetJsonProperties(dbNode, graphId, version, schemaName)
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             setRelationship(dbNode,inputNode)
+            if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
+                inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
+                dbNode.getMetadata.remove("isImageNodeCreated")
+            }
             dbNode.getMetadata.putAll(inputNode.getMetadata)
             if(MapUtils.isNotEmpty(inputNode.getExternalData)){
                 if(MapUtils.isNotEmpty(dbNode.getExternalData))
