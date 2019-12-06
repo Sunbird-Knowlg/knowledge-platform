@@ -21,7 +21,6 @@ object ExternalPropsManager {
     }
 
     def fetchProps(request: Request, fields: List[String])(implicit ec: ExecutionContext): Future[Response] = {
-        val objectType: String = request.getObjectType
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
