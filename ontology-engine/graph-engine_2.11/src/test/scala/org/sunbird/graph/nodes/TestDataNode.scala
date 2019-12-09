@@ -268,6 +268,7 @@ class TestDataNode extends BaseSpec {
         request.setContext(getContextMap())
         request.getContext.put("identifier", "do_1129067102240194561252")
         request.put("name", "updated name")
+        request.put("versionKey", "1575527498230")
         val updateFuture = DataNode.update(request)
         updateFuture.map(node => {
             assert(node.getIdentifier.equalsIgnoreCase("do_1129067102240194561252.img"))

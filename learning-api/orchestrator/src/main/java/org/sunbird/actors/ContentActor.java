@@ -51,6 +51,8 @@ public class ContentActor extends BaseActor {
 
     private Future<Response> update(Request request) throws Exception {
         populateDefaultersForUpdation(request);
+        if(StringUtils.isBlank((String)request.get("versionKey")))
+            throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!");
         RequestUtils.restrictProperties(request);
         return DataNode.update(request, getContext().dispatcher())
                 .map(new Mapper<Node, Response>() {
