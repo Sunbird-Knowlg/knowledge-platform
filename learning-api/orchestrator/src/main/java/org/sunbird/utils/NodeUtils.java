@@ -29,7 +29,7 @@ public class NodeUtils {
         metadataMap.put("languageCode",languageCodes);
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
-        metadataMap.put("identifier", node.getIdentifier());
+        metadataMap.put("identifier", node.getIdentifier().replace(".img",""));
         List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", schemaName));
         Map<String, Object> updatedMetadataMap = metadataMap.entrySet().stream().collect(Collectors.toMap(entry -> handleKeyNames(entry, fields), entry -> convertJsonProperties(entry, jsonProps)));
         Map<String, Object> definitionMap = JavaConversions.mapAsJavaMap(DefinitionNode.getRelationDefinitionMap(node.getGraphId(), "1.0", schemaName));
