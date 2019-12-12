@@ -12,7 +12,6 @@ import org.sunbird.graph.schema.DefinitionNode
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap.HashTrieMap
 
 object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
@@ -95,18 +94,20 @@ object NodeUtil {
         val outRelations:util.List[Relation] = { if (CollectionUtils.isEmpty(node.getOutRelations)) new util.ArrayList[Relation] else node.getOutRelations }
         val relMap = new util.HashMap[String, util.List[util.Map[String, AnyRef]]]
         for (rel <- inRelations.asScala) {
-            if (relMap.containsKey(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType))) relMap.get(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType)).add(populateRelationMaps(rel, "in"))
+            val relKey:String = rel.getRelationType + "_in_" + rel.getEndNodeObjectType
+            if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "in"))
             else {
-                if(null != relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType)) {
-                    relMap.put(relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+                if(null != relationMap.get(relKey)) {
+                    relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
                 }
             }
         }
         for (rel <- outRelations.asScala) {
-            if (relMap.containsKey(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType))) relMap.get(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType)).add(populateRelationMaps(rel, "out"))
+            val relKey:String = rel.getRelationType + "_out_" + rel.getEndNodeObjectType
+            if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "out"))
             else {
-                if(null != relationMap.get(rel.getRelationType + "_in_" + rel.getStartNodeObjectType)) {
-                    relMap.put(relationMap.get(rel.getRelationType + "_out_" + rel.getEndNodeObjectType).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+                if(null != relationMap.get(relKey)) {
+                    relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
                 }
             }
         }

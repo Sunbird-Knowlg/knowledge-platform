@@ -40,10 +40,11 @@ public class NodeUtils {
 
     private static List<String> getLanguageCodes(Node node) {
         List<String> languages = new ArrayList<>();
-        if (node.getMetadata().get("language") instanceof String[] )
-            languages.addAll(Arrays.asList( (String[]) node.getMetadata().get("language")));
-        else if(node.getMetadata().get("language") instanceof List)
-            languages.addAll((List<String>) node.getMetadata().get("language"));
+        Object language = node.getMetadata().get("language");
+        if (language instanceof String[] )
+            languages.addAll(Arrays.asList( (String[]) language));
+        else if(language instanceof List)
+            languages.addAll((List<String>) language);
         return languages.stream().map(lang -> Platform.config.hasPath("languageCode." + lang.toLowerCase()) ? Platform.config.getString("languageCode." + lang.toLowerCase()) : "").collect(Collectors.toList());
     }
 
