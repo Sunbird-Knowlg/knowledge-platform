@@ -15,4 +15,5 @@ redis-cli SADD edge_license "Standard Youtube License"
 find ./ -type f -name "logback.xml" -print0 | xargs -0 sed -i -e 's/\/data\/logs/logs/g'
 find ./ -type f -name "application.conf" -print0 | xargs -0 sed -i -e 's/\/data\//~\//g'
 find ./ -type f -name "*.java" -print0 | xargs -0 sed -i -e 's/\/data\//~\//g'
-mvn verify sonar:sonar -Dsonar.projectKey=project-sunbird_knowledge-platform -Dsonar.organization=project-sunbird -Dsonar.host.url=https://sonarcloud.io
+mvn clean install
+#mvn verify sonar:sonar -Dsonar.projectKey=project-sunbird_knowledge-platform -Dsonar.organization=project-sunbird -Dsonar.host.url=https://sonarcloud.io
