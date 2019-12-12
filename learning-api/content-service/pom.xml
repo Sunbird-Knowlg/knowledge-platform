@@ -60,8 +60,9 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.play</groupId>
-            <artifactId>play-akka-http-server_${scala.major.version}</artifactId>
+            <artifactId>play-netty-server_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
