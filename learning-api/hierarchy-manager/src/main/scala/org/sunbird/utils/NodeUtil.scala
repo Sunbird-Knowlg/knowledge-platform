@@ -32,7 +32,7 @@ object NodeUtil {
 
     def handleKeyNames(entry: Map.Entry[String, AnyRef], fields: util.List[String]) = {
         if(CollectionUtils.isEmpty(fields)) {
-            entry.getKey.substring(0,1) + entry.getKey.substring(1)
+            entry.getKey.substring(0,1).toLowerCase() + entry.getKey.substring(1)
         } else {
             entry.getKey
         }

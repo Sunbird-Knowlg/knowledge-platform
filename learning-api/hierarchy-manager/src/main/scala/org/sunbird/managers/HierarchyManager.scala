@@ -4,6 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.cache.util.RedisCacheUtil
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.common.{JsonUtils, Platform}
@@ -20,6 +21,8 @@ object HierarchyManager {
 
     val schemaName: String = "collection"
     val imgSuffix: String = ".img"
+    val hierarchyPrefix: String = "hierarchy_"
+
     val keyTobeRemoved = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))
             Platform.config.getStringList("content.hierarchy.removed_props_for_leafNodes")
@@ -97,6 +100,53 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
 
+    @throws[Exception]
+    def getHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
+        if(request.get("mode").equals("edit")) getUnPublishedHierarchy(request)
+        else getPublishedHierarchy(request)
+    }
+
+    @throws[Exception]
+    def getUnPublishedHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
+        val rootNodeFuture = getRootNode(request)
+        rootNodeFuture.map(rootNode => {
+            if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.get("status").asInstanceOf[String])) {
+                Future {
+                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
+                }
+            }
+            val hierarchyFuture = fetchHierarchy(request)
+            hierarchyFuture.map(hierarchy => {
+                if (!hierarchy.isEmpty) {
+                    rootNode.getMetadata().put("children", hierarchy("children"))
+                }
+                val response : Response = ResponseHandler.OK
+                response.put("content", rootNode.getMetadata())
+                Future (response)
+            }).flatMap(f => f)
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }
+
+    @throws[Exception]
+    def getPublishedHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
+        val redisHierarchy = RedisCacheUtil.getString(hierarchyPrefix + request.get("rootId"))
+        val response : Response = ResponseHandler.OK
+        if (!StringUtils.isEmpty(redisHierarchy)) {
+            response.put("content", mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))
+            Future (response)
+        } else {
+            val hierarchyFuture = fetchHierarchy(request)
+            hierarchyFuture.map(hierarchy => {
+                if (hierarchy.isEmpty) {
+                    Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")}
+                } else {
+                    response.put("content", mapAsJavaMap(hierarchy))
+                    RedisCacheUtil.saveString(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(mapAsJavaMap(hierarchy)), 0)
+                    Future (response)
+                }
+            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }
+    }
 
     def validateRequest(request: Request)(implicit ec: ExecutionContext) = {
         val rootId = request.get("rootId").asInstanceOf[String]
@@ -123,7 +173,8 @@ object HierarchyManager {
 
     def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         val req = new Request(request)
-        req.put("identifier", request.get("rootId").asInstanceOf[String] + imgSuffix)
+        if (!StringUtils.isEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit")) req.put("identifier", request.get("rootId").asInstanceOf[String] + imgSuffix)
+        else req.put("identifier", request.get("rootId").asInstanceOf[String])
         val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
         responseFuture.map(response => {
             if(!ResponseHandler.checkError(response)) {

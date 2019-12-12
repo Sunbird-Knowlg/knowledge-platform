@@ -77,4 +77,14 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.REMOVE_HIERARCHY, collectionActor, contentRequest)
     }
 
+    def getHierarchy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("read")))
+        val readRequest = getRequest(content, headers, "getHierarchy")
+        setRequestContext(readRequest, version, objectType, null)
+        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
+    }
+
 }

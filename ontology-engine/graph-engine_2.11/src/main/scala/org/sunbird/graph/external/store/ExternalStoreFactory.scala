@@ -5,7 +5,7 @@ import java.util.{Arrays, List}
 
 object ExternalStoreFactory {
 
-    private val PRIMARY_KEY = util.Arrays.asList("content_id")
+    private val PRIMARY_KEY = util.Arrays.asList("identifier")
     var externalStores: Map[String, ExternalStore] = Map()
 
     def getExternalStore(externalStoreName: String, primaryKey: util.List[String]): ExternalStore = {
