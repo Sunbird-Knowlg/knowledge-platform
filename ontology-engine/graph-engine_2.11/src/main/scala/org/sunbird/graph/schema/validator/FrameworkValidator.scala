@@ -30,7 +30,7 @@ trait FrameworkValidator extends IDefinition {
             case value: String => list.contains(value)
             case value: util.List[String] => list.asJava.containsAll(value)
             case value: Array[String] => value.forall(term => list.contains(term))
-            case _ => throw new ClientException("CLIENT_ERROR", "Validation errors.", util.Arrays.asList("Please provide correct value for [" + cat + "]"))
+            case _ => throw new ClientException("CLIENT_ERROR", "Validation Errors.", util.Arrays.asList("Please provide correct value for [" + cat + "]"))
           }
 
             if (!result) {
@@ -42,7 +42,7 @@ trait FrameworkValidator extends IDefinition {
             }
         }
         if (!errors.isEmpty)
-          throw new ClientException("CLIENT_ERROR", "Validation errors.", errors)
+          throw new ClientException("CLIENT_ERROR", "Validation Errors.", errors)
       }
     }
     super.validate(node, operation)
