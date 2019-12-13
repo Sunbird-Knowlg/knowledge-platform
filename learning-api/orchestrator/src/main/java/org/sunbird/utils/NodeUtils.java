@@ -22,11 +22,9 @@ public class NodeUtils {
      * @return
      */
     public static Map<String, Object> serialize(Node node, List<String> fields, String schemaName) {
-        Map<String, Object> metadataMap = node.getMetadata();
-        List<String> languages = Arrays.asList( (String[]) node.getMetadata().get("language"));
-        List<String> languageCodes = new ArrayList<String>();
-        languageCodes.addAll(languages.stream().map(lang -> Platform.config.getConfig("languageCode").hasPath(lang.toLowerCase()) ? Platform.config.getConfig("languageCode").getString(lang.toLowerCase()) : "").collect(Collectors.toList()));
-        metadataMap.put("languageCode",languageCodes);
+        Map<String, Object> metadataMap = new HashMap<>();
+        metadataMap.putAll(node.getMetadata());
+        metadataMap.put("languageCode",getLanguageCodes(node));
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
         metadataMap.put("identifier", node.getIdentifier().replace(".img",""));
@@ -37,6 +35,16 @@ public class NodeUtils {
             getRelationMap(node, updatedMetadataMap, definitionMap);
         }
         return updatedMetadataMap;
+    }
+
+    private static List<String> getLanguageCodes(Node node) {
+        List<String> languages = new ArrayList<>();
+        Object language = node.getMetadata().get("language");
+        if (language instanceof String[] )
+            languages.addAll(Arrays.asList( (String[]) language));
+        else if(language instanceof List)
+            languages.addAll((List<String>) language);
+        return languages.stream().map(lang -> Platform.config.hasPath("languageCode." + lang.toLowerCase()) ? Platform.config.getString("languageCode." + lang.toLowerCase()) : "").collect(Collectors.toList());
     }
 
     private static void filterOutFields(Map<String, Object> inputMetadata, List<String> fields) {
