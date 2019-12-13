@@ -15,4 +15,5 @@ redis-cli SADD edge_license "Standard Youtube License"
 find ./ -type f -name "logback.xml" -print0 | xargs -0 sed -i -e 's/\/data\/logs/logs/g'
 find ./ -type f -name "application.conf" -print0 | xargs -0 sed -i -e 's/\/data\//~\//g'
 find ./ -type f -name "*.java" -print0 | xargs -0 sed -i -e 's/\/data\//~\//g'
+mvn scoverage:report
 mvn verify sonar:sonar -Dsonar.projectKey=knowledge-platform -Dsonar.host.url=http://localhost:9000 -Dsonar.login=c5aa1de36fae26cbfb97509b4a779f660881f0af -Dsonar.scala.coverage.reportPaths=/home/circleci/project/learning-api/hierarchy-manager/target/scoverage.xml,/home/circleci/project/learning-api/content-service/target/scoverage.xml,/home/circleci/project/target/scoverage.xml,/home/circleci/project/ontology-engine/graph-engine_2.11/target/scoverage.xml,/home/circleci/project/ontology-engine/parseq/target/scoverage.xml
