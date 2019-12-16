@@ -13,9 +13,9 @@ import scala.concurrent.duration.Duration
 @Singleton
 class SignalHandler @Inject()(implicit actorSystem: ActorSystem, lifecycle: DefaultApplicationLifecycle) {
     val LOG = LoggerFactory.getLogger(classOf[SignalHandler])
-    val STOP_DELAY = Duration.create(10, TimeUnit.SECONDS)
+    val STOP_DELAY = Duration.create(30, TimeUnit.SECONDS)
     var isShuttingDown = false
-    println("SignalHandler is starting...")
+    println("Initializing SignalHandler...")
 
     Signal.handle(new Signal("TERM"), new sun.misc.SignalHandler() {
         override def handle(signal: Signal): Unit = {
