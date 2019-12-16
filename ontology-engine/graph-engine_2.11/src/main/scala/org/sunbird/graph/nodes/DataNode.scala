@@ -132,6 +132,7 @@ object DataNode {
         val contentValue:String = value match {
             case v: String => v.asInstanceOf[String]
             case v: List[Any] => v.head.asInstanceOf[String]
+            case v: util.ArrayList[String] => if(null!= v && !v.isEmpty) v.get(0).asInstanceOf[String] else ""
             case v: Array[String] => v.head
         }
         if(!StringUtils.isAllBlank(contentValue))
