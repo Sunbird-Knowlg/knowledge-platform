@@ -25,7 +25,7 @@ class RedisCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 		RedisCache.set("kptest-102", "kptest-value-02", 2)
 		val result = RedisCache.get("kptest-102")
 		result shouldEqual "kptest-value-02"
-		delay(2000)
+		delay(6000)
 		val resultAfter2Sec = RedisCache.get("kptest-102")
 		resultAfter2Sec shouldBe ""
 	}
