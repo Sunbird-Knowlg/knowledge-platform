@@ -2,7 +2,7 @@ package org.sunbird.graph.nodes
 
 import java.util
 
-import org.sunbird.cache.util.RedisCache
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.BaseSpec
@@ -293,7 +293,7 @@ class TestDataNode extends BaseSpec {
         val readFuture = DataNode.read(request)
         readFuture.map(node => {
             assert(node.getIdentifier.equalsIgnoreCase("do_1129067102240194561252"))
-            assert(null != RedisCache.getString("do_1129067102240194561252"))
+            assert(null != RedisCache.get("do_1129067102240194561252"))
             val readFromCache = DataNode.read(request)
             readFromCache.map(node => {
                 assert(node.getIdentifier.equalsIgnoreCase("do_1129067102240194561252"))

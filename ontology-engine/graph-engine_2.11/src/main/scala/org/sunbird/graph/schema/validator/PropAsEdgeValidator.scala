@@ -1,7 +1,7 @@
 package org.sunbird.graph.schema.validator
 
 import org.apache.commons.collections4.CollectionUtils
-import org.sunbird.cache.util.RedisCache
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.IDefinition

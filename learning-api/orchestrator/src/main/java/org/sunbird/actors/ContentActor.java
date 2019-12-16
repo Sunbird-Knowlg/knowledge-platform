@@ -3,7 +3,7 @@ package org.sunbird.actors;
 import akka.dispatch.Mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
-import org.sunbird.cache.util.RedisCache;
+import org.sunbird.cache.impl.RedisCache;
 import org.sunbird.common.ContentParams;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
@@ -95,7 +95,8 @@ public class ContentActor extends BaseActor {
 
     private static void setDefaultLicense(Request request) {
         if(StringUtils.isEmpty((String)request.getRequest().get("license"))){
-            String defaultLicense = RedisCache.getString("channel_" + (String) request.getRequest().get("channel") + "_license");
+            String cacheKey = "channel_" + (String) request.getRequest().get("channel") + "_license";
+            String defaultLicense = RedisCache.get(cacheKey, null);
             if(StringUtils.isNotEmpty(defaultLicense))
                 request.getRequest().put("license", defaultLicense);
             else

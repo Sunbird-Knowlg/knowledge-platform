@@ -3,7 +3,7 @@ package org.sunbird.graph.schema.validator
 import java.util
 import java.util.concurrent.CompletionException
 
-import org.sunbird.cache.util.RedisCache
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
@@ -16,7 +16,6 @@ import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 trait VersioningNode extends IDefinition {
@@ -121,8 +120,8 @@ trait VersioningNode extends IDefinition {
     }
 
     def getCachedNode(identifier: String)(implicit ec: ExecutionContext): Future[Node] = {
-        //TODO: Replace Cache Call With NodeCache Implementation.
-        val nodeString:String = RedisCache.getString(identifier)
+        //TODO: Implement handler function and pass it
+        val nodeString:String = RedisCache.get(identifier)
         if(null != nodeString && !nodeString.isEmpty) {
             val nodeMap:util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString, classOf[java.util.Map[String, AnyRef]])
             val node:Node = NodeUtil.deserialize(nodeMap, getSchemaName(), schemaValidator.getConfig
@@ -132,7 +131,7 @@ trait VersioningNode extends IDefinition {
             super.getNode(identifier , "read", null).map(node => {
                 if(List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
                     val nodeMap = NodeUtil.serialize(node, null, getSchemaName())
-                    RedisCache.saveString(identifier, ScalaJsonUtils.serialize(nodeMap), 86400)
+                    RedisCache.set(identifier, ScalaJsonUtils.serialize(nodeMap), 86400)
                 }
                 node
             })
