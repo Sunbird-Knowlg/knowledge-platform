@@ -156,7 +156,10 @@
             "type": "string"
         },
         "filter": {
-            "type": "object"
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "variants": {
             "type": "object"
@@ -188,13 +191,22 @@
             "format": "url"
         },
         "badgeAssertions": {
-            "type": "object"
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         },
         "targets": {
-            "type": "object"
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         },
         "contentCredits": {
-            "type": "object"
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         },
         "appIcon": {
             "type": "string",
@@ -970,7 +982,10 @@
             "type": "array"
         },
         "certTemplate": {
-            "type": "object"
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         },
         "subject" : {
             "type": "array"
