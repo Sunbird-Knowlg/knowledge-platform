@@ -107,44 +107,42 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def getUnPublishedHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def getUnPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.get("status").asInstanceOf[String])) {
-                Future {
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
-                }
+                ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
             }
             val hierarchyFuture = fetchHierarchy(request)
             hierarchyFuture.map(hierarchy => {
                 if (!hierarchy.isEmpty) {
                     rootNode.getMetadata().put("children", hierarchy("children"))
                 }
-                val response : Response = ResponseHandler.OK
+                val response: Response = ResponseHandler.OK
                 response.put("content", rootNode.getMetadata())
-                Future (response)
-            }).flatMap(f => f)
+                response
+            })
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     @throws[Exception]
-    def getPublishedHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val redisHierarchy = RedisCacheUtil.getString(hierarchyPrefix + request.get("rootId"))
-        val response : Response = ResponseHandler.OK
+        val response: Response = ResponseHandler.OK
         if (!StringUtils.isEmpty(redisHierarchy)) {
             response.put("content", mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))
-            Future (response)
+            Future(response)
         } else {
             val hierarchyFuture = fetchHierarchy(request)
             hierarchyFuture.map(hierarchy => {
                 if (hierarchy.isEmpty) {
-                    Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")}
+                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
                 } else {
                     response.put("content", mapAsJavaMap(hierarchy))
                     RedisCacheUtil.saveString(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(mapAsJavaMap(hierarchy)), 0)
-                    Future (response)
+                    response
                 }
-            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+            })
         }
     }
 

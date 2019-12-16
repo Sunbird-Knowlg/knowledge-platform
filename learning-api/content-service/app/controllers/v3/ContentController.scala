@@ -64,6 +64,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         body.putAll(headers)
         val contentRequest = getRequest(body, headers, "addHierarchy")
+        contentRequest.put("mode","edit");
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.ADD_HIERARCHY, collectionActor, contentRequest)
     }
@@ -73,6 +74,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         body.putAll(headers)
         val contentRequest = getRequest(body, headers, "removeHierarchy")
+        contentRequest.put("mode","edit");
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.REMOVE_HIERARCHY, collectionActor, contentRequest)
     }
