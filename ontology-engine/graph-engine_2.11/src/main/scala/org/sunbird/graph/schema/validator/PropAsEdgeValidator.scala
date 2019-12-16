@@ -1,12 +1,12 @@
 package org.sunbird.graph.schema.validator
 
 import org.apache.commons.collections4.CollectionUtils
-import org.sunbird.cache.util.RedisCacheUtil
+import org.sunbird.cache.util.RedisCache
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.IDefinition
-import scala.collection.JavaConversions._
 
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PropAsEdgeValidator extends IDefinition {
@@ -21,7 +21,7 @@ trait PropAsEdgeValidator extends IDefinition {
             if (!keys.isEmpty) {
                 keys.toArray().toStream.map(key => {
                     val cacheKey = prefix + schemaValidator.getConfig.getString(edgePropsKey + "." + key).toLowerCase
-                    val list = RedisCacheUtil.getList(cacheKey)
+                    val list = RedisCache.getList(cacheKey)
                     if (CollectionUtils.isNotEmpty(list)) {
                         val value = node.getMetadata.get(key)
                         if (value.isInstanceOf[String]) {
