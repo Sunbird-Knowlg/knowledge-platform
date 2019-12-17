@@ -24,7 +24,7 @@ public class NodeUtils {
     public static Map<String, Object> serialize(Node node, List<String> fields, String schemaName) {
         Map<String, Object> metadataMap = new HashMap<>();
         metadataMap.putAll(node.getMetadata());
-        metadataMap.put("languageCode",getLanguageCodes(node));
+        metadataMap.put("languageCodes",getLanguageCodes(node));
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
         metadataMap.put("identifier", node.getIdentifier().replace(".img",""));
