@@ -38,12 +38,15 @@ object RedisCache extends RedisConnector {
 	 * @param handler
 	 * @return String
 	 */
-	def get(key: String, handler: (String, String) => String = defaultHandler): String = {
+	def get(key: String, handler: (String, String) => String = defaultHandler, ttl: Int = 0): String = {
 		val jedis = getConnection
 		try {
 			var data = jedis.get(key)
-			if (null!=handler && (null == data || data.isEmpty))
+			if (null != handler && (null == data || data.isEmpty)) {
 				data = handler(key, key)
+				if (null != data && !data.isEmpty)
+					set(key, data, ttl)
+			}
 			data
 		}
 		catch {
@@ -72,16 +75,18 @@ object RedisCache extends RedisConnector {
 
 	/**
 	 * This method store/save list data into cache for given Key
-	 *
 	 * @param key
 	 * @param data
+	 * @param isPartialUpdate
+	 * @param ttl
 	 */
-	def saveList(key: String, data: List[String], isPartialUpdate: Boolean = false): Unit = {
+	def saveList(key: String, data: List[String], isPartialUpdate: Boolean = false, ttl: Int = 0): Unit = {
 		val jedis = getConnection
 		try {
 			if (!isPartialUpdate)
 				jedis.del(key)
 			data.foreach(entry => jedis.sadd(key, entry))
+			if (ttl > 0 && !isPartialUpdate) jedis.expire(key, ttl)
 		} catch {
 			case e: Exception =>
 				logger.error("Exception Occurred While Saving List Data to Redis Cache for Key : " + key + "| Exception is:", e)
@@ -101,16 +106,21 @@ object RedisCache extends RedisConnector {
 
 	/**
 	 * This method read list data from cache for a given key
+	 *
 	 * @param key
 	 * @param handler
-	 * @return List[String]
+	 * @param ttl
+	 * @return
 	 */
-	def getList(key: String, handler: (String, String) => List[String] = defaultListHandler): List[String] = {
+	def getList(key: String, handler: (String, String) => List[String] = defaultListHandler, ttl: Int = 0): List[String] = {
 		val jedis = getConnection
 		try {
 			var data = jedis.smembers(key).asScala.toList
-			if (null!=handler && (null == data || data.isEmpty))
+			if (null != handler && (null == data || data.isEmpty)) {
 				data = handler(key, key)
+				if (null != data && !data.isEmpty)
+					saveList(key, data, false, ttl)
+			}
 			data
 		} catch {
 			case e: Exception =>
@@ -171,12 +181,12 @@ object RedisCache extends RedisConnector {
 	}
 
 	private def defaultHandler(cacheKey: String, objKey: String): String = {
-		//TODO: Provide Default Implementation
+		//Default Implementation Can Be Provided Here
 		""
 	}
 
 	private def defaultListHandler(cacheKey: String, objKey: String): List[String] = {
-		//TODO: Provide Default Implementation
+		//Default Implementation Can Be Provided Here
 		List()
 	}
 }

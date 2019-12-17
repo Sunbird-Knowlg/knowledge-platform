@@ -111,6 +111,16 @@ class RedisCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 		res.size shouldBe 4
 	}
 
+	"saveList with ttl" should "store list data into cache for given key upto ttl given" in {
+		val data = List[String]("kp-test-112-list-val-01", "kp-test-112-list-val-02")
+		RedisCache.saveList("kptest-112", data, false, 2)
+		val result = RedisCache.getList("kptest-112")
+		data.diff(result) shouldBe Empty
+		delay(6000)
+		val res = RedisCache.getList("kptest-112")
+		res.isEmpty shouldBe true
+	}
+
 	private def delay(time: Long): Unit = {
 		try Thread.sleep(time)
 		catch {
