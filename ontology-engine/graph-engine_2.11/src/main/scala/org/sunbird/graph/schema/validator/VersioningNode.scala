@@ -121,7 +121,7 @@ trait VersioningNode extends IDefinition {
 
     def getCachedNode(identifier: String)(implicit ec: ExecutionContext): Future[Node] = {
         //TODO: Implement handler function and pass it
-        val nodeString:String = RedisCache.get(identifier)
+        val nodeString: String = RedisCache.get(identifier, 86400)
         if(null != nodeString && !nodeString.isEmpty) {
             val nodeMap:util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString, classOf[java.util.Map[String, AnyRef]])
             val node:Node = NodeUtil.deserialize(nodeMap, getSchemaName(), schemaValidator.getConfig

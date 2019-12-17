@@ -34,11 +34,13 @@ object RedisCache extends RedisConnector {
 
 	/**
 	 * This method read string data from cache for a given key
+	 *
 	 * @param key
+	 * @param ttl
 	 * @param handler
-	 * @return String
+	 * @return
 	 */
-	def get(key: String, handler: (String, String) => String = defaultHandler, ttl: Int = 0): String = {
+	def get(key: String, ttl: Int = 0, handler: (String, String) => String = defaultHandler): String = {
 		val jedis = getConnection
 		try {
 			var data = jedis.get(key)
@@ -75,12 +77,13 @@ object RedisCache extends RedisConnector {
 
 	/**
 	 * This method store/save list data into cache for given Key
+	 *
 	 * @param key
 	 * @param data
 	 * @param isPartialUpdate
 	 * @param ttl
 	 */
-	def saveList(key: String, data: List[String], isPartialUpdate: Boolean = false, ttl: Int = 0): Unit = {
+	def saveList(key: String, data: List[String], ttl: Int = 0, isPartialUpdate: Boolean = false): Unit = {
 		val jedis = getConnection
 		try {
 			if (!isPartialUpdate)
@@ -101,7 +104,7 @@ object RedisCache extends RedisConnector {
 	 * @param data
 	 */
 	def addToList(key: String, data: List[String]): Unit = {
-		saveList(key, data, true)
+		saveList(key, data, 0, true)
 	}
 
 	/**
@@ -112,14 +115,14 @@ object RedisCache extends RedisConnector {
 	 * @param ttl
 	 * @return
 	 */
-	def getList(key: String, handler: (String, String) => List[String] = defaultListHandler, ttl: Int = 0): List[String] = {
+	def getList(key: String, ttl: Int = 0, handler: (String, String) => List[String] = defaultListHandler): List[String] = {
 		val jedis = getConnection
 		try {
 			var data = jedis.smembers(key).asScala.toList
 			if (null != handler && (null == data || data.isEmpty)) {
 				data = handler(key, key)
 				if (null != data && !data.isEmpty)
-					saveList(key, data, false, ttl)
+					saveList(key, data, ttl, false)
 			}
 			data
 		} catch {

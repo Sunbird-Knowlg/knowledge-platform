@@ -96,7 +96,7 @@ public class ContentActor extends BaseActor {
     private static void setDefaultLicense(Request request) {
         if(StringUtils.isEmpty((String)request.getRequest().get("license"))){
             String cacheKey = "channel_" + (String) request.getRequest().get("channel") + "_license";
-            String defaultLicense = RedisCache.get(cacheKey, null);
+	        String defaultLicense = RedisCache.get(cacheKey, 0, null);
             if(StringUtils.isNotEmpty(defaultLicense))
                 request.getRequest().put("license", defaultLicense);
             else
