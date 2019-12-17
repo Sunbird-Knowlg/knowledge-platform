@@ -4,7 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.sunbird.cache.util.RedisCacheUtil
-import org.sunbird.common.JsonUtils
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.graph.dac.model.Node
@@ -60,8 +60,11 @@ trait VersioningNode extends IDefinition {
                     }
                 }
             } else {
-                if(schemaValidator.getConfig.hasPath("cacheEnabled") && schemaValidator.getConfig.getBoolean("cacheEnabled"))
-                    getCachedNode(identifier)
+                val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
+                if(Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
+                    val ttl:Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
+                    getCachedNode(identifier, ttl)
+                }
                 else
                     super.getNode(identifier , "read", mode)
             }
@@ -120,7 +123,7 @@ trait VersioningNode extends IDefinition {
         }
     }
 
-    def getCachedNode(identifier: String)(implicit ec: ExecutionContext): Future[Node] = {
+    def getCachedNode(identifier: String, ttl: Integer)(implicit ec: ExecutionContext): Future[Node] = {
         val nodeString:String = RedisCacheUtil.getString(identifier)
         if(null != nodeString && !nodeString.isEmpty) {
             val nodeMap:util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString, classOf[java.util.Map[String, AnyRef]])
@@ -131,7 +134,7 @@ trait VersioningNode extends IDefinition {
             super.getNode(identifier , "read", null).map(node => {
                 if(List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
                     val nodeMap = NodeUtil.serialize(node, null, getSchemaName())
-                    RedisCacheUtil.saveString(identifier, ScalaJsonUtils.serialize(nodeMap), 86400)
+                    RedisCacheUtil.saveString(identifier, ScalaJsonUtils.serialize(nodeMap), ttl)
                 }
                 node
             })
