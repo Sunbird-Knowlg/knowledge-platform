@@ -19,4 +19,9 @@ object ApiId {
 	val UPDATE_LICENSE = "api.license.update"
 	val RETIRE_LICENSE = "api.license.retire"
 
+	//ItemSet APIs
+	val CREATE_ITEM_SET = "api.itemset.create"
+	val READ_ITEM_SET = "api.itemset.read"
+	val UPDATE_ITEM_SET = "api.itemset.update"
+	val RETIRE_ITEM_SET = "api.itemset.retire"
 }
