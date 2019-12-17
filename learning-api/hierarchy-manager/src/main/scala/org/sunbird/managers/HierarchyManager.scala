@@ -102,7 +102,7 @@ object HierarchyManager {
 
     @throws[Exception]
     def getHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
-        if(request.get("mode").equals("edit")) getUnPublishedHierarchy(request)
+        if(!StringUtils.isEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit")) getUnPublishedHierarchy(request)
         else getPublishedHierarchy(request)
     }
 

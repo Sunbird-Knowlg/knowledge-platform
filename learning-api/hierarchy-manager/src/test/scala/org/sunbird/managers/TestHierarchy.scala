@@ -124,4 +124,74 @@ class TestHierarchy extends BaseSpec {
             .one().getString("hierarchy")
         assert(!hierarchy.isEmpty())
     }
+
+    "getPublishedHierarchyWithInvalidIdentifier" should "Resourse_Not_Found" in {
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("objectType", "Content")
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("schemaName", "collection")
+                put("channel", "b00bc992ef25f1a9a8d63291e20efc8d")
+            }
+        })
+
+        request.put("rootId", "do_11283193441064550414")
+        request.put("unitId", "do_11283193463014195215")
+        request.put("children", util.Arrays.asList("do_112831862871203840114"))
+        val future = HierarchyManager.getPublishedHierarchy(request)
+        future.map(response => {
+            assert(response.getResponseCode.code() == 404)
+        })
+    }
+
+    "getHierarchy" should "getHierarchy" in {
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("objectType", "Content")
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("schemaName", "collection")
+                put("channel", "b00bc992ef25f1a9a8d63291e20efc8d")
+            }
+        })
+
+        request.put("rootId", "do_11283193441064550414")
+        request.put("unitId", "do_11283193463014195215")
+        request.put("children", util.Arrays.asList("do_112831862871203840114"))
+        val future = HierarchyManager.getHierarchy(request)
+        future.map(response => {
+            assert(response.getResponseCode.code() == 200)
+        })
+        val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+            .one().getString("hierarchy")
+        assert(!hierarchy.isEmpty())
+    }
+
+    "getHierarchyWithMode" should "getHierarchyWithMode" in {
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("objectType", "Content")
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("schemaName", "collection")
+                put("channel", "b00bc992ef25f1a9a8d63291e20efc8d")
+            }
+        })
+
+        request.put("rootId", "do_11283193441064550414")
+        request.put("unitId", "do_11283193463014195215")
+        request.put("children", util.Arrays.asList("do_112831862871203840114"))
+        request.put("mode","edit")
+        val future = HierarchyManager.getHierarchy(request)
+        future.map(response => {
+            assert(response.getResponseCode.code() == 200)
+        })
+        val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+            .one().getString("hierarchy")
+        assert(!hierarchy.isEmpty())
+    }
 }
