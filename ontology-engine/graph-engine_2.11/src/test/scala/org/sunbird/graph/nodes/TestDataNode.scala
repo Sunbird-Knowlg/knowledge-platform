@@ -2,7 +2,7 @@ package org.sunbird.graph.nodes
 
 import java.util
 
-import org.sunbird.cache.util.RedisCacheUtil
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.BaseSpec
@@ -288,12 +288,12 @@ class TestDataNode extends BaseSpec {
         request.setObjectType("Content")
         request.setContext(getContextMap())
         request.put("identifier", "do_1129067102240194561252")
-        RedisCacheUtil.delete("do_1129067102240194561252")
+        RedisCache.delete("do_1129067102240194561252")
         ScalaJsonUtils.deserialize("{\"IL_SYS_NODE_TYPE\":\"ROOT_NODE\",\"consumerId\":\"72e54829-6402-4cf0-888e-9b30733c1b88\",\"appId\":\"ekstep_portal\",\"channel\":\"in.ekstep\",\"lastUpdatedOn\":\"2018-02-28T13:18:01.346+0000\",\"IL_UNIQUE_ID\":\"do_ROOT_NODE\",\"versionKey\":\"1519823881346\"}")(manifest[Map[String, AnyRef]])
         val readFuture = DataNode.read(request)
         readFuture.map(node => {
             assert(node.getIdentifier.equalsIgnoreCase("do_1129067102240194561252"))
-            assert(null != RedisCacheUtil.getString("do_1129067102240194561252"))
+            assert(null != RedisCache.get("do_1129067102240194561252"))
             val readFromCache = DataNode.read(request)
             readFromCache.map(node => {
                 assert(node.getIdentifier.equalsIgnoreCase("do_1129067102240194561252"))

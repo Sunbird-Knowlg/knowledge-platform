@@ -5,7 +5,7 @@ import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.cache.util.RedisCacheUtil
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -106,8 +106,8 @@ object DefinitionNode {
 			}
 			if (!data.isEmpty) {
 				metadata.get("status") match {
-					case "Live" => RedisCacheUtil.saveToList(cacheKey, data)
-					case "Retired" => RedisCacheUtil.deleteFromList(cacheKey, data)
+					case "Live" => RedisCache.addToList(cacheKey, data)
+					case "Retired" => RedisCache.removeFromList(cacheKey, data)
 				}
 			}
 		}
