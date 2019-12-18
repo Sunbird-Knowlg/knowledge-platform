@@ -69,7 +69,7 @@ object NodeUtil {
         if(MapUtils.isNotEmpty(nodeMap)) {
             node.setIdentifier(nodeMap.get("identifier").asInstanceOf[String])
             node.setObjectType(nodeMap.get("objectType").asInstanceOf[String])
-            val filteredMetadata: util.Map[String, AnyRef] = JavaConverters.mapAsJavaMapConverter(nodeMap.asScala.filterNot(entry => relationMap.containsKey(entry._1)).toMap).asJava
+            val filteredMetadata: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](JavaConverters.mapAsJavaMapConverter(nodeMap.asScala.filterNot(entry => relationMap.containsKey(entry._1)).toMap).asJava)
             node.setMetadata(filteredMetadata)
             setRelation(node, nodeMap, relationMap)
         }
