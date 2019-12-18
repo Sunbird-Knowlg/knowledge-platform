@@ -3,7 +3,9 @@ package org.sunbird.cache.impl
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.cache.util.RedisConnector
+
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * This Utility Object Provide Methods To Perform CRUD Operation With Redis
@@ -40,16 +42,45 @@ object RedisCache extends RedisConnector {
 	 * @param handler
 	 * @return
 	 */
-	def get(key: String, ttl: Int = 0, handler: (String, String) => String = defaultHandler): String = {
+	def get(key: String, handler: (String) => String = defaultStringHandler, ttl: Int = 0): String = {
 		val jedis = getConnection
 		try {
 			var data = jedis.get(key)
 			if (null != handler && (null == data || data.isEmpty)) {
-				data = handler(key, key)
+				data = handler(key)
 				if (null != data && !data.isEmpty)
 					set(key, data, ttl)
 			}
 			data
+		}
+		catch {
+			case e: Exception =>
+				logger.error("Exception Occurred While Fetching String Data from Redis Cache for Key : " + key + "| Exception is:", e)
+				throw e
+		} finally returnConnection(jedis)
+	}
+
+	/**
+	 * This Method Returns Future[String] for given key
+	 *
+	 * @param key
+	 * @param asyncHandler
+	 * @param ttl
+	 * @param ec
+	 * @return Future[String]
+	 */
+	def getAsync(key: String, asyncHandler: (String) => Future[String], ttl: Int = 0)(implicit ec: ExecutionContext): Future[String] = {
+		val jedis = getConnection
+		try {
+			val data = jedis.get(key)
+			if (null != asyncHandler && (null == data || data.isEmpty)) {
+				val dataFuture: Future[String] = asyncHandler(key)
+				dataFuture.map(value => {
+						if (null != value && !value.isEmpty)
+							set(key, value, ttl)
+					value
+				})
+			} else Future{data}
 		}
 		catch {
 			case e: Exception =>
@@ -108,23 +139,51 @@ object RedisCache extends RedisConnector {
 	}
 
 	/**
-	 * This method read list data from cache for a given key
+	 * This method returns list data from cache for a given key
 	 *
 	 * @param key
 	 * @param handler
 	 * @param ttl
 	 * @return
 	 */
-	def getList(key: String, ttl: Int = 0, handler: (String, String) => List[String] = defaultListHandler): List[String] = {
+	def getList(key: String, handler: (String) => List[String] = defaultListHandler, ttl: Int = 0): List[String] = {
 		val jedis = getConnection
 		try {
 			var data = jedis.smembers(key).asScala.toList
 			if (null != handler && (null == data || data.isEmpty)) {
-				data = handler(key, key)
+				data = handler(key)
 				if (null != data && !data.isEmpty)
 					saveList(key, data, ttl, false)
 			}
 			data
+		} catch {
+			case e: Exception =>
+				logger.error("Exception Occurred While Fetching List Data from Redis Cache for Key : " + key + "| Exception is:", e)
+				throw e
+		} finally returnConnection(jedis)
+	}
+
+	/**
+	 * This method returns list data from cache for a given key
+	 *
+	 * @param key
+	 * @param asyncHandler
+	 * @param ttl
+	 * @param ec
+	 * @return Future[List[String]]
+	 */
+	def getListAsync(key: String, asyncHandler: (String) => Future[List[String]], ttl: Int = 0)(implicit ec: ExecutionContext): Future[List[String]] = {
+		val jedis = getConnection
+		try {
+			val data = jedis.smembers(key).asScala.toList
+			if (null != asyncHandler && (null == data || data.isEmpty)) {
+				val dataFuture = asyncHandler(key)
+				dataFuture.map(value => {
+					if (null != value && !value.isEmpty)
+						saveList(key, value, ttl, false)
+					value
+				})
+			} else Future {data}
 		} catch {
 			case e: Exception =>
 				logger.error("Exception Occurred While Fetching List Data from Redis Cache for Key : " + key + "| Exception is:", e)
@@ -183,12 +242,12 @@ object RedisCache extends RedisConnector {
 		}
 	}
 
-	private def defaultHandler(cacheKey: String, objKey: String): String = {
+	private def defaultStringHandler(objKey: String): String = {
 		//Default Implementation Can Be Provided Here
 		""
 	}
 
-	private def defaultListHandler(cacheKey: String, objKey: String): List[String] = {
+	private def defaultListHandler(objKey: String): List[String] = {
 		//Default Implementation Can Be Provided Here
 		List()
 	}

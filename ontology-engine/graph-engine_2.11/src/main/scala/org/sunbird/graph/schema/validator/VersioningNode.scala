@@ -123,23 +123,26 @@ trait VersioningNode extends IDefinition {
     }
 
     def getCachedNode(identifier: String, ttl: Integer)(implicit ec: ExecutionContext): Future[Node] = {
-        //TODO: Implement handler function and pass it
-        val nodeString: String = RedisCache.get(identifier, 86400)
-        if(null != nodeString && !nodeString.isEmpty) {
-            val nodeMap:util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString, classOf[java.util.Map[String, AnyRef]])
-            val node:Node = NodeUtil.deserialize(nodeMap, getSchemaName(), schemaValidator.getConfig
-                    .getAnyRef("relations").asInstanceOf[java.util.Map[String, AnyRef]])
-            Future{node}
-        } else {
-            super.getNode(identifier , "read", null).map(node => {
-                if(List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
-                    val nodeMap = NodeUtil.serialize(node, null, getSchemaName())
-                    RedisCache.set(identifier, ScalaJsonUtils.serialize(nodeMap), 86400)
-                }
-                node
-            })
-        }
+        val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
+        nodeStringFuture.map(nodeString => {
+            if (null != nodeString && !nodeString.asInstanceOf[String].isEmpty) {
+                val nodeMap: util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
+                val node: Node = NodeUtil.deserialize(nodeMap, getSchemaName(), schemaValidator.getConfig
+                  .getAnyRef("relations").asInstanceOf[java.util.Map[String, AnyRef]])
+                Future {node}
+            } else {
+                super.getNode(identifier, "read", null)
+            }
+        }).flatMap(f => f)
+    }
 
+    private def nodeCacheAsyncHandler(objKey: String)(implicit ec: ExecutionContext): Future[String] = {
+        super.getNode(objKey, "read", null).map(node => {
+            if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
+                val nodeMap = NodeUtil.serialize(node, null, getSchemaName())
+                Future(ScalaJsonUtils.serialize(nodeMap))
+            } else Future("")
+        }).flatMap(f => f)
     }
 
 }

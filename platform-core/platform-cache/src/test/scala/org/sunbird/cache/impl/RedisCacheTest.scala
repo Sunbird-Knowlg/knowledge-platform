@@ -1,11 +1,12 @@
 package org.sunbird.cache.impl
 
 
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, FlatSpec, Matchers}
 
 import scala.collection.immutable.Stream.Empty
+import scala.concurrent.{ExecutionContext, Future}
 
-class RedisCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll {
+class RedisCacheTest extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
 	var cons_message: String = ""
 
@@ -121,10 +122,55 @@ class RedisCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 		res.isEmpty shouldBe true
 	}
 
+	"getAsync with key not having data in cache" should "return Future[String] from handler" in {
+		val future: Future[String] = RedisCache.getAsync("kptest-113", (key: String) => Future("sample-data-handler"), 2)
+		future map { result => {
+			assert(null != result)
+			result shouldEqual "sample-data-handler"
+		}
+		}
+	}
+
+	"getAsync with key having data in cache" should "return Future[String] from cache" in {
+		RedisCache.set("kptest-114", "sample-cache-data")
+		val future: Future[String] = RedisCache.getAsync("kptest-114", (key: String) => Future("sample-data-handler"), 2)
+		future map { result => {
+			assert(null != result)
+			result shouldEqual "sample-cache-data"
+		}
+		}
+	}
+
+	"getListAsync with key not having data in cache" should "return Future[List[String]] from handler" in {
+		val handlerData = List[String]("sample-handler-data1", "sample-handler-data2")
+		val future: Future[List[String]] = RedisCache.getListAsync("kptest-115", (key: String) => Future(handlerData), 2)
+		future map { result => {
+			assert(null != result)
+			assert(result.isInstanceOf[List[String]])
+			handlerData.diff(result) shouldBe Empty
+		}
+		}
+	}
+
+	"getListAsync with key having data in cache" should "return Future[List[String]] from cache" in {
+		val cacheData = List[String]("sample-cache-data1", "sample-cache-data2")
+		val handlerData = List[String]("sample-handler-data1", "sample-handler-data2")
+		RedisCache.saveList("kptest-116", cacheData)
+		val future: Future[List[String]] = RedisCache.getListAsync("kptest-116", (key: String) => Future(handlerData), 2)
+		future map { result => {
+			assert(null != result)
+			assert(result.isInstanceOf[List[String]])
+			cacheData.diff(result) shouldBe Empty
+		}
+		}
+	}
+
 	private def delay(time: Long): Unit = {
 		try Thread.sleep(time)
 		catch {
 			case e: Exception => None
 		}
 	}
+
+
 }
