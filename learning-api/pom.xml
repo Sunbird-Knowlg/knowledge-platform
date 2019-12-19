@@ -22,6 +22,7 @@
     </properties>
     <modules>
         <module>content-service</module>
+        <module>assessment-service</module>
         <module>hierarchy-manager</module>
         <module>orchestrator</module>
     </modules>
