@@ -41,7 +41,7 @@ node('build-slave') {
                     sh 'mvn play2:dist -pl assessment-service'
                 }
                 sh('chmod 777 build/build.sh')
-                sh("build/build.sh ${build_tag} ${"content-service"} ${env.NODE_NAME} ${hub_org}")
+                sh("build/build.sh ${build_tag} ${"assessment-service"} ${env.NODE_NAME} ${hub_org}")
             }
             stage('ArchiveArtifacts') {
                 archiveArtifacts "metadata.json"
