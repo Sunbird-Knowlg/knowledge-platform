@@ -48,6 +48,17 @@ class ItemSetController @Inject()(@Named(ActorNames.ITEM_SET_ACTOR) itemSetActor
 		getResult(ApiId.UPDATE_ITEM_SET, itemSetActor, itemSetRequest)
 	}
 
+	def review(identifier: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val itemset = body.getOrElse("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		itemset.putAll(headers)
+		val itemSetRequest = getRequest(itemset, headers, ItemSetOperations.reviewItemSet.name())
+		setRequestContext(itemSetRequest, version, objectType, schemaName)
+		itemSetRequest.getContext.put("identifier", identifier);
+		getResult(ApiId.REVIEW_ITEM_SET, itemSetActor, itemSetRequest)
+	}
+
 	def retire(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val itemset = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]

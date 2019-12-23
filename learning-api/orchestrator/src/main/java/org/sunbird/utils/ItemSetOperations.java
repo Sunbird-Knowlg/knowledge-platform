@@ -1,5 +1,5 @@
 package org.sunbird.utils;
 
 public enum ItemSetOperations {
-	createItemSet, readItemSet, updateItemSet, retireItemSet
+	createItemSet, readItemSet, updateItemSet, reviewItemSet, retireItemSet
 }

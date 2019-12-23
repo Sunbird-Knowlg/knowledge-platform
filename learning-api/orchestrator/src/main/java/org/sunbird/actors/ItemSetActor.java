@@ -25,6 +25,8 @@ public class ItemSetActor extends BaseActor {
 			return update(request);
 		} else if (ItemSetOperations.retireItemSet.name().equals(operation)) {
 			return retire(request);
+		}else if (ItemSetOperations.reviewItemSet.name().equals(operation)) {
+			return review(request);
 		} else {
 			return ERROR(operation);
 		}
@@ -33,7 +35,7 @@ public class ItemSetActor extends BaseActor {
 	private Future<Response> create(Request request) throws Exception {
 		Response response = ResponseHandler.OK();
 		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "123456");
+		response.put("versionKey", "1544789620113");
 		return Futures.successful(response);
 	}
 
@@ -41,23 +43,23 @@ public class ItemSetActor extends BaseActor {
 		Response response = ResponseHandler.OK();
 		Map<String, Object> itemset = new HashMap<String, Object>(){{
 			put("identifier", "do_1129152191260999681109");
-			put("versionKey","123456");
+			put("versionKey","1544789620113");
 			put("title", "Test Item Set");
 			put("description", "Test Item Set");
 			put("language", Arrays.asList("English"));
-			put("max_score", 10);
+			put("maxScore", 10);
 			put("type", "materialised");
 			put("owner", "KP");
-			put("difficulty_level","easy");
+			put("difficultyLevel","easy");
 			put("purpose","assessment");
-			put("sub_purpose","assessment");
-			put("depth_of_knowledge","");
-			put("used_for","sunbird");
+			put("subPurpose","assessment");
+			put("depthOfKnowledge","");
+			put("usedFor","sunbird");
 			put("copyright","sunbird");
 			put("createdBy","sunbird");
-			put("children",new ArrayList<Map<String, Object>>(){{
+			put("items",new ArrayList<Map<String, Object>>(){{
 				add(new HashMap<String, Object>(){{
-					put("identifier","do_2222222222");
+					put("identifier","do_1129152191260999682205");
 				}});
 			}});
 
@@ -69,14 +71,21 @@ public class ItemSetActor extends BaseActor {
 	private Future<Response> update(Request request) throws Exception {
 		Response response = ResponseHandler.OK();
 		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "1005678");
+		response.put("versionKey", "1544789620220");
+		return Futures.successful(response);
+	}
+
+	private Future<Response> review(Request request) throws Exception {
+		Response response = ResponseHandler.OK();
+		response.put("identifier", "do_1129152191260999681109");
+		response.put("versionKey", "1544789620440");
 		return Futures.successful(response);
 	}
 
 	private Future<Response> retire(Request request) throws Exception {
 		Response response = ResponseHandler.OK();
 		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "5001005291");
+		response.put("versionKey", "1544789620330");
 		return Futures.successful(response);
 	}
 
