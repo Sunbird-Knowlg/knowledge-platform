@@ -9,7 +9,9 @@ import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 
-import scala.concurrent.Future
+import scala.collection.JavaConversions._
+import scala.concurrent.{ExecutionContext, Future}
+
 
 class TestDataNode extends BaseSpec {
 
@@ -291,7 +293,17 @@ class TestDataNode extends BaseSpec {
         request.put("description", "test")
         request.put("channel", "in.ekstep")
 
-        val contentCredits:Map[String, Any] = Map[String, Any]("id" -> "12345","name" -> "user1","type" -> "user")
+        val contentCredits = new util.ArrayList[AnyRef]() {
+            {
+                add(new util.HashMap[String, AnyRef]() {
+                    {
+                        put("id", "12345");
+                        put("name", "user1");
+                        put("type", "user");
+                    }
+                });
+            }
+        }
         request.put("contentCredits", contentCredits)
 
         val future: Future[Node] = DataNode.create(request)
