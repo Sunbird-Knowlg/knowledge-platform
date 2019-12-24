@@ -9,7 +9,9 @@ import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 
-import scala.concurrent.Future
+import scala.collection.JavaConversions._
+import scala.concurrent.{ExecutionContext, Future}
+
 
 class TestDataNode extends BaseSpec {
 
@@ -277,6 +279,47 @@ class TestDataNode extends BaseSpec {
             val resultSet = session.execute("select blobAsText(body) as body from content_store.content_data where content_id='do_1129067102240194561252.img'")
             assert(resultSet.one().getString("body").equalsIgnoreCase("body"))
         })
+    }
+
+    "update content with valid data and a metadata with list of objects" should "update node" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+
+        val contentCredits = new util.ArrayList[AnyRef]() {
+            {
+                add(new util.HashMap[String, AnyRef]() {
+                    {
+                        put("id", "12345");
+                        put("name", "user1");
+                        put("type", "user");
+                    }
+                });
+            }
+        }
+        request.put("contentCredits", contentCredits)
+
+        val future: Future[Node] = DataNode.create(request)
+        future map {node => {assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            req.put("name", "updated name")
+            val updateFuture = DataNode.update(req)
+            updateFuture map { node => {
+                assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
+            }
+            }
+        }
+        } flatMap(f => f)
     }
 
     "read Live node twice one from neo4j and one from cache" should "read node from neo4j and from cache" in {
