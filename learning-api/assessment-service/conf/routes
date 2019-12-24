@@ -1,0 +1,11 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+GET		  /health						    controllers.HealthController.health
+
+# ItemSet API's
+POST      /itemset/v3/create                controllers.v3.ItemSetController.create
+GET       /itemset/v3/read/:identifier      controllers.v3.ItemSetController.read(identifier:String, fields:Option[String])
+PATCH     /itemset/v3/update/:identifier    controllers.v3.ItemSetController.update(identifier:String)
+POST      /itemset/v3/review/:identifier    controllers.v3.ItemSetController.review(identifier:String)
+DELETE    /itemset/v3/retire/:identifier    controllers.v3.ItemSetController.retire(identifier:String)

@@ -1,0 +1,14 @@
+{
+    "objectType": "ItemSet",
+    "relations": {
+        "items": {
+            "type": "hasSequenceMember",
+            "direction": "out",
+            "objects": ["AssessmentItem"]
+        }
+    },
+    "version": "disable",
+    "versionCheckMode": "OFF",
+    "frameworkCategories": ["board","medium","subject","gradeLevel","topic"],
+    "cacheEnabled": false
+}
