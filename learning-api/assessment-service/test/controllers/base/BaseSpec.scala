@@ -1,10 +1,12 @@
+package controllers.base
+
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers.{POST, contentAsString, contentType, defaultAwaitTimeout, route, status, _}
+import play.api.test.{FakeHeaders, FakeRequest}
 
 import scala.concurrent.Future
 

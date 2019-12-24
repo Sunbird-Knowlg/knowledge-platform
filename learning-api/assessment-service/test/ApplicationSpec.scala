@@ -1,3 +1,4 @@
+import controllers.base.BaseSpec
 import org.junit.runner._
 import org.specs2.runner._
 import play.api.test.Helpers._
