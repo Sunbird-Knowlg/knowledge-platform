@@ -84,16 +84,7 @@ trait VersioningNode extends IDefinition {
                             node.setIdentifier(imageId)
                             node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
                             node.getMetadata.put("status", "Draft")
-                            NodeAsyncOperations.addNode(node.getGraphId, node).map(imgNode => {
-                                imgNode.getMetadata.put("isImageNodeCreated", "yes");
-                                copyExternalProps(identifier, node.getGraphId).map(response => {
-                                    if(!ResponseHandler.checkError(response)) {
-                                        if(null != response.getResult && !response.getResult.isEmpty)
-                                            imgNode.setExternalData(response.getResult)
-                                    }
-                                    imgNode
-                                })
-                            }).flatMap(f=>f)
+                            NodeAsyncOperations.addNode(node.getGraphId, node, null)
                         } else
                             throw e.getCause
                     }
