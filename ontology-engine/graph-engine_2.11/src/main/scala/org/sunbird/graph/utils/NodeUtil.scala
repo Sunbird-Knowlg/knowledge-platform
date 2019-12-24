@@ -29,7 +29,7 @@ object NodeUtil {
         var finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.putAll(updatedMetadataMap)
         finalMetadata.putAll(relMap)
-        finalMetadata.put("languageCodes", getLanguageCodes(node))
+        finalMetadata.put("languageCode", getLanguageCodes(node))
         finalMetadata
     }
 
