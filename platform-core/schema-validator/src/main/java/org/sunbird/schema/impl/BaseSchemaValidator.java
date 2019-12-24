@@ -165,8 +165,11 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
      */
     public List<String> getJsonProps() {
         try {
-            return ((Map<String, Object>)(new ObjectMapper().readValue(((BasicJsonSchema) schema).get("properties")
-                    .getValueAsJson().asJsonObject().toString(), Map.class))).entrySet().stream().filter(entry -> StringUtils.equalsIgnoreCase("object", (String)((Map<String, Object>)entry.getValue()).get("type"))).map(entry -> entry.getKey()).collect(Collectors.toList());
+            return ((Map<String, Object>) (new ObjectMapper().readValue(((BasicJsonSchema) schema).get("properties")
+                    .getValueAsJson().asJsonObject().toString(), Map.class))).entrySet().stream().filter(entry ->
+                    StringUtils.equalsIgnoreCase("object", (String) ((Map<String, Object>) entry.getValue()).get("type")) ||
+                            (null!=((Map<String, Object>) entry.getValue()).get("items") && StringUtils.equalsIgnoreCase("object", (String) ((Map<String, Object>) ((Map<String, Object>) entry.getValue()).get("items")).get("type")))
+            ).map(entry -> entry.getKey()).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
