@@ -4,13 +4,14 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.cache.util.RedisCacheUtil
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
+
 import org.sunbird.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
@@ -127,7 +128,7 @@ object HierarchyManager {
 
     @throws[Exception]
     def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
-        val redisHierarchy = RedisCacheUtil.getString(hierarchyPrefix + request.get("rootId"))
+        val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
         val response: Response = ResponseHandler.OK
         if (!StringUtils.isEmpty(redisHierarchy)) {
             response.put("content", mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))
@@ -139,7 +140,7 @@ object HierarchyManager {
                     ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
                 } else {
                     response.put("content", mapAsJavaMap(hierarchy))
-                    RedisCacheUtil.saveString(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(mapAsJavaMap(hierarchy)), 0)
+                    RedisCache.set(hierarchyPrefix + request.get("rootId"), ScalaJsonUtils.serialize(hierarchy), 0)
                     response
                 }
             })
