@@ -119,6 +119,7 @@ object HierarchyManager {
                 if (!hierarchy.isEmpty) {
                     rootNode.getMetadata().put("children", hierarchy("children"))
                 }
+                rootNode.getMetadata().put("identifier", request.get("rootId"))
                 val response: Response = ResponseHandler.OK
                 response.put("content", rootNode.getMetadata())
                 response
