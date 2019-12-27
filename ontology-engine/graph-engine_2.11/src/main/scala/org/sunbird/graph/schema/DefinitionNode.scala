@@ -21,6 +21,7 @@ object DefinitionNode {
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
       val inputNode = definition.getNode(request.getRequest)
+	  updateRelationMetadata(inputNode)
       definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
   }
 
@@ -125,9 +126,11 @@ object DefinitionNode {
             getNewRelationsList(inRel, inRelReq, addRels, delRels)
         if (CollectionUtils.isNotEmpty(outRelReq))
             getNewRelationsList(outRel, outRelReq, addRels, delRels)
-        if (CollectionUtils.isNotEmpty(addRels))
+        if (CollectionUtils.isNotEmpty(addRels)) {
             dbNode.setAddedRelations(addRels)
-        if (CollectionUtils.isNotEmpty(delRels))
+	        updateRelationMetadata(dbNode)
+        }
+	    if (CollectionUtils.isNotEmpty(delRels))
             dbNode.setDeletedRelations(delRels)
     }
 
@@ -145,6 +148,24 @@ object DefinitionNode {
             }
         }
     }
+
+	def updateRelationMetadata(node: Node): Unit = {
+		var relOcr = new util.HashMap[String, Integer]()
+		val rels = node.getAddedRelations
+		for (rel <- rels) {
+			val relKey = rel.getStartNodeObjectType + rel.getRelationType + rel.getEndNodeObjectType
+			if (relOcr.containsKey(relKey))
+				relOcr.put(relKey, relOcr.get(relKey) + 1)
+			else relOcr.put(relKey, 1)
+
+			if (relKey.contains("hasSequenceMember")) {
+				rel.setMetadata(new util.HashMap[String, AnyRef]() {{
+						put("IL_SEQUENCE_INDEX", relOcr.get(relKey));
+					}})
+			} else rel.setMetadata(new util.HashMap[String, AnyRef]())
+		}
+		node.setAddedRelations(rels)
+	}
 
     def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String):Node = {
         val jsonPropList = fetchJsonProps(graphId, version, schemaName)

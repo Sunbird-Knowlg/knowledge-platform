@@ -1,17 +1,21 @@
 package org.sunbird.actors;
 
-import akka.dispatch.Futures;
+import akka.dispatch.Mapper;
+import org.apache.commons.lang3.StringUtils;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
+import org.sunbird.graph.dac.model.Node;
+import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.utils.ItemSetOperations;
+import org.sunbird.utils.NodeUtils;
 import scala.concurrent.Future;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ItemSetActor extends BaseActor {
 	@Override
@@ -33,60 +37,73 @@ public class ItemSetActor extends BaseActor {
 	}
 
 	private Future<Response> create(Request request) throws Exception {
-		Response response = ResponseHandler.OK();
-		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "1544789620113");
-		return Futures.successful(response);
+		return DataNode.create(request, getContext().dispatcher())
+				.map(new Mapper<Node, Response>() {
+					@Override
+					public Response apply(Node node) {
+						Response response = ResponseHandler.OK();
+						response.put("identifier", node.getIdentifier());
+						return response;
+					}
+				}, getContext().dispatcher());
 	}
 
 	private Future<Response> read(Request request) throws Exception {
-		Response response = ResponseHandler.OK();
-		Map<String, Object> itemset = new HashMap<String, Object>(){{
-			put("identifier", "do_1129152191260999681109");
-			put("versionKey","1544789620113");
-			put("title", "Test Item Set");
-			put("description", "Test Item Set");
-			put("language", Arrays.asList("English"));
-			put("maxScore", 10);
-			put("type", "materialised");
-			put("owner", "KP");
-			put("difficultyLevel","easy");
-			put("purpose","assessment");
-			put("subPurpose","assessment");
-			put("depthOfKnowledge","");
-			put("usedFor","sunbird");
-			put("copyright","sunbird");
-			put("createdBy","sunbird");
-			put("items",new ArrayList<Map<String, Object>>(){{
-				add(new HashMap<String, Object>(){{
-					put("identifier","do_1129152191260999682205");
-				}});
-			}});
-
-		}};
-		response.putAll(itemset);
-		return Futures.successful(response);
+		List<String> fields = Arrays.stream(((String) request.get("fields")).split(","))
+				.filter(field -> StringUtils.isNotBlank(field)).collect(Collectors.toList());
+		request.getRequest().put("fields", fields);
+		return DataNode.read(request, getContext().dispatcher())
+				.map(new Mapper<Node, Response>() {
+					@Override
+					public Response apply(Node node) {
+						Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"), (String) request.getContext().get("version"));
+						Response response = ResponseHandler.OK();
+						response.put("itemset", metadata);
+						return response;
+					}
+				}, getContext().dispatcher());
 	}
 
 	private Future<Response> update(Request request) throws Exception {
-		Response response = ResponseHandler.OK();
-		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "1544789620220");
-		return Futures.successful(response);
+		return DataNode.update(request, getContext().dispatcher())
+				.map(new Mapper<Node, Response>() {
+					@Override
+					public Response apply(Node node) {
+						Response response = ResponseHandler.OK();
+						String identifier = node.getIdentifier();
+						response.put("identifier", identifier);
+						return response;
+					}
+				}, getContext().dispatcher());
 	}
 
 	private Future<Response> review(Request request) throws Exception {
-		Response response = ResponseHandler.OK();
-		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "1544789620440");
-		return Futures.successful(response);
+		//TODO: Read the node and filter relationship
+		request.put("status","Review");
+		return DataNode.update(request, getContext().dispatcher())
+				.map(new Mapper<Node, Response>() {
+					@Override
+					public Response apply(Node node) {
+						Response response = ResponseHandler.OK();
+						String identifier = node.getIdentifier();
+						response.put("identifier", identifier);
+						return response;
+					}
+				}, getContext().dispatcher());
 	}
 
 	private Future<Response> retire(Request request) throws Exception {
-		Response response = ResponseHandler.OK();
-		response.put("identifier", "do_1129152191260999681109");
-		response.put("versionKey", "1544789620330");
-		return Futures.successful(response);
+		request.put("status","Retired");
+		return DataNode.update(request, getContext().dispatcher())
+				.map(new Mapper<Node, Response>() {
+					@Override
+					public Response apply(Node node) {
+						Response response = ResponseHandler.OK();
+						String identifier = node.getIdentifier();
+						response.put("identifier", identifier);
+						return response;
+					}
+				}, getContext().dispatcher());
 	}
 
 

@@ -32,6 +32,7 @@ class ItemSetController @Inject()(@Named(ActorNames.ITEM_SET_ACTOR) itemSetActor
 		val headers = commonHeaders()
 		val itemset = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
 		itemset.putAll(headers)
+		itemset.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")).asInstanceOf[Map[String, Object]])
 		val itemSetRequest = getRequest(itemset, headers, ItemSetOperations.readItemSet.name())
 		setRequestContext(itemSetRequest, version, objectType, schemaName)
 		getResult(ApiId.READ_ITEM_SET, itemSetActor, itemSetRequest)
