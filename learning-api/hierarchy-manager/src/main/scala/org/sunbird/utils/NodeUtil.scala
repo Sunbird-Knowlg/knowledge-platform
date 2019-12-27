@@ -15,14 +15,14 @@ object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-    def serialize(node: Node, fields: util.List[String], schemaName: String): util.Map[String, AnyRef] = {
+    def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
         metadataMap.put("identifier", node.getIdentifier)
         if (CollectionUtils.isNotEmpty(fields))
             metadataMap.keySet.retainAll(fields)
-        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, "1.0", schemaName)
+        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
-        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, "1.0", schemaName).asJava
+        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
         val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
         var finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.putAll(updatedMetadataMap)

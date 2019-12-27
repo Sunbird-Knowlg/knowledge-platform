@@ -19,18 +19,19 @@ public class NodeUtils {
      * This method will convert a Node to map
      * @param node
      * @param fields
+     * @param schemaVersion
      * @return
      */
-    public static Map<String, Object> serialize(Node node, List<String> fields, String schemaName) {
+    public static Map<String, Object> serialize(Node node, List<String> fields, String schemaName, String schemaVersion) {
         Map<String, Object> metadataMap = new HashMap<>();
         metadataMap.putAll(node.getMetadata());
         metadataMap.put("languageCode",getLanguageCodes(node));
         if (CollectionUtils.isNotEmpty(fields))
             filterOutFields(metadataMap, fields);
         metadataMap.put("identifier", node.getIdentifier().replace(".img",""));
-        List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", schemaName));
+        List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), schemaVersion, schemaName));
         Map<String, Object> updatedMetadataMap = metadataMap.entrySet().stream().collect(Collectors.toMap(entry -> handleKeyNames(entry, fields), entry -> convertJsonProperties(entry, jsonProps)));
-        Map<String, Object> definitionMap = JavaConversions.mapAsJavaMap(DefinitionNode.getRelationDefinitionMap(node.getGraphId(), "1.0", schemaName));
+        Map<String, Object> definitionMap = JavaConversions.mapAsJavaMap(DefinitionNode.getRelationDefinitionMap(node.getGraphId(), schemaVersion, schemaName));
         if (CollectionUtils.isEmpty(fields) || definitionMap.keySet().stream().anyMatch(key -> fields.contains(key))) {
             getRelationMap(node, updatedMetadataMap, definitionMap);
         }

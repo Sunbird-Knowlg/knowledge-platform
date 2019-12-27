@@ -70,7 +70,7 @@ public class LicenseActor extends BaseActor {
                     public Response apply(Node node) {
                         if(NodeUtils.isRetired(node))
                            return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "License not found with identifier: " + node.getIdentifier());
-                        Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"));
+                        Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"), (String)request.getContext().get("version"));
                         Response response = ResponseHandler.OK();
                         response.put("license", metadata);
                         return response;

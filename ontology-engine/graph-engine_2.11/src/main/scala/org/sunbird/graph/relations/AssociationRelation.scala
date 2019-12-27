@@ -14,9 +14,10 @@ class AssociationRelation(graphId: String, startNode: Node, endNode: Node, metad
 
     override def validate(request: Request): List[String] = {
         val schemaName = request.getContext.get("schemaName").asInstanceOf[String]
+	    val schemaVersion = request.getContext.get("version").asInstanceOf[String]
         val errList:List[String] = List(validateNodeTypes(startNode, List(SystemNodeTypes.DATA_NODE.name())),
             validateNodeTypes(endNode, List(SystemNodeTypes.DATA_NODE.name, SystemNodeTypes.SET.name)),
-            validateObjectTypes(startNode.getObjectType, endNode.getObjectType, schemaName)).filter(err => (null != err && !err.isEmpty))
+            validateObjectTypes(startNode.getObjectType, endNode.getObjectType, schemaName, schemaVersion)).filter(err => (null != err && !err.isEmpty))
         errList
     }
 
