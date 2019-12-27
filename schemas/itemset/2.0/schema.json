@@ -22,7 +22,8 @@
             "type": "number"
         },
         "type": {
-            "type": "string"
+            "type": "string",
+            "default": "materialised"
         },
         "owner": {
             "type": "string"

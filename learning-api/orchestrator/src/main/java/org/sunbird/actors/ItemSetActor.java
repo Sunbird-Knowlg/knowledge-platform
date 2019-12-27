@@ -57,6 +57,7 @@ public class ItemSetActor extends BaseActor {
 					@Override
 					public Response apply(Node node) {
 						Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"), (String) request.getContext().get("version"));
+						metadata.remove("versionKey");
 						Response response = ResponseHandler.OK();
 						response.put("itemset", metadata);
 						return response;
