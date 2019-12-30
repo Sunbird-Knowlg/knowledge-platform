@@ -21,7 +21,7 @@ object NodeUtil {
         if (CollectionUtils.isNotEmpty(fields))
             metadataMap.keySet.retainAll(fields)
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, "1.0", schemaName)
-        val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
+        val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, "1.0", schemaName).asJava
         val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
         var finalMetadata = new util.HashMap[String, AnyRef]()
