@@ -5,6 +5,7 @@ import java.util
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -156,5 +157,6 @@ object NodeUtil {
         }
     }
 
+    def isRetired(node: Node): Boolean = StringUtils.equalsIgnoreCase(node.getMetadata.get("status").asInstanceOf[String], "Retired")
 
 }

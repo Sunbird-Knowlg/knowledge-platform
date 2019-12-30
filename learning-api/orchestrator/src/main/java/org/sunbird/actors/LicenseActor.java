@@ -13,7 +13,7 @@ import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
-import org.sunbird.utils.NodeUtils;
+import org.sunbird.graph.utils.NodeUtil;
 import scala.concurrent.Future;
 import org.sunbird.utils.LicenseOperations;
 import org.sunbird.utils.RequestUtils;
@@ -68,9 +68,9 @@ public class LicenseActor extends BaseActor {
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
-                        if(NodeUtils.isRetired(node))
+                        if(NodeUtil.isRetired(node))
                            return ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "License not found with identifier: " + node.getIdentifier());
-                        Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"));
+                        Map<String, Object> metadata = NodeUtil.serialize(node, fields, (String) request.getContext().get("schemaName"));
                         Response response = ResponseHandler.OK();
                         response.put("license", metadata);
                         return response;

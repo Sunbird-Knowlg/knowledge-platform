@@ -10,7 +10,7 @@ import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.utils.{NodeUtil, ScalaJsonUtils}
+import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters
