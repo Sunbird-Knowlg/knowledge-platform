@@ -29,7 +29,7 @@ public class NodeUtils {
             filterOutFields(metadataMap, fields);
         metadataMap.put("identifier", node.getIdentifier().replace(".img",""));
         List<String> jsonProps = JavaConversions.seqAsJavaList(DefinitionNode.fetchJsonProps(node.getGraphId(), "1.0", schemaName));
-        Map<String, Object> updatedMetadataMap = metadataMap.entrySet().stream().collect(Collectors.toMap(entry -> handleKeyNames(entry, fields), entry -> convertJsonProperties(entry, jsonProps)));
+        Map<String, Object> updatedMetadataMap = metadataMap.entrySet().stream().filter(entry -> null != entry.getValue()).collect(Collectors.toMap(entry -> handleKeyNames(entry, fields), entry -> convertJsonProperties(entry, jsonProps)));
         Map<String, Object> definitionMap = JavaConversions.mapAsJavaMap(DefinitionNode.getRelationDefinitionMap(node.getGraphId(), "1.0", schemaName));
         if (CollectionUtils.isEmpty(fields) || definitionMap.keySet().stream().anyMatch(key -> fields.contains(key))) {
             getRelationMap(node, updatedMetadataMap, definitionMap);
