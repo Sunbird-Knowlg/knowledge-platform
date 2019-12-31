@@ -8,7 +8,7 @@ import play.api.test.Helpers.{OK, status}
 import play.api.test.Helpers._
 
 @RunWith(classOf[JUnitRunner])
-class ContentSpec  extends BaseSpec {
+class ContentSpec extends BaseSpec {
 
     "Content Controller " should {
         "return success response for create API" in {
