@@ -41,7 +41,7 @@ class ContentSpec  extends BaseSpec {
 
         "return success response for hierarchy remove API" in {
             val controller = app.injector.instanceOf[controllers.v3.ContentController]
-            val result = controller.addHierarchy()(FakeRequest())
+            val result = controller.removeHierarchy()(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
