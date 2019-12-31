@@ -1,3 +1,5 @@
+package modules
+
 
 import com.google.inject.AbstractModule
 import org.sunbird.actors.{CollectionActor, ContentActor, HealthActor, LicenseActor}
