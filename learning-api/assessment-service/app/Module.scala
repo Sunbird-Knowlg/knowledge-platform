@@ -1,6 +1,6 @@
 
+import actors.{HealthActor, ItemSetActor}
 import com.google.inject.AbstractModule
-import org.sunbird.actors.{HealthActor, ItemSetActor}
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 
