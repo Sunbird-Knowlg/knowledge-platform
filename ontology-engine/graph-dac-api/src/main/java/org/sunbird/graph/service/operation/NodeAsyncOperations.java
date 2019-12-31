@@ -1,6 +1,7 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
@@ -12,6 +13,7 @@ import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.GraphDACParams;
 import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.dac.model.Node;
+import org.sunbird.graph.dac.util.Neo4jNodeUtil;
 import org.sunbird.graph.service.common.CypherQueryConfigurationConstants;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
@@ -26,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 
 public class NodeAsyncOperations {
 
@@ -136,6 +137,47 @@ public class NodeAsyncOperations {
         }
     }
 
+    public static Future<Map<String, Node>> updateNodes(String graphId, List<String> identifiers, Map<String, Object> data) {
+        if (StringUtils.isBlank(graphId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
+                    DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Invalid or 'null' Graph Id.]");
+        if (CollectionUtils.isEmpty(identifiers))
+            throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+                    DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Please Provide Node Identifier.]");
+        if (MapUtils.isEmpty(data))
+            throw new ClientException(DACErrorCodeConstants.INVALID_METADATA.name(),
+                    DACErrorMessageConstants.INVALID_METADATA + " | [Please Provide Valid Node Metadata]");
+
+        Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
+        TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
+        Map<String, Object> parameterMap = new HashMap<String, Object>();
+        Map<String, Node> result = new HashMap<String, Node>();
+        String query = NodeQueryGenerationUtil.generateUpdateNodesQuery(graphId, identifiers, setPrimitiveData(data), parameterMap);
+        try (Session session = driver.session()) {
+            CompletionStage<Map<String, Node>> cs = session.runAsync(query, parameterMap).thenCompose(fn -> fn.singleAsync())
+                    .thenApply(record -> {
+                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                        Node node = Neo4jNodeUtil.getNode(graphId, neo4JNode, null, null, null);
+                        result.put(identifier, node);
+                        return result;
+                    }).exceptionally(error -> {
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
+                    });
+            return FutureConverters.toScala(cs);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            if (!(e instanceof MiddlewareException)) {
+                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+            } else {
+                throw e;
+            }
+        }
+
+    }
+
     private static Node setPrimitiveData(Node node) {
         Map<String, Object> metadata = node.getMetadata();
         metadata.entrySet().stream()
@@ -159,6 +201,30 @@ public class NodeAsyncOperations {
                 })
                 .collect(HashMap::new, (m,v)->m.put(v.getKey(), v.getValue()), HashMap::putAll);
         return node;
+    }
+
+    private static Map<String, Object> setPrimitiveData(Map<String, Object> metadata) {
+        metadata.entrySet().stream()
+                .map(entry -> {
+                    Object value = entry.getValue();
+                    try {
+                        if (value instanceof Map) {
+                            value = JsonUtils.serialize(value);
+                        } else if (value instanceof List) {
+                            List listValue = (List) value;
+                            if (CollectionUtils.isNotEmpty(listValue) && listValue.get(0) instanceof Map) {
+                                value = JsonUtils.serialize(value);
+                            }
+                        }
+                        entry.setValue(value);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    return entry;
+                })
+                .collect(HashMap::new, (m, v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
+        return metadata;
     }
 
 

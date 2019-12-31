@@ -1,6 +1,7 @@
 package actors
 
 import java.util
+import java.util.stream.Collectors
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
@@ -13,6 +14,7 @@ import utils.ItemSetOperations
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters.seqAsJavaListConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class ItemSetActor extends BaseActor {
@@ -56,7 +58,8 @@ class ItemSetActor extends BaseActor {
 	def review(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
 		val readReq = new Request();
-		readReq.setContext(request.getContext)
+		val reqContext = request.getContext
+		readReq.setContext(reqContext)
 		readReq.put("identifier", identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
@@ -65,7 +68,15 @@ class ItemSetActor extends BaseActor {
 				val itemRels: util.List[Relation] = node.getOutRelations.filter((rel: Relation) => StringUtils.equalsAnyIgnoreCase("AssessmentItem", rel.getEndNodeObjectType)).filterNot((reln: Relation) => StringUtils.equalsAnyIgnoreCase("Retired", reln.getEndNodeMetadata.get("status").toString))
 				val draftRelIds: List[String] = itemRels.filter((rel: Relation) => StringUtils.equalsAnyIgnoreCase("Draft", rel.getEndNodeMetadata.get("status").toString)).map(rel => rel.getEndNodeId).toList
 				if (CollectionUtils.isNotEmpty(draftRelIds)) {
-					//TODO: Bulk Update of AssessmentItem - update the status to Review for all draft Ids
+					val updateReq: Request = new Request();
+					updateReq.setContext(reqContext)
+					updateReq.put("identifiers", draftRelIds.asJava)
+					updateReq.put("metadata", new util.HashMap[String, AnyRef]() {
+						{
+							put("status", "Review")
+						}
+					})
+					DataNode.bulkUpdate(updateReq)
 				}
 				val newRels: util.List[util.HashMap[String, AnyRef]] = itemRels.sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).map(rel => {
 					new util.HashMap[String, AnyRef]() {{

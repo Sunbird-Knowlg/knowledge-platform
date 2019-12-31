@@ -88,6 +88,14 @@ object DataNode {
         }
     }
 
+    @throws[Exception]
+    def bulkUpdate(request: Request)(implicit ec: ExecutionContext): Future[util.Map[String, Node]] = {
+        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+        val identifiers: util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
+        val metadata: util.Map[String, AnyRef] = request.get("metadata").asInstanceOf[util.Map[String, AnyRef]]
+        NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
+    }
+
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)

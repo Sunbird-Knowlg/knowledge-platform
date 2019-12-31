@@ -528,4 +528,24 @@ public class NodeQueryGenerationUtil extends BaseQueryGenerationUtil {
 		}
 		return query.toString();
 	}
+
+	public static String generateUpdateNodesQuery(String graphId, List<String> identifiers, Map<String, Object> metadata, Map<String, Object> params) {
+		params.put("identifiers", identifiers);
+		StringBuilder query = new StringBuilder();
+		query.append("MATCH(n:" + graphId + ") ");
+		query.append("WHERE n." + SystemProperties.IL_UNIQUE_ID.name() + " IN {identifiers} SET");
+		int i = 0;
+		int index = 1;
+		for (String key : metadata.keySet()) {
+			query.append(" ").append("n").append(".").append(key).append(" = {").append(index).append("} ");
+			params.put("" + index, metadata.get(key));
+			index += 1;
+			if (i < metadata.size() - 1) {
+				query.append(", ");
+				i++;
+			}
+		}
+		query.append(" RETURN n AS ee ;");
+		return query.toString();
+	}
 }
