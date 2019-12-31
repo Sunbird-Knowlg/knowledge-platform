@@ -1,9 +1,12 @@
 package actors
 
 import java.util
+
+import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.graph.dac.model.Relation
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import utils.ItemSetOperations
@@ -52,12 +55,25 @@ class ItemSetActor extends BaseActor {
 
 	def review(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
-		request.put("identifier", identifier)
-		request.put("fields", new util.ArrayList[String])
-		DataNode.read(request).map(node => {
-			// process the node relations here
-			val relNodes = node.getRelationNodes
-			println("relNodes ::" + relNodes)
+		val readReq = new Request();
+		readReq.setContext(request.getContext)
+		readReq.put("identifier", identifier)
+		readReq.put("fields", new util.ArrayList[String])
+		DataNode.read(readReq).map(node => {
+			if (CollectionUtils.isNotEmpty(node.getOutRelations)) {
+				//process relations with AssessmentItem
+				val itemRels: util.List[Relation] = node.getOutRelations.filter((rel: Relation) => StringUtils.equalsAnyIgnoreCase("AssessmentItem", rel.getEndNodeObjectType)).filterNot((reln: Relation) => StringUtils.equalsAnyIgnoreCase("Retired", reln.getEndNodeMetadata.get("status").toString))
+				val draftRelIds: List[String] = itemRels.filter((rel: Relation) => StringUtils.equalsAnyIgnoreCase("Draft", rel.getEndNodeMetadata.get("status").toString)).map(rel => rel.getEndNodeId).toList
+				if (CollectionUtils.isNotEmpty(draftRelIds)) {
+					//TODO: Bulk Update of AssessmentItem - update the status to Review for all draft Ids
+				}
+				val newRels: util.List[util.HashMap[String, AnyRef]] = itemRels.sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).map(rel => {
+					new util.HashMap[String, AnyRef]() {{
+							put("identifier", rel.getEndNodeId);
+						}}
+				}).toList
+				request.put("items", newRels);
+			}
 			DataNode.update(request).map(node => {
 				val response: Response = ResponseHandler.OK
 				response.put("identifier", node.getIdentifier)
