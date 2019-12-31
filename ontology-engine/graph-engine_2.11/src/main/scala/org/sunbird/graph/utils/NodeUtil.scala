@@ -5,6 +5,7 @@ import java.util
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -23,7 +24,7 @@ object NodeUtil {
         if (CollectionUtils.isNotEmpty(fields))
             metadataMap.keySet.retainAll(fields)
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName)
-        val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
+        val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
         val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
         var finalMetadata = new util.HashMap[String, AnyRef]()
@@ -156,5 +157,6 @@ object NodeUtil {
         }
     }
 
+    def isRetired(node: Node): Boolean = StringUtils.equalsIgnoreCase(node.getMetadata.get("status").asInstanceOf[String], "Retired")
 
 }

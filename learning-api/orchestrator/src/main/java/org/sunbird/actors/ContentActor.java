@@ -11,7 +11,7 @@ import org.sunbird.common.dto.ResponseHandler;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
-import org.sunbird.utils.NodeUtils;
+import org.sunbird.graph.utils.NodeUtil;
 import org.sunbird.utils.RequestUtils;
 import scala.concurrent.Future;
 
@@ -75,7 +75,7 @@ public class ContentActor extends BaseActor {
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
-                        Map<String, Object> metadata = NodeUtils.serialize(node, fields, (String) request.getContext().get("schemaName"), (String)request.getContext().get("version"));
+                        Map<String, Object> metadata = NodeUtil.serialize(node, fields, (String) request.getContext().get("schemaName"), (String)request.getContext().get("version"));
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
                         return response;
