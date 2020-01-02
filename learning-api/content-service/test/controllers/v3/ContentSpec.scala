@@ -45,5 +45,12 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+        "return success response for hierarchy get API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.getHierarchy("do_123", None)(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
 }
