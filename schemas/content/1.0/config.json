@@ -57,6 +57,11 @@
             "type": "associatedTo",
             "direction": "out",
             "objects": ["Content"]
+        },
+        "itemSets": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["ItemSet"]
         }
     },
     "version": "enable",
