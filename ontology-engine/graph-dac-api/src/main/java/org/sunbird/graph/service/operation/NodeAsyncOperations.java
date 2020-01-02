@@ -4,6 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
@@ -150,24 +151,30 @@ public class NodeAsyncOperations {
 
         Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
         TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
-        Map<String, Object> parameterMap = new HashMap<String, Object>();
-        Map<String, Node> result = new HashMap<String, Node>();
+        Map<String, Object> parameterMap = new HashMap<>();
+        Map<String, Node> output = new HashMap<>();
         String query = NodeQueryGenerationUtil.generateUpdateNodesQuery(graphId, identifiers, setPrimitiveData(data), parameterMap);
         try (Session session = driver.session()) {
-            CompletionStage<Map<String, Node>> cs = session.runAsync(query, parameterMap).thenCompose(fn -> fn.singleAsync())
-                    .thenApply(record -> {
-                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                        Node node = Neo4jNodeUtil.getNode(graphId, neo4JNode, null, null, null);
-                        result.put(identifier, node);
-                        return result;
+            CompletionStage<Map<String, Node>> cs = session.runAsync(query, parameterMap).thenCompose(fn -> fn.listAsync())
+                    .thenApply(result -> {
+                        if (null != result) {
+                            for (Record record : result) {
+                                if (null != record) {
+                                    org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                                    String identifier = neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                                    Node node = Neo4jNodeUtil.getNode(graphId, neo4JNode, null, null, null);
+                                    output.put(identifier, node);
+                                }
+                            }
+                        }
+                        return output;
                     }).exceptionally(error -> {
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                "Error! Something went wrong while creating node object. ", error.getCause());
+                                "Error! Something went wrong while performing bulk update operations. ", error.getCause());
                     });
             return FutureConverters.toScala(cs);
         } catch (Throwable e) {
-            e.printStackTrace();
+            TelemetryManager.error("Exception Occurred Updating Nodes (Bulk Update) | Exception is : " + e.getMessage(), e);
             if (!(e instanceof MiddlewareException)) {
                 throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
                         DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -218,7 +225,7 @@ public class NodeAsyncOperations {
                         }
                         entry.setValue(value);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        TelemetryManager.error("Exception Occurred While Processing Primitive Data Types | Exception is : " + e.getMessage(), e);
                     }
 
                     return entry;

@@ -536,9 +536,9 @@ public class NodeQueryGenerationUtil extends BaseQueryGenerationUtil {
 		query.append("WHERE n." + SystemProperties.IL_UNIQUE_ID.name() + " IN {identifiers} SET");
 		int i = 0;
 		int index = 1;
-		for (String key : metadata.keySet()) {
-			query.append(" ").append("n").append(".").append(key).append(" = {").append(index).append("} ");
-			params.put("" + index, metadata.get(key));
+		for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+			query.append(" ").append("n").append(".").append(entry.getKey()).append(" = {").append(index).append("} ");
+			params.put("" + index, entry.getValue());
 			index += 1;
 			if (i < metadata.size() - 1) {
 				query.append(", ");
