@@ -85,6 +85,7 @@ class ItemSetActor extends BaseActor {
 				}).toList
 				request.put("items", newRels);
 			}
+			request.put("status","Review")
 			DataNode.update(request).map(node => {
 				val response: Response = ResponseHandler.OK
 				response.put("identifier", node.getIdentifier)
