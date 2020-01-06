@@ -1,4 +1,4 @@
-package actors
+package org.sunbird.actors
 
 import java.util
 

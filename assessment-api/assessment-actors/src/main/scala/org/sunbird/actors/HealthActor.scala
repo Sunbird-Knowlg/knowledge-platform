@@ -1,4 +1,4 @@
-package actors
+package org.sunbird.actors
 
 import akka.dispatch.Futures
 import org.sunbird.actor.core.BaseActor
