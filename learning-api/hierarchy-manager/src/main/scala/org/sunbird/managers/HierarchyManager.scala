@@ -113,6 +113,7 @@ object HierarchyManager {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.get("status").asInstanceOf[String])) {
                 ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
             }
+            rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
             val hierarchyFuture = fetchHierarchy(request)
             hierarchyFuture.map(hierarchy => {
                 if (!hierarchy.isEmpty) {
