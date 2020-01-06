@@ -1,7 +1,6 @@
 package actors
 
 import java.util
-import java.util.stream.Collectors
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
@@ -10,10 +9,8 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.dac.model.Relation
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import utils.ItemSetOperations
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters
 import scala.collection.JavaConverters.seqAsJavaListConverter
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -21,15 +18,15 @@ class ItemSetActor extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
-	override def onReceive(request: Request): Future[Response] = {
-		val operation: String = request.getOperation
-		if (ItemSetOperations.createItemSet.toString == operation) create(request)
-		else if (ItemSetOperations.readItemSet.toString == operation) read(request)
-		else if (ItemSetOperations.updateItemSet.toString == operation) update(request)
-		else if (ItemSetOperations.reviewItemSet.toString == operation) review(request)
-		else if (ItemSetOperations.retireItemSet.toString == operation) retire(request)
-		else ERROR(operation)
+	override def onReceive(request: Request): Future[Response] = request.getOperation match {
+		case "createItemSet" => create(request)
+		case "readItemSet" => read(request)
+		case "updateItemSet" => update(request)
+		case "reviewItemSet" => review(request)
+		case "retireItemSet" => retire(request)
+		case _ => ERROR(request.getOperation)
 	}
+
 
 	def create(request: Request): Future[Response] = DataNode.create(request).map(node => {
 		val response = ResponseHandler.OK
@@ -38,7 +35,8 @@ class ItemSetActor extends BaseActor {
 	})
 
 	def read(request: Request): Future[Response] = {
-		val fields: util.List[String] = JavaConverters.asJavaCollectionConverter(request.get("fields").asInstanceOf[String].split(",").toList.filter(field => StringUtils.isNoneBlank(field))).asJavaCollection.toList
+		val fields = request.getRequest.getOrDefault("fields", "").asInstanceOf[String]
+		  .split(",").filter((field: String) => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
 			val metadata = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])

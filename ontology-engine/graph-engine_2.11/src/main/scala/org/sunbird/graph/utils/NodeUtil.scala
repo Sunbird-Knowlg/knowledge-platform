@@ -84,7 +84,7 @@ object NodeUtil {
 
     def handleKeyNames(entry: util.Map.Entry[String, AnyRef], fields: util.List[String]) = {
         if(CollectionUtils.isEmpty(fields)) {
-            entry.getKey.substring(0,1) + entry.getKey.substring(1)
+            entry.getKey.substring(0,1).toLowerCase + entry.getKey.substring(1)
         } else {
             entry.getKey
         }
@@ -145,13 +145,15 @@ object NodeUtil {
     }
 
     def getLanguageCodes(node: Node): util.List[String] = {
-        val languages:util.List[String] = {
-            if (node.getMetadata.get("language").isInstanceOf[String]) util.Arrays.asList(node.getMetadata.get("language").asInstanceOf[String])
-            else if (node.getMetadata.get("language").isInstanceOf[util.List[String]]) node.getMetadata.get("language").asInstanceOf[util.List[String]]
-            else new util.ArrayList[String]()
+        val value = node.getMetadata.get("language")
+        val languages:util.List[String] = value match {
+            case value: String => List(value).asJava
+            case value: util.List[String] => value
+            case value: Array[String] => value.filter((lng: String) => StringUtils.isNotBlank(lng)).toList.asJava
+            case _ => new util.ArrayList[String]()
         }
         if(CollectionUtils.isNotEmpty(languages)){
-            JavaConverters.bufferAsJavaListConverter(languages.asScala.map(lang => if(Platform.config.hasPath("languageCode" + lang.toLowerCase)) Platform.config.getString("languageCode" + lang.toLowerCase) else "")).asJava
+            JavaConverters.bufferAsJavaListConverter(languages.asScala.map(lang => if(Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "")).asJava
         }else{
             languages
         }
