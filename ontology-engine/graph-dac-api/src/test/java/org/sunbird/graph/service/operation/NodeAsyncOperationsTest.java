@@ -80,5 +80,31 @@ public class NodeAsyncOperationsTest extends BaseTest {
 		Map<String, Node> result = Await.result(resultFuture, Duration.apply("30s"));
 	}
 
+	@Test
+	public void testAddNode() throws Exception {
+		Node node = new Node("domain","DATA_NODE","Content");
+		node.setIdentifier("do_000000111");
+		node.setMetadata(new HashMap<String, Object>(){{put("status","Draft");}});
+		Future<Node> resultFuture = NodeAsyncOperations.addNode("graphId",node);
+		Node result = Await.result(resultFuture, Duration.apply("30s"));
+		Assert.assertTrue(null!=node);
+		Assert.assertEquals("do_000000111",result.getIdentifier());
+	}
+
+	@Test(expected = ClientException.class)
+	public void testAddNodeWithEmptyGrpahId() throws Exception {
+		Node node = new Node("domain","DATA_NODE","Content");
+		node.setIdentifier("do_000000112");
+		node.setMetadata(new HashMap<String, Object>(){{put("status","Draft");}});
+		Future<Node> resultFuture = NodeAsyncOperations.addNode(null, node);
+		Node result = Await.result(resultFuture, Duration.apply("30s"));
+	}
+
+	@Test(expected = ClientException.class)
+	public void testAddNodeWithNullNode() throws Exception {
+		Future<Node> resultFuture = NodeAsyncOperations.addNode("domain", null);
+		Node result = Await.result(resultFuture, Duration.apply("30s"));
+	}
+
 
 }
