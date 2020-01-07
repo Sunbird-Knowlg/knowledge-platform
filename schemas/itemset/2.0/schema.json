@@ -81,8 +81,7 @@
             "type": "string"
         },
         "framework": {
-            "type": "string",
-            "default": "NCF"
+            "type": "string"
         },
         "subject" : {
             "type": "array"
