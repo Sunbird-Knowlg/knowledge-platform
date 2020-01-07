@@ -2,6 +2,7 @@ package org.sunbird.graph.nodes
 
 import java.util
 
+import org.neo4j.graphdb.Result
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
@@ -278,6 +279,10 @@ class TestDataNode extends BaseSpec {
             assert(node.getIdentifier.equalsIgnoreCase("do_1129067102240194561252.img"))
             val resultSet = session.execute("select blobAsText(body) as body from content_store.content_data where content_id='do_1129067102240194561252.img'")
             assert(resultSet.one().getString("body").equalsIgnoreCase("body"))
+            val result: Result = graphDb.execute("Match (n:domain{IL_UNIQUE_ID:'do_1129067102240194561252.img'}) return n.status as status, n.prevStatus as prevStatus")
+            val resMap = result.next()
+            assert("Draft".contentEquals(resMap.get("status").asInstanceOf[String]))
+            assert("Live".contentEquals(resMap.get("prevStatus").asInstanceOf[String]))
         })
     }
 
