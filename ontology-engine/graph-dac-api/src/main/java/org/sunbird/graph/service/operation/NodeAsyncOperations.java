@@ -169,20 +169,10 @@ public class NodeAsyncOperations {
                         }
                         return output;
                     }).exceptionally(error -> {
-                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                "Error! Something went wrong while performing bulk update operations. ", error.getCause());
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(), "Error! Something went wrong while performing bulk update operations. ", error.getCause());
                     });
             return FutureConverters.toScala(cs);
-        } catch (Throwable e) {
-            TelemetryManager.error("Exception Occurred Updating Nodes (Bulk Update) | Exception is : " + e.getMessage(), e);
-            if (!(e instanceof MiddlewareException)) {
-                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
-            } else {
-                throw e;
-            }
         }
-
     }
 
     private static Node setPrimitiveData(Node node) {
