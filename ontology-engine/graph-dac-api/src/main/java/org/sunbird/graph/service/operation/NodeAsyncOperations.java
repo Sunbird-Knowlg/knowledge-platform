@@ -35,8 +35,7 @@ public class NodeAsyncOperations {
     private final static String DEFAULT_CYPHER_NODE_OBJECT = "ee";
 
 
-    public static Future<Node> addNode(String graphId, Node node, Request request) {
-        setRequestContextToNode(node, request);
+    public static Future<Node> addNode(String graphId, Node node) {
         if (StringUtils.isBlank(graphId))
             throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
                     DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]");
