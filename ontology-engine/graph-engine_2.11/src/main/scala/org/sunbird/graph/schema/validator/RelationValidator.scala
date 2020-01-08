@@ -37,6 +37,7 @@ trait RelationValidator extends IDefinition {
                     val req = new Request()
                     req.setContext(new util.HashMap[String, AnyRef]() {{
                         put("schemaName", getSchemaName())
+                        put("version", getSchemaVersion())
                     }})
                     val errList = iRel.validate(req)
                     if (null != errList && !errList.isEmpty) {

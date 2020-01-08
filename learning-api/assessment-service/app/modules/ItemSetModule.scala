@@ -1,10 +1,11 @@
+package modules
 
 import com.google.inject.AbstractModule
 import org.sunbird.actors.{HealthActor, ItemSetActor}
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 
-class Module extends AbstractModule with AkkaGuiceSupport {
+class ItemSetModule extends AbstractModule with AkkaGuiceSupport {
 
     override def configure() = {
         super.configure()

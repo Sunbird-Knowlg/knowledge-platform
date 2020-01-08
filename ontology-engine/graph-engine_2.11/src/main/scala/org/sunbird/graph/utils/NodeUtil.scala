@@ -18,14 +18,14 @@ object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-    def serialize(node: Node, fields: util.List[String], schemaName: String): util.Map[String, AnyRef] = {
+    def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
         metadataMap.put("identifier", node.getIdentifier)
         if (CollectionUtils.isNotEmpty(fields))
             metadataMap.keySet.retainAll(fields)
-        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, "1.0", schemaName)
+        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
-        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, "1.0", schemaName).asJava
+        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
         val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
         var finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.putAll(updatedMetadataMap)
@@ -84,7 +84,7 @@ object NodeUtil {
 
     def handleKeyNames(entry: util.Map.Entry[String, AnyRef], fields: util.List[String]) = {
         if(CollectionUtils.isEmpty(fields)) {
-            entry.getKey.substring(0,1) + entry.getKey.substring(1)
+            entry.getKey.substring(0,1).toLowerCase + entry.getKey.substring(1)
         } else {
             entry.getKey
         }
@@ -99,7 +99,7 @@ object NodeUtil {
             if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "in"))
             else {
                 if(null != relationMap.get(relKey)) {
-                    relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+                    relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {add(populateRelationMaps(rel, "in"))})
                 }
             }
         }
@@ -108,7 +108,7 @@ object NodeUtil {
             if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "out"))
             else {
                 if(null != relationMap.get(relKey)) {
-                    relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {})
+                    relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {add(populateRelationMaps(rel, "out"))})
                 }
             }
         }
@@ -145,13 +145,15 @@ object NodeUtil {
     }
 
     def getLanguageCodes(node: Node): util.List[String] = {
-        val languages:util.List[String] = {
-            if (node.getMetadata.get("language").isInstanceOf[String]) util.Arrays.asList(node.getMetadata.get("language").asInstanceOf[String])
-            else if (node.getMetadata.get("language").isInstanceOf[util.List[String]]) node.getMetadata.get("language").asInstanceOf[util.List[String]]
-            else new util.ArrayList[String]()
+        val value = node.getMetadata.get("language")
+        val languages:util.List[String] = value match {
+            case value: String => List(value).asJava
+            case value: util.List[String] => value
+            case value: Array[String] => value.filter((lng: String) => StringUtils.isNotBlank(lng)).toList.asJava
+            case _ => new util.ArrayList[String]()
         }
         if(CollectionUtils.isNotEmpty(languages)){
-            JavaConverters.bufferAsJavaListConverter(languages.asScala.map(lang => if(Platform.config.hasPath("languageCode" + lang.toLowerCase)) Platform.config.getString("languageCode" + lang.toLowerCase) else "")).asJava
+            JavaConverters.bufferAsJavaListConverter(languages.asScala.map(lang => if(Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "")).asJava
         }else{
             languages
         }

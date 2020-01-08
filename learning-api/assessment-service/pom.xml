@@ -73,7 +73,7 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>orchestrator</artifactId>
+            <artifactId>assessment-actors</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>

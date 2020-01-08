@@ -131,7 +131,7 @@ public class Node implements Serializable {
 	}
 
 	public void setAddedRelations(List<Relation> addedRelations) {
-		this.addedRelations.addAll(addedRelations);
+		this.addedRelations = addedRelations;
 	}
 
 	public List<Relation> getDeletedRelations() {

@@ -1,6 +1,5 @@
 package controllers.v3
 
-import akka.util.Timeout
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -8,7 +7,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{OK, defaultAwaitTimeout, status}
 
 @RunWith(classOf[JUnitRunner])
-class ItemSetControllerTest extends BaseSpec {
+class ItemSetControllerSpec extends BaseSpec {
 
 	val controller = app.injector.instanceOf[controllers.v3.ItemSetController]
 
@@ -19,7 +18,7 @@ class ItemSetControllerTest extends BaseSpec {
 	}
 
 	"read should return an itemset successfully for given valid identifier" in {
-		val result = controller.read("do_123",null)(FakeRequest())
+		val result = controller.read("do_123", None)(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
