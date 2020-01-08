@@ -6,7 +6,6 @@ import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.graph.common.enums.SystemProperties
@@ -86,6 +85,14 @@ object DataNode {
             }}
             SearchAsyncOperations.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
         }
+    }
+
+    @throws[Exception]
+    def bulkUpdate(request: Request)(implicit ec: ExecutionContext): Future[util.Map[String, Node]] = {
+        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+        val identifiers: util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
+        val metadata: util.Map[String, AnyRef] = request.get("metadata").asInstanceOf[util.Map[String, AnyRef]]
+        NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
     }
 
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {

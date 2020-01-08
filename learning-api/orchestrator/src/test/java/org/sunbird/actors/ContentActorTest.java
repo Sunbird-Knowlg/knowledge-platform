@@ -49,6 +49,11 @@ public class ContentActorTest {
         when(DataNode.read(Mockito.any(Request.class), Mockito.any(ExecutionContext.class))).thenReturn(Futures.successful(getNode(identifier)));
         Request request = getRequest("readContent");
         request.put("fields", "");
+        request.setContext(new HashMap<String, Object>() {{
+            put("schemaName", "content");
+            put("version", "1.0");
+            put("graph_id", "domain");
+        }});
 
         TestKit probe = new TestKit(system);
         ActorRef actorRef = system.actorOf(props);

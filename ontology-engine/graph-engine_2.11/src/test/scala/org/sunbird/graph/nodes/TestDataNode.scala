@@ -348,4 +348,52 @@ class TestDataNode extends BaseSpec {
             })
         }).flatMap(f => f)
     }
+
+    "bulkUpdate with multiple node" should "should update all node successfully" in {
+        createBulkNodes()
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+        request.put("identifiers", new util.ArrayList[String]() {
+            {
+                add("do_0000123"); add("do_0000234"); add("do_0000345")
+            }
+        })
+        request.put("metadata", new util.HashMap[String, AnyRef]() {
+            {
+                put("status", "Live")
+                put("IL_FUNC_OBJECT_TYPE", "Content")
+            }
+        })
+        val future: Future[util.Map[String, Node]] = DataNode.bulkUpdate(request)
+        future map { data => {
+            assert(null != data)
+            assert(data.size() == 3)
+        }
+        }
+    }
+
+    "bulkUpdate with single node" should "should update the node successfully" in {
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'do_0000456'});")
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+        request.put("identifiers", new util.ArrayList[String]() {
+            {
+                add("do_0000456");
+            }
+        })
+        request.put("metadata", new util.HashMap[String, AnyRef]() {
+            {
+                put("status", "Live")
+                put("IL_FUNC_OBJECT_TYPE", "Content")
+            }
+        })
+        val future: Future[util.Map[String, Node]] = DataNode.bulkUpdate(request)
+        future map { data => {
+            assert(null != data)
+            assert(data.size() == 1)
+        }
+        }
+    }
 }

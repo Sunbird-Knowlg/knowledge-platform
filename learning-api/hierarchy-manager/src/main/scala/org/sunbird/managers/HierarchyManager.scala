@@ -20,6 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object HierarchyManager {
 
     val schemaName: String = "collection"
+    val schemaVersion: String = "1.0"
     val imgSuffix: String = ".img"
     val hierarchyPrefix: String = "hierarchy_"
 
@@ -36,7 +37,7 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName)
+            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName, schemaVersion)
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -73,7 +74,7 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName)
+            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName, schemaVersion)
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -207,7 +208,7 @@ object HierarchyManager {
 
     def convertNodeToMap(leafNodes: List[Node]): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
-            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, schemaName)
+            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, schemaName, schemaVersion)
             nodeMap.keySet().removeAll(keyTobeRemoved)
             nodeMap
         })

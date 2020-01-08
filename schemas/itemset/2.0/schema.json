@@ -22,7 +22,11 @@
             "type": "number"
         },
         "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+                "materialised"
+            ],
+            "default": "materialised"
         },
         "owner": {
             "type": "string"
@@ -77,8 +81,7 @@
             "type": "string"
         },
         "framework": {
-            "type": "string",
-            "default": "NCF"
+            "type": "string"
         },
         "subject" : {
             "type": "array"

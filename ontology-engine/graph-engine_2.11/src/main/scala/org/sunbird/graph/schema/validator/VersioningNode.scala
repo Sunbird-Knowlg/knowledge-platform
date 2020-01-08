@@ -110,7 +110,7 @@ trait VersioningNode extends IDefinition {
         val request = new Request()
         request.setContext(new util.HashMap[String, AnyRef](){{
             put("schemaName", getSchemaName())
-            put("version", "1.0")
+            put("version", getSchemaVersion())
             put("graph_id", graphId)
         }})
         request.put("identifier", identifier)
@@ -142,7 +142,7 @@ trait VersioningNode extends IDefinition {
     private def nodeCacheAsyncHandler(objKey: String)(implicit ec: ExecutionContext): Future[String] = {
         super.getNode(objKey, "read", null).map(node => {
             if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
-                val nodeMap = NodeUtil.serialize(node, null, getSchemaName())
+                val nodeMap = NodeUtil.serialize(node, null, getSchemaName(), getSchemaVersion())
                 Future(ScalaJsonUtils.serialize(nodeMap))
             } else Future("")
         }).flatMap(f => f)
