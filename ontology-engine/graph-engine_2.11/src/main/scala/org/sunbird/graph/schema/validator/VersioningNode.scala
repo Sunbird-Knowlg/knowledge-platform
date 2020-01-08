@@ -4,9 +4,10 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
+import org.sunbird.graph.common.enums.AuditProperties
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphEngineErrorCodes
 import org.sunbird.graph.external.ExternalPropsManager
@@ -79,12 +80,23 @@ trait VersioningNode extends IDefinition {
                 val imageNode = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
                 imageNode recoverWith {
                     case e: CompletionException => {
-                        TelemetryManager.error("Exception occured while fetching image node, may not be found", e.getCause)
+                        TelemetryManager.error("Exception occurred while fetching image node, may not be found", e.getCause)
                         if (e.getCause.isInstanceOf[ResourceNotFoundException]) {
                             node.setIdentifier(imageId)
                             node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
                             node.getMetadata.put("status", "Draft")
-                            NodeAsyncOperations.addNode(node.getGraphId, node, null)
+                            node.getMetadata.put("prevStatus", status)
+                            node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
+                            NodeAsyncOperations.addNode(node.getGraphId, node).map(imgNode => {
+                                imgNode.getMetadata.put("isImageNodeCreated", "yes");
+                                copyExternalProps(identifier, node.getGraphId).map(response => {
+                                    if(!ResponseHandler.checkError(response)) {
+                                        if(null != response.getResult && !response.getResult.isEmpty)
+                                            imgNode.setExternalData(response.getResult)
+                                    }
+                                    imgNode
+                                })
+                            }).flatMap(f=>f)
                         } else
                             throw e.getCause
                     }
