@@ -6,13 +6,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Transaction;
+import org.sunbird.common.DateUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.MiddlewareException;
 import org.sunbird.common.exception.ServerException;
+import org.sunbird.graph.common.Identifier;
+import org.sunbird.graph.common.enums.AuditProperties;
 import org.sunbird.graph.common.enums.GraphDACParams;
 import org.sunbird.graph.common.enums.SystemProperties;
+import org.sunbird.graph.dac.enums.SystemNodeTypes;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.dac.util.Neo4jNodeUtil;
 import org.sunbird.graph.service.common.CypherQueryConfigurationConstants;
@@ -172,6 +178,63 @@ public class NodeAsyncOperations {
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(), "Error! Something went wrong while performing bulk update operations. ", error.getCause());
                     });
             return FutureConverters.toScala(cs);
+        }
+    }
+
+
+    public static Future<Node> upsertRootNode(String graphId, Request request) throws Exception {
+        if (StringUtils.isBlank(graphId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
+                    DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Upsert Root Node Operation Failed.]");
+
+        Node node = new Node();
+        node.setMetadata(new HashMap<String, Object>());
+        Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
+        TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
+        try (Session session = driver.session()) {
+            TelemetryManager.log("Session Initialised. | [Graph Id: " + graphId + "]");
+
+            // Generating Root Node Id
+            String rootNodeUniqueId = Identifier.getIdentifier(graphId, SystemNodeTypes.ROOT_NODE.name());
+            TelemetryManager.log("Generated Root Node Id: " + rootNodeUniqueId);
+
+            node.setGraphId(graphId);
+            node.setNodeType(SystemNodeTypes.ROOT_NODE.name());
+            node.setIdentifier(rootNodeUniqueId);
+            node.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name(), rootNodeUniqueId);
+            node.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.ROOT_NODE.name());
+            node.getMetadata().put(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
+            node.getMetadata().put(GraphDACParams.nodesCount.name(), 0);
+            node.getMetadata().put(GraphDACParams.relationsCount.name(), 0);
+
+            Map<String, Object> parameterMap = new HashMap<String, Object>();
+            parameterMap.put(GraphDACParams.graphId.name(), graphId);
+            parameterMap.put(GraphDACParams.rootNode.name(), node);
+            parameterMap.put(GraphDACParams.request.name(), request);
+
+            CompletionStage<Node> cs = session.runAsync(NodeQueryGenerationUtil.generateUpsertRootNodeCypherQuery(parameterMap))
+                    .thenCompose(fn -> fn.singleAsync())
+                    .thenApply(record -> {
+                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                        String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
+                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                        node.setGraphId(graphId);
+                        node.setIdentifier(identifier);
+                        if (StringUtils.isNotBlank(versionKey))
+                            node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
+                        return node;
+                    }).exceptionally(error -> {
+                        if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ServiceUnavailableException)
+                            throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                                    DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + error.getMessage(), error.getCause());
+                        else
+                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                    "Error! Something went wrong while creating node object. ", error.getCause());
+                    });
+            return FutureConverters.toScala(cs);
+        } catch (Exception e) {
+                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
         }
     }
 
