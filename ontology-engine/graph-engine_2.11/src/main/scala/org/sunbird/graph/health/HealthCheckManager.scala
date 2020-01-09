@@ -78,7 +78,7 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
         }
     }
 
-    private def generateCheck(healthy: Boolean = false, serviceName: String): Map[String, Any] = healthy match {
+    def generateCheck(healthy: Boolean = false, serviceName: String): Map[String, Any] = healthy match {
         case true => Map("name" -> serviceName, "healthy" -> healthy)
         case false => Map("name" -> serviceName, "healthy" -> healthy, "err" -> "503", "errMsg" -> (serviceName + " service is unavailable"))
     }
@@ -89,7 +89,7 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
       * @param allchecks
       * @return
       */
-    private def convertToJava(allchecks: ListBuffer[Map[String, Any]]): java.util.List[java.util.Map[String, Any]] = {
+    def convertToJava(allchecks: ListBuffer[Map[String, Any]]): java.util.List[java.util.Map[String, Any]] = {
         JavaConverters.bufferAsJavaListConverter(allchecks.map(m => JavaConverters.mapAsJavaMapConverter(m).asJava)).asJava
     }
 }
