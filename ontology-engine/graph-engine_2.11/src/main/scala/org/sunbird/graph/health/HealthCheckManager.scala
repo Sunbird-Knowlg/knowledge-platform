@@ -6,11 +6,13 @@ import com.datastax.driver.core.Session
 import org.sunbird.cache.util.RedisConnector
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 
 import scala.collection.JavaConverters
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object HealthCheckManager extends CassandraConnector with RedisConnector {
     val CONNECTION_SUCCESS: String = "connection check is Successful"
@@ -46,8 +48,9 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
 
     private def checkGraphHealth()(implicit ec: ExecutionContext): Boolean = {
         try {
-            val futureNode = NodeAsyncOperations.upsertRootNode("domain", new Request()) recoverWith { case e: CompletionException => Future(false) }
-            futureNode.isCompleted
+            val futureNode:Future[org.sunbird.graph.dac.model.Node] = NodeAsyncOperations.upsertRootNode("domain", new Request())
+            val node = Await.result(futureNode, Duration.apply("1s"))
+            node.getNodeType.contentEquals(SystemNodeTypes.ROOT_NODE.name)
         } catch {
             case e: Exception => false
         }

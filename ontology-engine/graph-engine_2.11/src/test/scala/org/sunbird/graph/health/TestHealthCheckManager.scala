@@ -12,7 +12,7 @@ class TestHealthCheckManager extends BaseSpec {
         val future: Future[Response] = HealthCheckManager.checkAllSystemHealth()
         future map { response => {
             assert(ResponseCode.OK == response.getResponseCode)
-//            assert(true == response.get("healthy"))
+            assert(response.get("healthy") == true)
         }
         }
     }
