@@ -48,9 +48,8 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
 
     private def checkGraphHealth()(implicit ec: ExecutionContext): Boolean = {
         try {
-            val futureNode:Future[org.sunbird.graph.dac.model.Node] = NodeAsyncOperations.upsertRootNode("domain", new Request())
-            val node = Await.result(futureNode, Duration.apply("1s"))
-            node.getNodeType.contentEquals(SystemNodeTypes.ROOT_NODE.name)
+            val futureNode = NodeAsyncOperations.upsertRootNode("domain", new Request())
+            futureNode.isCompleted
         } catch {
             case e: Exception => false
         }
