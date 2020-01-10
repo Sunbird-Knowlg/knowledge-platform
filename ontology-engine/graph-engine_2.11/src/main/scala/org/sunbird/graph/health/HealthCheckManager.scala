@@ -1,18 +1,15 @@
 package org.sunbird.graph.health
 
-import java.util.concurrent.CompletionException
 
 import com.datastax.driver.core.Session
 import org.sunbird.cache.util.RedisConnector
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 
 import scala.collection.JavaConverters
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 object HealthCheckManager extends CassandraConnector with RedisConnector {
     val CONNECTION_SUCCESS: String = "connection check is Successful"
