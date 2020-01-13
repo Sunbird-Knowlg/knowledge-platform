@@ -1,17 +1,17 @@
 package org.sunbird.actors
 
-import akka.dispatch.Futures
+import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.graph.health.HealthCheckManager
 
-import scala.concurrent.Future
 
 class HealthActor extends BaseActor {
 
-	@throws[Throwable]
-	override def onReceive(request: Request): Future[Response] = {
-		val result = ResponseHandler.OK
-		result.put("healthy", true)
-		Futures.successful(result)
-	}
+    implicit val ec: ExecutionContext = getContext().dispatcher
+
+    @throws[Throwable]
+    override def onReceive(request: Request): Future[Response] = {
+        HealthCheckManager.checkAllSystemHealth()
+    }
 }

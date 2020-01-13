@@ -2,6 +2,7 @@ package org.sunbird.graph.service.operation;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.test.BaseTest;
@@ -106,5 +107,13 @@ public class NodeAsyncOperationsTest extends BaseTest {
 		Node result = Await.result(resultFuture, Duration.apply("30s"));
 	}
 
+	@Test
+	public void testUpsertRootNode() throws Exception {
+		Future<Node> resultFuture = NodeAsyncOperations.upsertRootNode("domain", new Request());
+		Node result = Await.result(resultFuture, Duration.apply("30s"));
+		Assert.assertNotNull(result.getIdentifier());
+		Assert.assertEquals("do_ROOT_NODE", result.getIdentifier());
+		Assert.assertEquals("ROOT_NODE", result.getNodeType());
+	}
 
 }
