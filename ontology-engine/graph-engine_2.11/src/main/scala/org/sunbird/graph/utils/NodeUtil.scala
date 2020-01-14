@@ -20,9 +20,6 @@ object NodeUtil {
 
     def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
-        metadataMap.put("identifier", node.getIdentifier)
-        if (CollectionUtils.isNotEmpty(fields))
-            metadataMap.keySet.retainAll(fields)
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
@@ -30,6 +27,9 @@ object NodeUtil {
         var finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.putAll(updatedMetadataMap)
         finalMetadata.putAll(relMap)
+        if (CollectionUtils.isNotEmpty(fields))
+            finalMetadata.keySet.retainAll(fields)
+        finalMetadata.put("identifier", node.getIdentifier)
         finalMetadata.put("languageCode", getLanguageCodes(node))
         finalMetadata
     }
