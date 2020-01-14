@@ -153,13 +153,18 @@ class TestDataNode extends BaseSpec {
         val request = new Request()
         request.setObjectType("Content")
         request.setContext(getContextMap())
-
+        createRelationData()
         request.put("code", "test")
         request.put("name", "testResource")
         request.put("mimeType", "application/pdf")
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("children", new util.ArrayList[util.Map[String, AnyRef]](){{
+            add(new util.HashMap[String, AnyRef](){{
+                put("identifier", "do_11232724509261824014")
+            }})
+        }})
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             print(node)
@@ -178,7 +183,7 @@ class TestDataNode extends BaseSpec {
                 readRequest.put("identifier", node.getIdentifier)
                 DataNode.read(readRequest).map(node => {
                     assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
-                    assert(node.getOutRelations.get(0).getEndNodeId().equalsIgnoreCase("Num:C3:SC2"))
+                    assert(node.getOutRelations.size() == 2)
                 })
             }) flatMap(f => f)
         }

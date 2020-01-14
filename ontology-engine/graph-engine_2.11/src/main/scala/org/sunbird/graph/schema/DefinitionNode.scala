@@ -73,7 +73,8 @@ object DefinitionNode {
         val validationResult: Future[Node] = dbNodeFuture.map(dbNode => {
             resetJsonProperties(dbNode, graphId, version, schemaName)
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
-            setRelationship(dbNode,inputNode)
+	        val dbRels = getDBRelations(graphId, schemaName, version, request.getRequest, dbNode)
+            setRelationship(dbNode,inputNode, dbRels)
             if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
                 inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
                 dbNode.getMetadata.remove("isImageNodeCreated")
@@ -115,18 +116,28 @@ object DefinitionNode {
 		node
 	}
 
-    private def setRelationship(dbNode: Node, inputNode: Node): Unit = {
-        var addRels: util.List[Relation] = new util.ArrayList[Relation]()
+    private def setRelationship(dbNode: Node, inputNode: Node, dbRels:util.Map[String, util.List[Relation]]): Unit = {
+	    var addRels: util.List[Relation] = new util.ArrayList[Relation]()
         var delRels: util.List[Relation] = new util.ArrayList[Relation]()
         val inRel: util.List[Relation] = dbNode.getInRelations
         val outRel: util.List[Relation] = dbNode.getOutRelations
-        val inRelReq: util.List[Relation] = inputNode.getInRelations
-        val outRelReq: util.List[Relation] = inputNode.getOutRelations
-        if (CollectionUtils.isNotEmpty(inRelReq))
+        val inRelReq: util.List[Relation] = new util.ArrayList[Relation](inputNode.getInRelations)
+        val outRelReq: util.List[Relation] = new util.ArrayList[Relation](inputNode.getOutRelations)
+        if (CollectionUtils.isNotEmpty(inRelReq)) {
+	        if(CollectionUtils.isNotEmpty(dbRels.get("in"))){
+		        inRelReq.addAll(dbRels.get("in"))
+		        inputNode.setInRelations(inRelReq)
+	        }
             getNewRelationsList(inRel, inRelReq, addRels, delRels)
-        if (CollectionUtils.isNotEmpty(outRelReq))
+        }
+	    if (CollectionUtils.isNotEmpty(outRelReq)) {
+		    if(CollectionUtils.isNotEmpty(dbRels.get("out"))){
+			    outRelReq.addAll(dbRels.get("out"))
+			    inputNode.setOutRelations(outRelReq)
+		    }
             getNewRelationsList(outRel, outRelReq, addRels, delRels)
-        if (CollectionUtils.isNotEmpty(addRels)) {
+	    }
+	    if (CollectionUtils.isNotEmpty(addRels)) {
             dbNode.setAddedRelations(addRels)
 	        updateRelationMetadata(dbNode)
         }
@@ -178,5 +189,40 @@ object DefinitionNode {
         }
         node
     }
+
+	def getDBRelations(graphId:String, schemaName:String, version:String, request: util.Map[String, AnyRef], dbNode: Node):util.Map[String, util.List[Relation]] = {
+		val inRelations = new util.ArrayList[Relation]()
+		val outRelations = new util.ArrayList[Relation]()
+		val relDefMap = getRelationDefinitionMap(graphId, version, schemaName);
+		if (null != dbNode) {
+			if (CollectionUtils.isNotEmpty(dbNode.getInRelations)) {
+				for (inRel <- dbNode.getInRelations()) {
+					val key = inRel.getRelationType() + "_in_" + inRel.getStartNodeObjectType()
+					if (relDefMap.containsKey(key)) {
+						val value = relDefMap.get(key).get
+						if (!request.containsKey(value)) {
+							inRelations.add(inRel)
+						}
+					}
+				}
+			}
+			if (CollectionUtils.isNotEmpty(dbNode.getOutRelations)) {
+				for (outRel <- dbNode.getOutRelations()) {
+					val key = outRel.getRelationType() + "_out_" + outRel.getEndNodeObjectType()
+					if (relDefMap.containsKey(key)) {
+						val value = relDefMap.get(key).get
+						if (!request.containsKey(value)) {
+							outRelations.add(outRel)
+						}
+					}
+				}
+			}
+		}
+		new util.HashMap[String, util.List[Relation]](){{
+			put("in", inRelations)
+			put("out",outRelations)
+		}}
+	}
+
 }
 
