@@ -466,4 +466,54 @@ class TestDataNode extends BaseSpec {
         }
         } flatMap(f => f)
     }
+
+    "update content with valid relations having in direction" should "update node with relation" in {
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_collections_0000000101',IL_FUNC_OBJECT_TYPE:'Content',status:'Live', contentType:'TextBook'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_collections_0000000102',IL_FUNC_OBJECT_TYPE:'Content',status:'Live', contentType:'TextBook'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_usedbycontent_0000000101',IL_FUNC_OBJECT_TYPE:'Content',status:'Live', IL_SYS_NODE_TYPE:'DATA_NODE', contentType:'TextBook'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_usedbycontent_0000000102',IL_FUNC_OBJECT_TYPE:'Content',status:'Live', IL_SYS_NODE_TYPE:'DATA_NODE',contentType:'TextBook'});")
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        request.put("collections", new util.ArrayList[util.Map[String, AnyRef]](){{
+            add(new util.HashMap[String, AnyRef](){{
+                put("identifier", "rel_collections_0000000101")
+            }})
+            add(new util.HashMap[String, AnyRef](){{
+                put("identifier", "rel_collections_0000000102")
+            }})
+        }})
+        val future: Future[Node] = DataNode.create(request)
+        future map {node => {assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            req.put("name", "updated name")
+            req.put("usedByContent", new util.ArrayList[util.Map[String, AnyRef]](){{
+                add(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "rel_usedbycontent_0000000101")
+                }})
+                add(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "rel_usedbycontent_0000000102")
+                }})
+            }})
+            val updateFuture = DataNode.update(req)
+            updateFuture.map(node => {
+                val readRequest = new Request(request)
+                readRequest.put("identifier", node.getIdentifier)
+                DataNode.read(readRequest).map(node => {
+                    assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
+                    assert(node.getInRelations.size() == 4)
+                })
+            }) flatMap(f => f)
+        }
+        } flatMap(f => f)
+    }
 }
