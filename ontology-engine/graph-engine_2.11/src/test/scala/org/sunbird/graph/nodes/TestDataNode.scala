@@ -412,7 +412,6 @@ class TestDataNode extends BaseSpec {
         val request = new Request()
         request.setObjectType("Content")
         request.setContext(getContextMap())
-        createRelationData()
         request.put("code", "test")
         request.put("name", "testResource")
         request.put("mimeType", "application/pdf")
