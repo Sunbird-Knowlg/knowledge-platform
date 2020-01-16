@@ -122,8 +122,8 @@ object DefinitionNode {
         var delRels: util.List[Relation] = new util.ArrayList[Relation]()
         val inRel: util.List[Relation] = dbNode.getInRelations
         val outRel: util.List[Relation] = dbNode.getOutRelations
-        val inRelReq: util.List[Relation] = new util.ArrayList[Relation](inputNode.getInRelations)
-        val outRelReq: util.List[Relation] = new util.ArrayList[Relation](inputNode.getOutRelations)
+        val inRelReq: util.List[Relation] = if(CollectionUtils.isNotEmpty(inputNode.getInRelations)) new util.ArrayList[Relation](inputNode.getInRelations) else new util.ArrayList[Relation]()
+        val outRelReq: util.List[Relation] = if(CollectionUtils.isNotEmpty(inputNode.getOutRelations)) new util.ArrayList[Relation](inputNode.getOutRelations) else new util.ArrayList[Relation]()
         if (CollectionUtils.isNotEmpty(inRelReq)) {
 	        if(CollectionUtils.isNotEmpty(dbRels.get("in"))){
 		        inRelReq.addAll(dbRels.get("in"))

@@ -10,8 +10,7 @@ import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 
-import scala.collection.JavaConversions._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future}
 
 
 class TestDataNode extends BaseSpec {
@@ -150,10 +149,11 @@ class TestDataNode extends BaseSpec {
     }
 
     "update content with valid relation" should "update node with relation" in {
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_content_0000000001',IL_FUNC_OBJECT_TYPE:'Content',status:'Live'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_concept_0000000001',IL_FUNC_OBJECT_TYPE:'Concept',status:'Live'});")
         val request = new Request()
         request.setObjectType("Content")
         request.setContext(getContextMap())
-        createRelationData()
         request.put("code", "test")
         request.put("name", "testResource")
         request.put("mimeType", "application/pdf")
@@ -162,7 +162,7 @@ class TestDataNode extends BaseSpec {
         request.put("channel", "in.ekstep")
         request.put("children", new util.ArrayList[util.Map[String, AnyRef]](){{
             add(new util.HashMap[String, AnyRef](){{
-                put("identifier", "do_11232724509261824014")
+                put("identifier", "rel_content_0000000001")
             }})
         }})
         val future: Future[Node] = DataNode.create(request)
@@ -174,7 +174,7 @@ class TestDataNode extends BaseSpec {
             req.put("name", "updated name")
             req.put("concepts", new util.ArrayList[util.Map[String, AnyRef]](){{
                 add(new util.HashMap[String, AnyRef](){{
-                    put("identifier", "Num:C3:SC2")
+                    put("identifier", "rel_concept_0000000001")
                 }})
             }})
             val updateFuture = DataNode.update(req)
