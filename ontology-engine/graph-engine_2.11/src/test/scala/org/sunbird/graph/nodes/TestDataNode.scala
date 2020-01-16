@@ -401,4 +401,70 @@ class TestDataNode extends BaseSpec {
         }
         }
     }
+
+    "update content with valid relations having type assosiatedTo and hasSequenceMember" should "update node with relation" in {
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_concept_00000001',IL_FUNC_OBJECT_TYPE:'Concept',status:'Live'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_concept_00000002',IL_FUNC_OBJECT_TYPE:'Concept',status:'Live'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_itemset_00000001',IL_FUNC_OBJECT_TYPE:'ItemSet',status:'Live'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_collections_00000001',IL_FUNC_OBJECT_TYPE:'Content',status:'Live', contentType:'TextBook'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_collections_00000002',IL_FUNC_OBJECT_TYPE:'Content',status:'Live', contentType:'TextBook'});")
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'rel_collections_00000003',IL_FUNC_OBJECT_TYPE:'ContentImage',status:'Live', contentType:'TextBook'});")
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+        createRelationData()
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        request.put("concepts", new util.ArrayList[util.Map[String, AnyRef]](){{
+            add(new util.HashMap[String, AnyRef](){{
+                put("identifier", "rel_concept_00000001")
+            }})
+        }})
+        request.put("collections", new util.ArrayList[util.Map[String, AnyRef]](){{
+            add(new util.HashMap[String, AnyRef](){{
+                put("identifier", "rel_collections_00000001")
+            }})
+        }})
+        val future: Future[Node] = DataNode.create(request)
+        future map {node => {assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            req.put("name", "updated name")
+            req.put("concepts", new util.ArrayList[util.Map[String, AnyRef]](){{
+                add(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "rel_concept_00000002")
+                }})
+            }})
+            req.put("itemSets", new util.ArrayList[util.Map[String, AnyRef]](){{
+                add(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "rel_itemset_00000001")
+                }})
+            }})
+            req.put("collections", new util.ArrayList[util.Map[String, AnyRef]](){{
+                add(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "rel_collections_00000002")
+                }})
+                add(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "rel_collections_00000003")
+                }})
+            }})
+            val updateFuture = DataNode.update(req)
+            updateFuture.map(node => {
+                val readRequest = new Request(request)
+                readRequest.put("identifier", node.getIdentifier)
+                DataNode.read(readRequest).map(node => {
+                    assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
+                    assert(node.getOutRelations.size() == 2)
+                    assert(node.getInRelations.size() == 2)
+                })
+            }) flatMap(f => f)
+        }
+        } flatMap(f => f)
+    }
 }
