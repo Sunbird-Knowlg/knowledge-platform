@@ -6,8 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
@@ -203,8 +201,8 @@ public class NodeAsyncOperations {
             node.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name(), rootNodeUniqueId);
             node.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.ROOT_NODE.name());
             node.getMetadata().put(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
-            node.getMetadata().put(GraphDACParams.nodesCount.name(), 0);
-            node.getMetadata().put(GraphDACParams.relationsCount.name(), 0);
+            node.getMetadata().put(GraphDACParams.Nodes_Count.name(), 0);
+            node.getMetadata().put(GraphDACParams.Relations_Count.name(), 0);
 
             Map<String, Object> parameterMap = new HashMap<String, Object>();
             parameterMap.put(GraphDACParams.graphId.name(), graphId);
