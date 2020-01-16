@@ -103,8 +103,11 @@ object HierarchyManager {
 
     @throws[Exception]
     def getHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
-        if(!StringUtils.isEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit")) getUnPublishedHierarchy(request)
-        else getPublishedHierarchy(request)
+        val mode = request.get("mode").asInstanceOf[String]
+        if(!StringUtils.isEmpty(mode) && mode.equals("edit"))
+            getUnPublishedHierarchy(request)
+        else
+            getPublishedHierarchy(request)
     }
 
     @throws[Exception]
