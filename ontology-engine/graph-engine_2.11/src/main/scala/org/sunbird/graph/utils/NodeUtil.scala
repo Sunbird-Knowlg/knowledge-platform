@@ -25,6 +25,7 @@ object NodeUtil {
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
         val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
         var finalMetadata = new util.HashMap[String, AnyRef]()
+        finalMetadata.put("objectType",node.getObjectType)
         finalMetadata.putAll(updatedMetadataMap)
         finalMetadata.putAll(relMap)
         if (CollectionUtils.isNotEmpty(fields))
@@ -43,6 +44,13 @@ object NodeUtil {
                 nodeMap.get(entry._1).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.map(relMap => {
                     if("in".equalsIgnoreCase(entry._2.asInstanceOf[util.Map[String, AnyRef]].get("direction").asInstanceOf[String])) {
                         val rel:Relation = new Relation(relMap.get("identifier").asInstanceOf[String], entry._2.asInstanceOf[util.Map[String, AnyRef]].get("type").asInstanceOf[String], node.getIdentifier)
+                        rel.setStartNodeObjectType(relMap.get("objectType").asInstanceOf[String])
+                        rel.setEndNodeObjectType(node.getObjectType)
+                        rel.setStartNodeName(relMap.get("name").asInstanceOf[String])
+                        rel.setStartNodeMetadata(new util.HashMap[String, AnyRef](){{
+                            put("description", relMap.get("description"))
+                            put("status", relMap.get("status"))
+                        }})
                         if(null != relMap.get("index") && 0 < relMap.get("index").asInstanceOf[Integer]){
                             rel.setMetadata(new util.HashMap[String, AnyRef](){{
                                 put(SystemProperties.IL_SEQUENCE_INDEX.name(), relMap.get("index"))
@@ -51,6 +59,13 @@ object NodeUtil {
                         inRelations.add(rel)
                     } else {
                         val rel:Relation = new Relation(node.getIdentifier, entry._2.asInstanceOf[util.Map[String, AnyRef]].get("type").asInstanceOf[String], relMap.get("identifier").asInstanceOf[String])
+                        rel.setStartNodeObjectType(node.getObjectType)
+                        rel.setEndNodeObjectType(relMap.get("objectType").asInstanceOf[String])
+                        rel.setEndNodeName(relMap.get("name").asInstanceOf[String])
+                        rel.setEndNodeMetadata(new util.HashMap[String, AnyRef]() {{
+                                put("description", relMap.get("description"))
+                                put("status", relMap.get("status"))
+                            }})
                         if(null != relMap.get("index") && 0 < relMap.get("index").asInstanceOf[Integer]){
                             rel.setMetadata(new util.HashMap[String, AnyRef](){{
                                 put(SystemProperties.IL_SEQUENCE_INDEX.name(), relMap.get("index"))
