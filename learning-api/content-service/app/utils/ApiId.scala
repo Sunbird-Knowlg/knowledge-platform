@@ -12,6 +12,7 @@ object ApiId {
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
 	val REMOVE_HIERARCHY = "api.content.hierarchy.remove"
+	val GET_HIERARCHY = "api.content.hierarchy.get"
 
 	//License APIs
 	val CREATE_LICENSE = "api.license.create"

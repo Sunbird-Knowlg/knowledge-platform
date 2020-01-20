@@ -8,6 +8,7 @@ PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.upd
 GET       /content/v3/read/:identifier      controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy
 DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy
+GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
 
 #These are routes for License Creation
 POST    /license/v3/create                      controllers.v3.LicenseController.create

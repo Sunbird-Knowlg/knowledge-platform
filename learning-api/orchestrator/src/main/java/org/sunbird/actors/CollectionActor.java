@@ -16,6 +16,7 @@ public class CollectionActor extends BaseActor {
         switch (operation) {
             case "addHierarchy": return addLeafNodesToHierarchy(request);
             case "removeHierarchy": return removeLeafNodesFromHierarchy(request);
+            case "getHierarchy": return getHierarchy(request);
             default: return ERROR(operation);
         }
     }
@@ -29,4 +30,10 @@ public class CollectionActor extends BaseActor {
         request.getContext().put("schemaName", SCHEMA_NAME);
         return HierarchyManager.removeLeafNodesFromHierarchy(request, getContext().dispatcher());
     }
+
+    private Future<Response> getHierarchy(Request request) throws Exception {
+        request.getContext().put("schemaName", SCHEMA_NAME);
+        return HierarchyManager.getHierarchy(request, getContext().dispatcher());
+    }
+
 }
