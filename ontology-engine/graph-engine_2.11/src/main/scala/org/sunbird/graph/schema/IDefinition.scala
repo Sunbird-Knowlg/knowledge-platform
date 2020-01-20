@@ -19,4 +19,8 @@ abstract class IDefinition(graphId: String, schemaName: String, version: String 
     def getSchemaName(): String ={
         schemaName
     }
+
+    def getSchemaVersion(): String = {
+        version
+    }
 }

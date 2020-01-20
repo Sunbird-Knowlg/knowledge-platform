@@ -1,15 +1,22 @@
 package org.sunbird.graph.schema.validator
 
+import java.util
 import java.util.concurrent.CompletionException
 
-import org.sunbird.common.dto.Request
+import org.sunbird.cache.impl.RedisCache
+import org.sunbird.common.{DateUtils, JsonUtils, Platform}
+import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
+import org.sunbird.graph.common.enums.AuditProperties
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphEngineErrorCodes
+import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
+import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
 
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait VersioningNode extends IDefinition {
@@ -46,7 +53,6 @@ trait VersioningNode extends IDefinition {
                 val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
                 imageNode recoverWith {
                     case e: CompletionException => {
-                        TelemetryManager.error("Exception occured while fetching image node, may not be found", e.getCause)
                         if (e.getCause.isInstanceOf[ResourceNotFoundException])
                             super.getNode(identifier, "read", mode)
                         else
@@ -54,12 +60,17 @@ trait VersioningNode extends IDefinition {
                     }
                 }
             } else {
-                super.getNode(identifier , "read", mode)
+                val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
+                if(Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
+                    val ttl:Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
+                    getCachedNode(identifier, ttl)
+                }
+                else
+                    super.getNode(identifier , "read", mode)
             }
         }.map(dataNode => dataNode) recoverWith { case e: CompletionException => throw e.getCause}
         node
     }
-
 
     private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext): Future[Node] = {
         val status = node.getMetadata.get("status").asInstanceOf[String]
@@ -69,12 +80,23 @@ trait VersioningNode extends IDefinition {
                 val imageNode = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
                 imageNode recoverWith {
                     case e: CompletionException => {
-                        TelemetryManager.error("Exception occured while fetching image node, may not be found", e.getCause)
+                        TelemetryManager.error("Exception occurred while fetching image node, may not be found", e.getCause)
                         if (e.getCause.isInstanceOf[ResourceNotFoundException]) {
                             node.setIdentifier(imageId)
                             node.setObjectType(node.getObjectType + IMAGE_OBJECT_SUFFIX)
                             node.getMetadata.put("status", "Draft")
-                            NodeAsyncOperations.addNode(node.getGraphId, node)
+                            node.getMetadata.put("prevStatus", status)
+                            node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
+                            NodeAsyncOperations.addNode(node.getGraphId, node).map(imgNode => {
+                                imgNode.getMetadata.put("isImageNodeCreated", "yes");
+                                copyExternalProps(identifier, node.getGraphId).map(response => {
+                                    if(!ResponseHandler.checkError(response)) {
+                                        if(null != response.getResult && !response.getResult.isEmpty)
+                                            imgNode.setExternalData(response.getResult)
+                                    }
+                                    imgNode
+                                })
+                            }).flatMap(f=>f)
                         } else
                             throw e.getCause
                     }
@@ -82,6 +104,48 @@ trait VersioningNode extends IDefinition {
             }
         } else
             Future{node}
+    }
+
+    private def copyExternalProps(identifier: String, graphId: String)(implicit ec : ExecutionContext) = {
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef](){{
+            put("schemaName", getSchemaName())
+            put("version", getSchemaVersion())
+            put("graph_id", graphId)
+        }})
+        request.put("identifier", identifier)
+        ExternalPropsManager.fetchProps(request, getExternalPropsList())
+    }
+
+    private def getExternalPropsList(): List[String] ={
+        if(schemaValidator.getConfig.hasPath("external.properties")){
+            new util.ArrayList[String](schemaValidator.getConfig.getObject("external.properties").keySet()).toList
+        }else{
+            List[String]()
+        }
+    }
+
+    def getCachedNode(identifier: String, ttl: Integer)(implicit ec: ExecutionContext): Future[Node] = {
+        val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
+        nodeStringFuture.map(nodeString => {
+            if (null != nodeString && !nodeString.asInstanceOf[String].isEmpty) {
+                val nodeMap: util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
+                val node: Node = NodeUtil.deserialize(nodeMap, getSchemaName(), schemaValidator.getConfig
+                  .getAnyRef("relations").asInstanceOf[java.util.Map[String, AnyRef]])
+                Future {node}
+            } else {
+                super.getNode(identifier, "read", null)
+            }
+        }).flatMap(f => f)
+    }
+
+    private def nodeCacheAsyncHandler(objKey: String)(implicit ec: ExecutionContext): Future[String] = {
+        super.getNode(objKey, "read", null).map(node => {
+            if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
+                val nodeMap = NodeUtil.serialize(node, null, getSchemaName(), getSchemaVersion())
+                Future(ScalaJsonUtils.serialize(nodeMap))
+            } else Future("")
+        }).flatMap(f => f)
     }
 
 }

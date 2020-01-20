@@ -1,0 +1,76 @@
+{
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "update": []
+    },
+    "objectType": "Content",
+    "external": {
+        "tableName": "content_data",
+        "properties": {
+            "body": {
+                "type": "blob"
+            },
+            "oldBody": {
+                "type": "blob"
+            },
+            "stageIcons": {
+                "type": "blob"
+            },
+            "screenshots": {
+                "type": "blob"
+            },
+            "last_updated_on": {
+                "type": "timestamp"
+            }
+        },
+        "primaryKey": ["content_id"]
+    },
+    "relations": {
+        "concepts": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Concept"]
+        },
+        "questions": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["AssessmentItem"]
+        },
+        "children": {
+            "type": "hasSequenceMember",
+            "direction": "out",
+            "objects": ["Content", "ContentImage"]
+        },
+        "collections": {
+            "type": "hasSequenceMember",
+            "direction": "in",
+            "objects": ["Content", "ContentImage"]
+        },
+        "usedByContent": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        },
+        "usesContent": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Content"]
+        },
+        "itemSets": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["ItemSet"]
+        }
+    },
+    "version": "enable",
+    "versionCheckMode": "ON",
+    "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "edge": {
+        "properties": {
+            "license": "License"
+        }
+    },
+    "cacheEnabled": true
+}

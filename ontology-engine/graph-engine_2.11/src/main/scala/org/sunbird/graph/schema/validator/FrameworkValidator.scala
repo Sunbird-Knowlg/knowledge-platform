@@ -2,7 +2,7 @@ package org.sunbird.graph.schema.validator
 
 import java.util
 
-import org.sunbird.cache.impl.CategoryCache
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.IDefinition
@@ -12,7 +12,6 @@ import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
 
 trait FrameworkValidator extends IDefinition {
-  val categoryCache: CategoryCache = new CategoryCache()
   @throws[Exception]
   abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
     val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
@@ -25,12 +24,14 @@ trait FrameworkValidator extends IDefinition {
         val errors: util.List[String] = new util.ArrayList[String]
         for (cat: String <- fwMetadata.keys) {
           val value: AnyRef = fwMetadata.get(cat).get
-          val list: List[String] = categoryCache.getList(categoryCache.getKey(framework, cat)).asScala.toList
+          //TODO: Replace Cache Call With FrameworkCache Implementation
+          val cacheKey = "cat_" + framework + cat
+          val list: List[String] = RedisCache.getList(cacheKey)
           val result: Boolean = value match {
             case value: String => list.contains(value)
             case value: util.List[String] => list.asJava.containsAll(value)
             case value: Array[String] => value.forall(term => list.contains(term))
-            case _ => throw new ClientException("CLIENT_ERROR", "Validation errors.", util.Arrays.asList("Please provide correct value for [" + cat + "]"))
+            case _ => throw new ClientException("CLIENT_ERROR", "Validation Errors.", util.Arrays.asList("Please provide correct value for [" + cat + "]"))
           }
 
             if (!result) {
@@ -42,7 +43,7 @@ trait FrameworkValidator extends IDefinition {
             }
         }
         if (!errors.isEmpty)
-          throw new ClientException("CLIENT_ERROR", "Validation errors.", errors)
+          throw new ClientException("CLIENT_ERROR", "Validation Errors.", errors)
       }
     }
     super.validate(node, operation)

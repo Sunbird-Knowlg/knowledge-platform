@@ -54,12 +54,14 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
       */
     def read(identifier: String, extProps: List[String], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
         val select = QueryBuilder.select()
-        extProps.foreach(prop => {
-            if("blob".equalsIgnoreCase(propsMapping.getOrElse(prop, "")))
-                select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop)
-            else
-                select.column(prop).as(prop)
-        })
+        if(null != extProps && !extProps.isEmpty){
+            extProps.foreach(prop => {
+                if("blob".equalsIgnoreCase(propsMapping.getOrElse(prop, "")))
+                    select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop)
+                else
+                    select.column(prop).as(prop)
+            })
+        }
         val selectQuery = select.from(keySpace, table)
         val clause: Clause = QueryBuilder.eq(primaryKey.get(0), identifier)
         selectQuery.where.and(clause)

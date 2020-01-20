@@ -60,8 +60,9 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.play</groupId>
-            <artifactId>play-akka-http-server_${scala.major.version}</artifactId>
+            <artifactId>play-netty-server_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -74,6 +75,29 @@
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.11</artifactId>
+            <version>3.0.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play-specs2_${scala.maj.version}</artifactId>
+            <version>${play2.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.joda</groupId>
+            <artifactId>joda-convert</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.danielwegener</groupId>
+            <artifactId>logback-kafka-appender</artifactId>
+            <version>0.2.0-RC2</version>
+        </dependency>
+
     </dependencies>
     <build>
         <sourceDirectory>${basedir}/app</sourceDirectory>
@@ -107,6 +131,17 @@
                 <version>${sbt-compiler.plugin.version}</version>
                 <configuration>
                     <scalacOptions>-feature -deprecation -Xfatal-warnings</scalacOptions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.scoverage</groupId>
+                <artifactId>scoverage-maven-plugin</artifactId>
+                <version>${scoverage.plugin.version}</version>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                    <aggregate>true</aggregate>
+                    <highlighting>true</highlighting>
+                    <excludedFiles>.*RoutesPrefix.*;.*Routes.*;.*javascript.*</excludedFiles>
                 </configuration>
             </plugin>
         </plugins>

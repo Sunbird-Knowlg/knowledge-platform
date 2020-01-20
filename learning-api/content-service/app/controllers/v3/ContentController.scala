@@ -15,6 +15,7 @@ import scala.concurrent.ExecutionContext
 class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef,@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
     val objectType = "Content"
+    val schemaName: String = "content"
     val version = "1.0"
 
     def create() = Action.async { implicit request =>
@@ -23,7 +24,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent")
-        setRequestContext(contentRequest, version, objectType)
+        setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
     }
   
@@ -43,7 +44,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asInstanceOf[Map[String, Object]])
         val readRequest = getRequest(content, headers, "readContent")
-        setRequestContext(readRequest, version, objectType)
+        setRequestContext(readRequest, version, objectType, schemaName)
         getResult(ApiId.READ_CONTENT, contentActor, readRequest)
     }
 
@@ -53,7 +54,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "updateContent")
-        setRequestContext(contentRequest, version, objectType)
+        setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier",identifier);
         getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
     }
@@ -63,7 +64,8 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         body.putAll(headers)
         val contentRequest = getRequest(body, headers, "addHierarchy")
-        setRequestContext(contentRequest, version, objectType)
+        contentRequest.put("mode","edit");
+        setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.ADD_HIERARCHY, collectionActor, contentRequest)
     }
 
@@ -72,8 +74,19 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         body.putAll(headers)
         val contentRequest = getRequest(body, headers, "removeHierarchy")
-        setRequestContext(contentRequest, version, objectType)
+        contentRequest.put("mode","edit");
+        setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.REMOVE_HIERARCHY, collectionActor, contentRequest)
+    }
+
+    def getHierarchy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("")))
+        val readRequest = getRequest(content, headers, "getHierarchy")
+        setRequestContext(readRequest, version, objectType, null)
+        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
     }
 
 }
