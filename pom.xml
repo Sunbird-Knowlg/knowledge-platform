@@ -22,8 +22,8 @@
 	<modules>
 		<module>platform-core</module>
 		<module>ontology-engine</module>
+		<module>content-api</module>
 		<module>assessment-api</module>
-		<module>learning-api</module>
     </modules>
 	<dependencies>
 	</dependencies>
