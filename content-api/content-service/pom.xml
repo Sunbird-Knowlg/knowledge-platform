@@ -6,7 +6,7 @@
     <packaging>play2</packaging>
     <parent>
         <groupId>org.sunbird</groupId>
-        <artifactId>learning-api</artifactId>
+        <artifactId>content-api</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <repositories>
