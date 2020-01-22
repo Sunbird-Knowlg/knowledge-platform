@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -23,6 +24,7 @@ import java.util.Map;
 
 import static org.powermock.api.mockito.PowerMockito.when;
 
+@PowerMockIgnore("javax.management.*")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
         DataNode.class
@@ -30,6 +32,11 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class ContentActorTest {
     private static ActorSystem system = ActorSystem.create("system");
     private static final Props props = Props.create(ContentActor.class);
+
+    public ContentActorTest() {
+        PowerMockito.mockStatic(DataNode.class);
+    }
+
 
     @Test
     public void unknownOperation() {
@@ -44,7 +51,7 @@ public class ContentActorTest {
 
     @Test
     public void readContent() throws Exception {
-        PowerMockito.mockStatic(DataNode.class);
+
         String identifier = "do_1234";
         when(DataNode.read(Mockito.any(Request.class), Mockito.any(ExecutionContext.class))).thenReturn(Futures.successful(getNode(identifier)));
         Request request = getRequest("readContent");
@@ -63,7 +70,51 @@ public class ContentActorTest {
         Assert.assertTrue(null != response.getResult().get("content"));
         Map<String, Object> content = (Map<String, Object>) response.getResult().get("content");
         Assert.assertTrue(identifier.equals(content.get("identifier")));
+    }
 
+    @Test
+    public void createContent() throws Exception {
+        String identifier = "do_1234";
+        when(DataNode.create(Mockito.any(Request.class), Mockito.any(ExecutionContext.class))).thenReturn(Futures.successful(getNode(identifier)));
+        Request request = getRequest("createContent");
+        request.setContext(new HashMap<String, Object>() {{
+            put("schemaName", "content");
+            put("version", "1.0");
+            put("objectType", "Content");
+            put("graph_id", "domain");
+        }});
+        request.put("channel", "sunbird");
+        TestKit probe = new TestKit(system);
+        ActorRef actorRef = system.actorOf(props);
+        actorRef.tell(request, probe.testActor());
+        Response response = probe.expectMsgClass(Response.class);
+        Assert.assertTrue("successful".equals(response.getParams().getStatus()));
+        Assert.assertTrue(null != response.getResult());
+        Map<String, Object> content = (Map<String, Object>) response.getResult();
+        Assert.assertTrue(identifier.equals(content.get("identifier")));
+    }
+
+    @Test
+    public void updateContent() throws Exception {
+        String identifier = "do_1234";
+        when(DataNode.update(Mockito.any(Request.class), Mockito.any(ExecutionContext.class))).thenReturn(Futures.successful(getNode(identifier)));
+        Request request = getRequest("updateContent");
+        request.setContext(new HashMap<String, Object>() {{
+            put("schemaName", "content");
+            put("version", "1.0");
+            put("objectType", "Content");
+            put("graph_id", "domain");
+            put("identifier", identifier);
+        }});
+        request.put("versionKey", System.currentTimeMillis() + "");
+        TestKit probe = new TestKit(system);
+        ActorRef actorRef = system.actorOf(props);
+        actorRef.tell(request, probe.testActor());
+        Response response = probe.expectMsgClass(Response.class);
+        Assert.assertTrue("successful".equals(response.getParams().getStatus()));
+        Assert.assertTrue(null != response.getResult());
+        Map<String, Object> content = (Map<String, Object>) response.getResult();
+        Assert.assertTrue(identifier.equals(content.get("identifier")));
     }
 
     private Request getRequest(String operation) {
