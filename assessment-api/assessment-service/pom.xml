@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>content-service</artifactId>
-    <name>content-service</name>
-    <packaging>play2</packaging>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <artifactId>assessment-api</artifactId>
         <groupId>org.sunbird</groupId>
-        <artifactId>learning-api</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>assessment-service</artifactId>
+    <packaging>play2</packaging>
+
     <repositories>
         <repository>
             <id>scalaz-bintray</id>
@@ -71,7 +73,7 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>orchestrator</artifactId>
+            <artifactId>assessment-actors</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
@@ -92,12 +94,6 @@
             <artifactId>joda-convert</artifactId>
             <version>2.2.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.danielwegener</groupId>
-            <artifactId>logback-kafka-appender</artifactId>
-            <version>0.2.0-RC2</version>
-        </dependency>
-
     </dependencies>
     <build>
         <sourceDirectory>${basedir}/app</sourceDirectory>
@@ -108,7 +104,7 @@
             </resource>
         </resources>
         <plugins>
-         <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.0</version>
@@ -146,5 +142,5 @@
             </plugin>
         </plugins>
     </build>
-</project>
 
+</project>
