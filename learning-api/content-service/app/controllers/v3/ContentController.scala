@@ -4,8 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
-import org.sunbird.telemetry.logger.TelemetryManager
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{ControllerComponents}
 import utils.{ActorNames, ApiId}
 
 import scala.collection.JavaConversions._
@@ -27,7 +26,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
     }
-  
+
     /**
       * This Api end point takes 3 parameters
       * Content Identifier the unique identifier of a content
@@ -77,4 +76,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.REMOVE_HIERARCHY, collectionActor, contentRequest)
     }
 
+    def updateHierarchy() = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val data = body.getOrElse("data", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        data.putAll(headers)
+        val contentRequest = getRequest(data, headers, "updateHierarchy")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.UPDATE_HIERARCHY, collectionActor, contentRequest)
+    }
 }

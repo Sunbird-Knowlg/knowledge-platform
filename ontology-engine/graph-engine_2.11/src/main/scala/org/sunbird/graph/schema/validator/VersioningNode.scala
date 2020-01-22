@@ -26,7 +26,7 @@ trait VersioningNode extends IDefinition {
     val IMAGE_OBJECT_SUFFIX = "Image"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read")(implicit ec: ExecutionContext): Future[Node] = {
         operation match {
             case "update" => getNodeToUpdate(identifier);
             case "read" => getNodeToRead(identifier, mode)

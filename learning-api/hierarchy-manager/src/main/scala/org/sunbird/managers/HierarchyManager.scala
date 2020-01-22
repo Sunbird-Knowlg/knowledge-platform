@@ -21,7 +21,7 @@ object HierarchyManager {
     val schemaName: String = "collection"
     val schemaVersion: String = "1.0"
     val imgSuffix: String = ".img"
-    val keyTobeRemoved = {
+    val keyTobeRemoved: util.List[String] = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))
             Platform.config.getStringList("content.hierarchy.removed_props_for_leafNodes")
         else
@@ -98,19 +98,18 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
 
-
     def validateRequest(request: Request)(implicit ec: ExecutionContext) = {
         val rootId = request.get("rootId").asInstanceOf[String]
         val unitId = request.get("unitId").asInstanceOf[String]
         val children = request.get("children").asInstanceOf[java.util.List[String]]
 
-        if(StringUtils.isBlank(rootId)){
+        if (StringUtils.isBlank(rootId)) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "rootId is mandatory")
         }
-        if(StringUtils.isBlank(unitId)){
+        if (StringUtils.isBlank(unitId)) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "unitId is mandatory")
         }
-        if(null == children || children.isEmpty){
+        if (null == children || children.isEmpty) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "children are mandatory")
         }
     }

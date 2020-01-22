@@ -13,6 +13,7 @@ import org.sunbird.graph.schema.DefinitionNode
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
 object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
@@ -160,5 +161,10 @@ object NodeUtil {
     }
 
     def isRetired(node: Node): Boolean = StringUtils.equalsIgnoreCase(node.getMetadata.get("status").asInstanceOf[String], "Retired")
+
+    def getContentNode()(implicit ec: ExecutionContext): Node = {
+
+        DefinitionNode.getNode()
+    }
 
 }
