@@ -76,6 +76,7 @@ public class ContentActor extends BaseActor {
                     @Override
                     public Response apply(Node node) {
                         Map<String, Object> metadata = NodeUtil.serialize(node, fields, (String) request.getContext().get("schemaName"), (String)request.getContext().get("version"));
+                        metadata.put("identifier", node.getIdentifier().replace(".img", ""));
                         Response response = ResponseHandler.OK();
                         response.put("content", metadata);
                         return response;
