@@ -48,6 +48,7 @@ trait VersioningNode extends IDefinition {
     }
 
     private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
+        val node: Future[Node] = {
             if("edit".equalsIgnoreCase(mode)){
                 val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
                 imageNode recoverWith {

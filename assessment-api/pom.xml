@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <name>assessment-api</name>
     <modules>
+        <module>assessment-service</module>
         <module>assessment-actors</module>
     </modules>
 
