@@ -177,9 +177,4 @@ object NodeUtil {
 
     def isRetired(node: Node): Boolean = StringUtils.equalsIgnoreCase(node.getMetadata.get("status").asInstanceOf[String], "Retired")
 
-    def getContentNode()(implicit ec: ExecutionContext): Node = {
-
-        DefinitionNode.getNode()
-    }
-
 }
