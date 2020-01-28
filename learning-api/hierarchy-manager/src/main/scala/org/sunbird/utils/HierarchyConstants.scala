@@ -11,7 +11,7 @@ object HierarchyConstants {
     val VERSION: String = "version"
     val IDENTIFIER: String = "identifier"
     val DEPTH: String = "depth"
-    val PARENT: String = "parent"
+    val PARENT: String = "Parent"
     val INDEX: String = "index"
     val CHILDREN: String = "children"
     val VISIBILITY: String = "visibility"
@@ -27,6 +27,18 @@ object HierarchyConstants {
     val VERSION_KEY: String = "versionKey"
     val CREATED_ON: String = "createdOn"
     val LAST_STATUS_CHANGED_ON: String = "lastStatusChangedOn"
+    val CHILD_NODES: String = "childNodes"
+    val SCHEMA_NAME: String = "content"
+    val SCHEMA_VERSION: String = "1.0"
+    val CONTENT_ID: String = "content_id"
+    val IDENTIFIERS: String = "identifiers"
+    val DEFAULT: String = "Default"
+
+
+
+
+
+
     //    val LAST_UPDATED_ON: String = "lastUpdatedOn"
 
 }

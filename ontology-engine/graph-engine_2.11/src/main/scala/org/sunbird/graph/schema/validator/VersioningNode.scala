@@ -47,8 +47,7 @@ trait VersioningNode extends IDefinition {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
     }
 
-    private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext) = {
-        val node: Future[Node] = {
+    private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
             if("edit".equalsIgnoreCase(mode)){
                 val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
                 imageNode recoverWith {

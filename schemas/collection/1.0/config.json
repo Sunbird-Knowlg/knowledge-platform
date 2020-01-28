@@ -43,5 +43,10 @@
   },
   "version": "enable",
   "versionCheckMode": "ON",
-  "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"]
+  "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+  "edge": {
+    "properties": {
+      "license": "License"
+    }
+  }
 }

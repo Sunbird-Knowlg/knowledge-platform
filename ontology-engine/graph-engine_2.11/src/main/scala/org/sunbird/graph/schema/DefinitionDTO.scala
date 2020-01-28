@@ -46,9 +46,9 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getInRelations(): List[Map[String, AnyRef]] = {
         if (schemaValidator.getConfig.hasPath("relations"))
             schemaValidator.getConfig
-              .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, Object]].asScala
-              .filter(e => StringUtils.equals(e._2.asInstanceOf[java.util.HashMap[String, Object]].get("direction").asInstanceOf[String], "in"))
-              .map(e => Map(e._1 -> e._2)).toList
+                .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, Object]].asScala
+                .filter(e => StringUtils.equals(e._2.asInstanceOf[java.util.HashMap[String, Object]].get("direction").asInstanceOf[String], "in"))
+                .map(e => Map(e._1 -> e._2)).toList
         else
             List()
     }
@@ -88,10 +88,15 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         }
     }
 
+    def getRelationsMap(): java.util.HashMap[String, AnyRef] = {
+        schemaValidator.getConfig
+            .getAnyRef("relations").asInstanceOf[java.util.Map[String, AnyRef]]
+    }
 
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {
         val relationMetadata = relation._2.asInstanceOf[java.util.HashMap[String, Object]]
         val objects = relationMetadata.get("objects").asInstanceOf[java.util.List[String]].asScala
         objects.flatMap(objectType => Map((relationMetadata.get("type").asInstanceOf[String] + "_" + relationMetadata.get("direction") + "_" + objectType) -> relation._1)).toMap
     }
+
 }
