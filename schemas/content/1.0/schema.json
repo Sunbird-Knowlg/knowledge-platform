@@ -450,7 +450,8 @@
                 "ExplanationResource",
                 "ExperientialResource",
                 "ConceptMap",
-                "SelfAssess"
+                "SelfAssess",
+                "PracticeResource"
             ]
         },
         "resourceType": {
