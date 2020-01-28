@@ -90,7 +90,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
 
     def getRelationsMap(): java.util.HashMap[String, AnyRef] = {
         schemaValidator.getConfig
-            .getAnyRef("relations").asInstanceOf[java.util.Map[String, AnyRef]]
+            .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, AnyRef]]
     }
 
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {

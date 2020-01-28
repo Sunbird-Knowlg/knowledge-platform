@@ -233,5 +233,12 @@ object DefinitionNode {
 		}}
 	}
 
+    def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        val futures = nodes.map(node => {
+            definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
+        })
+        Future.sequence(futures)
+    }
 }
 
