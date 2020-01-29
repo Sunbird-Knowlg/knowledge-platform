@@ -123,22 +123,24 @@ object UpdateHierarchyManager {
     }
 
     private def addNodeToList(child: util.HashMap[String, AnyRef], request: Request, nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[ListBuffer[Node]] = {
-        if (StringUtils.equalsIgnoreCase("Default", child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-            getContentNode(child.getOrDefault(HierarchyConstants.IDENTIFIER, "").asInstanceOf[String], HierarchyConstants.TAXONOMY_ID).map(node => {
-                //TODO: Check if required on not
-                node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
-                node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
-                node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
-                nodeList += node
+        if (StringUtils.isNotEmpty(child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]))
+            if (StringUtils.equalsIgnoreCase("Default", child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
+                getContentNode(child.getOrDefault(HierarchyConstants.IDENTIFIER, "").asInstanceOf[String], HierarchyConstants.TAXONOMY_ID).map(node => {
+                    //TODO: Check if required on not
+                    node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
+                    node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
+                    node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
+                    nodeList += node
+                    Future(nodeList)
+                }).flatMap(f => f)
+            } else {
+                val childData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
+                childData.putAll(child)
+                childData.remove(HierarchyConstants.CHILDREN)
+                nodeList += NodeUtil.deserialize(childData, request.getContext.get("schemaName").asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 Future(nodeList)
-            }).flatMap(f => f)
-        } else {
-            val childData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-            childData.putAll(child)
-            childData.remove(HierarchyConstants.CHILDREN)
-            nodeList += NodeUtil.deserialize(childData, request.getContext.get("schemaName").asInstanceOf[String], DefinitionNode.getRelationsMap(request))
-            Future(nodeList)
-        }
+            }
+        else Future(nodeList)
     }
 
 
@@ -321,7 +323,7 @@ object UpdateHierarchyManager {
         updatedHierarchy.put(HierarchyConstants.CHILDREN, children)
         val req = new Request(request)
         req.getContext.put(HierarchyConstants.IDENTIFIER, rootId)
-        req.put("content", node.getMetadata)
+        req.getRequest.putAll(node.getMetadata)
         req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
         req.put(HierarchyConstants.IDENTIFIER, rootId)
         req.put("children", new util.ArrayList())
