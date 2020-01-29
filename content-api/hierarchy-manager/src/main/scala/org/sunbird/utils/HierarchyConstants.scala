@@ -33,10 +33,8 @@ object HierarchyConstants {
     val CONTENT_ID: String = "content_id"
     val IDENTIFIERS: String = "identifiers"
     val DEFAULT: String = "Default"
-
-
-
-
+    val CHANNEL: String = "channel"
+    val ROOT_ID: String = "rootId"
 
 
     //    val LAST_UPDATED_ON: String = "lastUpdatedOn"

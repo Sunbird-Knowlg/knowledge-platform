@@ -48,28 +48,25 @@ trait VersioningNode extends IDefinition {
     }
 
     private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
-        val node: Future[Node] = {
-            if("edit".equalsIgnoreCase(mode)){
-                val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
-                imageNode recoverWith {
-                    case e: CompletionException => {
-                        if (e.getCause.isInstanceOf[ResourceNotFoundException])
-                            super.getNode(identifier, "read", mode)
-                        else
-                           throw e.getCause
-                    }
+        if ("edit".equalsIgnoreCase(mode)) {
+            val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
+            imageNode recoverWith {
+                case e: CompletionException => {
+                    if (e.getCause.isInstanceOf[ResourceNotFoundException])
+                        super.getNode(identifier, "read", mode)
+                    else
+                        throw e.getCause
                 }
-            } else {
-                val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
-                if(Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
-                    val ttl:Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
-                    getCachedNode(identifier, ttl)
-                }
-                else
-                    super.getNode(identifier , "read", mode)
             }
-        }.map(dataNode => dataNode) recoverWith { case e: CompletionException => throw e.getCause}
-        node
+        } else {
+            val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
+            if (Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
+                val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
+                getCachedNode(identifier, ttl)
+            }
+            else
+                super.getNode(identifier, "read", mode)
+        }
     }
 
     private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext): Future[Node] = {
