@@ -28,13 +28,24 @@ object HierarchyConstants {
     val CREATED_ON: String = "createdOn"
     val LAST_STATUS_CHANGED_ON: String = "lastStatusChangedOn"
     val CHILD_NODES: String = "childNodes"
-    val SCHEMA_NAME: String = "content"
+    val CONTENT_SCHEMA_NAME: String = "content"
+    val SCHEMA_NAME: String = "schemaName"
     val SCHEMA_VERSION: String = "1.0"
     val CONTENT_ID: String = "content_id"
     val IDENTIFIERS: String = "identifiers"
     val DEFAULT: String = "Default"
     val CHANNEL: String = "channel"
     val ROOT_ID: String = "rootId"
+    val HIERARCHY_LIVE_STATUS: List[String] = List("Live", "Unlisted", "Flagged")
+    val IMAGE_SUFFIX: String = ".img"
+    val GRAPH_ID: String = "graph_id"
+    val MODE: String = "mode"
+    val EDIT_MODE: String = "edit"
+    val READ_MODE: String = "read"
+    val CONCEPTS: String = "concepts"
+    val FIELDS: String = "fields"
+    val MIME_TYPE: String = "mimeType"
+
 
 
     //    val LAST_UPDATED_ON: String = "lastUpdatedOn"
