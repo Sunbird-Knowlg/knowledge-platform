@@ -112,6 +112,7 @@ object HierarchyManager {
 
     @throws[Exception]
     def getUnPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+        request.put("fields",new java.util.ArrayList[String](){{add("hierarchy")}})
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.get("status").asInstanceOf[String])) {
@@ -120,16 +121,14 @@ object HierarchyManager {
             if(!StringUtils.isEmpty(rootNode.getMetadata().get("variants").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
             }
-            val hierarchyFuture = fetchHierarchy(request)
-            hierarchyFuture.map(hierarchy => {
-                if (!hierarchy.isEmpty) {
-                    rootNode.getMetadata().put("children", hierarchy("children"))
-                }
+            if (!StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String])) {
+                    rootNode.getMetadata().put("children", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap).get("children"))
+                    rootNode.getMetadata().remove("hierarchy")
+            }
                 rootNode.getMetadata().put("identifier", request.get("rootId"))
                 val response: Response = ResponseHandler.OK
                 response.put("content", rootNode.getMetadata())
-                response
-            })
+                Future(response)
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
@@ -141,16 +140,26 @@ object HierarchyManager {
             response.put("content", mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))
             Future(response)
         } else {
-            val hierarchyFuture = fetchHierarchy(request)
-            hierarchyFuture.map(hierarchy => {
-                if (hierarchy.isEmpty) {
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
+            request.put("fields",new java.util.ArrayList[String](){{add("hierarchy")}})
+            val rootNodeFuture = getRootNode(request)
+            rootNodeFuture.map(rootNode => {
+                val validStatus:Array[String] = Array("Live","Unlisted")
+                if (!validStatus.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) {
+                    Future{
+                        ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
+                    }
                 } else {
-                    response.put("content", mapAsJavaMap(hierarchy))
-                    RedisCache.set(hierarchyPrefix + request.get("rootId"), ScalaJsonUtils.serialize(hierarchy), 0)
-                    response
+                    if (!StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String])) {
+                        rootNode.getMetadata().put("children", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap).get("children"))
+                        rootNode.getMetadata().remove("hierarchy")
+                    }
+                    RedisCache.set(hierarchyPrefix + request.get("rootId"), ScalaJsonUtils.serialize(rootNode.getMetadata()), 0)
+                    rootNode.getMetadata().put("identifier", request.get("rootId"))
+                    val response: Response = ResponseHandler.OK
+                    response.put("content", rootNode.getMetadata())
+                    Future(response)
                 }
-            })
+            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
         }
     }
 
@@ -173,7 +182,8 @@ object HierarchyManager {
     private def getRootNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
         req.put("identifier", request.get("rootId").asInstanceOf[String])
-        req.put("mode", "edit")
+        req.put("mode", request.get("mode").asInstanceOf[String])
+        req.put("fields",request.get("fields").asInstanceOf[java.util.List[String]])
         DataNode.read(req)
     }
 
