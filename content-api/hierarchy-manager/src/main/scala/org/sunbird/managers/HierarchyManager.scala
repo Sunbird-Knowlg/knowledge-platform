@@ -144,20 +144,17 @@ object HierarchyManager {
             val rootNodeFuture = getRootNode(request)
             rootNodeFuture.map(rootNode => {
                 val validStatus:Array[String] = Array("Live","Unlisted")
-                if (!validStatus.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) {
+                if (!StringUtils.isEmpty(rootNode.getMetadata.get("status").asInstanceOf[String]) && validStatus.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) {
+                    val response: Response = ResponseHandler.OK
+                    if (!StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String])) {
+                        response.put("content", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
+                        RedisCache.set(hierarchyPrefix + request.get("rootId"), rootNode.getMetadata().get("hierarchy").asInstanceOf[String], 0)
+                    }
+                    Future(response)
+                } else {
                     Future{
                         ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
                     }
-                } else {
-                    if (!StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String])) {
-                        rootNode.getMetadata().put("children", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap).get("children"))
-                        rootNode.getMetadata().remove("hierarchy")
-                    }
-                    RedisCache.set(hierarchyPrefix + request.get("rootId"), ScalaJsonUtils.serialize(rootNode.getMetadata()), 0)
-                    rootNode.getMetadata().put("identifier", request.get("rootId"))
-                    val response: Response = ResponseHandler.OK
-                    response.put("content", rootNode.getMetadata())
-                    Future(response)
                 }
             }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
         }
