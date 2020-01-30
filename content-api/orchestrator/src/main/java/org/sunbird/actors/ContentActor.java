@@ -12,9 +12,13 @@ import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.nodes.DataNode;
 import org.sunbird.graph.utils.NodeUtil;
+import org.sunbird.mimetype.factory.MimeTypeManagerFactory;
+import org.sunbird.mimetype.mgr.MimeTypeManager;
 import org.sunbird.utils.RequestUtils;
+import scala.collection.JavaConverters;
 import scala.concurrent.Future;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +32,7 @@ public class ContentActor extends BaseActor {
             case "createContent": return create(request);
             case "readContent": return read(request);
             case "updateContent": return update(request);
+            case "uploadContent": return upload(request);
             default: return ERROR(operation);
         }
     }
@@ -81,6 +86,29 @@ public class ContentActor extends BaseActor {
                         return response;
                     }
                 }, getContext().dispatcher());
+    }
+
+    private Future<Response> upload(Request request) throws Exception {
+        //TODO: Complete The Implementation
+        String identifier = (String) request.getContext().get("identifier");
+        String fileUrl = (String) request.getRequest().get("fileUrl");
+        File file = (File) request.getRequest().get("file");
+        String mimeType = "application/pdf";
+        MimeTypeManager mgr = MimeTypeManagerFactory.getManager("Resource", mimeType);
+        Future<scala.collection.immutable.Map<String, Object>> futureRes = null;
+        if (StringUtils.isNotBlank(fileUrl)) {
+            futureRes = mgr.upload(identifier, new Node(), fileUrl, getContext().dispatcher());
+        } else if (null != file) {
+            futureRes = mgr.upload(identifier, new Node(), file, false, getContext().dispatcher());
+        }
+        return futureRes.map(new Mapper<scala.collection.immutable.Map<String, Object>, Response>() {
+            @Override
+            public Response apply(scala.collection.immutable.Map<String, Object> map) {
+                Response response = ResponseHandler.OK();
+                response.put("content", JavaConverters.mapAsJavaMapConverter(map).asJava());
+                return response;
+            }
+        }, getContext().dispatcher());
     }
 
     private static void populateDefaultersForCreation(Request request) {

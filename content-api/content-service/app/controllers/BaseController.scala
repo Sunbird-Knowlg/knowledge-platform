@@ -1,9 +1,12 @@
 package controllers
 
+import java.io.File
+import java.util
 import java.util.UUID
 
 import akka.actor.ActorRef
 import akka.pattern.Patterns
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
@@ -20,6 +23,21 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
         JavaJsonUtils.deserialize[java.util.Map[String, Object]](body).getOrDefault("request", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    }
+
+    def requestFormData()(implicit request: Request[AnyContent]) = {
+        val reqMap = new util.HashMap[String, AnyRef]()
+        val multipartData = request.body.asMultipartFormData.get
+        if (null != multipartData.asFormUrlEncoded && !multipartData.asFormUrlEncoded.isEmpty) {
+            val fileUrl: String = multipartData.asFormUrlEncoded.get("fileUrl").get.get(0)
+            if (StringUtils.isNotBlank(fileUrl))
+                reqMap.put("fileUrl", fileUrl)
+        } else if (null != multipartData.files && !multipartData.files.isEmpty) {
+            val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.get(0).filename)
+            multipartData.files.get(0).ref.copyTo(file, false)
+            reqMap.put("file", file)
+        }
+        reqMap
     }
 
     def commonHeaders()(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
