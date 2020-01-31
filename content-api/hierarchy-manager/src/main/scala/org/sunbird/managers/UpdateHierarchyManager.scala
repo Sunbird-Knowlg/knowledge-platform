@@ -36,18 +36,21 @@ object UpdateHierarchyManager {
         getValidatedRootNode(rootId, request).map(node => {
             nodeList += node
             //TODO: Remove should Image be deleted after migration
-            request.getContext.put("shouldImageDelete", shouldImageBeDeleted(node))
+            request.getContext.put("shouldImageDelete", shouldImageBeDeleted(node).asInstanceOf[AnyRef])
             getExistingHierarchyChildren(request, rootId).map(existingChildren => {
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     updateNodesModifiedInNodeList(nodeList, rootId, nodesModified, request).map(idMap => {
-                        validate(nodeList).map(result => {
+                        validateNodes(nodeList).map(result => {
                             getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
                                 updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                     val response = ResponseHandler.OK()
                                     response.put(HierarchyConstants.CONTENT_ID, rootId)
+                                    idMap.remove(rootId)
                                     response.put(HierarchyConstants.IDENTIFIERS, mapAsJavaMap(idMap))
+                                    if(request.getContext.get("shouldImageDelete").asInstanceOf[Boolean])
+                                        deleteHierarchy(request)
                                     Future(response)
-                                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+                                }).flatMap(f => f)
                             }).flatMap(f => f)
                         }).flatMap(f => f)
                     }).flatMap(f => f)
@@ -89,7 +92,7 @@ object UpdateHierarchyManager {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
             }
             //Todo: Remove if not required
-            if (null == rootNode.getMetadata.get(HierarchyConstants.VERSION) || (rootNode.getMetadata.get(HierarchyConstants.VERSION).asInstanceOf[Number]).intValue < 2) {
+            if (null == rootNode.getMetadata.get(HierarchyConstants.VERSION) || rootNode.getMetadata.get(HierarchyConstants.VERSION).asInstanceOf[Number].intValue < 2) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Content Version for Root node id: " + identifier)
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "The collection version is not up to date " + identifier)
             }
@@ -98,38 +101,53 @@ object UpdateHierarchyManager {
         })
     }
 
+//    private def getExistingHierarchyChildren(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
+//        val hierarchyFuture = if (request.getContext.get("shouldImageDelete").asInstanceOf[Boolean]) fetchImageHierarchy(request, identifier) else fetchHierarchy(request, identifier)
+//        hierarchyFuture.map(response => {
+//            if (!ResponseHandler.checkError(response)) {
+//                val hierarchyString = response.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
+//                if (!hierarchyString.isEmpty) {
+//                    val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
+//                    hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
+//                } else new util.ArrayList[util.HashMap[String, AnyRef]]()
+//            } else new util.ArrayList[util.HashMap[String, AnyRef]]()
+//        })
+//    }
+
     private def getExistingHierarchyChildren(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
-        val hierarchyFuture = if (request.getContext.get("shouldImageDelete").asInstanceOf[Boolean]) fetchImageHierarchy(request, identifier) else fetchHierarchy(request, identifier)
-        hierarchyFuture.map(response => {
-            if (!ResponseHandler.checkError(response)) {
-                val hierarchyString = response.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
-                if (!hierarchyString.isEmpty) {
-                    val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
-                    hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
-                } else new util.ArrayList[util.HashMap[String, AnyRef]]()
+        fetchHierarchy(request, identifier).map(rootNode => {
+            val hierarchyString = rootNode.getMetadata.get(HierarchyConstants.HIERARCHY).asInstanceOf[String]
+            if (!hierarchyString.isEmpty) {
+                val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
+                hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
             } else new util.ArrayList[util.HashMap[String, AnyRef]]()
-        })
+        }) recoverWith { case e: CompletionException => throw e.getCause}
     }
 
-    private def fetchHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Response] = {
+    private def fetchHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
+        req.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
         req.put(HierarchyConstants.IDENTIFIER, identifier)
-        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY))
+        req.put(HierarchyConstants.FIELDS, new util.ArrayList[String]() {{ add(HierarchyConstants.HIERARCHY)}} )
+        DataNode.read(req)
     }
 
-    private def fetchImageHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Response] = {
+    //Todo: Remove after migration is done.
+    private def fetchImageHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
-        req.put(HierarchyConstants.IDENTIFIER, identifier + HierarchyConstants.IMAGE_SUFFIX)
-        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)) recoverWith { case e: CompletionException =>
-          fetchHierarchy(request, identifier)
-        }
+        req.put(HierarchyConstants.IDENTIFIER, if (identifier.contains(HierarchyConstants.IMAGE_SUFFIX)) identifier else identifier + HierarchyConstants.IMAGE_SUFFIX)
+        req.put(HierarchyConstants.FIELDS, new util.ArrayList[String]() {{ add(HierarchyConstants.HIERARCHY)}})
+        DataNode.read(req) recoverWith { case e: CompletionException => fetchHierarchy(request, identifier) }
     }
 
     private def addChildNodesInNodeList(childrenMaps: util.ArrayList[util.HashMap[String, AnyRef]], request: Request, nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[AnyRef] = {
         if (CollectionUtils.isNotEmpty(childrenMaps)) {
             val futures = childrenMaps.map(child => {
                 addNodeToList(child, request, nodeList).map(modifiedList => {
-                    addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], request, nodeList)
+                    if (!StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]))
+                        addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], request, nodeList)
+                    else
+                        Future(modifiedList)
                 }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
             })
             Future.sequence(futures.toList) recoverWith { case e: CompletionException => throw e.getCause }
@@ -141,10 +159,10 @@ object UpdateHierarchyManager {
         if (StringUtils.isNotEmpty(child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]))
             if (StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
                 getContentNode(child.getOrDefault(HierarchyConstants.IDENTIFIER, "").asInstanceOf[String], HierarchyConstants.TAXONOMY_ID).map(node => {
-                    //TODO: Check if required on not
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
                     node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
+                    node.getMetadata.put(HierarchyConstants.STATUS, "Draft")
                     nodeList += node
                     Future(nodeList)
                 }).flatMap(f => f)
@@ -152,6 +170,7 @@ object UpdateHierarchyManager {
                 val childData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
                 childData.putAll(child)
                 childData.remove(HierarchyConstants.CHILDREN)
+                childData.put(HierarchyConstants.STATUS, "Draft")
                 nodeList += NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 Future(nodeList)
             }
@@ -217,9 +236,9 @@ object UpdateHierarchyManager {
         else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
     }
 
-    private def validate(nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[List[Node]] = {
+    private def validateNodes(nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[List[Node]] = {
         val nonUnitNodes = nodeList.filter(node => StringUtils.equals(HierarchyConstants.DEFAULT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])).toList
-        DefinitionNode.validateContentNodes(nonUnitNodes, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
+        DefinitionNode.validateContentNodes(nonUnitNodes, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
 
     @throws[Exception]
@@ -240,7 +259,7 @@ object UpdateHierarchyManager {
             val hierarchyMap = constructHierarchy(childrenIdentifiersMap, identifierNodeMap)
             //        util.hierarchyCleanUp(collectionHierarchy)
             if (MapUtils.isNotEmpty(hierarchyMap))
-                hierarchyMap.get(rootId).asInstanceOf[util.Map[String, AnyRef]]
+                hierarchyMap.getOrDefault(rootId, new util.HashMap[String,AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
                     .get(HierarchyConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]]
                     .filter(child => MapUtils.isNotEmpty(child))
             else
@@ -348,8 +367,6 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIER, rootId)
         req.put(HierarchyConstants.CHILDREN, new util.ArrayList())
         req.put(HierarchyConstants.CONCEPTS, new util.ArrayList())
-        if(request.getContext.get("shouldImageDelete").asInstanceOf[Boolean])
-            deleteHierarchy(request)
         DataNode.update(req)
     }
 
@@ -389,17 +406,19 @@ object UpdateHierarchyManager {
     private def shouldImageBeDeleted(rootNode: Node): Boolean = {
         if (Platform.config.getBoolean("collection.image.migration.enabled") &&
             !CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get(HierarchyConstants.STATUS).asInstanceOf[String]) &&
-            !rootNode.getMetadata.containsKey("pkgVersion"))
+            rootNode.getMetadata.containsKey("pkgVersion"))
             true
         else
             false
     }
 
-    private def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val req = new Request(request)
-        req.put(HierarchyConstants.IDENTIFIER, request.getContext.get(HierarchyConstants.ROOT_ID) + HierarchyConstants.IMAGE_SUFFIX)
-        ExternalPropsManager.deleteProps(req, List(HierarchyConstants.HIERARCHY))
+        val rootId: String = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
+        req.put(HierarchyConstants.IDENTIFIER, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) rootId else rootId + HierarchyConstants.IMAGE_SUFFIX)
+        ExternalPropsManager.deleteProps(req, List())
     }
+
 }
 
 

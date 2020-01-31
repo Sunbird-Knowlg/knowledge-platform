@@ -94,13 +94,9 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         try {
             val session: Session = CassandraConnector.getSession
             session.executeAsync(deleteQuery).asScala.map(resultSet => {
-                if (resultSet.iterator().hasNext) {
-                    val row = resultSet.one()
-                    ResponseHandler.OK()
-                } else {
+                if (!resultSet.wasApplied())
                     TelemetryManager.error("Entry is not found in cassandra for content with identifier: " + identifier)
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code().toString, "Entry is not found in cassandra for content with identifier: " + identifier)
-                }
+                ResponseHandler.OK()
             })
         } catch {
             case e: Exception =>

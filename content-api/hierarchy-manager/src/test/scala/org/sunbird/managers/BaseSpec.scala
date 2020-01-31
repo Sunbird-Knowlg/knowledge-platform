@@ -9,11 +9,11 @@ import org.neo4j.graphdb.GraphDatabaseService
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
 import org.neo4j.graphdb.factory.GraphDatabaseSettings.Connector.ConnectorType
 import org.neo4j.kernel.configuration.BoltConnector
-import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.Platform
 
-class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
+class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach{
 
     var graphDb: GraphDatabaseService = null
     var session: Session = null
