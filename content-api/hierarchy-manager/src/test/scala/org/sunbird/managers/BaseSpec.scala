@@ -72,13 +72,13 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with B
     }
 
     override def beforeAll(): Unit = {
+        tearEmbeddedNeo4JSetup()
         setUpEmbeddedNeo4j()
         setUpEmbeddedCassandra()
         executeCassandraQuery(script_1, script_2)
     }
 
     override def afterAll(): Unit = {
-        deleteEmbeddedNeo4j(new File(Platform.config.getString("graph.dir")))
         tearEmbeddedNeo4JSetup()
         if(null != session && !session.isClosed)
             session.close()
