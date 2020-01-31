@@ -33,49 +33,102 @@ class TestUpdateHierarchy extends BaseSpec {
             put(HierarchyConstants.CHANNEL, "b00bc992ef25f1a9a8d63291e20efc8d")
         }}
     }
+//
+//    "deleteHierarchy" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
+//        val request = new Request()
+//        val context = getContext()
+//        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//        context.put(HierarchyConstants.ROOT_ID, "do_11283193441064550414")
+//        request.setContext(context)
+//        val oldHierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+//            .one().getString("hierarchy")
+//        assert(StringUtils.isNotEmpty(oldHierarchy))
+//        UpdateHierarchyManager.deleteHierarchy(request).map(response => {
+//            assert(response.getResponseCode.code() == 200)
+//        })
+//        assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
+//    }
+//
+//    "deleteHierarchy with image id" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
+//        val request = new Request()
+//        val context = getContext()
+//        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//        context.put(HierarchyConstants.ROOT_ID, "do_11283193441064550414.img")
+//        request.setContext(context)
+//        val oldHierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+//            .one().getString("hierarchy")
+//        assert(StringUtils.isNotEmpty(oldHierarchy))
+//        UpdateHierarchyManager.deleteHierarchy(request).map(response => {
+//            assert(response.getResponseCode.code() == 200)
+//        })
+//        assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
+//    }
+//
+//    "deleteHierarchy with invalid id" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
+//        val request = new Request()
+//        val context = getContext()
+//        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//        context.put(HierarchyConstants.ROOT_ID, "123")
+//        request.setContext(context)
+//        UpdateHierarchyManager.deleteHierarchy(request).map(response => {
+//            assert(response.getResponseCode.code() == 200)
+//        })
+//        val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+//            .one().getString("hierarchy")
+//        assert(StringUtils.isNotEmpty(hierarchy))
+//    }
 
-    "deleteHierarchy" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
-        val request = new Request()
-        val context = getContext()
-        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-        context.put(HierarchyConstants.ROOT_ID, "do_11283193441064550414")
-        request.setContext(context)
-        val oldHierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-            .one().getString("hierarchy")
-        assert(StringUtils.isNotEmpty(oldHierarchy))
-        UpdateHierarchyManager.deleteHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-        })
-        assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
+//    ResourceId = "do_31277445725602611" and TextBook id ="do_112945818874658816"
+//    "updateHierarchy with One New Unit and One Live Resource" should "update text book node, create unit and store the hierarchy in cassandra" in {
+//        val request = new Request()
+//        val context = getContext()
+//        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//        request.setContext(context)
+//        request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
+//        request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
+//        UpdateHierarchyManager.updateHierarchy(request).map(response => {
+//            assert(response.getResponseCode.code() == 200)
+//        })
+//        val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_112945818874658816'")
+//            .one().getString("hierarchy")
+//        assert(StringUtils.isNotEmpty(hierarchy))
+//        assert(StringUtils.isNotEmpty(hierarchy))
+//    }
+
+    //Text Book -> root, New Unit
+    def getNodesModified_1(): util.HashMap[String, AnyRef] = {
+        val nodesModifiedString: String =    "{\n"+
+            "                \"do_112945818874658816\": {\n"+
+            "                    \"isNew\": false,\n"+
+            "                    \"root\": true\n"+
+            "                },\n"+
+            "                \"b9a50833-eff6-4ef5-a2a4-2413f2d51f6c\": {\n"+
+            "                    \"isNew\": true,\n"+
+            "                    \"root\": false,\n"+
+            "                    \"metadata\": {\n"+
+            "                        \"mimeType\": \"application/vnd.ekstep.content-collection\",\n"+
+            "                        \"contentType\": \"TextBookUnit\",\n"+
+            "                        \"code\": \"updateHierarchy\",\n"+
+            "                        \"name\": \"Test_CourseUnit_1\",\n"+
+            "                        \"description\": \"updated hierarchy\",\n"+
+            "                        \"channel\": \"in.ekstep\"\n"+
+            "                    }\n"+
+            "                }\n"+
+            "            }"
+        JsonUtils.deserialize(nodesModifiedString, classOf[util.HashMap[String, AnyRef]])
     }
-
-    "deleteHierarchy with image id" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
-        val request = new Request()
-        val context = getContext()
-        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-        context.put(HierarchyConstants.ROOT_ID, "do_11283193441064550414.img")
-        request.setContext(context)
-        val oldHierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-            .one().getString("hierarchy")
-        assert(StringUtils.isNotEmpty(oldHierarchy))
-        UpdateHierarchyManager.deleteHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-        })
-        assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
+    //Text
+    def getHierarchy_1(): util.HashMap[String, AnyRef] = {
+        val hierarchyString =     "{\n"+
+            "            \t\"do_112945818874658816\" : {\n"+
+            "            \t\t\"root\": true,\n"+
+            "            \t\t\"children\": [\"b9a50833-eff6-4ef5-a2a4-2413f2d51f6c\"]\n"+
+            "            \t},\n"+
+            "            \t\"b9a50833-eff6-4ef5-a2a4-2413f2d51f6c\": {\n"+
+            "            \t\t\"root\": false,\n"+
+            "            \t\t\"children\": [\"do_31277445725602611\"]\n"+
+            "            \t}\n"+
+            "            }"
+        JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
     }
-
-    "deleteHierarchy with invalid id" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
-        val request = new Request()
-        val context = getContext()
-        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-        context.put(HierarchyConstants.ROOT_ID, "123")
-        request.setContext(context)
-        UpdateHierarchyManager.deleteHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-        })
-        val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-            .one().getString("hierarchy")
-        assert(StringUtils.isNotEmpty(hierarchy))
-    }
-
 }
