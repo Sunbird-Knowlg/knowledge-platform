@@ -121,12 +121,15 @@ object HierarchyManager {
             if(!StringUtils.isEmpty(rootNode.getMetadata().get("variants").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
             }
-            if (!StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String])) {
-                    rootNode.getMetadata().put("children", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap).get("children"))
-                    rootNode.getMetadata().remove("hierarchy")
+            if (StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String]) && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getStringList("collection.image.migration.enabled").asInstanceOf[Boolean]) {
+                rootNode.getMetadata().put("children", getImageHierarchy(request))
+                rootNode.getMetadata().remove("hierarchy")
+            } else {
+                rootNode.getMetadata().put("children", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap).get("children"))
+                rootNode.getMetadata().remove("hierarchy")
             }
-                rootNode.getMetadata().put("identifier", request.get("rootId"))
-                val response: Response = ResponseHandler.OK
+            rootNode.getMetadata().put("identifier", request.get("rootId"))
+            val response: Response = ResponseHandler.OK
                 response.put("content", rootNode.getMetadata())
                 Future(response)
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
@@ -328,4 +331,11 @@ object HierarchyManager {
         filteredLeafNodes
     }
 
+    def getImageHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+        if (!StringUtils.isEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit"))
+            request.put("mode", "")
+            fetchHierarchy(request).map(hierarchy => {
+                Future (hierarchy)
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }
 }
