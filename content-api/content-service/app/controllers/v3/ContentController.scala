@@ -96,7 +96,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
 		val contentRequest = getRequest(content, headers, "uploadContent")
 		setRequestContext(contentRequest, version, objectType, schemaName)
 		contentRequest.getContext.put("identifier", identifier);
-		getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
+		getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
 	}
 
 }

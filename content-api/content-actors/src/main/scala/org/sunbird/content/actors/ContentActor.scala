@@ -1,15 +1,18 @@
 package org.sunbird.content.actors
 
+import java.io.File
 import java.util
+
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
 import org.sunbird.content.util.RequestUtil
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,6 +26,7 @@ class ContentActor extends BaseActor {
 			case "createContent" => create(request)
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
+			case "uploadContent" => upload(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -62,6 +66,44 @@ class ContentActor extends BaseActor {
 			response.put("versionKey", node.getMetadata.get("versionKey"))
 			response
 		})
+	}
+
+	def upload(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
+		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
+		val file = request.getRequest.get("file").asInstanceOf[File]
+		val readReq = new Request(request)
+		readReq.put("identifier", identifier)
+		readReq.put("fields", new util.ArrayList[String])
+		DataNode.read(readReq).map(node => {
+			val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
+			val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
+			val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
+			val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl) else mgr.upload(identifier, node, file)
+			uploadFuture.map(result => {
+				val artifactUrl = result.getOrElse("artifactUrl", "").asInstanceOf[String]
+				if (StringUtils.isNotBlank(artifactUrl)) {
+					val updateReq = new Request(request)
+					updateReq.getContext().put("identifier", identifier)
+					updateReq.put("artifactUrl", artifactUrl)
+					DataNode.update(updateReq).map(node => {
+						val response: Response = ResponseHandler.OK
+						val id = node.getIdentifier.replace(".img", "")
+						val url = node.getMetadata.get("artifactUrl").asInstanceOf[String]
+						response.put("node_id", id)
+						response.put("identifier", id)
+						response.put("artifactUrl", url)
+						response.put("content_url", url)
+						response.put("versionKey", node.getMetadata.get("versionKey"))
+						response
+					})
+				} else {
+					Future {
+						ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, "ERR_UPLOAD_FILE", "Something Went Wrong While Processing Your Request.")
+					}
+				}
+			}).flatMap(f => f)
+		}).flatMap(f => f)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {

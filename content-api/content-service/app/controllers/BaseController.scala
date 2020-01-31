@@ -1,5 +1,6 @@
 package controllers
 
+
 import java.io.File
 import java.util
 import java.util.UUID
@@ -9,7 +10,7 @@ import akka.pattern.Patterns
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Response, ResponseHandler}
-import org.sunbird.common.exception.ResponseCode
+import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
 import utils.JavaJsonUtils
 
@@ -29,14 +30,14 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         val reqMap = new util.HashMap[String, AnyRef]()
         val multipartData = request.body.asMultipartFormData.get
         if (null != multipartData.asFormUrlEncoded && !multipartData.asFormUrlEncoded.isEmpty) {
-            val fileUrl: String = multipartData.asFormUrlEncoded.get("fileUrl").get.get(0)
+            val fileUrl: String = multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).get(0)
             if (StringUtils.isNotBlank(fileUrl))
                 reqMap.put("fileUrl", fileUrl)
         } else if (null != multipartData.files && !multipartData.files.isEmpty) {
             val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.get(0).filename)
             multipartData.files.get(0).ref.copyTo(file, false)
             reqMap.put("file", file)
-        }
+        } else throw new ClientException("ERR_INVALID_DATA", "Please Provide Valid File Or File Url!")
         reqMap
     }
 

@@ -23,6 +23,12 @@
             <type>jar</type>
         </dependency>
         <dependency>
+            <groupId>org.sunbird</groupId>
+            <artifactId>mimetype-manager</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
