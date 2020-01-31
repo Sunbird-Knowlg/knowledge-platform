@@ -12,7 +12,6 @@ object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager 
 	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val result:Array[String] = uploadArtifactToCloud(uploadFile,objectId)
-		println("result ::::: "+result.toSeq)
 		Future{Map("identifier"->objectId, "node_id"->objectId, "content_url"->result(1), "artifactUrl"->result(1))}
 	}
 
@@ -20,9 +19,5 @@ object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager 
 		validateUploadRequest(objectId, node, fileUrl)
 		Future {Map[String, AnyRef]("identifier" -> objectId, "node_id"->objectId, "content_url"->fileUrl,"artifactUrl" -> fileUrl)}
 	}
-
-	override def review(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = ???
-
-	override def publish(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = ???
 
 }
