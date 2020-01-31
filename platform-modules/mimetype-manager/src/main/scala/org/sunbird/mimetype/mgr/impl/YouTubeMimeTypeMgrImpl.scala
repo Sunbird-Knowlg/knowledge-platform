@@ -20,8 +20,4 @@ object YouTubeMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 		Future{Map[String, AnyRef]("identifier" -> objectId, "node_id"->objectId, "content_url"->fileUrl,"artifactUrl" -> fileUrl)}
 	}
 
-	override def review(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = ???
-
-	override def publish(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = ???
-
 }

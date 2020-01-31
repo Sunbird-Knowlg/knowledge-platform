@@ -12,10 +12,4 @@ trait MimeTypeManager {
 	@throws[Exception]
 	def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
 
-	@throws[Exception]
-	def review(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
-
-	@throws[Exception]
-	def publish(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
-
 }

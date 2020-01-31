@@ -16,8 +16,4 @@ object CollectionMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManage
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		throw new ClientException("UPLOAD_DENIED", UPLOAD_DENIED_ERR_MSG)
 	}
-
-	override def review(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = ???
-
-	override def publish(objectId: String, node: Node, isAsync: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = ???
 }
