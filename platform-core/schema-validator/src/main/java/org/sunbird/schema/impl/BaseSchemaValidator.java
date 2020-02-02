@@ -139,7 +139,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         Map<String, Object> externalData = new HashMap<>();
         if (config != null && config.hasPath("external.properties")) {
             Set<String> extProps = config.getObject("external.properties").keySet();
-            externalData = input.entrySet().stream().filter(f -> extProps.contains(f.getKey())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            externalData = input.entrySet().stream().filter(f -> extProps.contains(f.getKey()) && f.getValue()!=null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             input.keySet().removeAll(extProps);
         }
         return externalData;

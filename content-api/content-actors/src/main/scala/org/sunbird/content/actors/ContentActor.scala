@@ -2,20 +2,25 @@ package org.sunbird.content.actors
 
 import java.io.File
 import java.util
+import java.util.concurrent.CompletionException
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
-import org.sunbird.content.util.RequestUtil
-import org.sunbird.graph.nodes.DataNode
+import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.content.util.{CopyOperation, RequestUtil}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
+import org.sunbird.common.dto.Response
+import org.sunbird.common.dto.ResponseHandler
+import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.nodes.DataNode
 
-import scala.collection.JavaConverters
+import scala.collection.{JavaConverters, mutable}
 import scala.concurrent.{ExecutionContext, Future}
+
 
 class ContentActor extends BaseActor {
 
@@ -27,6 +32,7 @@ class ContentActor extends BaseActor {
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "copy" => copy(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -106,6 +112,17 @@ class ContentActor extends BaseActor {
 		}).flatMap(f => f)
 	}
 
+	def copy(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		DataNode.read(request).map(node => {
+			copyNode(request, node).map(idMap => {
+				val response = ResponseHandler.OK
+				response.put("node_id", idMap)
+				Future(response)
+			}).flatMap(f => f)
+		}).flatMap(f => f)
+	}
+
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
@@ -138,5 +155,27 @@ class ContentActor extends BaseActor {
 			if (mimeType.endsWith("youtube") || mimeType.endsWith("x-url")) request.put(ContentParams.contentDisposition.name, ContentParams.online.name)
 			else request.put(ContentParams.contentDisposition.name, ContentParams.inline.name)
 		}
+	}
+
+	 def copyNode(request: Request, existingNode: Node): Future[util.HashMap[String, String]] = {
+		val validatedExistingNode:Node = CopyOperation.validateCopyContentRequest(existingNode, request.getRequest, request.get("mode").asInstanceOf[String])
+		existingNode.setGraphId(request.getContext.get("graph_id").asInstanceOf[String])
+		val copyNode = CopyOperation.copyNode(validatedExistingNode, request.getRequest, request.getRequest.get("mode").asInstanceOf[String])
+		request.getRequest.clear()
+		request.setRequest(copyNode.getMetadata)
+		 createCopyNode(request, existingNode).map(node => {
+			 Future (new util.HashMap[String, String](){{put(existingNode.getIdentifier, node.getIdentifier)}})
+		}).flatMap(f => f)
+	}
+
+	def createCopyNode(request: Request, existingNode: Node): Future[Node] = {
+		DataNode.create(request).map(node => {
+			request.getContext.put("identifier", node.getIdentifier)
+			request.getRequest.clear()
+			request.getRequest.put("fileUrl" , existingNode.getMetadata.get("artifactUrl"))
+			upload(request).map(response=>{
+				Future(node)
+			}).flatMap(f => f)
+		}).flatMap(f => f)
 	}
 }
