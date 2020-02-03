@@ -10,7 +10,7 @@ class YouTubeMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers {
 
 	"upload with valid youtube url" should "return artifactUrl with successful response" in {
 		val inputUrl = "https://www.youtube.com/watch?v=8irSFvoyLHQ"
-		val resFuture = DocumentMimeTypeMgrImpl.upload("do_123", new Node(), inputUrl)
+		val resFuture = YouTubeMimeTypeMgrImpl.upload("do_123", new Node(), inputUrl)
 		resFuture.map(result => {
 			assert(null != result)
 			assert(!result.isEmpty)

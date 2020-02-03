@@ -1,8 +1,9 @@
 package org.sunbird.mimetype.mgr
 
-import java.io.File
+import java.io.{File, IOException}
+import java.net.URL
 
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
 import org.sunbird.cloudstore.CloudStore
@@ -12,6 +13,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.ExecutionContext
+
 
 class BaseMimeTypeManager {
 
@@ -36,8 +38,8 @@ class BaseMimeTypeManager {
 	}
 
 	def validateFile(file: File): Unit = {
-		println("file ::::: " + file)
-		//TODO: Complete Implementation
+		if(null==file || !file.exists())
+			throw new ClientException("ERR_INVALID_DATA", "Please Provide Valid File Or File Url!")
 	}
 
 	def validateUrl(fileUrl: String): Unit = {
@@ -66,6 +68,26 @@ class BaseMimeTypeManager {
 		if (null != file && file.isDirectory)
 			FileUtils.deleteDirectory(file)
 		else file.delete()
+	}
+
+	def copyURLToFile(objectId: String, fileUrl: String): File = try {
+		val fileName = getBasePath(objectId) + File.separator + getFieNameFromURL(fileUrl)
+		val file = new File(fileName)
+		FileUtils.copyURLToFile(new URL(fileUrl), file)
+		file
+	} catch {
+		case e: IOException =>
+			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
+	}
+
+	def getFieNameFromURL(fileUrl: String): String = {
+		var fileName = FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
+		if (!FilenameUtils.getExtension(fileUrl).isEmpty) fileName += "." + FilenameUtils.getExtension(fileUrl)
+		fileName
+	}
+
+	def getFileSize(file: File): Double = {
+		if (null != file && file.exists) file.length else 0
 	}
 
 }
