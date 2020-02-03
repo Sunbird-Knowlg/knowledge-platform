@@ -172,7 +172,9 @@ class ContentActor extends BaseActor {
 		DataNode.create(request).map(node => {
 			request.getContext.put("identifier", node.getIdentifier)
 			request.getRequest.clear()
-			request.getRequest.put("fileUrl" , existingNode.getMetadata.get("artifactUrl"))
+			//request.getRequest.put("file" , existingNode.getMetadata.get("artifactUrl"))
+			val file: File = CopyOperation.copyURLToFile(existingNode.getMetadata.get("artifactUrl").asInstanceOf[String])
+			request.getRequest.put("file" , file)
 			upload(request).map(response=>{
 				Future(node)
 			}).flatMap(f => f)

@@ -1,5 +1,8 @@
 package org.sunbird.content.util
 
+import java.io.{File, IOException}
+import java.net.URL
+
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -8,6 +11,9 @@ import org.apache.commons.collections.MapUtils
 import org.sunbird.common.Platform
 import org.sunbird.graph.common.Identifier
 import java.util
+
+import org.apache.commons.io.{FileUtils, FilenameUtils}
+
 import scala.collection.JavaConverters._
 
 object CopyOperation {
@@ -79,6 +85,7 @@ object CopyOperation {
     copyNode.getMetadata.put("status", "Draft")
     copyNode.getMetadata.put("origin", existingNode.getIdentifier)
     copyNode.getMetadata.put("identifier", newId)
+
     if (originData.nonEmpty)
       copyNode.getMetadata.put("originData", originData)
     val existingNodeOutRelations:util.List[Relation] = existingNode.getOutRelations
@@ -93,4 +100,19 @@ object CopyOperation {
     copyNode
   }
 
+  def copyURLToFile(fileUrl: String): File = try {
+    val fileName = getFileNameFromURL(fileUrl)
+    val file = new File(fileName)
+    FileUtils.copyURLToFile(new URL(fileUrl), file)
+    file
+  } catch {
+    case e: IOException =>
+      throw new ClientException("ERR_INVALID_UPLOAD_FILE_URL", "fileUrl is invalid.")
+  }
+
+  protected def getFileNameFromURL(fileUrl: String): String = {
+    var fileName = FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
+    if (!FilenameUtils.getExtension(fileUrl).isEmpty) fileName += "." + FilenameUtils.getExtension(fileUrl)
+    fileName
+  }
 }
