@@ -15,6 +15,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
 import scala.collection.JavaConverters
+import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor extends BaseActor {
@@ -37,6 +38,7 @@ class ContentActor extends BaseActor {
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
 			response.put("identifier", node.getIdentifier)
+			response.put("node_id", node.getIdentifier)
 			response.put("versionKey", node.getMetadata.get("versionKey"))
 			response
 		})
@@ -81,11 +83,12 @@ class ContentActor extends BaseActor {
 			val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
 			val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl) else mgr.upload(identifier, node, file)
 			uploadFuture.map(result => {
-				val artifactUrl = result.getOrElse("artifactUrl", "").asInstanceOf[String]
+				val updatedResult = result - "identifier"
+				val artifactUrl = updatedResult.getOrElse("artifactUrl", "").asInstanceOf[String]
 				if (StringUtils.isNotBlank(artifactUrl)) {
 					val updateReq = new Request(request)
 					updateReq.getContext().put("identifier", identifier)
-					updateReq.put("artifactUrl", artifactUrl)
+					updateReq.getRequest.putAll(mapAsJavaMap(updatedResult))
 					DataNode.update(updateReq).map(node => {
 						val response: Response = ResponseHandler.OK
 						val id = node.getIdentifier.replace(".img", "")

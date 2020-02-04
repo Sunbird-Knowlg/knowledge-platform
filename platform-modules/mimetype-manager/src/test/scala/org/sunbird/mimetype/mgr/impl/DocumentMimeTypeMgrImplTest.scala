@@ -22,4 +22,19 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers {
 		}
 		exception.getMessage shouldEqual "Please Provide Valid File Url!"
 	}
+
+	"upload with empty objectId" should "throw client exception" in {
+		val exception = intercept[ClientException] {
+			DocumentMimeTypeMgrImpl.upload("", new Node(), "https://abc.com/content/sample.pdf")
+		}
+		exception.getMessage shouldEqual "Please Provide Valid Identifier!"
+	}
+
+	"upload with empty node object" should "throw client exception" in {
+		val exception = intercept[ClientException] {
+			DocumentMimeTypeMgrImpl.upload("do_123", null, "https://abc.com/content/sample.pdf")
+		}
+		exception.getMessage shouldEqual "Please Provide Valid Node!"
+	}
+
 }

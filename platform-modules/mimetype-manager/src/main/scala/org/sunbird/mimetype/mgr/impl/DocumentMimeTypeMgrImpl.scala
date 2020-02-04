@@ -17,7 +17,7 @@ object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager 
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
-		Future {Map[String, AnyRef]("identifier" -> objectId, "node_id"->objectId, "content_url"->fileUrl,"artifactUrl" -> fileUrl)}
+		Future {Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl)}
 	}
 
 }
