@@ -59,7 +59,7 @@ object DataNode {
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
                 Future(node)
-        }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
     }
 
 

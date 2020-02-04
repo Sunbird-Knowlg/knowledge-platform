@@ -32,7 +32,6 @@ object UpdateHierarchyManager {
         val rootId: String = getRootId(nodesModified, hierarchy)
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
         var nodeList: ListBuffer[Node] = ListBuffer[Node]()
-        //TODO: Try to combine get node and hierarchy in one call as external prop?
         getValidatedRootNode(rootId, request).map(node => {
             nodeList += node
             //TODO: Remove should Image be deleted after migration
@@ -163,7 +162,7 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.STATUS, "Draft")
                     nodeList += node
                     Future(nodeList)
-                }).flatMap(f => f)
+                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
             } else {
                 val childData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
                 childData.putAll(child)
@@ -228,10 +227,8 @@ object UpdateHierarchyManager {
         if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
             idMap += (nodeId -> tempNode.getIdentifier)
-            //TODO:validate
             updateNodeList(nodeList, tempNode.getIdentifier, metadata)
-        }
-        else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
+        } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
     }
 
     private def validateNodes(nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[List[Node]] = {
@@ -287,7 +284,7 @@ object UpdateHierarchyManager {
     }
 
     @throws[Exception]
-    private def updateHierarchyRelatedData(childrenIds: List[String], depth: Int, parent: String, nodeList: ListBuffer[Node], hierarchyStructure: Map[String, List[String]], childNodeIds: mutable.HashSet[String], updatedNodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[List[Response]] = {
+    private def updateHierarchyRelatedData(childrenIds: List[String], depth: Int, parent: String, nodeList: ListBuffer[Node], hierarchyStructure: Map[String, List[String]], childNodeIds: mutable.HashSet[String], updatedNodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[List[AnyRef]] = {
         var index: Int = 1
         val futures = childrenIds.map(id => {
             val tempNode = getTempNode(nodeList, id)
@@ -298,7 +295,8 @@ object UpdateHierarchyManager {
                 index += 1
                 if (CollectionUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, List())))
                     updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
-                Future(ResponseHandler.OK())
+                else
+                    Future(updatedNodeList)
             } else {
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
@@ -307,11 +305,12 @@ object UpdateHierarchyManager {
                     index += 1
                     if (CollectionUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, List())))
                         updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
-                    Future(ResponseHandler.OK())
-                }).flatMap(f => f)
+                    else
+                        updatedNodeList
+                }) recoverWith {case  e: CompletionException => throw e.getCause }
             }
         })
-        Future.sequence(futures) recoverWith { case e: CompletionException => throw e.getCause }
+        Future.sequence(futures)
     }
 
     private def populateHierarchyRelatedData(tempNode: Node, depth: Int, index: Int, parent: String) = {
@@ -402,12 +401,9 @@ object UpdateHierarchyManager {
     }
 
     private def shouldImageBeDeleted(rootNode: Node): Boolean = {
-        if (Platform.config.getBoolean("collection.image.migration.enabled") &&
-            !CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get(HierarchyConstants.STATUS).asInstanceOf[String]) &&
-            rootNode.getMetadata.containsKey("pkgVersion"))
-            true
-        else
-            false
+        val flag = if (Platform.config.hasPath("collection.image.migration.enabled")) Platform.config.getBoolean("collection.image.migration.enabled") else false
+        flag && !CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get(HierarchyConstants.STATUS).asInstanceOf[String]) &&
+            !rootNode.getMetadata.containsKey("pkgVersion")
     }
 
     def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
@@ -418,23 +414,3 @@ object UpdateHierarchyManager {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
