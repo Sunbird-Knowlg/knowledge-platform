@@ -333,22 +333,18 @@ object HierarchyManager {
         req.put("identifier", identifier)
         val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
         responseFuture.map(response => {
-            if (!ResponseHandler.checkError(response)) {
+            if (!ResponseHandler.checkError(response) && !response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String].isEmpty) {
                 val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
-                if (!hierarchyString.isEmpty)
-                    Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
-                else if (Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
-                    req.put("identifier", identifier.replaceAll(".img", "") + ".img")
-                    val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
-                    responseFuture.map(response => {
-                        if (!ResponseHandler.checkError(response)) {
-                            val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
-                            if (!hierarchyString.isEmpty)
-                                Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
-                            else Future(Map[String, AnyRef]())
-                        } else Future(Map[String, AnyRef]())
-                    }).flatMap(f=>f)
-                } else Future(Map[String, AnyRef]())
+                Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
+            } else if (Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
+                req.put("identifier", identifier.replaceAll(".img", "") + ".img")
+                val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+                responseFuture.map(response => {
+                    if (!ResponseHandler.checkError(response) && !response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String].isEmpty) {
+                        val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                        Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                    } else Future(Map[String, AnyRef]())
+                }).flatMap(f=>f)
             } else Future(Map[String, AnyRef]())
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
