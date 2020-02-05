@@ -28,12 +28,12 @@ object ExternalPropsManager {
         store.read(request.get("identifier").asInstanceOf[String], fields, getPropsDataType(schemaName, version))
     }
 
-    def deleteProps(request: Request, fields: List[String])(implicit ec: ExecutionContext): Future[Response] = {
+    def deleteProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
-        store.delete(request.get("identifier").asInstanceOf[String], if (fields.nonEmpty) fields else List())
+        store.delete(request.get("identifier").asInstanceOf[String])
     }
 
     def getPropsDataType(schemaName: String, version: String) = {

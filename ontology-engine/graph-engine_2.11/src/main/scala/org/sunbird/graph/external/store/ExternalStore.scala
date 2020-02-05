@@ -87,9 +87,8 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
     }
 
-    def delete(identifier: String, extProps: List[String])(implicit ec: ExecutionContext): Future[Response] = {
+    def delete(identifier: String)(implicit ec: ExecutionContext): Future[Response] = {
         val delete = QueryBuilder.delete()
-        extProps.foreach(prop => delete.column(prop))
         val deleteQuery = delete.from(keySpace, table).where(QueryBuilder.eq(primaryKey.get(0), identifier))
         try {
             val session: Session = CassandraConnector.getSession

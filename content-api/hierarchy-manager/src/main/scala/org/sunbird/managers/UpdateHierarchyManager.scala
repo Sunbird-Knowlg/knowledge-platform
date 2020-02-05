@@ -407,7 +407,7 @@ object UpdateHierarchyManager {
         val req = new Request(request)
         val rootId: String = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
         req.put(HierarchyConstants.IDENTIFIER, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) rootId else rootId + HierarchyConstants.IMAGE_SUFFIX)
-        ExternalPropsManager.deleteProps(req, List())
+        ExternalPropsManager.deleteProps(req)
     }
 
 }
