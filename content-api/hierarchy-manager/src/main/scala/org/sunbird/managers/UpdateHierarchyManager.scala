@@ -34,24 +34,20 @@ object UpdateHierarchyManager {
         var nodeList: ListBuffer[Node] = ListBuffer[Node]()
         getValidatedRootNode(rootId, request).map(node => {
             nodeList += node
-            //TODO: Remove should Image be deleted after migration
-            request.getContext.put("shouldImageDelete", shouldImageBeDeleted(node).asInstanceOf[AnyRef])
-            getExistingHierarchyChildren(request, rootId).map(existingChildren => {
+            getExistingHierarchyChildren(request, node).map(existingChildren => {
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     updateNodesModifiedInNodeList(nodeList, rootId, nodesModified, request).map(idMap => {
-                        validateNodes(nodeList).map(result => {
                             getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
                                 updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                     val response = ResponseHandler.OK()
                                     response.put(HierarchyConstants.CONTENT_ID, rootId)
                                     idMap.remove(rootId)
                                     response.put(HierarchyConstants.IDENTIFIERS, mapAsJavaMap(idMap))
-                                    if(request.getContext.get("shouldImageDelete").asInstanceOf[Boolean])
+                                    if (request.getContext.get("shouldImageDelete").asInstanceOf[Boolean])
                                         deleteHierarchy(request)
                                     Future(response)
                                 }).flatMap(f => f)
                             }).flatMap(f => f)
-                        }).flatMap(f => f)
                     }).flatMap(f => f)
                 }).flatMap(f => f)
             }).flatMap(f => f)
@@ -100,41 +96,38 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def getExistingHierarchyChildren(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
-        val hierarchyFuture = if (request.getContext.get("shouldImageDelete").asInstanceOf[Boolean]) fetchImageHierarchy(request, identifier) else fetchHierarchy(request, identifier)
-        hierarchyFuture.map(response => {
-            if (!ResponseHandler.checkError(response)) {
-                val hierarchyString = response.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
-                if (!hierarchyString.isEmpty) {
-                    val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
-                    hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
-                } else new util.ArrayList[util.HashMap[String, AnyRef]]()
+    private def getExistingHierarchyChildren(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
+        fetchHierarchy(request, rootNode).map(hierarchyString => {
+            if (!hierarchyString.asInstanceOf[String].isEmpty) {
+                val hierarchyMap = JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[util.HashMap[String, AnyRef]])
+                hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
             } else new util.ArrayList[util.HashMap[String, AnyRef]]()
         })
     }
 
-//    private def getExistingHierarchyChildren(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
-//        fetchHierarchy(request, identifier).map(rootNode => {
-//            val hierarchyString = rootNode.getMetadata.getOrDefault(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
-//            if (!hierarchyString.isEmpty) {
-//                val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
-//                hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
-//            } else new util.ArrayList[util.HashMap[String, AnyRef]]()
-//        }) recoverWith { case e: CompletionException => throw e.getCause}
-//    }
+    //    private def getExistingHierarchyChildren(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
+    //        fetchHierarchy(request, identifier).map(rootNode => {
+    //            val hierarchyString = rootNode.getMetadata.getOrDefault(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
+    //            if (!hierarchyString.isEmpty) {
+    //                val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
+    //                hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
+    //            } else new util.ArrayList[util.HashMap[String, AnyRef]]()
+    //        }) recoverWith { case e: CompletionException => throw e.getCause}
+    //    }
 
-    private def fetchHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Response] = {
+    private def fetchHierarchy(request: Request, rootNode:Node)(implicit ec: ExecutionContext): Future[Any] = {
         val req = new Request(request)
-        req.put(HierarchyConstants.IDENTIFIER, identifier)
-        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY))
-    }
-
-    private def fetchImageHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Response] = {
-        val req = new Request(request)
-        req.put(HierarchyConstants.IDENTIFIER, identifier + HierarchyConstants.IMAGE_SUFFIX)
-        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)) recoverWith { case e: CompletionException =>
-            fetchHierarchy(request, identifier)
-        }
+        req.put(HierarchyConstants.IDENTIFIER, rootNode.getIdentifier)
+        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(response => {
+            if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
+                //TODO: Remove should Image be deleted after migration
+                req.put(HierarchyConstants.IDENTIFIER, if (!rootNode.getIdentifier.endsWith(HierarchyConstants.IMAGE_SUFFIX)) rootNode.getIdentifier + HierarchyConstants.IMAGE_SUFFIX else rootNode.getIdentifier)
+                ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
+                    request.getContext.put("shouldImageDelete", shouldImageBeDeleted(rootNode).asInstanceOf[AnyRef])
+                    resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
+                }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier) }
+            } else Future(response.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String])
+        }).flatMap(f => f)
     }
 
     private def addChildNodesInNodeList(childrenMaps: util.ArrayList[util.HashMap[String, AnyRef]], request: Request, nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[AnyRef] = {
@@ -254,7 +247,7 @@ object UpdateHierarchyManager {
             val hierarchyMap = constructHierarchy(childrenIdentifiersMap, identifierNodeMap)
             //        util.hierarchyCleanUp(collectionHierarchy)
             if (MapUtils.isNotEmpty(hierarchyMap))
-                hierarchyMap.getOrDefault(rootId, new util.HashMap[String,AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+                hierarchyMap.getOrDefault(rootId, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
                     .get(HierarchyConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]]
                     .filter(child => MapUtils.isNotEmpty(child))
             else
@@ -275,11 +268,15 @@ object UpdateHierarchyManager {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
                     put(HierarchyConstants.CHILD_NODES, new util.ArrayList[String](childNodeIds))
                 })
-                HierarchyManager.convertNodeToMap(updatedNodeList.toList)
-            })
+                validateNodes(updatedNodeList).map(result => {
+                    HierarchyManager.convertNodeToMap(updatedNodeList.toList)
+                })
+            }).flatMap(f => f)
         } else {
             updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {})
-            Future(HierarchyManager.convertNodeToMap(nodeList.toList))
+            validateNodes(nodeList).map(result => {
+                HierarchyManager.convertNodeToMap(nodeList.toList)
+            })
         }
     }
 
@@ -307,7 +304,7 @@ object UpdateHierarchyManager {
                         updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
                     else
                         updatedNodeList
-                }) recoverWith {case  e: CompletionException => throw e.getCause }
+                }) recoverWith { case e: CompletionException => throw e.getCause }
             }
         })
         Future.sequence(futures)
@@ -330,7 +327,7 @@ object UpdateHierarchyManager {
                 } else {
                     if (isFullyPopulated(childrenIdentifiersMap.getOrDefault(entry._1, List()), populatedChildMap)) {
                         val tempMap = identifierNodeMap.getOrDefault(entry._1, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]
-                        val tempChildren: util.List[HashMap[String, AnyRef]] = childrenIdentifiersMap.getOrDefault(entry._1, List()).map(id =>  populatedChildMap.getOrDefault(id, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]).toList
+                        val tempChildren: util.List[HashMap[String, AnyRef]] = childrenIdentifiersMap.getOrDefault(entry._1, List()).map(id => populatedChildMap.getOrDefault(id, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]).toList
                         tempMap.put(HierarchyConstants.CHILDREN, tempChildren)
                         populatedChildMap.put(entry._1, tempMap)
                         clonedIdentifiersMap.remove(entry._1)

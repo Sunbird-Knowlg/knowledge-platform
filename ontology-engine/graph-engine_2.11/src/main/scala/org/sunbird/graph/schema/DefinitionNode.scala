@@ -235,10 +235,21 @@ object DefinitionNode {
 
     def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        val jsonProps = fetchJsonProps(graphId, version, schemaName)
         val futures = nodes.map(node => {
+            val metadata = node.getMetadata
+            metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
             definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
         })
         Future.sequence(futures)
+    }
+
+    def convertJsonProperties(entry: (String, AnyRef), jsonProps: scala.List[String]) = {
+        try {
+            mapper.readTree(entry._2.asInstanceOf[String])
+        } catch {
+            case e: Exception => entry._2
+        }
     }
 }
 
