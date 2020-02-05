@@ -36,18 +36,19 @@ object UpdateHierarchyManager {
             nodeList += node
             getExistingHierarchyChildren(request, node).map(existingChildren => {
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
-                    updateNodesModifiedInNodeList(nodeList, rootId, nodesModified, request).map(idMap => {
-                            getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
-                                updateHierarchyData(rootId, children, nodeList, request).map(node => {
-                                    val response = ResponseHandler.OK()
-                                    response.put(HierarchyConstants.CONTENT_ID, rootId)
-                                    idMap.remove(rootId)
-                                    response.put(HierarchyConstants.IDENTIFIERS, mapAsJavaMap(idMap))
-                                    if (request.getContext.get("shouldImageDelete").asInstanceOf[Boolean])
-                                        deleteHierarchy(request)
-                                    Future(response)
-                                }).flatMap(f => f)
+                    updateNodesModifiedInNodeList(nodeList, rootId, nodesModified, request).map(idMapList => {
+                        val idMap = idMapList.get(0)
+                        getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
+                            updateHierarchyData(rootId, children, nodeList, request).map(node => {
+                                val response = ResponseHandler.OK()
+                                response.put(HierarchyConstants.CONTENT_ID, rootId)
+                                idMap.remove(rootId)
+                                response.put(HierarchyConstants.IDENTIFIERS, mapAsJavaMap(idMap))
+                                if (request.getContext.getOrDefault("shouldImageDelete", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
+                                    deleteHierarchy(request)
+                                Future(response)
                             }).flatMap(f => f)
+                        }).flatMap(f => f)
                     }).flatMap(f => f)
                 }).flatMap(f => f)
             }).flatMap(f => f)
@@ -168,11 +169,11 @@ object UpdateHierarchyManager {
     }
 
 
-    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], rootId: String, nodesModified: util.HashMap[String, AnyRef], request: Request)(implicit ec: ExecutionContext): Future[mutable.Map[String, String]] = {
+    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], rootId: String, nodesModified: util.HashMap[String, AnyRef], request: Request)(implicit ec: ExecutionContext): Future[List[mutable.Map[String, String]]] = {
         val idMap: mutable.Map[String, String] = mutable.Map()
         idMap += (rootId -> rootId)
         updateRootNode(rootId, nodeList, nodesModified)
-        nodesModified.foreach(nodeModified => {
+        val futures = nodesModified.map(nodeModified => {
             val metadata = nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[util.HashMap[String, AnyRef]]
             metadata.remove(HierarchyConstants.DIALCODES)
             metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
@@ -182,10 +183,13 @@ object UpdateHierarchyManager {
                 && nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].get(HierarchyConstants.IS_NEW).asInstanceOf[Boolean]) {
                 if (!nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean])
                     metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
-                createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
-            } else updateTempNode(nodeModified._1, nodeList, idMap, metadata)
+                createNewNode(nodeModified._1, idMap, metadata, nodeList, request).map(resp => idMap)
+            } else {
+                updateTempNode(nodeModified._1, nodeList, idMap, metadata)
+                Future(idMap)
+            }
         })
-        Future(idMap)
+        Future.sequence(futures.toList)
     }
 
     private def updateRootNode(rootId: String, nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
@@ -196,7 +200,7 @@ object UpdateHierarchyManager {
         }
     }
 
-    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], nodeList: ListBuffer[Node], request: Request)(implicit ec: ExecutionContext): Unit = {
+    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], nodeList: ListBuffer[Node], request: Request)(implicit ec: ExecutionContext): Future[AnyRef] = {
         val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
         idMap += (nodeId -> identifier)
         metadata.put(HierarchyConstants.IDENTIFIER, identifier)
@@ -212,7 +216,8 @@ object UpdateHierarchyManager {
             node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)
             nodeList.add(node)
-        }) recoverWith { case e: CompletionException => throw e.getCause }
+            nodeList
+        })
     }
 
     private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
@@ -327,7 +332,7 @@ object UpdateHierarchyManager {
                 } else {
                     if (isFullyPopulated(childrenIdentifiersMap.getOrDefault(entry._1, List()), populatedChildMap)) {
                         val tempMap = identifierNodeMap.getOrDefault(entry._1, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]
-                        val tempChildren: util.List[HashMap[String, AnyRef]] = childrenIdentifiersMap.getOrDefault(entry._1, List()).map(id => populatedChildMap.getOrDefault(id, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]).toList
+                        val tempChildren: util.List[HashMap[String, AnyRef]] = sortByIndex(childrenIdentifiersMap.getOrDefault(entry._1, List()).map(id => populatedChildMap.getOrDefault(id, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]).toList)
                         tempMap.put(HierarchyConstants.CHILDREN, tempChildren)
                         populatedChildMap.put(entry._1, tempMap)
                         clonedIdentifiersMap.remove(entry._1)
