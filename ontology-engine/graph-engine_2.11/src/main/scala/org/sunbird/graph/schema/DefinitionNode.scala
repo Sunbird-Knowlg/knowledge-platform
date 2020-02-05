@@ -3,6 +3,8 @@ package org.sunbird.graph.schema
 import java.util
 import java.util.concurrent.CompletionException
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
@@ -14,6 +16,8 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
+    val mapper: ObjectMapper = new ObjectMapper()
+    mapper.registerModule(DefaultScalaModule)
 
   def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]

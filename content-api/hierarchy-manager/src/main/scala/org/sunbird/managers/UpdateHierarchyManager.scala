@@ -273,15 +273,11 @@ object UpdateHierarchyManager {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
                     put(HierarchyConstants.CHILD_NODES, new util.ArrayList[String](childNodeIds))
                 })
-                validateNodes(updatedNodeList).map(result => {
-                    HierarchyManager.convertNodeToMap(updatedNodeList.toList)
-                })
+                validateNodes(updatedNodeList).map(result => HierarchyManager.convertNodeToMap(updatedNodeList.toList))
             }).flatMap(f => f)
         } else {
             updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {})
-            validateNodes(nodeList).map(result => {
-                HierarchyManager.convertNodeToMap(nodeList.toList)
-            })
+            validateNodes(nodeList).map(result => HierarchyManager.convertNodeToMap(nodeList.toList))
         }
     }
 
@@ -408,11 +404,15 @@ object UpdateHierarchyManager {
             !rootNode.getMetadata.containsKey("pkgVersion")
     }
 
+    def sortByIndex(childrenMaps: util.List[HashMap[String, AnyRef]]): util.List[util.HashMap[String, AnyRef]] = {
+        seqAsJavaList(childrenMaps.sortBy(_.get("index").asInstanceOf[Int]))
+    }
+
+
     def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val req = new Request(request)
-        val rootId: String = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
+        val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
         req.put(HierarchyConstants.IDENTIFIER, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) rootId else rootId + HierarchyConstants.IMAGE_SUFFIX)
         ExternalPropsManager.deleteProps(req)
     }
-
 }
