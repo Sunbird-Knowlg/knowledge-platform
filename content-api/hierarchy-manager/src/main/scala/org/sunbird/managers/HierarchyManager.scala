@@ -112,7 +112,6 @@ object HierarchyManager {
 
     @throws[Exception]
     def getUnPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
-        request.put("fields",new java.util.ArrayList[String](){{add("hierarchy")}})
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.get("status").asInstanceOf[String])) {
@@ -121,21 +120,15 @@ object HierarchyManager {
             if(!StringUtils.isEmpty(rootNode.getMetadata().get("variants").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
             }
-            rootNode.getMetadata().put("identifier", request.get("rootId"))
             val response: Response = ResponseHandler.OK
-            if (StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String]) && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
-                   fetchHierarchy(request).map(hierarchy => {
-                        if(!hierarchy.isEmpty)
-                            rootNode.getMetadata().put("children", hierarchy("children"))
-                    })
-                }
-             else if(!StringUtils.isEmpty(rootNode.getMetadata().get("hierarchy").asInstanceOf[String])) {
-                rootNode.getMetadata().put("children", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap).get("children"))
-                rootNode.getMetadata().remove("hierarchy")
-            }
-            rootNode.getMetadata().remove("hierarchy")
-            response.put("content", rootNode.getMetadata())
-            Future(response)
+            rootNode.getMetadata().put("identifier", request.get("rootId"))
+            val hierarchy = fetchHierarchy(request,rootNode.getIdentifier)
+            hierarchy.map(hierarchy => {
+                if(!hierarchy.isEmpty)
+                    rootNode.getMetadata().put("children", hierarchy("children").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
+                response.put("content", rootNode.getMetadata())
+                Future(response)
+            }).flatMap(f => f)
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
@@ -333,6 +326,31 @@ object HierarchyManager {
             filteredLeafNodes.add(node)
         })
         filteredLeafNodes
+    }
+
+    def fetchHierarchy(request: Request, identifier:String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+        val req = new Request(request)
+        req.put("identifier", identifier)
+        val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+        responseFuture.map(response => {
+            if (!ResponseHandler.checkError(response)) {
+                val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                if (!hierarchyString.isEmpty)
+                    Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                else if (Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
+                    req.put("identifier", identifier.replaceAll(".img", "") + ".img")
+                    val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+                    responseFuture.map(response => {
+                        if (!ResponseHandler.checkError(response)) {
+                            val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                            if (!hierarchyString.isEmpty)
+                                Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                            else Future(Map[String, AnyRef]())
+                        } else Future(Map[String, AnyRef]())
+                    }).flatMap(f=>f)
+                } else Future(Map[String, AnyRef]())
+            } else Future(Map[String, AnyRef]())
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
 }
