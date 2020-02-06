@@ -2,6 +2,7 @@ package org.sunbird.mimetype.mgr
 
 import java.io.File
 
+import com.google.common.io.Resources
 import org.sunbird.graph.dac.model.Node
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import org.sunbird.common.exception.ClientException
@@ -38,5 +39,25 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 		assert(result.exists())
 		assert(true)
 	}
+
+	"isValidPackageStructure with valid html zip file" should "return true" in {
+		val file: File = new File(Resources.getResource("validHtmlContent.zip").toURI)
+		val result = mgr.isValidPackageStructure(file, List("index.html"))
+		assert(result)
+	}
+
+	"isValidPackageStructure with invalid html zip file" should "return false" in {
+		val file: File = new File(Resources.getResource("invalidHtmlContent.zip").toURI)
+		val result = mgr.isValidPackageStructure(file, List("index.html"))
+		assert(!result)
+	}
+
+	"isValidPackageStructure with valid ecml zip file" should "return true" in {
+		val file: File = new File(Resources.getResource("validEcmlContent.zip").toURI)
+		val result = mgr.isValidPackageStructure(file, List("index.ecml","index.json"))
+		assert(result)
+	}
+
+
 
 }
