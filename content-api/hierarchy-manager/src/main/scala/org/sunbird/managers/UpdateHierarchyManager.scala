@@ -229,9 +229,9 @@ object UpdateHierarchyManager {
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
     }
 
-    private def validateNodes(nodeList: ListBuffer[Node])(implicit ec: ExecutionContext): Future[List[Node]] = {
-        val nonUnitNodes = nodeList.filter(node => StringUtils.equals(HierarchyConstants.DEFAULT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])).toList
-        DefinitionNode.validateContentNodes(nonUnitNodes, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
+    private def validateNodes(nodeList: ListBuffer[Node], rootId: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
+        val unitNodes = nodeList.filter(node => StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]) || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
+        DefinitionNode.validateContentNodes(unitNodes, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
 
     @throws[Exception]
@@ -273,11 +273,11 @@ object UpdateHierarchyManager {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
                     put(HierarchyConstants.CHILD_NODES, new util.ArrayList[String](childNodeIds))
                 })
-                validateNodes(updatedNodeList).map(result => HierarchyManager.convertNodeToMap(updatedNodeList.toList))
+                validateNodes(updatedNodeList, rootId).map(result => HierarchyManager.convertNodeToMap(updatedNodeList.toList))
             }).flatMap(f => f)
         } else {
             updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {})
-            validateNodes(nodeList).map(result => HierarchyManager.convertNodeToMap(nodeList.toList))
+            validateNodes(nodeList, rootId).map(result => HierarchyManager.convertNodeToMap(nodeList.toList))
         }
     }
 

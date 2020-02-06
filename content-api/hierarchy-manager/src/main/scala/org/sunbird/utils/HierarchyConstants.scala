@@ -7,6 +7,7 @@ object HierarchyConstants {
     val HIERARCHY: String = "hierarchy"
     val ROOT: String = "root"
     val COLLECTION_MIME_TYPE: String = "application/vnd.ekstep.content-collection"
+    val COLLECTION_SCHEMA_NAME: String = "collection"
     val LATEST_CONTENT_VERSION: Integer = 2
     val VERSION: String = "version"
     val IDENTIFIER: String = "identifier"
