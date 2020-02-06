@@ -45,8 +45,8 @@ class TestUpdateHierarchy extends BaseSpec {
         assert(StringUtils.isNotEmpty(oldHierarchy))
         UpdateHierarchyManager.deleteHierarchy(request).map(response => {
             assert(response.getResponseCode.code() == 200)
+            assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
         })
-        assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
     }
 
     "deleteHierarchy with image id" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
@@ -60,8 +60,8 @@ class TestUpdateHierarchy extends BaseSpec {
         assert(StringUtils.isNotEmpty(oldHierarchy))
         UpdateHierarchyManager.deleteHierarchy(request).map(response => {
             assert(response.getResponseCode.code() == 200)
+            assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
         })
-        assert(BooleanUtils.isFalse(readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'").iterator().hasNext))
     }
 
     "deleteHierarchy with invalid id" should "Delete the hierarchy data from cassandra from identifier with .img extension" in {
@@ -72,13 +72,13 @@ class TestUpdateHierarchy extends BaseSpec {
         request.setContext(context)
         UpdateHierarchyManager.deleteHierarchy(request).map(response => {
             assert(response.getResponseCode.code() == 200)
+            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+                .one().getString("hierarchy")
+            assert(StringUtils.isNotEmpty(hierarchy))
         })
-        val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-            .one().getString("hierarchy")
-        assert(StringUtils.isNotEmpty(hierarchy))
     }
 
-//    ResourceId = "do_31277445725602611" and TextBook id ="do_112945818874658816"
+    //    ResourceId = "do_31277445725602611" and TextBook id ="do_112945818874658816"
     "updateHierarchy with One New Unit and One Live Resource" should "update text book node, create unit and store the hierarchy in cassandra" in {
         val request = new Request()
         val context = getContext()
