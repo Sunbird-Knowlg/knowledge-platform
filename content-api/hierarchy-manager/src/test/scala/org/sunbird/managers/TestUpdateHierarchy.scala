@@ -82,47 +82,47 @@ class TestUpdateHierarchy extends BaseSpec {
     }
 
     //    ResourceId = "do_31250856200414822416938" and TextBook id ="do_112945818874658816"
-    "updateHierarchy with One New Unit and One Live Resource" should "update text book node, create unit and store the hierarchy in cassandra" in {
-        val request = new Request()
-        val context = getContext()
-        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-        request.setContext(context)
-        request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
-        request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
-        UpdateHierarchyManager.updateHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
-                .one().getString("hierarchy")
-            assert(StringUtils.isNotEmpty(hierarchy))
-        })
-    }
-
-    "updateHierarchy on already existing hierarchy" should "recompose the hierarchy structure and store in in cassandra and also update neo4j" in {
-        UpdateHierarchyManager.getContentNode("do_31250856200414822416938", HierarchyConstants.TAXONOMY_ID).map(node => {
-            println("Node data from neo4j ----- id: " + node.getIdentifier + "node type:  " + node.getNodeType + " node metadata : " + node.getMetadata)
-            val request = new Request()
-            val context = getContext()
-            context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-            request.setContext(context)
-            request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
-            request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
-            UpdateHierarchyManager.updateHierarchy(request).map(response => {
-                assert(response.getResponseCode.code() == 200)
-                val identifiers =  response.get(HierarchyConstants.IDENTIFIERS).asInstanceOf[util.Map[String, AnyRef]]
-                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
-                    .one().getString(HierarchyConstants.HIERARCHY)
-                assert(StringUtils.isNotEmpty(hierarchy))
-                request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
-                request.put(HierarchyConstants.HIERARCHY, getHierarchy_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
-                UpdateHierarchyManager.updateHierarchy(request).map(resp => {
-                    assert(response.getResponseCode.code() == 200)
-                    val hierarchy_updated = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
-                        .one().getString(HierarchyConstants.HIERARCHY)
-                    assert(!StringUtils.equalsIgnoreCase(hierarchy, hierarchy_updated))
-                })
-            }).flatMap(f => f)
-        }).flatMap(f => f)
-    }
+//    "updateHierarchy with One New Unit and One Live Resource" should "update text book node, create unit and store the hierarchy in cassandra" in {
+//        val request = new Request()
+//        val context = getContext()
+//        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//        request.setContext(context)
+//        request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
+//        request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
+//        UpdateHierarchyManager.updateHierarchy(request).map(response => {
+//            assert(response.getResponseCode.code() == 200)
+//            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+//                .one().getString("hierarchy")
+//            assert(StringUtils.isNotEmpty(hierarchy))
+//        })
+//    }
+//
+//    "updateHierarchy on already existing hierarchy" should "recompose the hierarchy structure and store in in cassandra and also update neo4j" in {
+//        UpdateHierarchyManager.getContentNode("do_31250856200414822416938", HierarchyConstants.TAXONOMY_ID).map(node => {
+//            println("Node data from neo4j ----- id: " + node.getIdentifier + "node type:  " + node.getNodeType + " node metadata : " + node.getMetadata)
+//            val request = new Request()
+//            val context = getContext()
+//            context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//            request.setContext(context)
+//            request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
+//            request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
+//            UpdateHierarchyManager.updateHierarchy(request).map(response => {
+//                assert(response.getResponseCode.code() == 200)
+//                val identifiers =  response.get(HierarchyConstants.IDENTIFIERS).asInstanceOf[util.Map[String, AnyRef]]
+//                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+//                    .one().getString(HierarchyConstants.HIERARCHY)
+//                assert(StringUtils.isNotEmpty(hierarchy))
+//                request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
+//                request.put(HierarchyConstants.HIERARCHY, getHierarchy_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
+//                UpdateHierarchyManager.updateHierarchy(request).map(resp => {
+//                    assert(response.getResponseCode.code() == 200)
+//                    val hierarchy_updated = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+//                        .one().getString(HierarchyConstants.HIERARCHY)
+//                    assert(!StringUtils.equalsIgnoreCase(hierarchy, hierarchy_updated))
+//                })
+//            }).flatMap(f => f)
+//        }).flatMap(f => f)
+//    }
 
     "updateHierarchy with New Unit and Invalid Resource" should "throw resource not found exception" in {
         val request = new Request()
