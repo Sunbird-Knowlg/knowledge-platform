@@ -348,12 +348,12 @@ object HierarchyManager {
                         } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
                             Map[String, AnyRef]()
                         else
-                            throw new ServerException("ERR_WHILE_FETCHING_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
+                            throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
                     })
                 } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
                     Future(Map[String, AnyRef]())
               else
-                 throw new ServerException("ERR_WHILE_FETCHING_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
+                 throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
