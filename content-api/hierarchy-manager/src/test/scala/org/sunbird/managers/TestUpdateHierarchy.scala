@@ -1,10 +1,13 @@
 package org.sunbird.managers
 
 import java.util
+
 import org.apache.commons.lang3.BooleanUtils
 import org.parboiled.common.StringUtils
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.graph.nodes.DataNode
 import org.sunbird.utils.HierarchyConstants
 
 class TestUpdateHierarchy extends BaseSpec {
@@ -78,7 +81,7 @@ class TestUpdateHierarchy extends BaseSpec {
         })
     }
 
-    //    ResourceId = "do_31277445725602611" and TextBook id ="do_112945818874658816"
+    //    ResourceId = "do_31250856200414822416938" and TextBook id ="do_112945818874658816"
     "updateHierarchy with One New Unit and One Live Resource" should "update text book node, create unit and store the hierarchy in cassandra" in {
         val request = new Request()
         val context = getContext()
@@ -95,29 +98,51 @@ class TestUpdateHierarchy extends BaseSpec {
     }
 
     "updateHierarchy on already existing hierarchy" should "recompose the hierarchy structure and store in in cassandra and also update neo4j" in {
+        UpdateHierarchyManager.getContentNode("do_31250856200414822416938", HierarchyConstants.TAXONOMY_ID).map(node => {
+            println("Node data from neo4j ----- id: " + node.getIdentifier + "node type:  " + node.getNodeType + " node metadata : " + node.getMetadata)
+            val request = new Request()
+            val context = getContext()
+            context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+            request.setContext(context)
+            request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
+            request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
+            UpdateHierarchyManager.updateHierarchy(request).map(response => {
+                assert(response.getResponseCode.code() == 200)
+                val identifiers =  response.get(HierarchyConstants.IDENTIFIERS).asInstanceOf[util.Map[String, AnyRef]]
+                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+                    .one().getString(HierarchyConstants.HIERARCHY)
+                assert(StringUtils.isNotEmpty(hierarchy))
+                request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
+                request.put(HierarchyConstants.HIERARCHY, getHierarchy_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
+                UpdateHierarchyManager.updateHierarchy(request).map(resp => {
+                    assert(response.getResponseCode.code() == 200)
+                    val hierarchy_updated = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+                        .one().getString(HierarchyConstants.HIERARCHY)
+                    assert(!StringUtils.equalsIgnoreCase(hierarchy, hierarchy_updated))
+                })
+            }).flatMap(f => f)
+        }).flatMap(f => f)
+    }
+
+    "updateHierarchy with New Unit and Invalid Resource" should "throw resource not found exception" in {
         val request = new Request()
         val context = getContext()
         context.put(HierarchyConstants.SCHEMA_NAME, "collection")
         request.setContext(context)
         request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
-        request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
-        UpdateHierarchyManager.updateHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-            val identifiers =  response.get(HierarchyConstants.IDENTIFIERS).asInstanceOf[util.Map[String, AnyRef]]
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
-                .one().getString(HierarchyConstants.HIERARCHY)
-            assert(StringUtils.isNotEmpty(hierarchy))
-            request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
-            request.put(HierarchyConstants.HIERARCHY, getHierarchy_2("do_11294581887465881611", identifiers.get("b9a50833-eff6-4ef5-a2a4-2413f2d51f6c").asInstanceOf[String]))
-            UpdateHierarchyManager.updateHierarchy(request).map(resp => {
-                assert(response.getResponseCode.code() == 200)
-                val hierarchy_updated = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
-                    .one().getString(HierarchyConstants.HIERARCHY)
-                assert(!StringUtils.equalsIgnoreCase(hierarchy, hierarchy_updated))
-            })
-        }).flatMap(f => f)
+        request.put(HierarchyConstants.HIERARCHY, getHierarchy_Content_Resource_Invalid_ID())
+        recoverToSucceededIf[ResourceNotFoundException](UpdateHierarchyManager.updateHierarchy(request))
     }
 
+//    "updateHierarchy with empty nodes modified and hierarchy" should "throw client exception" in {
+//        val request = new Request()
+//        val context = getContext()
+//        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+//        request.setContext(context)
+//        request.put(HierarchyConstants.NODES_MODIFIED, new util.HashMap())
+//        request.put(HierarchyConstants.HIERARCHY, new util.HashMap())
+//        recoverToSucceededIf[ClientException](UpdateHierarchyManager.updateHierarchy(request))
+//    }
     //Text Book -> root, New Unit
     def getNodesModified_1(): util.HashMap[String, AnyRef] = {
         val nodesModifiedString: String =    "{\n"+
@@ -207,4 +232,20 @@ class TestUpdateHierarchy extends BaseSpec {
             "      }"
         JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
     }
+
+    //Text
+    def getHierarchy_Content_Resource_Invalid_ID(): util.HashMap[String, AnyRef] = {
+        val hierarchyString =     "{\n"+
+            "            \t\"do_11294581887465881611\" : {\n"+
+            "            \t\t\"root\": true,\n"+
+            "            \t\t\"children\": [\"b9a50833-eff6-4ef5-a2a4-2413f2d51f6c\"]\n"+
+            "            \t},\n"+
+            "            \t\"b9a50833-eff6-4ef5-a2a4-2413f2d51f6c\": {\n"+
+            "            \t\t\"root\": false,\n"+
+            "            \t\t\"children\": [\"do_3125085620041482241\"]\n"+
+            "            \t}\n"+
+            "            }"
+        JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
+    }
+
 }

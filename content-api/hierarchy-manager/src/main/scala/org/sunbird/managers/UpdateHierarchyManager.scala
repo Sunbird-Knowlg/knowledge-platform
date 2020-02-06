@@ -381,7 +381,7 @@ object UpdateHierarchyManager {
             nodeList.toList.filter(node => node.getIdentifier.startsWith(id)).foreach(node => node.getMetadata.putAll(metadata))
     }
 
-    private def getContentNode(identifier: String, graphId: String)(implicit ec: ExecutionContext): Future[Node] = {
+    def getContentNode(identifier: String, graphId: String)(implicit ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
         request.setContext(new util.HashMap[String, AnyRef]() {
             {
