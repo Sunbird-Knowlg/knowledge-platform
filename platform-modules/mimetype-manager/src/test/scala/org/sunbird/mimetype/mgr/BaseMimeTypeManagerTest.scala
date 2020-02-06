@@ -3,6 +3,7 @@ package org.sunbird.mimetype.mgr
 import java.io.File
 
 import com.google.common.io.Resources
+import org.apache.commons.io.FileUtils
 import org.sunbird.graph.dac.model.Node
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import org.sunbird.common.exception.ClientException
@@ -58,6 +59,10 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 		assert(result)
 	}
 
-
-
+	"extractPackage" should "extract package in specified basePath" in {
+		val file: File = new File(Resources.getResource("validEcmlContent.zip").toURI)
+		val result = mgr.extractPackage(file, "/tmp/validEcmlContent")
+		assert(new File("/tmp/validEcmlContent/index.ecml").exists())
+	}
+	
 }
