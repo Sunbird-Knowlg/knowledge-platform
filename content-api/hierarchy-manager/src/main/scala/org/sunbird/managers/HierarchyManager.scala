@@ -114,15 +114,15 @@ object HierarchyManager {
     def getUnPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
-            if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.getOrElse("status", "").asInstanceOf[String])) {
+            if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.getOrDefault("status", "").asInstanceOf[String])) {
                 ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
             }
-            if(!StringUtils.isEmpty(rootNode.getMetadata().getOrElse("variants", "").asInstanceOf[String])) {
+            if(!StringUtils.isEmpty(rootNode.getMetadata().getOrDefault("variants", "").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
             }
             val hierarchy = fetchHierarchy(request,rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
-                if(!hierarchy.isEmpty && !hierarchy.getOrElse("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]].isEmpty)
+                if(!hierarchy.isEmpty && !hierarchy.getOrDefault("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]].isEmpty)
                     rootNode.getMetadata().put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
                 rootNode.getMetadata().put("identifier", request.get("rootId"))
                 val response: Response = ResponseHandler.OK
@@ -143,7 +143,7 @@ object HierarchyManager {
             val hierarchy = fetchHierarchy(request, request.getRequest.get("rootId").asInstanceOf[String])
             hierarchy.map(hierarchy => {
                 if(!hierarchy.isEmpty) {
-                    if (!hierarchy.getOrElse("status", "").asInstanceOf[String].isEmpty && StringUtils.equals(hierarchy.getOrElse("status", "").asInstanceOf[String], "Live")) {
+                    if (!hierarchy.getOrDefault("status", "").asInstanceOf[String].isEmpty && StringUtils.equals(hierarchy.getOrDefault("status", "").asInstanceOf[String], "Live")) {
                         response.put("content", new util.HashMap[String, AnyRef](hierarchy))
                         RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(new util.HashMap[String, AnyRef](hierarchy)))
                         Future(response)
@@ -329,7 +329,7 @@ object HierarchyManager {
         val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
         responseFuture.map(response => {
             if(!ResponseHandler.checkError(response)){
-                val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
                 if (!hierarchyString.isEmpty) {
                     Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
                 } else
@@ -339,7 +339,7 @@ object HierarchyManager {
                     val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
                     responseFuture.map(response => {
                         if(!ResponseHandler.checkError(response)){
-                            val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                            val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
                             if (!hierarchyString.isEmpty) {
                                 JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap
                             } else
