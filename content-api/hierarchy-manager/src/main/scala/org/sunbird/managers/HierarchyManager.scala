@@ -123,7 +123,7 @@ object HierarchyManager {
             val hierarchy = fetchHierarchy(request,rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
                 if(!hierarchy.isEmpty && !hierarchy.getOrElse("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]].isEmpty)
-                    rootNode.getMetadata().put("children", hierarchy.get("children").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
+                    rootNode.getMetadata().put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
                 rootNode.getMetadata().put("identifier", request.get("rootId"))
                 val response: Response = ResponseHandler.OK
                 response.put("content", rootNode.getMetadata())
@@ -328,21 +328,29 @@ object HierarchyManager {
         req.put("identifier", identifier)
         val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
         responseFuture.map(response => {
-            if (!ResponseHandler.checkError(response) && !response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String].isEmpty) {
-                Future(JsonUtils.deserialize(response.getResult.toMap.get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap)
-            } else if (Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
-                req.put("identifier", identifier.replaceAll(".img", "") + ".img")
-                val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
-                responseFuture.map(response => {
-                    if (!ResponseHandler.checkError(response) && !response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String].isEmpty) {
-                        Future(JsonUtils.deserialize(response.getResult.toMap.get("hierarchy").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap)
-                    } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
-                        Future(Map[String, AnyRef]())
-                      else
-                        throw new ServerException("ERR_WHILE_FETCHING_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
-                }).flatMap(f=>f)
-            } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
-                     Future(Map[String, AnyRef]())
+            if(!ResponseHandler.checkError(response)){
+                val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                if (!hierarchyString.isEmpty) {
+                    Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                } else
+                    Future(Map[String, AnyRef]())
+                } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404 && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
+                    req.put("identifier", identifier.replaceAll(".img", "") + ".img")
+                    val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+                    responseFuture.map(response => {
+                        if(!ResponseHandler.checkError(response)){
+                            val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
+                            if (!hierarchyString.isEmpty) {
+                                JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap
+                            } else
+                                Map[String, AnyRef]()
+                        } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
+                            Map[String, AnyRef]()
+                        else
+                            throw new ServerException("ERR_WHILE_FETCHING_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
+                    })
+                } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
+                    Future(Map[String, AnyRef]())
               else
                  throw new ServerException("ERR_WHILE_FETCHING_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
