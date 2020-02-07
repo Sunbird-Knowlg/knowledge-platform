@@ -60,9 +60,10 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 	}
 
 	"extractPackage" should "extract package in specified basePath" in {
+		FileUtils.deleteDirectory(new File("/tmp/validEcmlContent"))
 		val file: File = new File(Resources.getResource("validEcmlContent.zip").toURI)
 		val result = mgr.extractPackage(file, "/tmp/validEcmlContent")
 		assert(new File("/tmp/validEcmlContent/index.ecml").exists())
 	}
-	
+
 }
