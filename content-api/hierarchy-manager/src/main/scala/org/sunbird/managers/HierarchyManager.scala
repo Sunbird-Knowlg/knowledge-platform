@@ -321,4 +321,10 @@ object HierarchyManager {
         filteredLeafNodes
     }
 
+    @throws[Exception]
+    def copyCollection(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+        val response: Response = ResponseHandler.OK
+        Future(response)
+    } recoverWith { case e: CompletionException => throw e.getCause }
+
 }

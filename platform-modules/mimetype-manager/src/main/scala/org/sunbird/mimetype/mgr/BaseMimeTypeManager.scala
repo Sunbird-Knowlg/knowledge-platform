@@ -68,5 +68,11 @@ class BaseMimeTypeManager {
 		else file.delete()
 	}
 
+	def isInternalUrl(url: String): Boolean = {
+		if (url.contains(CloudStore.getContainerName))
+			true
+		else
+			false
+	}
 }
 

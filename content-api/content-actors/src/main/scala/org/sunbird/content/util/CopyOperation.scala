@@ -85,7 +85,6 @@ object CopyOperation {
     copyNode.getMetadata.put("status", "Draft")
     copyNode.getMetadata.put("origin", existingNode.getIdentifier)
     copyNode.getMetadata.put("identifier", newId)
-
     if (originData.nonEmpty)
       copyNode.getMetadata.put("originData", originData)
     val existingNodeOutRelations:util.List[Relation] = existingNode.getOutRelations
