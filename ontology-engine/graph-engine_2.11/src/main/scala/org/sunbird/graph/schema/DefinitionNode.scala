@@ -3,6 +3,8 @@ package org.sunbird.graph.schema
 import java.util
 import java.util.concurrent.CompletionException
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
@@ -14,6 +16,8 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
+    val mapper: ObjectMapper = new ObjectMapper()
+    mapper.registerModule(DefaultScalaModule)
 
   def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
@@ -50,6 +54,14 @@ object DefinitionNode {
         definition.getRelationDefinitionMap()
     }
 
+    def getRelationsMap(request: Request): java.util.HashMap[String, AnyRef] = {
+        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        definition.getRelationsMap()
+    }
+
     def getRestrictedProperties(graphId: String, version: String, operation: String, schemaName: String): List[String] = {
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
       definition.getRestrictPropsConfig(operation)
@@ -59,7 +71,7 @@ object DefinitionNode {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
             , schemaName, request.getContext.get("version").asInstanceOf[String])
-        definition.getNode(request.get("identifier").asInstanceOf[String], "read", request.get("mode").asInstanceOf[String])
+        definition.getNode(request.get("identifier").asInstanceOf[String], "read", if(request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read")
     }
 
     @throws[Exception]
@@ -225,5 +237,23 @@ object DefinitionNode {
 		}}
 	}
 
+    def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        val jsonProps = fetchJsonProps(graphId, version, schemaName)
+        val futures = nodes.map(node => {
+            val metadata = node.getMetadata
+            metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
+            definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
+        })
+        Future.sequence(futures)
+    }
+
+    def convertJsonProperties(entry: (String, AnyRef), jsonProps: scala.List[String]) = {
+        try {
+            mapper.readTree(entry._2.asInstanceOf[String])
+        } catch {
+            case e: Exception => entry._2
+        }
+    }
 }
 
