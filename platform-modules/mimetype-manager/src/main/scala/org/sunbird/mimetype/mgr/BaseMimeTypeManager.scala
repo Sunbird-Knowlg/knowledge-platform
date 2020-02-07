@@ -2,6 +2,8 @@ package org.sunbird.mimetype.mgr
 
 import java.io.{File, IOException}
 import java.net.URL
+import java.nio.file.{Files, Paths}
+import java.util.zip.ZipFile
 
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
@@ -13,6 +15,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.ExecutionContext
+import scala.collection.JavaConverters._
 
 
 class BaseMimeTypeManager {
@@ -39,7 +42,7 @@ class BaseMimeTypeManager {
 
 	def validateFile(file: File): Unit = {
 		if(null==file || !file.exists())
-			throw new ClientException("ERR_INVALID_DATA", "Please Provide Valid File Or File Url!")
+			throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
 	}
 
 	def validateUrl(fileUrl: String): Unit = {
@@ -88,6 +91,33 @@ class BaseMimeTypeManager {
 
 	def getFileSize(file: File): Double = {
 		if (null != file && file.exists) file.length else 0
+	}
+
+	def isValidPackageStructure(file: File, checkParams: List[String]): Boolean = {
+		if (null != file && file.exists()) {
+			val zipFile: ZipFile = new ZipFile(file)
+			try {
+				val entries = checkParams.filter(fileName => null != zipFile.getEntry(fileName))
+				null != entries && !entries.isEmpty
+			}
+			catch {
+				case e: Exception => throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
+			} finally {
+				if (null != zipFile) zipFile.close()
+			}
+		} else false
+	}
+
+	def extractPackage(file: File, basePath: String) = {
+		val zipFile = new ZipFile(file)
+		for (entry <- zipFile.entries().asScala) {
+			val path = Paths.get(basePath + File.separator + entry.getName)
+			if (entry.isDirectory) Files.createDirectories(path)
+			else {
+				Files.createDirectories(path.getParent)
+				Files.copy(zipFile.getInputStream(entry), path)
+			}
+		}
 	}
 
 }
