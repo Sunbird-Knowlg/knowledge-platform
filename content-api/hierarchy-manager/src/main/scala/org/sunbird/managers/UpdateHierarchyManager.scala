@@ -153,7 +153,6 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
                     node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
-                    node.getMetadata.put(HierarchyConstants.STATUS, "Draft")
                     nodeList += node
                     Future(nodeList)
                 }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
