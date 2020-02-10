@@ -23,6 +23,7 @@ object HierarchyManager {
     val schemaVersion: String = "1.0"
     val imgSuffix: String = ".img"
     val hierarchyPrefix: String = "hierarchy_"
+    val statusList = List("Live", "Unlisted")
 
     val keyTobeRemoved = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))
@@ -143,8 +144,7 @@ object HierarchyManager {
             val hierarchy = fetchHierarchy(request, request.getRequest.get("rootId").asInstanceOf[String])
             hierarchy.map(hierarchy => {
                 if(!hierarchy.isEmpty) {
-                    val validStatus:Array[String] = Array("Live","Unlisted")
-                    if (!hierarchy.getOrDefault("status", "").asInstanceOf[String].isEmpty && validStatus.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
+                    if (!hierarchy.getOrDefault("status", "").asInstanceOf[String].isEmpty && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
                         response.put("content", new util.HashMap[String, AnyRef](hierarchy))
                         RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(new util.HashMap[String, AnyRef](hierarchy)))
                         Future(response)
