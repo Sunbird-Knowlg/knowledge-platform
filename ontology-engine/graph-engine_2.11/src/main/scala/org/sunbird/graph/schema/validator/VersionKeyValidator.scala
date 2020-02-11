@@ -31,7 +31,6 @@ trait VersionKeyValidator extends IDefinition {
     }
 
     def isValidVersionkey(node: Node)(implicit ec: ExecutionContext): Future[Boolean] =  {
-        System.out.println("Node details - identifier: " + node.getIdentifier + "node type: " + node.getNodeType + "node metadata" + node.getMetadata.toString )
         val versionCheckMode = {
             if(schemaValidator.getConfig.hasPath("versionCheckMode")) schemaValidator.getConfig.getString("versionCheckMode")
             else NodeUpdateMode.OFF.name
