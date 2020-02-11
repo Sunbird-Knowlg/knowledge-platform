@@ -18,6 +18,8 @@ import scala.collection.JavaConverters._
 
 object CopyOperation {
 
+  val endNodeObjectTypes = List("Content", "ContentImage")
+
   def validateCopyContentRequest(existingNode: Node, requestMap: util.Map[String, AnyRef], mode: String): Node = {
     if (null == requestMap)
       throw new ClientException("ERR_INVALID_REQUEST", "Please provide valid request")
@@ -63,7 +65,7 @@ object CopyOperation {
     val newId = Identifier.getIdentifier(existingNode.getGraphId, Identifier.getUniqueIdFromTimestamp)
     val copyNode = new Node(newId, existingNode.getNodeType, existingNode.getObjectType)
     val metaData = new util.HashMap[String, AnyRef](existingNode.getMetadata)
-    val originData = scala.collection.mutable.Map[String,AnyRef]()
+    val originData:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef]
     var originNodeMetadataList:util.List[String] = new java.util.ArrayList[String]()
       if (Platform.config.hasPath("learning.content.copy.origin_data"))
         originNodeMetadataList = Platform.config.getStringList("learning.content.copy.origin_data")
@@ -85,13 +87,13 @@ object CopyOperation {
     copyNode.getMetadata.put("status", "Draft")
     copyNode.getMetadata.put("origin", existingNode.getIdentifier)
     copyNode.getMetadata.put("identifier", newId)
-    if (originData.nonEmpty)
+    if (!originData.isEmpty())
       copyNode.getMetadata.put("originData", originData)
-    val existingNodeOutRelations:util.List[Relation] = existingNode.getOutRelations
-    val copiedNodeOutRelations:util.List[Relation] = null
+    val existingNodeOutRelations:util.List[Relation] = existingNode.getOutRelations.asInstanceOf[util.ArrayList[Relation]]
+    val copiedNodeOutRelations:util.List[Relation] = new java.util.ArrayList[Relation]()
     if (!CollectionUtils.isEmpty(existingNodeOutRelations)) {
       for (rel <- existingNodeOutRelations.asScala) {
-        if (!("Content", "ContentImage").asInstanceOf[List[String]].contains(rel.getEndNodeObjectType))
+        if (!endNodeObjectTypes.contains(rel.getEndNodeObjectType))
           copiedNodeOutRelations.add(new Relation(newId, rel.getRelationType, rel.getEndNodeId))
       }
     }

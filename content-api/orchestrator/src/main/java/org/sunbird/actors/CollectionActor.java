@@ -17,7 +17,7 @@ public class CollectionActor extends BaseActor {
             case "addHierarchy": return addLeafNodesToHierarchy(request);
             case "removeHierarchy": return removeLeafNodesFromHierarchy(request);
             case "getHierarchy": return getHierarchy(request);
-            case "copyCollection": return copyCollection(request);
+            case "copy": return copyCollection(request);
             default: return ERROR(operation);
         }
     }
