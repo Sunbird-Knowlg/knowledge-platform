@@ -17,7 +17,6 @@ import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
-import org.sunbird.common.Platform
 
 
 object DataNode {
@@ -57,15 +56,10 @@ object DataNode {
         resultNode.map(node => {
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schemaName)
-            val finalNodeFuture: Future[Node] = if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
+            if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
                 Future(node)
-            val isBackwardCompatible = if (Platform.config.hasPath("content.tagging.backward_enable")) Platform.config.getBoolean("content.tagging.backward_enable") else false
-            if(isBackwardCompatible && !StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
-                finalNodeFuture.map(node => updateContentTaggedProperty(node)).flatMap(f => f)
-            else
-                finalNodeFuture
         }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
     }
 
@@ -163,34 +157,5 @@ object DataNode {
             else throw new ClientException("ERR_INVALID_RELATION_OBJECT", "Invalid Relation Object Found.")
         }
         list
-    }
-
-    /**
-     * To support backward compatibility to mobile team.
-     * @param node
-     * @param ec
-     * @return
-     */
-    @Deprecated
-    private def updateContentTaggedProperty(node: Node)(implicit ec:ExecutionContext): Future[Node] = {
-        val contentTaggedKeys = if(Platform.config.hasPath("content.tagging.property"))
-            (for (prop <- Platform.config.getString("content.tagging.property").split(",")) yield prop ) (collection.breakOut)
-        else
-            List("subject", "medium")
-        contentTaggedKeys.map(prop => populateContentTaggedProperty(prop, node.getMetadata.getOrDefault(prop, ""), node))
-        Future{node}
-    }
-
-    private def populateContentTaggedProperty(key:String, value: Any, node:Node)(implicit ec: ExecutionContext): Future[Node] = {
-        val contentValue:String = value match {
-            case v: String => v.asInstanceOf[String]
-            case v: List[Any] => v.head.asInstanceOf[String]
-            case v: Array[String] => v.head
-        }
-        if(!StringUtils.isAllBlank(contentValue))
-            node.getMetadata.put(key, contentValue)
-        else
-            node.getMetadata.remove(key)
-        Future(node)
     }
 }
