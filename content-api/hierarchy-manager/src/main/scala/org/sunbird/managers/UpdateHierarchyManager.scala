@@ -242,7 +242,7 @@ object UpdateHierarchyManager {
             val tempResourceMap = hierarchyData.filter(entry => entry._2.asInstanceOf[util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.CHILDREN)).flatMap(entry => entry._2.asInstanceOf[util.HashMap[String, AnyRef]]
                 .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[String]())
                 .asInstanceOf[util.ArrayList[String]])
-                .filter(child => !tempChildMap.contains(idMap.getOrDefault(child, child))).map(child => child -> List()).toMap
+                .filter(child => !tempChildMap.contains(idMap.getOrDefault(child, child))).map(child => idMap.getOrDefault(child, child) -> List()).toMap
             tempChildMap.++(tempResourceMap)
         } else Map()
         getPreparedHierarchyData(nodeList, hierarchyData, rootId, childrenIdentifiersMap).map(nodeMaps => {
