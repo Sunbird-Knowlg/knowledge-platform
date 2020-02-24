@@ -26,7 +26,7 @@ trait VersioningNode extends IDefinition {
     val IMAGE_OBJECT_SUFFIX = "Image"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read")(implicit ec: ExecutionContext): Future[Node] = {
         operation match {
             case "update" => getNodeToUpdate(identifier);
             case "read" => getNodeToRead(identifier, mode)
@@ -44,32 +44,29 @@ trait VersioningNode extends IDefinition {
             } else {
                 Future{node}
             }
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
+        }).flatMap(f => f)
     }
 
-    private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext) = {
-        val node: Future[Node] = {
-            if("edit".equalsIgnoreCase(mode)){
-                val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
-                imageNode recoverWith {
-                    case e: CompletionException => {
-                        if (e.getCause.isInstanceOf[ResourceNotFoundException])
-                            super.getNode(identifier, "read", mode)
-                        else
-                           throw e.getCause
-                    }
+    private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
+        if ("edit".equalsIgnoreCase(mode)) {
+            val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
+            imageNode recoverWith {
+                case e: CompletionException => {
+                    if (e.getCause.isInstanceOf[ResourceNotFoundException])
+                        super.getNode(identifier, "read", mode)
+                    else
+                        throw e.getCause
                 }
-            } else {
-                val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
-                if(Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
-                    val ttl:Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
-                    getCachedNode(identifier, ttl)
-                }
-                else
-                    super.getNode(identifier , "read", mode)
             }
-        }.map(dataNode => dataNode) recoverWith { case e: CompletionException => throw e.getCause}
-        node
+        } else {
+            val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
+            if (Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
+                val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
+                getCachedNode(identifier, ttl)
+            }
+            else
+                super.getNode(identifier, "read", mode)
+        }
     }
 
     private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext): Future[Node] = {
