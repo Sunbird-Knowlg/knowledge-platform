@@ -59,9 +59,9 @@ object XmlParser {
         }else ""
     }
 
-    def getChildrenPlugin(root: Node): List[Plugin] = {}
+    def getChildrenPlugin(root: Node): List[Plugin] = ???
 
-    def getInnerText(manifestNode: Node): String = {}
+    def getInnerText(manifestNode: Node): String = ???
 
     def getNodeString(node: Node): String = {
         val writer = new StringWriter()
@@ -121,9 +121,7 @@ object XmlParser {
         }
     }
 
-    def getEvents(root: Element): List[Event] = {
-
-    }
+    def getEvents(root: Element): List[Event] = ???
 
 
 }
