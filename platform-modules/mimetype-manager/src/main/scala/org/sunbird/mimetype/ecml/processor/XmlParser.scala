@@ -8,7 +8,7 @@ import javax.xml.transform.stream.StreamResult
 import javax.xml.transform.{Transformer, TransformerFactory}
 import org.apache.commons.lang.StringUtils
 import org.sunbird.common.exception.ClientException
-import org.w3c.dom.{Element, Node}
+import org.w3c.dom.{Element, Node, NodeList}
 
 import scala.collection.mutable.ListBuffer
 import scala.xml._
@@ -30,7 +30,7 @@ object XmlParser {
 
     def processDocument(root: Element): Plugin = {
         if(null != root) {
-            Plugin(getId(root), getData(root), "", getCdata(root), getChildrenPlugin(root), getManifest(root, true), getControllers(root), getEvents(root))
+            Plugin(getId(root), getData(root), "", getCdata(root), getChildrenPlugin(root), getManifest(root, true), getControllers(root.getElementsByTagName("controllers")), getEvents(root))
         }else classOf[Plugin].newInstance()
     }
 
@@ -59,7 +59,7 @@ object XmlParser {
         }else ""
     }
 
-    def getChildrenPlugin(root: Element): List[Plugin] = {}
+    def getChildrenPlugin(root: Node): List[Plugin] = {}
 
     def getInnerText(manifestNode: Node): String = {}
 
@@ -78,13 +78,18 @@ object XmlParser {
     def getMedia(node: Node, validateNode: Boolean): Media = {
         if(null != node){
             val attributeMap = getAttributesMap(node)
+            val id: String = attributeMap.getOrElse("id", "").asInstanceOf[String]
+            val `type`: String = attributeMap.getOrElse("type", "").asInstanceOf[String]
+            val src: String = attributeMap.getOrElse("src", "").asInstanceOf[String]
             if(validateNode){
-                val id: String = attributeMap.getOrElse("id", "").asInstanceOf[String]
-                val `type`: String = attributeMap.getOrElse("type", "").asInstanceOf[String]
-                val src: String = attributeMap.getOrElse("src", "").asInstanceOf[String]
-                if(StringUtils.isBlank(id) && !(StringUtils.isNotBlank(`type`) && (StringUtils.equalsIgnoreCase(`type`, "js") || StringUtils.equalsIgnoreCase(`type`, "css"))))
-                    new ClientException("INVALID_MEDIA", "Error! Invalid Media ('id' is required.) in '" + getNodeString(node) + "' ...")
+                if(StringUtils.isBlank(id))
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('id' is required.) in '" + getNodeString(node) + "' ...")
+                if(!(StringUtils.isNotBlank(`type`) && (StringUtils.equalsIgnoreCase(`type`, "js") || StringUtils.equalsIgnoreCase(`type`, "css"))))
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('type' is required.) in '" + getNodeString(node) + "' ...")
+                if(StringUtils.isBlank(src))
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('src' is required.) in '" + getNodeString(node) + "' ...")
             }
+            Media(id, getData(node), getInnerText(node), getCdata(node), src, `type`, getChildrenPlugin(node))
         } else classOf[Media].newInstance()
     }
 
@@ -105,9 +110,20 @@ object XmlParser {
         Manifest(getId(manifestNode), getData(manifestNode), getInnerText(manifestNode), getCdata(manifestNode), mediaList.toList)
     }
 
-    def getControllers(root: Element): List[Controller] = {}
+    def getControllers(nodeList: NodeList): List[Controller] = {
+        if(null != nodeList && nodeList.getLength > 0) {
+            (0 to nodeList.getLength).toList.map(index => nodeList.item(index)).filter(node => node.getNodeType == Node.ELEMENT_NODE).map(node => {
+                val attributeMap = getAttributesMap(node)
+                Controller(attributeMap.getOrElse("id","").asInstanceOf[String], getData(node), getInnerText(node), getCdata(node))
+            })
+        } else {
+            List()
+        }
+    }
 
-    def getEvents(root: Element): List[Event] = {}
+    def getEvents(root: Element): List[Event] = {
+
+    }
 
 
 }
