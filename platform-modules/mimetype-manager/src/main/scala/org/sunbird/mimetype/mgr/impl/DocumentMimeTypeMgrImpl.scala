@@ -25,7 +25,7 @@ object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager 
 			} else uploadFile
 		val result: Array[String] = uploadArtifactToCloud(file, objectId)
 		Future {
-			Map("identifier" -> objectId, "artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "size" -> getCloudStoredFileSize(result(0)))
+			Map("identifier" -> objectId, "artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "size" -> getCloudStoredFileSize(result(0)).asInstanceOf[AnyRef])
 		}
 	}
 
