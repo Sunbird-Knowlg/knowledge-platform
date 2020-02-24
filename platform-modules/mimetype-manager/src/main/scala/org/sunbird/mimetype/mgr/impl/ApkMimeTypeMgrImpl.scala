@@ -7,10 +7,9 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object DefaultMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+object ApkMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 
 	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, Any]] = ???
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, Any]] = ???
-
 }

@@ -11,13 +11,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object YouTubeMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
 		throw new ClientException("UPLOAD_DENIED", UPLOAD_DENIED_ERR_MSG)
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
 		validateUploadRequest(objectId, node, fileUrl)
-		Future{Map[String, AnyRef]("identifier" -> objectId, "node_id"->objectId, "content_url"->fileUrl,"artifactUrl" -> fileUrl)}
+		Future{Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl)}
 	}
 
 }
