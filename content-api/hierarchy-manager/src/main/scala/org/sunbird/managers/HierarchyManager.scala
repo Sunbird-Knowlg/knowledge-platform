@@ -6,7 +6,7 @@ import java.util.concurrent.CompletionException
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.external.ExternalPropsManager
@@ -23,6 +23,7 @@ object HierarchyManager {
     val schemaVersion: String = "1.0"
     val imgSuffix: String = ".img"
     val hierarchyPrefix: String = "hierarchy_"
+    val statusList = List("Live", "Unlisted")
 
     val keyTobeRemoved = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))
@@ -114,22 +115,21 @@ object HierarchyManager {
     def getUnPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
-            if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.get("status").asInstanceOf[String])) {
+            if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.getOrDefault("status", "").asInstanceOf[String])) {
                 ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
             }
-            if(!StringUtils.isEmpty(rootNode.getMetadata().get("variants").asInstanceOf[String])) {
+            if(!StringUtils.isEmpty(rootNode.getMetadata().getOrDefault("variants", "").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
             }
-            val hierarchyFuture = fetchHierarchy(request)
-            hierarchyFuture.map(hierarchy => {
-                if (!hierarchy.isEmpty) {
-                    rootNode.getMetadata().put("children", hierarchy("children"))
-                }
+            val hierarchy = fetchHierarchy(request,rootNode.getIdentifier)
+            hierarchy.map(hierarchy => {
+                if(!hierarchy.isEmpty && !hierarchy.getOrDefault("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]].isEmpty)
+                    rootNode.getMetadata().put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
                 rootNode.getMetadata().put("identifier", request.get("rootId"))
                 val response: Response = ResponseHandler.OK
                 response.put("content", rootNode.getMetadata())
-                response
-            })
+                Future(response)
+            }).flatMap(f => f)
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
@@ -141,16 +141,18 @@ object HierarchyManager {
             response.put("content", mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))
             Future(response)
         } else {
-            val hierarchyFuture = fetchHierarchy(request)
-            hierarchyFuture.map(hierarchy => {
-                if (hierarchy.isEmpty) {
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
-                } else {
-                    response.put("content", mapAsJavaMap(hierarchy))
-                    RedisCache.set(hierarchyPrefix + request.get("rootId"), ScalaJsonUtils.serialize(hierarchy), 0)
-                    response
-                }
-            })
+            val hierarchy = fetchHierarchy(request, request.getRequest.get("rootId").asInstanceOf[String])
+            hierarchy.map(hierarchy => {
+                if(!hierarchy.isEmpty) {
+                    if (!hierarchy.getOrDefault("status", "").asInstanceOf[String].isEmpty && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
+                        response.put("content", new util.HashMap[String, AnyRef](hierarchy))
+                        RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(new util.HashMap[String, AnyRef](hierarchy)))
+                        Future(response)
+                    } else
+                        Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
+                } else
+                     Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
+            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
         }
     }
 
@@ -159,13 +161,13 @@ object HierarchyManager {
         val unitId = request.get("unitId").asInstanceOf[String]
         val children = request.get("children").asInstanceOf[java.util.List[String]]
 
-        if(StringUtils.isBlank(rootId)){
+        if (StringUtils.isBlank(rootId)) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "rootId is mandatory")
         }
-        if(StringUtils.isBlank(unitId)){
+        if (StringUtils.isBlank(unitId)) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "unitId is mandatory")
         }
-        if(null == children || children.isEmpty){
+        if (null == children || children.isEmpty) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "children are mandatory")
         }
     }
@@ -173,7 +175,8 @@ object HierarchyManager {
     private def getRootNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
         req.put("identifier", request.get("rootId").asInstanceOf[String])
-        req.put("mode", "edit")
+        req.put("mode", request.get("mode").asInstanceOf[String])
+        req.put("fields",request.get("fields").asInstanceOf[java.util.List[String]])
         DataNode.read(req)
     }
 
@@ -319,6 +322,39 @@ object HierarchyManager {
             filteredLeafNodes.add(node)
         })
         filteredLeafNodes
+    }
+
+    def fetchHierarchy(request: Request, identifier:String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+        val req = new Request(request)
+        req.put("identifier", identifier)
+        val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+        responseFuture.map(response => {
+            if(!ResponseHandler.checkError(response)){
+                val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
+                if (!hierarchyString.isEmpty) {
+                    Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                } else
+                    Future(Map[String, AnyRef]())
+                } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404 && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
+                    req.put("identifier", identifier.replaceAll(".img", "") + ".img")
+                    val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+                    responseFuture.map(response => {
+                        if(!ResponseHandler.checkError(response)){
+                            val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
+                            if (!hierarchyString.isEmpty) {
+                                JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap
+                            } else
+                                Map[String, AnyRef]()
+                        } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
+                            Map[String, AnyRef]()
+                        else
+                            throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
+                    })
+                } else if(ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
+                    Future(Map[String, AnyRef]())
+              else
+                 throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA","Error while fetching hierarchy from cassandra")
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
 }
