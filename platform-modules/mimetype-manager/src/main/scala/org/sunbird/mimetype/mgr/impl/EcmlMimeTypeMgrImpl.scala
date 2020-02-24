@@ -11,11 +11,8 @@ import org.sunbird.mimetype.util.FileUtils
 import scala.concurrent.{ExecutionContext, Future}
 
 object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, Any]] = ???
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, Any]] = ???
-
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
 		FileUtils.validateFilePackage(uploadFile)
 		//generateECRF
 		val basePath:String = getBasePath(objectId)
@@ -30,15 +27,23 @@ object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 		uploadArtifactToCloud(uploadFile, objectId)
 		//extractFile
 
-		Future{Map("artifactUrl" -> "http://ecmlartifact.zip")}
+		Future{Map("identifier"->objectId,"artifactUrl" -> "http://ecmlartifact.zip")}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file: File = copyURLToFile(objectId, fileUrl)
 		upload(objectId, node, file)
 	}
 
+	def getEcmlType(basePath: String):String = {
+		val jsonFile = new File(basePath + File.separator + "index.json")
+		val xmlFile = new File(basePath + File.separator + "index.ecml")
+		if(null != jsonFile && jsonFile.exists() && null != xmlFile && xmlFile.exists()) throw new ClientException("MULTIPLE_ECML", "MULTIPLE_ECML_FILES_FOUND | [index.json and index.ecml]")
+		if(jsonFile.exists()) "json"
+		else if(xmlFile.exists()) "ecml"
+		else ""
+	}
 
 	def getEcrfObject(ecmlType: String, ecml: String): Plugin = {
 		ecmlType match {
