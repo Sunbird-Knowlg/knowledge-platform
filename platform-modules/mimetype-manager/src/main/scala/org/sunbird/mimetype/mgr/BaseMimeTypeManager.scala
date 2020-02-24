@@ -120,5 +120,15 @@ class BaseMimeTypeManager {
 		}
 	}
 
+	protected def getCloudStoredFileSize(key: String): Double = {
+		val size = 0
+		if (StringUtils.isNotBlank(key)) try return CloudStore.getObjectSize(key)
+		catch {
+			case e: Exception =>
+				TelemetryManager.error("Error While getting the file size from Cloud Storage: " + key, e)
+		}
+		size
+	}
+
 }
 
