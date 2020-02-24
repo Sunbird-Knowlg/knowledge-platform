@@ -15,10 +15,13 @@ import org.sunbird.graph.utils.NodeUtil;
 import org.sunbird.utils.RequestUtils;
 import scala.concurrent.Future;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.sunbird.common.Platform;
+import static java.util.stream.Collectors.toList;
 
 public class ContentActor extends BaseActor {
 
@@ -75,6 +78,9 @@ public class ContentActor extends BaseActor {
                 .map(new Mapper<Node, Response>() {
                     @Override
                     public Response apply(Node node) {
+                        // Added for backward compatibility in mobile
+                        if(!StringUtils.isEmpty((String)request.getRequest().get("mode")) && !StringUtils.equals("edit", (String)request.getRequest().get("mode")))
+                            updateContentTaggedProperty(node);
                         Map<String, Object> metadata = NodeUtil.serialize(node, fields, (String) request.getContext().get("schemaName"), (String)request.getContext().get("version"));
                         metadata.put("identifier", node.getIdentifier().replace(".img", ""));
                         Response response = ResponseHandler.OK();
@@ -131,4 +137,47 @@ public class ContentActor extends BaseActor {
         }
     }
 
+    /**
+     *
+     * @param node
+     */
+    private void updateContentTaggedProperty(Node node) {
+        Boolean contentTaggingFlag = Platform.config.hasPath("content.tagging.backward_enable")?
+                Platform.config.getBoolean("content.tagging.backward_enable"): false;
+        if(contentTaggingFlag) {
+            List <String> contentTaggedKeys = Platform.config.hasPath("content.tagging.property") ?
+                    Arrays.asList(Platform.config.getString("content.tagging.property").split(",")):
+                    new ArrayList<>(Arrays.asList("subject","medium"));
+            contentTaggedKeys.forEach(contentTagKey -> {
+                if(node.getMetadata().containsKey(contentTagKey)) {
+                    List<String> prop = prepareList(node.getMetadata().get(contentTagKey));
+                    node.getMetadata().put(contentTagKey, prop.get(0));
+                }
+            });
+        }
+    }
+
+    /**
+     *
+     * @param obj
+     * @return
+     */
+    private static List<String> prepareList(Object obj) {
+        List<String> list = new ArrayList<String>();
+        try {
+            if (obj instanceof String) {
+                list.add((String) obj);
+            } else if (obj instanceof String[]) {
+                list = Arrays.asList((String[]) obj);
+            } else if (obj instanceof List){
+                list.addAll((List<String>) obj);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (null != list) {
+            list = list.stream().filter(x -> org.apache.commons.lang3.StringUtils.isNotBlank(x) && !org.apache.commons.lang3.StringUtils.equals(" ", x)).collect(toList());
+        }
+        return list;
+    }
 }

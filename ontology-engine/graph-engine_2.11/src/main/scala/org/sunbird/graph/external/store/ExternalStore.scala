@@ -87,6 +87,23 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
     }
 
+    def delete(identifier: String)(implicit ec: ExecutionContext): Future[Response] = {
+        val delete = QueryBuilder.delete()
+        val deleteQuery = delete.from(keySpace, table).where(QueryBuilder.eq(primaryKey.get(0), identifier))
+        try {
+            val session: Session = CassandraConnector.getSession
+            session.executeAsync(deleteQuery).asScala.map(resultSet => {
+                if (!resultSet.wasApplied())
+                    TelemetryManager.error("Entry is not found in cassandra for content with identifier: " + identifier)
+                ResponseHandler.OK()
+            })
+        } catch {
+            case e: Exception =>
+                TelemetryManager.error("Exception Occurred While Deleting The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
+        }
+    }
+
     implicit class RichListenableFuture[T](lf: ListenableFuture[T]) {
         def asScala : Future[T] = {
             val p = Promise[T]()
