@@ -2,11 +2,14 @@ package org.sunbird.content.actors
 
 import java.io.File
 import java.util
+import java.util.concurrent.CompletionException
 
+import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.ContentParams
+import org.sunbird.cloudstore.CloudStore
+import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
 import org.sunbird.content.util.RequestUtil
@@ -28,6 +31,7 @@ class ContentActor extends BaseActor {
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -109,6 +113,23 @@ class ContentActor extends BaseActor {
 		}).flatMap(f => f)
 	}
 
+	def uploadPreSignedUrl(request: Request): Future[Response] = {
+		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
+		val fileName: String = request.get("fileName").asInstanceOf[String]
+		val identifier: String = request.get("identifier").asInstanceOf[String]
+		validatePresignedUrlRequest(`type`, fileName)
+		DataNode.read(request).map(node => {
+			val response = ResponseHandler.OK()
+			val objectKey = "content/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
+			val preSignedURL = CloudStore.getCloudStoreService.getSignedURL(CloudStore.getContainerName, objectKey, Option.apply(expiry.toInt), Option.apply("w"))
+			response.put("identifier", identifier)
+			response.put("pre_signed_url", preSignedURL)
+			response.put("url_expiry.name", expiry)
+			response
+		}) recoverWith { case e: CompletionException => throw e.getCause }
+	}
+
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
@@ -141,5 +162,14 @@ class ContentActor extends BaseActor {
 			if (mimeType.endsWith("youtube") || mimeType.endsWith("x-url")) request.put(ContentParams.contentDisposition.name, ContentParams.online.name)
 			else request.put(ContentParams.contentDisposition.name, ContentParams.inline.name)
 		}
+	}
+
+	private def validatePresignedUrlRequest(`type`: String, fileName: String): Unit = {
+		if (StringUtils.isEmpty(fileName))
+			throw new ClientException("ERR_CONTENT_BLANK_FILE_NAME", "File name is blank")
+		if (StringUtils.isBlank(FilenameUtils.getBaseName(fileName)) || StringUtils.length(Slug.makeSlug(fileName, true)) > 256)
+			throw new ClientException("ERR_CONTENT_INVALID_FILE_NAME", "Please Provide Valid File Name.")
+		if (!preSignedObjTypes.contains(`type`))
+			throw new ClientException("ERR_INVALID_PRESIGNED_URL_TYPE", "Invalid pre-signed url type. It should be one of " + StringUtils.join(preSignedObjTypes, ","))
 	}
 }
