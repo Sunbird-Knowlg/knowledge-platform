@@ -127,7 +127,7 @@ class ContentActor extends BaseActor {
 			val preSignedURL = CloudStore.getCloudStoreService.getSignedURL(CloudStore.getContainerName, objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
 			response.put("pre_signed_url", preSignedURL)
-			response.put("url_expiry.name", expiry)
+			response.put("url_expiry", expiry)
 			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
