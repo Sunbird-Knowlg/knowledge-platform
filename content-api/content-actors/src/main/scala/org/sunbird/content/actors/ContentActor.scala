@@ -116,11 +116,13 @@ class ContentActor extends BaseActor {
 	def uploadPreSignedUrl(request: Request): Future[Response] = {
 		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
 		val fileName: String = request.get("fileName").asInstanceOf[String]
+		val filePath: String = request.getRequest.getOrDefault("filePath","").asInstanceOf[String]
+			.replaceAll("^/+|/+$", "")
 		val identifier: String = request.get("identifier").asInstanceOf[String]
-		validatePresignedUrlRequest(`type`, fileName)
+		validatePreSignedUrlRequest(`type`, fileName, filePath)
 		DataNode.read(request).map(node => {
 			val response = ResponseHandler.OK()
-			val objectKey = "content/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+			val objectKey = "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = CloudStore.getCloudStoreService.getSignedURL(CloudStore.getContainerName, objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
@@ -164,12 +166,15 @@ class ContentActor extends BaseActor {
 		}
 	}
 
-	private def validatePresignedUrlRequest(`type`: String, fileName: String): Unit = {
+	private def validatePreSignedUrlRequest(`type`: String, fileName: String, filePath: String): Unit = {
 		if (StringUtils.isEmpty(fileName))
 			throw new ClientException("ERR_CONTENT_BLANK_FILE_NAME", "File name is blank")
 		if (StringUtils.isBlank(FilenameUtils.getBaseName(fileName)) || StringUtils.length(Slug.makeSlug(fileName, true)) > 256)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_NAME", "Please Provide Valid File Name.")
 		if (!preSignedObjTypes.contains(`type`))
 			throw new ClientException("ERR_INVALID_PRESIGNED_URL_TYPE", "Invalid pre-signed url type. It should be one of " + StringUtils.join(preSignedObjTypes, ","))
+		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
+			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
+
 }
