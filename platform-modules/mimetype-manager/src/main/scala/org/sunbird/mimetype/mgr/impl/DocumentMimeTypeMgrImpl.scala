@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val file: File =
 			if (StringUtils.equalsAnyIgnoreCase("application/epub", node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String])) {
@@ -25,11 +25,11 @@ object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager 
 			} else uploadFile
 		val result: Array[String] = uploadArtifactToCloud(file, objectId)
 		Future {
-			Map("identifier" -> objectId, "artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "size" -> getCloudStoredFileSize(result(0)))
+			Map("identifier" -> objectId, "artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "size" -> getCloudStoredFileSize(result(0)).asInstanceOf[AnyRef])
 		}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		Future {
 			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl)

@@ -9,6 +9,7 @@ import scala.collection.mutable.ListBuffer
 
 object JsonParser {
 
+
     val nonPluginElements: List[String] = List("manifest", "controller", "media", "events", "event", "__cdata", "__text")
 
     def parse(jsonString: String): Plugin = {
@@ -93,7 +94,7 @@ object JsonParser {
         if(!"items".equalsIgnoreCase(`type`.getAsString) && !"data".equalsIgnoreCase(`type`.getAsString))
             throw new ClientException("INVALID_CONTROLLER", "Error! Invalid Controller ('type' should be either 'items' or 'data')")
     }
-
+    
     def getEventsfromObject(jsonObject: JsonObject): List[Event] = {
         if(null != jsonObject && jsonObject.isJsonArray){
             val jsonList:List[JsonObject] = new Gson().fromJson(jsonObject, List.getClass)
@@ -142,5 +143,5 @@ object JsonParser {
             Media(id, getData(mediaJson, "media"), getInnerText(mediaJson), getCdata(mediaJson), src, `type`, getChildrenPlugin(mediaJson))
         } else classOf[Media].newInstance()
     }
-
+    
 }

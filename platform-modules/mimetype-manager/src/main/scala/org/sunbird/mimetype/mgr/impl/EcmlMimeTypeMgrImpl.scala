@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		FileUtils.validateFilePackage(uploadFile)
 		//generateECRF
 		val basePath:String = getBasePath(objectId)
@@ -30,7 +30,7 @@ object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 		Future{Map("identifier"->objectId,"artifactUrl" -> "http://ecmlartifact.zip")}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, Any]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file: File = copyURLToFile(objectId, fileUrl)
 		upload(objectId, node, file)
