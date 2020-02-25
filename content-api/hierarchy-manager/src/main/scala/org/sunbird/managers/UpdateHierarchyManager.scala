@@ -183,7 +183,7 @@ object UpdateHierarchyManager {
                         metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
                     createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                 } else {
-                    updateTempNode(nodeModified._1, nodeList, idMap, metadata)
+                    updateTempNode(nodeModified._1, nodeList, idMap, metadata, rootId)
                     Future(ResponseHandler.OK())
                 }
             })
@@ -218,10 +218,11 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
+    private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], rootId: String)(implicit ec: ExecutionContext): Unit = {
         val tempNode: Node = getTempNode(nodeList, nodeId)
         if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
+            metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, rootId).getMetadata.get(HierarchyConstants.CHANNEL))
             idMap += (nodeId -> tempNode.getIdentifier)
             updateNodeList(nodeList, tempNode.getIdentifier, metadata)
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
