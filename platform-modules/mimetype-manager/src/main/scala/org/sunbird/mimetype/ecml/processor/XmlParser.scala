@@ -10,10 +10,13 @@ import org.apache.commons.lang.StringUtils
 import org.sunbird.common.exception.ClientException
 import org.w3c.dom.{Element, Node, NodeList}
 
+import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.xml._
+
 object XmlParser {
 
+    val nonPluginElements: List[String] = List("manifest", "controller", "media", "events", "event", "__cdata", "__text")
     def parse(xml: String): Plugin = {
         val strReader = new StringReader(xml)
         try{
@@ -59,9 +62,23 @@ object XmlParser {
         }else ""
     }
 
-    def getChildrenPlugin(root: Node): List[Plugin] = {}
+    def getChildrenPlugin(node: Node): List[Plugin] = {
+        if(null != node && node.hasChildNodes){
+            val nodeList = node.getChildNodes
+            (0 to nodeList.getLength).toList.map(index => nodeList.item(index))
+                    .filter(node => (Node.ELEMENT_NODE == node.getNodeType && !nonPluginElements.contains(node.getNodeName) && !"event".equalsIgnoreCase(node.getNodeName)))
+                    .map(node => Plugin(getId(node), getData(node), getInnerText(node), getCdata(node), getChildrenPlugin(node), getManifest(node, false), getControllers(node.asInstanceOf[Element].getElementsByTagName("controllers")), getEvents(node)))
+        }else {
+            List()
+        }
+    }
 
-    def getInnerText(manifestNode: Node): String = {}
+    def getInnerText(node: Node): String = {
+        if(null != node && Node.ELEMENT_NODE == node.getNodeType && node.hasChildNodes){
+            val childNodes = node.getChildNodes
+            (0 to childNodes.getLength).toList.map(index => childNodes.item(index)).filter(item => Node.TEXT_NODE == item.getNodeType).map(item => item.getTextContent).head
+        }else ""
+    }
 
     def getNodeString(node: Node): String = {
         val writer = new StringWriter()
@@ -121,9 +138,20 @@ object XmlParser {
         }
     }
 
-    def getEvents(root: Element): List[Event] = {
-
+    def getEvents(node: Node): List[Event] = {
+        var eventsList: ListBuffer[Event] = ListBuffer()
+        if(null != node && node.hasChildNodes){
+            val childNodes = node.getChildNodes
+            (0 to childNodes.getLength).toList.map(index => {
+                if(Node.ELEMENT_NODE == childNodes.item(index).getNodeType && "events".equalsIgnoreCase(childNodes.item(index).getNodeName)){
+                    eventsList ++= getEvents(childNodes.item(index))
+                }
+                if(Node.ELEMENT_NODE == childNodes.item(index).getNodeType && "event".equalsIgnoreCase(childNodes.item(index).getNodeName)){
+                    eventsList += Event(getId(childNodes.item(index)), getData(childNodes.item(index)), getInnerText(childNodes.item(index)), getCdata(childNodes.item(index)), getChildrenPlugin(childNodes.item(index)))
+                }
+            })
+        }
+        eventsList.toList
     }
-
 
 }
