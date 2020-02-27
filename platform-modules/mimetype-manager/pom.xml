@@ -69,6 +69,16 @@
             <artifactId>scala-xml_2.11</artifactId>
             <version>1.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play-json_2.11</artifactId>
+            <version>2.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>1.22</version>
+        </dependency>
     </dependencies>
 
     <build>

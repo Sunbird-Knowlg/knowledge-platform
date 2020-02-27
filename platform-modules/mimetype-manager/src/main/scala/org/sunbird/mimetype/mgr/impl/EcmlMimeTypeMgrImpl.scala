@@ -4,6 +4,7 @@ import java.io.File
 
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.mimetype.ecml.ECMLExtractor
 import org.sunbird.mimetype.ecml.processor.{JsonParser, Plugin, XmlParser}
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.mimetype.util.FileUtils
@@ -23,6 +24,7 @@ object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 		// generate ECML
 		val ecrf: Plugin = getEcrfObject(ecmlType, ecml);
 
+		val processedEcrf: Plugin = new ECMLExtractor(basePath, objectId).process(ecrf)
 		//upload file
 		uploadArtifactToCloud(uploadFile, objectId)
 		//extractFile
