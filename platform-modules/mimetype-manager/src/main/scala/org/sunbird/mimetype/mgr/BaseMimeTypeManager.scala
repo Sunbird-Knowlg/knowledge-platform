@@ -8,6 +8,7 @@ import java.util.zip.ZipFile
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
+import org.apache.tika.Tika
 import org.sunbird.cloudstore.CloudStore
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{Platform, Slug}
@@ -129,6 +130,18 @@ class BaseMimeTypeManager {
 		}
 		size
 	}
+
+	def getFileMimeType(file: File): String = {
+		val tika = new Tika()
+		try tika.detect(file)
+		catch {
+			case e: IOException => {
+				e.printStackTrace()
+				""
+			}
+		}
+	}
+
 
 }
 
