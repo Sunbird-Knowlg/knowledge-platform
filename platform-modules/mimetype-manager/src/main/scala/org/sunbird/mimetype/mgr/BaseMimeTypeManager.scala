@@ -13,7 +13,6 @@ import org.sunbird.cloudstore.CloudStore
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.mimetype.mgr.BaseMimeTypeManager.generateZipEntry
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.ExecutionContext
@@ -155,14 +154,14 @@ class BaseMimeTypeManager {
 		Files.walk(Paths.get(new File(sourceFolder).getPath)).toArray()
 			.map(path => path.asInstanceOf[Path])
 			.filter(path => Files.isRegularFile(path))
-			.map(path => generateZipEntry(path.asInstanceOf[String], sourceFolder)).toList
+			.map(path => generateZipEntry(path.toString, sourceFolder)).toList
 
 
 	private def generateZipEntry(file: String, sourceFolder: String): String = file.substring(sourceFolder.length, file.length)
 
 	private def zipIt(zipFile: String, fileList: List[String], sourceFolder: String): Unit = {
 		val buffer = new Array[Byte](1024)
-		var zos: ZipOutputStream = _
+		var zos: ZipOutputStream = null
 		try {
 			zos = new ZipOutputStream(new FileOutputStream(zipFile))
 			TelemetryManager.log("Creating Zip File: " + zipFile)
@@ -172,12 +171,12 @@ class BaseMimeTypeManager {
 				val in = new FileInputStream(sourceFolder + File.separator + file)
 				try {
 					val len = in.read(buffer)
-					while (len > 0) zos.write(buffer, 0, len)
+//					while (len > 0) zos.write(buffer, 0, len)
 				} finally if (in != null) in.close()
 				zos.closeEntry()
 			})
 		} catch {
-			case ex: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + ex.getMessage, ex)
+			case e: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + e.getMessage, e)
 		} finally if (zos != null) zos.close()
 	}
 }

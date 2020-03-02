@@ -66,4 +66,26 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 		assert(new File("/tmp/validEcmlContent/index.ecml").exists())
 	}
 
+	"createZipPackage" should "Zip the files into a single package" in {
+		try {
+			mgr.createZipPackage(Resources.getResource("filesToZip").getPath, Resources.getResource("filesToZip").getPath.replace("filesToZip", "")
+				+ "test_zip.zip")
+			assert(new File(Resources.getResource("test_zip.zip").getPath).exists())
+		} finally {
+			FileUtils.deleteQuietly(new File(Resources.getResource("test_zip.zip").getPath))
+		}
+	}
+
+
+	"createZipPackageWithNestedFiles" should "Zip the files into a single package" in {
+		try {
+			mgr.createZipPackage(Resources.getResource("filesToZipNested").getPath, Resources.getResource("filesToZip").getPath.replace("filesToZip", "")
+				+ "test_zip_nested.zip")
+			assert(new File(Resources.getResource("test_zip_nested.zip").getPath).exists())
+		}
+		finally {
+			FileUtils.deleteQuietly(new File(Resources.getResource("test_zip_nested.zip").getPath))
+		}
+	}
+
 }
