@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException}
+import org.sunbird.common.kafka.KafkaClientUtil
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
