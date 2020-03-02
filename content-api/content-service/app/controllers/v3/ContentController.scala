@@ -96,4 +96,15 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(readRequest, version, objectType, null)
         getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
     }
+
+	def upload(identifier: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val content = requestFormData()
+		content.putAll(headers)
+		val contentRequest = getRequest(content, headers, "uploadContent")
+		setRequestContext(contentRequest, version, objectType, schemaName)
+		contentRequest.getContext.put("identifier", identifier);
+		getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
+	}
+
 }
