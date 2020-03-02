@@ -32,10 +32,11 @@ object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 		val processedEcrf: Plugin = new ECMLExtractor(basePath, objectId).process(ecrf)
 		val processedEcml: String = getEcmlStringFromEcrf(processedEcrf, ecmlType)
 		//upload file
-		uploadArtifactToCloud(uploadFile, objectId)
+		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
 		//extractFile
+		extractPackageInCloud(objectId, uploadFile, node, "snapshot", true)
 
-		Future{Map("identifier"->objectId,"artifactUrl" -> "http://ecmlartifact.zip", "body" -> processedEcml)}
+		Future{Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0), "body" -> processedEcml)}
 	}
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
