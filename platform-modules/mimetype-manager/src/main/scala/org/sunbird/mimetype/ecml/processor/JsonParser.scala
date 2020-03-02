@@ -138,5 +138,62 @@ object JsonParser {
             Media(id, getData(mediaJson, "media"), getInnerText(mediaJson), getCdata(mediaJson), src, `type`, getChildrenPlugin(mediaJson))
         } else classOf[Media].newInstance()
     }
+
+
+    /**
+     * serialize
+     * @param plugin
+     * @return
+     */
+    def toString(plugin: Plugin): String = {
+        val map:Map[String, AnyRef] = plugin.data ++ Map[String, AnyRef]("__text" -> plugin.innerText, "__cdata" -> plugin.cData) ++ getManifestMap(plugin.manifest) ++ getControllersMap(plugin.controllers) ++ getEventsMap(plugin.events)
+        ScalaJsonUtils.serialize(Map[String, AnyRef]("theme" -> map))
+    }
+
+    def getManifestMap(manifest: Manifest):Map[String, AnyRef] = {
+        if(null != manifest && null != manifest.medias && !manifest.medias.isEmpty){
+            val map:Map[String, AnyRef] = manifest.data ++ Map[String, AnyRef]("__text" -> manifest.innerText, "__cdata" -> manifest.cData) ++ getMediaMap(manifest.medias)
+            Map[String, AnyRef]("manifest" -> map)
+        }else Map[String, AnyRef]()
+    }
+
+    def getControllersMap(controllers: List[Controller]):Map[String, AnyRef] = {
+        if(null != controllers && !controllers.isEmpty){
+           val controllerMap:List[Map[String, AnyRef]] =  controllers.map(controller => {
+                controller.data ++ Map[String, AnyRef]("__text" -> controller.innerText, "__cdata" -> controller.cData)
+            })
+            Map[String, AnyRef]("controller" -> controllerMap)
+        }else Map[String, AnyRef]()
+    }
+
+    def getEventsMap(events: List[Event]):Map[String, AnyRef] = {
+        if(null != events && !events.isEmpty){
+            val eventsList: List[Map[String, AnyRef]] = events.map(event => event.data ++ Map[String, AnyRef]("__text" -> event.innerText, "__cdata" -> event.cData) ++ getChildPluginMap(event.childrenPlugin))
+
+            if(eventsList.length > 1) {
+                Map[String, AnyRef]("events" -> Map[String, AnyRef]("event" -> eventsList))
+            }else {
+                Map[String, AnyRef]("event" -> eventsList.head)
+            }
+        } else Map[String, AnyRef]()
+    }
+
+    def getMediaMap(medias: List[Media]): Map[String, AnyRef] = {
+        val mediasMap = medias.map(media => media.data ++ Map[String, AnyRef]("__text" -> media.innerText, "__cdata" -> media.cData) ++ getChildPluginMap(media.childrenPlugin))
+        Map[String, AnyRef]("media" -> mediasMap)
+    }
+
+    def getChildPluginMap(plugins: List[Plugin]):Map[String, AnyRef] = {
+        if(null != plugins && !plugins.isEmpty){
+            plugins.filter(plugin => StringUtils.isNotBlank(plugin.data.get("cwp_element_name").get.asInstanceOf[String]))
+                    .groupBy(plugin => plugin.data.get("cwp_element_name").get.asInstanceOf[String])
+                    .map(entry => {
+                        if(entry._2.size == 1)
+                            entry._1 -> entry._2.map(plugin => plugin.data ++ Map[String, AnyRef]("__text" -> plugin.innerText, "__cdata" -> plugin.cData) ++ getManifestMap(plugin.manifest) ++ getControllersMap(plugin.controllers) ++ getEventsMap(plugin.events)).head
+                        else
+                            entry._1 -> entry._2.map(plugin => plugin.data ++ Map[String, AnyRef]("__text" -> plugin.innerText, "__cdata" -> plugin.cData) ++ getManifestMap(plugin.manifest) ++ getControllersMap(plugin.controllers) ++ getEventsMap(plugin.events))
+                    })
+        }else  Map[String, AnyRef]()
+    }
     
 }
