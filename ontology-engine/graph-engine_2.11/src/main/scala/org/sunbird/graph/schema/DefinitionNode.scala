@@ -82,28 +82,27 @@ object DefinitionNode {
 	    val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
         val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-        val dbNodeFuture = definition.getNode(identifier, "update", null)
-        val validationResult: Future[Node] = dbNodeFuture.map(dbNode => {
+        definition.getNode(identifier, "update", null).map(dbNode => {
             resetJsonProperties(dbNode, graphId, version, schemaName)
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
-	        val dbRels = getDBRelations(graphId, schemaName, version, req, dbNode)
-            setRelationship(dbNode,inputNode, dbRels)
+            val dbRels = getDBRelations(graphId, schemaName, version, req, dbNode)
+            setRelationship(dbNode, inputNode, dbRels)
             if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
                 inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
                 dbNode.getMetadata.remove("isImageNodeCreated")
             }
             dbNode.getMetadata.putAll(inputNode.getMetadata)
-            if(MapUtils.isNotEmpty(inputNode.getExternalData)){
-                if(MapUtils.isNotEmpty(dbNode.getExternalData))
+            if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
+                if (MapUtils.isNotEmpty(dbNode.getExternalData))
                     dbNode.getExternalData.putAll(inputNode.getExternalData)
                 else
                     dbNode.setExternalData(inputNode.getExternalData)
             }
-            if(!skipValidation)
-                definition.validate(dbNode,"update")
-            else Future{dbNode}
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
-        validationResult
+            if (!skipValidation)
+                definition.validate(dbNode, "update")
+            else Future (dbNode)
+
+        }).flatMap(f => f)
     }
 
 	def postProcessor(request: Request, node: Node)(implicit ec: ExecutionContext): Node = {
@@ -239,15 +238,18 @@ object DefinitionNode {
 
     def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-        val jsonProps = fetchJsonProps(graphId, version, schemaName)
         val futures = nodes.map(node => {
-            val metadata = node.getMetadata
-            metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
             definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
         })
         Future.sequence(futures)
     }
-
+    def updateJsonPropsInNodes(nodes: List[Node], graphId: String, schemaName: String, version: String) = {
+        val jsonProps = fetchJsonProps(graphId, version, schemaName)
+        nodes.map(node => {
+            val metadata = node.getMetadata
+            metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
+        })
+    }
     def convertJsonProperties(entry: (String, AnyRef), jsonProps: scala.List[String]) = {
         try {
             mapper.readTree(entry._2.asInstanceOf[String])
