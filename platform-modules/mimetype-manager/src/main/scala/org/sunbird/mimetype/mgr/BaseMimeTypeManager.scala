@@ -1,9 +1,9 @@
 package org.sunbird.mimetype.mgr
 
-import java.io.{File, IOException}
+import java.io.{File, FileInputStream, FileOutputStream, IOException}
 import java.net.URL
-import java.nio.file.{Files, Paths}
-import java.util.zip.ZipFile
+import java.nio.file.{Files, Path, Paths}
+import java.util.zip.{ZipEntry, ZipFile, ZipOutputStream}
 
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
@@ -13,6 +13,7 @@ import org.sunbird.cloudstore.CloudStore
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.mimetype.mgr.BaseMimeTypeManager.generateZipEntry
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.ExecutionContext
@@ -142,6 +143,43 @@ class BaseMimeTypeManager {
 		}
 	}
 
+	def createZipPackage(basePath: String, zipFileName: String): Unit =
+		if (!StringUtils.isBlank(zipFileName)) {
+			TelemetryManager.log("Creating Zip File: " + zipFileName)
+			val fileList: List[String] = generateFileList(basePath)
+			zipIt(zipFileName, fileList, basePath)
+		}
 
+
+	private def generateFileList(sourceFolder: String): List[String] =
+		Files.walk(Paths.get(new File(sourceFolder).getPath)).toArray()
+			.map(path => path.asInstanceOf[Path])
+			.filter(path => Files.isRegularFile(path))
+			.map(path => generateZipEntry(path.asInstanceOf[String], sourceFolder)).toList
+
+
+	private def generateZipEntry(file: String, sourceFolder: String): String = file.substring(sourceFolder.length, file.length)
+
+	private def zipIt(zipFile: String, fileList: List[String], sourceFolder: String): Unit = {
+		val buffer = new Array[Byte](1024)
+		var zos: ZipOutputStream = _
+		try {
+			zos = new ZipOutputStream(new FileOutputStream(zipFile))
+			TelemetryManager.log("Creating Zip File: " + zipFile)
+			fileList.foreach(file => {
+				val ze = new ZipEntry(file)
+				zos.putNextEntry(ze)
+				val in = new FileInputStream(sourceFolder + File.separator + file)
+				try {
+					val len = in.read(buffer)
+					while (len > 0) zos.write(buffer, 0, len)
+				} finally if (in != null) in.close()
+				zos.closeEntry()
+			})
+		} catch {
+			case ex: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + ex.getMessage, ex)
+		} finally if (zos != null) zos.close()
+	}
 }
+
 
