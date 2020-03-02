@@ -171,7 +171,7 @@ class BaseMimeTypeManager {
 				val in = new FileInputStream(sourceFolder + File.separator + file)
 				try {
 					val len = in.read(buffer)
-//					while (len > 0) zos.write(buffer, 0, len)
+					/*while (len > 0)*/ zos.write(buffer, 0, len)
 				} finally if (in != null) in.close()
 				zos.closeEntry()
 			})
