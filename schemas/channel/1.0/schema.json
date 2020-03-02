@@ -22,7 +22,6 @@
       "enum": [
         "Draft",
         "Live",
-
         "Retired"
       ],
       "default": "Live"

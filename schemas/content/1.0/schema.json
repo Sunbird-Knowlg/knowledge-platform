@@ -32,11 +32,19 @@
             "type": "string",
             "enum": [
                 "Draft",
+                "Review",
+                "Redraft",
+                "Flagged",
                 "Live",
-                "Retired"
-
+                "Unlisted",
+                "Retired",
+                "Mock",
+                "Processing",
+                "FlagDraft",
+                "FlagReview",
+                "Failed"
             ],
-            "default": "Live"
+            "default": "Draft"
         },
         "channel": {
             "type": "string"
