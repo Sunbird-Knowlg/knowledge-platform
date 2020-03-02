@@ -96,4 +96,5 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(readRequest, version, objectType, null)
         getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
     }
+
 }
