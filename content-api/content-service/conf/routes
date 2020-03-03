@@ -3,10 +3,13 @@
 # ~~~~
 GET		  /health						    controllers.HealthController.health
 
+# Content APIs
 POST      /content/v3/create                controllers.v3.ContentController.create
 PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.update(identifier:String)
+GET      /content/v3/read/:identifier       controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+
+# Content APIs - with mock response
 POST     /content/v3/flag/:identifier           controllers.v3.ContentController.flag(identifier:String)
-GET      /content/v3/read/:identifier           controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 POST     /content/v3/bundle                     controllers.v3.ContentController.bundle
 POST     /content/v3/flag/accept/:identifier    controllers.v3.ContentController.acceptFlag(identifier:String)
 POST     /content/v3/flag/reject/:identifier    controllers.v3.ContentController.rejectFlag(identifier:String)
@@ -21,15 +24,14 @@ PATCH    /content/v3/dialcode/release/:identifier controllers.v3.ContentControll
 POST     /content/v3/reject/:identifier           controllers.v3.ContentController.rejectContent(identifier:String)
 POST     /content/v3/unlisted/publish/:identifier  controllers.v3.ContentController.publishUnlisted(identifier:String)
 
-#These are routes for Hierarchy CRUD
+# Collection APIs
 PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy
 DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy
 PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy
 GET       /content/v3/hierarchy/:identifier  controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
 
-#These are routes for License Creation
+#License APIs
 POST    /license/v3/create                      controllers.v3.LicenseController.create
 GET     /license/v3/read/:identifier            controllers.v3.LicenseController.read(identifier: String, fields:Option[String])
 PATCH   /license/v3/update/:identifier          controllers.v3.LicenseController.update(identifier: String)
 DELETE  /license/v3/retire/:identifier          controllers.v3.LicenseController.retire(identifier: String)
-
