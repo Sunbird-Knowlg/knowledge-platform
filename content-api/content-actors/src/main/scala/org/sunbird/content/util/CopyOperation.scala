@@ -4,19 +4,26 @@ import java.io.{File, IOException}
 import java.net.URL
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.collections.MapUtils
 import org.sunbird.common.Platform
 import org.sunbird.graph.common.Identifier
 import java.util
+import java.util.concurrent.CompletionException
 
+import akka.actor.ActorRef
+import akka.pattern.Patterns
 import org.apache.commons.io.{FileUtils, FilenameUtils}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.graph.nodes.DataNode
+import org.sunbird.mimetype.mgr.BaseMimeTypeManager
 
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
 
-object CopyOperation {
+object CopyOperation  {
 
   val endNodeObjectTypes = List("Content", "ContentImage")
 
@@ -116,4 +123,67 @@ object CopyOperation {
     if (!FilenameUtils.getExtension(fileUrl).isEmpty) fileName += "." + FilenameUtils.getExtension(fileUrl)
     fileName
   }
+
+  def copy(request: Request, existingNode: Node, collectionActor: ActorRef)(implicit ec: ExecutionContext): Future[util.HashMap[String, String]] = {
+    val req = new Request(request)
+    req.put("mode", request.get("mode").asInstanceOf[String])
+    req.put("contentType", existingNode.getMetadata.get("contentType"))
+    req.put("rootId", existingNode.getIdentifier)
+    val validatedExistingNode: Node = validateCopyContentRequest(existingNode, request.getRequest, request.get("mode").asInstanceOf[String])
+    existingNode.setGraphId(request.getContext.get("graph_id").asInstanceOf[String])
+    val copiedNode = copyNode(validatedExistingNode, request.getRequest, request.getRequest.get("mode").asInstanceOf[String])
+    request.getRequest.clear()
+    request.setRequest(copiedNode.getMetadata)
+    createCopyNode(request, existingNode).map(node => {
+      if (StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String], "application/vnd.ekstep.content-collection")) {
+        req.put("idMap", new util.HashMap[String, String]() {
+            put(existingNode.getIdentifier, node.getIdentifier)
+        })
+        req.setOperation("copy")
+        val collectionResponse = Patterns.ask(collectionActor, req, 30000) recoverWith { case e: Exception => Future(ResponseHandler.getErrorResponse(e)) }
+        collectionResponse.map(response => {
+          if (ResponseHandler.checkError(response.asInstanceOf[Response])) {
+            throw new ServerException("ERR_WHILE_UPDATING_HIERARCHY_INTO_CASSANDRA", "Error while updating hierarchy into cassandra")
+          } else {
+            Future(new util.HashMap[String, String]() {
+                put(existingNode.getIdentifier, node.getIdentifier)
+            })
+          }
+        }).flatMap(f => f)
+      } else {
+        Future(new util.HashMap[String, String]() {
+            put(existingNode.getIdentifier, node.getIdentifier)
+        })
+      }
+    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+  }
+
+  def createCopyNode(request: Request, existingNode: Node)(implicit ec: ExecutionContext): Future[Node] = {
+    var file: File = null
+    DataNode.create(request).map(node => {
+      request.getContext.put("identifier", node.getIdentifier)
+      request.getRequest.clear()
+      if (!existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String].isEmpty) {
+        if (new BaseMimeTypeManager().isInternalUrl(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])) {
+          file = copyURLToFile(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+          request.getRequest.put("file", file)
+        } else
+          request.getRequest.put("fileUrl", existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+//          upload(request).map(response => {
+//          if (!ResponseHandler.checkError(response)) {
+//            if (null != file && file.exists()) {
+//              file.delete()
+//            }
+//            Future(node)
+//          }
+//          else
+//            throw new ClientException("ARTIFACT_NOT_COPIED", "ArtifactUrl not coppied.")
+//        }).flatMap(f => f)
+        Future(node)
+      } else {
+        Future(node)
+      }
+    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+  }
+
 }

@@ -4,7 +4,7 @@ import java.io.File
 import java.util
 
 import akka.actor.ActorRef
-import akka.pattern.Patterns
+import javax.inject.{Inject, Named}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
@@ -16,13 +16,10 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.common.dto.Response
 import org.sunbird.common.dto.ResponseHandler
-import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.mimetype.mgr.BaseMimeTypeManager
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
-import javax.inject.{Inject, Named}
 
 class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef) extends BaseActor{
 
@@ -117,11 +114,11 @@ class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor
 	def copy(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		DataNode.read(request).map(node => {
-			copyNode(request, node).map(idMap => {
+			CopyOperation.copy(request, node, collectionActor).map(idMap => {
 				val response = ResponseHandler.OK
 				response.put("node_id", idMap)
-				Future(response)
-			}).flatMap(f => f)
+				response
+			})
 		}).flatMap(f => f)
 	}
 
@@ -159,47 +156,4 @@ class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor
 		}
 	}
 
-	 def copyNode(request: Request, existingNode: Node): Future[util.HashMap[String, String]] = {
-		val validatedExistingNode:Node = CopyOperation.validateCopyContentRequest(existingNode, request.getRequest, request.get("mode").asInstanceOf[String])
-		existingNode.setGraphId(request.getContext.get("graph_id").asInstanceOf[String])
-		val copyNode = CopyOperation.copyNode(validatedExistingNode, request.getRequest, request.getRequest.get("mode").asInstanceOf[String])
-		request.getRequest.clear()
-		request.setRequest(copyNode.getMetadata)
-		 createCopyNode(request, existingNode).map(node => {
-			 if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String], "application/vnd.ekstep.content-collection")){
-				 val future = Patterns.ask(collectionActor, request, 30000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
-				 future.map(f => {
-
-				 })
-			 }
-			 Future (new util.HashMap[String, String](){{put(existingNode.getIdentifier, node.getIdentifier)}})
-		 }).flatMap(f => f)
-	}
-
-	def createCopyNode(request: Request, existingNode: Node): Future[Node] = {
-		var file:File = null
-		DataNode.create(request).map(node => {
-			request.getContext.put("identifier", node.getIdentifier)
-			request.getRequest.clear()
-			if(!existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String].isEmpty) {
-				if (new BaseMimeTypeManager().isInternalUrl(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])) {
-					file = CopyOperation.copyURLToFile(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
-					request.getRequest.put("file", file)
-				} else
-					request.getRequest.put("fileUrl", existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
-					upload(request).map(response => {
-						if (!ResponseHandler.checkError(response)) {
-							if (null != file && file.exists()) {
-								file.delete()
-							}
-							Future(node)
-						}
-						else
-							throw new ClientException("ARTIFACT_NOT_COPIED", "ArtifactUrl not coppied.")
-					}).flatMap(f => f)
-			} else {
-				Future(node)
-			}
-		}).flatMap(f => f)
-	}
 }

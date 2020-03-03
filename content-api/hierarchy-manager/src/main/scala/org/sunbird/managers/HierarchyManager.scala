@@ -16,6 +16,7 @@ import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
+import org.sunbird.utils.copyCollectionOperation
 
 object HierarchyManager {
 
@@ -357,10 +358,28 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
-    @throws[Exception]
     def copyCollection(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
-        val response: Response = ResponseHandler.OK
-        Future(response)
-    } recoverWith { case e: CompletionException => throw e.getCause }
+        val response = ResponseHandler.OK
+        val readResponse = getHierarchy(request)
+        readResponse.map(readRes => {
+            if (ResponseHandler.checkError(readRes))
+                throw new ServerException("ERR_WHILE_GETTING_HIERARCHY_OF_EXISTING_NODE", "Error while getting hierarchy of existing node")
+            else {
+                val existingContentMap = readRes.get("content").asInstanceOf[util.Map[String, AnyRef]]
+                val updatedRequestMap = copyCollectionOperation.prepareUpdateHierarchyRequest(existingContentMap.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], existingContentMap.get("identifier").asInstanceOf[String], request.get("contentType").asInstanceOf[String], request.get("idMap").asInstanceOf[util.Map[String, String]])
+                updatedRequestMap.map(requestMap => {
+                    val req = new Request(request)
+                    req.put("nodesModified",requestMap.get("nodesModified"))
+                    req.put("hierarchy",requestMap.get("hierarchy"))
+                    UpdateHierarchyManager.updateHierarchy(req).map(updateRes => {
+                        if (ResponseHandler.checkError(updateRes))
+                            throw new ServerException("ERR_WHILE_UPDATING_HIERARCHY_IN_CASSANDRA", "Error while updating hierarchy in cassandra")
+                        else
+                            Future(response)
+                    }).flatMap(f => f)
+                }).flatMap(f => f)
+            }
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }
 
 }
