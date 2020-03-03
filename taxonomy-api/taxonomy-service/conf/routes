@@ -1,0 +1,18 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+GET		  /health						                 controllers.HealthController.health
+
+# Framework API's
+POST      /framework/v3/create                            controllers.v3.FrameworkController.createFramework
+GET       /framework/v3/read/:identifier                  controllers.v3.FrameworkController.readFramework(identifier:String, categories: Option[String])
+PATCH     /framework/v3/update/:identifier                controllers.v3.FrameworkController.updateFramework(identifier:String)
+POST      /framework/v3/list                              controllers.v3.FrameworkController.listFramework
+DELETE    /framework/v3/retire/:identifier                controllers.v3.FrameworkController.retire(identifier:String)
+POST      /framework/v3/copy/:identifier                  controllers.v3.FrameworkController.copyFramework(identifier:String)
+POST      /framework/v3/publish/:identifier               controllers.v3.FrameworkController.publish(identifier:String)
+
+# Category API's
+
+
+# Term API's
