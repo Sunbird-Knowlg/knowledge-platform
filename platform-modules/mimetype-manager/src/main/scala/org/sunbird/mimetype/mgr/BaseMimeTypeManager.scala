@@ -15,8 +15,8 @@ import org.sunbird.common.{Platform, Slug}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
-import scala.concurrent.ExecutionContext
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
 
 class BaseMimeTypeManager {
@@ -25,6 +25,12 @@ class BaseMimeTypeManager {
 	private val CONTENT_FOLDER = "cloud_storage.content.folder"
 	private val ARTIFACT_FOLDER = "cloud_storage.artifact.folder"
 	private val validator = new UrlValidator()
+	protected val extractableMimeTypes = List("application/vnd.ekstep.ecml-archive", "application/vnd.ekstep.html-archive", "application/vnd.ekstep.plugin-archive", "application/vnd.ekstep.h5p-archive")
+	protected val extractablePackageExtensions = List(".zip", ".h5p", ".epub")
+	private val H5P_MIMETYPE: String = "application/vnd.ekstep.h5p-archive"
+	private val H5P_LIBRARY_PATH: String = Platform.config.getString("content.h5p.library.path")
+	val DASH= "-"
+	val CONTENT_PLUGINS = "content-plugins"
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 
@@ -75,7 +81,7 @@ class BaseMimeTypeManager {
 	}
 
 	def copyURLToFile(objectId: String, fileUrl: String): File = try {
-		val fileName = getBasePath(objectId) + File.separator + getFieNameFromURL(fileUrl)
+		val fileName = getBasePath(objectId) + File.separator + getFileNameFromURL(fileUrl)
 		val file = new File(fileName)
 		FileUtils.copyURLToFile(new URL(fileUrl), file)
 		file
@@ -84,7 +90,7 @@ class BaseMimeTypeManager {
 			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
 	}
 
-	def getFieNameFromURL(fileUrl: String): String = {
+	def getFileNameFromURL(fileUrl: String): String = {
 		var fileName = FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
 		if (!FilenameUtils.getExtension(fileUrl).isEmpty) fileName += "." + FilenameUtils.getExtension(fileUrl)
 		fileName
@@ -138,6 +144,62 @@ class BaseMimeTypeManager {
 			case e: IOException => {
 				e.printStackTrace()
 				""
+			}
+		}
+	}
+
+	def extractH5pPackage(objectId: String, extractionBasePath: String) = {
+		val h5pLibraryDownloadPath:String = getBasePath(objectId)
+		try{
+			val url: URL = new URL(H5P_LIBRARY_PATH)
+			val file = new File(h5pLibraryDownloadPath + File.separator + getFileNameFromURL(url.getPath))
+			FileUtils.copyURLToFile(url, file)
+			extractPackage(file, extractionBasePath)
+		}
+		finally{
+			if(new File(h5pLibraryDownloadPath).exists()){
+				FileUtils.deleteDirectory(new File(h5pLibraryDownloadPath))
+			}
+		}
+	}
+
+	def getExtractionPath(objectId: String, node: Node, extractionType: String, mimeType: String): String = {
+		val baseFolder = Platform.config.getString(CONTENT_FOLDER)
+		val pathSuffix: String = {
+			if(extractionType.equalsIgnoreCase("version")) {
+				val version = String.valueOf(node.getMetadata.get("pkgVersion").asInstanceOf[Double])
+				if("application/vnd.ekstep.plugin-archive".equalsIgnoreCase(mimeType) && StringUtils.isNotBlank(node.getMetadata.get("semanticVersion").asInstanceOf[String])){
+					node.getMetadata.get("semanticVersion").asInstanceOf[String]
+				} else version
+			}else extractionType
+		}
+		
+		mimeType match {
+			case "application/vnd.ekstep.ecml-archive" => baseFolder + File.separator + "ecml" + File.separator + objectId + DASH + pathSuffix
+			case "application/vnd.ekstep.html-archive" => baseFolder + File.separator + "html" + File.separator + objectId + DASH + pathSuffix
+			case "application/vnd.ekstep.h5p-archive" => baseFolder + File.separator + "h5p" + File.separator + objectId + DASH + pathSuffix
+			case "application/vnd.ekstep.plugin-archive" => CONTENT_PLUGINS + File.separator + objectId + DASH + pathSuffix
+			case _ => ""
+		}
+	}
+
+	def extractPackageInCloud(objectId: String, uploadFile: File, node: Node, extractionType: String, slugFile: Boolean) = {
+		val file = Slug.createSlugFile(uploadFile)
+		val mimeType = node.getMetadata.get("mimeType").asInstanceOf[String]
+
+		if(!file.exists() || (!extractablePackageExtensions.contains(file.getName) && extractableMimeTypes.contains(mimeType)))
+			throw new ClientException("INVALID_FILE", "Error! File doesn't Exist.")
+		if(null == extractionType)
+			throw new ClientException("INVALID_EXTRACTION", "Error! Invalid Content Extraction Type.")
+		if(extractableMimeTypes.contains(mimeType)){
+			val extractionBasePath = getBasePath(objectId)
+			if(H5P_MIMETYPE.equalsIgnoreCase(mimeType)){
+				extractH5pPackage(objectId, extractionBasePath)
+				extractPackage(file, extractionBasePath + File.separator + "content")
+				CloudStore.uploadH5pDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), slugFile, ExecutionContext.Implicits.global)
+			} else {
+				extractPackage(file, extractionBasePath)
+				CloudStore.uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), slugFile)
 			}
 		}
 	}

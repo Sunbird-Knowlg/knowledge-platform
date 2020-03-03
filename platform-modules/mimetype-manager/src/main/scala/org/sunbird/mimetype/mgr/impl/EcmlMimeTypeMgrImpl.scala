@@ -2,22 +2,27 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
+import org.apache.tika.Tika
+import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.ecml.ECMLExtractor
 import org.sunbird.mimetype.ecml.processor.{JsonParser, Plugin, XmlParser}
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
-import org.sunbird.mimetype.util.FileUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 
+	private val tika: Tika = new Tika()
+	private val DEFAULT_PACKAGE_MIME_TYPE = "application/zip"
+	private val maxPackageSize = if(Platform.config.hasPath("MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT")) Platform.config.getDouble("MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT") else 52428800
+
 	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
-		FileUtils.validateFilePackage(uploadFile)
+		validateFilePackage(uploadFile)
 		//generateECRF
 		val basePath:String = getBasePath(objectId)
-		FileUtils.extractPackage(uploadFile, basePath)
+		extractPackage(uploadFile, basePath)
 
 		val ecmlType: String = getEcmlType(basePath)
 		val ecml = getFileString(basePath, ecmlType)
@@ -25,11 +30,13 @@ object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 		val ecrf: Plugin = getEcrfObject(ecmlType, ecml);
 
 		val processedEcrf: Plugin = new ECMLExtractor(basePath, objectId).process(ecrf)
+		val processedEcml: String = getEcmlStringFromEcrf(processedEcrf, ecmlType)
 		//upload file
-		uploadArtifactToCloud(uploadFile, objectId)
+		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
 		//extractFile
+		extractPackageInCloud(objectId, uploadFile, node, "snapshot", true)
 
-		Future{Map("identifier"->objectId,"artifactUrl" -> "http://ecmlartifact.zip")}
+		Future{Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0), "body" -> processedEcml)}
 	}
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
@@ -60,6 +67,26 @@ object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
 			case "ecml" => org.apache.commons.io.FileUtils.readFileToString(new File(basePath + File.separator + "index.ecml"), "UTF-8")
 			case "json" => org.apache.commons.io.FileUtils.readFileToString(new File(basePath + File.separator + "index.json"), "UTF-8")
 			case _ => ""
+		}
+	}
+
+	def getEcmlStringFromEcrf(processedEcrf: Plugin, ecmlType: String): String = {
+		ecmlType match {
+			case "ecml" => XmlParser.toString(processedEcrf)
+			case "json" => JsonParser.toString(processedEcrf)
+			case _ => ""
+		}
+	}
+
+	def validateFilePackage(file: File) = {
+		if(null != file && file.exists()){
+			val mimeType = tika.detect(file)
+			if(!DEFAULT_PACKAGE_MIME_TYPE.contentEquals(mimeType)) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_FILE_MIME_TYPE_ERROR | [The uploaded package is invalid]")
+			if(!isValidPackageStructure(file, List("index.json", "index.ecml"))) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_STRUCTURE_ERROR | ['index' file and other folders (assets, data & widgets) should be at root location]")
+			if(file.length() > maxPackageSize) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_SIZE_ERROR | [Content Package file size is too large]")
+		}
+		else{
+			throw new ClientException("ERR_INVALID_FILE", "File does not exists")
 		}
 	}
 

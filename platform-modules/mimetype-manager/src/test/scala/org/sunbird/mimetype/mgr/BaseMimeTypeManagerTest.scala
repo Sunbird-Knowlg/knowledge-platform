@@ -26,7 +26,7 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 	}
 
 	"getFieNameFromURL" should "return file name from url" in {
-		val result = mgr.getFieNameFromURL("http://abc.com/content/sample.pdf")
+		val result = mgr.getFileNameFromURL("http://abc.com/content/sample.pdf")
 		assert(result.contains("sample_"))
 		assert(result.endsWith(".pdf"))
 	}
