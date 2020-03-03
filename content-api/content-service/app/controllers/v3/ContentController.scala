@@ -48,7 +48,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.READ_CONTENT, contentActor, readRequest)
     }
 
-
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
