@@ -28,8 +28,7 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
             zipFile = H5PMimeTypeMgrImpl.createH5PZipFile(extractionBasePath, new File(Resources.getResource("valid_h5p_content.h5p").getPath), "do_1234")
             assert(StringUtils.isNotBlank(zipFile))
         } finally {
-            FileUtils.deleteQuietly(new File(zipFile))
-
+//            FileUtils.deleteQuietly(new File(zipFile))
         }
 
     }
