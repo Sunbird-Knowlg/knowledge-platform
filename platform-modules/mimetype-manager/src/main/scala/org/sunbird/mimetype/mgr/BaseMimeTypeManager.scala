@@ -31,6 +31,11 @@ class BaseMimeTypeManager {
 	private val H5P_LIBRARY_PATH: String = Platform.config.getString("content.h5p.library.path")
 	val DASH= "-"
 	val CONTENT_PLUGINS = "content-plugins"
+	val FILENAME_EXTENSION_SEPARATOR = "."
+	val DEFAULT_ZIP_EXTENSION = "zip"
+
+	val IDX_S3_KEY = 0
+	val IDX_S3_URL = 1
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 
@@ -187,7 +192,7 @@ class BaseMimeTypeManager {
 		val file = Slug.createSlugFile(uploadFile)
 		val mimeType = node.getMetadata.get("mimeType").asInstanceOf[String]
 
-		if(!file.exists() || (!extractablePackageExtensions.contains(file.getName) && extractableMimeTypes.contains(mimeType)))
+		if(!file.exists() || (!extractablePackageExtensions.contains(FILENAME_EXTENSION_SEPARATOR + FilenameUtils.getExtension(file.getName)) && extractableMimeTypes.contains(mimeType)))
 			throw new ClientException("INVALID_FILE", "Error! File doesn't Exist.")
 		if(null == extractionType)
 			throw new ClientException("INVALID_EXTRACTION", "Error! Invalid Content Extraction Type.")

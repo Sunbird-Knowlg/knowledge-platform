@@ -13,10 +13,6 @@ import scala.concurrent.{ExecutionContext, Future}
 object H5PMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
     val mgr = new BaseMimeTypeManager()
 
-    val IDX_S3_KEY = 0
-
-    val IDX_S3_URL = 1
-
     override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
         if (isValidPackageStructure(uploadFile, List[String]("h5p.json"))) {
@@ -51,13 +47,8 @@ object H5PMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
         mgr.extractH5pPackage(objectId, extractionBasePath)
         // UnZip the Content Package
         mgr.extractPackage(uploadFiled, extractionBasePath)
-        /*					List<Path> paths = Files.walk(Paths.get(extractionBasePath)).filter(Files::isRegularFile)
-                                    .collect(Collectors.toList());
-                            List<File> files = new ArrayList<File>();
-                            for (Path path : paths)
-                                files.add(path.toFile());*/
         // Create 'ZIP' Package
-        val zipFileName = extractionBasePath + File.separator + System.currentTimeMillis + "_" + Slug.makeSlug(objectId) + "FILENAME_EXTENSION_SEPARATOR" + "DEFAULT_ZIP_EXTENSION"
+        val zipFileName = extractionBasePath + File.separator + System.currentTimeMillis + "_" + Slug.makeSlug(objectId) + FILENAME_EXTENSION_SEPARATOR + DEFAULT_ZIP_EXTENSION
         createZipPackage(extractionBasePath, zipFileName)
         zipFileName
     }
