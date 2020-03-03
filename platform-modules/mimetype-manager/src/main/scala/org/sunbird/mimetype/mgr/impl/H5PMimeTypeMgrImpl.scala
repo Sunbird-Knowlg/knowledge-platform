@@ -22,7 +22,7 @@ object H5PMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
             uploadAndUpdateNode(zipFile, node, objectId)
             if (zipFile.exists) zipFile.delete
             mgr.extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
-            Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef]))
+            Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> node.getMetadata.get("s3Key")))
         } else {
             TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
