@@ -42,7 +42,7 @@ object H5PMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
       * @param objectId
       * @return
       */
-    private def createH5PZipFile(extractionBasePath: String, uploadFiled: File, objectId: String): String = {
+     def createH5PZipFile(extractionBasePath: String, uploadFiled: File, objectId: String): String = {
         // Download the H5P Libraries and Un-Zip the H5P Library Files
         mgr.extractH5pPackage(objectId, extractionBasePath)
         // UnZip the Content Package
