@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 @Singleton
-class ChannelController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef,@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef,@Named(ActorNames.CHANNEL_ACTOR) channelActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
+class ChannelController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef,@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
   val objectType = "Channel"
   val schemaName: String = "channel"
