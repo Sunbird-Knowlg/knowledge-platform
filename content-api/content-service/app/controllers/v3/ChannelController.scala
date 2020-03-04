@@ -47,6 +47,5 @@ class ChannelController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor
     val response = JavaJsonUtils.serialize(result)
     Future(Ok(response).as("application/json"))
   }
-
 }
 
