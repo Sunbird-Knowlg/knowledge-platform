@@ -74,6 +74,13 @@
             <artifactId>tika-core</artifactId>
             <version>1.22</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.scalamock/scalamock -->
+        <dependency>
+            <groupId>org.scalamock</groupId>
+            <artifactId>scalamock_2.11</artifactId>
+            <version>4.4.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
