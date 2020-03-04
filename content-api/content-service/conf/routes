@@ -36,3 +36,9 @@ POST    /license/v3/create                      controllers.v3.LicenseController
 GET     /license/v3/read/:identifier            controllers.v3.LicenseController.read(identifier: String, fields:Option[String])
 PATCH   /license/v3/update/:identifier          controllers.v3.LicenseController.update(identifier: String)
 DELETE  /license/v3/retire/:identifier          controllers.v3.LicenseController.retire(identifier: String)
+
+#These are routes for Channel
+POST     /channel/v3/create                   controllers.v3.ChannelController.create
+PATCH     /channel/v3/update/:identifier      controllers.v3.ChannelController.update(identifier: String)
+GET       /channel/v3/read/:identifier        controllers.v3.ChannelController.read(identifier: String)
+POST     /channel/v3/list                     controllers.v3.ChannelController.list
