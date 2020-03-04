@@ -87,7 +87,6 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     public ValidationResult validate(Map<String, Object> data) throws Exception {
-
         String dataWithDefaults = withDefaultValues(JsonUtils.serialize(data));
         Map<String, Object> validationDataWithDefaults = cleanEmptyKeys(JsonUtils.deserialize(dataWithDefaults, Map.class));
 

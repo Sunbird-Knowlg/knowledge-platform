@@ -49,6 +49,7 @@ object copyCollectionOperation {
           modifiedNode.put("metadata", metadata)
           modifiedNode.put("root", false)
           modifiedNode.put("isNew", true)
+          modifiedNode.put("setDefaultValue", false)
           nodesModified.put(id, modifiedNode)
         }
         val parentHierarchy = new util.HashMap[String, Any]
