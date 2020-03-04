@@ -5,7 +5,8 @@
     "type": "object",
      "required": [ 
      	"name",
-     	"code"
+     	"code",
+      
      ],
      "properties": {
        "name": {

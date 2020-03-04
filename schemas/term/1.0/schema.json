@@ -1,0 +1,74 @@
+{
+  "$id": "term-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Term",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "category"
+  ],
+  "properties": {
+    "name":{
+      "type": "string"
+    },
+    "code":{
+      "type": "string"
+    },
+    "category":{
+      "type": "string"
+    },
+    "translations":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "index":{
+      "type": "string"
+    },
+    "description":{
+      "type": "string"
+    },
+    "status":{
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Live",
+        "Review",
+        "Retired"
+      ],
+      "default": "Live"
+    },
+    "createdBy":{
+      "type": "string"
+    },
+    "createdOn":{
+      "type": "string"
+    },
+    "lastUpdatedBy":{
+      "type": "string"
+    },
+    "lastUpdatedOn":{
+      "type": "string"
+    },
+    "consumerId":{
+      "type": "string"
+    },
+    "appId":{
+      "type": "string"
+    },
+    "channel":{
+      "type": "string"
+    },
+    "lastStatusChangedOn":{
+      "type": "string"
+    },
+    "label":{
+      "type": "string"
+    },
+    "value":{
+      "type": "string"
+    }
+  }
+}
