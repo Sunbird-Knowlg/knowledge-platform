@@ -47,5 +47,10 @@ class ChannelController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor
     val response = JavaJsonUtils.serialize(result)
     Future(Ok(response).as("application/json"))
   }
+  def retire(identifier: String) = Action.async { implicit request =>
+    val result = ResponseHandler.OK()
+    val response = JavaJsonUtils.serialize(result)
+    Future(Ok(response).as("application/json"))
+  }
 }
 
