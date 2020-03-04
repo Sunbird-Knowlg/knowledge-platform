@@ -13,10 +13,16 @@ class ChannelActor extends BaseActor {
             case "createChannel" => ???
             case "readChannel" => ???
             case "updateChannel" => ???
-            case "uploadChannel" => ???
+            case "listChannel" => ???
             case _ => ???
         }
     }
 
     def create(request: Request): Future[Response] = ???
+
+    def read(request: Request): Future[Response] = ???
+
+    def update(request: Request): Future[Response] = ???
+
+    def list(request: Request): Future[Response] = ???
 }
