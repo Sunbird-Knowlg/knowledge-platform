@@ -38,8 +38,7 @@ class BaseMimeTypeManager {
 	val IDX_S3_URL = 1
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
-	val IDX_S3_KEY = 0
-	val IDX_S3_URL = 1
+
 
 	def validateUploadRequest(objectId: String, node: Node, data: AnyRef)(implicit ec: ExecutionContext): Unit = {
 		if (StringUtils.isBlank(objectId))
