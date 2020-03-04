@@ -38,7 +38,7 @@ object UpdateHierarchyManager {
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
-                    updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap, rootId).map(resp => {
+                    updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
                         getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
                             updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                 val response = ResponseHandler.OK()
