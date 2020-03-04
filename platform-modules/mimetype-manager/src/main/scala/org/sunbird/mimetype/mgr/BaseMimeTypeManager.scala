@@ -9,7 +9,7 @@ import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
 import org.apache.tika.Tika
-import org.sunbird.cloudstore.CloudStore
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.graph.dac.model.Node
@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 
-class BaseMimeTypeManager {
+class BaseMimeTypeManager extends StorageService {
 
 	protected val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
 	private val CONTENT_FOLDER = "cloud_storage.content.folder"
@@ -67,7 +67,7 @@ class BaseMimeTypeManager {
 		var urlArray = new Array[String](2)
 		try {
 			val folder = Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
-			urlArray = CloudStore.uploadFile(folder, uploadedFile, true)
+			urlArray = uploadFile(folder, uploadedFile)
 		} catch {
 			case e: Exception =>
 				TelemetryManager.error("Error while uploading the file.", e)
@@ -135,7 +135,7 @@ class BaseMimeTypeManager {
 
 	protected def getCloudStoredFileSize(key: String): Double = {
 		val size = 0
-		if (StringUtils.isNotBlank(key)) try return CloudStore.getObjectSize(key)
+		if (StringUtils.isNotBlank(key)) try return getObjectSize(key)
 		catch {
 			case e: Exception =>
 				TelemetryManager.error("Error While getting the file size from Cloud Storage: " + key, e)
@@ -202,10 +202,10 @@ class BaseMimeTypeManager {
 			if(H5P_MIMETYPE.equalsIgnoreCase(mimeType)){
 				extractH5pPackage(objectId, extractionBasePath)
 				extractPackage(file, extractionBasePath + File.separator + "content")
-				CloudStore.uploadH5pDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), slugFile, ExecutionContext.Implicits.global)
+				uploadDirectoryAsync(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))(ExecutionContext.Implicits.global)
 			} else {
 				extractPackage(file, extractionBasePath)
-				CloudStore.uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), slugFile)
+				uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))
 			}
 		}
 	}

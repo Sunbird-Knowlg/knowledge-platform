@@ -3,13 +3,13 @@ package org.sunbird.mimetype.ecml.processor
 import java.io.File
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.cloudstore.CloudStore
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{Platform, Slug}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-trait GlobalizeAssetProcessor extends IProcessor {
+trait GlobalizeAssetProcessor extends IProcessor with StorageService {
 
     val ASSET_DIR:String = "cloud_storage.asset.folder"
     val OBJECT_DIR:String = "cloud_storage.content.folder"
@@ -34,7 +34,7 @@ trait GlobalizeAssetProcessor extends IProcessor {
                             val assetDir = if(Platform.config.hasPath(ASSET_DIR)) Platform.config.getString(ASSET_DIR) else System.currentTimeMillis()
                             Platform.config.getString(OBJECT_DIR) + File.separator + Slug.makeSlug(getIdentifier(), true) + assetDir
                         }
-                        val uploadFileUrl: Array[String] = CloudStore.uploadFile(cloudDirName, file, true)
+                        val uploadFileUrl: Array[String] = uploadFile(cloudDirName, file)
                         if(null != uploadFileUrl && uploadFileUrl.size > 1)
                             Media(media.id, media.data, media.innerText, media.cData, uploadFileUrl(1), media.`type`, media.childrenPlugin)
                         else media
