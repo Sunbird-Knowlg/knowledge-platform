@@ -25,19 +25,13 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>cloud-storage-util</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>cloud-store-sdk</artifactId>
+            <version>1.2.6</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.11</artifactId>
-            <version>3.0.8</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>commons-validator</groupId>
@@ -74,7 +68,12 @@
             <artifactId>tika-core</artifactId>
             <version>1.22</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.scalamock/scalamock -->
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.11</artifactId>
+            <version>3.0.8</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.scalamock</groupId>
             <artifactId>scalamock_2.11</artifactId>
