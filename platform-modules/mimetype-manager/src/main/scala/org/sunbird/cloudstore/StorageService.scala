@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 
 trait StorageService {
 
-    val storageType: String = Platform.config.getString("cloud_storage_type")
+    val storageType: String = if (Platform.config.hasPath("cloud_storage_type")) Platform.config.getString("cloud_storage_type") else ""
     var storageService: BaseStorageService = null
 
     @throws[Exception]
