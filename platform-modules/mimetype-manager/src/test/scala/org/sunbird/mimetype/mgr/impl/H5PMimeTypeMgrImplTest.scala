@@ -22,13 +22,14 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
     }
 
     "create H5P Zip File" should "return zip file name" in {
+        val mgr = new BaseMimeTypeManager
         var zipFile = ""
         try {
-            val extractionBasePath = Resources.getResource("valid_h5p_content.h5p").getPath.replace("valid_h5p_content.h5p", "")
+            val extractionBasePath = mgr.getBasePath("do_1234")
             zipFile = H5PMimeTypeMgrImpl.createH5PZipFile(extractionBasePath, new File(Resources.getResource("valid_h5p_content.h5p").getPath), "do_1234")
             assert(StringUtils.isNotBlank(zipFile))
         } finally {
-//            FileUtils.deleteQuietly(new File(zipFile))
+            FileUtils.deleteQuietly(new File(zipFile))
         }
 
     }
