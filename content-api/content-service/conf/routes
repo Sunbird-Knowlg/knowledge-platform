@@ -28,10 +28,18 @@ POST     /content/v3/unlisted/publish/:identifier  controllers.v3.ContentControl
 PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy
 DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy
 PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy
-GET       /content/v3/hierarchy/:identifier  controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
+GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
+POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String)
 
 #License APIs
 POST    /license/v3/create                      controllers.v3.LicenseController.create
 GET     /license/v3/read/:identifier            controllers.v3.LicenseController.read(identifier: String, fields:Option[String])
 PATCH   /license/v3/update/:identifier          controllers.v3.LicenseController.update(identifier: String)
 DELETE  /license/v3/retire/:identifier          controllers.v3.LicenseController.retire(identifier: String)
+
+#These are routes for Channel
+POST     /channel/v3/create                   controllers.v3.ChannelController.create
+PATCH     /channel/v3/update/:identifier      controllers.v3.ChannelController.update(identifier: String)
+GET       /channel/v3/read/:identifier        controllers.v3.ChannelController.read(identifier: String)
+POST     /channel/v3/list                     controllers.v3.ChannelController.list
+DELETE     /channel/v3/retire/:identifier    controllers.v3.ChannelController.retire(identifier: String)

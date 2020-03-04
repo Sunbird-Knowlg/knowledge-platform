@@ -25,6 +25,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
+
     }
 
     /**
@@ -176,4 +177,15 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val response = JavaJsonUtils.serialize(result)
         Future(Ok(response).as("application/json"))
     }
+
+    def upload(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = requestFormData()
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "uploadContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
+    }
+
 }
