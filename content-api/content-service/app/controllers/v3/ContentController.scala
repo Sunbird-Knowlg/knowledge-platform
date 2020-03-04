@@ -4,11 +4,12 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
-import play.api.mvc.{ControllerComponents}
-import utils.{ActorNames, ApiId}
+import org.sunbird.common.dto.ResponseHandler
+import play.api.mvc.ControllerComponents
+import utils.{ActorNames, ApiId, JavaJsonUtils}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef,@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
@@ -95,5 +96,83 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
         getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
+    }
+
+    def flag(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def acceptFlag(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def rejectFlag(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def bundle() = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def publish(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def review(identfier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def discard(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def retire(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def linkDialCode() = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def reserveDialCode(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def releaseDialcodes(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def rejectContent(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
+    }
+
+    def publishUnlisted(identifier: String) = Action.async { implicit request =>
+        val result = ResponseHandler.OK()
+        val response = JavaJsonUtils.serialize(result)
+        Future(Ok(response).as("application/json"))
     }
 }
