@@ -48,9 +48,6 @@
     "appId":{
       "type": "string"
     },
-    "channel":{
-      "type": "string"
-    },
     "consumerId":{
       "type": "string"
     },
