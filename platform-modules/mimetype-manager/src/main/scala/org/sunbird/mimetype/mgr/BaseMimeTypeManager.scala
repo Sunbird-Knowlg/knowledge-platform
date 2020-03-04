@@ -39,6 +39,7 @@ class BaseMimeTypeManager {
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 
+
 	def validateUploadRequest(objectId: String, node: Node, data: AnyRef)(implicit ec: ExecutionContext): Unit = {
 		if (StringUtils.isBlank(objectId))
 			throw new ClientException("ERR_INVALID_ID", "Please Provide Valid Identifier!")
