@@ -8,87 +8,65 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 
 import scala.collection.JavaConverters
-import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object HealthCheckManager extends CassandraConnector with RedisConnector {
     val CONNECTION_SUCCESS: String = "connection check is Successful"
     val CONNECTION_FAILURE: String = "connection check has Failed"
-
+    val redisLabel = "redis cache"
+    val cassandraLabel = "cassandra db"
+    val graphDBLabel = "graph db"
 
     def checkAllSystemHealth()(implicit ec: ExecutionContext): Future[Response] = {
-        val allChecks: ListBuffer[Map[String, Any]] = ListBuffer()
-        var overAllHealth: Boolean = true
-        if (checkRedisHealth())
-            allChecks += generateCheck(true, "redis cache")
-        else {
-            overAllHealth = false
-            allChecks += generateCheck(false, "redis cache")
-        }
-        if (checkGraphHealth())
-            allChecks += generateCheck(true, "graph db")
-        else {
-            overAllHealth = false
-            allChecks += generateCheck(false, "graph db")
-        }
-        if (checkCassandraHealth())
-            allChecks += generateCheck(true, "cassandra db")
-        else {
-            overAllHealth = false
-            allChecks += generateCheck(false, "cassandra db")
-        }
+
+        val allChecks: List[Map[String, Any]] = List(checkRedisHealth(), checkGraphHealth(), checkCassandraHealth())
+        val overAllHealth = allChecks.map(check => check.getOrElse("healthy",false).asInstanceOf[Boolean]).foldLeft(true)(_ && _)
         val response = ResponseHandler.OK()
-        response.put("checks", convertToJava(allChecks)) // JavaConverters.bufferAsJavaListConverter(allChecks).asJava)
+        response.put("checks", allChecks.map(m => JavaConverters.mapAsJavaMapConverter(m).asJava).asJava)
         response.put("healthy", overAllHealth)
         Future(response)
     }
 
-    private def checkGraphHealth()(implicit ec: ExecutionContext): Boolean = {
+    private def checkGraphHealth()(implicit ec: ExecutionContext): Map[String, Any] = {
         try {
             val futureNode = NodeAsyncOperations.upsertRootNode("domain", new Request())
-            futureNode.isCompleted
+            if (futureNode.isCompleted) {
+                generateCheck(true, graphDBLabel)
+            } else {
+                generateCheck(false, graphDBLabel)
+            }
         } catch {
-            case e: Exception => false
+            case e: Exception => generateCheck(false, graphDBLabel)
         }
-
     }
 
-    private def checkCassandraHealth(): Boolean = {
+    private def checkCassandraHealth(): Map[String, Any] = {
         var session: Session = null
         try {
             session = CassandraConnector.getSession
             if (null != session && !session.isClosed) {
                 session.execute("SELECT now() FROM system.local")
-                true
+                generateCheck(true, cassandraLabel)
             } else
-                false
+                generateCheck(false, cassandraLabel)
         } catch {
-            case e: Exception => false
+            case e: Exception => generateCheck(false, cassandraLabel)
         }
     }
 
-    private def checkRedisHealth(): Boolean = {
+    private def checkRedisHealth(): Map[String, Any] = {
         try {
             val jedis = getConnection
             jedis.close()
-            true
+            generateCheck(true, redisLabel)
         } catch {
-            case e: Exception => false
+            case e: Exception => generateCheck(false, redisLabel)
         }
     }
 
-    def generateCheck(healthy: Boolean = false, serviceName: String): Map[String, Any] = healthy match {
+    def generateCheck(healthy: Boolean = false, serviceName: String, err: Option[String] = None, errMsg: Option[String] = None): Map[String, Any] = healthy match {
         case true => Map("name" -> serviceName, "healthy" -> healthy)
-        case false => Map("name" -> serviceName, "healthy" -> healthy, "err" -> "503", "errMsg" -> (serviceName + " service is unavailable"))
-    }
-
-    /**
-      * Remove this after converting to scala
-      *
-      * @param allchecks
-      * @return
-      */
-    def convertToJava(allchecks: ListBuffer[Map[String, Any]]): java.util.List[java.util.Map[String, Any]] = {
-        JavaConverters.bufferAsJavaListConverter(allchecks.map(m => JavaConverters.mapAsJavaMapConverter(m).asJava)).asJava
+        case false => Map("name" -> serviceName, "healthy" -> healthy, "err" -> err.getOrElse("503"), "errMsg" -> errMsg.getOrElse((serviceName + " service is unavailable")))
     }
 }
