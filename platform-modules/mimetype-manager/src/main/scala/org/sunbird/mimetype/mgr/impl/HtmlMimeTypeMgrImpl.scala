@@ -8,16 +8,21 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import scala.concurrent.{ExecutionContext, Future}
 
 object HtmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+	val mgr = new BaseMimeTypeManager()
+
 	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		isValidPackageStructure(uploadFile, List[String]("index.html"))
-		//TODO: Upload File to Cloud. Need Extraction utility for snapshot. slug should be false.
-		Future {Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> "", "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef])}
+		val urls = mgr.uploadArtifactToCloud(uploadFile, objectId)
+		node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
+		node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
+		mgr.extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
+		Future {Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "s3Key" -> urls(IDX_S3_KEY),  "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef])}
 	}
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
-		val file = copyURLToFile(objectId, fileUrl);
+		val file = copyURLToFile(objectId, fileUrl)
 		upload(objectId, node, file)
 	}
 
