@@ -15,6 +15,7 @@ class ContentModule extends AbstractModule with AkkaGuiceSupport {
         bindActor(classOf[ContentActor], ActorNames.CONTENT_ACTOR)
         bindActor(classOf[LicenseActor], ActorNames.LICENSE_ACTOR)
         bindActor(classOf[CollectionActor], ActorNames.COLLECTION_ACTOR)
+        //bindActor(classOf[ChannelActor], ActorNames.CHANNEL_ACTOR)
         println("Initialized application actors...")
         // $COVERAGE-ON
     }
