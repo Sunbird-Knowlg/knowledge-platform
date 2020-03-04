@@ -26,7 +26,6 @@
 		<module>assessment-api</module>
 		<module>taxonomy-api</module>
         <module>platform-modules</module>
-		<module>taxonomy-api</module>
     </modules>
 	<dependencies>
 	</dependencies>
