@@ -33,6 +33,7 @@ class BaseMimeTypeManager {
 	val CONTENT_PLUGINS = "content-plugins"
 	val FILENAME_EXTENSION_SEPARATOR = "."
 	val DEFAULT_ZIP_EXTENSION = "zip"
+	private val tika: Tika = new Tika()
 
 	val IDX_S3_KEY = 0
 	val IDX_S3_URL = 1
@@ -119,6 +120,11 @@ class BaseMimeTypeManager {
 				if (null != zipFile) zipFile.close()
 			}
 		} else false
+	}
+	
+	def isValidMimeType(file: File, expectedMimeType: String): Boolean = {
+		val mimeType = tika.detect(file)
+		expectedMimeType.equalsIgnoreCase(mimeType)
 	}
 
 	def extractPackage(file: File, basePath: String) = {
