@@ -1,7 +1,6 @@
 package org.sunbird.channel.actors
 
 import java.util
-import java.util.concurrent.CompletionException
 
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
