@@ -38,7 +38,7 @@ object UpdateHierarchyManager {
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
-                    updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap, rootId).map(resp => {
+                    updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
                         getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
                             updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                 val response = ResponseHandler.OK()
@@ -162,6 +162,7 @@ object UpdateHierarchyManager {
                 childData.putAll(child)
                 childData.remove(HierarchyConstants.CHILDREN)
                 childData.put(HierarchyConstants.STATUS, "Draft")
+                childData.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String] ).getMetadata.get(HierarchyConstants.CHANNEL))
                 nodeList += NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 Future(nodeList)
             }
@@ -169,7 +170,7 @@ object UpdateHierarchyManager {
     }
 
 
-    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String], rootId: String)(implicit ec: ExecutionContext): Future[AnyRef] = {
+    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext): Future[AnyRef] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
             val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
                 .map(nodeModified => { val metadata = nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[util.HashMap[String, AnyRef]]
@@ -183,7 +184,7 @@ object UpdateHierarchyManager {
                         metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
                     createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                 } else {
-                    updateTempNode(nodeModified._1, nodeList, idMap, metadata, rootId)
+                    updateTempNode(nodeModified._1, nodeList, idMap, metadata)
                     Future(ResponseHandler.OK())
                 }
             })
@@ -218,11 +219,10 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], rootId: String)(implicit ec: ExecutionContext): Unit = {
+    private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
         val tempNode: Node = getTempNode(nodeList, nodeId)
         if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
-            metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, rootId).getMetadata.get(HierarchyConstants.CHANNEL))
             idMap += (nodeId -> tempNode.getIdentifier)
             updateNodeList(nodeList, tempNode.getIdentifier, metadata)
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
