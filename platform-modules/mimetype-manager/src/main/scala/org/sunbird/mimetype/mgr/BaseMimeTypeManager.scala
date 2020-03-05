@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 
-class BaseMimeTypeManager extends StorageService {
+class BaseMimeTypeManager(implicit ss: StorageService) {
 
 	protected val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
 	private val CONTENT_FOLDER = "cloud_storage.content.folder"
@@ -67,7 +67,7 @@ class BaseMimeTypeManager extends StorageService {
 		var urlArray = new Array[String](2)
 		try {
 			val folder = Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
-			urlArray = uploadFile(folder, uploadedFile)
+			urlArray = ss.uploadFile(folder, uploadedFile)
 		} catch {
 			case e: Exception =>
 				TelemetryManager.error("Error while uploading the file.", e)
@@ -133,9 +133,9 @@ class BaseMimeTypeManager extends StorageService {
 		}
 	}
 
-	protected def getCloudStoredFileSize(key: String): Double = {
+	protected def getCloudStoredFileSize(key: String)(implicit ss: StorageService): Double = {
 		val size = 0
-		if (StringUtils.isNotBlank(key)) try return getObjectSize(key)
+		if (StringUtils.isNotBlank(key)) try return ss.getObjectSize(key)
 		catch {
 			case e: Exception =>
 				TelemetryManager.error("Error While getting the file size from Cloud Storage: " + key, e)
@@ -189,7 +189,7 @@ class BaseMimeTypeManager extends StorageService {
 		}
 	}
 
-	def extractPackageInCloud(objectId: String, uploadFile: File, node: Node, extractionType: String, slugFile: Boolean) = {
+	def extractPackageInCloud(objectId: String, uploadFile: File, node: Node, extractionType: String, slugFile: Boolean)(implicit ss: StorageService) = {
 		val file = Slug.createSlugFile(uploadFile)
 		val mimeType = node.getMetadata.get("mimeType").asInstanceOf[String]
 
@@ -202,10 +202,10 @@ class BaseMimeTypeManager extends StorageService {
 			if(H5P_MIMETYPE.equalsIgnoreCase(mimeType)){
 				extractH5pPackage(objectId, extractionBasePath)
 				extractPackage(file, extractionBasePath + File.separator + "content")
-				uploadDirectoryAsync(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))(ExecutionContext.Implicits.global)
+				ss.uploadDirectoryAsync(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))(ExecutionContext.Implicits.global)
 			} else {
 				extractPackage(file, extractionBasePath)
-				uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))
+				ss.uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))
 			}
 		}
 	}

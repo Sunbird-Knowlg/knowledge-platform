@@ -12,7 +12,7 @@ import org.sunbird.common.Slug
 
 import scala.concurrent.ExecutionContext
 
-trait StorageService {
+class StorageService {
 
     val storageType: String = if (Platform.config.hasPath("cloud_storage_type")) Platform.config.getString("cloud_storage_type") else ""
     var storageService: BaseStorageService = null

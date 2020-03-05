@@ -3,6 +3,7 @@ package org.sunbird.mimetype.ecml.processor
 import java.io.File
 
 import org.apache.tika.Tika
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 
@@ -10,7 +11,7 @@ trait AssetsValidatorProcessor extends IProcessor {
 
     val MAX_FILE_SIZE:Double = {if(Platform.config.hasPath("MAX_ASSET_FILE_SIZE_LIMIT")) Platform.config.getDouble("MAX_ASSET_FILE_SIZE_LIMIT") else 20971520}
 
-    abstract override def process(ecrf: Plugin): Plugin = {
+    abstract override def process(ecrf: Plugin)(implicit ss: StorageService): Plugin = {
         validateAssets(ecrf)
         super.process(ecrf)
     }
