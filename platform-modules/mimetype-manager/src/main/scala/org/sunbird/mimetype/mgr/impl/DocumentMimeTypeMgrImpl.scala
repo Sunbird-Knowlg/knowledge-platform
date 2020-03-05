@@ -5,6 +5,7 @@ import java.util
 
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
@@ -13,7 +14,7 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-object DocumentMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
 	val DEFAULT_ALLOWED_EXTENSIONS_WORD = util.Arrays.asList("doc", "docx", "ppt", "pptx", "key", "odp", "pps", "odt", "wpd", "wps", "wks")
 	val ALLOWED_EXTENSIONS_WORD: List[String] = Platform.getStringList("mimetype.allowed_extensions.word", DEFAULT_ALLOWED_EXTENSIONS_WORD).asScala.toList

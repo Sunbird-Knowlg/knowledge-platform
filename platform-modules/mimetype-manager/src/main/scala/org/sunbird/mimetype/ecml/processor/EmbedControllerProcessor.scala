@@ -5,10 +5,11 @@ import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.cloudstore.StorageService
 
 trait EmbedControllerProcessor extends IProcessor {
 
-    abstract override def process(ecrf: Plugin): Plugin = {
+    abstract override def process(ecrf: Plugin)(implicit ss: StorageService): Plugin = {
         val controllerList = embedController(ecrf)
         super.process(Plugin(ecrf.id, ecrf.data, ecrf.innerText, ecrf.cData, ecrf.childrenPlugin, ecrf.manifest, controllerList, ecrf.events))
     }
