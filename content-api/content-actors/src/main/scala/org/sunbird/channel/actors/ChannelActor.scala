@@ -21,10 +21,11 @@ class ChannelActor extends BaseActor {
         request.getOperation match {
             case "createChannel" => create(request)
             case "readChannel" => read(request)
-            case "updateChannel" => ???
-            case "listChannel" => ???
+            case "updateChannel" => update(request)
+            case "retireChannel" => retire(request)
             case _ => ERROR(request.getOperation)
         }
+
     }
 
     def create(request: Request): Future[Response] = {
@@ -69,7 +70,31 @@ class ChannelActor extends BaseActor {
         }).flatMap(f => f)
     }
 
-    def update(request: Request): Future[Response] = ???
+    def update(request: Request): Future[Response] = {
+        RequestUtil.restrictProperties(request)
+        ChannelManager.validateLicense(request).map(resp => {
+            ChannelManager.validateTranslationMap(request)
+            request.getRequest.put("status", "Live")
+            DataNode.update(request).map(node => {
+                val response: Response = ResponseHandler.OK
+                val identifier: String = node.getIdentifier
+                response.put("node_id", identifier)
+                response.put("identifier", identifier)
+                ChannelManager.channelLicenseCache(response, request)
+                response
+            })
+        }).flatMap(f => f)
+    }
 
-    def list(request: Request): Future[Response] = ???
+    def retire(request: Request): Future[Response] = {
+        request.getRequest.put("status", "Retired")
+        DataNode.update(request).map(node => {
+            val response: Response = ResponseHandler.OK
+            val identifier: String = node.getIdentifier
+            response.put("node_id", identifier)
+            response.put("identifier", identifier)
+            response
+        })
+    }
+
 }

@@ -2,12 +2,13 @@ package org.sunbird.channel.managers
 
 import java.util
 import java.util.concurrent.CompletionException
+import java.util.Optional
 
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.util.ChannelConstants
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.exception.{ResponseCode, ServerException}
+import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
 import org.sunbird.common.{Platform, dto}
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
@@ -75,5 +76,15 @@ object ChannelManager {
         Future(new util.ArrayList[String]())
     } else
       throw new ServerException("ERR_FETCHING_FRAMEWORK", "Error while fetching framework.")
+  }
+
+  def validateTranslationMap(request: Request) = {
+    val translations: Map[String, AnyRef] = Optional.ofNullable(request.get("translations").asInstanceOf[Map[String, AnyRef]]).orElse(Map[String, AnyRef]())
+    if (translations.isEmpty) request.getRequest.remove("translations")
+    else {
+      val languageCodes = if(Platform.config.hasPath("language.graph_ids")) Platform.config.getStringList("language.graph_ids") else new util.ArrayList[String]()
+      if (translations.exists(entry => !languageCodes.contains(entry._1)))
+        throw new ClientException("ERR_INVALID_LANGUAGE_CODE", "Please Provide Valid Language Code For translations. Valid Language Codes are : " + languageCodes)
+    }
   }
 }

@@ -1,4 +1,12 @@
 {
+  "restrictProps": {
+    "create" : [
+      "channel", "status"
+    ],
+    "update": [
+      "channel", "code", "identifier"
+    ]
+  },
   "objectType": "Channel",
   "frameworkCategories": [],
   "relations": {
@@ -16,5 +24,7 @@
         "Framework"
       ]
     }
-  }
+  },
+  "version": "disable",
+  "versionCheckMode": "OFF"
 }
