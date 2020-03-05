@@ -1,5 +1,7 @@
 package controllers.v3
 
+import java.util
+
 import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
@@ -28,16 +30,14 @@ class ChannelController @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor:
     getResult(ApiId.CREATE_CHANNEL, channelActor, channelRequest)
   }
 
-
-  /**
-   * This Api end point takes the parameters
-   * Channel Identifier the unique identifier of a channel
-   * @param identifier
-   */
   def read(identifier: String) = Action.async { implicit request =>
-    val result = ResponseHandler.OK()
-    val response = JavaJsonUtils.serialize(result)
-    Future(Ok(response).as("application/json"))
+    val headers = commonHeaders()
+    val channel = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+    channel.put("identifier", identifier)
+    channel.putAll(headers)
+    val readRequest = getRequest(channel, headers, "readChannel")
+    setRequestContext(readRequest, version, objectType, schemaName)
+    getResult(ApiId.READ_CHANNEL, channelActor, readRequest)
   }
 
   def update(identifier: String) = Action.async { implicit request =>

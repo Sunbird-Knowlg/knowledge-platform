@@ -1,11 +1,19 @@
 package org.sunbird.channel.actors
 
+import java.util
+import java.util.concurrent.CompletionException
+
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.util.RequestUtil
 import org.sunbird.channel.managers.ChannelManager
+import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.common.Platform
+
 import scala.concurrent.{ExecutionContext, Future}
+import org.apache.commons.collections4.CollectionUtils
 
 class ChannelActor extends BaseActor {
     implicit val ec: ExecutionContext = getContext().dispatcher
@@ -13,7 +21,7 @@ class ChannelActor extends BaseActor {
     override def onReceive(request: Request): Future[Response] = {
         request.getOperation match {
             case "createChannel" => create(request)
-            case "readChannel" => ???
+            case "readChannel" => read(request)
             case "updateChannel" => ???
             case "listChannel" => ???
             case _ => ERROR(request.getOperation)
@@ -24,18 +32,43 @@ class ChannelActor extends BaseActor {
         RequestUtil.restrictProperties(request)
         if (request.getRequest.containsKey("code"))
             request.getRequest.put("identifier", request.getRequest.get("code").asInstanceOf[String])
-        ChannelManager.validateLicense(request)
-        DataNode.create(request).map(node => {
-            val response = ResponseHandler.OK
-            response.put("identifier", node.getIdentifier)
-            response.put("node_id", node.getIdentifier)
-            response.put("versionKey", node.getMetadata.get("versionKey"))
-            ChannelManager.channelLicenseCache(response, request)
-            response
-        })
+        else
+            throw new ClientException("ERR_CODE_IS_REQUIRED", "Code is required for creating a channel")
+        ChannelManager.validateLicense(request).map(resp => {
+            if (!ResponseHandler.checkError(resp)) {
+                DataNode.create(request).map(node => {
+                    val response = ResponseHandler.OK
+                    response.put("identifier", node.getIdentifier)
+                    response.put("node_id", node.getIdentifier)
+                    ChannelManager.channelLicenseCache(response, request)
+                    response
+                })
+            } else
+                Future(resp)
+        }).flatMap(f => f)
     }
 
-    def read(request: Request): Future[Response] = ???
+    def read(request: Request): Future[Response] = {
+        val response = ResponseHandler.OK
+        DataNode.read(request).map(node => {
+            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+            metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+            if (Platform.config.hasPath("channel.fetch.suggested_frameworks") && Platform.config.getBoolean("channel.fetch.suggested_frameworks")) {
+                if (CollectionUtils.isEmpty(node.getMetadata.get("frameworks").asInstanceOf[util.List[AnyRef]])) {
+                    val searchedFrameworkList = ChannelManager.getAllFrameworkList()
+                    searchedFrameworkList.map(frameworkList => {
+                        if (!frameworkList.isEmpty) {
+                            metadata.put("suggested_frameworks", frameworkList)
+                            response.put("channel", metadata)
+                        }
+                        response
+                    })
+                } else
+                    Future(response)
+            } else
+                Future(response)
+        }).flatMap(f => f)
+    }
 
     def update(request: Request): Future[Response] = ???
 
