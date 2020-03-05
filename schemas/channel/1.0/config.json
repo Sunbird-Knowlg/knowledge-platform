@@ -1,5 +1,6 @@
 {
   "objectType": "Channel",
+  "frameworkCategories": [],
   "relations": {
     "categories": {
       "type": "hasSequenceMember",
