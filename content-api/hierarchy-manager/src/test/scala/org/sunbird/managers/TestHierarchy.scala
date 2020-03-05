@@ -79,22 +79,22 @@ class TestHierarchy extends BaseSpec {
         }).flatMap(f => f)
     }
 
-    "getHierarchyWithInvalidIdentifier" should "Resourse_Not_Found" in {
-        val request = new Request()
-        request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-                put("objectType", "Content")
-                put("graph_id", "domain")
-                put("version", "1.0")
-                put("schemaName", "collection")
-            }
-        })
-        request.put("rootId", "1234")
-        val future = HierarchyManager.getHierarchy(request)
-        future.map(response => {
-            assert(response.getResponseCode.code() == 404)
-        })
-    }
+//    "getHierarchyWithInvalidIdentifier" should "Resourse_Not_Found" in {
+//        val request = new Request()
+//        request.setContext(new util.HashMap[String, AnyRef]() {
+//            {
+//                put("objectType", "Content")
+//                put("graph_id", "domain")
+//                put("version", "1.0")
+//                put("schemaName", "collection")
+//            }
+//        })
+//        request.put("rootId", "1234")
+//        val future = HierarchyManager.getHierarchy(request)
+//        future.map(response => {
+//            assert(response.getResponseCode.code() == 404)
+//        })
+//    }
 
     "getHierarchyForPublishedContent" should "getHierarchy" in {
         val request = new Request()
