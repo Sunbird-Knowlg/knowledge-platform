@@ -28,7 +28,9 @@ object MimeTypeManagerFactory {
 		if (StringUtils.equalsIgnoreCase("Asset", contentType)) {
 			mimeTypeMgr.get("assets").get
 		} else {
-			mimeTypeMgr.getOrElse(mimeType.toLowerCase(), defaultMimeTypeMgrImpl)
+			if(null != mimeType)
+				mimeTypeMgr.getOrElse(mimeType.toLowerCase(), defaultMimeTypeMgrImpl)
+			else defaultMimeTypeMgrImpl
 		}
 	}
 }
