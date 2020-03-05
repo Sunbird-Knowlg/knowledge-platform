@@ -13,20 +13,22 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.BaseMimeTypeManager
 
-class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
-    implicit val ss: StorageService = new StorageService()
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
-    "upload invalid H5P file" should "return client exception" in {
-        implicit val ss: StorageService = new StorageService
+class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
+
+    "H5PMimeTypeManager" should "upload and download H5P file with validation" in {
+        implicit val ss = mock[StorageService]
         val exception = intercept[ClientException] {
             new H5PMimeTypeMgrImpl().upload("do_123", new Node(), new File(Resources.getResource("validEcmlContent.zip").toURI))
         }
         exception.getMessage shouldEqual "Please Provide Valid File!"
     }
 
-    "create H5P Zip File" should "return zip file name" in {
-
-        val mgr = new BaseMimeTypeManager()
+    it should "create a H5P zip file with required dependencies to play" in {
+        implicit val ss = new StorageService
+        val mgr = new BaseMimeTypeManager
         var zipFile = ""
         try {
             val extractionBasePath = mgr.getBasePath("do_1234")
@@ -35,7 +37,21 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         } finally {
             FileUtils.deleteQuietly(new File(zipFile))
         }
+    }
 
+    it should "upload H5P zip file and return public url" in {
+        val node = getNode()
+        val identifier = "do_1234"
+        implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *)
+        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("valid_h5p_content.h5p").toURI))
+        resFuture.map(result => {
+            println("Response: " + result)
+            result
+        })
+
+        assert(true)
     }
 
     def getNode(): Node = {
@@ -49,5 +65,4 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         }})
         node
     }
-
 }
