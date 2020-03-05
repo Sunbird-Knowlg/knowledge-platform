@@ -3,11 +3,10 @@ package org.sunbird.mimetype.mgr.impl
 import java.io.File
 import java.nio.charset.StandardCharsets
 
-import com.sun.jna.Structure
 import org.apache.commons.io.FileUtils
-import org.omg.CORBA.DynAnyPackage.Invalid
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.exception.ClientException
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
@@ -15,9 +14,9 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
-object PluginMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 	private val DEF_CONTENT_PACKAGE_MIME_TYPE: String = "application/zip"
-
+	
 	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		validatePluginPackage(uploadFile)

@@ -4,13 +4,14 @@ import java.io.File
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.exception.ClientException
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object DefaultMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+class DefaultMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
 	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)

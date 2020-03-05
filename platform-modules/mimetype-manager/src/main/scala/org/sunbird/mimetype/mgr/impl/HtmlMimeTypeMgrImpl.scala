@@ -2,6 +2,7 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
@@ -9,7 +10,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object HtmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+class HtmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
     val mgr = new BaseMimeTypeManager()
 
     override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {

@@ -2,6 +2,7 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
@@ -11,7 +12,7 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object EcmlMimeTypeMgrImpl extends BaseMimeTypeManager with MimeTypeManager {
+class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
 	
 	private val DEFAULT_PACKAGE_MIME_TYPE = "application/zip"
