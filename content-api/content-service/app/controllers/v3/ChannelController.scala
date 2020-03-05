@@ -1,7 +1,5 @@
 package controllers.v3
 
-import java.util
-
 import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
