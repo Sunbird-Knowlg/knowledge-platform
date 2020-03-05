@@ -12,6 +12,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
@@ -27,7 +28,7 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 		FileUtils.deleteDirectory(new File(basePath))
 		val result = uploadArtifactToCloud(uploadFile, objectId)
 		extractPackageInCloud(objectId, uploadFile, node, "snapshot", true)
-		Future{Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0))}
+		Future{data ++ Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0))}
 	}
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
@@ -43,15 +44,15 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 
 	def readDataFromManifest(manifestFile: File, objectId: String): Map[String, AnyRef] = {
 		if(manifestFile.exists()){
-			val json = FileUtils.readFileToString(manifestFile, StandardCharsets.UTF_8)
+			val json: String = FileUtils.readFileToString(manifestFile, StandardCharsets.UTF_8)
 			val dataMap: Map[String, AnyRef] = ScalaJsonUtils.deserialize[Map[String, AnyRef]](json)
 			if(!objectId.contentEquals(dataMap.getOrElse("id", "").asInstanceOf[String]))
 				throw new ClientException("ERR_INVALID_PLUGIN_ID", "'id' in manifest.json is not same as the plugin identifier.")
-			val version = dataMap.getOrElse("version", throw new ClientException("ERR_MISSING_VERSION", "'ver' is not specified in the plugin manifest.json."))
-			val targets = dataMap.getOrElse("targets", AnyRef)
+			val version = dataMap.getOrElse("ver", throw new ClientException("ERR_MISSING_VERSION", "'ver' is not specified in the plugin manifest.json."))
+			val targets = dataMap.getOrElse("targets", List[AnyRef]())
 			val targetList: java.util.List[Object] = {
 				if(targets.isInstanceOf[String]) JsonUtils.deserialize(targets.asInstanceOf[String], classOf[java.util.List[Object]])
-				else JavaConverters.asJavaCollectionConverter(targets.asInstanceOf[List[AnyRef]]).asJavaCollection.asInstanceOf[java.util.List[Object]]
+				else targets.asInstanceOf[List[AnyRef]].asJava.asInstanceOf[java.util.List[Object]]
 			}
 			Map[String, AnyRef]("version" -> version, "targets" -> targetList)
 		}else Map[String, AnyRef]()
