@@ -2,7 +2,6 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
-import org.apache.tika.Tika
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
@@ -15,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
-	private val tika: Tika = new Tika()
+	
 	private val DEFAULT_PACKAGE_MIME_TYPE = "application/zip"
 	private val maxPackageSize = if(Platform.config.hasPath("MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT")) Platform.config.getDouble("MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT") else 52428800
 
@@ -81,8 +80,7 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 
 	def validateFilePackage(file: File) = {
 		if(null != file && file.exists()){
-			val mimeType = tika.detect(file)
-			if(!DEFAULT_PACKAGE_MIME_TYPE.contentEquals(mimeType)) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_FILE_MIME_TYPE_ERROR | [The uploaded package is invalid]")
+			if(!isValidMimeType(file, DEFAULT_PACKAGE_MIME_TYPE)) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_FILE_MIME_TYPE_ERROR | [The uploaded package is invalid]")
 			if(!isValidPackageStructure(file, List("index.json", "index.ecml"))) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_STRUCTURE_ERROR | ['index' file and other folders (assets, data & widgets) should be at root location]")
 			if(file.length() > maxPackageSize) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_SIZE_ERROR | [Content Package file size is too large]")
 		}
