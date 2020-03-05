@@ -39,6 +39,7 @@ class ChannelActor extends BaseActor {
                     val response = ResponseHandler.OK
                     response.put("identifier", node.getIdentifier)
                     response.put("node_id", node.getIdentifier)
+                    response.put("versionKey", node.getMetadata.get("versionKey"))
                     ChannelManager.channelLicenseCache(response, request)
                     response
                 })
