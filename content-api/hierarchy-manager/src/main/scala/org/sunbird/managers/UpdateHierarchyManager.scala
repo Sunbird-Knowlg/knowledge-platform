@@ -8,7 +8,7 @@ import org.apache.commons.collections4.{CollectionUtils, ListUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
@@ -38,7 +38,7 @@ object UpdateHierarchyManager {
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
-                    updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap, rootId).map(resp => {
+                    updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
                         getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
                             updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                 val response = ResponseHandler.OK()
@@ -122,12 +122,20 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIER, rootNode.getIdentifier)
         ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(response => {
             if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
-                //TODO: Remove should Image be deleted after migration
-                req.put(HierarchyConstants.IDENTIFIER, if (!rootNode.getIdentifier.endsWith(HierarchyConstants.IMAGE_SUFFIX)) rootNode.getIdentifier + HierarchyConstants.IMAGE_SUFFIX else rootNode.getIdentifier)
-                ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
-                    request.getContext.put("shouldImageDelete", shouldImageBeDeleted(rootNode).asInstanceOf[AnyRef])
-                    resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
-                }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier) }
+                if(CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get("status").asInstanceOf[String]))
+                    throw new ServerException(HierarchyErrorCodes.ERR_HIERARCHY_NOT_FOUND, "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
+                else {
+                    if(rootNode.getMetadata.containsKey("pkgVersion"))
+                        req.put(HierarchyConstants.IDENTIFIER, rootNode.getIdentifier.replace(HierarchyConstants.IMAGE_SUFFIX, ""))
+                    else {
+                        //TODO: Remove should Image be deleted after migration
+                        request.getContext.put("shouldImageDelete", shouldImageBeDeleted(rootNode).asInstanceOf[AnyRef])
+                        req.put(HierarchyConstants.IDENTIFIER, if (!rootNode.getIdentifier.endsWith(HierarchyConstants.IMAGE_SUFFIX)) rootNode.getIdentifier + HierarchyConstants.IMAGE_SUFFIX else rootNode.getIdentifier)
+                    }
+                    ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
+                        resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
+                    }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier) }
+                }
             } else Future(response.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String])
         }).flatMap(f => f)
     }
@@ -162,6 +170,7 @@ object UpdateHierarchyManager {
                 childData.putAll(child)
                 childData.remove(HierarchyConstants.CHILDREN)
                 childData.put(HierarchyConstants.STATUS, "Draft")
+                childData.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String] ).getMetadata.get(HierarchyConstants.CHANNEL))
                 nodeList += NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 Future(nodeList)
             }
@@ -169,7 +178,7 @@ object UpdateHierarchyManager {
     }
 
 
-    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String], rootId: String)(implicit ec: ExecutionContext): Future[AnyRef] = {
+    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext): Future[AnyRef] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
             val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
                 .map(nodeModified => { val metadata = nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[util.HashMap[String, AnyRef]]
@@ -183,7 +192,7 @@ object UpdateHierarchyManager {
                         metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
                     createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                 } else {
-                    updateTempNode(nodeModified._1, nodeList, idMap, metadata, rootId)
+                    updateTempNode(nodeModified._1, nodeList, idMap, metadata)
                     Future(ResponseHandler.OK())
                 }
             })
@@ -218,11 +227,10 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], rootId: String)(implicit ec: ExecutionContext): Unit = {
+    private def updateTempNode(nodeId: String, nodeList: ListBuffer[Node], idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
         val tempNode: Node = getTempNode(nodeList, nodeId)
         if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
-            metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, rootId).getMetadata.get(HierarchyConstants.CHANNEL))
             idMap += (nodeId -> tempNode.getIdentifier)
             updateNodeList(nodeList, tempNode.getIdentifier, metadata)
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
@@ -407,8 +415,9 @@ object UpdateHierarchyManager {
 
     private def shouldImageBeDeleted(rootNode: Node): Boolean = {
         val flag = if (Platform.config.hasPath("collection.image.migration.enabled")) Platform.config.getBoolean("collection.image.migration.enabled") else false
-        flag && !CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get(HierarchyConstants.STATUS).asInstanceOf[String]) &&
-            !rootNode.getMetadata.containsKey("pkgVersion")
+//        flag && !CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get(HierarchyConstants.STATUS).asInstanceOf[String]) &&
+//            !rootNode.getMetadata.containsKey("pkgVersion")
+        flag
     }
 
     def sortByIndex(childrenMaps: util.List[HashMap[String, AnyRef]]): util.List[util.HashMap[String, AnyRef]] = {
