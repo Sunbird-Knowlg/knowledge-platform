@@ -12,7 +12,7 @@ import org.sunbird.graph.dac.model.Node
 class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 
 
-    it should "upload H5P zip file and return public url" in {
+    it should "upload plugin zip file and return public url" in {
         val node = getNode()
         val identifier = "org.ekstep.video"
         implicit val ss = mock[StorageService]
