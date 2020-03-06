@@ -43,7 +43,7 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 	}
 
 	"isValidPackageStructure with valid html zip file" should "return true" in {
-		val file: File = new File(Resources.getResource("validHtmlContent.zip").toURI)
+		val file: File = new File(Resources.getResource("validHtml.zip").toURI)
 		val result = mgr.isValidPackageStructure(file, List("index.html"))
 		assert(result)
 	}
