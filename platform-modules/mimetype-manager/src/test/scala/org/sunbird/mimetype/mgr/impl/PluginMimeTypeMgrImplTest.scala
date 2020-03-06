@@ -58,6 +58,14 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
         exception.getMessage shouldEqual "Error !Invalid Content Package File Structure. | [manifest.json should be at root location]"
     }
 
+    it should "upload Invalid File for plugin and Throw Client Exception" in {
+        implicit val ss = new StorageService
+        val exception = intercept[ClientException] {
+            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), new File(Resources.getResource("sample.pdf").toURI))
+        }
+        exception.getMessage shouldEqual "Error! Invalid Content Package Mime Type."
+    }
+
     "read data from manifest" should "throw client exception when id is not present" in {
         implicit val ss = new StorageService
         val exception = intercept[ClientException] {
