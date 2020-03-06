@@ -35,7 +35,7 @@ class HtmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new HtmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validHtmlContent.zip").toURI))
+        val resFuture = new HtmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validHtml.zip").toURI))
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)
