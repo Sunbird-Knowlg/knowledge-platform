@@ -1,16 +1,8 @@
 package org.sunbird.mimetype.ecml.processor
 
-import java.io.{StringReader, StringWriter}
-
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
-import javax.xml.transform.{Transformer, TransformerFactory}
 import org.apache.commons.lang.{StringEscapeUtils, StringUtils}
 import org.sunbird.common.exception.ClientException
-import org.w3c.dom.{Element, Node, NodeList}
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.xml._
 
@@ -26,27 +18,18 @@ object XmlParser {
 
 
     def parse(xml: String): Plugin = {
-        val strReader = new StringReader(xml)
-        try{
-            val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            val document = builder.parse(new InputSource(strReader))
-            document.getDocumentElement.normalize()
-            val root = document.getDocumentElement
-            processDocument(root)
-        } finally {
-            if(null != strReader) strReader.close()
-
-        }
+        val xmlObj = XML.loadString(xml)
+        processDocument(xmlObj)
     }
 
-    def processDocument(root: Element): Plugin = {
+    def processDocument(root: Node): Plugin = {
         if(null != root) {
-            Plugin(getId(root), getData(root), "", getCdata(root), getChildrenPlugin(root), getManifest(root, true), getControllers(root.getElementsByTagName("controllers")), getEvents(root))
+            Plugin(getId(root), getData(root), "", getCdata(root), getChildrenPlugin(root), getManifest(root, true), getControllers(root \ "controllers"), getEvents(root))
         }else classOf[Plugin].newInstance()
     }
 
     def getAttributesMap(node: Node):Map[String, AnyRef] = {
-        (0 to node.getAttributes.getLength).toList.map(index => (node.getAttributes.item(index).getNodeName -> node.getAttributes.item(index).getNodeValue)).toMap
+        node.attributes.asAttrMap
     }
 
     def getId(node: Node): String = {
@@ -54,50 +37,37 @@ object XmlParser {
     }
 
     def getData(node: Node): Map[String, AnyRef] = {
-        if(null != node) Map("cwp_element_name" -> node.getNodeName) ++ getAttributesMap(node) else Map()
+        if(null != node) Map("cwp_element_name" -> node.label) ++ getAttributesMap(node) else Map()
     }
 
     //TODO: Review the below code, this is as per the existing logic
     def getCdata(node: Node): String = {
-        if(null != node && node.hasChildNodes){
-            val childNodes = node.getChildNodes
+        if(null != node && !node.child.isEmpty){
+            val childNodes = node.child
             var cdata = ""
-            (0 to childNodes.getLength).toList.map(index => {
-                if(Node.CDATA_SECTION_NODE == childNodes.item(index).getNodeType)
-                    cdata = childNodes.item(index).getNodeValue
+            childNodes.toList.filter(childNode => childNode.isInstanceOf[PCData]).map(childNode => {
+                cdata = childNode.text
             })
             cdata
         }else ""
     }
 
     def getChildrenPlugin(node: Node): List[Plugin] = {
-        if(null != node && node.hasChildNodes){
-            val nodeList = node.getChildNodes
-            (0 to nodeList.getLength).toList.map(index => nodeList.item(index))
-                    .filter(node => (Node.ELEMENT_NODE == node.getNodeType && !nonPluginElements.contains(node.getNodeName) && !"event".equalsIgnoreCase(node.getNodeName)))
-                    .map(node => Plugin(getId(node), getData(node), getInnerText(node), getCdata(node), getChildrenPlugin(node), getManifest(node, false), getControllers(node.asInstanceOf[Element].getElementsByTagName("controllers")), getEvents(node)))
+        if(null != node && !node.child.isEmpty){
+            val nodeList = node.child
+            nodeList.toList.filter(childNode => childNode.isInstanceOf[Elem] && !nonPluginElements.contains(childNode.label) && !"event".equalsIgnoreCase(childNode.label))
+                    .map(chilNode => Plugin(getId(chilNode), getData(chilNode), getInnerText(chilNode), getCdata(chilNode), getChildrenPlugin(chilNode), getManifest(chilNode, false), getControllers(chilNode \"controllers"), getEvents(chilNode)))
         }else {
             List()
         }
     }
 
     def getInnerText(node: Node): String = {
-        if(null != node && Node.ELEMENT_NODE == node.getNodeType && node.hasChildNodes){
-            val childNodes = node.getChildNodes
-            (0 to childNodes.getLength).toList.map(index => childNodes.item(index)).filter(item => Node.TEXT_NODE == item.getNodeType).map(item => item.getTextContent).head
+        if(null != node && node.isInstanceOf[Elem] && !node.child.isEmpty){
+            val childNodes = node.child
+            val innerTextlist = childNodes.toList.filter(childNode => childNode.isInstanceOf[Text]).map(item => item.text)
+            if(!innerTextlist.isEmpty) innerTextlist.head else  ""        
         }else ""
-    }
-
-    def getNodeString(node: Node): String = {
-        val writer = new StringWriter()
-        try {
-            val transformer: Transformer = TransformerFactory.newInstance().newTransformer()
-            transformer.transform(new DOMSource(node), new StreamResult(writer))
-            val output: String = writer.toString
-            output.substring(output.indexOf("?>") + 2)
-        } finally {
-            writer.close()
-        }
     }
 
     def getMedia(node: Node, validateNode: Boolean): Media = {
@@ -108,39 +78,33 @@ object XmlParser {
             val src: String = attributeMap.getOrElse("src", "").asInstanceOf[String]
             if(validateNode){
                 if(StringUtils.isBlank(id))
-                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('id' is required.) in '" + getNodeString(node) + "' ...")
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('id' is required.) in '" + node.buildString(true) + "' ...")
                 if(!(StringUtils.isNotBlank(`type`) && (StringUtils.equalsIgnoreCase(`type`, "js") || StringUtils.equalsIgnoreCase(`type`, "css"))))
-                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('type' is required.) in '" + getNodeString(node) + "' ...")
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('type' is required.) in '" + node.buildString(true) + "' ...")
                 if(StringUtils.isBlank(src))
-                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('src' is required.) in '" + getNodeString(node) + "' ...")
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('src' is required.) in '" + node.buildString(true) + "' ...")
             }
             Media(id, getData(node), getInnerText(node), getCdata(node), src, `type`, getChildrenPlugin(node))
         } else classOf[Media].newInstance()
     }
 
     def getManifest(node: Node, validateNode: Boolean): Manifest = {
-        val childNodes = node.getChildNodes
+        val childNodes = node.child
         var manifestNode : Node = null
-        (0 to childNodes.getLength).toList.map(index => {
-            if(Node.CDATA_SECTION_NODE == childNodes.item(index).getNodeType)
-                manifestNode = childNodes.item(index)
-        })
-        val mediaList:ListBuffer[Media] = ListBuffer()
-        if(null != manifestNode && manifestNode.hasChildNodes) {
-            (0 to manifestNode.getChildNodes.getLength).toList.foreach(index => {
-                if(Node.ELEMENT_NODE == manifestNode.getChildNodes.item(index).getNodeType && "media".equalsIgnoreCase(manifestNode.getChildNodes.item(index).getNodeName))
-                    mediaList += getMedia(manifestNode.getChildNodes.item(index), validateNode)
-            })
+        childNodes.toList.filter(childNode => childNode.isInstanceOf[PCData]).map(childNode => manifestNode = childNode)
+        val mediaList = {
+            if(null != manifestNode && !manifestNode.child.isEmpty){
+                manifestNode.child.toList.filter(childNode => childNode.isInstanceOf[Elem] && "media".equalsIgnoreCase(childNode.label)).map(childNode => getMedia(childNode, validateNode))
+            } else List()
         }
-        Manifest(getId(manifestNode), getData(manifestNode), getInnerText(manifestNode), getCdata(manifestNode), mediaList.toList)
+        if(null != manifestNode){
+            Manifest(getId(manifestNode), getData(manifestNode), getInnerText(manifestNode), getCdata(manifestNode), mediaList)
+        } else classOf[Manifest].newInstance()
     }
 
-    def getControllers(nodeList: NodeList): List[Controller] = {
-        if(null != nodeList && nodeList.getLength > 0) {
-            (0 to nodeList.getLength).toList.map(index => nodeList.item(index)).filter(node => node.getNodeType == Node.ELEMENT_NODE).map(node => {
-                val attributeMap = getAttributesMap(node)
-                Controller(attributeMap.getOrElse("id","").asInstanceOf[String], getData(node), getInnerText(node), getCdata(node))
-            })
+    def getControllers(nodeList: Seq[Node]): List[Controller] = {
+        if(null != nodeList && nodeList.length > 0) {
+            nodeList.toList.filter(node => node.isInstanceOf[Elem]).map(node => Controller(node.\@("id") , getData(node), getInnerText(node), getCdata(node)))
         } else {
             List()
         }
@@ -148,14 +112,14 @@ object XmlParser {
 
     def getEvents(node: Node): List[Event] = {
         var eventsList: ListBuffer[Event] = ListBuffer()
-        if(null != node && node.hasChildNodes){
-            val childNodes = node.getChildNodes
-            (0 to childNodes.getLength).toList.map(index => {
-                if(Node.ELEMENT_NODE == childNodes.item(index).getNodeType && "events".equalsIgnoreCase(childNodes.item(index).getNodeName)){
-                    eventsList ++= getEvents(childNodes.item(index))
+        if(null != node && !node.child.isEmpty){
+            val childNodes = node.child
+            childNodes.toList.map(childNode => {
+                if(childNode.isInstanceOf[Elem] && "events".equalsIgnoreCase(childNode.label)){
+                    eventsList ++= getEvents(childNode)
                 }
-                if(Node.ELEMENT_NODE == childNodes.item(index).getNodeType && "event".equalsIgnoreCase(childNodes.item(index).getNodeName)){
-                    eventsList += Event(getId(childNodes.item(index)), getData(childNodes.item(index)), getInnerText(childNodes.item(index)), getCdata(childNodes.item(index)), getChildrenPlugin(childNodes.item(index)))
+                if(childNode.isInstanceOf[Elem] && "event".equalsIgnoreCase(childNode.label)){
+                    eventsList += Event(getId(childNode), getData(childNode), getInnerText(childNode), getCdata(childNode), getChildrenPlugin(childNode))
                 }
             })
         }

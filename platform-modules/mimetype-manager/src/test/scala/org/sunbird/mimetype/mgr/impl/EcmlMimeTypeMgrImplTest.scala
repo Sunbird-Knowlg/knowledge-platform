@@ -31,24 +31,23 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
     }
 
 
-//    it should "upload ECML zip file and return public url" in {
-//        val node = getNode()
-//        val identifier = "do_1234"
-//        implicit val ss = mock[StorageService]
-//        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
-//        (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *)
-//        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validEcmlContent.zip").toURI))
-//        resFuture.map(result => {
-//            println("Response: " + result)
-//            result
-//            assert(null != result)
-//            assert(result.nonEmpty)
-//            assert("do_123" == result.getOrElse("identifier",""))
-////            assert(inputUrl == result.getOrElse("artifactUrl",""))
-//        })
-//
-//        assert(true)
-//    }
+    it should "upload ECML zip file and return public url" in {
+        val node = getNode()
+        val identifier = "do_1234"
+        implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml.zip").toURI))
+        resFuture.map(result => {
+            println("Response: " + result)
+            result
+            assert(null != result)
+            assert(result.nonEmpty)
+            assert("do_123" == result.getOrElse("identifier",""))
+        })
+
+        assert(true)
+    }
 
     def getNode(): Node = {
         val node = new Node()
