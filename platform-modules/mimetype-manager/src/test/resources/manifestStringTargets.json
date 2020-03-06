@@ -1,0 +1,41 @@
+{
+  "id": "org.ekstep.summary",
+  "ver": "1.0",
+  "author": "Jagadish P",
+  "title": "Question Set Summary Plugin",
+  "description": "Plugin to add question set summary to content",
+  "targets": "[\"Hey\", \"Bye\"]",
+  "publishedDate": "",
+  "editor": {
+    "main": "editor/plugin.js",
+    "dependencies": [
+
+    ],
+    "menu": [
+      {
+        "id": "question-set-summary",
+        "category": "main",
+        "type": "icon",
+        "toolTip": "Question Set Summary",
+        "title": "Question set summary",
+        "iconClass": "fa fa-list-alt",
+        "onclick": {
+          "id": "org.ekstep.summary:addSummary"
+        }
+      }
+    ]
+  },
+  "renderer": {
+    "main": "renderer/plugin.js",
+    "dependencies": [
+      {
+        "type": "js",
+        "src": "renderer/summary-template.js"
+      },
+      {
+        "type": "css",
+        "src": "renderer/style.css"
+    }
+    ]
+  }
+}

@@ -47,11 +47,26 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *)
         val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("valid_h5p_content.h5p").toURI))
         resFuture.map(result => {
-            println("Response: " + result)
-            result
+            assert("do_1234" == result.getOrElse("identifier", ""))
+            assert(result.get("artifactUrl") != null)
+            assert(result.get("s3Key") != null)
+            assert(result.get("size") != null)
         })
+    }
 
-        assert(true)
+    it should "upload H5P zip file Url and return public url" in {
+        val node = getNode()
+        val identifier = "do_1234"
+        implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *)
+        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node,"https://h5p.org/sites/default/files/boardgame.h5p")
+        resFuture.map(result => {
+            assert("do_1234" == result.getOrElse("identifier", "do_1234"))
+            assert(result.get("artifactUrl") != null)
+            assert(result.get("s3Key") != null)
+            assert(result.get("size") != null)
+        })
     }
 
     def getNode(): Node = {
@@ -66,3 +81,4 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         node
     }
 }
+//"https://drive.google.com/uc?export=download&id=1ikb6yVDfLfJbyoaoA61WXILIEEiqGCUA"
