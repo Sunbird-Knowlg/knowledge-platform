@@ -6,10 +6,11 @@ import com.google.common.io.Resources
 import org.apache.commons.io.FileUtils
 import org.sunbird.graph.dac.model.Node
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 
 class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
-
+	implicit val ss: StorageService = new StorageService()
 	val mgr = new BaseMimeTypeManager
 
 	"validateUploadRequest with empty data" should "throw ClientException" in {
@@ -26,7 +27,7 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 	}
 
 	"getFieNameFromURL" should "return file name from url" in {
-		val result = mgr.getFieNameFromURL("http://abc.com/content/sample.pdf")
+		val result = mgr.getFileNameFromURL("http://abc.com/content/sample.pdf")
 		assert(result.contains("sample_"))
 		assert(result.endsWith(".pdf"))
 	}
@@ -41,8 +42,8 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 		assert(true)
 	}
 
-	"isValidPackageStructure with valid html zip file" should "return true" in {
-		val file: File = new File(Resources.getResource("validHtmlContent.zip").toURI)
+	"isValidPackageStructure with valid html zip file" should "return true" ignore {
+		val file: File = new File(Resources.getResource("validHtml.zip").toURI)
 		val result = mgr.isValidPackageStructure(file, List("index.html"))
 		assert(result)
 	}
@@ -64,6 +65,28 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 		val file: File = new File(Resources.getResource("validEcmlContent.zip").toURI)
 		val result = mgr.extractPackage(file, "/tmp/validEcmlContent")
 		assert(new File("/tmp/validEcmlContent/index.ecml").exists())
+	}
+
+	"createZipPackage" should "Zip the files into a single package" in {
+		try {
+			mgr.createZipPackage(Resources.getResource("filesToZip").getPath, Resources.getResource("filesToZip").getPath.replace("filesToZip", "")
+				+ "test_zip.zip")
+			assert(new File(Resources.getResource("test_zip.zip").getPath).exists())
+		} finally {
+			FileUtils.deleteQuietly(new File(Resources.getResource("test_zip.zip").getPath))
+		}
+	}
+
+
+	"createZipPackageWithNestedFiles" should "Zip the files into a single package" in {
+		try {
+			mgr.createZipPackage(Resources.getResource("filesToZipNested").getPath, Resources.getResource("filesToZip").getPath.replace("filesToZip", "")
+				+ "test_zip_nested.zip")
+			assert(new File(Resources.getResource("test_zip_nested.zip").getPath).exists())
+		}
+		finally {
+			FileUtils.deleteQuietly(new File(Resources.getResource("test_zip_nested.zip").getPath))
+		}
 	}
 
 }

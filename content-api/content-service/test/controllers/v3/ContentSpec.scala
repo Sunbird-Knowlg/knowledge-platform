@@ -52,5 +52,83 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+        "return success response for flag API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.flag("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for acceptFlag API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.acceptFlag("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for rejectFlag API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.rejectFlag("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for bundle API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.bundle()(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for publish API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.publish("0123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for review API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.review("0123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for discard API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.discard("0123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for retire API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.retire("0123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for linkDialCode API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.linkDialCode()(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for reserveDialCode API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.reserveDialCode("01234")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for releaseDialcodes API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.releaseDialcodes("01234")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for rejectContent API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.rejectContent("01234")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+        "return success response for publishUnlisted API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.publishUnlisted("01234")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
 }
