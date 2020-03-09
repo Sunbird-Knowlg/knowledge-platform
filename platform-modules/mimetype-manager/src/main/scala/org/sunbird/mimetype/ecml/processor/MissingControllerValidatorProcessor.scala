@@ -3,11 +3,12 @@ package org.sunbird.mimetype.ecml.processor
 import java.io.File
 
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 
 trait MissingControllerValidatorProcessor extends IProcessor {
 
-    abstract override def process(ecrf: Plugin): Plugin = {
+    abstract override def process(ecrf: Plugin)(implicit ss: StorageService): Plugin = {
         validateControllers(ecrf)
         super.process(ecrf)
     }
