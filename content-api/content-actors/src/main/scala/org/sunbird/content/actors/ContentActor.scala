@@ -8,7 +8,7 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.cloudstore.CloudStore
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
@@ -21,7 +21,7 @@ import scala.collection.JavaConverters
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContentActor extends BaseActor {
+class ContentActor (implicit ss: StorageService) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
@@ -124,7 +124,7 @@ class ContentActor extends BaseActor {
 			val response = ResponseHandler.OK()
 			val objectKey = "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
-			val preSignedURL = CloudStore.getCloudStoreService.getSignedURL(CloudStore.getContainerName, objectKey, Option.apply(expiry.toInt), Option.apply("w"))
+			val preSignedURL = ss.getService().getSignedURL(ss.getContainerName(), objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
 			response.put("pre_signed_url", preSignedURL)
 			response.put("url_expiry", expiry)
