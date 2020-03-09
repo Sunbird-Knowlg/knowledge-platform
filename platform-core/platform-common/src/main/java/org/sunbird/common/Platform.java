@@ -60,4 +60,8 @@ public class Platform {
 		return config.hasPath(key) ? config.getInt(key) : defaultVal;
 	}
 
+	public static List<String> getStringList(String key, List<String> defaultVal) {
+		return config.hasPath(key) ? config.getStringList(key) : defaultVal;
+	}
+
 }
