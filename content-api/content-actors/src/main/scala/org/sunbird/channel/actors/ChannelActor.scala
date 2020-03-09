@@ -34,18 +34,18 @@ class ChannelActor extends BaseActor {
             request.getRequest.put("identifier", request.getRequest.get("code").asInstanceOf[String])
         else
             throw new ClientException("ERR_CODE_IS_REQUIRED", "Code is required for creating a channel")
-        ChannelManager.validateLicense(request).map(resp => {
-            if (!ResponseHandler.checkError(resp)) {
-                DataNode.create(request).map(node => {
-                    val response = ResponseHandler.OK
-                    response.put("identifier", node.getIdentifier)
-                    response.put("node_id", node.getIdentifier)
-                    ChannelManager.channelLicenseCache(response, request)
-                    response
-                })
-            } else
-                Future(resp)
-        }).flatMap(f => f)
+        val resp = ChannelManager.validateLicense(request)
+        ChannelManager.validateTranslationMap(request)
+        if (!ResponseHandler.checkError(resp)) {
+            DataNode.create(request).map(node => {
+                val response = ResponseHandler.OK
+                response.put("identifier", node.getIdentifier)
+                response.put("node_id", node.getIdentifier)
+                ChannelManager.channelLicenseCache(response, request)
+                response
+            })
+        } else
+            Future(resp)
     }
 
     def read(request: Request): Future[Response] = {
@@ -55,35 +55,32 @@ class ChannelActor extends BaseActor {
             metadata.put("identifier", node.getIdentifier.replace(".img", ""))
             if (Platform.config.hasPath("channel.fetch.suggested_frameworks") && Platform.config.getBoolean("channel.fetch.suggested_frameworks")) {
                 if (CollectionUtils.isEmpty(node.getMetadata.get("frameworks").asInstanceOf[util.List[AnyRef]])) {
-                    val searchedFrameworkList = ChannelManager.getAllFrameworkList()
-                    searchedFrameworkList.map(frameworkList => {
-                        if (!frameworkList.isEmpty) {
-                            metadata.put("suggested_frameworks", frameworkList)
-                            response.put("channel", metadata)
-                        }
-                        response
-                    })
+                    val frameworkList = ChannelManager.getAllFrameworkList()
+                    if (!frameworkList.isEmpty) {
+                        metadata.put("suggested_frameworks", frameworkList)
+                        response.put("channel", metadata)
+                    }
+                    response
                 } else
-                    Future(response)
+                    response
             } else
-                Future(response)
-        }).flatMap(f => f)
+                response
+        })
     }
 
     def update(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
-        ChannelManager.validateLicense(request).map(resp => {
-            ChannelManager.validateTranslationMap(request)
-            request.getRequest.put("status", "Live")
-            DataNode.update(request).map(node => {
-                val response: Response = ResponseHandler.OK
-                val identifier: String = node.getIdentifier
-                response.put("node_id", identifier)
-                response.put("identifier", identifier)
-                ChannelManager.channelLicenseCache(response, request)
-                response
-            })
-        }).flatMap(f => f)
+        ChannelManager.validateLicense(request)
+        ChannelManager.validateTranslationMap(request)
+        request.getRequest.put("status", "Live")
+        DataNode.update(request).map(node => {
+            val response: Response = ResponseHandler.OK
+            val identifier: String = node.getIdentifier
+            response.put("node_id", identifier)
+            response.put("identifier", identifier)
+            ChannelManager.channelLicenseCache(response, request)
+            response
+        })
     }
 
     def retire(request: Request): Future[Response] = {
