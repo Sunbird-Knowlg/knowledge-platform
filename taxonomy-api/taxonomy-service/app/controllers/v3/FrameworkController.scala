@@ -16,20 +16,16 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
 
     val objectType = "Framework"
     val schemaName: String = "framework"
-    val version = "2.0"
+    val version = "1.0"
     
     def createFramework() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
         val framework = body.getOrElse("framework", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
         framework.putAll(headers)
-        val createFrameworkRequest = getRequest(framework, headers, TaxonomyOperations.createFramework.toString)
-        setRequestContext(createFrameworkRequest, version, objectType, schemaName)
-        getResult(ApiId.CREATE_FRAMEWORK, frameworkActor, createFrameworkRequest)
-        
-     /*   val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))*/
+        val frameworkRequest = getRequest(framework, headers, TaxonomyOperations.createFramework.toString)
+        setRequestContext(frameworkRequest, version, objectType, schemaName)
+        getResult(ApiId.CREATE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
     def readFramework(identifier: String, categories: Option[String]) = Action.async { implicit request =>
