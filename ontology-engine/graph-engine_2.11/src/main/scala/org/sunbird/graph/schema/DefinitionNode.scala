@@ -19,14 +19,14 @@ object DefinitionNode {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-  def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+  def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
       val inputNode = definition.getNode(request.getRequest)
 	  updateRelationMetadata(inputNode)
-      definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
+      definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause}
   }
 
     def getExternalProps(graphId: String, version: String, schemaName: String): List[String] = {

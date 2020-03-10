@@ -3,22 +3,26 @@ package org.sunbird.content.actors
 import java.io.File
 import java.util
 
+import akka.actor.ActorRef
+import javax.inject.{Inject, Named}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
-import org.sunbird.content.util.RequestUtil
-import org.sunbird.graph.nodes.DataNode
+import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.content.util.{ActorNames, CopyOperation, RequestUtil}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
+import org.sunbird.common.dto.Response
+import org.sunbird.common.dto.ResponseHandler
+import org.sunbird.graph.nodes.DataNode
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContentActor extends BaseActor {
+class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef) extends BaseActor{
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
@@ -28,6 +32,7 @@ class ContentActor extends BaseActor {
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "copy" => copy(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -109,6 +114,17 @@ class ContentActor extends BaseActor {
 		}).flatMap(f => f)
 	}
 
+	def copy(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		DataNode.read(request).map(node => {
+			CopyOperation.copy(request, node, collectionActor).map(idMap => {
+				val response = ResponseHandler.OK
+				response.put("node_id", idMap)
+				response
+			})
+		}).flatMap(f => f)
+	}
+
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
@@ -142,4 +158,5 @@ class ContentActor extends BaseActor {
 			else request.put(ContentParams.contentDisposition.name, ContentParams.inline.name)
 		}
 	}
+
 }
