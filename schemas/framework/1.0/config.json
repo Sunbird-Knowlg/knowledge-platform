@@ -1,5 +1,10 @@
 {
   "objectType": "Framework",
+  "restrictProps": {
+    "create" : [
+      "status","code"
+    ]
+  },
   "relations": {
     "channels": {
       "type": "hasSequenceMember",

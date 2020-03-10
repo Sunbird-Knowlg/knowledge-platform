@@ -6,5 +6,6 @@ object ApiId {
 	
 	//Framework APIs
 	val CREATE_FRAMEWORK = "api.framework.create"
+	val UPDATE_FRAMEWORK = "api.framework.update"
 	
 }

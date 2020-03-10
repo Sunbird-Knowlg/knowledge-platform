@@ -5,11 +5,10 @@ import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
 import play.api.mvc.ControllerComponents
-
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.common.dto.ResponseHandler
-import utils.{ActorNames, ApiId, JavaJsonUtils, TaxonomyOperations}
+import utils.{ActorNames, ApiId, JavaJsonUtils}
 
 @Singleton
 class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) frameworkActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext)  extends BaseController(cc) {
@@ -23,7 +22,7 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
         val body = requestBody()
         val framework = body.getOrElse("framework", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
         framework.putAll(headers)
-        val frameworkRequest = getRequest(framework, headers, TaxonomyOperations.createFramework.toString)
+        val frameworkRequest = getRequest(framework, headers, "createFramework")
         setRequestContext(frameworkRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
@@ -41,9 +40,14 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
     }
 
     def updateFramework(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val framework = body.getOrElse("framework", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+        framework.putAll(headers)
+        val frameworkRequest = getRequest(framework, headers, "updateFramework")
+        setRequestContext(frameworkRequest, version, objectType, schemaName)
+        frameworkRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.UPDATE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
     
     def listFramework() = Action.async { implicit request =>
