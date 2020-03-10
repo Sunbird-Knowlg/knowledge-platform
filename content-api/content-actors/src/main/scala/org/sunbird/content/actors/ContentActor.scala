@@ -21,9 +21,10 @@ import scala.collection.JavaConverters
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContentActor (implicit ss: StorageService) extends BaseActor {
+class ContentActor extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
+	val ss: StorageService = new StorageService
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
