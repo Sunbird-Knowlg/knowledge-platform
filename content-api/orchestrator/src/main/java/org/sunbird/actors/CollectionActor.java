@@ -3,8 +3,8 @@ package org.sunbird.actors;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
-import org.sunbird.managers.HierarchyManager;
-import org.sunbird.managers.UpdateHierarchyManager;
+import org.sunbird.manager.HierarchyManager;
+import org.sunbird.manager.UpdateHierarchyManager;
 import scala.concurrent.Future;
 
 public class CollectionActor extends BaseActor {

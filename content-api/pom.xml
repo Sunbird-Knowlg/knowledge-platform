@@ -24,6 +24,7 @@
         <module>content-service</module>
         <module>hierarchy-manager</module>
         <module>orchestrator</module>
+        <module>content-actors</module>
     </modules>
     <dependencies>
     </dependencies>

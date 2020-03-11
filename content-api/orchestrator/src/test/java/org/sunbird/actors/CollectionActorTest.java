@@ -16,7 +16,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
-import org.sunbird.managers.HierarchyManager;
+import org.sunbird.manager.HierarchyManager;
 import scala.concurrent.ExecutionContext;
 import java.util.*;
 

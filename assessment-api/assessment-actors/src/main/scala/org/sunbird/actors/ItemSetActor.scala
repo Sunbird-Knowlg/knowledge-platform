@@ -33,6 +33,7 @@ class ItemSetActor extends BaseActor {
 		val response = ResponseHandler.OK
 		response.put("identifier", node.getIdentifier)
 		response
+
 	})
 
 	def read(request: Request): Future[Response] = {

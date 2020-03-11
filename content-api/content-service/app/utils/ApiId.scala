@@ -8,6 +8,7 @@ object ApiId {
 	val CREATE_CONTENT = "api.content.create"
 	val READ_CONTENT = "api.content.read"
 	val UPDATE_CONTENT = "api.content.update"
+	val UPLOAD_CONTENT = "api.content.upload"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"

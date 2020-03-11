@@ -41,7 +41,7 @@ public class LicenseActor extends BaseActor {
         }
     }
 
-    private Future<Response> create(Request request) throws Exception {
+    private Future create(Request request) throws Exception {
         RequestUtils.restrictProperties(request);
         if (request.getRequest().containsKey("identifier")) {
             throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier");
