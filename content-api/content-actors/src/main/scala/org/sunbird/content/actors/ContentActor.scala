@@ -11,7 +11,7 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResponseCode}
-import org.sunbird.content.util.{ActorNames, CopyOperation, RequestUtil}
+import org.sunbird.content.util.{ActorNames, CopyManager, CopyOperation, RequestUtil}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.common.dto.Response
@@ -116,13 +116,11 @@ class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor
 
 	def copy(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
-		DataNode.read(request).map(node => {
-			CopyOperation.copy(request, node, collectionActor).map(idMap => {
-				val response = ResponseHandler.OK
-				response.put("node_id", idMap)
-				response
-			})
-		}).flatMap(f => f)
+		CopyManager.copy(request).map(idMap => {
+			val response = ResponseHandler.OK
+			response.put("node_id", idMap)
+			response
+		})
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
