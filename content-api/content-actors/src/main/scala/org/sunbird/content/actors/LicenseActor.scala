@@ -2,19 +2,21 @@ package org.sunbird.content.actors
 
 import java.util
 
+import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.content.util.{LicenseConstants, RequestUtil}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
-class LicenseActor extends BaseActor {
+class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
     implicit val ec: ExecutionContext = getContext().dispatcher
 
     override def onReceive(request: Request): Future[Response] = {
