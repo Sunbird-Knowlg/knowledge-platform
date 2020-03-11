@@ -9,7 +9,7 @@ import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.graph.common.enums.AuditProperties
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.exception.GraphEngineErrorCodes
+import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
@@ -38,7 +38,7 @@ trait VersioningNode extends IDefinition {
         val nodeFuture: Future[Node] = super.getNode(identifier , "update", null)
         nodeFuture.map(node => {
             if(null == node)
-                throw new ResourceNotFoundException(GraphEngineErrorCodes.ERR_INVALID_NODE.name, "Node Not Found With Identifier : " + identifier)
+                throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier : " + identifier)
             if(schemaValidator.getConfig.hasPath("version") && "enable".equalsIgnoreCase(schemaValidator.getConfig.getString("version"))){
                 getEditableNode(identifier, node)
             } else {
@@ -144,5 +144,4 @@ trait VersioningNode extends IDefinition {
             } else Future("")
         }).flatMap(f => f)
     }
-
 }
