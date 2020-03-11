@@ -116,11 +116,7 @@ class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor
 
 	def copy(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
-		CopyManager.copy(request).map(idMap => {
-			val response = ResponseHandler.OK
-			response.put("node_id", idMap)
-			response
-		})
+		CopyManager.copy(request)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {

@@ -166,11 +166,11 @@ object CopyOperation  {
       request.getContext.put("identifier", node.getIdentifier)
       request.getRequest.clear()
       if (!existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String].isEmpty) {
-        if (new BaseMimeTypeManager().isInternalUrl(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])) {
-          file = copyURLToFile(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
-          request.getRequest.put("file", file)
-        } else
-          request.getRequest.put("fileUrl", existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+//        if (new BaseMimeTypeManager().isInternalUrl(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])) {
+//          file = copyURLToFile(existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+//          request.getRequest.put("file", file)
+//        } else
+//          request.getRequest.put("fileUrl", existingNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
 //          upload(request).map(response => {
 //          if (!ResponseHandler.checkError(response)) {
 //            if (null != file && file.exists()) {

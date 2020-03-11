@@ -254,7 +254,5 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		} finally if (zos != null) zos.close()
 	}
 
-	def isInternalUrl(url: String): Boolean = url.contains(ss.getContainerName())
-
 }
 
