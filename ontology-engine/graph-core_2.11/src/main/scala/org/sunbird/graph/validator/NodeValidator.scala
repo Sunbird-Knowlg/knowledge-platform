@@ -25,7 +25,7 @@ object NodeValidator {
                 val invalidIds = identifiers.toList.filter(id => !dbNodeIds.contains(id))
                 throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier " + invalidIds)
             } else {
-                dataNodes.map(node => node.getIdentifier -> node).toMap.asJava
+                new util.HashMap[String, Node](dataNodes.map(node => node.getIdentifier -> node).toMap.asJava)
             }
         }) recoverWith {
             case e: CompletionException => throw e.getCause
