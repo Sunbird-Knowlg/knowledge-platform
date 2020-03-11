@@ -16,6 +16,7 @@ import java.util.concurrent.CompletionException
 import akka.actor.ActorRef
 import akka.pattern.Patterns
 import org.apache.commons.io.{FileUtils, FilenameUtils}
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.mimetype.mgr.BaseMimeTypeManager
@@ -25,7 +26,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object CopyOperation  {
 
-  val endNodeObjectTypes = List("Content", "ContentImage")
+    implicit val ss = new StorageService
+    val endNodeObjectTypes = List("Content", "ContentImage")
 
   def validateCopyContentRequest(existingNode: Node, requestMap: util.Map[String, AnyRef], mode: String): Node = {
     if (null == requestMap)

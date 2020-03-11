@@ -253,13 +253,8 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 			case e: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + e.getMessage, e)
 		} finally if (zos != null) zos.close()
 	}
-}
 
-	def isInternalUrl(url: String): Boolean = {
-		if (url.contains(CloudStore.getContainerName))
-			true
-		else
-			false
-	}
+	def isInternalUrl(url: String): Boolean = url.contains(ss.getContainerName())
+
 }
 
