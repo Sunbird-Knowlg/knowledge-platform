@@ -1,9 +1,18 @@
 package org.sunbird.graph
 
-//@Singleton
 class OntologyEngineContext {
 
-    def graphDB = {
+    private val graphDB = new GraphService
+
+    def graphService = {
+        graphDB
+    }
+
+    def extStoreDB = {
+
+    }
+
+    def redis = {
 
     }
 }
