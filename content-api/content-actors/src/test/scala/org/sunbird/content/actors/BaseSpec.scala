@@ -13,11 +13,14 @@ class BaseSpec extends FlatSpec with Matchers {
     def testUnknownOperation(props: Props)(implicit oec: OntologyEngineContext) = {
         val request = new Request()
         request.setOperation("unknown")
-        val probe = new TestKit(system)
-        val actorRef = system.actorOf(props)
-        actorRef.tell(request, probe.testActor)
-        val response = probe.expectMsgClass(classOf[Response])
+        val response = callActor(request, props)
         assert("failed".equals(response.getParams.getStatus))
     }
 
+    def callActor(request: Request, props: Props): Response = {
+        val probe = new TestKit(system)
+        val actorRef = system.actorOf(props)
+        actorRef.tell(request, probe.testActor)
+        probe.expectMsgClass(classOf[Response])
+    }
 }
