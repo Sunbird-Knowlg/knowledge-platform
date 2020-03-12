@@ -19,7 +19,6 @@ public class CollectionActor extends BaseActor {
             case "removeHierarchy": return removeLeafNodesFromHierarchy(request);
             case "updateHierarchy": return updateHierarchy(request);
             case "getHierarchy": return getHierarchy(request);
-            case "copy": return copyCollection(request);
             default: return ERROR(operation);
         }
     }
@@ -42,10 +41,4 @@ public class CollectionActor extends BaseActor {
         request.getContext().put("schemaName", SCHEMA_NAME);
         return HierarchyManager.getHierarchy(request, getContext().dispatcher());
     }
-
-    private Future<Response> copyCollection(Request request) throws Exception {
-        request.getContext().put("schemaName", SCHEMA_NAME);
-        return HierarchyManager.copyCollection(request, getContext().dispatcher());
-    }
-
 }
