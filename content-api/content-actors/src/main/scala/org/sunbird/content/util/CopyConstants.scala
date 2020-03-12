@@ -1,6 +1,7 @@
 package org.sunbird.content.util
 
 object CopyConstants {
+    val CHILDREN: String = "children"
     val REQUIRED_KEYS: List[String] = List("createdBy", "createdFor", "organisation", "framework")
     val CONTENT_TYPE: String = "contentType"
     val CONTENT_TYPE_ASSET_CAN_NOT_COPY: String = "CONTENT_TYPE_ASSET_CAN_NOT_COPY"
@@ -17,5 +18,11 @@ object CopyConstants {
     val ORIGIN: String = "origin"
     val ORIGIN_DATA: String = "originData"
     val ERR_INVALID_UPLOAD_FILE_URL: String = "ERR_INVALID_UPLOAD_FILE_URL"
+    val ROOT_ID: String = "root_id"
+    val HIERARCHY: String = "hierarchy"
+    val ROOT: String = "root"
+    val NODES_MODIFIED: String = "nodesModified"
+    val VISIBILITY: String = "visibility"
+    val METADATA: String = "metadata"
 
 }

@@ -1,12 +1,10 @@
 package org.sunbird.content.util
 
+
 import java.io.{File, IOException}
 import java.net.URL
-
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.graph.dac.model.Node
-import org.sunbird.common.exception.ClientException
 import java.util
+import java.util.UUID
 import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections.CollectionUtils
@@ -15,15 +13,30 @@ import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.common.Identifier
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
+
 
 object CopyManager {
+    
+    private val metadataNotTobeCopied = Platform.config.getStringList("content.copy.props_to_remove")
+    private val invalidStatusList: util.List[String] = if (Platform.config.hasPath("content.copy.invalid_statusList"))
+        Platform.config.getStringList("content.copy.invalid_statusList") else new util.ArrayList[String]()
+
+    private val invalidContentTypes: util.List[String] = if (Platform.config.hasPath("content.copy.invalid_contentTypes"))
+        Platform.config.getStringList("content.copy.invalid_contentTypes") else new util.ArrayList[String]()
+
+    private val originMetadataKeys: util.List[String] = if (Platform.config.hasPath("content.copy.origin_data"))
+        Platform.config.getStringList("+content.copy.origin_data") else new util.ArrayList[String]()
 
     implicit val ss: StorageService = new StorageService
 
@@ -47,12 +60,12 @@ object CopyManager {
         val copyCreateReq = getCopyRequest(node, request)
         DataNode.create(copyCreateReq).map(copiedNode => {
             val mimeTypeManager = MimeTypeManagerFactory.getManager(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String], node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String])
-            if (StringUtils.isNotBlank(node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])) {
-                if (isInternalUrl(node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])) {
-                    val file = copyURLToFile(node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+            if (StringUtils.isNotBlank(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
+                if (isInternalUrl(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
+                    val file = copyURLToFile(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
                     mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file)
                 } else
-                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
                 copiedNode
             } else {
                 node
@@ -60,20 +73,31 @@ object CopyManager {
         })
     }
 
-    def copyCollection(node: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = ???
+    def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext):Future[Node] = {
+        copyContent( originNode, request).map(node => {
+            val req = new Request(request)
+            req.put(CopyConstants.ROOT_ID, request.get(CopyConstants.IDENTIFIER))
+            req.put(CopyConstants.MODE, request.get(CopyConstants.MODE))
+            HierarchyManager.getHierarchy(req).map(response => {
+                val originHierarchy = response.get(CopyConstants.HIERARCHY).asInstanceOf[java.util.Map[String, AnyRef]]
+                val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node)
+                val hierarchyRequest = new Request(request)
+                request.putAll(updateHierarchyRequest)
+                UpdateHierarchyManager.updateHierarchy(hierarchyRequest)
+                node
+            })
+        }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+    }
 
     def validateExistingNode(node: Node): Unit = {
-        val invalidContentTypes: util.List[String] = if (Platform.config.hasPath("invalid.copy.contentTypes"))
-            Platform.config.getStringList("invalid.copy.contentTypes") else new util.ArrayList[String]()
         if (!CollectionUtils.isEmpty(invalidContentTypes) && invalidContentTypes.contains(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String]))
             throw new ClientException(CopyConstants.CONTENT_TYPE_ASSET_CAN_NOT_COPY, "ContentType " + node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String] + " can not be copied.")
-        val invalidStatusList: util.List[String] = if (Platform.config.hasPath("invalid.copy.statusList"))
-            Platform.config.getStringList("invalid.copy.statusList") else new util.ArrayList[String]()
+        
         if (invalidStatusList.contains(node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String]))
             throw new ClientException(CopyConstants.ERR_INVALID_REQUEST, "Cannot Copy content which is in " + node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String].toLowerCase + " status")
 
     }
-
+    
     def validateRequest(request: Request): Unit = {
         val keysNotPresent = CopyConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
         if (keysNotPresent.nonEmpty)
@@ -105,19 +129,14 @@ object CopyManager {
         req
     }
 
-    def getOriginData(metadata: util.Map[String, AnyRef]): util.Map[String, AnyRef] = {
-        val originMetadataKeys: util.List[String] = if (Platform.config.hasPath("learning.content.copy.origin_data"))
-            Platform.config.getStringList("learning.content.copy.origin_data") else new util.ArrayList[String]()
-        if (CollectionUtils.isNotEmpty(originMetadataKeys))
+    def getOriginData(metadata: util.Map[String, AnyRef]): util.Map[String, AnyRef] = if (CollectionUtils.isNotEmpty(originMetadataKeys))
             originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava else new util.HashMap[String, AnyRef]()
+    
+    def cleanUpCopiedData(metadata: util.Map[String, AnyRef]): util.Map[String, AnyRef] = {
+        metadata.keySet().removeAll(metadataNotTobeCopied)
+        metadata
     }
-
-    def cleanUpCopiedData(metadata: util.Map[String, AnyRef]): Unit = {
-        val propsToRemove: util.List[String] = if (Platform.config.hasPath("learning.content.copy.props_to_remove"))
-            Platform.config.getStringList("learning.content.copy.props_to_remove") else new util.ArrayList[String]()
-        metadata.keySet().removeAll(propsToRemove)
-    }
-
+    
     def copyURLToFile(fileUrl: String): File = try {
         val file = new File(getFileNameFromURL(fileUrl))
         FileUtils.copyURLToFile(new URL(fileUrl), file)
@@ -125,10 +144,58 @@ object CopyManager {
     } catch {
         case e: IOException => throw new ClientException(CopyConstants.ERR_INVALID_UPLOAD_FILE_URL, "fileUrl is invalid.")
     }
-
-    protected def getFileNameFromURL(fileUrl: String): String = if (!FilenameUtils.getExtension(fileUrl).isEmpty)
-        FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis + "." + FilenameUtils.getExtension(fileUrl) else FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
+        
+    def getFileNameFromURL(fileUrl: String): String = if (!FilenameUtils.getExtension(fileUrl).isEmpty)
+                FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis + "." + FilenameUtils.getExtension(fileUrl) else FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
 
     def isInternalUrl(url: String): Boolean = url.contains(ss.getContainerName())
+
+    def prepareHierarchyRequest(originHierarchy: util.Map[String, AnyRef], originNode: Node, node: Node):util.HashMap[String, AnyRef] = {
+        val children:util.List[util.Map[String, AnyRef]] = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+        if(null != children && !children.isEmpty) {
+            val nodesModified = new util.HashMap[String, AnyRef]()
+            val hierarchy = new util.HashMap[String, AnyRef]()
+            hierarchy.put(node.getIdentifier, new util.HashMap[String, AnyRef](){{
+                put(CopyConstants.CHILDREN, new util.ArrayList[String]())
+                put(CopyConstants.ROOT, true.asInstanceOf[AnyRef])
+                put(CopyConstants.CONTENT_TYPE, node.getMetadata.get(CopyConstants.CONTENT_TYPE))
+            }})
+            populateHierarchyRequest(children, nodesModified, hierarchy, node.getIdentifier)
+            new util.HashMap[String, AnyRef](){{
+                put(CopyConstants.NODES_MODIFIED, nodesModified)
+                put(CopyConstants.HIERARCHY, hierarchy)
+            }}
+        } else new util.HashMap[String, AnyRef]()
+    }
+
+
+    def populateHierarchyRequest(children: util.List[util.Map[String, AnyRef]], nodesModified: util.HashMap[String, AnyRef], hierarchy: util.HashMap[String, AnyRef], parentId: String): Unit = {
+        if (null != children && !children.isEmpty) {
+            children.asScala.toList.map(child => {
+                val id = if ("Parent".equalsIgnoreCase(child.get(CopyConstants.VISIBILITY).asInstanceOf[String])) {
+                        val identifier = UUID.randomUUID().toString
+                        nodesModified.put(identifier, new util.HashMap[String, AnyRef]() {{
+                                put(CopyConstants.METADATA,  cleanUpCopiedData(new util.HashMap[String, AnyRef]() {{
+                                    putAll(child)
+                                    put(CopyConstants.CHILDREN, new util.ArrayList())
+                                    List("identifier", "parent", "index", "depth").map(key => remove(key))
+                                }}))
+                                put(CopyConstants.ROOT, false.asInstanceOf[AnyRef])
+                                put("isNew", true.asInstanceOf[AnyRef])
+                                put("setDefaultValue", false.asInstanceOf[AnyRef])
+                            }})
+                        identifier
+                    } else 
+                        child.get(CopyConstants.IDENTIFIER).asInstanceOf[String]
+                hierarchy.put(id, new util.HashMap[String, AnyRef]() {{
+                        put(CopyConstants.CHILDREN, new util.ArrayList[String]())
+                        put(CopyConstants.ROOT, false.asInstanceOf[AnyRef])
+                        put(CopyConstants.CONTENT_TYPE, child.get(CopyConstants.CONTENT_TYPE))
+                    }})
+                hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(CopyConstants.CHILDREN).asInstanceOf[util.List[String]].add(id)
+                populateHierarchyRequest(child.get(CopyConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id)
+            })
+        }
+    }
 
 }
