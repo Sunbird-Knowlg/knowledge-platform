@@ -24,5 +24,6 @@ object CopyConstants {
     val NODES_MODIFIED: String = "nodesModified"
     val VISIBILITY: String = "visibility"
     val METADATA: String = "metadata"
-
+    val END_NODE_OBJECT_TYPES = List("Content", "ContentImage")
+    val VERSION_KEY: String = "versionKey"
 }
