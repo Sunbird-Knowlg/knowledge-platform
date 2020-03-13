@@ -15,6 +15,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
@@ -27,6 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object CopyManager {
+    implicit val oec: OntologyEngineContext = new OntologyEngineContext
     private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
     private val metadataNotTobeCopied = Platform.config.getStringList("content.copy.props_to_remove")
     private val invalidStatusList: util.List[String] = if (Platform.config.hasPath("content.copy.invalid_statusList"))
