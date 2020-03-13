@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>content-api</artifactId>
+        <artifactId>ontology-engine</artifactId>
         <groupId>org.sunbird</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>content-actors</artifactId>
+    <groupId>org.sunbird</groupId>
+    <artifactId>graph-core_2.11</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -18,29 +18,13 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>actor-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.sunbird</groupId>
-            <artifactId>kafka-client</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.sunbird</groupId>
-            <artifactId>graph-engine_2.11</artifactId>
+            <artifactId>graph-dac-api</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>mimetype-manager</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.sunbird</groupId>
-            <artifactId>hierarchy-manager</artifactId>
+            <artifactId>schema-validator</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -49,19 +33,6 @@
             <version>3.0.8</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.scalamock</groupId>
-            <artifactId>scalamock_2.11</artifactId>
-            <version>4.4.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_2.11</artifactId>
-            <version>2.5.22</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
