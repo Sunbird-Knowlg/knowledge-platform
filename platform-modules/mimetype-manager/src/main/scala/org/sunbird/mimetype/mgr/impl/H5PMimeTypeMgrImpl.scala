@@ -1,6 +1,7 @@
 package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
+import java.util.concurrent.CompletionException
 
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Slug
@@ -21,8 +22,9 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             val zipFile = new File(zippedFileName)
             uploadAndUpdateNode(zipFile, node, objectId)
             if (zipFile.exists) zipFile.delete
-            extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
-            Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> node.getMetadata.get("s3Key")))
+            extractH5PPackageInCloud(objectId, uploadFile, node, "snapshot", false).map(resp =>
+                Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> node.getMetadata.get("s3Key")))
+            ).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
         } else {
             TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
@@ -42,7 +44,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
       * @param objectId
       * @return
       */
-     def createH5PZipFile(extractionBasePath: String, uploadFiled: File, objectId: String): String = {
+    def createH5PZipFile(extractionBasePath: String, uploadFiled: File, objectId: String): String = {
         // Download the H5P Libraries and Un-Zip the H5P Library Files
         extractH5pPackage(objectId, extractionBasePath)
         // UnZip the Content Package
