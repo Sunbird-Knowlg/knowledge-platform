@@ -20,10 +20,10 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             val extractionBasePath = getBasePath(objectId)
             val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
             val zipFile = new File(zippedFileName)
-            uploadAndUpdateNode(zipFile, node, objectId)
+            val urls: Array[String] = uploadArtifactToCloud(zipFile, objectId)
             if (zipFile.exists) zipFile.delete
             extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
-                Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> node.getMetadata.get("s3Key"))
+                Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY))
             ) recoverWith {case e: CompletionException => throw e.getCause}
         } else {
             TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
@@ -55,16 +55,4 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         zipFileName
     }
 
-    /**
-      *
-      * @param zipFile
-      * @param node
-      * @param identifier
-      * @return
-      */
-    private def uploadAndUpdateNode(zipFile: File, node: Node, identifier: String)(implicit ss: StorageService) = {
-        val urls: Array[String] = uploadArtifactToCloud(zipFile, identifier)
-        node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
-        node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
-    }
 }
