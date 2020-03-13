@@ -22,9 +22,9 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             val zipFile = new File(zippedFileName)
             uploadAndUpdateNode(zipFile, node, objectId)
             if (zipFile.exists) zipFile.delete
-            extractH5PPackageInCloud(objectId, uploadFile, node, "snapshot", false).map(resp =>
-                Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> node.getMetadata.get("s3Key")))
-            ).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+            extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
+                Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> node.getMetadata.get("artifactUrl").asInstanceOf[String], "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> node.getMetadata.get("s3Key"))
+            ) recoverWith {case e: CompletionException => throw e.getCause}
         } else {
             TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
@@ -48,7 +48,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         // Download the H5P Libraries and Un-Zip the H5P Library Files
         extractH5pPackage(objectId, extractionBasePath)
         // UnZip the Content Package
-        extractPackage(uploadFiled, extractionBasePath)
+        extractPackage(uploadFiled, extractionBasePath + File.separator + "content")
         // Create 'ZIP' Package
         val zipFileName = extractionBasePath + File.separator + System.currentTimeMillis + "_" + Slug.makeSlug(objectId) + FILENAME_EXTENSION_SEPARATOR + DEFAULT_ZIP_EXTENSION
         createZipPackage(extractionBasePath, zipFileName)

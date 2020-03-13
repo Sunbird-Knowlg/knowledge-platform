@@ -207,13 +207,10 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		}
 	}
 
-	def extractH5PPackageInCloud(objectId: String, uploadFile: File, node: Node, extractionType: String, slugFile: Boolean): Future[List[String]] = {
-		val file = Slug.createSlugFile(uploadFile)
+	def extractH5PPackageInCloud(objectId: String, extractionBasePath: String, node: Node, extractionType: String, slugFile: Boolean): Future[List[String]] = {
 		val mimeType = node.getMetadata.get("mimeType").asInstanceOf[String]
-		validationForCloudExtraction(file, extractionType, mimeType)
-		val extractionBasePath = getBasePath(objectId)
-		extractH5pPackage(objectId, extractionBasePath)
-		extractPackage(file, extractionBasePath + File.separator + "content")
+		if(null == extractionType)
+			throw new ClientException("INVALID_EXTRACTION", "Error! Invalid Content Extraction Type.")
 		ss.uploadDirectoryAsync(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))(ExecutionContext.Implicits.global)
 	}
 
