@@ -8,6 +8,7 @@ import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
 import org.sunbird.graph.external.ExternalPropsManager
@@ -21,10 +22,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object DataNode {
     @throws[Exception]
-    def create(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def create(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
-        DefinitionNode.validate(request, true).map(node => {
-            val response = NodeAsyncOperations.addNode(graphId, node)
+        DefinitionNode.validate(request).map(node => {
+            val response = oec.graphService.addNode(graphId, node)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),

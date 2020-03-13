@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
-import org.sunbird.utils.LicenseOperations
+import org.sunbird.content.util.LicenseConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
@@ -23,7 +23,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val body = requestBody()
         val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
-        val licenseRequest = getRequest(license, headers, LicenseOperations.createLicense.name())
+        val licenseRequest = getRequest(license, headers, LicenseConstants.CREATE_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_LICENSE, licenseActor, licenseRequest)
     }
@@ -33,7 +33,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         license.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")))
-        val licenseRequest = getRequest(license, headers, LicenseOperations.readLicense.name())
+        val licenseRequest = getRequest(license, headers,  LicenseConstants.READ_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)
         getResult(ApiId.READ_LICENSE, licenseActor, licenseRequest)
     }
@@ -43,7 +43,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val body = requestBody()
         val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
-        val licenseRequest = getRequest(license, headers, LicenseOperations.updateLicense.name())
+        val licenseRequest = getRequest(license, headers,  LicenseConstants.UPDATE_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)
         licenseRequest.getContext.put("identifier", identifier)
         getResult(ApiId.UPDATE_LICENSE, licenseActor, licenseRequest)
@@ -53,7 +53,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val headers = commonHeaders()
         val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
-        val licenseRequest = getRequest(license, headers, LicenseOperations.retireLicense.name())
+        val licenseRequest = getRequest(license, headers,  LicenseConstants.RETIRE_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)
         licenseRequest.getContext.put("identifier", identifier)
         getResult(ApiId.RETIRE_LICENSE, licenseActor, licenseRequest)
