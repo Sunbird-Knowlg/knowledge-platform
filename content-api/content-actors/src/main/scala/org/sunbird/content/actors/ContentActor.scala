@@ -3,26 +3,27 @@ package org.sunbird.content.actors
 import java.io.File
 import java.util
 
-import akka.actor.ActorRef
-import javax.inject.{Inject, Named}
+import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
+import org.sunbird.content.util.CopyManager
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResponseCode}
-import org.sunbird.content.util.{ActorNames, CopyManager, CopyOperation, RequestUtil}
-import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.content.util.RequestUtil
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.common.dto.Response
 import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.NodeUtil
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContentActor @Inject()(@Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef) extends BaseActor{
+class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
