@@ -162,7 +162,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	}
 
 	def extractH5pPackage(objectId: String, extractionBasePath: String) = {
-		val h5pLibraryDownloadPath:String = getBasePath(objectId)
+		val h5pLibraryDownloadPath:String = getBasePath(objectId + File.separator + "h5p")
 		try{
 			val url: URL = new URL(H5P_LIBRARY_PATH)
 			val file = new File(h5pLibraryDownloadPath + File.separator + getFileNameFromURL(url.getPath))
