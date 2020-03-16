@@ -41,6 +41,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
+		if (StringUtils.equalsIgnoreCase(request.get("contentType").asInstanceOf[String], "eTextBook"))
+			request.getContext.put("schemaName", "etextbook")
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
 			response.put("identifier", node.getIdentifier)
@@ -66,6 +68,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 		populateDefaultersForUpdation(request)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
 		RequestUtil.restrictProperties(request)
+		if (StringUtils.equalsIgnoreCase(request.get("contentType").asInstanceOf[String], "eTextBook"))
+			request.getContext.put("schemaName", "etextbook")
 		DataNode.update(request).map(node => {
 			val response: Response = ResponseHandler.OK
 			val identifier: String = node.getIdentifier.replace(".img", "")
