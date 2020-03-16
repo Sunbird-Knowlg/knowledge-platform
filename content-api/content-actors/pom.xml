@@ -50,6 +50,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>1.4.9</version>
+        </dependency>
+        <dependency>
             <groupId>org.scalamock</groupId>
             <artifactId>scalamock_2.11</artifactId>
             <version>4.4.0</version>
@@ -61,7 +66,6 @@
             <version>2.5.22</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
