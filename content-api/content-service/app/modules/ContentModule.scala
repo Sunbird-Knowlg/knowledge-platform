@@ -1,8 +1,7 @@
 package modules
 
 import com.google.inject.AbstractModule
-import org.sunbird.actors.{CollectionActor, HealthActor, LicenseActor}
-import org.sunbird.content.actors.ContentActor
+import org.sunbird.content.actors.{CollectionActor, ContentActor, HealthActor, LicenseActor}
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 

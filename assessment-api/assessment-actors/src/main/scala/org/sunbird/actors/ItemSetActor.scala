@@ -2,10 +2,12 @@ package org.sunbird.actors
 
 import java.util
 
+import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Relation
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
@@ -15,7 +17,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters.seqAsJavaListConverter
 import scala.concurrent.{ExecutionContext, Future}
 
-class ItemSetActor extends BaseActor {
+class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 

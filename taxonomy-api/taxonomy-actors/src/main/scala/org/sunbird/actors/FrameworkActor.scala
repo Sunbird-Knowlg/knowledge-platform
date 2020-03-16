@@ -1,21 +1,28 @@
 package org.sunbird.actors
 
+import java.util
+import java.util.{Arrays, List, Map}
 import java.util.concurrent.CompletionException
 
+import org.apache.commons.collections4.MapUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.nodes.DataNode
 
+import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 class FrameworkActor extends BaseActor {
+  // val hierarchyPrefix: String = "hierarchy_"
   implicit val ec: ExecutionContext = getContext().dispatcher
 
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
       //      case "createFranework" => create(request)
-      //      case "readFramework" => read(request)
+      case "readFramework" => read(request)
       //  case "updateFramework" => update(request)
       case "retireFramework" => retire(request)
       case _ => ERROR(request.getOperation)
@@ -50,4 +57,29 @@ class FrameworkActor extends BaseActor {
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
 
   }
+
+
+  def read(request:Request):Future[Response] = {
+    val redisHierarchy = RedisCache.get(request.get("identifier").asInstanceOf[String],categories => request.get("categories").asInstanceOf[String],0)
+    if(StringUtils.isEmpty(redisHierarchy)){
+      DataNode.read(request).map(node => {
+        if(node == null){
+          throw new ResourceNotFoundException("ERR_DATA_NOT_FOUND", "Data not found with id : " + request.get("identifier"))
+        }
+        val resp = ResponseHandler.OK()
+        resp.put("identifier", node.getIdentifier)
+        resp.put("nodeType",node.getNodeType)
+        resp.put("objectType",node.getObjectType)
+        resp.put("metadata",node.getMetadata)
+        resp
+      })  recoverWith { case e: CompletionException => throw e.getCause }
+    }
+    else {
+      val resp = ResponseHandler.OK
+      resp.put("identifier", redisHierarchy)
+      Future(resp)
+    }
+  }
 }
+
+

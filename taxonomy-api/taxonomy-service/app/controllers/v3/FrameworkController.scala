@@ -23,9 +23,16 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
     }
 
     def readFramework(identifier: String, categories: Option[String]) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+//        val result = ResponseHandler.OK()
+//        val response = JavaJsonUtils.serialize(result)
+//        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val readFramework = new java.util.HashMap().asInstanceOf[java.util.Map[String, AnyRef]]
+        readFramework.putAll(headers)
+        readFramework.putAll(Map("identifier" -> identifier,"categories" ->categories.getOrElse("")).asInstanceOf[Map[String, AnyRef]])
+        val readRequest = getRequest(readFramework, headers, "readFramework")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        getResult(ApiId.READ_FRAMEWORK, frameworkActor, readRequest)
     }
     
 //    def retire(identifier: String) = Action.async { implicit request =>
