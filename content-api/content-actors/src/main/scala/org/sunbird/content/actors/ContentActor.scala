@@ -9,8 +9,9 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
 import org.sunbird.content.util.CopyManager
-import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
+import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.content.util.RequestUtil
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
@@ -45,7 +46,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 			request.getContext.put("schemaName", "etextbook")
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
-			response.put("identifier", node.getIdentifier)
+			response.put("identifier", node. getIdentifier)
 			response.put("node_id", node.getIdentifier)
 			response.put("versionKey", node.getMetadata.get("versionKey"))
 			response
@@ -82,40 +83,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 
 	def upload(request: Request): Future[Response] = {
 		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
-		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
-		val file = request.getRequest.get("file").asInstanceOf[File]
 		val readReq = new Request(request)
 		readReq.put("identifier", identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
-			val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
-			val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
-			val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
-			val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl) else mgr.upload(identifier, node, file)
-			uploadFuture.map(result => {
-				val updatedResult = result - "identifier"
-				val artifactUrl = updatedResult.getOrElse("artifactUrl", "").asInstanceOf[String]
-				if (StringUtils.isNotBlank(artifactUrl)) {
-					val updateReq = new Request(request)
-					updateReq.getContext().put("identifier", identifier)
-					updateReq.getRequest.putAll(mapAsJavaMap(updatedResult))
-					DataNode.update(updateReq).map(node => {
-						val response: Response = ResponseHandler.OK
-						val id = node.getIdentifier.replace(".img", "")
-						val url = node.getMetadata.get("artifactUrl").asInstanceOf[String]
-						response.put("node_id", id)
-						response.put("identifier", id)
-						response.put("artifactUrl", url)
-						response.put("content_url", url)
-						response.put("versionKey", node.getMetadata.get("versionKey"))
-						response
-					})
-				} else {
-					Future {
-						ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, "ERR_UPLOAD_FILE", "Something Went Wrong While Processing Your Request.")
-					}
-				}
-			}).flatMap(f => f)
+			UploadManager.upload(request, node)
 		}).flatMap(f => f)
 	}
 
