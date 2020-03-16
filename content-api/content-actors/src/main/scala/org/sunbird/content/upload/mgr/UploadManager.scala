@@ -22,7 +22,7 @@ object UploadManager {
 	private val kfClient = new KafkaClient
 
 	def upload(request: Request, node: Node)(implicit ec: ExecutionContext): Future[Response] = {
-		val identifier: String = node.getMetadata.getOrDefault("identifier", "").asInstanceOf[String]
+		val identifier: String = node.getIdentifier
 		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
 		val file = request.getRequest.get("file").asInstanceOf[File]
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
