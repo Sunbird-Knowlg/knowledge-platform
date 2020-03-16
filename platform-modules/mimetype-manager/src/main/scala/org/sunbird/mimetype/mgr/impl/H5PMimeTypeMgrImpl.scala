@@ -24,7 +24,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             if (zipFile.exists) zipFile.delete
             extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
                 Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY))
-            ) recoverWith {case e: CompletionException => throw e.getCause}
+            ) recoverWith { case e: CompletionException => throw e.getCause }
         } else {
             TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
@@ -53,6 +53,18 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         val zipFileName = extractionBasePath + File.separator + System.currentTimeMillis + "_" + Slug.makeSlug(objectId) + FILENAME_EXTENSION_SEPARATOR + DEFAULT_ZIP_EXTENSION
         createZipPackage(extractionBasePath, zipFileName)
         zipFileName
+    }
+
+    def copyH5P(uploadFile: File, node: Node)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+        val objectId: String = node.getIdentifier
+        val extractionBasePath = getBasePath(objectId)
+        extractPackage(uploadFile, extractionBasePath)
+        val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
+        node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
+        node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
+        extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
+            Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY))
+        ) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
 }
