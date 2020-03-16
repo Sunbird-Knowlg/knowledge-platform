@@ -26,4 +26,5 @@ object CopyConstants {
     val METADATA: String = "metadata"
     val END_NODE_OBJECT_TYPES = List("Content", "ContentImage")
     val VERSION_KEY: String = "versionKey"
+    val H5P_MIME_TYPE = "application/vnd.ekstep.h5p-archive"
 }

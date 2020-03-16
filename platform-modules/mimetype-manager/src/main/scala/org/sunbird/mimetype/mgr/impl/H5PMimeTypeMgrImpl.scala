@@ -55,4 +55,17 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         zipFileName
     }
 
+    def copyH5P(uploadFile: File, node: Node)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+        val objectId: String = node.getIdentifier
+        val extractionBasePath = getBasePath(objectId)
+        extractPackage(uploadFile, extractionBasePath)
+        val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
+        node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
+        node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
+        extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
+            Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY))
+        ) recoverWith { case e: CompletionException => throw e.getCause }
+    }
+
+
 }
