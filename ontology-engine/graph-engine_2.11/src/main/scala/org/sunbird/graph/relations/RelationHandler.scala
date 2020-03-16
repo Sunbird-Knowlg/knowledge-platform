@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.exception.GraphRelationErrorCodes
+import org.sunbird.graph.exception.GraphErrorCodes
 
 object RelationHandler {
 
@@ -15,10 +15,10 @@ object RelationHandler {
             else if (StringUtils.equals(RelationTypes.SEQUENCE_MEMBERSHIP.relationName, relationType))
                 new SequenceMembershipRelation(graphId, startNode, endNode, metadata)
             else {
-                throw new ClientException(GraphRelationErrorCodes.ERR_RELATION_CREATE.name, "UnSupported Relation: " + relationType)
+                throw new ClientException(GraphErrorCodes.ERR_RELATION_CREATE.toString, "UnSupported Relation: " + relationType)
             }
         } else {
-            throw new ClientException(GraphRelationErrorCodes.ERR_RELATION_CREATE.name, "UnSupported Relation: " + relationType)
+            throw new ClientException(GraphErrorCodes.ERR_RELATION_CREATE.toString, "UnSupported Relation: " + relationType)
         }
 
     }

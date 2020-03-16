@@ -194,7 +194,10 @@
       "type": "object"
     },
     "contentCredits": {
-      "type": "object"
+      "type": "array",
+      "items": {
+          "type": "object"
+      }
     },
     "appIcon": {
       "type": "string",
