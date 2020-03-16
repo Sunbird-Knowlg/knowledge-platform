@@ -436,7 +436,8 @@
         "CuriosityQuestionSet",
         "MarkingSchemeRubric",
         "ExplanationResource",
-        "ExperientialResource"
+        "ExperientialResource",
+        "eTextBook"
       ]
     },
     "resourceType": {
