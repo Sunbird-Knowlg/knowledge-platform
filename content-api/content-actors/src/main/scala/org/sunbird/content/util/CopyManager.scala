@@ -22,6 +22,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
+import org.sunbird.mimetype.mgr.impl.H5PMimeTypeMgrImpl
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +39,7 @@ object CopyManager {
         Platform.config.getStringList("content.copy.invalid_contentTypes") else new util.ArrayList[String]()
 
     private val originMetadataKeys: util.List[String] = if (Platform.config.hasPath("content.copy.origin_data"))
-        Platform.config.getStringList("+content.copy.origin_data") else new util.ArrayList[String]()
+        Platform.config.getStringList("content.copy.origin_data") else new util.ArrayList[String]()
 
     implicit val ss: StorageService = new StorageService
 
@@ -66,18 +67,7 @@ object CopyManager {
     def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
         //        cleanUpNodeRelations(node)
         val copyCreateReq = getCopyRequest(node, request)
-        DataNode.create(copyCreateReq).map(copiedNode => {
-            val mimeTypeManager = MimeTypeManagerFactory.getManager(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String], node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String])
-            if (StringUtils.isNotBlank(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
-                val uploadFuture = if (isInternalUrl(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
-                    val file = copyURLToFile(copiedNode.getIdentifier, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
-                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file)
-                } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
-                uploadFuture.map(uploadData => {
-                    DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String]))
-                }).flatMap(f => f)
-            } else Future(copiedNode)
-        }).flatMap(f => f)
+        DataNode.create(copyCreateReq).map(copiedNode => artifactUpload(node, copiedNode, request)).flatMap(f => f)
     }
 
     def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext):Future[Node] = {
@@ -216,5 +206,21 @@ object CopyManager {
                 populateHierarchyRequest(child.get(CopyConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id)
             })
         }
+    }
+
+    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+        if (StringUtils.isNotBlank(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
+            val mimeTypeManager = MimeTypeManagerFactory.getManager(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String], node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String])
+            val uploadFuture = if (isInternalUrl(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
+                val file = copyURLToFile(copiedNode.getIdentifier, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
+                if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
+                    mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
+                else
+                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file)
+            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
+            uploadFuture.map(uploadData => {
+                DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String]))
+            }).flatMap(f => f)
+        } else Future(copiedNode)
     }
 }
