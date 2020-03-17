@@ -40,7 +40,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
             val response = ResponseHandler.OK
             response.put("identifier", node.getIdentifier)
             response.put("node_id", node.getIdentifier)
-            ChannelManager.channelLicenseCache(response, request)
+            ChannelManager.channelLicenseCache(request, node.getIdentifier)
             response
         })
     }
@@ -68,7 +68,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
             val identifier: String = node.getIdentifier
             response.put("node_id", identifier)
             response.put("identifier", identifier)
-            ChannelManager.channelLicenseCache(response, request)
+            ChannelManager.channelLicenseCache(request, identifier)
             response
         })
     }

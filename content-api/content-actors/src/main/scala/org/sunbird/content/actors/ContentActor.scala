@@ -8,7 +8,7 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException}
+import org.sunbird.common.exception.ClientException
 
 import org.sunbird.util.RequestUtil
 
