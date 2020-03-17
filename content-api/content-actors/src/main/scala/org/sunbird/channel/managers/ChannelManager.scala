@@ -22,41 +22,9 @@ import scala.collection.JavaConverters._
 
 object ChannelManager {
 
-  def validateLicense(request: Request)(implicit ec: ExecutionContext): Response = {
-    val response: Response = ResponseHandler.OK
-    if (StringUtils.isNotEmpty(request.getRequest.get(ChannelConstants.DEFAULT_LICENSE).asInstanceOf[String])) {
-      val licenseList = RedisCache.getList(ChannelConstants.LICENSE_REDIS_KEY)
-      if (!licenseList.isEmpty && licenseList.contains(request.getRequest.get(ChannelConstants.DEFAULT_LICENSE)))
-        response
-      else {
-        val licenseList = searchLicenseList()
-        if (licenseList.contains(request.getRequest.get(ChannelConstants.DEFAULT_LICENSE))) {
-          RedisCache.saveList(ChannelConstants.LICENSE_REDIS_KEY, licenseList)
-          response
-        } else
-          throw new ResourceNotFoundException("LICENSE_NOT_FOUND", "License " + request.getRequest.get(ChannelConstants.DEFAULT_LICENSE).asInstanceOf[String] + " does not exist")
-      }
-    } else
-      response
-  }
-
   def channelLicenseCache(response: Response, request: Request): Unit = {
     if (!ResponseHandler.checkError(response) && response.getResult.containsKey(ChannelConstants.NODE_ID) && request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
       RedisCache.set(ChannelConstants.CHANNEL_LICENSE_CACHE_PREFIX + response.getResult.get(ChannelConstants.NODE_ID) + ChannelConstants.CHANNEL_LICENSE_CACHE_SUFFIX, request.getRequest.get(ChannelConstants.DEFAULT_LICENSE).asInstanceOf[String], 0)
-  }
-
-  def searchLicenseList()(implicit ec: ExecutionContext): List[String] = {
-    val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
-    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("{ \"request\": { \n      \"filters\":{\n      \t\"objectType\":\"license\",\n      \t\"status\":\"Live\"\n      },\n      \"fields\":[\"name\"]\n    }\n}").asString
-    if (httpResponse.getStatus == 200) {
-      val response: Response = ScalaJsonUtils.deserialize(httpResponse.getBody)(manifest[Response])
-      if (response.getResult.get("count").asInstanceOf[Integer] > 0 && !response.getResult.getOrDefault("license", List()).asInstanceOf[List[Map[String, AnyRef]]].isEmpty) {
-        val licenseList = response.getResult.get("license").asInstanceOf[List[Map[String, AnyRef]]].map(license => mapAsJavaMap(license).get("name").asInstanceOf[String])
-        licenseList
-      } else
-        List[String]()
-    } else
-      throw new ServerException("ERR_FETCHING_LICENSE", "Error while fetching license.")
   }
 
   def getAllFrameworkList()(implicit ec: ExecutionContext): util.List[String] = {
