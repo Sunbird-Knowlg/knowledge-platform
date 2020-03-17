@@ -27,8 +27,8 @@ object UpdateHierarchyManager {
     @throws[Exception]
     def updateHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
-        val nodesModified: util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[util.HashMap[String, AnyRef]]
-        val hierarchy: util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[util.HashMap[String, AnyRef]]
+        val nodesModified: util.HashMap[String, AnyRef] = request.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[util.HashMap[String, AnyRef]]
+        val hierarchy: util.HashMap[String, AnyRef] = request.get(HierarchyConstants.HIERARCHY).asInstanceOf[util.HashMap[String, AnyRef]]
         val rootId: String = getRootId(nodesModified, hierarchy)
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
         var nodeList: ListBuffer[Node] = ListBuffer[Node]()

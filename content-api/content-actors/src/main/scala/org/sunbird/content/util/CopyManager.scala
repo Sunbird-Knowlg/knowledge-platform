@@ -83,13 +83,15 @@ object CopyManager {
     def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext):Future[Node] = {
         copyContent(originNode, request).map(node => {
             val req = new Request(request)
-            req.put(CopyConstants.ROOT_ID, request.get(CopyConstants.IDENTIFIER))
+            req.getContext.put("schemaName", "collection")
+            req.put(CopyConstants.ROOTID, request.get(CopyConstants.IDENTIFIER))
             req.put(CopyConstants.MODE, request.get(CopyConstants.MODE))
             HierarchyManager.getHierarchy(req).map(response => {
-                val originHierarchy = response.get(CopyConstants.HIERARCHY).asInstanceOf[java.util.Map[String, AnyRef]]
+                val originHierarchy = response.get(CopyConstants.CONTENT).asInstanceOf[java.util.Map[String, AnyRef]]
                 val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node)
                 val hierarchyRequest = new Request(request)
-                request.putAll(updateHierarchyRequest)
+                hierarchyRequest.getContext.put("schemaName", "collection")
+                hierarchyRequest.putAll(updateHierarchyRequest)
                 UpdateHierarchyManager.updateHierarchy(hierarchyRequest)
                 node
             })
