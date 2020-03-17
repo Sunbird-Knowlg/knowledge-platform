@@ -124,7 +124,7 @@ object CopyManager {
         metadata.putAll(requestMap)
         metadata.put(CopyConstants.STATUS, "Draft")
         metadata.put(CopyConstants.ORIGIN, node.getIdentifier)
-        metadata.put(CopyConstants.IDENTIFIER, Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
+        metadata.put(CopyConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
         val originData: util.Map[String, AnyRef] = getOriginData(metadata)
         if (MapUtils.isNotEmpty(originData))
             metadata.put(CopyConstants.ORIGIN_DATA, originData)
