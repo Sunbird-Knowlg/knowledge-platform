@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session
 import org.sunbird.cache.util.RedisConnector
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 
 import scala.collection.JavaConverters
@@ -18,7 +19,7 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
     val cassandraLabel = "cassandra db"
     val graphDBLabel = "graph db"
 
-    def checkAllSystemHealth()(implicit ec: ExecutionContext): Future[Response] = {
+    def checkAllSystemHealth()(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 
         val allChecks: List[Map[String, Any]] = List(checkRedisHealth(), checkGraphHealth(), checkCassandraHealth())
         val overAllHealth = allChecks.map(check => check.getOrElse("healthy",false).asInstanceOf[Boolean]).foldLeft(true)(_ && _)
@@ -28,9 +29,9 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
         Future(response)
     }
 
-    private def checkGraphHealth()(implicit ec: ExecutionContext): Map[String, Any] = {
+    private def checkGraphHealth()(implicit oec: OntologyEngineContext, ec: ExecutionContext): Map[String, Any] = {
         try {
-            val futureNode = NodeAsyncOperations.upsertRootNode("domain", new Request())
+            val futureNode = oec.graphService.upsertRootNode("domain", new Request())
             if (futureNode.isCompleted) {
                 generateCheck(true, graphDBLabel)
             } else {

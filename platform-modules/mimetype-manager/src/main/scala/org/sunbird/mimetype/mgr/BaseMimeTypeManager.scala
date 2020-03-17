@@ -9,17 +9,18 @@ import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
 import org.apache.tika.Tika
-import org.sunbird.cloudstore.CloudStore
+import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 
-class BaseMimeTypeManager {
+class BaseMimeTypeManager(implicit ss: StorageService) {
 
 	protected val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
 	private val CONTENT_FOLDER = "cloud_storage.content.folder"
@@ -33,6 +34,7 @@ class BaseMimeTypeManager {
 	val CONTENT_PLUGINS = "content-plugins"
 	val FILENAME_EXTENSION_SEPARATOR = "."
 	val DEFAULT_ZIP_EXTENSION = "zip"
+	private val tika: Tika = new Tika()
 
 	val IDX_S3_KEY = 0
 	val IDX_S3_URL = 1
@@ -67,7 +69,7 @@ class BaseMimeTypeManager {
 		var urlArray = new Array[String](2)
 		try {
 			val folder = Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
-			urlArray = CloudStore.uploadFile(folder, uploadedFile, true)
+			urlArray = ss.uploadFile(folder, uploadedFile)
 		} catch {
 			case e: Exception =>
 				TelemetryManager.error("Error while uploading the file.", e)
@@ -120,6 +122,11 @@ class BaseMimeTypeManager {
 			}
 		} else false
 	}
+	
+	def isValidMimeType(file: File, expectedMimeType: String): Boolean = {
+		val mimeType = tika.detect(file)
+		expectedMimeType.equalsIgnoreCase(mimeType)
+	}
 
 	def extractPackage(file: File, basePath: String) = {
 		val zipFile = new ZipFile(file)
@@ -133,9 +140,9 @@ class BaseMimeTypeManager {
 		}
 	}
 
-	protected def getCloudStoredFileSize(key: String): Double = {
+	protected def getCloudStoredFileSize(key: String)(implicit ss: StorageService): Double = {
 		val size = 0
-		if (StringUtils.isNotBlank(key)) try return CloudStore.getObjectSize(key)
+		if (StringUtils.isNotBlank(key)) try return ss.getObjectSize(key)
 		catch {
 			case e: Exception =>
 				TelemetryManager.error("Error While getting the file size from Cloud Storage: " + key, e)
@@ -155,7 +162,7 @@ class BaseMimeTypeManager {
 	}
 
 	def extractH5pPackage(objectId: String, extractionBasePath: String) = {
-		val h5pLibraryDownloadPath:String = getBasePath(objectId)
+		val h5pLibraryDownloadPath:String = getBasePath(objectId + File.separator + "h5p")
 		try{
 			val url: URL = new URL(H5P_LIBRARY_PATH)
 			val file = new File(h5pLibraryDownloadPath + File.separator + getFileNameFromURL(url.getPath))
@@ -189,25 +196,29 @@ class BaseMimeTypeManager {
 		}
 	}
 
-	def extractPackageInCloud(objectId: String, uploadFile: File, node: Node, extractionType: String, slugFile: Boolean) = {
+	def extractPackageInCloud(objectId: String, uploadFile: File, node: Node, extractionType: String, slugFile: Boolean)(implicit ss: StorageService) = {
 		val file = Slug.createSlugFile(uploadFile)
 		val mimeType = node.getMetadata.get("mimeType").asInstanceOf[String]
+		validationForCloudExtraction(file, extractionType, mimeType)
+		if(extractableMimeTypes.contains(mimeType)){
+			val extractionBasePath = getBasePath(objectId)
+				extractPackage(file, extractionBasePath)
+				ss.uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))
+		}
+	}
 
+	def extractH5PPackageInCloud(objectId: String, extractionBasePath: String, node: Node, extractionType: String, slugFile: Boolean): Future[List[String]] = {
+		val mimeType = node.getMetadata.get("mimeType").asInstanceOf[String]
+		if(null == extractionType)
+			throw new ClientException("INVALID_EXTRACTION", "Error! Invalid Content Extraction Type.")
+		ss.uploadDirectoryAsync(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), Option(slugFile))(ExecutionContext.Implicits.global)
+	}
+
+	def validationForCloudExtraction(file: File, extractionType: String, mimeType: String) = {
 		if(!file.exists() || (!extractablePackageExtensions.contains(FILENAME_EXTENSION_SEPARATOR + FilenameUtils.getExtension(file.getName)) && extractableMimeTypes.contains(mimeType)))
 			throw new ClientException("INVALID_FILE", "Error! File doesn't Exist.")
 		if(null == extractionType)
 			throw new ClientException("INVALID_EXTRACTION", "Error! Invalid Content Extraction Type.")
-		if(extractableMimeTypes.contains(mimeType)){
-			val extractionBasePath = getBasePath(objectId)
-			if(H5P_MIMETYPE.equalsIgnoreCase(mimeType)){
-				extractH5pPackage(objectId, extractionBasePath)
-				extractPackage(file, extractionBasePath + File.separator + "content")
-				CloudStore.uploadH5pDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), slugFile, ExecutionContext.Implicits.global)
-			} else {
-				extractPackage(file, extractionBasePath)
-				CloudStore.uploadDirectory(getExtractionPath(objectId, node, extractionType, mimeType), new File(extractionBasePath), slugFile)
-			}
-		}
 	}
 
 	def createZipPackage(basePath: String, zipFileName: String): Unit =

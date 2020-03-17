@@ -15,7 +15,7 @@ object JsonParser {
 
     def processDocument(json: Map[String, AnyRef]): Plugin = {
         if(json.keySet.contains("theme")){
-            val root = json.get("theme").asInstanceOf[Map[String, AnyRef]]
+            val root = json.get("theme").get.asInstanceOf[Map[String, AnyRef]]
             Plugin(getId(root), getData(root, "theme"), getInnerText(root), getCdata(root), getChildrenPlugin(root), getManifest(root, true), getControllers(root), getEvents(root))
         } else classOf[Plugin].newInstance()
     }
@@ -40,7 +40,7 @@ object JsonParser {
 
     def getInnerText(jsonObject: Map[String, AnyRef]): String = getDatafromJsonObject(jsonObject, "__text")
 
-    def getCdata(jsonObject: Map[String, AnyRef]): String = getDatafromJsonObject(jsonObject, "__cdata")
+    def getCdata(jsonObject: Map[String, AnyRef]): String = ScalaJsonUtils.serialize(jsonObject.getOrElse("__cdata",""))
 
     def getChildrenPlugin(jsonObject: Map[String, AnyRef]): List[Plugin] = {
         var childPluginList: ListBuffer[Plugin] = ListBuffer()
