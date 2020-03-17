@@ -29,7 +29,7 @@
   "versionCheckMode": "OFF",
   "edge": {
     "properties": {
-      "license": "License"
+      "defaultLicense": "License"
     }
   }
 }
