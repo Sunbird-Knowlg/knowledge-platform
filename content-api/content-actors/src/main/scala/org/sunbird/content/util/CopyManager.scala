@@ -38,7 +38,7 @@ object CopyManager {
         Platform.config.getStringList("content.copy.invalid_contentTypes") else new util.ArrayList[String]()
 
     private val originMetadataKeys: util.List[String] = if (Platform.config.hasPath("content.copy.origin_data"))
-        Platform.config.getStringList("+content.copy.origin_data") else new util.ArrayList[String]()
+        Platform.config.getStringList("content.copy.origin_data") else new util.ArrayList[String]()
 
     implicit val ss: StorageService = new StorageService
 
