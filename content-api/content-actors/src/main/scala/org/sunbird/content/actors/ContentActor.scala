@@ -1,6 +1,5 @@
 package org.sunbird.content.actors
 
-import java.io.File
 import java.util
 
 import javax.inject.Inject
@@ -9,20 +8,17 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.ContentParams
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
+import org.sunbird.common.exception.{ClientException}
 
 import org.sunbird.util.RequestUtil
 
 import org.sunbird.content.upload.mgr.UploadManager
-import org.sunbird.content.util.RequestUtil
 
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
 import scala.collection.JavaConverters
-import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {

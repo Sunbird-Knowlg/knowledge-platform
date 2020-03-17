@@ -2,6 +2,7 @@ package org.sunbird.channel.actors
 
 import java.util
 
+import javax.inject.Inject
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.nodes.DataNode
@@ -13,8 +14,9 @@ import org.sunbird.common.Platform
 
 import scala.concurrent.{ExecutionContext, Future}
 import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.graph.OntologyEngineContext
 
-class ChannelActor extends BaseActor {
+class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
     implicit val ec: ExecutionContext = getContext().dispatcher
 
     override def onReceive(request: Request): Future[Response] = {

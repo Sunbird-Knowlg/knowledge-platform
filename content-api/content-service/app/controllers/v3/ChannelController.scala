@@ -4,13 +4,11 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
-import org.sunbird.common.dto.ResponseHandler
-import org.sunbird.utils.LicenseOperations
 import play.api.mvc.ControllerComponents
-import utils.{ActorNames, ApiId, JavaJsonUtils}
+import utils.{ActorNames, ApiId}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext}
 
 @Singleton
 class ChannelController  @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
