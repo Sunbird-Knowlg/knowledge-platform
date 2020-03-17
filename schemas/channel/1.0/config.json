@@ -26,5 +26,10 @@
     }
   },
   "version": "disable",
-  "versionCheckMode": "OFF"
+  "versionCheckMode": "OFF",
+  "edge": {
+    "properties": {
+      "defaultLicense": "License"
+    }
+  }
 }
