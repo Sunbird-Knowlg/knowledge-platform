@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
@@ -21,8 +22,8 @@ object UploadManager {
 	private val MEDIA_TYPE_LIST = List("image", "video")
 	private val kfClient = new KafkaClient
 
-	def upload(request: Request, node: Node)(implicit ec: ExecutionContext): Future[Response] = {
-		val identifier: String = node.getIdentifier
+	def upload(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+		val identifier: String = node.getMetadata.getOrDefault("identifier", "").asInstanceOf[String]
 		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
 		val file = request.getRequest.get("file").asInstanceOf[File]
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
@@ -35,7 +36,7 @@ object UploadManager {
 		}).flatMap(f => f)
 	}
 
-	def updateNode(request: Request, identifier: String, mediaType: String, contentType: String, result: Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Response] = {
+	def updateNode(request: Request, identifier: String, mediaType: String, contentType: String, result: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val updatedResult = result - "identifier"
 		val artifactUrl = updatedResult.getOrElse("artifactUrl", "").asInstanceOf[String]
 		if (StringUtils.isNotBlank(artifactUrl)) {

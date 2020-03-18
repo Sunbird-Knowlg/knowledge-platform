@@ -130,5 +130,11 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+        "return success response for presignedUrl upload API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.uploadPreSigned("01234", None)(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
 }
