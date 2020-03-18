@@ -5,9 +5,14 @@ import org.sunbird.common.dto.Request
 import java.util
 
 import org.apache.commons.collections.CollectionUtils
+
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.ClientException
+
+import org.sunbird.util.ChannelConstants
+import org.sunbird.channel.managers.ChannelManager
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
 
 
 class ChannelManagerTest extends AsyncFlatSpec with Matchers {
