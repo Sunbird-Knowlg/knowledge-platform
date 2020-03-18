@@ -29,5 +29,6 @@ object CopyConstants {
     val H5P_MIME_TYPE = "application/vnd.ekstep.h5p-archive"
     val COPY_TYPE: String = "copyType"
     val COPY_TYPE_SHALLOW: String = "shallow"
+    val COPY_TYPE_DEEP: String = "deep"
     val CONTENT: String = "content"
 }

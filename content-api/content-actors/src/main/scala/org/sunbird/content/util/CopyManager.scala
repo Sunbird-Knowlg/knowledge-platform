@@ -140,6 +140,10 @@ object CopyManager {
         metadata.put(CopyConstants.ORIGIN, node.getIdentifier)
         metadata.put(CopyConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
         val originData: util.Map[String, AnyRef] = getOriginData(metadata)
+        copyType match {
+            case CopyConstants.COPY_TYPE_SHALLOW => originData.put(CopyConstants.COPY_TYPE, CopyConstants.COPY_TYPE_SHALLOW)
+            case CopyConstants.COPY_TYPE_DEEP => originData.put(CopyConstants.COPY_TYPE, CopyConstants.COPY_TYPE_DEEP)
+        }
         if (MapUtils.isNotEmpty(originData))
             metadata.put(CopyConstants.ORIGIN_DATA, originData)
         val req = new Request(request)
