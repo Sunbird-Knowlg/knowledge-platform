@@ -47,4 +47,5 @@ object HierarchyConstants {
     val CONCEPTS: String = "concepts"
     val FIELDS: String = "fields"
     val MIME_TYPE: String = "mimeType"
+    val COPY_TYPE_SHALLOW: String = "shallow"
 }

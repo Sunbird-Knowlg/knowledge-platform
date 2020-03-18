@@ -18,7 +18,7 @@ object CopyConstants {
     val ORIGIN: String = "origin"
     val ORIGIN_DATA: String = "originData"
     val ERR_INVALID_UPLOAD_FILE_URL: String = "ERR_INVALID_UPLOAD_FILE_URL"
-    val ROOT_ID: String = "root_id"
+    val ROOT_ID: String = "rootId"
     val HIERARCHY: String = "hierarchy"
     val ROOT: String = "root"
     val NODES_MODIFIED: String = "nodesModified"
@@ -27,4 +27,8 @@ object CopyConstants {
     val END_NODE_OBJECT_TYPES = List("Content", "ContentImage")
     val VERSION_KEY: String = "versionKey"
     val H5P_MIME_TYPE = "application/vnd.ekstep.h5p-archive"
+    val COPY_TYPE: String = "copyType"
+    val COPY_TYPE_SHALLOW: String = "shallow"
+    val COPY_TYPE_DEEP: String = "deep"
+    val CONTENT: String = "content"
 }
