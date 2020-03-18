@@ -57,7 +57,9 @@ object CopyManager {
             }
             copiedNodeFuture.map(copiedNode => {
                 val response = ResponseHandler.OK()
-                response.put(node.getIdentifier, copiedNode.getIdentifier)
+                response.put("node_id", new util.HashMap[String, AnyRef](){{
+                    put(node.getIdentifier, copiedNode.getIdentifier)
+                }})
                 response
             })
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
