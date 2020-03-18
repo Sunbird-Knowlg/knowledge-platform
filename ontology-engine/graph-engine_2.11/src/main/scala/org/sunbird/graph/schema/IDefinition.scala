@@ -1,5 +1,6 @@
 package org.sunbird.graph.schema
 
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 
@@ -14,7 +15,7 @@ abstract class IDefinition(graphId: String, schemaName: String, version: String 
     def validate(node: Node, operation: String = "update", setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[Node]
 
     @throws[Exception]
-    def getNode(identifier: String, operation: String = "read", mode: String)(implicit ec: ExecutionContext): Future[Node]
+    def getNode(identifier: String, operation: String = "read", mode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]
 
     def getSchemaName(): String ={
         schemaName

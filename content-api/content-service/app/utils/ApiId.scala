@@ -10,6 +10,8 @@ object ApiId {
 	val UPDATE_CONTENT = "api.content.update"
 	val UPLOAD_CONTENT = "api.content.upload"
 	val COPY = "api.content.copy"
+	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"
+
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"

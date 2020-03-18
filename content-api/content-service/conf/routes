@@ -6,7 +6,8 @@ GET		  /health						    controllers.HealthController.health
 # Content APIs
 POST      /content/v3/create                controllers.v3.ContentController.create
 PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.update(identifier:String)
-GET      /content/v3/read/:identifier       controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET       /content/v3/read/:identifier      controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /content/v3/upload/url/:identifier     controllers.v3.ContentController.uploadPreSigned(identifier:String, type: Option[String])
 
 # Content APIs - with mock response
 POST     /content/v3/flag/:identifier           controllers.v3.ContentController.flag(identifier:String)

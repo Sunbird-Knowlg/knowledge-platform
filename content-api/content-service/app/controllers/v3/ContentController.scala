@@ -197,4 +197,15 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY, contentActor, contentRequest)
     }
+
+    def uploadPreSigned(identifier: String, `type`: Option[String])= Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]s
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")))
+        val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.UPLOAD_PRE_SIGNED_CONTENT, contentActor, contentRequest)
+    }
 }
