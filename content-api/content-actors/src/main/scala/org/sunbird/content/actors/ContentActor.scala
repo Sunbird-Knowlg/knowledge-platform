@@ -24,10 +24,9 @@ import scala.collection.JavaConverters
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
+class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
-	val ss: StorageService = new StorageService
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
@@ -103,7 +102,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 			val response = ResponseHandler.OK()
 			val objectKey = "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
-			val preSignedURL = ss.getService().getSignedURL(ss.getContainerName(), objectKey, Option.apply(expiry.toInt), Option.apply("w"))
+			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
 			response.put("pre_signed_url", preSignedURL)
 			response.put("url_expiry", expiry)

@@ -81,4 +81,3 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         node
     }
 }
-//"https://drive.google.com/uc?export=download&id=1ikb6yVDfLfJbyoaoA61WXILIEEiqGCUA"
