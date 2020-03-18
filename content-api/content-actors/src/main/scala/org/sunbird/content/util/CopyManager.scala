@@ -139,11 +139,7 @@ object CopyManager {
         metadata.put(CopyConstants.STATUS, "Draft")
         metadata.put(CopyConstants.ORIGIN, node.getIdentifier)
         metadata.put(CopyConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
-        val originData: util.Map[String, AnyRef] = getOriginData(metadata)
-        copyType match {
-            case CopyConstants.COPY_TYPE_SHALLOW => originData.put(CopyConstants.COPY_TYPE, CopyConstants.COPY_TYPE_SHALLOW)
-            case CopyConstants.COPY_TYPE_DEEP => originData.put(CopyConstants.COPY_TYPE, CopyConstants.COPY_TYPE_DEEP)
-        }
+        val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         if (MapUtils.isNotEmpty(originData))
             metadata.put(CopyConstants.ORIGIN_DATA, originData)
         val req = new Request(request)
@@ -151,8 +147,12 @@ object CopyManager {
         req
     }
 
-    def getOriginData(metadata: util.Map[String, AnyRef]): util.Map[String, AnyRef] = if (CollectionUtils.isNotEmpty(originMetadataKeys))
-            originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava else new util.HashMap[String, AnyRef]()
+    def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
+        new java.util.HashMap[String, AnyRef](){{
+            putAll(originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava)
+            put(CopyConstants.COPY_TYPE, copyType)
+        }}
+    }
     
     def cleanUpCopiedData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
         if(StringUtils.equalsIgnoreCase(CopyConstants.COPY_TYPE_SHALLOW, copyType)) {
