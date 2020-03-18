@@ -187,12 +187,12 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
     }
 
-    def copy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
+    def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
         val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("")))
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse(""), "copyType"->copyType))
         val contentRequest = getRequest(content, headers, "copy")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY, contentActor, contentRequest)
