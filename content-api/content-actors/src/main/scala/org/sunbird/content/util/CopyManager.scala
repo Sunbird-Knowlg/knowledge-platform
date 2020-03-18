@@ -90,9 +90,9 @@ object CopyManager {
     def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext): Future[Node] = {
         val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node, copyType)
         val hierarchyRequest = new Request(request)
-        request.putAll(updateHierarchyRequest)
-        request.getContext.put("schemaName", collSchemaName)
-        request.getContext.put("version", version)
+        hierarchyRequest.putAll(updateHierarchyRequest)
+        hierarchyRequest.getContext.put("schemaName", collSchemaName)
+        hierarchyRequest.getContext.put("version", version)
         UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response=>node)
     }
 
