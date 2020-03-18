@@ -91,6 +91,8 @@ object CopyManager {
         val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node, copyType)
         val hierarchyRequest = new Request(request)
         request.putAll(updateHierarchyRequest)
+        request.getContext.put("schemaName", collSchemaName)
+        request.getContext.put("version", version)
         UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response=>node)
     }
 
