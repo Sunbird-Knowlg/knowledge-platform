@@ -5,6 +5,11 @@ import org.sunbird.common.dto.Request
 import java.util
 
 import org.apache.commons.collections.CollectionUtils
+
+import org.sunbird.cache.impl.RedisCache
+import org.sunbird.channel.managers.ChannelManager
+import org.sunbird.common.exception.ClientException
+
 import org.sunbird.util.ChannelConstants
 import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
@@ -37,5 +42,12 @@ class ChannelManagerTest extends AsyncFlatSpec with Matchers {
     def getRequest(): Request = {
         val request = new Request()
         request
+    }
+
+    "store license in cache" should "store license in cache" in {
+        val request = new Request()
+        request.getRequest.put("defaultLicense","license1234")
+        ChannelManager.channelLicenseCache(request, "channel_test")
+        assert(null != RedisCache.get("channel_channel_test_license"))
     }
 }
