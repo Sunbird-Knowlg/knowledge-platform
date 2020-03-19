@@ -258,6 +258,5 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 			case e: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + e.getMessage, e)
 		} finally if (zos != null) zos.close()
 	}
-
 }
 
