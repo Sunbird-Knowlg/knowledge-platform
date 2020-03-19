@@ -15,7 +15,7 @@ import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
 
 
-class ChannelManagerTest extends AsyncFlatSpec with Matchers {
+class TestChannelManager extends AsyncFlatSpec with Matchers {
 
     "get All framework list" should "return a list of frameworks from search service" in {
         val frameworkList = ChannelManager.getAllFrameworkList()

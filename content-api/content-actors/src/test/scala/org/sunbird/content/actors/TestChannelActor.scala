@@ -6,11 +6,12 @@ import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.common.dto.Request
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.{GraphService, OntologyEngineContext}
+
+import scala.collection.JavaConversions._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.JavaConversions._
 
 class TestChannelActor extends BaseSpec with MockFactory {
 
@@ -19,11 +20,12 @@ class TestChannelActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new ChannelActor()))
   }
 
-  "ChannelActor" should "return success response for 'createChannel' operation" in {
+  it should "return success response for 'createChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
-    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(new Node("domain", "DATA_NODE", "Channel")))
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("name", "channel_test")
     request.getRequest.put("code", "channel_test")
@@ -32,7 +34,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
-  "ChannelActor" should "throw exception code is required for createChannel" in {
+  it should "throw exception code is required for createChannel" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getRequest()
     request.getRequest.put("name", "channel_test")
@@ -41,7 +43,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     assert("failed".equals(response.getParams.getStatus))
   }
 
-  "ChannelActor" should "throw invalid identifier exception for channelUpdate" in {
+  it should "throw invalid identifier exception for channelUpdate" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getRequest()
     request.getRequest.put("name", "channel_test2")
@@ -50,7 +52,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     assert("failed".equals(response.getParams.getStatus))
   }
 
-  "ChannelActor" should "return success response for 'readChannel' operation" in {
+  it should "return success response for 'readChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
@@ -59,6 +61,37 @@ class TestChannelActor extends BaseSpec with MockFactory {
     request.getRequest.put("identifier", "channel_test")
     request.setOperation("readChannel")
     val response = callActor(request, Props(new ChannelActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "return success response for 'updateChannel' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getNode("Channel", None)
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+    (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val request = getRequest()
+    request.getContext.put("identifier", "channel_test");
+    request.getRequest.put("name", "channel_test")
+    request.setOperation("updateChannel")
+    val response = callActor(request, Props(new ChannelActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "return success response for 'retireChannel' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getNode("Channel", None)
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+    (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val request = getRequest()
+    request.getContext.put("identifier", "channel_test");
+    request.getRequest.put("identifier", "channel_test")
+    request.setOperation("retireChannel")
+    val response = callActor(request, Props(new ChannelActor()))
+    println("Response: retire: " + response)
     assert("successful".equals(response.getParams.getStatus))
   }
 

@@ -40,7 +40,7 @@ object DataNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
-            val response = NodeAsyncOperations.upsertNode(graphId, node, request)
+            val response = oec.graphService.upsertNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
@@ -60,7 +60,9 @@ object DataNode {
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
                 Future(node)
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
+        }).flatMap(f => f) recoverWith {
+            case e: CompletionException => throw e.getCause
+        }
     }
 
 
