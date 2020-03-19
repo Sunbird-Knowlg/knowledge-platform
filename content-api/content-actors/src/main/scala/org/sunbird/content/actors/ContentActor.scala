@@ -12,9 +12,10 @@ import org.sunbird.content.util.CopyManager
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException}
+import org.sunbird.common.exception.ClientException
+import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
-import org.sunbird.content.util.RequestUtil
+
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil

@@ -12,6 +12,10 @@ class GraphService {
         NodeAsyncOperations.addNode(graphId, node)
     }
 
+    def upsertNode(graphId: String, node: Node, request: Request): Future[Node] = {
+        NodeAsyncOperations.upsertNode(graphId, node, request)
+    }
+
     def upsertRootNode(graphId: String, request: Request): Future[Node] = {
         NodeAsyncOperations.upsertRootNode(graphId, request)
     }
@@ -19,5 +23,4 @@ class GraphService {
     def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node] = {
         SearchAsyncOperations.getNodeByUniqueId(graphId, nodeId, getTags, request)
     }
-
 }
