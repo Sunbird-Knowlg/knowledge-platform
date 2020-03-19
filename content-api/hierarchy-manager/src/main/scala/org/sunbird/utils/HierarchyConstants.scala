@@ -6,6 +6,7 @@ object HierarchyConstants {
     val NODES_MODIFIED: String = "nodesModified"
     val HIERARCHY: String = "hierarchy"
     val ROOT: String = "root"
+    val SET_DEFAULT_VALUE: String = "setDefaultValue"
     val COLLECTION_MIME_TYPE: String = "application/vnd.ekstep.content-collection"
     val COLLECTION_SCHEMA_NAME: String = "collection"
     val LATEST_CONTENT_VERSION: Integer = 2
@@ -46,4 +47,5 @@ object HierarchyConstants {
     val CONCEPTS: String = "concepts"
     val FIELDS: String = "fields"
     val MIME_TYPE: String = "mimeType"
+    val COPY_TYPE_SHALLOW: String = "shallow"
 }

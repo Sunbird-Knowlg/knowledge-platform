@@ -85,15 +85,20 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIER, identifier)
         req.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
         DataNode.read(req).map(rootNode => {
-            if (!StringUtils.equals(rootNode.getMetadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.COLLECTION_MIME_TYPE)) {
+            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+            if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.COLLECTION_MIME_TYPE)) {
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
             }
             //Todo: Remove if not required
-            if (null == rootNode.getMetadata.get(HierarchyConstants.VERSION) || rootNode.getMetadata.get(HierarchyConstants.VERSION).asInstanceOf[Number].intValue < 2) {
+            if (null == metadata.get(HierarchyConstants.VERSION) || metadata.get(HierarchyConstants.VERSION).asInstanceOf[Number].intValue < 2) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Content Version for Root node id: " + identifier)
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "The collection version is not up to date " + identifier)
             }
+            //TODO: Enable this code, after resolving NodeUtil.serialize method.
+            /*val originData = metadata.getOrDefault("originData", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+            if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW))
+                throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "Hierarchy update is not allowed for partially (shallow) copied content : " + identifier)*/
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
             rootNode
         })
@@ -191,7 +196,10 @@ object UpdateHierarchyManager {
                     && nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].get(HierarchyConstants.IS_NEW).asInstanceOf[Boolean]) {
                     if (!nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean])
                         metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
-                    createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
+                        if(nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].contains(HierarchyConstants.SET_DEFAULT_VALUE))
+                            createNewNode(nodeModified._1, idMap, metadata, nodeList, request, nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].get(HierarchyConstants.SET_DEFAULT_VALUE).asInstanceOf[Boolean])
+                        else
+                            createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                 } else {
                     updateTempNode(nodeModified._1, nodeList, idMap, metadata)
                     Future(ResponseHandler.OK())
@@ -208,7 +216,7 @@ object UpdateHierarchyManager {
         }
     }
 
-    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], nodeList: ListBuffer[Node], request: Request)(implicit ec: ExecutionContext): Future[AnyRef] = {
+    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], nodeList: ListBuffer[Node], request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[AnyRef] = {
         val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
         idMap += (nodeId -> identifier)
         metadata.put(HierarchyConstants.IDENTIFIER, identifier)
@@ -219,7 +227,7 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
         val createRequest: Request = new Request(request)
         createRequest.setRequest(metadata)
-        DefinitionNode.validate(createRequest).map(node => {
+        DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
             node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)

@@ -86,6 +86,10 @@ public class Request implements Serializable {
         request.put(key, vo);
     }
 
+    public void putAll(Map<String, Object> map) {
+        request.putAll(map);
+    }
+
     public String getOperation() {
         return operation;
     }
