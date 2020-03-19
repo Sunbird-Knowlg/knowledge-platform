@@ -29,7 +29,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object CopyManager {
-    implicit val oec: OntologyEngineContext = new OntologyEngineContext
     private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
     private val metadataNotTobeCopied = Platform.config.getStringList("content.copy.props_to_remove")
     private val invalidStatusList: util.List[String] = Platform.getStringList("content.copy.invalid_statusList", new util.ArrayList[String]())
@@ -41,7 +40,7 @@ object CopyManager {
 
     implicit val ss: StorageService = new StorageService
 
-    def copy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
         DataNode.read(request).map(node => {
             validateExistingNode(node)
@@ -65,14 +64,13 @@ object CopyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
-    def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
         //        cleanUpNodeRelations(node)
         val copyCreateReq = getCopyRequest(node, request)
         DataNode.create(copyCreateReq).map(copiedNode => artifactUpload(node, copiedNode, request)).flatMap(f => f)
     }
 
-
-    def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext):Future[Node] = {
+    def copyCollection(originNode: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
         val copyType = request.getRequest.get(CopyConstants.COPY_TYPE).asInstanceOf[String]
         copyContent(originNode, request).map(node => {
             val req = new Request(request)
@@ -90,7 +88,7 @@ object CopyManager {
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
 
-    def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext): Future[Node] = {
+    def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node, copyType)
         val hierarchyRequest = new Request(request)
         hierarchyRequest.putAll(updateHierarchyRequest)
@@ -99,7 +97,7 @@ object CopyManager {
         UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response=>node)
     }
 
-    def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Node] = {
+    def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val childrenHierarchy = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
         val req = new Request(request)
         req.getContext.put("schemaName", collSchemaName)
@@ -246,7 +244,7 @@ object CopyManager {
         }
     }
 
-    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
         if (StringUtils.isNotBlank(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
             val mimeTypeManager = MimeTypeManagerFactory.getManager(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String], node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String])
             val uploadFuture = if (isInternalUrl(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
