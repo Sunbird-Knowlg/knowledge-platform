@@ -1,6 +1,5 @@
 package org.sunbird.content.actors
 
-import java.io.File
 import java.util
 import java.util.concurrent.CompletionException
 
@@ -9,19 +8,18 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
+import org.sunbird.content.util.CopyManager
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
+import org.sunbird.common.exception.{ClientException}
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.content.util.RequestUtil
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
 import scala.collection.JavaConverters
-import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
@@ -34,6 +32,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case _ => ERROR(request.getOperation)
 		}
@@ -91,6 +90,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}).flatMap(f => f)
 	}
 
+	def copy(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		CopyManager.copy(request)
+	}
 	def uploadPreSignedUrl(request: Request): Future[Response] = {
 		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
 		val fileName: String = request.get("fileName").asInstanceOf[String]
@@ -100,7 +103,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		validatePreSignedUrlRequest(`type`, fileName, filePath)
 		DataNode.read(request).map(node => {
 			val response = ResponseHandler.OK()
-			val objectKey = "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+			val objectKey = if (StringUtils.isEmpty(filePath)) "content/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+				else "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
@@ -154,5 +158,4 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
-
 }

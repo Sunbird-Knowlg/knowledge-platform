@@ -31,6 +31,7 @@ DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.rem
 PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy
 GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
 POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String)
+POST      /content/v3/copy/:identifier      controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 
 #License APIs
 POST    /license/v3/create                      controllers.v3.LicenseController.create
