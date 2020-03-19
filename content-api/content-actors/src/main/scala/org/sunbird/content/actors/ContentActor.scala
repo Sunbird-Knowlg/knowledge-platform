@@ -147,7 +147,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}
 	}
 
-
 	private def validatePreSignedUrlRequest(`type`: String, fileName: String, filePath: String): Unit = {
 		if (StringUtils.isEmpty(fileName))
 			throw new ClientException("ERR_CONTENT_BLANK_FILE_NAME", "File name is blank")
