@@ -33,22 +33,22 @@ class  FrameworkActor extends BaseActor {
         val requestChannelId = request.get("channel")
         request.put("identifier", request.getContext.get("identifier"))
         DataNode.read(request).map(resp => {
-            if (resp != null){
-                if(requestChannelId == resp.getMetadata.get("channel")) {
+            if (resp != null) {
+                if (requestChannelId == resp.getMetadata.get("channel")) {
                     DataNode.update(request).map(node => {
                         val response = ResponseHandler.OK
                         response.put("identifier", node.getIdentifier)
                         response
                     })
                 }
-                else{
+                else {
                     throw new ClientException("ERR_SERVER_ERROR_UPDATE_FRAMEWORK", "Invalid Request. Channel Id Not Matched." + requestChannelId)
                 }
             }
             else {
                 throw new ResourceNotFoundException("ERR_FRAMEWORK_NOT_FOUND", "Framework Not Found With Id : " + request.get("identifier"))
             }
-        }).flatMap(f=>f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
-    
+
 }
