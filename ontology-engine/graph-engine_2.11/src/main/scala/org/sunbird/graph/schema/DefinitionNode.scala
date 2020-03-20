@@ -20,7 +20,7 @@ object DefinitionNode {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-  def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[Node] = {
+  def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
@@ -237,7 +237,7 @@ object DefinitionNode {
 		}}
 	}
 
-    def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
+    def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         val futures = nodes.map(node => {
             definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }

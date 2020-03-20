@@ -70,12 +70,12 @@ trait VersioningNode extends IDefinition {
         }
     }
 
-    private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext): Future[Node] = {
+    private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val status = node.getMetadata.get("status").asInstanceOf[String]
         if(statusList.contains(status)) {
             val imageId = node.getIdentifier + IMAGE_SUFFIX
             try{
-                val imageNode = SearchAsyncOperations.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
+                val imageNode = oec.graphService.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
                 imageNode recoverWith {
                     case e: CompletionException => {
                         TelemetryManager.error("Exception occurred while fetching image node, may not be found", e.getCause)
@@ -85,7 +85,7 @@ trait VersioningNode extends IDefinition {
                             node.getMetadata.put("status", "Draft")
                             node.getMetadata.put("prevStatus", status)
                             node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
-                            NodeAsyncOperations.addNode(node.getGraphId, node).map(imgNode => {
+                            oec.graphService.addNode(node.getGraphId, node).map(imgNode => {
                                 imgNode.getMetadata.put("isImageNodeCreated", "yes");
                                 copyExternalProps(identifier, node.getGraphId).map(response => {
                                     if(!ResponseHandler.checkError(response)) {

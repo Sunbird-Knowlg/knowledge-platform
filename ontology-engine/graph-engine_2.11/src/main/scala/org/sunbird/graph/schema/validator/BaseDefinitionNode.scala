@@ -54,7 +54,7 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
     }
 
     @throws[Exception]
-    override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext): Future[Node] = {
+    override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         Future{node}
     }
 
