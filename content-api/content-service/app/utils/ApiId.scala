@@ -25,4 +25,13 @@ object ApiId {
 	val UPDATE_LICENSE = "api.license.update"
 	val RETIRE_LICENSE = "api.license.retire"
 
+	//Channel APIs
+	val CREATE_CHANNEL = "api.channel.create"
+	val READ_CHANNEL = "api.channel.read"
+	val UPDATE_CHANNEL = "api.channel.update"
+	val LIST_CHANNEL = "api.channel.list"
+	val RETIRE_CHANNEL = "api.channel.retire"
+
+
+
 }

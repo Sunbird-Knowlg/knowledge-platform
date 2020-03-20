@@ -25,6 +25,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
+
     }
 
     /**

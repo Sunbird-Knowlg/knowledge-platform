@@ -8,10 +8,11 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
-import org.sunbird.content.util.{LicenseConstants, RequestUtil}
+import org.sunbird.content.util.LicenseConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.util.RequestUtil
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}

@@ -12,9 +12,10 @@ import org.sunbird.content.util.CopyManager
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException}
+import org.sunbird.common.exception.ClientException
+import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
-import org.sunbird.content.util.RequestUtil
+
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
@@ -103,7 +104,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		validatePreSignedUrlRequest(`type`, fileName, filePath)
 		DataNode.read(request).map(node => {
 			val response = ResponseHandler.OK()
-			val objectKey = "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+			val objectKey = if (StringUtils.isEmpty(filePath)) "content/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+				else "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
