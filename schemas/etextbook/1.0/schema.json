@@ -360,7 +360,7 @@
         "license": {
             "type": "string",
             "enum": [
-                "CC-BY-ND",
+                "CC BY-ND 4.0",
                 "All rights reserved"
             ],
             "default": "CC-BY-ND"
