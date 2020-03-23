@@ -11,6 +11,7 @@ import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.sunbird.common.JsonUtils
+import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.collection.JavaConverters._
 
@@ -28,7 +29,8 @@ object ChannelManager {
       throw new ServerException("ERR_FETCHING_FRAMEWORK", "Error while fetching framework.")
     val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
     val frameworks = response.getResult.getOrDefault("Framework", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-        .asScala.map(framework => framework.asScala.filterKeys(key => List("name","code","identifier").contains(key)).asJava)
+        .asScala.map(framework => framework.asScala.filterKeys(key => List("identifier", "name", "code").contains(key)).asJava)
+    println("All Frameworks: " + ScalaJsonUtils.serialize(frameworks))
     bufferAsJavaListConverter(frameworks).asJava
   }
 
