@@ -124,15 +124,17 @@ object HierarchyManager {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.getOrDefault("status", "").asInstanceOf[String])) {
                 Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
             }
-            if (StringUtils.isNotEmpty(rootNode.getMetadata.getOrDefault("variants", "").asInstanceOf[String])) {
+            /*if (StringUtils.isNotEmpty(rootNode.getMetadata.getOrDefault("variants", "").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
-            }
+            }*/
+            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+
             val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
                 if (!hierarchy.isEmpty && CollectionUtils.isNotEmpty(hierarchy.getOrDefault("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]))
-                    rootNode.getMetadata().put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
-                rootNode.getMetadata().put("identifier", request.get("rootId"))
-                response.put("content", rootNode.getMetadata())
+                    metadata.put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
+                metadata.put("identifier", request.get("rootId"))
+                response.put("content", metadata)
                 response
             })
         }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
