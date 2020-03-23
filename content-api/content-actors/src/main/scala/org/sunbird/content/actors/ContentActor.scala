@@ -2,6 +2,8 @@ package org.sunbird.content.actors
 
 import java.util
 import java.util.concurrent.CompletionException
+import java.io.File
+
 
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
@@ -100,8 +102,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		validatePreSignedUrlRequest(`type`, fileName, filePath)
 		DataNode.read(request).map(node => {
 			val response = ResponseHandler.OK()
-			val objectKey = if (StringUtils.isEmpty(filePath)) "content/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
-				else "content/"+ filePath + "/" + `type` + "/" + identifier + "/" + Slug.makeSlug(fileName, true)
+			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
+				else "content"+ File.separator + filePath + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)

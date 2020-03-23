@@ -35,6 +35,7 @@ object CopyManager {
     private val invalidContentTypes: util.List[String] = Platform.getStringList("content.copy.invalid_contentTypes", new util.ArrayList[String]())
     private val originMetadataKeys: util.List[String] = Platform.getStringList("content.copy.origin_data", new util.ArrayList[String]())
     private val internalHierarchyProps = List("identifier", "parent", "index", "depth")
+    private val restrictedMimeTypesForUpload = List("application/vnd.ekstep.ecml-archive","application/vnd.ekstep.content-collection")
     val collSchemaName: String = "collection"
     val version = "1.0"
 
@@ -66,8 +67,12 @@ object CopyManager {
 
     def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
         //        cleanUpNodeRelations(node)
-        val copyCreateReq = getCopyRequest(node, request)
-        DataNode.create(copyCreateReq).map(copiedNode => artifactUpload(node, copiedNode, request)).flatMap(f => f)
+        val copyCreateReq: Future[Request] = getCopyRequest(node, request)
+        copyCreateReq.map(req => {
+            DataNode.create(req).map(copiedNode => {
+                artifactUpload(node, copiedNode, request)
+            }).flatMap(f => f)
+        }).flatMap(f => f)
     }
 
     def copyCollection(originNode: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
@@ -130,7 +135,7 @@ object CopyManager {
         case _ => true
     }
 
-    def getCopyRequest(node: Node, request: Request): Request = {
+    def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
         val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), CopyConstants.CONTENT_SCHEMA_NAME, CopyConstants.SCHEMA_VERSION)
         val requestMap = request.getRequest
         requestMap.remove(CopyConstants.MODE)
@@ -145,7 +150,17 @@ object CopyManager {
             metadata.put(CopyConstants.ORIGIN_DATA, originData)
         val req = new Request(request)
         req.setRequest(metadata)
-        req
+        if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.ecml-archive", node.getMetadata.get("mimeType").asInstanceOf[String])) {
+            val readReq = new Request()
+            readReq.setContext(request.getContext)
+            readReq.put("identifier", node.getIdentifier)
+            readReq.put("fields", util.Arrays.asList("body"))
+            DataNode.read(readReq).map(node => {
+                if (null != node.getMetadata.get("body"))
+                    req.put("body", node.getMetadata.get("body").asInstanceOf[String])
+                req
+            })
+        } else Future {req}
     }
 
     def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
@@ -244,11 +259,14 @@ object CopyManager {
         }
     }
 
-    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
-        if (StringUtils.isNotBlank(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
-            val mimeTypeManager = MimeTypeManagerFactory.getManager(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String], node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String])
-            val uploadFuture = if (isInternalUrl(node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])) {
-                val file = copyURLToFile(copiedNode.getIdentifier, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
+    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+        val artifactUrl = node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String]
+        val mimeType = node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String]
+        val contentType = node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String]
+        if (StringUtils.isNotBlank(artifactUrl) && !restrictedMimeTypesForUpload.contains(mimeType)) {
+            val mimeTypeManager = MimeTypeManagerFactory.getManager(contentType, mimeType)
+            val uploadFuture = if (isInternalUrl(artifactUrl)) {
+                val file = copyURLToFile(copiedNode.getIdentifier, artifactUrl)
                 if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
                     mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
                 else
