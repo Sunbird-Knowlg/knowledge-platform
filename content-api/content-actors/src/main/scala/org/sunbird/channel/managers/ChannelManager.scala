@@ -10,7 +10,6 @@ import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
-import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.common.JsonUtils
 
 import scala.collection.JavaConverters._
@@ -22,13 +21,15 @@ object ChannelManager {
       RedisCache.set(ChannelConstants.CHANNEL_LICENSE_CACHE_PREFIX + identifier + ChannelConstants.CHANNEL_LICENSE_CACHE_SUFFIX, request.getRequest.get(ChannelConstants.DEFAULT_LICENSE).asInstanceOf[String], 0)
   }
 
-  def getAllFrameworkList(): util.List[String] = {
+  def getAllFrameworkList(): util.List[util.Map[String, AnyRef]] = {
     val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
     val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("{ \"request\": { \n      \"filters\":{\n      \t\"objectType\":\"framework\",\n      \t\"status\":\"Live\"\n      },\n      \"fields\":[\"name\"]\n    }\n}").asString
     if (200 != httpResponse.getStatus)
       throw new ServerException("ERR_FETCHING_FRAMEWORK", "Error while fetching framework.")
     val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
-    bufferAsJavaListConverter(response.getResult.getOrDefault("Framework", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.map(framework => framework.get("name").asInstanceOf[String])).asJava
+    val frameworks = response.getResult.getOrDefault("Framework", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+        .asScala.map(framework => framework.asScala.filterKeys(key => List("name","code","identifier").contains(key)).asJava)
+    bufferAsJavaListConverter(frameworks).asJava
   }
 
   def validateTranslationMap(request: Request) = {
