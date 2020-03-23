@@ -13,37 +13,52 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class FrameworkCategoryController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext)  extends BaseController(cc) {
-    val objectType = "CategoryInstance"
-    val schemaName: String = "categoryInstance"
-    val version = "1.0"
+class FrameworkCategoryController @Inject()(@Named(ActorNames.FRAMEWORK_CATEGORY_ACTOR) frameworkCategoryActor: ActorRef,cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext)  extends BaseController(cc) {
 
-    def create(framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
 
-    def read(identifier: String, framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
+  val objectType = "CategoryInstance"
+  val schemaName: String = "categoryInstance"
+  val version = "1.0"
 
-    def update(identifier: String, framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
+  def create(framework: String) = Action.async { implicit request =>
+    val result = ResponseHandler.OK()
+    val response = JavaJsonUtils.serialize(result)
+    Future(Ok(response).as("application/json"))
+  }
 
-    def search(framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
-    def retire(identifier: String, framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
+
+  def read(categoryInstanceId: String, framework: String) = Action.async { implicit request =>
+    val result = ResponseHandler.OK()
+    val response = JavaJsonUtils.serialize(result)
+    Future(Ok(response).as("application/json"))
+  }
+
+  def update(categoryInstanceId: String, framework: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    val frameworkCategory = body.getOrElse("category", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+    frameworkCategory.putAll(headers)
+    frameworkCategory.putAll(Map("categoryInstanceId" -> categoryInstanceId, "identifier" -> framework).asInstanceOf[Map[String, Object]])
+    val frameworkCategoryRequest = getRequest(frameworkCategory, headers, "updateFrameworkCategory")
+    setRequestContext(frameworkCategoryRequest, version, objectType, schemaName)
+    getResult(ApiId.READ_FRAMEWORK_CATEGORY, frameworkCategoryActor, frameworkCategoryRequest)
+  }
+
+
+  def search(framework: String) = Action.async { implicit request =>
+    val result = ResponseHandler.OK()
+    val response = JavaJsonUtils.serialize(result)
+    Future(Ok(response).as("application/json"))
+  }
+
+  def retire(identifier: String, framework: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    val frameworkCategory = body.getOrElse("category", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+    frameworkCategory.putAll(headers)
+    frameworkCategory.putAll(Map("identifier" -> framework).asInstanceOf[Map[String, Object]])
+    val frameworkCategoryRequest = getRequest(frameworkCategory, headers, "retireFrameworkCategory")
+    setRequestContext(frameworkCategoryRequest, version, objectType, schemaName)
+    getResult(ApiId.RETIRE_FRAMEWORK_CATEGORY, frameworkCategoryActor, frameworkCategoryRequest)
+  }
 }
