@@ -41,5 +41,4 @@ public class CollectionActor extends BaseActor {
         request.getContext().put("schemaName", SCHEMA_NAME);
         return HierarchyManager.getHierarchy(request, getContext().dispatcher());
     }
-
 }

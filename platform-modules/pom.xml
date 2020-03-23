@@ -11,8 +11,8 @@
     <artifactId>platform-modules</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>cloud-storage-util</module>
         <module>url-manager</module>
+        <module>mimetype-manager</module>
     </modules>
 
     <dependencies>

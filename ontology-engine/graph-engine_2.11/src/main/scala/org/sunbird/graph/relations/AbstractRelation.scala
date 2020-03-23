@@ -1,11 +1,11 @@
 package org.sunbird.graph.relations
 
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
-import org.sunbird.common.dto.{Request}
+import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{MiddlewareException, ServerException}
 import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.exception.GraphRelationErrorCodes
+import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.schema.DefinitionFactory
 import org.sunbird.graph.service.operation.{Neo4JBoltGraphOperations, Neo4JBoltSearchOperations}
 
@@ -58,6 +58,6 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         case ex: MiddlewareException =>
             throw ex;
         case e: Exception =>
-            throw new ServerException(GraphRelationErrorCodes.ERR_RELATION_VALIDATE.name, "Error occurred while validating the relation", e)
+            throw new ServerException(GraphErrorCodes.ERR_RELATION_VALIDATE.toString, "Error occurred while validating the relation", e)
     }
 }
