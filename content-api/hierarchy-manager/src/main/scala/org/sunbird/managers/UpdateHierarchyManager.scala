@@ -319,7 +319,7 @@ object UpdateHierarchyManager {
                     childNodeIds.add(id)
                     index += 1
                     if (CollectionUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, List())))
-                        updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
+                        updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
                     else
                         ResponseHandler.OK()
                 }) recoverWith { case e: CompletionException => throw e.getCause }
