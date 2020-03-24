@@ -18,7 +18,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 		node.setMetadata(new util.HashMap[String, AnyRef](){{
 			put("mimeType","application/pdf")
 		}})
-		val resFuture = new DocumentMimeTypeMgrImpl().upload("do_123", new Node(), inputUrl, null)
+		val resFuture = new DocumentMimeTypeMgrImpl().upload("do_123", node, inputUrl, null)
 		resFuture.map(result => {
 			assert(null != result)
 			assert(!result.isEmpty)
