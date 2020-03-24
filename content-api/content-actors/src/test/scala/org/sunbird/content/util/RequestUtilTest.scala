@@ -5,6 +5,8 @@ import java.util
 import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
+import org.sunbird.util.RequestUtil
+
 
 class RequestUtilTest extends FlatSpec with Matchers {
     

@@ -9,6 +9,8 @@ object ApiId {
 	val READ_CONTENT = "api.content.read"
 	val UPDATE_CONTENT = "api.content.update"
 	val UPLOAD_CONTENT = "api.content.upload"
+	val COPY_CONTENT = "api.content.copy"
+	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
@@ -26,6 +28,9 @@ object ApiId {
 	val CREATE_CHANNEL = "api.channel.create"
 	val READ_CHANNEL = "api.channel.read"
 	val UPDATE_CHANNEL = "api.channel.update"
+	val LIST_CHANNEL = "api.channel.list"
+	val RETIRE_CHANNEL = "api.channel.retire"
+
 
 
 }

@@ -31,12 +31,13 @@ class ChannelSpec extends BaseSpec {
     status(result) must equalTo(OK)
   }
 
-    "return success response for list API" in {
-      val controller = app.injector.instanceOf[controllers.v3.ChannelController]
-      val result = controller.list()(FakeRequest())
-      isOK(result)
-      status(result) must equalTo(OK)
-    }
+  "return success response for retire API" in {
+    val controller = app.injector.instanceOf[controllers.v3.ChannelController]
+    val result = controller.retire("do_123")(FakeRequest())
+    isOK(result)
+    status(result) must equalTo(OK)
+  }
+
 }
 
 

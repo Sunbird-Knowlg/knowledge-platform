@@ -4,24 +4,26 @@ import java.util
 import java.util.{Arrays, List, Map}
 import java.util.concurrent.CompletionException
 
+import javax.inject.Inject
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
-class FrameworkActor extends BaseActor {
+class FrameworkActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
   // val hierarchyPrefix: String = "hierarchy_"
   implicit val ec: ExecutionContext = getContext().dispatcher
 
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
-      //      case "createFranework" => create(request)
+      //      case "createFramework" => create(request)
       case "readFramework" => read(request)
       //  case "updateFramework" => update(request)
       case "retireFramework" => retire(request)

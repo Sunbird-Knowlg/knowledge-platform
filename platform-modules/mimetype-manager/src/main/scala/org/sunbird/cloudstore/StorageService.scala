@@ -74,4 +74,8 @@ class StorageService {
     def deleteFile(key: String, isDirectory: Option[Boolean] = Option(false)) = {
         getService.deleteObject(getContainerName, key, isDirectory)
     }
+
+    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
+        getService().getSignedURL(getContainerName, key, ttl, permission)
+    }
 }

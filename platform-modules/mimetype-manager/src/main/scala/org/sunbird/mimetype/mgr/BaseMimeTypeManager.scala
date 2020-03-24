@@ -122,7 +122,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 			}
 		} else false
 	}
-	
+
 	def isValidMimeType(file: File, expectedMimeType: String): Boolean = {
 		val mimeType = tika.detect(file)
 		expectedMimeType.equalsIgnoreCase(mimeType)
@@ -186,7 +186,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 				} else version
 			}else extractionType
 		}
-		
+
 		mimeType match {
 			case "application/vnd.ekstep.ecml-archive" => baseFolder + File.separator + "ecml" + File.separator + objectId + DASH + pathSuffix
 			case "application/vnd.ekstep.html-archive" => baseFolder + File.separator + "html" + File.separator + objectId + DASH + pathSuffix
@@ -259,5 +259,4 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		} finally if (zos != null) zos.close()
 	}
 }
-
 

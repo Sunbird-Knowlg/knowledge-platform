@@ -36,11 +36,11 @@ object DataNode {
     }
 
     @throws[Exception]
-    def update(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def update(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
-            val response = NodeAsyncOperations.upsertNode(graphId, node, request)
+            val response = oec.graphService.upsertNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
@@ -51,7 +51,7 @@ object DataNode {
     }
 
     @throws[Exception]
-    def read(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         DefinitionNode.getNode(request).map(node => {
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
@@ -60,7 +60,9 @@ object DataNode {
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
                 Future(node)
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
+        }).flatMap(f => f) recoverWith {
+            case e: CompletionException => throw e.getCause
+        }
     }
 
 

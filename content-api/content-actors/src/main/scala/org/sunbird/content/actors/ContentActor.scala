@@ -1,27 +1,31 @@
 package org.sunbird.content.actors
 
-import java.io.File
 import java.util
+import java.util.concurrent.CompletionException
+import java.io.File
 
+
+import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.ContentParams
+import org.sunbird.content.util.CopyManager
+import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
+import org.sunbird.common.exception.ClientException
+import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
-import org.sunbird.content.util.RequestUtil
+
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
 import scala.collection.JavaConverters
-import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
+class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
@@ -31,6 +35,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "copy" => copy(request)
+			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -38,8 +44,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
-		if (StringUtils.equalsIgnoreCase(request.get("contentType").asInstanceOf[String], "eTextBook"))
-			request.getContext.put("schemaName", "etextbook")
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
 			response.put("identifier", node.getIdentifier)
@@ -65,8 +69,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 		populateDefaultersForUpdation(request)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
 		RequestUtil.restrictProperties(request)
-		if (StringUtils.equalsIgnoreCase(request.get("contentType").asInstanceOf[String], "eTextBook"))
-			request.getContext.put("schemaName", "etextbook")
 		DataNode.update(request).map(node => {
 			val response: Response = ResponseHandler.OK
 			val identifier: String = node.getIdentifier.replace(".img", "")
@@ -85,6 +87,30 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 		DataNode.read(readReq).map(node => {
 			UploadManager.upload(request, node)
 		}).flatMap(f => f)
+	}
+
+	def copy(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		CopyManager.copy(request)
+	}
+	def uploadPreSignedUrl(request: Request): Future[Response] = {
+		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
+		val fileName: String = request.get("fileName").asInstanceOf[String]
+		val filePath: String = request.getRequest.getOrDefault("filePath","").asInstanceOf[String]
+			.replaceAll("^/+|/+$", "")
+		val identifier: String = request.get("identifier").asInstanceOf[String]
+		validatePreSignedUrlRequest(`type`, fileName, filePath)
+		DataNode.read(request).map(node => {
+			val response = ResponseHandler.OK()
+			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
+				else "content"+ File.separator + filePath + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
+			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
+			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
+			response.put("identifier", identifier)
+			response.put("pre_signed_url", preSignedURL)
+			response.put("url_expiry", expiry)
+			response
+		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
@@ -119,5 +145,16 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 			if (mimeType.endsWith("youtube") || mimeType.endsWith("x-url")) request.put(ContentParams.contentDisposition.name, ContentParams.online.name)
 			else request.put(ContentParams.contentDisposition.name, ContentParams.inline.name)
 		}
+	}
+
+	private def validatePreSignedUrlRequest(`type`: String, fileName: String, filePath: String): Unit = {
+		if (StringUtils.isEmpty(fileName))
+			throw new ClientException("ERR_CONTENT_BLANK_FILE_NAME", "File name is blank")
+		if (StringUtils.isBlank(FilenameUtils.getBaseName(fileName)) || StringUtils.length(Slug.makeSlug(fileName, true)) > 256)
+			throw new ClientException("ERR_CONTENT_INVALID_FILE_NAME", "Please Provide Valid File Name.")
+		if (!preSignedObjTypes.contains(`type`))
+			throw new ClientException("ERR_INVALID_PRESIGNED_URL_TYPE", "Invalid pre-signed url type. It should be one of " + StringUtils.join(preSignedObjTypes, ","))
+		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
+			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
 }
