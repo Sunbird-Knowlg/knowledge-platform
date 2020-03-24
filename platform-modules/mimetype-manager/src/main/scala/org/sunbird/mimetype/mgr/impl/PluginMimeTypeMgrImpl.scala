@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 	private val DEF_CONTENT_PACKAGE_MIME_TYPE: String = "application/zip"
 	
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		validatePluginPackage(uploadFile)
 		val basePath = getBasePath(objectId)
@@ -26,15 +26,15 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 		val manifestFile = new File(basePath + File.separator + "manifest.json")
 		val data:Map[String, AnyRef] = readDataFromManifest(manifestFile, objectId)
 		FileUtils.deleteDirectory(new File(basePath))
-		val result = uploadArtifactToCloud(uploadFile, objectId)
+		val result = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		extractPackageInCloud(objectId, uploadFile, node, "snapshot", true)
 		Future{data ++ Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0))}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file = copyURLToFile(objectId, fileUrl)
-		upload(objectId, node, file)
+		upload(objectId, node, file, filePath)
 	}
 
 	def validatePluginPackage(uploadFile: File) = {

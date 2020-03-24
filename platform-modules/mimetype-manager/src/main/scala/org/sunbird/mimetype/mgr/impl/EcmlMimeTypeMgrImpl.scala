@@ -18,7 +18,7 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 	private val DEFAULT_PACKAGE_MIME_TYPE = "application/zip"
 	private val maxPackageSize = if(Platform.config.hasPath("MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT")) Platform.config.getDouble("MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT") else 52428800
 
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateFilePackage(uploadFile)
 		//generateECRF
 		val basePath:String = getBasePath(objectId)
@@ -32,17 +32,17 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 		val processedEcrf: Plugin = new ECMLExtractor(basePath, objectId).process(ecrf)
 		val processedEcml: String = getEcmlStringFromEcrf(processedEcrf, ecmlType)
 		//upload file
-		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
+		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		//extractFile
 		extractPackageInCloud(objectId, uploadFile, node, "snapshot", true)
 
 		Future{Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0), "body" -> processedEcml)}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file: File = copyURLToFile(objectId, fileUrl)
-		upload(objectId, node, file)
+		upload(objectId, node, file, filePath)
 	}
 
 	def getEcmlType(basePath: String):String = {
