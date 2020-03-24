@@ -19,7 +19,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     "ContentActor" should "return failed response for 'unknown' operation" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = new OntologyEngineContext
-        testUnknownOperation(Props(new ContentActor()))
+        testUnknownOperation(Props(new ContentActor()), getContentRequest())
     }
 
     it should "validate input before creating content" in {

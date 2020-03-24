@@ -17,7 +17,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   "ChannelActor" should "return failed response for 'unknown' operation" in {
     implicit val oec: OntologyEngineContext = new OntologyEngineContext
-    testUnknownOperation(Props(new ChannelActor()))
+    testUnknownOperation(Props(new ChannelActor()), getRequest())
   }
 
   it should "return success response for 'createChannel' operation" in {
