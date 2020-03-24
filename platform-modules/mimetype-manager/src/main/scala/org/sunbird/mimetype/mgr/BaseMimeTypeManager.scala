@@ -249,8 +249,11 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 				zos.putNextEntry(ze)
 				val in = new FileInputStream(sourceFolder + File.separator + file)
 				try {
-					val len = in.read(buffer)
-					/*while (len > 0)*/ zos.write(buffer, 0, len)
+					var len = in.read(buffer)
+					while (len > 0) {
+						zos.write(buffer, 0, len)
+						len = in.read(buffer)
+					}
 				} finally if (in != null) in.close()
 				zos.closeEntry()
 			})
