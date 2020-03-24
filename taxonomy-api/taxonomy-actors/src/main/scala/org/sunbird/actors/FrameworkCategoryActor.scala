@@ -12,6 +12,7 @@ import org.sunbird.graph.nodes.DataNode
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+
 class FrameworkCategoryActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
   implicit val ec: ExecutionContext = getContext().dispatcher
   private val CATEGORY_INSTANCE_OBJECT_TYPE = "CategoryInstance"
@@ -52,6 +53,7 @@ class FrameworkCategoryActor @Inject() (implicit oec: OntologyEngineContext) ext
         throw new ClientException("ERR_FRAMEWORK_NOT_FOUND", "Invalid FrameworkId : " + request.get("identifier"))
     }).flatMap(f => f)
 
+
   def retire(request:Request): Future[Response] =
     validateFrameworkId(request: Request).map( resp => {
       if (resp) {
@@ -77,6 +79,7 @@ class FrameworkCategoryActor @Inject() (implicit oec: OntologyEngineContext) ext
         throw new ClientException("ERR_FRAMEWORK_NOT_FOUND", "Invalid FrameworkId : " + request.get("identifier"))
     }).flatMap(f => f)
 
+
   def validateFrameworkId(request:Request): Future[Boolean] = {
     if(StringUtils.isBlank(request.get("identifier").asInstanceOf[String]))
       Future(false)
@@ -93,6 +96,7 @@ class FrameworkCategoryActor @Inject() (implicit oec: OntologyEngineContext) ext
       })
     }
   }
+
   def generateIdentifier(frameworkIdentifier: String, code: String) = {
     var id: String = null
     if (StringUtils.isNotBlank(frameworkIdentifier))
