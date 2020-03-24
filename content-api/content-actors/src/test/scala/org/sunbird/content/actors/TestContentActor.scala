@@ -25,10 +25,9 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "validate input before creating content" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val request = new Request()
-        val content = mapAsJavaMap(Map("name" -> "New Content"))
+        val request = getContentRequest()
+        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource"))
         request.put("content", content)
-        request.setOperation("createContent")
         assert(true)
         val response = callActor(request, Props(new ContentActor()))
         println("Response: " + JsonUtils.serialize(response))
