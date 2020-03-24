@@ -201,24 +201,6 @@ object HierarchyManager {
         DataNode.read(req)
     }
 
-    /*def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
-        val req = new Request(request)
-        if (StringUtils.isNotEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit")) req.put("identifier", request.get("rootId").asInstanceOf[String] + imgSuffix)
-        else req.put("identifier", request.get("rootId").asInstanceOf[String])
-        val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
-        responseFuture.map(response => {
-            if(!ResponseHandler.checkError(response)) {
-                val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
-                if(!hierarchyString.isEmpty)
-                    JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap
-                else
-                    Map[String, AnyRef]()
-            } else {
-                Map[String, AnyRef]()
-            }
-        })
-    }*/
-
     def fetchLeafNodes(request: Request)(implicit ec: ExecutionContext): Future[List[Node]] =  {
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val req = new Request(request)
