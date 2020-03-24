@@ -1,5 +1,14 @@
 {
+  "restrictProps": {
+    "create" : [
+      "channel", "status"
+    ],
+    "update": [
+      "channel", "code", "identifier"
+    ]
+  },
   "objectType": "Channel",
+  "frameworkCategories": [],
   "relations": {
     "categories": {
       "type": "hasSequenceMember",
@@ -14,6 +23,13 @@
       "objects": [
         "Framework"
       ]
+    }
+  },
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "edge": {
+    "properties": {
+      "defaultLicense": "License"
     }
   }
 }

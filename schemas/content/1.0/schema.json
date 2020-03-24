@@ -451,7 +451,8 @@
                 "ExperientialResource",
                 "ConceptMap",
                 "SelfAssess",
-                "PracticeResource"
+                "PracticeResource",
+                "eTextBook"
             ]
         },
         "resourceType": {

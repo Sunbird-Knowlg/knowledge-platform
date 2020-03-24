@@ -7,9 +7,10 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ResourceNotFoundException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.AuditProperties
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.exception.GraphEngineErrorCodes
+import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
@@ -26,7 +27,7 @@ trait VersioningNode extends IDefinition {
     val IMAGE_OBJECT_SUFFIX = "Image"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String = "read")(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read")(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         operation match {
             case "update" => getNodeToUpdate(identifier);
             case "read" => getNodeToRead(identifier, mode)
@@ -34,11 +35,11 @@ trait VersioningNode extends IDefinition {
         }
     }
 
-    private def getNodeToUpdate(identifier: String)(implicit ec: ExecutionContext): Future[Node] = {
+    private def getNodeToUpdate(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val nodeFuture: Future[Node] = super.getNode(identifier , "update", null)
         nodeFuture.map(node => {
             if(null == node)
-                throw new ResourceNotFoundException(GraphEngineErrorCodes.ERR_INVALID_NODE.name, "Node Not Found With Identifier : " + identifier)
+                throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier : " + identifier)
             if(schemaValidator.getConfig.hasPath("version") && "enable".equalsIgnoreCase(schemaValidator.getConfig.getString("version"))){
                 getEditableNode(identifier, node)
             } else {
@@ -47,7 +48,7 @@ trait VersioningNode extends IDefinition {
         }).flatMap(f => f)
     }
 
-    private def getNodeToRead(identifier: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
+    private def getNodeToRead(identifier: String, mode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         if ("edit".equalsIgnoreCase(mode)) {
             val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
             imageNode recoverWith {
@@ -122,7 +123,7 @@ trait VersioningNode extends IDefinition {
         }
     }
 
-    def getCachedNode(identifier: String, ttl: Integer)(implicit ec: ExecutionContext): Future[Node] = {
+    def getCachedNode(identifier: String, ttl: Integer)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
         nodeStringFuture.map(nodeString => {
             if (null != nodeString && !nodeString.asInstanceOf[String].isEmpty) {
@@ -136,7 +137,7 @@ trait VersioningNode extends IDefinition {
         }).flatMap(f => f)
     }
 
-    private def nodeCacheAsyncHandler(objKey: String)(implicit ec: ExecutionContext): Future[String] = {
+    private def nodeCacheAsyncHandler(objKey: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[String] = {
         super.getNode(objKey, "read", null).map(node => {
             if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
                 val nodeMap = NodeUtil.serialize(node, null, getSchemaName(), getSchemaVersion())
@@ -144,5 +145,4 @@ trait VersioningNode extends IDefinition {
             } else Future("")
         }).flatMap(f => f)
     }
-
 }

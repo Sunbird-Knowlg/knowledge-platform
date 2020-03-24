@@ -3,6 +3,9 @@
         "create" : [
             "status", "dialcodes"
         ],
+        "copy" : [
+            "status"
+        ],
         "update": []
     },
     "objectType": "Content",
