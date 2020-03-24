@@ -47,7 +47,7 @@ object HierarchyManager {
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
-                val hierarchyFuture = fetchHierarchy(request)
+                val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
                 hierarchyFuture.map(hierarchy => {
                     if(hierarchy.isEmpty){
                         Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
@@ -84,7 +84,7 @@ object HierarchyManager {
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
-                val hierarchyFuture = fetchHierarchy(request)
+                val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
                 hierarchyFuture.map(hierarchy => {
                     if(hierarchy.isEmpty){
                         Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
@@ -201,7 +201,7 @@ object HierarchyManager {
         DataNode.read(req)
     }
 
-    def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    /*def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         val req = new Request(request)
         if (StringUtils.isNotEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit")) req.put("identifier", request.get("rootId").asInstanceOf[String] + imgSuffix)
         else req.put("identifier", request.get("rootId").asInstanceOf[String])
@@ -217,7 +217,7 @@ object HierarchyManager {
                 Map[String, AnyRef]()
             }
         })
-    }
+    }*/
 
     def fetchLeafNodes(request: Request)(implicit ec: ExecutionContext): Future[List[Node]] =  {
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
@@ -305,11 +305,12 @@ object HierarchyManager {
             removeChildrenFromUnit(children,unitId, leafNodeIds)
         }
         val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-        updatedHierarchy.putAll(hierarchy)
+        updatedHierarchy.put("identifier", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
         updatedHierarchy.put("children", children)
         val req = new Request(request)
         req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-        req.put("identifier", rootNode.getIdentifier.replaceAll(imgSuffix, "") + imgSuffix)
+        val identifier = if(statusList.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) (rootNode.getIdentifier + imgSuffix) else rootNode.getIdentifier
+        req.put("identifier", identifier)
         ExternalPropsManager.saveProps(req)
     }
 
