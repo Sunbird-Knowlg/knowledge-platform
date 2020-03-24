@@ -24,14 +24,11 @@ object ChannelManager {
 
   def getAllFrameworkList(): util.List[util.Map[String, AnyRef]] = {
     val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
-    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("{ \"request\": { \n      \"filters\":{\n      \t\"objectType\":\"framework\",\n      \t\"status\":\"Live\"\n      },\n      \"fields\":[\"name\"]\n    }\n}").asString
+    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("""{"request":{"filters":{"objectType":"Framework","status":"Live"},"fields":["name","code","objectType","identifier"]}}""").asString
     if (200 != httpResponse.getStatus)
       throw new ServerException("ERR_FETCHING_FRAMEWORK", "Error while fetching framework.")
     val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
-    val frameworks = response.getResult.getOrDefault("Framework", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-        .asScala.map(framework => framework.asScala.filterKeys(key => List("identifier", "name", "code").contains(key)).asJava)
-    println("All Frameworks: " + ScalaJsonUtils.serialize(frameworks))
-    bufferAsJavaListConverter(frameworks).asJava
+    response.getResult.getOrDefault("Framework", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
   }
 
   def validateTranslationMap(request: Request) = {
