@@ -6,11 +6,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Transaction;
+import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.MiddlewareException;
+import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.Identifier;
 import org.sunbird.graph.common.enums.AuditProperties;
@@ -232,6 +236,44 @@ public class NodeAsyncOperations {
         } catch (Exception e) {
                 throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
                         DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+        }
+    }
+
+    public static Future<Boolean> deleteNode(String graphId, String nodeId, Request request) {
+
+        if (StringUtils.isBlank(graphId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
+                    DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Remove Property Values Operation Failed.]");
+
+        if (StringUtils.isBlank(nodeId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+                    DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Remove Property Values Operation Failed.]");
+
+        Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
+        TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
+        try (Session session = driver.session()) {
+            Map<String, Object> parameterMap = new HashMap<String, Object>();
+            parameterMap.put(GraphDACParams.graphId.name(), graphId);
+            parameterMap.put(GraphDACParams.nodeId.name(), nodeId);
+            parameterMap.put(GraphDACParams.request.name(), request);
+
+            CompletionStage<Boolean> cs = session.runAsync(NodeQueryGenerationUtil.generateDeleteNodeCypherQuery(parameterMap))
+                    .thenCompose(fn -> fn.singleAsync())
+                    .thenApply(record -> {
+                        System.out.println(record);
+                        return true;
+                    }).exceptionally(error -> {
+                        if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
+                            throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                                    DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
+                        else
+                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                    "Error! Something went wrong while deleting node object. ", error.getCause());                    });
+            // TODO: Implement Redis Delete
+            return FutureConverters.toScala(cs);
+        } catch (Exception e) {
+            throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                    DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage());
         }
     }
 

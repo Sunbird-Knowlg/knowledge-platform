@@ -491,7 +491,7 @@ public class NodeQueryGenerationUtil extends BaseQueryGenerationUtil {
 								+ " | [Remove Property Values Query Generation Failed.]");
 
 			query.append("MATCH (a:" + graphId + " {" + SystemProperties.IL_UNIQUE_ID.name() + ": '" + nodeId
-					+ "'}) DETACH DELETE a");
+					+ "'}) DETACH DELETE a RETURN a");
 		}
 
 		TelemetryManager.log("Returning Create Node Cypher Query: " + query);
