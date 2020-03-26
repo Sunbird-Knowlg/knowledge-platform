@@ -6,7 +6,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.managers.FrameworkMgrImpl
-class  FrameworkActor extends BaseActor {
+class FrameworkActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
     implicit val ec: ExecutionContext = getContext().dispatcher
 
