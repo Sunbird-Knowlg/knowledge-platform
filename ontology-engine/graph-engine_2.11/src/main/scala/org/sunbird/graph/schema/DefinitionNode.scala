@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 
 import scala.collection.JavaConversions._
@@ -19,14 +20,14 @@ object DefinitionNode {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-  def validate(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+  def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
       val inputNode = definition.getNode(request.getRequest)
 	  updateRelationMetadata(inputNode)
-      definition.validate(inputNode, "create") recoverWith { case e: CompletionException => throw e.getCause}
+      definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause}
   }
 
     def getExternalProps(graphId: String, version: String, schemaName: String): List[String] = {
@@ -67,7 +68,7 @@ object DefinitionNode {
       definition.getRestrictPropsConfig(operation)
     }
 
-    def getNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def getNode(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
             , schemaName, request.getContext.get("version").asInstanceOf[String])
@@ -75,7 +76,7 @@ object DefinitionNode {
     }
 
     @throws[Exception]
-    def validate(identifier: String, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def validate(identifier: String, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]

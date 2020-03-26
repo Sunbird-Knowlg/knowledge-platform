@@ -90,10 +90,7 @@
         },
         "osId": {
             "type": "string",
-            "enum": [
-                "org.ekstep.quiz.app"
-            ],
-            "default": "org.ekstep.quiz.app"
+            "default": "org.ekstep.launcher"
         },
         "contentEncoding": {
             "type": "string",
@@ -451,7 +448,8 @@
                 "ExperientialResource",
                 "ConceptMap",
                 "SelfAssess",
-                "PracticeResource"
+                "PracticeResource",
+                "eTextBook"
             ]
         },
         "resourceType": {

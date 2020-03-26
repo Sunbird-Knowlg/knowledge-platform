@@ -25,6 +25,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
+
     }
 
     /**
@@ -175,5 +176,36 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val result = ResponseHandler.OK()
         val response = JavaJsonUtils.serialize(result)
         Future(Ok(response).as("application/json"))
+    }
+
+    def upload(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = requestFormData()
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "uploadContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
+    }
+
+    def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse(""), "copyType" -> copyType))
+        val contentRequest = getRequest(content, headers, "copy")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.COPY_CONTENT, contentActor, contentRequest)
+    }
+    def uploadPreSigned(identifier: String, `type`: Option[String])= Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")))
+        val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.UPLOAD_PRE_SIGNED_CONTENT, contentActor, contentRequest)
     }
 }
