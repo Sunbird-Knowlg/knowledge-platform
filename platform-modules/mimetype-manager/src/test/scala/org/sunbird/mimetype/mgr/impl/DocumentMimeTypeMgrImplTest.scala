@@ -1,5 +1,6 @@
 package org.sunbird.mimetype.mgr.impl
 import java.io.File
+import java.util
 
 import com.google.common.io.Resources
 import org.scalamock.scalatest.AsyncMockFactory
@@ -13,13 +14,38 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 
 	"upload with valid file url" should "return artifactUrl with successful response" in {
 		val inputUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-		val resFuture = new DocumentMimeTypeMgrImpl().upload("do_123", new Node(), inputUrl)
+		val node = new Node()
+		node.setMetadata(new util.HashMap[String, AnyRef](){{
+			put("mimeType","application/pdf")
+		}})
+		val resFuture = new DocumentMimeTypeMgrImpl().upload("do_123", node, inputUrl)
 		resFuture.map(result => {
 			assert(null != result)
 			assert(!result.isEmpty)
 			assert("do_123" == result.getOrElse("identifier",""))
 			assert(inputUrl == result.getOrElse("artifactUrl",""))
 		})
+	}
+
+	"validateFileUrlExtension with invalid pdf file url" should "return client exception" in {
+		val exception = intercept[ClientException] {
+			new DocumentMimeTypeMgrImpl().validateFileUrlExtension("application/pdf", "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.txt")
+		}
+		exception.getMessage shouldEqual "Please Provide Valid Pdf File Url!"
+	}
+
+	"validateFileUrlExtension with invalid epub file url" should "return client exception" in {
+		val exception = intercept[ClientException] {
+			new DocumentMimeTypeMgrImpl().validateFileUrlExtension("application/epub", "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.txt")
+		}
+		exception.getMessage shouldEqual "Please Provide Valid Epub File Url!"
+	}
+
+	"validateFileUrlExtension with invalid msword file url" should "return client exception" in {
+		val exception = intercept[ClientException] {
+			new DocumentMimeTypeMgrImpl().validateFileUrlExtension("application/msword", "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf")
+		}
+		exception.getMessage shouldEqual "Please Provide Valid Document File Url!"
 	}
 
 	"upload with invalid file url" should "return client exception" in {
