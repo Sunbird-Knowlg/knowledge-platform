@@ -1,5 +1,7 @@
 package org.sunbird.actors
 
+import javax.inject.Inject
+
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
