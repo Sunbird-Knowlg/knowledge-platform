@@ -56,18 +56,18 @@ object HierarchyManager {
                     } else {
                         val leafNodesFuture = fetchLeafNodes(request)
                         leafNodesFuture.map(leafNodes => {
-                            val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, rootNode, request, "add")
-                            updateResponse.map(response => {
-                                if(!ResponseHandler.checkError(response)) {
-                                    updateRootNode(rootNode, request, "add").map(node => {
+                            updateRootNode(rootNode, request, "add").map(node => {
+                                val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, node, request, "add")
+                                updateResponse.map(response => {
+                                    if(!ResponseHandler.checkError(response)) {
                                         val resp: Response = ResponseHandler.OK
-                                        resp.put("rootId", rootNode.getIdentifier)
+                                        resp.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
                                         resp.put(unitId, request.get("children"))
                                         resp
-                                    })
-                                } else {
-                                    Future { response }
-                                }
+                                    }else {
+                                        response 
+                                    }
+                                })
                             }).flatMap(f => f)
                         }).flatMap(f => f)
                     }
@@ -92,17 +92,17 @@ object HierarchyManager {
                     if(hierarchy.isEmpty){
                         Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
                     } else {
-                        val updateResponse = updateHierarchy(unitId, hierarchy, null, rootNode, request, "remove")
-                        updateResponse.map(response => {
-                            if(!ResponseHandler.checkError(response)) {
-                                updateRootNode(rootNode, request, "remove").map(node => {
+                        updateRootNode(rootNode, request, "remove").map(node =>{
+                            val updateResponse = updateHierarchy(unitId, hierarchy, null, node, request, "remove")
+                            updateResponse.map(response => {
+                                if(!ResponseHandler.checkError(response)) {
                                     val resp: Response = ResponseHandler.OK
-                                    resp.put("rootId", rootNode.getIdentifier)
+                                    resp.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
                                     resp
-                                })
-                            } else {
-                                Future { response }
-                            }
+                                } else {
+                                    response
+                                }
+                            })
                         }).flatMap(f => f)
                     }
                 }).flatMap(f => f)
@@ -295,8 +295,7 @@ object HierarchyManager {
         updatedHierarchy.put("children", children)
         val req = new Request(request)
         req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-        val identifier = if(statusList.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) (rootId + imgSuffix) else rootId
-        req.put("identifier", identifier)
+        req.put("identifier", rootNode.getIdentifier)
         ExternalPropsManager.saveProps(req)
     }
 
