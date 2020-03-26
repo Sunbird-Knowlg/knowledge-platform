@@ -21,6 +21,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
 
@@ -43,7 +44,8 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName, schemaVersion)
+            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
+            validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -80,7 +82,8 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName, schemaVersion)
+            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
+            validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -286,12 +289,13 @@ object HierarchyManager {
         if("remove".equalsIgnoreCase(operation)) {
             removeChildrenFromUnit(children,unitId, leafNodeIds)
         }
+        val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
         val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-        updatedHierarchy.put("identifier", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
+        updatedHierarchy.put("identifier", rootId)
         updatedHierarchy.put("children", children)
         val req = new Request(request)
         req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-        val identifier = if(statusList.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) (rootNode.getIdentifier + imgSuffix) else rootNode.getIdentifier
+        val identifier = if(statusList.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) (rootId + imgSuffix) else rootId
         req.put("identifier", identifier)
         ExternalPropsManager.saveProps(req)
     }
@@ -481,6 +485,17 @@ object HierarchyManager {
             }).flatMap(f => f)
         } else {
             Future(new util.HashMap[String, AnyRef]())
+        }
+    }
+
+    def validateShallowCopied(rootNodeMap: util.Map[String, AnyRef], operation: String, identifier: String) = {
+        val originData = rootNodeMap.getOrDefault("originData", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+        if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW)) {
+            operation match {
+                case "add"=> throw new ClientException(HierarchyErrorCodes.ERR_ADD_HIERARCHY_DENIED, "Add Hierarchy is not allowed for partially (shallow) copied content : " + identifier)
+                case "remove"=> throw new ClientException(HierarchyErrorCodes.ERR_REMOVE_HIERARCHY_DENIED, "Remove Hierarchy is not allowed for partially (shallow) copied content : " + identifier)
+            }
+
         }
     }
 }
