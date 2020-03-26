@@ -21,6 +21,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
 
@@ -43,11 +44,12 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName, schemaVersion)
+            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
+            validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
-                val hierarchyFuture = fetchHierarchy(request)
+                val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
                 hierarchyFuture.map(hierarchy => {
                     if(hierarchy.isEmpty){
                         Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
@@ -80,11 +82,12 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes"), schemaName, schemaVersion)
+            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
+            validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
-                val hierarchyFuture = fetchHierarchy(request)
+                val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
                 hierarchyFuture.map(hierarchy => {
                     if(hierarchy.isEmpty){
                         Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
@@ -201,24 +204,6 @@ object HierarchyManager {
         DataNode.read(req)
     }
 
-    def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
-        val req = new Request(request)
-        if (StringUtils.isNotEmpty(request.get("mode").asInstanceOf[String]) && request.get("mode").equals("edit")) req.put("identifier", request.get("rootId").asInstanceOf[String] + imgSuffix)
-        else req.put("identifier", request.get("rootId").asInstanceOf[String])
-        val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
-        responseFuture.map(response => {
-            if(!ResponseHandler.checkError(response)) {
-                val hierarchyString = response.getResult.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
-                if(!hierarchyString.isEmpty)
-                    JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).toMap
-                else
-                    Map[String, AnyRef]()
-            } else {
-                Map[String, AnyRef]()
-            }
-        })
-    }
-
     def fetchLeafNodes(request: Request)(implicit ec: ExecutionContext): Future[List[Node]] =  {
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val req = new Request(request)
@@ -304,12 +289,14 @@ object HierarchyManager {
         if("remove".equalsIgnoreCase(operation)) {
             removeChildrenFromUnit(children,unitId, leafNodeIds)
         }
+        val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
         val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-        updatedHierarchy.putAll(hierarchy)
+        updatedHierarchy.put("identifier", rootId)
         updatedHierarchy.put("children", children)
         val req = new Request(request)
         req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-        req.put("identifier", rootNode.getIdentifier.replaceAll(imgSuffix, "") + imgSuffix)
+        val identifier = if(statusList.contains(rootNode.getMetadata.get("status").asInstanceOf[String])) (rootId + imgSuffix) else rootId
+        req.put("identifier", identifier)
         ExternalPropsManager.saveProps(req)
     }
 
@@ -498,6 +485,17 @@ object HierarchyManager {
             }).flatMap(f => f)
         } else {
             Future(new util.HashMap[String, AnyRef]())
+        }
+    }
+
+    def validateShallowCopied(rootNodeMap: util.Map[String, AnyRef], operation: String, identifier: String) = {
+        val originData = rootNodeMap.getOrDefault("originData", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+        if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW)) {
+            operation match {
+                case "add"=> throw new ClientException(HierarchyErrorCodes.ERR_ADD_HIERARCHY_DENIED, "Add Hierarchy is not allowed for partially (shallow) copied content : " + identifier)
+                case "remove"=> throw new ClientException(HierarchyErrorCodes.ERR_REMOVE_HIERARCHY_DENIED, "Remove Hierarchy is not allowed for partially (shallow) copied content : " + identifier)
+            }
+
         }
     }
 }
