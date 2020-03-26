@@ -4,9 +4,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.managers.FrameworkMgrImpl
-class FrameworkActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
+
+class FrameworkActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
 
     implicit val ec: ExecutionContext = getContext().dispatcher
 
