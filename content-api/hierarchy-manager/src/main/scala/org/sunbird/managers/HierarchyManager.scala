@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.manager
 
 import java.util
 import java.util.concurrent.CompletionException

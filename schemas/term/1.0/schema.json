@@ -1,73 +1,74 @@
 {
-  "$id": "categoryInstance-schema.json",
+  "$id": "term-schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "CategoryInstance",
+  "title": "Term",
   "type": "object",
   "required": [
     "name",
-    "code"
+    "code",
+    "category"
   ],
   "properties": {
-    "name": {
+    "name":{
       "type": "string"
     },
-    "description": {
+    "code":{
       "type": "string"
     },
-    "code": {
+    "category":{
       "type": "string"
     },
-    "translations": {
+    "translations":{
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "defaultTerm": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "index":{
+      "type": "string"
     },
-    "status": {
+    "description":{
+      "type": "string"
+    },
+    "status":{
       "type": "string",
       "enum": [
         "Draft",
         "Live",
+        "Review",
         "Retired"
       ],
       "default": "Live"
     },
-    "createdBy": {
+    "createdBy":{
       "type": "string"
     },
-    "createdOn": {
+    "createdOn":{
       "type": "string"
     },
-    "lastUpdatedBy": {
+    "lastUpdatedBy":{
       "type": "string"
     },
-    "lastUpdatedOn": {
+    "lastUpdatedOn":{
       "type": "string"
     },
-    "appId": {
+    "consumerId":{
       "type": "string"
     },
-    "channel": {
+    "appId":{
       "type": "string"
     },
-    "consumerId": {
+    "channel":{
       "type": "string"
     },
-    "lastStatusChangedOn": {
+    "lastStatusChangedOn":{
       "type": "string"
     },
-    "index": {
+    "label":{
+      "type": "string"
+    },
+    "value":{
       "type": "string"
     }
   }
 }
-
-
-
-

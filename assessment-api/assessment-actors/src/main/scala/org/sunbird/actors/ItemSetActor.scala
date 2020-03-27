@@ -35,6 +35,7 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 		val response = ResponseHandler.OK
 		response.put("identifier", node.getIdentifier)
 		response
+
 	})
 
 	def read(request: Request): Future[Response] = {

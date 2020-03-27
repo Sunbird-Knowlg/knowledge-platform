@@ -1,0 +1,38 @@
+ "objectType": "Term",
+  "relations": {
+        "children": {
+            "type": "hasSequenceMember",
+            "direction": "out",
+            "objects": ["Term"]
+        },
+         "associations": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Term"]
+        },
+          "categories": {
+            "type": "hasSequenceMember",
+            "direction": "in",
+            "objects": ["Category"]
+        },
+        "categories": {
+            "type": "hasSequenceMember",
+            "direction": "in",
+            "objects": ["CategoryInstance"]
+        },
+         "contents": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        },
+         "parents": {
+            "type": "hasSequenceMember",
+            "direction": "in",
+            "objects": ["Term"]
+        },
+         "associationswith": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Term"]
+        }
+    }

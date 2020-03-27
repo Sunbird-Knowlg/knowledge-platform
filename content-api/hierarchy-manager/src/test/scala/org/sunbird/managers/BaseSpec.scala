@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.manager
 
 import java.io.{File, IOException}
 
