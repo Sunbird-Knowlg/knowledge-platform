@@ -19,7 +19,7 @@ import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
-import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
@@ -60,10 +60,9 @@ object HierarchyManager {
                                 val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, node, request, "add")
                                 updateResponse.map(response => {
                                     if(!ResponseHandler.checkError(response)) {
-                                        val resp: Response = ResponseHandler.OK
-                                        resp.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                        resp.put(unitId, request.get("children"))
-                                        resp
+                                            ResponseHandler.OK
+                                                .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                                .put(unitId, request.get("children"))
                                     }else {
                                         response 
                                     }
@@ -96,9 +95,7 @@ object HierarchyManager {
                             val updateResponse = updateHierarchy(unitId, hierarchy, null, node, request, "remove")
                             updateResponse.map(response => {
                                 if(!ResponseHandler.checkError(response)) {
-                                    val resp: Response = ResponseHandler.OK
-                                    resp.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                    resp
+                                    ResponseHandler.OK.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
                                 } else {
                                     response
                                 }
@@ -122,7 +119,6 @@ object HierarchyManager {
     @throws[Exception]
     def getUnPublishedHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         val rootNodeFuture = getRootNode(request)
-        val response: Response = ResponseHandler.OK
         rootNodeFuture.map(rootNode => {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.getOrDefault("status", "").asInstanceOf[String])) {
                 Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
@@ -136,9 +132,12 @@ object HierarchyManager {
                     metadata.put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
                 metadata.put("identifier", request.get("rootId"))
                 if(StringUtils.isNotEmpty(bookmarkId))
-                    metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.HashMap[String, AnyRef]]], bookmarkId)
-                response.put("content", metadata)
-                response
+                    metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
+                if (MapUtils.isEmpty(metadata)) {
+                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
+                } else {
+                    ResponseHandler.OK.put("content", metadata)
+                }
             })
         }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
                 val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
@@ -147,8 +146,7 @@ object HierarchyManager {
                         val unPublishedBookmarkHierarchy = getUnpublishedBookmarkHierarchy(request, rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])
                         unPublishedBookmarkHierarchy.map(hierarchy => {
                             if (!hierarchy.isEmpty) {
-                                response.put("content", hierarchy)
-                                response
+                                ResponseHandler.OK.put("content", hierarchy)
                             } else
                                 ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
                         })
@@ -163,21 +161,27 @@ object HierarchyManager {
     @throws[Exception]
     def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
-        val response: Response = ResponseHandler.OK
-        if (StringUtils.isNotEmpty(redisHierarchy)) {
-            response.put("content", mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))
-            Future(response)
-        } else {
-            val rootHierarchy = getCassandraHierarchy(request)
-            rootHierarchy.map(rootMap => {
-                if (!rootMap.isEmpty) {
-                    response.put("content", rootMap.get("content"))
-                    response
+        val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
+            Future(mapAsJavaMap(Map("content" -> mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))))
+        } else getCassandraHierarchy(request)
+        hierarchyFuture.map(result => {
+            if (!result.isEmpty) {
+                val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
+                val rootHierarchy  = result.get("content").asInstanceOf[util.Map[String, AnyRef]]
+                if (StringUtils.isEmpty(bookmarkId)) {
+                    ResponseHandler.OK.put("content", rootHierarchy)
+                } else {
+                    val children = rootHierarchy.getOrElse("children", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+                    val bookmarkHierarchy = filterBookmarkHierarchy(children, bookmarkId)
+                    if (MapUtils.isEmpty(bookmarkHierarchy)) {
+                        ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
+                    } else {
+                        ResponseHandler.OK.put("content", bookmarkHierarchy)
+                    }
                 }
-                else
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
-            })
-        }
+            } else
+                ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
+        })
     }
 
     def validateRequest(request: Request)(implicit ec: ExecutionContext) = {
@@ -385,7 +389,7 @@ object HierarchyManager {
                             parentHierarchy.map(hierarchy => {
                                 if (!hierarchy.isEmpty) {
                                     if (StringUtils.isNoneEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && CollectionUtils.isNotEmpty(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]])) {
-                                        val bookmarkHierarchy = filterBookmarkHierarchy(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], request.get("rootId").asInstanceOf[String])
+                                        val bookmarkHierarchy = filterBookmarkHierarchy(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]], request.get("rootId").asInstanceOf[String])
                                         if (!bookmarkHierarchy.isEmpty) {
                                             rootHierarchy.put("content", hierarchy)
                                             RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(new util.HashMap[String, AnyRef](bookmarkHierarchy)))
@@ -445,16 +449,16 @@ object HierarchyManager {
         }
     }
 
-    def filterBookmarkHierarchy(children: util.List[util.HashMap[String, AnyRef]], bookmarkId: String)(implicit ec: ExecutionContext): util.HashMap[String, AnyRef] = {
+    def filterBookmarkHierarchy(children: util.List[util.Map[String, AnyRef]], bookmarkId: String)(implicit ec: ExecutionContext): util.Map[String, AnyRef] = {
         if (CollectionUtils.isNotEmpty(children)) {
             val response = children.filter(_.get("identifier") == bookmarkId).toList
             if (CollectionUtils.isNotEmpty(response)) {
                 response.get(0)
             } else {
                 val nextChildren = bufferAsJavaList(children.flatMap(child => {
-                    if (!child.isEmpty && CollectionUtils.isNotEmpty(child.get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]))
-                        child.get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
-                    else new util.ArrayList[util.HashMap[String, AnyRef]]
+                    if (!child.isEmpty && CollectionUtils.isNotEmpty(child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]))
+                        child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+                    else new util.ArrayList[util.Map[String, AnyRef]]
                 }))
                 filterBookmarkHierarchy(nextChildren, bookmarkId)
             }
@@ -463,12 +467,12 @@ object HierarchyManager {
         }
     }
 
-    def getUnpublishedBookmarkHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.HashMap[String, AnyRef]] = {
+    def getUnpublishedBookmarkHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
         if (StringUtils.isNotEmpty(identifier)) {
             val parentHierarchy = fetchHierarchy(request, identifier + imgSuffix)
             parentHierarchy.map(hierarchy => {
-                if (!hierarchy.isEmpty && CollectionUtils.isNotEmpty(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]])) {
-                    val bookmarkHierarchy = filterBookmarkHierarchy(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], request.get("rootId").asInstanceOf[String])
+                if (!hierarchy.isEmpty && CollectionUtils.isNotEmpty(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]])) {
+                    val bookmarkHierarchy = filterBookmarkHierarchy(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]], request.get("rootId").asInstanceOf[String])
                     if (!bookmarkHierarchy.isEmpty) {
                         bookmarkHierarchy
                     } else {
