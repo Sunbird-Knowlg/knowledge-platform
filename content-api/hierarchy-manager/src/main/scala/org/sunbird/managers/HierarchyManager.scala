@@ -167,7 +167,7 @@ object HierarchyManager {
         hierarchyFuture.map(result => {
             if (!result.isEmpty) {
                 val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
-                val rootHierarchy  = result.get("content").asInstanceOf[Map[String, AnyRef]]
+                val rootHierarchy  = result.get("content").asInstanceOf[util.Map[String, AnyRef]]
                 if (StringUtils.isEmpty(bookmarkId)) {
                     ResponseHandler.OK.put("content", rootHierarchy)
                 } else {
