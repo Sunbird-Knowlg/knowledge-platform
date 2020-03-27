@@ -140,6 +140,18 @@ public class NodeAsyncOperationsTest extends BaseTest {
 		}
 	}
 
+	@Test(expected = ClientException.class)
+	public void testDeleteWithEmptyId() throws Exception {
+		Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("domain", " ", new Request());
+		Await.result(resultFuture2, Duration.apply("30s"));
+	}
+
+	@Test(expected = ClientException.class)
+	public void testDeleteWithEmptyGraphId() throws Exception {
+		Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("", "do_1234 ", new Request());
+		Await.result(resultFuture2, Duration.apply("30s"));
+	}
+
 	private Node getNode() throws Exception {
 		Node node = new Node("domain", "DATA_NODE", "Content");
 		node.setIdentifier("do_000000123");
