@@ -1,7 +1,7 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET		/health						controllers.HealthCheckController.health()
+GET		/health						controllers.HealthController.health()
 
 #POST    /v2/search						controllers.SearchController.search()
 #POST    /v3/search						controllers.SearchController.search()

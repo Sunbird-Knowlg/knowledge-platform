@@ -21,7 +21,7 @@
     <artifactId>search-api</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>elasticsearch-client</module>
+        <module>search-core</module>
         <module>search-actors</module>
         <module>search-service</module>
     </modules>

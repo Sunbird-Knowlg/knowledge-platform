@@ -10,7 +10,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.util.EntityUtils;
-import org.ekstep.telemetry.logger.TelemetryManager;
+import org.sunbird.telemetry.logger.TelemetryManager;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
  *
  */
 public class ElasticSearchUtil {
-	private static final String COMPOSITE_SEARCH_INDEX = org.ekstep.common.Platform.config.hasPath("compositesearch.index.name") ? org.ekstep.common.Platform.config.getString("compositesearch.index.name"): "compositesearch";;
+	private static final String COMPOSITE_SEARCH_INDEX = Platform.config.hasPath("compositesearch.index.name") ? Platform.config.getString("compositesearch.index.name"): "compositesearch";
 	static {
 		System.setProperty("es.set.netty.runtime.available.processors", "false");
 		registerShutdownHook();

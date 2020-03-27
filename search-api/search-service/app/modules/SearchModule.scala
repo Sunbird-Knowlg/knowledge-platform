@@ -3,6 +3,7 @@ package modules
 import com.google.inject.AbstractModule
 import org.sunbird.search.health.HealthActor
 import play.libs.akka.AkkaGuiceSupport
+import utils.ActorNames
 
 class SearchModule extends AbstractModule with AkkaGuiceSupport {
 

@@ -1,5 +1,6 @@
 package org.sunbird.search.health;
 
+import akka.dispatch.Futures;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.Platform;
 import org.sunbird.common.dto.Request;
@@ -36,7 +37,7 @@ public class HealthActor extends BaseActor {
         } catch (Exception e) {
             checks.add(getResponseData(response, false, "503", e.getMessage()));
         }
-        return (Future<Response>) Future.successful(response);
+        return Futures.successful(response);
     }
 
     public Map<String, Object> getResponseData(Response response, boolean res, String error, String errorMsg) {
