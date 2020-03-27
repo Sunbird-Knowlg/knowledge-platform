@@ -30,7 +30,7 @@ PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.add
 DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy
 PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy
 GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
-GET       /content/v3/hierarch/:identifier/:bookmarkId controllers.v3.ContentController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
+GET       /content/v3/hierarchy/:identifier/:bookmarkId controllers.v3.ContentController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
 POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String)
 POST      /content/v3/copy/:identifier      controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 
