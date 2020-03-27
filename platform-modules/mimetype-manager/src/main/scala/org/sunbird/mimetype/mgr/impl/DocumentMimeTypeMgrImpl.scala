@@ -42,8 +42,7 @@ class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeM
 
 	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
-		if(!StringUtils.endsWithIgnoreCase(fileUrl,".pdf"))
-			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
+		validateFileUrlExtension(node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String], fileUrl)
 		Future {
 			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl)
 		}
@@ -64,6 +63,24 @@ class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeM
 			case "application/msword" => {
 				if (!(StringUtils.isNotBlank(fileExt) && ALLOWED_EXTENSIONS_WORD.contains(fileExt)))
 					throw new ClientException("ERR_INVALID_FILE", "Uploaded file is not a word file. Please upload a valid word file.")
+			}
+		}
+	}
+
+	def validateFileUrlExtension(mimeType: String, fileUrl: String) = {
+		val fileExt = FilenameUtils.getExtension(fileUrl)
+		mimeType match {
+			case "application/pdf" => {
+				if (!StringUtils.equalsIgnoreCase(fileExt, "pdf"))
+					throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid Pdf File Url!")
+			}
+			case "application/epub" => {
+				if (!StringUtils.equalsIgnoreCase(fileExt, "epub"))
+					throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid Epub File Url!")
+			}
+			case "application/msword" => {
+				if (!(StringUtils.isNotBlank(fileExt) && ALLOWED_EXTENSIONS_WORD.contains(fileExt)))
+					throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid Document File Url!")
 			}
 		}
 	}
