@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.sunbird.elasticsearch.client;
+package org.sunbird.search.client;
 
 import akka.dispatch.Futures;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,6 +10,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.util.EntityUtils;
+import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
@@ -49,7 +50,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ServerException;
-import org.sunbird.elasticsearch.transformers.IESResultTransformer;
+import org.sunbird.search.transformers.IESResultTransformer;
 import scala.concurrent.Future;
 import scala.concurrent.Promise;
 
@@ -67,7 +68,6 @@ import java.util.stream.Collectors;
  *
  */
 public class ElasticSearchUtil {
-	private static final String COMPOSITE_SEARCH_INDEX = Platform.config.hasPath("compositesearch.index.name") ? Platform.config.getString("compositesearch.index.name"): "compositesearch";
 	static {
 		System.setProperty("es.set.netty.runtime.available.processors", "false");
 		registerShutdownHook();
@@ -85,7 +85,7 @@ public class ElasticSearchUtil {
 
 	public static void initialiseESClient(String indexName, String connectionInfo) {
 		if (StringUtils.isBlank(indexName))
-			indexName = COMPOSITE_SEARCH_INDEX;
+			indexName = SearchConstants.COMPOSITE_SEARCH_INDEX;
 		createClient(indexName, connectionInfo);
 	}
 
@@ -111,7 +111,7 @@ public class ElasticSearchUtil {
 
 	private static RestHighLevelClient getClient(String indexName) {
 		if (StringUtils.isBlank(indexName))
-			indexName = COMPOSITE_SEARCH_INDEX;
+			indexName = SearchConstants.COMPOSITE_SEARCH_INDEX;;
 		if (StringUtils.startsWith(indexName,"kp_audit_log"))
 			return esClient.get("kp_audit_log");
 		return esClient.get(indexName);

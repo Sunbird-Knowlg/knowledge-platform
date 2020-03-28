@@ -8,7 +8,7 @@ import utils.{ActorNames, ApiId}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class HealthController @Inject()(@Named(ActorNames.HEALTH_ACTOR) healthActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem, signalHandler: SignalHandler)(implicit exec: ExecutionContext) extends BaseController(cc) {
+class HealthController @Inject()(@Named(ActorNames.HEALTH_ACTOR) healthActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem, signalHandler: SignalHandler)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
 
     def health() = Action.async { implicit request =>
         if (signalHandler.isShuttingDown) {

@@ -1,4 +1,4 @@
-package org.sunbird.elasticsearch.transformers;
+package org.sunbird.search.transformers;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package org.sunbird.search.health;
+package org.sunbird.actors;
 
 import akka.dispatch.Futures;
 import org.sunbird.actor.core.BaseActor;
@@ -7,7 +7,7 @@ import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseParams;
 import org.sunbird.common.exception.ResponseCode;
-import org.sunbird.elasticsearch.client.ElasticSearchUtil;
+import org.sunbird.search.client.ElasticSearchUtil;
 import scala.concurrent.Future;
 
 import java.util.ArrayList;
