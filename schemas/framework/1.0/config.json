@@ -1,0 +1,16 @@
+{
+  "objectType": "Framework",
+  "relations": {
+    "channels": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["Channel"]
+    },
+    "categories": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": ["CategoryInstance"]
+    }
+  },
+  "frameworkCategories":[]
+}
