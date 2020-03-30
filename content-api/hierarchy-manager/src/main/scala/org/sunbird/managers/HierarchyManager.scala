@@ -20,6 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.graph.OntologyEngineContext
 
 object HierarchyManager {
 
@@ -37,7 +38,7 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def addLeafNodesToHierarchy(request:Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
@@ -74,7 +75,7 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def removeLeafNodesFromHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def removeLeafNodesFromHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
@@ -107,7 +108,7 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def getHierarchy(request : Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def getHierarchy(request : Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         val mode = request.get("mode").asInstanceOf[String]
         if(StringUtils.isNotEmpty(mode) && mode.equals("edit"))
             getUnPublishedHierarchy(request)
@@ -116,22 +117,24 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def getUnPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def getUnPublishedHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         val rootNodeFuture = getRootNode(request)
         val response: Response = ResponseHandler.OK
         rootNodeFuture.map(rootNode => {
             if (StringUtils.equalsIgnoreCase("Retired", rootNode.getMetadata.getOrDefault("status", "").asInstanceOf[String])) {
                 Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
             }
-            if (StringUtils.isNotEmpty(rootNode.getMetadata.getOrDefault("variants", "").asInstanceOf[String])) {
+            /*if (StringUtils.isNotEmpty(rootNode.getMetadata.getOrDefault("variants", "").asInstanceOf[String])) {
                 rootNode.getMetadata().put("variants", mapAsJavaMap(JsonUtils.deserialize(rootNode.getMetadata().get("variants").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]).toMap))
-            }
+            }*/
+            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+
             val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
                 if (!hierarchy.isEmpty && CollectionUtils.isNotEmpty(hierarchy.getOrDefault("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]))
-                    rootNode.getMetadata().put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
-                rootNode.getMetadata().put("identifier", request.get("rootId"))
-                response.put("content", rootNode.getMetadata())
+                    metadata.put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
+                metadata.put("identifier", request.get("rootId"))
+                response.put("content", metadata)
                 response
             })
         }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
@@ -190,7 +193,7 @@ object HierarchyManager {
         }
     }
 
-    private def getRootNode(request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    private def getRootNode(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
         req.put("identifier", request.get("rootId").asInstanceOf[String])
         req.put("mode", request.get("mode").asInstanceOf[String])
@@ -276,7 +279,7 @@ object HierarchyManager {
         }
     }
 
-    def updateRootNode(rootNode: Node, request: Request, operation: String)(implicit ec: ExecutionContext) = {
+    def updateRootNode(rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         var childNodes = new java.util.ArrayList[String]()

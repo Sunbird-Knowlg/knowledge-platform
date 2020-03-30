@@ -2,6 +2,7 @@ package org.sunbird.graph.utils
 
 import java.util
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
@@ -133,7 +134,7 @@ object NodeUtil {
     
     def convertJsonProperties(entry: util.Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
         if(jsonProps.contains(entry.getKey)) {
-            try {mapper.readTree(entry.getValue.toString)}
+            try {mapper.readValue(entry.getValue.asInstanceOf[String], new TypeReference[AnyRef] {})} //.readTree(entry.getValue.toString)}
             catch { case e: Exception => entry.getValue }
         }
         else entry.getValue

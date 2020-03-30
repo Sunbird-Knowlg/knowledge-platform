@@ -15,7 +15,7 @@ trait PropAsEdgeValidator extends IDefinition {
     val prefix = "edge_"
 
     @throws[Exception]
-    abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext): Future[Node] = {
         if (schemaValidator.getConfig.hasPath(edgePropsKey)) {
             val keys = CollectionUtils.intersection(node.getMetadata.keySet(), schemaValidator.getConfig.getObject(edgePropsKey).keySet())
             if (!keys.isEmpty) {

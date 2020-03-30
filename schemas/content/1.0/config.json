@@ -3,6 +3,9 @@
         "create" : [
             "status", "dialcodes"
         ],
+        "copy" : [
+            "status"
+        ],
         "update": []
     },
     "objectType": "Content",
@@ -48,7 +51,7 @@
             "direction": "in",
             "objects": ["Content", "ContentImage"]
         },
-        "usedByContent"
+        "usedByContent": {
             "type": "associatedTo",
             "direction": "in",
             "objects": ["Content"]

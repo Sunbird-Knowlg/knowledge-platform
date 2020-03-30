@@ -35,7 +35,7 @@
       "default": "Live"
     },
     "translations": {
-      "type": "array",
+      "type": "object",
       "items": {
         "type": "string"
       }

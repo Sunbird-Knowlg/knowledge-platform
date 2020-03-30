@@ -14,7 +14,11 @@ import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.common.exception.ServerException;
 import scala.concurrent.Future;
 
+import java.util.Arrays;
+import java.util.List;
+
 public abstract class BaseActor extends AbstractActor {
+    public List<String> preSignedObjTypes = Arrays.asList("assets", "artifact", "hierarchy");
 
     public abstract Future<Response> onReceive(Request request) throws Throwable;
 
