@@ -23,4 +23,8 @@ class GraphService {
     def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node] = {
         SearchAsyncOperations.getNodeByUniqueId(graphId, nodeId, getTags, request)
     }
+
+    def deleteNode(graphId: String, nodeId: String, request: Request): Future[java.lang.Boolean] = {
+        NodeAsyncOperations.deleteNode(graphId, nodeId, request)
+    }
 }

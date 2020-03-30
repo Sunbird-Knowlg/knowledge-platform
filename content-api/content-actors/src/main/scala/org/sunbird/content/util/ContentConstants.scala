@@ -1,6 +1,6 @@
 package org.sunbird.content.util
 
-object CopyConstants {
+object ContentConstants {
     val CHILDREN: String = "children"
     val REQUIRED_KEYS: List[String] = List("createdBy", "createdFor", "organisation", "framework")
     val CONTENT_TYPE: String = "contentType"
@@ -31,4 +31,11 @@ object CopyConstants {
     val COPY_TYPE_SHALLOW: String = "shallow"
     val COPY_TYPE_DEEP: String = "deep"
     val CONTENT: String = "content"
+    val IMAGE_SUFFIX: String = ".img"
+    val ERR_INVALID_CONTENT_ID: String = "ERR_INVALID_CONTENT_ID"
+    val EDIT_MODE: String = "edit"
+    val CONTENT_IMAGE_OBJECT_TYPE = "ContentImage"
+    val ERR_CONTENT_NOT_DRAFT = "ERR_CONTENT_NOT_DRAFT"
+    val COLLECTION_SCHEMA_NAME: String = "collection"
+
 }

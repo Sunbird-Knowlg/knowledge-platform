@@ -259,10 +259,8 @@ public class NodeAsyncOperations {
 
             CompletionStage<Boolean> cs = session.runAsync(NodeQueryGenerationUtil.generateDeleteNodeCypherQuery(parameterMap))
                     .thenCompose(fn -> fn.singleAsync())
-                    .thenApply(record -> {
-                        System.out.println(record);
-                        return true;
-                    }).exceptionally(error -> {
+                    .thenApply(record ->  true)
+                    .exceptionally(error -> {
                         if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
                             throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
                                     DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);

@@ -4,20 +4,18 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 
-
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.CopyManager
+import org.sunbird.content.util.{CopyManager, DiscardManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
-
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
@@ -37,6 +35,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "uploadContent" => upload(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
+			case "discardContent" => discard(request)
+
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -109,6 +109,18 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			response.put("identifier", identifier)
 			response.put("pre_signed_url", preSignedURL)
 			response.put("url_expiry", expiry)
+			response
+		}) recoverWith { case e: CompletionException => throw e.getCause }
+	}
+
+	def discard(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		val response = ResponseHandler.OK()
+		val identifier: String = request.get("identifier").asInstanceOf[String]
+		DiscardManager.discard(request).map(discarded => {
+			response.put("node_id", identifier)
+			response.put("identifier", identifier)
+			response.getResult.put("message", "Draft version of the content with id : " + identifier + " is discarded")
 			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
