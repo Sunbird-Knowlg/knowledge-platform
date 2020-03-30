@@ -19,6 +19,8 @@ import org.sunbird.graph.OntologyEngineContext
 class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
     implicit val ec: ExecutionContext = getContext().dispatcher
 
+    val suggestFrameworks = if(Platform.config.hasPath("channel.fetch.suggested_frameworks")) Platform.config.getBoolean("channel.fetch.suggested_frameworks") else true
+
     override def onReceive(request: Request): Future[Response] = {
         request.getOperation match {
             case "createChannel" => create(request)
@@ -48,12 +50,11 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
     def read(request: Request): Future[Response] = {
         DataNode.read(request).map(node => {
             val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-            val response = ResponseHandler.OK
-            if (Platform.config.hasPath("channel.fetch.suggested_frameworks") && Platform.config.getBoolean("channel.fetch.suggested_frameworks")
-                && CollectionUtils.isEmpty(node.getMetadata.get("frameworks").asInstanceOf[util.List[AnyRef]])) {
+            if (suggestFrameworks && CollectionUtils.isEmpty(metadata.getOrDefault("frameworks", new util.ArrayList[AnyRef]()).asInstanceOf[util.List[AnyRef]])) {
                 val frameworkList = ChannelManager.getAllFrameworkList()
                 if (!frameworkList.isEmpty) metadata.put("suggested_frameworks", frameworkList)
             }
+            val response = ResponseHandler.OK
             response.put("channel", metadata)
             response
         })
