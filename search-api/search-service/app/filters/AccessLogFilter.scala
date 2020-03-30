@@ -30,7 +30,7 @@ class AccessLogFilter @Inject() (implicit ec: ExecutionContext) extends Essentia
             val headers = requestHeader.headers.headers.groupBy(_._1).mapValues(_.map(_._2))
             val appHeaders = headers.filter(header => xHeaderNames.keySet.contains(header._1.toLowerCase))
                 .map(entry => (xHeaderNames.get(entry._1.toLowerCase()).get, entry._2.head))
-            val otherDetails = Map[String, Any]("StartTime" -> startTime, "env" -> "assessment",
+            val otherDetails = Map[String, Any]("StartTime" -> startTime, "env" -> "search",
                 "RemoteAddress" -> requestHeader.remoteAddress,
                 "ContentLength" -> result.body.contentLength.getOrElse(0),
                 "Status" -> result.header.status, "Protocol" -> "http",
