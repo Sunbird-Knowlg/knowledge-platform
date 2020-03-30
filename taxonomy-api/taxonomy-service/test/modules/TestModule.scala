@@ -11,6 +11,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class TestModule extends AbstractModule with AkkaGuiceSupport {
 	override def configure(): Unit = {
 		bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.FRAMEWORK_ACTOR)
+	        bindActor(classOf[TestActor], ActorNames.FRAMEWORK_CATEGORY_ACTOR)
 		println("Test Module is initialized...")
 	}
 }
