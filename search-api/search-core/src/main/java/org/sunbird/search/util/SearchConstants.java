@@ -1,6 +1,5 @@
 package org.sunbird.search.util;
 
-import javafx.beans.property.adapter.JavaBeanBooleanPropertyBuilder;
 import org.sunbird.common.Platform;
 
 public class SearchConstants {
