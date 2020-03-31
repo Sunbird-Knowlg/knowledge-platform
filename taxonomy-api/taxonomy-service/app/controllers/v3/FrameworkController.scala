@@ -27,16 +27,25 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
         getResult(ApiId.CREATE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
-    def readFramework(identifier: String, categories: Option[String]) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+    def retire(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val framework = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        framework.putAll(headers)
+        val frameworkRequest = getRequest(framework, headers, "retireFramework")
+        setRequestContext(frameworkRequest, version, objectType, schemaName)
+        frameworkRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.RETIRE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
-    def retire(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+    def readFramework(identifier: String, categories: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val readFramework = new java.util.HashMap().asInstanceOf[java.util.Map[String, AnyRef]]
+        readFramework.putAll(headers)
+        readFramework.putAll(Map("identifier" -> identifier,"categories" ->categories.getOrElse("")).asInstanceOf[Map[String, AnyRef]])
+        val readRequest = getRequest(readFramework, headers, "readFramework")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        getResult(ApiId.READ_FRAMEWORK, frameworkActor, readRequest)
     }
 
     def updateFramework(identifier: String) = Action.async { implicit request =>

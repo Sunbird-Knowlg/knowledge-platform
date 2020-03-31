@@ -40,9 +40,14 @@ class FrameworkCategoryController @Inject()(@Named(ActorNames.FRAMEWORK_CATEGORY
     }
 
     def update(categoryInstanceId: String, framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val frameworkCategoryInstance = body.getOrElse("category", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+        frameworkCategoryInstance.putAll(headers)
+        frameworkCategoryInstance.putAll(Map("categoryInstanceId" -> categoryInstanceId, "identifier" -> framework).asInstanceOf[Map[String, Object]])
+        val frameworkCategoryRequest = getRequest(frameworkCategoryInstance, headers, "updateFrameworkCategory")
+        setRequestContext(frameworkCategoryRequest, version, objectType, schemaName)
+        getResult(ApiId.UPDATE_FRAMEWORK_CATEGORY, frameworkCategoryActor, frameworkCategoryRequest)
     }
 
     def search(framework: String) = Action.async { implicit request =>
@@ -51,9 +56,14 @@ class FrameworkCategoryController @Inject()(@Named(ActorNames.FRAMEWORK_CATEGORY
         Future(Ok(response).as("application/json"))
     }
 
-    def retire(identifier: String, framework: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+    def retire(categoryInstanceId: String, framework: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val frameworkCategory = body.getOrElse("category", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        frameworkCategory.putAll(headers)
+        frameworkCategory.putAll(Map("categoryInstanceId" -> categoryInstanceId, "identifier" -> framework).asInstanceOf[Map[String, Object]])
+        val frameworkCategoryRequest = getRequest(frameworkCategory, headers, "retireFrameworkCategory")
+        setRequestContext(frameworkCategoryRequest, version, objectType, schemaName)
+        getResult(ApiId.RETIRE_FRAMEWORK_CATEGORY, frameworkCategoryActor, frameworkCategoryRequest)
     }
 }

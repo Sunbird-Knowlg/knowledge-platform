@@ -1,72 +1,74 @@
 {
-  "$id": "framework-schema.json",
+  "$id": "term-schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Framework",
+  "title": "Term",
   "type": "object",
   "required": [
     "name",
     "code",
-    "type"
+    "category"
   ],
   "properties": {
-    "name": {
+    "name":{
       "type": "string"
     },
-    "description": {
+    "code":{
       "type": "string"
     },
-    "code": {
+    "category":{
       "type": "string"
     },
-    "type": {
-      "type": "string",
-      "enum": [
-        "K-12",
-        "TPD"
-      ],
-      "default": "K-12"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "Live",
-        "Retired"
-      ],
-      "default": "Live"
-    },
-    "translations": {
-      "type": "object",
+    "translations":{
+      "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "createdBy": {
+    "index":{
       "type": "string"
     },
-    "createdOn": {
+    "description":{
       "type": "string"
     },
-    "lastUpdatedBy": {
+    "status":{
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Live",
+        "Review",
+        "Retired"
+      ],
+      "default": "Live"
+    },
+    "createdBy":{
       "type": "string"
     },
-    "lastUpdatedOn": {
+    "createdOn":{
       "type": "string"
     },
-    "consumerId": {
+    "lastUpdatedBy":{
       "type": "string"
     },
-    "appId": {
+    "lastUpdatedOn":{
       "type": "string"
     },
-    "channel": {
+    "consumerId":{
       "type": "string"
     },
-    "lastStatusChangedOn": {
+    "appId":{
       "type": "string"
     },
-    "owner": {
+    "channel":{
+      "type": "string"
+    },
+    "lastStatusChangedOn":{
+      "type": "string"
+    },
+    "label":{
+      "type": "string"
+    },
+    "value":{
       "type": "string"
     }
   }
 }
-

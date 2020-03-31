@@ -6,6 +6,7 @@
      "required": [ 
      	"name",
      	"code"
+      
      ],
      "properties": {
        "name": {
@@ -18,7 +19,7 @@
          "type": "string"
        },
        "translations": {
-         "type": "array",
+         "type": "object",
          "items": {
            "type": "string"
          }
