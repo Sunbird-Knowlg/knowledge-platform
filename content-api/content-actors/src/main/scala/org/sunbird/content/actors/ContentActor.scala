@@ -46,7 +46,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		RequestUtil.restrictProperties(request)
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
-			response.put("identifier", node. getIdentifier)
+			response.put("identifier", node.getIdentifier)
 			response.put("node_id", node.getIdentifier)
 			response.put("versionKey", node.getMetadata.get("versionKey"))
 			response
