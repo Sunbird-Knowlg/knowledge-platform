@@ -80,10 +80,11 @@ object DefinitionNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-	    val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
+        val nodeVersioning: String = request.getContext.get("nodeVersioning").asInstanceOf[String]
+	      val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
         val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-        definition.getNode(identifier, "update", null).map(dbNode => {
+        definition.getNode(identifier, "update", null, nodeVersioning).map(dbNode => {
             resetJsonProperties(dbNode, graphId, version, schemaName)
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             val dbRels = getDBRelations(graphId, schemaName, version, req, dbNode)

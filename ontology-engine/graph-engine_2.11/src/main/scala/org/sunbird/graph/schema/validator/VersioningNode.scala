@@ -3,6 +3,7 @@ package org.sunbird.graph.schema.validator
 import java.util
 import java.util.concurrent.CompletionException
 
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
@@ -27,24 +28,25 @@ trait VersioningNode extends IDefinition {
     val IMAGE_OBJECT_SUFFIX = "Image"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String = "read")(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read", nodeVersioning: String = null)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         operation match {
-            case "update" => getNodeToUpdate(identifier);
+            case "update" => getNodeToUpdate(identifier, nodeVersioning);
             case "read" => getNodeToRead(identifier, mode)
             case _ => getNodeToRead(identifier, mode)
         }
     }
 
-    private def getNodeToUpdate(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    private def getNodeToUpdate(identifier: String, nodeVersioning: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val nodeFuture: Future[Node] = super.getNode(identifier , "update", null)
         nodeFuture.map(node => {
             if(null == node)
                 throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier : " + identifier)
-            if(schemaValidator.getConfig.hasPath("version") && "enable".equalsIgnoreCase(schemaValidator.getConfig.getString("version"))){
-                getEditableNode(identifier, node)
-            } else {
+            else if(StringUtils.isNotBlank(nodeVersioning) && "disable".equalsIgnoreCase(nodeVersioning))
                 Future{node}
-            }
+            else if(schemaValidator.getConfig.hasPath("version") && "enable".equalsIgnoreCase(schemaValidator.getConfig.getString("version")))
+                getEditableNode(identifier, node)
+            else
+                Future{node}
         }).flatMap(f => f)
     }
 
