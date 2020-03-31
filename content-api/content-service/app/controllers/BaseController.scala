@@ -41,8 +41,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         reqMap
     }
 
-    def commonHeaders()(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
-        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId")
+    def commonHeaders(ignoreHeaders: Option[List[String]] = Option(List()))(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
+        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId").filterKeys(key => !ignoreHeaders.getOrElse(List()).contains(key))
         customHeaders.map(ch => {
             val value = request.headers.get(ch._1)
             if (value.isDefined && !value.isEmpty) {

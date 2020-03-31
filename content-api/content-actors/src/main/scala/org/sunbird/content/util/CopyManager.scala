@@ -141,12 +141,12 @@ object CopyManager {
         val requestMap = request.getRequest
         requestMap.remove(ContentConstants.MODE)
         val copyType = requestMap.remove(ContentConstants.COPY_TYPE).asInstanceOf[String]
+        val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         cleanUpCopiedData(metadata, copyType)
         metadata.putAll(requestMap)
         metadata.put(ContentConstants.STATUS, "Draft")
         metadata.put(ContentConstants.ORIGIN, node.getIdentifier)
         metadata.put(ContentConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
-        val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         if (MapUtils.isNotEmpty(originData))
             metadata.put(ContentConstants.ORIGIN_DATA, originData)
         val req = new Request(request)

@@ -18,8 +18,7 @@ class ChannelController  @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor
   val version = "1.0"
 
   def create() = Action.async { implicit request =>
-    val headers = commonHeaders()
-    headers.remove("channel")
+    val headers = commonHeaders(Option(List("x-channel-id")))
     val body = requestBody()
     val channel = body.getOrDefault("channel", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
     channel.putAll(headers)
@@ -39,8 +38,7 @@ class ChannelController  @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor
   }
 
   def update(identifier: String) = Action.async { implicit request =>
-    val headers = commonHeaders()
-    headers.remove("channel")
+    val headers = commonHeaders(Option(List("x-channel-id")))
     val body = requestBody()
     val channel = body.getOrElse("channel", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     channel.putAll(headers)
@@ -51,8 +49,7 @@ class ChannelController  @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor
   }
 
   def retire(identifier: String) = Action.async { implicit request =>
-    val headers = commonHeaders()
-    headers.remove("channel")
+    val headers = commonHeaders(Option(List("x-channel-id")))
     val channel =  new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
     channel.putAll(headers)
     val channelRequest = getRequest(channel, headers, "retireChannel")
@@ -60,6 +57,5 @@ class ChannelController  @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor
     channelRequest.getContext.put("identifier", identifier);
     getResult(ApiId.RETIRE_CHANNEL, channelActor, channelRequest)
   }
-
 }
 

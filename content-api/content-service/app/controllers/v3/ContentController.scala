@@ -100,6 +100,16 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
     }
 
+    def getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("rootId" -> identifier, "bookmarkId" -> bookmarkId, "mode" -> mode.getOrElse("")))
+        val readRequest = getRequest(content, headers, "getHierarchy")
+        setRequestContext(readRequest, version, objectType, null)
+        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
+    }
+
     def flag(identifier: String) = Action.async { implicit request =>
         val result = ResponseHandler.OK()
         val response = JavaJsonUtils.serialize(result)
