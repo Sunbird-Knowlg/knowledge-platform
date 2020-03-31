@@ -2,7 +2,7 @@ package utils
 
 object ApiId {
 
-	final val APPLICATION_HEALTH = "api.assessment-service.health"
+	final val APPLICATION_HEALTH = "api.taxonomy-service.health"
 	
 	final val CREATE_FRAMEWORK = "api.framework.create"
 	final val UPDATE_FRAMEWORK = "api.framework.update"
