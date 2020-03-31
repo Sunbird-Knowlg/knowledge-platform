@@ -46,8 +46,8 @@ object CopyManager {
         validateRequest(request)
         DataNode.read(request).map(node => {
             validateExistingNode(node)
-            val copiedNodeFuture: Future[Node] = node.getMetadata.get(CopyConstants.MIME_TYPE) match {
-                case CopyConstants.COLLECTION_MIME_TYPE =>
+            val copiedNodeFuture: Future[Node] = node.getMetadata.get(ContentConstants.MIME_TYPE) match {
+                case ContentConstants.COLLECTION_MIME_TYPE =>
                     node.setInRelations(null)
                     node.setOutRelations(null)
                     validateShallowCopyReq(node, request)
@@ -77,17 +77,17 @@ object CopyManager {
     }
 
     def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext):Future[Node] = {
-        val copyType = request.getRequest.get(CopyConstants.COPY_TYPE).asInstanceOf[String]
+        val copyType = request.getRequest.get(ContentConstants.COPY_TYPE).asInstanceOf[String]
         copyContent(originNode, request).map(node => {
             val req = new Request(request)
             req.getContext.put("schemaName", collSchemaName)
             req.getContext.put("version", version)
-            req.put(CopyConstants.ROOT_ID, request.get(CopyConstants.IDENTIFIER))
-            req.put(CopyConstants.MODE, request.get(CopyConstants.MODE))
+            req.put(ContentConstants.ROOT_ID, request.get(ContentConstants.IDENTIFIER))
+            req.put(ContentConstants.MODE, request.get(ContentConstants.MODE))
             HierarchyManager.getHierarchy(req).map(response => {
-                val originHierarchy = response.getResult.getOrDefault(CopyConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+                val originHierarchy = response.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
                 copyType match {
-                    case CopyConstants.COPY_TYPE_SHALLOW => updateShallowHierarchy(request, node, originNode, originHierarchy)
+                    case ContentConstants.COPY_TYPE_SHALLOW => updateShallowHierarchy(request, node, originNode, originHierarchy)
                     case _ => updateHierarchy(request,node, originNode, originHierarchy, copyType)
                 }
             }).flatMap(f=>f)
@@ -108,25 +108,25 @@ object CopyManager {
         val req = new Request(request)
         req.getContext.put("schemaName", collSchemaName)
         req.getContext.put("version", version)
-        req.getContext.put(CopyConstants.IDENTIFIER, node.getIdentifier)
-        req.put(CopyConstants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef](){{
-            put(CopyConstants.IDENTIFIER, node.getIdentifier)
-            put(CopyConstants.CHILDREN, childrenHierarchy)
+        req.getContext.put(ContentConstants.IDENTIFIER, node.getIdentifier)
+        req.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef](){{
+            put(ContentConstants.IDENTIFIER, node.getIdentifier)
+            put(ContentConstants.CHILDREN, childrenHierarchy)
         }}))
         DataNode.update(req).map(node=>node)
     }
 
     def validateExistingNode(node: Node): Unit = {
-        if (!CollectionUtils.isEmpty(invalidContentTypes) && invalidContentTypes.contains(node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String]))
-            throw new ClientException(CopyConstants.CONTENT_TYPE_ASSET_CAN_NOT_COPY, "ContentType " + node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String] + " can not be copied.")
-        if (invalidStatusList.contains(node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String]))
-            throw new ClientException(CopyConstants.ERR_INVALID_REQUEST, "Cannot Copy content which is in " + node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String].toLowerCase + " status")
+        if (!CollectionUtils.isEmpty(invalidContentTypes) && invalidContentTypes.contains(node.getMetadata.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String]))
+            throw new ClientException(ContentConstants.CONTENT_TYPE_ASSET_CAN_NOT_COPY, "ContentType " + node.getMetadata.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String] + " can not be copied.")
+        if (invalidStatusList.contains(node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String]))
+            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Cannot Copy content which is in " + node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String].toLowerCase + " status")
     }
     
     def validateRequest(request: Request): Unit = {
-        val keysNotPresent = CopyConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
+        val keysNotPresent = ContentConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
         if (keysNotPresent.nonEmpty)
-            throw new ClientException(CopyConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
+            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
     }
 
     def emptyCheckFilter(key: AnyRef): Boolean = key match {
@@ -137,18 +137,18 @@ object CopyManager {
     }
 
     def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext): Future[Request] = {
-        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), CopyConstants.CONTENT_SCHEMA_NAME, CopyConstants.SCHEMA_VERSION)
+        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), ContentConstants.CONTENT_SCHEMA_NAME, ContentConstants.SCHEMA_VERSION)
         val requestMap = request.getRequest
-        requestMap.remove(CopyConstants.MODE)
-        val copyType = requestMap.remove(CopyConstants.COPY_TYPE).asInstanceOf[String]
+        requestMap.remove(ContentConstants.MODE)
+        val copyType = requestMap.remove(ContentConstants.COPY_TYPE).asInstanceOf[String]
         cleanUpCopiedData(metadata, copyType)
         metadata.putAll(requestMap)
-        metadata.put(CopyConstants.STATUS, "Draft")
-        metadata.put(CopyConstants.ORIGIN, node.getIdentifier)
-        metadata.put(CopyConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
+        metadata.put(ContentConstants.STATUS, "Draft")
+        metadata.put(ContentConstants.ORIGIN, node.getIdentifier)
+        metadata.put(ContentConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
         val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         if (MapUtils.isNotEmpty(originData))
-            metadata.put(CopyConstants.ORIGIN_DATA, originData)
+            metadata.put(ContentConstants.ORIGIN_DATA, originData)
         val req = new Request(request)
         req.setRequest(metadata)
         if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.ecml-archive", node.getMetadata.get("mimeType").asInstanceOf[String])) {
@@ -167,12 +167,12 @@ object CopyManager {
     def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
         new java.util.HashMap[String, AnyRef](){{
             putAll(originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava)
-            put(CopyConstants.COPY_TYPE, copyType)
+            put(ContentConstants.COPY_TYPE, copyType)
         }}
     }
     
     def cleanUpCopiedData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
-        if(StringUtils.equalsIgnoreCase(CopyConstants.COPY_TYPE_SHALLOW, copyType)) {
+        if(StringUtils.equalsIgnoreCase(ContentConstants.COPY_TYPE_SHALLOW, copyType)) {
             metadata.keySet().removeAll(metadataNotTobeCopied.asScala.toList.filter(str => !str.contains("dial")).asJava)
         } else metadata.keySet().removeAll(metadataNotTobeCopied)
         metadata
@@ -189,17 +189,17 @@ object CopyManager {
     }
 
     //    def cleanUpNodeRelations(node: Node): Unit = {
-    //        val relationsToDelete: util.List[Relation] = node.getOutRelations.asScala.filter(relation => CopyConstants.END_NODE_OBJECT_TYPES.contains(relation.getEndNodeObjectType)).toList.asJava
+    //        val relationsToDelete: util.List[Relation] = node.getOutRelations.asScala.filter(relation => ContentConstants.END_NODE_OBJECT_TYPES.contains(relation.getEndNodeObjectType)).toList.asJava
     //        node.getOutRelations.removeAll(relationsToDelete)
     //    }
 
     def getUpdateRequest(request: Request, copiedNode: Node, artifactUrl: String): Request = {
         val req = new Request()
         val context = request.getContext
-        context.put(CopyConstants.IDENTIFIER, copiedNode.getIdentifier)
+        context.put(ContentConstants.IDENTIFIER, copiedNode.getIdentifier)
         req.setContext(context)
-        req.put(CopyConstants.VERSION_KEY, copiedNode.getMetadata.get(CopyConstants.VERSION_KEY))
-        req.put(CopyConstants.ARTIFACT_URL, artifactUrl)
+        req.put(ContentConstants.VERSION_KEY, copiedNode.getMetadata.get(ContentConstants.VERSION_KEY))
+        req.put(ContentConstants.ARTIFACT_URL, artifactUrl)
         req
     }
 
@@ -214,14 +214,14 @@ object CopyManager {
             val nodesModified = new util.HashMap[String, AnyRef]()
             val hierarchy = new util.HashMap[String, AnyRef]()
             hierarchy.put(node.getIdentifier, new util.HashMap[String, AnyRef](){{
-                put(CopyConstants.CHILDREN, new util.ArrayList[String]())
-                put(CopyConstants.ROOT, true.asInstanceOf[AnyRef])
-                put(CopyConstants.CONTENT_TYPE, node.getMetadata.get(CopyConstants.CONTENT_TYPE))
+                put(ContentConstants.CHILDREN, new util.ArrayList[String]())
+                put(ContentConstants.ROOT, true.asInstanceOf[AnyRef])
+                put(ContentConstants.CONTENT_TYPE, node.getMetadata.get(ContentConstants.CONTENT_TYPE))
             }})
             populateHierarchyRequest(children, nodesModified, hierarchy, node.getIdentifier, copyType)
             new util.HashMap[String, AnyRef](){{
-                put(CopyConstants.NODES_MODIFIED, nodesModified)
-                put(CopyConstants.HIERARCHY, hierarchy)
+                put(ContentConstants.NODES_MODIFIED, nodesModified)
+                put(ContentConstants.HIERARCHY, hierarchy)
             }}
         } else new util.HashMap[String, AnyRef]()
     }
@@ -229,36 +229,36 @@ object CopyManager {
     def populateHierarchyRequest(children: util.List[util.Map[String, AnyRef]], nodesModified: util.HashMap[String, AnyRef], hierarchy: util.HashMap[String, AnyRef], parentId: String, copyType: String): Unit = {
         if (null != children && !children.isEmpty) {
             children.asScala.toList.foreach(child => {
-                val id = if ("Parent".equalsIgnoreCase(child.get(CopyConstants.VISIBILITY).asInstanceOf[String])) {
+                val id = if ("Parent".equalsIgnoreCase(child.get(ContentConstants.VISIBILITY).asInstanceOf[String])) {
                         val identifier = UUID.randomUUID().toString
                         nodesModified.put(identifier, new util.HashMap[String, AnyRef]() {{
-                                put(CopyConstants.METADATA,  cleanUpCopiedData(new util.HashMap[String, AnyRef]() {{
+                                put(ContentConstants.METADATA,  cleanUpCopiedData(new util.HashMap[String, AnyRef]() {{
                                     putAll(child)
-                                    put(CopyConstants.CHILDREN, new util.ArrayList())
+                                    put(ContentConstants.CHILDREN, new util.ArrayList())
                                     internalHierarchyProps.map(key => remove(key))
                                 }}, copyType))
-                                put(CopyConstants.ROOT, false.asInstanceOf[AnyRef])
+                                put(ContentConstants.ROOT, false.asInstanceOf[AnyRef])
                                 put("isNew", true.asInstanceOf[AnyRef])
                                 put("setDefaultValue", false.asInstanceOf[AnyRef])
                             }})
                         identifier
                     } else 
-                        child.get(CopyConstants.IDENTIFIER).asInstanceOf[String]
+                        child.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
                 hierarchy.put(id, new util.HashMap[String, AnyRef]() {{
-                        put(CopyConstants.CHILDREN, new util.ArrayList[String]())
-                        put(CopyConstants.ROOT, false.asInstanceOf[AnyRef])
-                        put(CopyConstants.CONTENT_TYPE, child.get(CopyConstants.CONTENT_TYPE))
+                        put(ContentConstants.CHILDREN, new util.ArrayList[String]())
+                        put(ContentConstants.ROOT, false.asInstanceOf[AnyRef])
+                        put(ContentConstants.CONTENT_TYPE, child.get(ContentConstants.CONTENT_TYPE))
                     }})
-                hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(CopyConstants.CHILDREN).asInstanceOf[util.List[String]].add(id)
-                populateHierarchyRequest(child.get(CopyConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType)
+                hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(ContentConstants.CHILDREN).asInstanceOf[util.List[String]].add(id)
+                populateHierarchyRequest(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType)
             })
         }
     }
 
     def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
-        val artifactUrl = node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String]
-        val mimeType = node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String]
-        val contentType = node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String]
+        val artifactUrl = node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]
+        val mimeType = node.getMetadata.get(ContentConstants.MIME_TYPE).asInstanceOf[String]
+        val contentType = node.getMetadata.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String]
         if (StringUtils.isNotBlank(artifactUrl) && !restrictedMimeTypesForUpload.contains(mimeType)) {
             val mimeTypeManager = MimeTypeManagerFactory.getManager(contentType, mimeType)
             val uploadFuture = if (isInternalUrl(artifactUrl)) {
@@ -267,9 +267,9 @@ object CopyManager {
                     mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
                 else
                     mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file)
-            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String])
+            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String])
             uploadFuture.map(uploadData => {
-                DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String]))
+                DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]))
             }).flatMap(f => f)
         } else Future(copiedNode)
     }
@@ -277,7 +277,7 @@ object CopyManager {
     def validateShallowCopyReq(node: Node, request: Request) = {
         val copyType: String = request.getRequest.get("copyType").asInstanceOf[String]
         if(StringUtils.equalsIgnoreCase("shallow", copyType) && !StringUtils.equalsIgnoreCase("Live", node.getMetadata.get("status").asInstanceOf[String]))
-            throw new ClientException(CopyConstants.ERR_INVALID_REQUEST, "Content with status " + node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String].toLowerCase + " cannot be partially (shallow) copied.")
+            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Content with status " + node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String].toLowerCase + " cannot be partially (shallow) copied.")
         //TODO: check if need to throw client exception for combination of copyType=shallow and mode=edit
     }
 }

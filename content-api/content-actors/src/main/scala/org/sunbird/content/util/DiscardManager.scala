@@ -53,9 +53,7 @@ object DiscardManager {
     private def discardForCollection(node: Node, request: Request)(implicit executionContext: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
         request.put(ContentConstants.IDENTIFIER, node.getIdentifier)
         request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
-        ExternalPropsManager.deleteProps(request).map(resp => {
-            DataNode.deleteNode(request)
-        }).flatMap(f => f)
+        ExternalPropsManager.deleteProps(request).map(resp => DataNode.deleteNode(request)).flatMap(f => f)
     }
 
 
