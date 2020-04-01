@@ -37,5 +37,6 @@ object ContentConstants {
     val CONTENT_IMAGE_OBJECT_TYPE = "ContentImage"
     val ERR_CONTENT_NOT_DRAFT = "ERR_CONTENT_NOT_DRAFT"
     val COLLECTION_SCHEMA_NAME: String = "collection"
-
+    val IDENTIFIERS: String = "identifiers"
+    val PACKAGE_VERSION: String = "pkgVersion"
 }
