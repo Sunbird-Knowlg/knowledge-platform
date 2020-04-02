@@ -3,7 +3,6 @@ package org.sunbird.content.actors
 import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
-
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.collections.CollectionUtils
@@ -20,7 +19,7 @@ import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-
+import scala.collection.JavaConverters._
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -176,7 +175,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val objectType = node.getObjectType
 
 			if (CONTENT_OBJECT_TYPE.equalsIgnoreCase(objectType)) {
-				val metadata: util.Map[String, Object] = node.getMetadata.asInstanceOf[util.Map[String, Object]]
+				val metadata: util.Map[String, Object] = node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
 				val status: String = metadata.get("status").asInstanceOf[String]
 				request.put("identifier", contentId)
 				if (FLAGGABLE_STATUS.contains(status)) {
@@ -193,7 +192,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 					}
 					request.put("objectType", CONTENT_OBJECT_TYPE)
 					request.getContext.put("versioning", "disable")
-					request.put("versionkey",versionKey)
+					request.put("versionkey", versionKey)
 
 					/*this is cassandra codgirt e for updating the status 
 					if(mimeType == "application/vnd.ekstep.content-collection"){
@@ -244,8 +243,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val existingFlagReasons = metadata.get("flagReasons")
 		if (existingFlagReasons != null) {
 			var existingFlagReasonsList: util.List[String] = null
-			if (existingFlagReasons.isInstanceOf[util.Arrays]) {
-				existingFlagReasonsList = util.Arrays.asList(existingFlagReasons.asInstanceOf[String])
+			if (existingFlagReasons.isInstanceOf[Array[String]]) {
+				existingFlagReasonsList = existingFlagReasons.asInstanceOf[Array[String]].toList.asJava
 			}
 			else if (existingFlagReasons.isInstanceOf[util.List[Object]]) {
 				existingFlagReasonsList = existingFlagReasons.asInstanceOf[util.List[String]]
@@ -260,16 +259,15 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def addFlaggedBy(flaggedBy: String, metadata: util.Map[String, Object]): util.List[String] = {
-		val flaggedByList: util.List[String] = new util.ArrayList[String]()
+		val flaggedByList: util.List[String] = new util.ArrayList[String]
 		flaggedByList.add(flaggedBy)
 		val existingFlaggedBy = metadata.get("flaggedBy")
 		if (existingFlaggedBy != null) {
 			var existingFlaggedByList: util.List[String] = null
-			if (existingFlaggedBy.isInstanceOf[util.Arrays]) {
-				existingFlaggedByList = util.Arrays.asList(existingFlaggedBy.asInstanceOf[String])
+			if (existingFlaggedBy.isInstanceOf[Array[String]]) {
+				existingFlaggedByList = existingFlaggedBy.asInstanceOf[Array[String]].toList.asJava
 			}
 			else if (existingFlaggedBy.isInstanceOf[util.List[Object]]) {
-				
 				existingFlaggedByList = existingFlaggedBy.asInstanceOf[util.List[String]]
 			}
 			if (CollectionUtils.isNotEmpty(existingFlaggedByList)) {
@@ -280,6 +278,4 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}
 		flaggedByList
 	}
-
-	
 }
