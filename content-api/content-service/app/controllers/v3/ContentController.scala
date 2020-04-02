@@ -111,11 +111,17 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def flag(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier))
+        val contentRequest = getRequest(content, headers, "flagContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.FlAG_CONTENT, contentActor, contentRequest)
     }
-
+    
     def acceptFlag(identifier: String) = Action.async { implicit request =>
         val result = ResponseHandler.OK()
         val response = JavaJsonUtils.serialize(result)
