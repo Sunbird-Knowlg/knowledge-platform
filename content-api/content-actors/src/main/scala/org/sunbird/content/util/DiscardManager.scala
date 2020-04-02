@@ -27,6 +27,7 @@ object DiscardManager {
         validateRequest(request)
         getNodeToDiscard(request).map(node => {
             val identifier = node.getIdentifier
+            request.put(ContentConstants.IDENTIFIER, node.getIdentifier)
             if (!CONTENT_DISCARD_STATUS.contains(node.getMetadata.get(ContentConstants.STATUS)))
                 throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "No changes to discard for content with content id: " + identifier + " since content status isn't draft", identifier)
             if (StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String], ContentConstants.COLLECTION_MIME_TYPE))
@@ -52,7 +53,6 @@ object DiscardManager {
 
     private def discardForCollection(node: Node, request: Request)(implicit executionContext: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
         request.put(ContentConstants.IDENTIFIERS, if (node.getMetadata.containsKey(ContentConstants.PACKAGE_VERSION)) List(node.getIdentifier) else List(node.getIdentifier, node.getIdentifier + ContentConstants.IMAGE_SUFFIX))
-        request.put(ContentConstants.IDENTIFIER, node.getIdentifier)
         request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
         ExternalPropsManager.deleteProps(request).map(resp => DataNode.deleteNode(request)).flatMap(f => f)
     }
