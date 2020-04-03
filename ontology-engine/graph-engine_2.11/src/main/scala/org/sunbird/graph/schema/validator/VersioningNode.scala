@@ -22,7 +22,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait VersioningNode extends IDefinition {
 
-    val statusList = List("Live", "Unlisted")
+    val statusList = List("Live", "Unlisted", "Flagged")
     val IMAGE_SUFFIX = ".img"
     val IMAGE_OBJECT_SUFFIX = "Image"
 

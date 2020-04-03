@@ -117,9 +117,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def acceptFlag(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier))
+        val acceptRequest = getRequest(content, headers, "acceptFlag")
+        setRequestContext(acceptRequest, version, objectType, schemaName)
+        getResult(ApiId.ACCEPT_FLAG, contentActor, acceptRequest)
     }
 
     def rejectFlag(identifier: String) = Action.async { implicit request =>

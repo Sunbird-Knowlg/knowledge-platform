@@ -31,6 +31,7 @@ object ApiId {
 	val LIST_CHANNEL = "api.channel.list"
 	val RETIRE_CHANNEL = "api.channel.retire"
 
-
+	//Flag APIs
+	val ACCEPT_FLAG = "api.content.flag.accept"
 
 }

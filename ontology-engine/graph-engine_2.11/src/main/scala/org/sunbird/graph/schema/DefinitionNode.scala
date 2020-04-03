@@ -94,6 +94,7 @@ object DefinitionNode {
                 inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
                 dbNode.getMetadata.remove("isImageNodeCreated")
             }
+            inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
             dbNode.getMetadata.putAll(inputNode.getMetadata)
             if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
                 if (MapUtils.isNotEmpty(dbNode.getExternalData))
