@@ -59,7 +59,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         val objectId: String = node.getIdentifier
         val extractionBasePath = getBasePath(objectId)
         extractPackage(uploadFile, extractionBasePath)
-        val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, null)
+        val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, None)
         node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
         node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
         extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
