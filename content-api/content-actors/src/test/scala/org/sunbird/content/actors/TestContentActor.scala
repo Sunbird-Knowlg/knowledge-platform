@@ -52,6 +52,32 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("url_expiry") != null)
     }
 
+    it should "return success response for acceptFlag" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val nodeMetaData = new util.HashMap[String, AnyRef]() {{
+            put("name", "acceptFlag_test")
+            put("code", "acceptFlag_test")
+            put("status", "Flagged")
+            put("identifier", "do_1234")
+            put("versionKey", "1521106144664")
+            put("contentType", "Resource")
+            put("channel", "test")
+            put("mimeType", "application/pdf")
+        }}
+        val node = getNode("Content", Option(nodeMetaData))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.setOperation("acceptFlag")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
     private def getContentRequest(): Request = {
         val request = new Request()
         request.setContext(new util.HashMap[String, AnyRef]() {
