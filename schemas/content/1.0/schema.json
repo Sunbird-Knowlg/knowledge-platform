@@ -452,7 +452,8 @@
                 "ConceptMap",
                 "SelfAssess",
                 "PracticeResource",
-                "eTextBook"
+                "eTextBook",
+                "OnboardingResource"
             ]
         },
         "resourceType": {
