@@ -26,11 +26,13 @@ object UploadManager {
 		val identifier: String = node.getIdentifier
 		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
 		val file = request.getRequest.get("file").asInstanceOf[File]
+		val reqFilePath: String = request.getRequest.getOrDefault("filePath", "").asInstanceOf[String].replaceAll("^/+|/+$", "")
+		val filePath = if(StringUtils.isBlank(reqFilePath)) None else Option(reqFilePath)
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
 		val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
 		val mediaType = node.getMetadata.getOrDefault("mediaType", "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
-		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl) else mgr.upload(identifier, node, file)
+		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
 		uploadFuture.map(result => {
 			updateNode(request, node.getIdentifier, mediaType, contentType, result)
 		}).flatMap(f => f)

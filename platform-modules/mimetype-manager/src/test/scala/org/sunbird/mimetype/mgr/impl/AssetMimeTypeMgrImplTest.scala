@@ -21,7 +21,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
     val inputUrl = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_123/artifact/human_vs_robot-.jpg"
     implicit val ss = mock[StorageService]
     (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
-    val resFuture = new AssetMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("filesToZip/human_vs_robot-.jpg").toURI))
+    val resFuture = new AssetMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("filesToZip/human_vs_robot-.jpg").toURI), None)
     resFuture.map(result => {
       println("Response: " + result)
       result
@@ -32,7 +32,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
 
   "upload with file" should "throw client exception" in {
     val exception = intercept[ClientException] {
-      new AssetMimeTypeMgrImpl().upload("do_123", new Node(), new File("/tmp/test.pdf"))
+      new AssetMimeTypeMgrImpl().upload("do_123", new Node(), new File("/tmp/test.pdf"), None)
     }
     exception.getMessage shouldEqual "Please Provide Valid File!"
   }
@@ -54,7 +54,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
   "upload with valid fileUrl" should "return artifactUrl with successful response" in {
     val node = getNode()
     val inputUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-    val resFuture = new AssetMimeTypeMgrImpl().upload("do_123", node, inputUrl)
+    val resFuture = new AssetMimeTypeMgrImpl().upload("do_123", node, inputUrl, None)
     resFuture.map(result => {
       assert(null != result)
       assert(!result.isEmpty)

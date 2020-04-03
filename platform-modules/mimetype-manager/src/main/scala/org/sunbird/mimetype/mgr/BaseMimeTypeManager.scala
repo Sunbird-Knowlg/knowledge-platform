@@ -65,10 +65,10 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
 	}
 
-	def uploadArtifactToCloud(uploadedFile: File, identifier: String): Array[String] = {
+	def uploadArtifactToCloud(uploadedFile: File, identifier: String, filePath: Option[String] = None): Array[String] = {
 		var urlArray = new Array[String](2)
 		try {
-			val folder = Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
+			val folder = if(StringUtils.isNotBlank(filePath.getOrElse(""))) Platform.getString(CONTENT_FOLDER, "content") + File.separator + filePath.get + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact") else Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
 			urlArray = ss.uploadFile(folder, uploadedFile)
 		} catch {
 			case e: Exception =>

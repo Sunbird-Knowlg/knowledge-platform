@@ -28,17 +28,31 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     def requestFormData()(implicit request: Request[AnyContent]) = {
         val reqMap = new util.HashMap[String, AnyRef]()
-        val multipartData = request.body.asMultipartFormData.get
-        if (null != multipartData.asFormUrlEncoded && !multipartData.asFormUrlEncoded.isEmpty) {
-            val fileUrl: String = multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).get(0)
-            if (StringUtils.isNotBlank(fileUrl))
-                reqMap.put("fileUrl", fileUrl)
-        } else if (null != multipartData.files && !multipartData.files.isEmpty) {
-            val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.get(0).filename)
-            multipartData.files.get(0).ref.copyTo(file, false)
-            reqMap.put("file", file)
-        } else throw new ClientException("ERR_INVALID_DATA", "Please Provide Valid File Or File Url!")
-        reqMap
+        if(!request.body.asMultipartFormData.isEmpty) {
+            val multipartData = request.body.asMultipartFormData.get
+            if (null != multipartData.asFormUrlEncoded && !multipartData.asFormUrlEncoded.isEmpty) {
+                if(multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).length > 0){
+                    val fileUrl: String = multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).get(0)
+                    if (StringUtils.isNotBlank(fileUrl))
+                        reqMap.put("fileUrl", fileUrl)
+                }
+                if(multipartData.asFormUrlEncoded.getOrElse("filePath",Seq()).length > 0){
+                    val filePath: String = multipartData.asFormUrlEncoded.getOrElse("filePath",Seq()).get(0)
+                    if (StringUtils.isNotBlank(filePath))
+                        reqMap.put("filePath", filePath)
+                }
+            }
+            if (null != multipartData.files && !multipartData.files.isEmpty) {
+                val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.get(0).filename)
+                multipartData.files.get(0).ref.copyTo(file, false)
+                reqMap.put("file", file)
+            }
+        }
+        if(StringUtils.isNotBlank(reqMap.getOrDefault("fileUrl", "").asInstanceOf[String]) || null != reqMap.get("file").asInstanceOf[File]){
+            reqMap
+        } else {
+            throw new ClientException("ERR_INVALID_DATA", "Please Provide Valid File Or File Url!")
+        }
     }
 
     def commonHeaders(ignoreHeaders: Option[List[String]] = Option(List()))(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
