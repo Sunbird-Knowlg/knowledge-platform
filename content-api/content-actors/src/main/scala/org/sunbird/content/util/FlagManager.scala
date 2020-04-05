@@ -34,14 +34,13 @@ object FlagManager {
       val flagReasons: util.List[String] = request.get("flagReasons").asInstanceOf[util.ArrayList[String]]
       val flaggedBy: String = request.get("flaggedBy").asInstanceOf[String]
       val flags: util.List[String] = request.get("flags").asInstanceOf[util.ArrayList[String]]
-      val versionKey = node.getMetadata.get("versionKey").asInstanceOf[String]
-      val objectType = node.getObjectType
-
-      if (!CONTENT_OBJECT_TYPE.equalsIgnoreCase(objectType))
-        throw new ClientException("ERR_NODE_NOT_FOUND", objectType + " " + contentId + " not found")
+      
+      if (!CONTENT_OBJECT_TYPE.equalsIgnoreCase(node.getObjectType))
+        throw new ClientException("ERR_NODE_NOT_FOUND", node.getObjectType + " " + contentId + " not found")
 
       val metadata: util.Map[String, Object] = node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
       val status: String = metadata.get("status").asInstanceOf[String]
+      val versionKey = node.getMetadata.get("versionKey").asInstanceOf[String]
       request.put("identifier", contentId)
 
       if (!FLAGGABLE_STATUS.contains(status))
