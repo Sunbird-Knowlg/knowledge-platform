@@ -8,6 +8,7 @@ import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseParams;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.search.client.ElasticSearchUtil;
+import org.sunbird.search.util.SearchConstants;
 import scala.concurrent.Future;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class HealthActor extends BaseActor {
     @Override
     public Future<Response> onReceive(Request request) throws Throwable {
-        ElasticSearchUtil.initialiseESClient("", Platform.config.getString("search.es_conn_info"));
+        ElasticSearchUtil.initialiseESClient(SearchConstants.COMPOSITE_SEARCH_INDEX, Platform.config.getString("search.es_conn_info"));
         return checkIndexHealth();
     }
 
@@ -27,7 +28,7 @@ public class HealthActor extends BaseActor {
         Response response = new Response();
         boolean index = false;
         try {
-            index = ElasticSearchUtil.isIndexExists("compositesearch");
+            index = ElasticSearchUtil.isIndexExists(SearchConstants.COMPOSITE_SEARCH_INDEX);
             if (index == true) {
                 checks.add(getResponseData(response, true, "", ""));
                 response.put("checks", checks);

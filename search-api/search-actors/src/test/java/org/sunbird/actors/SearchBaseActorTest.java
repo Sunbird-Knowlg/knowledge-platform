@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SearchBaseActorTest {
 
-    private static ActorSystem system = null;
+    protected static ActorSystem system = null;
     protected static final String SEARCH_ACTOR = "SearchActor";
     private static String[] keywords = new String[]{"hindi story", "NCERT", "Pratham", "एकस्टेप", "हिन्दी", "हाथी और भालू", "worksheet", "test"};
     private static String[] contentTypes = new String[]{"Resource", "Collection", "Asset"};
@@ -42,14 +42,11 @@ public class SearchBaseActorTest {
     @BeforeClass
     public static void beforeTest() throws Exception {
         system = ActorSystem.create();
-        createCompositeSearchIndex();
-        Thread.sleep(3000);
+        
     }
 
     @AfterClass
     public static void afterTest() throws Exception {
-        System.out.println("deleting index: " + SearchConstants.COMPOSITE_SEARCH_INDEX);
-        ElasticSearchUtil.deleteIndex(SearchConstants.COMPOSITE_SEARCH_INDEX);
         TestKit.shutdownActorSystem(system, Duration.create(2, TimeUnit.SECONDS), true);
         system = null;
     }
@@ -79,11 +76,10 @@ public class SearchBaseActorTest {
         request.setOperation(operation);
         return request;
     }
-
-    protected Response getSearchResponse(Request request) {
-        try {
-            final Props props = Props.create(SearchActor.class);
-            final ActorRef searchMgr = system.actorOf(props);
+    
+    protected Response getResponse(Request request, Props props){
+        try{
+            ActorRef searchMgr = system.actorOf(props);
             Future<Object> future = Patterns.ask(searchMgr, request, 30000);
             Object obj = Await.result(future, Duration.create(30.0, TimeUnit.SECONDS));
             Response response = null;
@@ -96,6 +92,11 @@ public class SearchBaseActorTest {
         } catch (Exception e) {
             throw new ServerException(SearchConstants.SYSTEM_ERROR, e.getMessage(), e);
         }
+    }
+
+    protected Response getSearchResponse(Request request) {
+        final Props props = Props.create(SearchActor.class);
+        return getResponse(request, props);
     }
 
     protected Response ERROR(String errorCode, String errorMessage, ResponseCode responseCode) {
@@ -113,7 +114,7 @@ public class SearchBaseActorTest {
         return params;
     }
 
-    private static void createCompositeSearchIndex() throws Exception {
+    protected static void createCompositeSearchIndex() throws Exception {
         SearchConstants.COMPOSITE_SEARCH_INDEX = "testcompositeindex";
         ElasticSearchUtil.initialiseESClient(SearchConstants.COMPOSITE_SEARCH_INDEX,
                 Platform.config.getString("search.es_conn_info"));

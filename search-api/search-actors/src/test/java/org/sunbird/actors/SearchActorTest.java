@@ -2,21 +2,40 @@ package org.sunbird.actors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.exception.ResponseCode;
+import org.sunbird.search.client.ElasticSearchUtil;
+import org.sunbird.search.util.SearchConstants;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 public class SearchActorTest extends SearchBaseActorTest {
+    
+    @BeforeClass
+    public static void before() throws Exception {
+        createCompositeSearchIndex();
+        Thread.sleep(3000);
+    }
+    
+    @AfterClass
+    public static void after() throws Exception {
+        System.out.println("deleting index: " + SearchConstants.COMPOSITE_SEARCH_INDEX);
+        ElasticSearchUtil.deleteIndex(SearchConstants.COMPOSITE_SEARCH_INDEX);
+    }
 
     @Test
     public void testSearchByQuery() {
