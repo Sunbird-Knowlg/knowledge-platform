@@ -26,10 +26,9 @@ object DiscardManager {
     def discard(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
         validateRequest(request)
         getNodeToDiscard(request).map(node => {
-            val identifier = node.getIdentifier
             request.put(ContentConstants.IDENTIFIER, node.getIdentifier)
             if (!CONTENT_DISCARD_STATUS.contains(node.getMetadata.get(ContentConstants.STATUS)))
-                throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "No changes to discard for content with content id: " + identifier + " since content status isn't draft", identifier)
+                throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "No changes to discard for content with content id: " + node.getIdentifier + " since content status isn't draft", node.getIdentifier)
             if (StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String], ContentConstants.COLLECTION_MIME_TYPE))
                 discardForCollection(node, request)
             else
@@ -45,8 +44,8 @@ object DiscardManager {
     }
 
     private def validateRequest(request: Request): Unit = {
-        if (StringUtils.isBlank(request.getRequest.getOrDefault("identifier", "").asInstanceOf[String])
-            || StringUtils.endsWith(request.getRequest.getOrDefault("identifier", "").asInstanceOf[String], ContentConstants.IMAGE_SUFFIX))
+        if (StringUtils.isBlank(request.getRequest.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String])
+            || StringUtils.endsWith(request.getRequest.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String], ContentConstants.IMAGE_SUFFIX))
             throw new ClientException(ContentConstants.ERR_INVALID_CONTENT_ID, "Please provide valid content identifier")
     }
 
