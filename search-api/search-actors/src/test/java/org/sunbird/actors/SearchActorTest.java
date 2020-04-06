@@ -950,6 +950,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(foundOriginal);
     }
 
+    @Ignore
     @Test
     public void testSearchwithModeAndSCFromRequest() {
         Request request = getSearchRequest();
@@ -997,6 +998,7 @@ public class SearchActorTest extends SearchBaseActorTest {
     }
 
     @SuppressWarnings("unchecked")
+    @Ignore
     @Test
     public void testWithoutMode() {
         Request request = getSearchRequest();
@@ -1086,6 +1088,7 @@ public class SearchActorTest extends SearchBaseActorTest {
     }
 
     @SuppressWarnings("unchecked")
+    @Ignore
     @Test
     public void testModeHard() {
         Request request = getSearchRequest();
@@ -1133,6 +1136,7 @@ public class SearchActorTest extends SearchBaseActorTest {
     }
 
     @SuppressWarnings("unchecked")
+    @Ignore
     @Test
     public void testInvalidMode() {
         Request request = getSearchRequest();
@@ -1180,6 +1184,7 @@ public class SearchActorTest extends SearchBaseActorTest {
     }
 
     @SuppressWarnings("unchecked")
+    @Ignore
     @Test
     public void testModeBlank() {
         Request request = getSearchRequest();
