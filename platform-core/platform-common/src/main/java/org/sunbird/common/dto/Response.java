@@ -62,8 +62,9 @@ public class Response implements Serializable {
         return result.get(key);
     }
 
-    public void put(String key, Object vo) {
+    public Response put(String key, Object vo) {
         result.put(key, vo);
+        return this;
     }
 
     public void putAll(Map<String, Object> resultMap) {

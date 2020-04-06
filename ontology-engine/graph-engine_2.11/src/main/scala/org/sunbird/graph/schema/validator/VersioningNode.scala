@@ -27,24 +27,24 @@ trait VersioningNode extends IDefinition {
     val IMAGE_OBJECT_SUFFIX = "Image"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String = "read")(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read", versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         operation match {
-            case "update" => getNodeToUpdate(identifier);
+            case "update" => getNodeToUpdate(identifier, versioning);
             case "read" => getNodeToRead(identifier, mode)
             case _ => getNodeToRead(identifier, mode)
         }
     }
 
-    private def getNodeToUpdate(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    private def getNodeToUpdate(identifier: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val nodeFuture: Future[Node] = super.getNode(identifier , "update", null)
         nodeFuture.map(node => {
+            val versioningEnable = versioning.getOrElse({if(schemaValidator.getConfig.hasPath("version"))schemaValidator.getConfig.getString("version") else "disable"})
             if(null == node)
                 throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier : " + identifier)
-            if(schemaValidator.getConfig.hasPath("version") && "enable".equalsIgnoreCase(schemaValidator.getConfig.getString("version"))){
+            else if("enable".equalsIgnoreCase(versioningEnable))
                 getEditableNode(identifier, node)
-            } else {
+            else
                 Future{node}
-            }
         }).flatMap(f => f)
     }
 
