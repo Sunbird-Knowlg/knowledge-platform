@@ -437,7 +437,8 @@
         "MarkingSchemeRubric",
         "ExplanationResource",
         "ExperientialResource",
-        "eTextBook"
+        "eTextBook",
+        "OnboardingResource"
       ]
     },
     "resourceType": {
