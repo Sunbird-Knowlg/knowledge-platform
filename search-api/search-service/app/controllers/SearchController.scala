@@ -21,6 +21,7 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
 
     def count() = Action.async { implicit request =>
         val internalReq = getRequest(ApiId.APPLICATION_COUNT)
+        setHeaderContext(internalReq)
         getResult(mgr.count(internalReq, searchActor), ApiId.APPLICATION_COUNT)
     }
 }
