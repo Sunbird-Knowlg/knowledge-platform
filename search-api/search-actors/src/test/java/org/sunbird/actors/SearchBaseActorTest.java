@@ -45,12 +45,6 @@ public class SearchBaseActorTest {
         
     }
 
-    @AfterClass
-    public static void afterTest() throws Exception {
-        TestKit.shutdownActorSystem(system, Duration.create(2, TimeUnit.SECONDS), true);
-        system = null;
-    }
-
 
     protected Request getSearchRequest() {
         Request request = new Request();
