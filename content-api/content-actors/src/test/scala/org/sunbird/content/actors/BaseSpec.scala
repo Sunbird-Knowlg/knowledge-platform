@@ -29,7 +29,7 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll{
         val probe = new TestKit(system)
         val actorRef = system.actorOf(props)
         actorRef.tell(request, probe.testActor)
-        probe.expectMsgType[Response](FiniteDuration.apply(20, TimeUnit.SECONDS))
+        probe.expectMsgType[Response](FiniteDuration.apply(10, TimeUnit.SECONDS))
     }
 
     def getNode(objectType: String, metadata: Option[util.Map[String, AnyRef]]): Node = {
