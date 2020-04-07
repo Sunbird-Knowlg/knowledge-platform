@@ -21,7 +21,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object DiscardManager {
     private val CONTENT_DISCARD_STATUS = Platform.getStringList("content.discard.status", util.Arrays.asList("Draft", "FlagDraft"))
-    private val REMOVE_PUBLISHED_DATA = Platform.getStringList("content.discard.remove_publish_data", util.Arrays.asList("compatibilityLevel", "lastPublishedOn", "pkgVersion", "leafNodesCount", "downloadUrl", "variants"))
 
     @throws[Exception]
     def discard(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
