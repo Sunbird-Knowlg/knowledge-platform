@@ -9,6 +9,7 @@ object ApiId {
 	val READ_CONTENT = "api.content.read"
 	val UPDATE_CONTENT = "api.content.update"
 	val UPLOAD_CONTENT = "api.content.upload"
+
 	val COPY_CONTENT = "api.content.copy"
 	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"
 	val DISCARD_CONTENT = "api.content.discard"

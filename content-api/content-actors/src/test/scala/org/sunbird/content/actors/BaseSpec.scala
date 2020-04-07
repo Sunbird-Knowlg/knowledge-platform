@@ -16,8 +16,7 @@ class BaseSpec extends FlatSpec with Matchers {
 
     val system = ActorSystem.create("system")
 
-    def testUnknownOperation(props: Props)(implicit oec: OntologyEngineContext) = {
-        val request = new Request()
+    def testUnknownOperation(props: Props, request: Request)(implicit oec: OntologyEngineContext) = {
         request.setOperation("unknown")
         val response = callActor(request, props)
         assert("failed".equals(response.getParams.getStatus))
