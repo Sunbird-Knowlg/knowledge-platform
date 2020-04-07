@@ -115,14 +115,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def discard(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
-		val response = ResponseHandler.OK()
-		val identifier: String = request.get("identifier").asInstanceOf[String]
-		DiscardManager.discard(request).map(discarded => {
-			response.put("node_id", identifier)
-			response.put("identifier", identifier)
-			response.getResult.put("message", "Draft version of the content with id : " + identifier + " is discarded")
-			response
-		}) recoverWith { case e: CompletionException => throw e.getCause }
+		DiscardManager.discard(request)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {

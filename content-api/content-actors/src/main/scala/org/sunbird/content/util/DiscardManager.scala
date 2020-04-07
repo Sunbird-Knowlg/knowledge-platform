@@ -23,17 +23,25 @@ object DiscardManager {
     private val CONTENT_DISCARD_STATUS = Platform.getStringList("content.discard.status", util.Arrays.asList("Draft", "FlagDraft"))
     private val REMOVE_PUBLISHED_DATA = Platform.getStringList("content.discard.remove_publish_data", util.Arrays.asList("compatibilityLevel", "lastPublishedOn", "pkgVersion", "leafNodesCount", "downloadUrl", "variants"))
 
-    def discard(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
+    @throws[Exception]
+    def discard(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
-        getNodeToDiscard(request).map(node => {
+        getNodeToDiscard(request).flatMap(node => {
             request.put(ContentConstants.IDENTIFIER, node.getIdentifier)
             if (!CONTENT_DISCARD_STATUS.contains(node.getMetadata.get(ContentConstants.STATUS)))
                 throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "No changes to discard for content with content id: " + node.getIdentifier + " since content status isn't draft", node.getIdentifier)
-            if (StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String], ContentConstants.COLLECTION_MIME_TYPE))
+            val response = if (StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String], ContentConstants.COLLECTION_MIME_TYPE))
                 discardForCollection(node, request)
             else
                 DataNode.deleteNode(request)
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+            response.map(resp => 		{
+                val response = ResponseHandler.OK()
+                response.put("node_id", node.getIdentifier)
+                response.put("identifier", node.getIdentifier)
+                response.getResult.put("message", "Draft version of the content with id : " + node.getIdentifier + " is discarded")
+                response
+            })
+        })recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     private def getNodeToDiscard(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
