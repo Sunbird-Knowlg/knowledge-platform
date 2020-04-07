@@ -157,4 +157,5 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
+
 }

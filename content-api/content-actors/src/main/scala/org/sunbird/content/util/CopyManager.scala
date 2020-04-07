@@ -29,7 +29,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object CopyManager {
-    implicit val oec: OntologyEngineContext = new OntologyEngineContext
     private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
     private val metadataNotTobeCopied = Platform.config.getStringList("content.copy.props_to_remove")
     private val invalidStatusList: util.List[String] = Platform.getStringList("content.copy.invalid_statusList", new util.ArrayList[String]())
@@ -42,7 +41,7 @@ object CopyManager {
 
     implicit val ss: StorageService = new StorageService
 
-    def copy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
         DataNode.read(request).map(node => {
             validateExistingNode(node)
@@ -66,7 +65,7 @@ object CopyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
-    def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
         //        cleanUpNodeRelations(node)
         val copyCreateReq: Future[Request] = getCopyRequest(node, request)
         copyCreateReq.map(req => {
@@ -76,7 +75,7 @@ object CopyManager {
         }).flatMap(f => f)
     }
 
-    def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext):Future[Node] = {
+    def copyCollection(originNode: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
         val copyType = request.getRequest.get(CopyConstants.COPY_TYPE).asInstanceOf[String]
         copyContent(originNode, request).map(node => {
             val req = new Request(request)
@@ -94,7 +93,7 @@ object CopyManager {
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
 
-    def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext): Future[Node] = {
+    def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node, copyType)
         val hierarchyRequest = new Request(request)
         hierarchyRequest.putAll(updateHierarchyRequest)
@@ -103,7 +102,7 @@ object CopyManager {
         UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response=>node)
     }
 
-    def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext): Future[Node] = {
+    def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val childrenHierarchy = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
         val req = new Request(request)
         req.getContext.put("schemaName", collSchemaName)
@@ -122,7 +121,7 @@ object CopyManager {
         if (invalidStatusList.contains(node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String]))
             throw new ClientException(CopyConstants.ERR_INVALID_REQUEST, "Cannot Copy content which is in " + node.getMetadata.get(CopyConstants.STATUS).asInstanceOf[String].toLowerCase + " status")
     }
-    
+
     def validateRequest(request: Request): Unit = {
         val keysNotPresent = CopyConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
         if (keysNotPresent.nonEmpty)
@@ -136,7 +135,7 @@ object CopyManager {
         case _ => true
     }
 
-    def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext): Future[Request] = {
+    def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
         val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), CopyConstants.CONTENT_SCHEMA_NAME, CopyConstants.SCHEMA_VERSION)
         val requestMap = request.getRequest
         requestMap.remove(CopyConstants.MODE)
@@ -183,7 +182,9 @@ object CopyManager {
         val file = new File(getBasePath(objectId) + File.separator + getFileNameFromURL(fileUrl))
         FileUtils.copyURLToFile(new URL(fileUrl), file)
         file
-    } catch {case e: IOException => throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")}
+    } catch {
+        case e: IOException => throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
+    }
 
     def getBasePath(objectId: String): String = {
         if (!StringUtils.isBlank(objectId)) TEMP_FILE_LOCATION + File.separator + System.currentTimeMillis + "_temp" + File.separator + objectId else ""
@@ -231,9 +232,11 @@ object CopyManager {
         if (null != children && !children.isEmpty) {
             children.asScala.toList.foreach(child => {
                 val id = if ("Parent".equalsIgnoreCase(child.get(CopyConstants.VISIBILITY).asInstanceOf[String])) {
-                        val identifier = UUID.randomUUID().toString
-                        nodesModified.put(identifier, new util.HashMap[String, AnyRef]() {{
-                                put(CopyConstants.METADATA,  cleanUpCopiedData(new util.HashMap[String, AnyRef]() {{
+                    val identifier = UUID.randomUUID().toString
+                    nodesModified.put(identifier, new util.HashMap[String, AnyRef]() {
+                        {
+                            put(CopyConstants.METADATA, cleanUpCopiedData(new util.HashMap[String, AnyRef]() {
+                                {
                                     putAll(child)
                                     put(CopyConstants.CHILDREN, new util.ArrayList())
                                     internalHierarchyProps.map(key => remove(key))
@@ -249,14 +252,15 @@ object CopyManager {
                         put(CopyConstants.CHILDREN, new util.ArrayList[String]())
                         put(CopyConstants.ROOT, false.asInstanceOf[AnyRef])
                         put(CopyConstants.CONTENT_TYPE, child.get(CopyConstants.CONTENT_TYPE))
-                    }})
+                    }
+                })
                 hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(CopyConstants.CHILDREN).asInstanceOf[util.List[String]].add(id)
                 populateHierarchyRequest(child.get(CopyConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType)
             })
         }
     }
 
-    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext): Future[Node] = {
+    def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val artifactUrl = node.getMetadata.getOrDefault(CopyConstants.ARTIFACT_URL, "").asInstanceOf[String]
         val mimeType = node.getMetadata.get(CopyConstants.MIME_TYPE).asInstanceOf[String]
         val contentType = node.getMetadata.get(CopyConstants.CONTENT_TYPE).asInstanceOf[String]
