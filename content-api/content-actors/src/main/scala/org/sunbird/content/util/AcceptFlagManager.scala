@@ -4,7 +4,6 @@ import java.util
 
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
