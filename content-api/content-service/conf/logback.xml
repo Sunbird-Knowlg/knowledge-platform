@@ -11,22 +11,8 @@
 		</encoder>
 	</appender>
 
-	<appender name="rollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>/data/logs/content-log-%d{yyyy-MM-dd}.log</fileNamePattern>
-			<maxHistory>30</maxHistory>
-			<totalSizeCap>3GB</totalSizeCap>
-		</rollingPolicy>
-		<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-			<maxFileSize>3MB</maxFileSize>
-		</triggeringPolicy>
-		<encoder>
-			<pattern>[%thread] %-5level %logger{36} - %msg%n</pattern>
-		</encoder>
-	</appender>
-
 	<appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
-		<appender-ref ref="rollingFile" />
+		<appender-ref ref="STDOUT" />
 	</appender>
 
 
