@@ -10,7 +10,6 @@ object ApiId {
 	val UPDATE_CONTENT = "api.content.update"
 	val UPLOAD_CONTENT = "api.content.upload"
 	val RETIRE_CONTENT = "api.content.retire"
-
 	val COPY_CONTENT = "api.content.copy"
 	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"
 

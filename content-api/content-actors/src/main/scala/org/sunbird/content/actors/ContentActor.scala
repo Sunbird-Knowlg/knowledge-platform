@@ -119,8 +119,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		RetireManager.retire(request)
 	}
 
-
-
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
