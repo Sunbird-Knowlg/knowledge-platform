@@ -96,8 +96,6 @@ object FlagManager {
       DataNode.update(request)
   }
 
-
-
   def addDataIntoList(dataList: util.List[String], metadata: util.Map[String, Object], key: String): util.List[String] = {
     val existingData = metadata.getOrDefault(key, new util.ArrayList[String])//.asInstanceOf[util.ArrayList[String]]
     val existingDataList = {if(existingData.isInstanceOf[Array[String]]) existingData.asInstanceOf[Array[String]].toList.asJava else if (existingData.isInstanceOf[util.List[String]]) existingData.asInstanceOf[util.List[String]] else new util.ArrayList[String]}
