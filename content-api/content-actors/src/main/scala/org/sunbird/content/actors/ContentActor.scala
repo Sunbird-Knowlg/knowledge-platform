@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.cloud.storage.util.JSONUtils
-import org.sunbird.content.util.CopyManager
+import org.sunbird.content.util.{CopyManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, DateUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -114,55 +114,12 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
+
 	def retire(request: Request): Future[Response] = {
-		request.put("status", "Retired")
-		DataNode.update(request).map(node => {
-			if (node.getMetadata.get("status") != "Live" || node.getMetadata.get("status") != "Unlisted") {
-				DataNode.update(request).map(node => {
-					val response = ResponseHandler.OK
-					response.put("identifier", node.getIdentifier)
-					response.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
-					response.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
-					response
-				})
-			}
-			if (node.getMetadata.get("status") == "Live" || node.getMetadata.get("status") == "Unlisted") {
-				request.put(HierarchyConstants.STATUS, "Draft")
-				DataNode.update(request).map(node => {
-					val response = ResponseHandler.OK
-					response.put("identifier", node.getIdentifier)
-					response
-				})
-			}
-			val contentId: String = request.get("identifier").asInstanceOf[String]
-			val req = new Request(request)
-			req.getContext.put("schemaName", "collection")
-			req.put("identifier", contentId)
-			if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.content-collection", node.getMetadata.get("mimeType").asInstanceOf[String])) {
-				val responseFuture = ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY))
-				responseFuture.map((response: Response) => {
-					val hierarchyString = JSONUtils.deserialize(response.get("hierarchy").asInstanceOf[String])
-					hierarchyString.asInstanceOf[String]
-					ExternalPropsManager.saveProps(req).map(resp => {
-						val response = ResponseHandler.OK()
-						response.put("identifier", node.getIdentifier)
-						response
-					})
-				})
-				request.put("status", "Retired")
-				DataNode.update(request).map(resp => {
-					if (resp != null) {
-						val response = ResponseHandler.OK
-						response.put("identifier", node.getIdentifier)
-						RedisCache.delete(contentId)
-						response
-					}else
-						throw new ClientException("ERR_NODE_NOT_FOUND", "Cannot update the status")
-				})
-			}else
-				throw new ClientException("ERR_CONTENT_NOT_FOUND", "Cannot update the status retire")
-		}).flatMap(f => f)
+		RetireManager.retire(request)
 	}
+
+
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
