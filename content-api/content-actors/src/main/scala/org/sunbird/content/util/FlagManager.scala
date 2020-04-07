@@ -12,10 +12,12 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object FlagManager {
   private val FLAGGABLE_STATUS: util.List[String] = util.Arrays.asList("Live", "Unlisted", "Flagged")
@@ -29,7 +31,7 @@ object FlagManager {
       val flaggedBy: String = request.get("flaggedBy").asInstanceOf[String]
       val flags: util.List[String] = request.get("flags").asInstanceOf[util.ArrayList[String]]
       
-      val metadata: util.Map[String, Object] = node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
+      val metadata: util.Map[String, Object] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])//node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
       val status: String = metadata.get("status").asInstanceOf[String]
       val versionKey = node.getMetadata.get("versionKey").asInstanceOf[String]
       request.put("identifier", node.getIdentifier)
@@ -38,16 +40,14 @@ object FlagManager {
         throw new ClientException("ERR_CONTENT_NOT_FLAGGABLE", "Unpublished Content " + node.getIdentifier + " cannot be flagged")
 
       val flaggedByList: util.List[String] = if(StringUtils.isNotBlank(flaggedBy)) util.Arrays.asList(flaggedBy) else new util.ArrayList[String]
-      val flaggedList: util.List[String] = addDataIntoList(flaggedByList,metadata)//addFlaggedBy(flaggedBy, metadata)
-      if (CollectionUtils.isNotEmpty(flaggedList))
+      if (StringUtils.isNotEmpty(flaggedBy))
+        request.put("flaggedBy", addDataIntoList(flaggedByList, metadata, "flaggedBy"))
       request.put("lastUpdatedBy", flaggedBy)
-      request.put("flaggedBy", flaggedList)
       request.put("flags", flags)
       request.put("status", "Flagged")
       request.put("lastFlaggedOn", DateUtils.formatCurrentDate())
       if (CollectionUtils.isNotEmpty(flagReasons))
-        request.put("flagReasons", addDataIntoList(flagReasons, metadata))
-        //request.put("flagReasons", addFlagReasons(flagReasons, metadata))
+        request.put("flagReasons", addDataIntoList(flagReasons, metadata, "flagReasons"))
       request.getContext.put("versioning", "disable")
       request.put("versionkey", versionKey)
       updateContentFlag(node, request).map(flaggedNode => {
@@ -60,96 +60,6 @@ object FlagManager {
       })
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
-
-  def updateContentFlag(node: Node, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] ={
-    val mimeType: String = node.getMetadata.get("mimeType").asInstanceOf[String]
-    RedisCache.delete(node.getIdentifier)
-    RedisCache.delete(COLLECTION_CACHE_KEY_PREFIX + node.getIdentifier)
-    if(StringUtils.equalsIgnoreCase(mimeType, CopyConstants.COLLECTION_MIME_TYPE)){
-      request.getContext().put("schemaName", COLLECTION_SCHEMA_NAME)
-      updateCollection(request)
-    }else
-      DataNode.update(request)
-  }
-
-  /*def addFlaggedBy(flaggedBy: String, metadata: util.Map[String, Object]): util.List[String] = {
-    val flaggedByList: util.List[String] = if(StringUtils.isNotBlank(flaggedBy)) util.Arrays.asList(flaggedBy) else new util.ArrayList[String]
-    val existingFlaggedBy = metadata.getOrDefault("flaggedBy", new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
-
-    if (CollectionUtils.isEmpty(existingFlaggedBy)) {
-      flaggedByList
-    }else{
-      val existingFlaggedByList = {if(existingFlaggedBy.isInstanceOf[Array[String]])
-        existingFlaggedBy.asInstanceOf[Array[String]].toList.asJava else if(existingFlaggedBy.isInstanceOf[util.List[String]]) existingFlaggedBy.asInstanceOf[util.List[String]] else existingFlaggedBy}
-    }
-      /*var existingFlaggedByList: util.List[String] = null
-      if (existingFlaggedBy.isInstanceOf[Array[String]]) {
-        existingFlaggedByList = existingFlaggedBy.asInstanceOf[Array[String]].toList.asJava
-      }
-      else if (existingFlaggedBy.isInstanceOf[util.List[Object]]) {
-        existingFlaggedByList = existingFlaggedBy.asInstanceOf[util.List[String]]
-      }
-      if (CollectionUtils.isNotEmpty(existingFlaggedByList)) {
-        val flaggedBySet: util.Set[String] = new util.HashSet[String](existingFlaggedByList)
-        flaggedBySet.addAll(flaggedByList)
-        return new util.ArrayList[String](flaggedBySet)
-      }*/
-
-    //flaggedByList
-  }*/
-  /*def addFlaggedBy(flaggedBy: String, metadata: util.Map[String, Object]): util.List[String] = {
-    val flaggedByList: util.List[String] = if(StringUtils.isNotBlank(flaggedBy)) util.Arrays.asList(flaggedBy) else new util.ArrayList[String]
-    val existingFlaggedBy = metadata.getOrDefault("flaggedBy", new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
-    if (CollectionUtils.isEmpty(existingFlaggedBy)) {
-      flaggedByList
-    }else{
-      existingFlaggedBy.addAll(flaggedByList)
-      new util.ArrayList[String](existingFlaggedBy.toSet)
-      //existingFlaggedBy.stream().distinct().collect(Collectors.toList)
-    }
-  }
-
-  def addFlagReasons(flagReasons: util.List[String], metadata: util.Map[String, Object]): util.List[String] = {
-    val existingFlagReasons = metadata.getOrDefault("flagReasons", new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
-    if (CollectionUtils.isEmpty(existingFlagReasons)) {
-      flagReasons
-    }else{
-      existingFlagReasons.addAll(flagReasons)
-      new util.ArrayList[String](existingFlagReasons.toSet)
-      //existingFlagReasons.stream().distinct().collect(Collectors.toList)
-    }
-  }*/
-
-  def addDataIntoList(flagReasons: util.List[String], metadata: util.Map[String, Object]): util.List[String] = {
-    val existingFlagReasons = metadata.getOrDefault("flagReasons", new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
-    if (CollectionUtils.isEmpty(existingFlagReasons)) {
-      flagReasons
-    }else{
-      existingFlagReasons.addAll(flagReasons)
-      new util.ArrayList[String](existingFlagReasons.toSet)
-      //existingFlagReasons.stream().distinct().collect(Collectors.toList)
-    }
-  }
-
-
-  /*def addFlagReasons1(flagReasons: util.List[String], metadata: util.Map[String, Object]): util.List[String] = {
-    val existingFlagReasons = metadata.get("flagReasons")
-    if (existingFlagReasons != null) {
-      var existingFlagReasonsList: util.List[String] = null
-      if (existingFlagReasons.isInstanceOf[Array[String]]) {
-        existingFlagReasonsList = existingFlagReasons.asInstanceOf[Array[String]].toList.asJava
-      }
-      else if (existingFlagReasons.isInstanceOf[util.List[Object]]) {
-        existingFlagReasonsList = existingFlagReasons.asInstanceOf[util.List[String]]
-      }
-      if (CollectionUtils.isNotEmpty(existingFlagReasonsList)) {
-        val flagReasonsSet: util.Set[String] = new util.HashSet[String](existingFlagReasonsList)
-        flagReasonsSet.addAll(flagReasons)
-        return new util.ArrayList[String](flagReasonsSet)
-      }
-    }
-    flagReasons
-  }*/
 
   def updateCollection(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     fetchHierarchy(request).map(hierarchyString => {
@@ -173,5 +83,31 @@ object FlagManager {
     ExternalPropsManager.fetchProps(request, List(HierarchyConstants.HIERARCHY)).map(resp => {
       resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get(HierarchyConstants.IDENTIFIER)) }
+  }
+
+  def updateContentFlag(node: Node, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] ={
+    val mimeType: String = node.getMetadata.get("mimeType").asInstanceOf[String]
+    RedisCache.delete(node.getIdentifier)
+    RedisCache.delete(COLLECTION_CACHE_KEY_PREFIX + node.getIdentifier)
+    if(StringUtils.equalsIgnoreCase(mimeType, CopyConstants.COLLECTION_MIME_TYPE)){
+      request.getContext().put("schemaName", COLLECTION_SCHEMA_NAME)
+      updateCollection(request)
+    }else
+      DataNode.update(request)
+  }
+
+
+
+  def addDataIntoList(dataList: util.List[String], metadata: util.Map[String, Object], key: String): util.List[String] = {
+    val existingData = metadata.getOrDefault(key, new util.ArrayList[String])//.asInstanceOf[util.ArrayList[String]]
+    val existingDataList = {if(existingData.isInstanceOf[Array[String]]) existingData.asInstanceOf[Array[String]].toList.asJava else if (existingData.isInstanceOf[util.List[String]]) existingData.asInstanceOf[util.List[String]] else new util.ArrayList[String]}
+    val responseDataList = new util.ArrayList[String]
+    responseDataList.addAll(existingDataList)
+    if (CollectionUtils.isEmpty(responseDataList)) {
+      dataList
+    }else{
+      responseDataList.addAll(dataList)
+      new util.ArrayList[String](responseDataList.toSet)
+    }
   }
 }
