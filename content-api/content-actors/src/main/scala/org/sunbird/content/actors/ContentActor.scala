@@ -4,23 +4,24 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 
-
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
+import org.sunbird.cloud.storage.util.JSONUtils
 import org.sunbird.content.util.CopyManager
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, Platform, Slug}
+import org.sunbird.common.{ContentParams, DateUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
-
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.utils.HierarchyConstants
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,6 +36,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case _ => ERROR(request.getOperation)
@@ -111,6 +113,54 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			response.put("url_expiry", expiry)
 			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
+	}
+	def retire(request: Request): Future[Response] = {
+		validateRetireRequest(request)
+		if (StringUtils.equalsIgnoreCase(ContentParams.retired.name, ContentParams.status.name))
+			throw new ClientException("ERR_CONTENT_RETIRE","Content with Identifier is already Retired.")
+		DataNode.read(request).map(node => {
+			val response = ResponseHandler.OK
+			if (node.getMetadata.get("status") != "Live" || node.getMetadata.get("status") != "Unlisted")
+				request.put("status", "Retired")
+			request.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
+			request.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
+			DataNode.update(request).map(node => {
+				response.put("identifier", node.getIdentifier)
+				if (node.getMetadata.get("status") == "Live" || node.getMetadata.get("status") == "Unlisted")
+					request.put(HierarchyConstants.STATUS, "Draft")
+				response.put("identifier", node.getIdentifier)
+			})
+			val contentId: String = request.get("identifier").asInstanceOf[String]
+			val req = new Request(request)
+			req.getContext.put("schemaName", "collection")
+			req.put("identifier", contentId)
+			if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.content-collection", node.getMetadata.get("mimeType").asInstanceOf[String])) {
+				val responseFuture = ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY))
+				responseFuture.map((response: Response) => {
+					val hierarchyString = JSONUtils.deserialize(response.get("hierarchy").asInstanceOf[String])
+					hierarchyString.asInstanceOf[String]
+					ExternalPropsManager.saveProps(req).map(resp => {
+						val response = ResponseHandler.OK()
+						response.put("identifier", node.getIdentifier)
+						response
+					})
+				})
+				request.put("status", "Retired")
+				DataNode.update(request).map(resp => {
+					val response = ResponseHandler.OK
+					response.put("identifier", node.getIdentifier)
+					RedisCache.delete(contentId)
+					response
+				})
+			}else
+				throw new ClientException("ERR_CONTENT_NOT_FOUND", "Cannot update the status retire")
+		}).flatMap(f => f)
+	}
+	def validateRetireRequest(request: Request)={
+		val contentId:String = request.get("identifier").asInstanceOf[String]
+		if(StringUtils.isBlank(contentId)|| StringUtils.endsWithIgnoreCase(contentId,HierarchyConstants.IMAGE_SUFFIX)) {
+			throw new ClientException("ERR_INVALID_CONTENT_ID", "Please Provide Valid Content Identifier.")
+		}
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
