@@ -12,7 +12,7 @@ abstract class IDefinition(graphId: String, schemaName: String, version: String 
     def getNode(input: java.util.Map[String, AnyRef]): Node
 
     @throws[Exception]
-    def validate(node: Node, operation: String = "update", setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[Node]
+    def validate(node: Node, operation: String = "update", setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node]
 
     @throws[Exception]
     def getNode(identifier: String, operation: String = "read", mode: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]

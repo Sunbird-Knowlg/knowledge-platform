@@ -18,8 +18,8 @@ class BaseSpec extends FlatSpec with Matchers with BeforeAndAfterAll{
 
     val system = ActorSystem.create("system")
     var session: Session = null
-    def testUnknownOperation(props: Props)(implicit oec: OntologyEngineContext) = {
-        val request = new Request()
+
+    def testUnknownOperation(props: Props, request: Request)(implicit oec: OntologyEngineContext) = {
         request.setOperation("unknown")
         val response = callActor(request, props)
         assert("failed".equals(response.getParams.getStatus))
