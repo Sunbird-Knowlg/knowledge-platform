@@ -9,7 +9,7 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{AcceptFlagManager, CopyManager}
+import org.sunbird.content.util.{CopyManager, FlagManager, AcceptFlagManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -35,6 +35,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "uploadContent" => upload(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
+			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
 			case _ => ERROR(request.getOperation)
 		}
@@ -110,6 +111,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			response.put("url_expiry", expiry)
 			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
+	}
+
+	def flag(request: Request): Future[Response] = {
+		FlagManager.flag(request)
 	}
 
 	def acceptFlag(request: Request): Future[Response] = {
