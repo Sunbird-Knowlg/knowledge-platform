@@ -40,16 +40,11 @@ object AcceptFlagManager {
 
   protected def createOrUpdateImageNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     val req: Request = new Request(request)
-    req.getRequest.put(FlagConstants.MODE, FlagConstants.EDIT)
-    req.getRequest.put(FlagConstants.IDENTIFIER, node.getIdentifier)
-    DataNode.read(req).map(imageNode => {
       req.getRequest.put(FlagConstants.STATUS, FlagConstants.FLAG_DRAFT)
       req.getRequest.put(FlagConstants.IDENTIFIER, node.getIdentifier)
-      req.getRequest.put(FlagConstants.VERSION_KEY, imageNode.getMetadata.get(FlagConstants.VERSION_KEY))
       DataNode.update(req).map(node => {
         ResponseHandler.OK
       })
-    }).flatMap(f => f)
   }
 
   protected def updateOriginalNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
