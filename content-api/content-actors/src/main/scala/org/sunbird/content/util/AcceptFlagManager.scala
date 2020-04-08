@@ -19,16 +19,16 @@ object AcceptFlagManager {
 
   def acceptFlag(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     DataNode.read(request).map(node => {
-      if (!StringUtils.equals(FlagConstants.CONTENT_OBJECT_TYPE, node.getObjectType) ||
-        !StringUtils.equals(FlagConstants.FLAGGED, node.getMetadata.getOrDefault(FlagConstants.STATUS, "").asInstanceOf[String])) {
-        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, FlagConstants.ERR_INVALID_CONTENT, "Invalid Flagged Content! Content Can Not Be Accepted."))
+      if (!StringUtils.equals(ContentConstants.CONTENT, node.getObjectType) ||
+        !StringUtils.equals(ContentConstants.FLAGGED, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String])) {
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ContentConstants.ERR_INVALID_CONTENT, "Invalid Flagged Content! Content Can Not Be Accepted."))
       } else {
-        request.getContext.put(FlagConstants.IDENTIFIER, node.getIdentifier)
+        request.getContext.put(ContentConstants.IDENTIFIER, node.getIdentifier)
         createOrUpdateImageNode(request, node).map(imgNode => {
           updateOriginalNode(request).map(response => {
             if (!ResponseHandler.checkError(response)) {
-              response.getResult.put(FlagConstants.NODE_ID, node.getIdentifier)
-              response.getResult.put(FlagConstants.VERSION_KEY, imgNode.getMetadata.get(FlagConstants.VERSION_KEY))
+              response.getResult.put(ContentConstants.NODE_ID, node.getIdentifier)
+              response.getResult.put(ContentConstants.VERSION_KEY, imgNode.getMetadata.get(ContentConstants.VERSION_KEY))
               response
             } else {
               response
@@ -41,20 +41,20 @@ object AcceptFlagManager {
 
   protected def createOrUpdateImageNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val req: Request = new Request(request)
-      req.getRequest.put(FlagConstants.STATUS, FlagConstants.FLAG_DRAFT)
-      req.getRequest.put(FlagConstants.IDENTIFIER, node.getIdentifier)
+      req.getRequest.put(ContentConstants.STATUS, ContentConstants.FLAG_DRAFT)
+      req.getRequest.put(ContentConstants.IDENTIFIER, node.getIdentifier)
       DataNode.update(req).map(node => {
         node
       })
   }
 
   protected def updateOriginalNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-    request.getRequest.put(FlagConstants.STATUS, FlagConstants.RETIRED)
-    request.getContext.put(FlagConstants.VERSIONING, FlagConstants.DISABLE)
+    request.getRequest.put(ContentConstants.STATUS, ContentConstants.RETIRED)
+    request.getContext.put(ContentConstants.VERSIONING, ContentConstants.DISABLE)
     DataNode.update(request).map(updatedOriginalNode => {
-      if (StringUtils.equals(updatedOriginalNode.getMetadata.getOrDefault(FlagConstants.MIME_TYPE, "").asInstanceOf[String], FlagConstants.MIME_TYPE_COLLECTION)) {
-        request.put(FlagConstants.ROOT_ID, updatedOriginalNode.getIdentifier)
-        updateHierarchy(request, updatedOriginalNode.getMetadata.get(FlagConstants.VERSION_KEY).asInstanceOf[String], updatedOriginalNode.getMetadata.get(FlagConstants.LAST_STATUS_CHANGED_ON).asInstanceOf[String]).map(hierarchyResponse => {
+      if (StringUtils.equals(updatedOriginalNode.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String], ContentConstants.COLLECTION_MIME_TYPE)) {
+        request.put(ContentConstants.ROOT_ID, updatedOriginalNode.getIdentifier)
+        updateHierarchy(request, updatedOriginalNode.getMetadata.get(ContentConstants.VERSION_KEY).asInstanceOf[String], updatedOriginalNode.getMetadata.get(ContentConstants.LAST_STATUS_CHANGED_ON).asInstanceOf[String]).map(hierarchyResponse => {
           if (!ResponseHandler.checkError(hierarchyResponse)) {
             ResponseHandler.OK()
           } else {
@@ -68,22 +68,22 @@ object AcceptFlagManager {
   }
 
   protected def updateHierarchy(request: Request, versionKey: String, lastStatusChangedOn: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-    request.getContext.put(FlagConstants.SCHEMA_NAME, FlagConstants.COLLECTION_SCHEMA_NAME)
+    request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
     HierarchyManager.getHierarchy(request).map(hierarchyResponse => {
       if (!ResponseHandler.checkError(hierarchyResponse)) {
-        val updatedHierarchy = hierarchyResponse.getResult.get(FlagConstants.CONTENT).asInstanceOf[util.Map[String, AnyRef]]
+        val updatedHierarchy = hierarchyResponse.getResult.get(ContentConstants.CONTENT).asInstanceOf[util.Map[String, AnyRef]]
         updatedHierarchy.putAll(new util.HashMap[String, AnyRef]() {
           {
-            put(FlagConstants.STATUS, FlagConstants.RETIRED)
-            put(FlagConstants.VERSION_KEY, versionKey)
-            put(FlagConstants.LAST_STATUS_CHANGED_ON, lastStatusChangedOn)
+            put(ContentConstants.STATUS, ContentConstants.RETIRED)
+            put(ContentConstants.VERSION_KEY, versionKey)
+            put(ContentConstants.LAST_STATUS_CHANGED_ON, lastStatusChangedOn)
           }
         })
         val req: Request = new Request(request)
-        req.put(FlagConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
-        req.put(FlagConstants.IDENTIFIER, request.get(FlagConstants.ROOT_ID))
+        req.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
+        req.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.ROOT_ID))
         ExternalPropsManager.saveProps(req)
-        RedisCache.delete(FlagConstants.HIERARCHY_PREFIX + request.get(FlagConstants.ROOT_ID))
+        RedisCache.delete(ContentConstants.HIERARCHY_PREFIX + request.get(ContentConstants.ROOT_ID))
         ResponseHandler.OK
       } else {
         hierarchyResponse

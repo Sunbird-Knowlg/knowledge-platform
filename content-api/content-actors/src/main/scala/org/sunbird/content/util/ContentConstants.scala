@@ -39,4 +39,13 @@ object ContentConstants {
     val COLLECTION_SCHEMA_NAME: String = "collection"
     val IDENTIFIERS: String = "identifiers"
     val PACKAGE_VERSION: String = "pkgVersion"
+    val FLAGGED: String = "Flagged"
+    val FLAG_DRAFT: String = "FlagDraft"
+    val RETIRED: String = "Retired"
+    val NODE_ID: String = "node_id"
+    val VERSIONING: String = "versioning"
+    val DISABLE: String = "disable"
+    val LAST_STATUS_CHANGED_ON: String = "lastStatusChangedOn"
+    val HIERARCHY_PREFIX: String = "hierarchy_"
+    val ERR_INVALID_CONTENT: String = "ERR_INVALID_CONTENT"
 }
