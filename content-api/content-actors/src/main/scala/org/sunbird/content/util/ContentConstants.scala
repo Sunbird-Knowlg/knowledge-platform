@@ -48,4 +48,5 @@ object ContentConstants {
     val LAST_STATUS_CHANGED_ON: String = "lastStatusChangedOn"
     val HIERARCHY_PREFIX: String = "hierarchy_"
     val ERR_INVALID_CONTENT: String = "ERR_INVALID_CONTENT"
+    val CONTENT_OBJECT_TYPE: String = "Content"
 }

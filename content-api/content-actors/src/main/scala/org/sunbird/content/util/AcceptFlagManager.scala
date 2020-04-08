@@ -19,7 +19,7 @@ object AcceptFlagManager {
 
   def acceptFlag(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     DataNode.read(request).map(node => {
-      if (!StringUtils.equals(ContentConstants.CONTENT, node.getObjectType) ||
+      if (!StringUtils.equals(ContentConstants.CONTENT_OBJECT_TYPE, node.getObjectType) ||
         !StringUtils.equals(ContentConstants.FLAGGED, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String])) {
         Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ContentConstants.ERR_INVALID_CONTENT, "Invalid Flagged Content! Content Can Not Be Accepted."))
       } else {
