@@ -157,9 +157,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def discard(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier))
+        val discardRequest = getRequest(content, headers, "discardContent")
+        setRequestContext(discardRequest, version, objectType, schemaName)
+        getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest)
     }
 
     def retire(identifier: String) = Action.async { implicit request =>

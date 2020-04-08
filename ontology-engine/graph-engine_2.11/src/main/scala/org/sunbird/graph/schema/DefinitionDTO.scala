@@ -75,7 +75,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getRestrictPropsConfig(operation: String): List[String] = {
         if (schemaValidator.getConfig.hasPath("restrictProps")) {
             val restrictProps = schemaValidator.getConfig.getAnyRef("restrictProps")
-                                    .asInstanceOf[java.util.HashMap[String, Object]].get(operation).asInstanceOf[java.util.ArrayList[String]]
+                                    .asInstanceOf[java.util.HashMap[String, Object]].getOrDefault(operation, new util.ArrayList[String]()).asInstanceOf[java.util.ArrayList[String]]
             restrictProps.asScala.toList
         } else
             List()

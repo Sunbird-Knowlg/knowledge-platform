@@ -3,6 +3,7 @@ package org.sunbird.actor.core;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.dispatch.Futures;
+import akka.dispatch.Recover;
 import akka.pattern.Patterns;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
@@ -12,6 +13,7 @@ import org.sunbird.common.exception.MiddlewareException;
 import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.common.exception.ServerException;
+import scala.Function1;
 import scala.concurrent.Future;
 
 import java.util.Arrays;
@@ -24,7 +26,12 @@ public abstract class BaseActor extends AbstractActor {
 
     private Future<Response> internalOnReceive(Request request) {
         try {
-            return onReceive(request);
+            return onReceive(request).recoverWith(new Recover<Future<Response>>() {
+                @Override
+                public Future<Response> recover(Throwable failure) {
+                    return ERROR(request.getOperation(), failure);
+                }
+            }, getContext().dispatcher());
         } catch (Throwable e) {
             return ERROR(request.getOperation(), e);
         }
