@@ -69,7 +69,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     }
 
-    it should "discard node in Live state should return client error" ignore {
+    it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(1)
