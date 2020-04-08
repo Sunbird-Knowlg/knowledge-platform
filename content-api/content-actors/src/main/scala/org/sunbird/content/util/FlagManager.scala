@@ -89,7 +89,7 @@ object FlagManager {
     val mimeType: String = node.getMetadata.get("mimeType").asInstanceOf[String]
     RedisCache.delete(node.getIdentifier)
     RedisCache.delete(COLLECTION_CACHE_KEY_PREFIX + node.getIdentifier)
-    if(StringUtils.equalsIgnoreCase(mimeType, CopyConstants.COLLECTION_MIME_TYPE)){
+    if(StringUtils.equalsIgnoreCase(mimeType, HierarchyConstants.COLLECTION_MIME_TYPE)){
       request.getContext().put("schemaName", COLLECTION_SCHEMA_NAME)
       updateCollection(request)
     }else

@@ -1,9 +1,11 @@
 package org.sunbird.graph.service.operation;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
+import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.test.BaseTest;
 import scala.concurrent.Await;
@@ -16,9 +18,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 
 public class NodeAsyncOperationsTest extends BaseTest {
 
+	@BeforeClass
+	public static void setUp() {
+		graphDb.execute("UNWIND [{nodeId:'do_000000123', name: 'Test Node'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});");
+
+	}
 
 	@Test
 	public void testSetPrimitiveData() throws Exception {
@@ -114,6 +122,45 @@ public class NodeAsyncOperationsTest extends BaseTest {
 		Assert.assertNotNull(result.getIdentifier());
 		Assert.assertEquals("do_ROOT_NODE", result.getIdentifier());
 		Assert.assertEquals("ROOT_NODE", result.getNodeType());
+	}
+
+	@Test
+	public void testDeleteWithValidID() throws Exception {
+		Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("domain", "do_000000123", new Request());
+		Assert.assertTrue(Await.result(resultFuture2, Duration.apply("30s")));
+	}
+
+	@Test
+	public void testDeleteWithInvalidId() throws Exception {
+		Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("domain", "do_000000123_invalid", new Request());
+		try {
+			Await.result(resultFuture2, Duration.apply("30s"));
+		} catch (CompletionException e) {
+			Assert.assertTrue(e.getCause() instanceof ResourceNotFoundException);
+		}
+	}
+
+	@Test(expected = ClientException.class)
+	public void testDeleteWithEmptyId() throws Exception {
+		Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("domain", " ", new Request());
+		Await.result(resultFuture2, Duration.apply("30s"));
+	}
+
+	@Test(expected = ClientException.class)
+	public void testDeleteWithEmptyGraphId() throws Exception {
+		Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("", "do_1234 ", new Request());
+		Await.result(resultFuture2, Duration.apply("30s"));
+	}
+
+	private Node getNode() throws Exception {
+		Node node = new Node("domain", "DATA_NODE", "Content");
+		node.setIdentifier("do_000000123");
+		node.setMetadata(new HashMap<String, Object>() {{
+			put("status", "Draft");
+			put("name", "Test Node for Delete");
+			put("identifier", "do_000000123");
+		}});
+		return node;
 	}
 
 }

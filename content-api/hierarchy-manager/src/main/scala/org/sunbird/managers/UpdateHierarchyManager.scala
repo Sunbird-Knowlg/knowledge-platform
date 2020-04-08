@@ -436,7 +436,7 @@ object UpdateHierarchyManager {
     def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val req = new Request(request)
         val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
-        req.put(HierarchyConstants.IDENTIFIER, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) rootId else rootId + HierarchyConstants.IMAGE_SUFFIX)
+        req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
     }
 
