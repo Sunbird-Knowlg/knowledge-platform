@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
@@ -16,6 +17,9 @@ import org.sunbird.telemetry.util.LogTelemetryEventUtil
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.kafka.client.KafkaClient
+
+import scala.collection.JavaConverters._
+import scala.collection.Map
 
 object UploadManager {
 
@@ -34,7 +38,11 @@ object UploadManager {
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
 		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
 		uploadFuture.map(result => {
-			updateNode(request, node.getIdentifier, mediaType, contentType, result)
+			val newResult = new util.HashMap[String, AnyRef](result)
+			if(StringUtils.isNotBlank(filePath.getOrElse(""))){
+				newResult.put(ContentConstants.ARTIFACT_BASE_PATH, filePath.get)
+			}
+			updateNode(request, node.getIdentifier, mediaType, contentType, newResult.asScala)
 		}).flatMap(f => f)
 	}
 
