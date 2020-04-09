@@ -29,7 +29,7 @@ object HierarchyManager {
     val schemaVersion: String = "1.0"
     val imgSuffix: String = ".img"
     val hierarchyPrefix: String = "hierarchy_"
-    val statusList = List("Live", "Unlisted")
+    val statusList = List("Live", "Unlisted", "Flagged")
 
     val keyTobeRemoved = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))

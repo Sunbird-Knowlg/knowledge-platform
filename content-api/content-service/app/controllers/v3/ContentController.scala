@@ -111,9 +111,15 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def flag(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier))
+        val contentRequest = getRequest(content, headers, "flagContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.FlAG_CONTENT, contentActor, contentRequest)
     }
 
     def acceptFlag(identifier: String) = Action.async { implicit request =>
@@ -147,9 +153,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def discard(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier))
+        val discardRequest = getRequest(content, headers, "discardContent")
+        setRequestContext(discardRequest, version, objectType, schemaName)
+        getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest)
     }
 
     def retire(identifier: String) = Action.async { implicit request =>
@@ -198,6 +208,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
     }
 
+
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
@@ -208,10 +219,11 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY_CONTENT, contentActor, contentRequest)
     }
+
     def uploadPreSigned(identifier: String, `type`: Option[String])= Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")))
         val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
