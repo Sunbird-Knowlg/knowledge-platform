@@ -54,11 +54,11 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
     }
 
     @throws[Exception]
-    override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext): Future[Node] = {
+    override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         Future{node}
     }
 
-    override def getNode(identifier: String, operation: String, mode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
         val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
         node
