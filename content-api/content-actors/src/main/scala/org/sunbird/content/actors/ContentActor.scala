@@ -103,7 +103,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		DataNode.read(request).map(node => {
 			val response = ResponseHandler.OK()
 			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
-				else "content"+ File.separator + filePath + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
+				else filePath + File.separator + "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
