@@ -82,7 +82,7 @@ object RetireManager {
                     val childIds = getChildrenIdentifiers(hierarchyMap)
                     //TODO : Implement Delete Units from Elastic Search
                     if (CollectionUtils.isNotEmpty(childIds)) {
-                        val topicName = Platform.getString("kafka.topics.graph.event", "kafka.dev.learning.graph.events")
+                        val topicName = Platform.getString("kafka.topics.graph.event", "sunbirddev.learning.graph.events")
                         childIds.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
                         RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
                     }
