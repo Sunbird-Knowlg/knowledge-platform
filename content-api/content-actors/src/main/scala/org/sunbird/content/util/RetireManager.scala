@@ -1,11 +1,12 @@
 package org.sunbird.content.util
 
 import java.util
+import java.util.{Date, UUID}
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.{DateUtils, JsonUtils}
+import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.dac.model.Node
@@ -13,6 +14,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.parseq.Task
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
@@ -23,6 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object RetireManager {
     val finalStatus: util.List[String] = util.Arrays.asList("Flagged", "Live", "Unlisted")
+    private val kfClient = new KafkaClient
 
     def retire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
@@ -78,8 +81,11 @@ object RetireManager {
                     val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
                     val childIds = getChildrenIdentifiers(hierarchyMap)
                     //TODO : Implement Delete Units from Elastic Search
-                    if(CollectionUtils.isNotEmpty(childIds))
-                     RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
+                    if (CollectionUtils.isNotEmpty(childIds)) {
+                        val topicName = Platform.getString("kafka.topics.graph.event", "kafka.dev.learning.graph.events")
+                        childIds.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
+                        RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
+                    }
                     hierarchyMap.put("status", "Retired")
                     hierarchyMap.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
                     hierarchyMap.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
@@ -108,5 +114,7 @@ object RetireManager {
             })
         }
     }
+
+    private def getLearningGraphEvent(request: Request, id: String): Map[String, Any] = Map("ets" -> System.currentTimeMillis(), "channel" -> "in.ekstep", "mid" -> UUID.randomUUID.toString, "nodeType" -> "DATA_NODE", "userId" -> "Ekstep", "createdOn" -> DateUtils.format(new Date()), "objectType" -> "Content", "nodeUniqueId" -> id, "operationType" -> "DELETE", "graphId" -> request.getContext.get("graph_id"))
 
 }
