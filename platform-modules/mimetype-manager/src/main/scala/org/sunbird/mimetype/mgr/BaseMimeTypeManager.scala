@@ -68,7 +68,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	def uploadArtifactToCloud(uploadedFile: File, identifier: String, filePath: Option[String] = None): Array[String] = {
 		var urlArray = new Array[String](2)
 		try {
-			val folder = if(StringUtils.isNotBlank(filePath.getOrElse(""))) filePath.get + File.separator + Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact") else Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
+			val folder = if(filePath.isDefined) filePath.get + File.separator + Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact") else Platform.getString(CONTENT_FOLDER, "content") + File.separator + Slug.makeSlug(identifier, true) + File.separator + Platform.getString(ARTIFACT_FOLDER, "artifact")
 			urlArray = ss.uploadFile(folder, uploadedFile)
 		} catch {
 			case e: Exception =>

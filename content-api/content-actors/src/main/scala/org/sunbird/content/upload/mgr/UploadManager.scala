@@ -18,7 +18,6 @@ import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.kafka.client.KafkaClient
 
-import scala.collection.JavaConverters._
 import scala.collection.Map
 
 object UploadManager {
@@ -38,11 +37,11 @@ object UploadManager {
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
 		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
 		uploadFuture.map(result => {
-			val newResult = new util.HashMap[String, AnyRef](result)
-			if(StringUtils.isNotBlank(filePath.getOrElse(""))){
+			val newResult = collection.mutable.Map(result.toSeq: _*)
+			if(filePath.isDefined){
 				newResult.put(ContentConstants.ARTIFACT_BASE_PATH, filePath.get)
 			}
-			updateNode(request, node.getIdentifier, mediaType, contentType, newResult.asScala)
+			updateNode(request, node.getIdentifier, mediaType, contentType, newResult)
 		}).flatMap(f => f)
 	}
 
