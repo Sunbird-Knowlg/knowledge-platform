@@ -77,7 +77,7 @@
     },
     "cacheEnabled": true,
     "searchProps": {
-        "status": ["Live"]
+        "status": ["Live"],
         "softConstraints": {
             "medium": 15,
             "subject": 15,
