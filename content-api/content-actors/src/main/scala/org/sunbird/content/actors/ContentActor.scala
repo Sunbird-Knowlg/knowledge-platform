@@ -9,16 +9,19 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{CopyManager, FlagManager, DiscardManager}
+import org.sunbird.cloud.storage.util.JSONUtils
+import org.sunbird.content.util.{CopyManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, Platform, Slug}
+import org.sunbird.common.{ContentParams, DateUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.utils.HierarchyConstants
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,10 +36,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
-			case "discardContent" => discard(request)
-			case "flagContent" => flag(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -113,13 +115,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
 
-	def discard(request: Request): Future[Response] = {
-		RequestUtil.restrictProperties(request)
-		DiscardManager.discard(request)
-	}
-
-	def flag(request: Request): Future[Response] = {
-		FlagManager.flag(request)
+	def retire(request: Request): Future[Response] = {
+		RetireManager.retire(request)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
