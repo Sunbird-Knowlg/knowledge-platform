@@ -12,6 +12,8 @@ object ApiId {
 	val RETIRE_CONTENT = "api.content.retire"
 	val COPY_CONTENT = "api.content.copy"
 	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"
+	val DISCARD_CONTENT = "api.content.discard"
+	val FlAG_CONTENT = "api.content.flag"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
