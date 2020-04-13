@@ -4,18 +4,19 @@ import java.util.concurrent.CompletionException
 
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.manager.BaseTaxonomyActor
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class  FrameworkActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
+class  FrameworkActor @Inject() (implicit oec: OntologyEngineContext) extends BaseTaxonomyActor {
 
-    implicit val ec: ExecutionContext = getContext().dispatcher
+    val CHANNEL_SCHEMA_NAME: String = "channel"
+    val CHANNEL_VERSION: String = "1.0"
 
     override def onReceive(request: Request): Future[Response] = request.getOperation match {
         case "createFramework" => create(request)
@@ -26,65 +27,55 @@ class  FrameworkActor @Inject() (implicit oec: OntologyEngineContext) extends Ba
     }
 
     def create(request: Request): Future[Response] = {
-        //TODO:  include RequestUtils.restrictproperties method
-        if (request.getRequest.containsKey("code"))
-            request.put("identifier", request.getRequest.get("code").asInstanceOf[String])
-        else
-            throw new ClientException("ERR_CODE_IS_REQUIRED", "Code is required for creating a channel")
-        DataNode.create(request).map(node => {
-            val response = ResponseHandler.OK
-            response.put("identifier", node.getIdentifier)
-            response
-        })
+        val identifier = request.getRequest.getOrDefault("code", null);
+        if(null == identifier) throw new ClientException("ERR_CODE_IS_REQUIRED", "Code is required for creating a channel")
+        validateTranslations(request)
+        val channelId = request.getContext.get("channel").asInstanceOf[String]
+        validateObject(channelId, CHANNEL_SCHEMA_NAME, CHANNEL_VERSION).map(isValid => {
+            if(isValid){
+                DataNode.create(request).map(node => {
+                    val response = ResponseHandler.OK
+                    response.put("identifier", node.getIdentifier)
+                    response
+                })
+            } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Invalid Channel Id. Channel doesn't exist.")
+        }).flatMap(f =>f)
+        
     }
 
     def update(request: Request): Future[Response] = {
-        val requestChannelId = request.get("channel")
+        val requestChannelId = request.get("channel").asInstanceOf[String]
+        validateTranslations(request)
         request.put("identifier", request.getContext.get("identifier"))
         DataNode.read(request).map(resp => {
-            if (resp != null) {
-                if (requestChannelId == resp.getMetadata.get("channel")) {
-                    DataNode.update(request).map(node => {
-                        val response = ResponseHandler.OK
-                        response.put("identifier", node.getIdentifier)
-                        response
-                    })
-                }
-                else {
-                    throw new ClientException("ERR_SERVER_ERROR_UPDATE_FRAMEWORK", "Invalid Request. Channel Id Not Matched." + requestChannelId)
-                }
+            if (StringUtils.equalsIgnoreCase(requestChannelId, resp.getMetadata.get("channel").asInstanceOf[String])) {
+                DataNode.update(request).map(node => {
+                    val response = ResponseHandler.OK
+                    response.put("identifier", node.getIdentifier)
+                    response
+                })
             }
             else {
-                throw new ResourceNotFoundException("ERR_FRAMEWORK_NOT_FOUND", "Framework Not Found With Id : " + request.get("identifier"))
+                throw new ClientException("ERR_INVALID_CHANNEL_ID", "Invalid Request. Channel Id Not Matched." + requestChannelId)
             }
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
 
     def retire(request: Request): Future[Response] = {
-        val ownerChannelId = request.get("channel")
+        val channelId = request.getContext.getOrDefault("channel","").asInstanceOf[String]
         request.put("identifier", request.getContext.get("identifier"))
         DataNode.read(request).map(resp => {
-            if (resp != null) {
-                if (ownerChannelId == resp.getMetadata.get("channel")) {
-                    if (resp.getMetadata.get("status") == "Live") {
-                        request.put("status", "Retired")
-                        DataNode.update(request).map(node => {
-                            val response = ResponseHandler.OK
-                            response.put("identifier", node.getIdentifier)
-                            response
-                        })
-                    }
-                    else
-                        throw new ClientException("ERR_SERVER_ERROR_UPDATE_FRAMEWORK", "Cannot update.Status is already set to Retired.")
-
-                }
-                else {
-                    throw new ClientException("ERR_SERVER_ERROR_UPDATE_FRAMEWORK", "Invalid Request. Channel Id Not Matched." + ownerChannelId)
-                }
+            if (StringUtils.equalsIgnoreCase(channelId, resp.getMetadata.get("channel").asInstanceOf[String])) {
+                request.put("status", "Retired")
+                DataNode.update(request).map(node => {
+                    val response = ResponseHandler.OK
+                    response.put("identifier", node.getIdentifier)
+                    response
+                })
             }
             else {
-                throw new ResourceNotFoundException("ERR_FRAMEWORK_NOT_FOUND", "Framework Not Found With Id : " + request.get("identifier"))
+                throw new ClientException("ERR_SERVER_ERROR_UPDATE_FRAMEWORK", "Invalid Request. Channel Id Not Matched." + channelId)
             }
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
 
