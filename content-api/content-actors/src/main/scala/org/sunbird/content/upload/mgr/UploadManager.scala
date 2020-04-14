@@ -37,11 +37,10 @@ object UploadManager {
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
 		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
 		uploadFuture.map(result => {
-			val newResult = collection.mutable.Map(result.toSeq: _*)
-			if(filePath.isDefined){
-				newResult.put(ContentConstants.ARTIFACT_BASE_PATH, filePath.get)
-			}
-			updateNode(request, node.getIdentifier, mediaType, contentType, newResult)
+			if(filePath.isDefined)
+				updateNode(request, node.getIdentifier, mediaType, contentType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))
+			else
+				updateNode(request, node.getIdentifier, mediaType, contentType, result)
 		}).flatMap(f => f)
 	}
 
