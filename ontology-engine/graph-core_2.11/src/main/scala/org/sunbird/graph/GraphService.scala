@@ -34,9 +34,8 @@ class GraphService {
     def getNodeProperty(graphId: String, identifier: String, property: String): Future[Property] = {
         SearchAsyncOperations.getNodeProperty(graphId, identifier, property)
     }
-    def updateNodes(graphId: String, identifiers:List[String], metadata:HashMap[String,AnyRef]):Future[util.Map[String, Node]] = {
+    def updateNodes(graphId: String, identifiers:util.List[String], metadata:util.Map[String,AnyRef]):Future[util.Map[String, Node]] = {
         NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
     }
-
 
 }
