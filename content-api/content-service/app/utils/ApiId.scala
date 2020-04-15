@@ -14,6 +14,7 @@ object ApiId {
 	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"
 	val DISCARD_CONTENT = "api.content.discard"
 	val FlAG_CONTENT = "api.content.flag"
+	val ACCEPT_FLAG = "api.content.flag.accept"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
