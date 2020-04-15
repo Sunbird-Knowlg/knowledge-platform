@@ -12,10 +12,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class HtmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
-    override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
         if (isValidPackageStructure(uploadFile, List[String]("index.html"))) {
-            val urls = uploadArtifactToCloud(uploadFile, objectId)
+            val urls = uploadArtifactToCloud(uploadFile, objectId, filePath)
             node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
             node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
             extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
@@ -27,10 +27,10 @@ class HtmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 
     }
 
-    override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
-        upload(objectId, node, file)
+        upload(objectId, node, file, filePath)
     }
 
 }
