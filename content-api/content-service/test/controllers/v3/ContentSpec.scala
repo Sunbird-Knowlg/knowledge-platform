@@ -1,11 +1,16 @@
 package controllers.v3
 
+import java.io.File
+
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{OK, status}
 import play.api.test.Helpers._
+import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile}
+import play.api.mvc.MultipartFormData
+import play.api.mvc.MultipartFormData.{BadPart, FilePart}
 
 @RunWith(classOf[JUnitRunner])
 class ContentSpec extends BaseSpec {
@@ -136,5 +141,25 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+    }
+    "return success response for upload API with file" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val file = new File("test/resources/sample.pdf")
+        val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
+        val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
+        val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
+        val result = controller.upload("01234")(fakeRequest)
+        isOK(result)
+        status(result) must equalTo(OK)
+    }
+    "return success response for upload API with fileUrl" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val file = new File("test/resources/sample.pdf")
+        val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
+        val multipartBody = MultipartFormData(Map[String, Seq[String]]("fileUrl" -> Seq("https://abc.com/content/sample.pdf"), "filePath" -> Seq("/program/id")), files, Seq[BadPart]())
+        val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
+        val result = controller.upload("01234")(fakeRequest)
+        isOK(result)
+        status(result) must equalTo(OK)
     }
 }

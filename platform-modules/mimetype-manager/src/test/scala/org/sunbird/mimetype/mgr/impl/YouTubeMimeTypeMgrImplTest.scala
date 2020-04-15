@@ -12,7 +12,7 @@ class YouTubeMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers {
 
 	"upload with valid youtube url" should "return artifactUrl with successful response" in {
 		val inputUrl = "https://www.youtube.com/watch?v=8irSFvoyLHQ"
-		val resFuture = new YouTubeMimeTypeMgrImpl().upload("do_123", new Node(), inputUrl)
+		val resFuture = new YouTubeMimeTypeMgrImpl().upload("do_123", new Node(), inputUrl, None)
 		resFuture.map(result => {
 			assert(null != result)
 			assert(!result.isEmpty)
@@ -23,7 +23,7 @@ class YouTubeMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers {
 
 	"upload with file" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			new YouTubeMimeTypeMgrImpl().upload("do_123", new Node(), new File("/tmp/test.pdf"))
+			new YouTubeMimeTypeMgrImpl().upload("do_123", new Node(), new File("/tmp/test.pdf"), None)
 		}
 		exception.getMessage shouldEqual "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 	}

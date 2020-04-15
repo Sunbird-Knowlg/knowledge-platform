@@ -39,4 +39,5 @@ object ContentConstants {
     val COLLECTION_SCHEMA_NAME: String = "collection"
     val IDENTIFIERS: String = "identifiers"
     val PACKAGE_VERSION: String = "pkgVersion"
+    val ARTIFACT_BASE_PATH: String = "artifactBasePath"
 }
