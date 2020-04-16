@@ -1,6 +1,6 @@
 package org.sunbird.graph
 
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
 
@@ -22,5 +22,13 @@ class GraphService {
 
     def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node] = {
         SearchAsyncOperations.getNodeByUniqueId(graphId, nodeId, getTags, request)
+    }
+
+    def deleteNode(graphId: String, nodeId: String, request: Request): Future[java.lang.Boolean] = {
+        NodeAsyncOperations.deleteNode(graphId, nodeId, request)
+    }
+
+    def getNodeProperty(graphId: String, identifier: String, property: String): Future[Property] = {
+        SearchAsyncOperations.getNodeProperty(graphId, identifier, property)
     }
 }

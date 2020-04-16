@@ -4,20 +4,18 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 
-
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.CopyManager
+import org.sunbird.content.util.{CopyManager, FlagManager, DiscardManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
-
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
@@ -37,6 +35,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "uploadContent" => upload(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
+			case "discardContent" => discard(request)
+			case "flagContent" => flag(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -103,7 +103,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		DataNode.read(request).map(node => {
 			val response = ResponseHandler.OK()
 			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
-				else "content"+ File.separator + filePath + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
+				else filePath + File.separator + "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			response.put("identifier", identifier)
@@ -111,6 +111,15 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			response.put("url_expiry", expiry)
 			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
+	}
+
+	def discard(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		DiscardManager.discard(request)
+	}
+
+	def flag(request: Request): Future[Response] = {
+		FlagManager.flag(request)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
@@ -157,4 +166,5 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
+
 }

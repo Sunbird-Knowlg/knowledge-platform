@@ -3,6 +3,7 @@ package org.sunbird.graph.schema.validator
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.IDefinition
 
@@ -15,7 +16,7 @@ trait PropAsEdgeValidator extends IDefinition {
     val prefix = "edge_"
 
     @throws[Exception]
-    abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec:OntologyEngineContext): Future[Node] = {
         if (schemaValidator.getConfig.hasPath(edgePropsKey)) {
             val keys = CollectionUtils.intersection(node.getMetadata.keySet(), schemaValidator.getConfig.getObject(edgePropsKey).keySet())
             if (!keys.isEmpty) {
