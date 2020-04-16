@@ -36,10 +36,10 @@ object DataNode {
     }
 
     @throws[Exception]
-    def update(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    def update(request: Request, validateFn: Option[(Node, util.Map[String, AnyRef]) => Unit] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
-        DefinitionNode.validate(identifier, request).map(node => {
+        DefinitionNode.validate(request, Option(identifier), Option(true), validateFn).map(node => {
             val response = oec.graphService.upsertNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](

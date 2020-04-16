@@ -182,8 +182,7 @@ object UpdateHierarchyManager {
         else Future(nodeList)
     }
 
-
-    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {
+    private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[AnyRef] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
             val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
                 .map(nodeModified => { val metadata = nodeModified._2.asInstanceOf[util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[util.HashMap[String, AnyRef]]
@@ -215,7 +214,7 @@ object UpdateHierarchyManager {
         }
     }
 
-    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], nodeList: ListBuffer[Node], request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {
+    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: util.HashMap[String, AnyRef], nodeList: ListBuffer[Node], request: Request, setDefaultValue: Boolean = true)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[AnyRef] = {
         val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
         idMap += (nodeId -> identifier)
         metadata.put(HierarchyConstants.IDENTIFIER, identifier)
@@ -226,7 +225,7 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
         val createRequest: Request = new Request(request)
         createRequest.setRequest(metadata)
-        DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
+        DefinitionNode.validate(createRequest, None, Option(setDefaultValue)).map(node => {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
             node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)

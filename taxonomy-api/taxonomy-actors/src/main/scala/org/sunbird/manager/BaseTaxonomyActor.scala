@@ -28,8 +28,9 @@ abstract class BaseTaxonomyActor (implicit oec: OntologyEngineContext) extends B
     }
     
     def validateObject(objectId: String, schemaName: String, version: String): Future[Boolean] = {
+        println("Channel: " + objectId)
         val req = new Request()
-        req.setContext(new util.HashMap[String, AnyRef](){{ put("schemaName", schemaName); put("version", version); put("graphId", "domain") }})
+        req.setContext(new util.HashMap[String, AnyRef](){{ put("schemaName", schemaName); put("version", version); put("graph_id", "domain") }})
         req.setRequest(new util.HashMap[String, AnyRef](){{ put("identifier", objectId) }})
         DataNode.read(req).map(node => {
             true
