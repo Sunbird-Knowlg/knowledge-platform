@@ -33,7 +33,7 @@ class BaseMimeTypeManagerTest extends AsyncFlatSpec with Matchers {
 	}
 
 	"getFileSize with invalid file" should "return 0 size" in {
-		assert(0==mgr.getFileSize(new File("/tmp/sample.pdf")))
+		assert(0==mgr.getFileSize(new File("/tmp/sample2.pdf")))
 	}
 
 	"copyURLToFile with valid url" should "return a valid file" in {

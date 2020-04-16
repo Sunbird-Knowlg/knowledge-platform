@@ -18,14 +18,14 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
 
     it should "Throw Client Exception for null file url" in {
         val exception = intercept[ClientException] {
-            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), "")
+            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), "", None)
         }
         exception.getMessage shouldEqual "Please Provide Valid File Url!"
     }
 
     it should "Throw Client Except for non zip file " in {
         val exception = intercept[ClientException] {
-            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), new File(Resources.getResource("sample.pdf").toURI))
+            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), new File(Resources.getResource("sample.pdf").toURI), None)
         }
         exception.getMessage shouldEqual "INVALID_CONTENT_PACKAGE_FILE_MIME_TYPE_ERROR | [The uploaded package is invalid]"
     }
@@ -37,7 +37,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml.zip").toURI))
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml.zip").toURI), None)
         resFuture.map(result => {
             println("Response: " + result)
             result
@@ -55,7 +55,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson.zip").toURI))
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson.zip").toURI), None)
         resFuture.map(result => {
             println("Response: " + result)
             result

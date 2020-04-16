@@ -52,4 +52,5 @@ object ContentConstants {
     val PUBLISHER = "publisher"
     val DIAL_CODES = "dialcodes"
     val SERVER_ERROR = "SERVER_ERROR"
+    val ARTIFACT_BASE_PATH: String = "artifactBasePath"
 }
