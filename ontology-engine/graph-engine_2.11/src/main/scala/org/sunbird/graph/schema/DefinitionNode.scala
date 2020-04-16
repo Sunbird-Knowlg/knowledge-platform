@@ -20,15 +20,45 @@ object DefinitionNode {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-  def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext): Future[Node] = {
+    @throws[Exception]
+    def validate(request: Request, identifier: Option[String] = None, setDefault: Option[Boolean] = Option(true), extraFn: Option[(Node, util.Map[String, AnyRef]) => Unit] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-      val inputNode = definition.getNode(request.getRequest)
-	  updateRelationMetadata(inputNode)
-      definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause}
-  }
+      val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
+      if (identifier.isDefined) {
+          val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
+          definition.getNode(identifier.get, "update", null).map(dbNode => {
+              if (extraFn.isDefined) {
+                  extraFn.get(dbNode, request.getRequest)
+              }
+              resetJsonProperties(dbNode, graphId, version, schemaName)
+              val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
+              val dbRels = getDBRelations(graphId, schemaName, version, req, dbNode)
+              setRelationship(dbNode, inputNode, dbRels)
+              if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
+                  inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
+                  dbNode.getMetadata.remove("isImageNodeCreated")
+              }
+              dbNode.getMetadata.putAll(inputNode.getMetadata)
+              if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
+                  if (MapUtils.isNotEmpty(dbNode.getExternalData))
+                      dbNode.getExternalData.putAll(inputNode.getExternalData)
+                  else
+                      dbNode.setExternalData(inputNode.getExternalData)
+              }
+              if (!skipValidation)
+                  definition.validate(dbNode, "update")
+              else Future (dbNode)
+
+          }).flatMap(f => f)
+      } else {
+          val inputNode = definition.getNode(request.getRequest)
+          updateRelationMetadata(inputNode)
+          definition.validate(inputNode, "create", setDefault.getOrElse(true)) recoverWith { case e: CompletionException => throw e.getCause}
+      }
+    }
 
     def getExternalProps(graphId: String, version: String, schemaName: String): List[String] = {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
@@ -73,37 +103,6 @@ object DefinitionNode {
         val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
             , schemaName, request.getContext.get("version").asInstanceOf[String])
         definition.getNode(request.get("identifier").asInstanceOf[String], "read", if(request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read")
-    }
-
-    @throws[Exception]
-    def validate(identifier: String, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
-        val version: String = request.getContext.get("version").asInstanceOf[String]
-        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-	    val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
-        val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-        definition.getNode(identifier, "update", null).map(dbNode => {
-            resetJsonProperties(dbNode, graphId, version, schemaName)
-            val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
-            val dbRels = getDBRelations(graphId, schemaName, version, req, dbNode)
-            setRelationship(dbNode, inputNode, dbRels)
-            if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
-                inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
-                dbNode.getMetadata.remove("isImageNodeCreated")
-            }
-            dbNode.getMetadata.putAll(inputNode.getMetadata)
-            if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
-                if (MapUtils.isNotEmpty(dbNode.getExternalData))
-                    dbNode.getExternalData.putAll(inputNode.getExternalData)
-                else
-                    dbNode.setExternalData(inputNode.getExternalData)
-            }
-            if (!skipValidation)
-                definition.validate(dbNode, "update")
-            else Future (dbNode)
-
-        }).flatMap(f => f)
     }
 
 	def postProcessor(request: Request, node: Node)(implicit ec: ExecutionContext): Node = {
