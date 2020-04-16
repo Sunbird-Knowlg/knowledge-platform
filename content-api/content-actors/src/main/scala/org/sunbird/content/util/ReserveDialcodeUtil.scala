@@ -100,8 +100,8 @@ object ReserveDialcodeUtil {
         val headerParam = new util.HashMap[String, String]
         headerParam.put(ContentConstants.CHANNEL_ID, request.getContext.get(ContentConstants.CHANNEL_ID).asInstanceOf[String])
         headerParam.put("Content-Type", "application/json")
-        headerParam.put("Authorization", "Bearer" + " " + Platform.config.getString("dialcode.api.generate.api_key"))
-        val url: String = Platform.getString("dialcode.api.generate.url", "http://11.2.4.22:8080/learning-service/dialcode/v3/generate")
+        headerParam.put("Authorization", "Bearer" + " " + Platform.config.getString("dialcode.api.authorization=auth_key"))
+        val url: String = Platform.getString("dialcode.api.generate.url", "https://qa.ekstep.in/api/dialcode/v3/generate")
         val httpResponse = Unirest.post(url).headers(headerParam).body(generateRequest).asString
         if (httpResponse.getStatus == HttpStatus.SC_OK) {
             val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
