@@ -182,7 +182,6 @@ object UpdateHierarchyManager {
         else Future(nodeList)
     }
 
-
     private def updateNodesModifiedInNodeList(nodeList: ListBuffer[Node], nodesModified: util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[AnyRef] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
             val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
@@ -244,7 +243,7 @@ object UpdateHierarchyManager {
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
     }
 
-    private def validateNodes(nodeList: ListBuffer[Node], rootId: String)(implicit ec: ExecutionContext): Future[List[Node]] = {
+    private def validateNodes(nodeList: ListBuffer[Node], rootId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val nodesToValidate = nodeList.filter(node => StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]) || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
         DefinitionNode.updateJsonPropsInNodes(nodeList.toList, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
         DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
@@ -436,7 +435,7 @@ object UpdateHierarchyManager {
     def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val req = new Request(request)
         val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
-        req.put(HierarchyConstants.IDENTIFIER, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) rootId else rootId + HierarchyConstants.IMAGE_SUFFIX)
+        req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
     }
 

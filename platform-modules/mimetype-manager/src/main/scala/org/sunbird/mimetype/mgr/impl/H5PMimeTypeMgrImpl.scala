@@ -14,27 +14,27 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager()(ss) with MimeTypeManager {
 
-    override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
         if (isValidPackageStructure(uploadFile, List[String]("h5p.json"))) {
             val extractionBasePath = getBasePath(objectId)
             val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
             val zipFile = new File(zippedFileName)
-            val urls: Array[String] = uploadArtifactToCloud(zipFile, objectId)
+            val urls: Array[String] = uploadArtifactToCloud(zipFile, objectId, filePath)
             if (zipFile.exists) zipFile.delete
             extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
                 Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY))
-            ) recoverWith {case e: CompletionException => throw e.getCause}
+            ) recoverWith { case e: CompletionException => throw e.getCause }
         } else {
             TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
         }
     }
 
-    override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
-        upload(objectId, node, file)
+        upload(objectId, node, file, filePath)
     }
 
     /**
@@ -59,13 +59,12 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         val objectId: String = node.getIdentifier
         val extractionBasePath = getBasePath(objectId)
         extractPackage(uploadFile, extractionBasePath)
-        val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
+        val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, None)
         node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
         node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
         extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
             Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY))
         ) recoverWith { case e: CompletionException => throw e.getCause }
     }
-
 
 }

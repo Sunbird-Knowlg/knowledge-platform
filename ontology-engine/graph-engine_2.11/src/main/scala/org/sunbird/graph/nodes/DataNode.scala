@@ -97,6 +97,13 @@ object DataNode {
         NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
     }
 
+    @throws[Exception]
+    def deleteNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
+        val graphId: String = request.getContext.getOrDefault("graph_id", "").asInstanceOf[String]
+        val identifier: String = request.getRequest.getOrDefault("identifier", "").asInstanceOf[String]
+        oec.graphService.deleteNode(graphId, identifier, request)
+    }
+
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)

@@ -33,7 +33,7 @@ object ExternalPropsManager {
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
-        store.delete(request.get("identifier").asInstanceOf[String])
+        store.delete(request.get("identifiers").asInstanceOf[List[String]])
     }
 
     def getPropsDataType(schemaName: String, version: String) = {
