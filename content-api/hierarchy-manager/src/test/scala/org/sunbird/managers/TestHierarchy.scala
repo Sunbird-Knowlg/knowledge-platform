@@ -2,6 +2,7 @@ package org.sunbird.managers
 
 import java.util
 
+import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
@@ -286,8 +287,8 @@ class TestHierarchy extends BaseSpec {
         val future = HierarchyManager.getHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
-            assert(null != response.getResult.get("content"))
-            assert(null == response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children"))
+            assert(null != response.get("content"))
+            assert(CollectionUtils.isEmpty(response.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children").asInstanceOf[util.List[Map[String, AnyRef]]]))
         })
     }
 

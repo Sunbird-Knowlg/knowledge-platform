@@ -21,6 +21,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.parseq.Task
 import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
@@ -125,20 +126,20 @@ object HierarchyManager {
             }
             val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
             var metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-
             val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
-                if (!hierarchy.isEmpty && CollectionUtils.isNotEmpty(hierarchy.getOrDefault("children", "").asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]))
-                    metadata.put("children", hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]])
-                metadata.put("identifier", request.get("rootId"))
-                if(StringUtils.isNotEmpty(bookmarkId))
-                    metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
-                if (MapUtils.isEmpty(metadata)) {
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
-                } else {
-                    ResponseHandler.OK.put("content", metadata)
-                }
-            })
+                val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+                updateLatestLeafNodes(children).map(obj => {
+                    metadata.put("children", children)
+                    if(StringUtils.isNotEmpty(bookmarkId))
+                        metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
+                    if (MapUtils.isEmpty(metadata)) {
+                        ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
+                    } else {
+                        ResponseHandler.OK.put("content", metadata)
+                    }
+                })
+            }).flatMap(f => f)
         }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
                 val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
                 searchResponse.map(rootHierarchy => {
@@ -496,5 +497,42 @@ object HierarchyManager {
             }
 
         }
+    }
+
+
+    def updateLatestLeafNodes(children: util.List[util.Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext):Future[List[Object]] = {
+        val futures = children.toList.map(content => {
+            if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
+                val metadata: Future[util.Map[String, AnyRef]] = getEditableContent(content.get("identifier").asInstanceOf[String])
+                metadata.map(data => {
+                    if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(data.get("status").asInstanceOf[String])){
+                        children.remove(content)
+                    } else{
+                        content.putAll(data)
+                    }
+                    content
+                })
+            } else {
+                updateLatestLeafNodes(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+            }
+        })
+        Future.sequence(futures)
+    }
+
+    def getEditableContent(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
+        val request: Request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put(HierarchyConstants.GRAPH_ID, "domain")
+                put(HierarchyConstants.VERSION, HierarchyConstants.SCHEMA_VERSION)
+                put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
+                put(HierarchyConstants.SCHEMA_NAME, HierarchyConstants.CONTENT_SCHEMA_NAME)
+            }
+        })
+        request.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
+        request.put(HierarchyConstants.IDENTIFIER, identifier)
+        request.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
+        request.put(HierarchyConstants.FIELDS, new util.ArrayList[String]())
+        DataNode.read(request).map(node => NodeUtil.serialize(node, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true))
     }
 }
