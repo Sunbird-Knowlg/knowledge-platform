@@ -2,6 +2,7 @@ package org.sunbird.managers
 
 import java.util
 import java.util.concurrent.CompletionException
+import java.util.stream.Collectors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.lang3.StringUtils
@@ -129,7 +130,10 @@ object HierarchyManager {
             val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
                 val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-                updateLatestLeafNodes(children).map(obj => {
+                val leafNodeIds = new util.ArrayList[String]()
+                fetchAllLeafNodes(children, leafNodeIds)
+                getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
+                    updateLatestLeafNodes(children, leafNodesMap)
                     metadata.put("children", children)
                     if(StringUtils.isNotEmpty(bookmarkId))
                         metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
@@ -500,39 +504,58 @@ object HierarchyManager {
     }
 
 
-    def updateLatestLeafNodes(children: util.List[util.Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext):Future[List[Object]] = {
-        val futures = children.toList.map(content => {
+    def updateLatestLeafNodes(children: util.List[util.Map[String, AnyRef]], leafNodeMap: util.Map[String, AnyRef]): List[Any] = {
+        children.toList.map(content => {
             if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
-                val metadata: Future[util.Map[String, AnyRef]] = getEditableContent(content.get("identifier").asInstanceOf[String])
-                metadata.map(data => {
-                    if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(data.get("status").asInstanceOf[String])){
-                        children.remove(content)
-                    } else{
-                        content.putAll(data)
-                    }
-                    content
-                })
+                val metadata: util.Map[String, AnyRef] = leafNodeMap.get(content.get("identifier").asInstanceOf[String]).asInstanceOf[util.Map[String, AnyRef]]
+                if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.get("status").asInstanceOf[String])){
+                    children.remove(content)
+                } else {
+                    content.putAll(metadata)
+                }
             } else {
-                updateLatestLeafNodes(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+                updateLatestLeafNodes(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], leafNodeMap)
             }
         })
-        Future.sequence(futures)
+    }
+    
+    def fetchAllLeafNodes(children: util.List[util.Map[String, AnyRef]], leafNodeIds: util.List[String]): List[Any] = {
+        children.toList.map(content => {
+            if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
+                leafNodeIds.add(content.get("identifier").asInstanceOf[String])
+                leafNodeIds
+            } else {
+                fetchAllLeafNodes(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], leafNodeIds)
+            }
+        })
     }
 
-    def getEditableContent(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
-        val request: Request = new Request()
-        request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-                put(HierarchyConstants.GRAPH_ID, "domain")
-                put(HierarchyConstants.VERSION, HierarchyConstants.SCHEMA_VERSION)
-                put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
-                put(HierarchyConstants.SCHEMA_NAME, HierarchyConstants.CONTENT_SCHEMA_NAME)
-            }
-        })
-        request.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
-        request.put(HierarchyConstants.IDENTIFIER, identifier)
-        request.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
-        request.put(HierarchyConstants.FIELDS, new util.ArrayList[String]())
-        DataNode.read(request).map(node => NodeUtil.serialize(node, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true))
+    def getLatestLeafNodes(leafNodeIds : util.List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+        if(CollectionUtils.isNotEmpty(leafNodeIds)) {
+            val request = new Request()
+            request.setContext(new util.HashMap[String, AnyRef]() {
+                {
+                    put(HierarchyConstants.GRAPH_ID, HierarchyConstants.TAXONOMY_ID)
+                    put(HierarchyConstants.VERSION, HierarchyConstants.SCHEMA_VERSION)
+                    put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
+                    put(HierarchyConstants.SCHEMA_NAME, HierarchyConstants.CONTENT_SCHEMA_NAME)
+                }
+            })
+            request.put("identifiers", leafNodeIds)
+            DataNode.list(request).map(nodes => {
+                val leafNodeMap: util.Map[String, AnyRef] = JavaConverters.mapAsJavaMapConverter(nodes.toList.map(node => (node.getIdentifier, NodeUtil.serialize(node, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap).asJava
+                val imageNodeIds: util.List[String] = JavaConverters.seqAsJavaListConverter(leafNodeIds.toList.map(id => id + HierarchyConstants.IMAGE_SUFFIX)).asJava
+                request.put("identifiers", imageNodeIds)
+                DataNode.list(request).map(imageNodes => {
+                    val imageLeafNodeMap: util.Map[String, AnyRef] = JavaConverters.mapAsJavaMapConverter(imageNodes.toList.map(imageNode => (imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, ""), NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap).asJava
+                    leafNodeMap.entrySet().foreach(entry => if(imageLeafNodeMap.containsKey(entry.getKey)) entry.setValue(imageLeafNodeMap.get(entry.getKey)))
+                    leafNodeMap
+                })
+            }).flatMap(f => f)
+        } else {
+            Future{new util.HashMap[String, AnyRef]()}
+        }
+        
     }
+    
 }
