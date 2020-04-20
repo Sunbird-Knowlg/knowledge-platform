@@ -170,8 +170,7 @@ public class SearchActor extends SearchBaseActor {
                 try {
                     Map<String, Object> metaData = DefinitionUtil.getMetaData(objectType);
                     if (null != metaData.get("softConstraints")) {
-                        String constraintString = (String) metaData.get("softConstraints");
-                        softConstraints = JsonUtils.deserialize(constraintString, Map.class);
+                        softConstraints = (Map<String, Object>) metaData.get("softConstraints");
                     }
                 } catch (Exception e) {
                     TelemetryManager.warn("Invalid soft Constraints" + e.getMessage());
