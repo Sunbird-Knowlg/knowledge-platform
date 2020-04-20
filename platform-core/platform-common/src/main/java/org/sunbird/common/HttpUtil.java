@@ -37,7 +37,6 @@ public class HttpUtil {
 			HttpResponse<String> response = Unirest.post(url).headers(headerParam).body(JsonUtils.serialize(requestMap)).asString();
 			return getResponse(response);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
 		}
 	}
