@@ -28,7 +28,7 @@ public class HttpUtil {
 	 * @return Response
 	 * @throws Exception
 	 */
-	public static Response post(String url, Map<String, Object> requestMap, Map<String, String> headerParam)
+	public Response post(String url, Map<String, Object> requestMap, Map<String, String> headerParam)
 			throws Exception {
 		validateRequest(url, headerParam);
 		if (MapUtils.isEmpty(requestMap))
@@ -48,7 +48,7 @@ public class HttpUtil {
 	 * @return Response
 	 * @throws Exception
 	 */
-	public static Response get(String url, String queryParam, Map<String, String> headerParam)
+	public Response get(String url, String queryParam, Map<String, String> headerParam)
 			throws Exception {
 		validateRequest(url, headerParam);
 		String reqUrl = StringUtils.isNotBlank(queryParam) ? url + "?" + queryParam : url;
@@ -60,14 +60,14 @@ public class HttpUtil {
 		}
 	}
 
-	private static void validateRequest(String url, Map<String, String> headerParam) {
+	private void validateRequest(String url, Map<String, String> headerParam) {
 		if (StringUtils.isBlank(url))
 			throw new ServerException("ERR_INVALID_URL", "Url Parameter is Missing!");
 		if (MapUtils.isEmpty(headerParam))
 			throw new ServerException("ERR_INVALID_HEADER_PARAM", "Header Parameter is Missing!");
 	}
 
-	private static Response getResponse(HttpResponse<String> response) {
+	private Response getResponse(HttpResponse<String> response) {
 		if (null != response && StringUtils.isNotBlank(response.getBody())) {
 			try {
 				return JsonUtils.deserialize(response.getBody(), Response.class);
