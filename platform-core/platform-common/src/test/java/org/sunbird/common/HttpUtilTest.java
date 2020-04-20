@@ -34,6 +34,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class HttpUtilTest {
 
 	private static HttpResponse<String> httpResponse = null;
+	private static HttpUtil httpUtil = new HttpUtil();
 
 	@Before
 	public void setup() throws Exception {
@@ -53,14 +54,14 @@ public class HttpUtilTest {
 		Map<String, String> header = new HashMap<String, String>() {{
 			put("x-channel-id", "test-channel");
 		}};
-		method.invoke(new HttpUtil(), null, header);
+		method.invoke(httpUtil, null, header);
 	}
 
 	@Test(expected = ServerException.class)
 	public void testValidateRequestWithEmptyHeader() throws Exception {
 		Method method = HttpUtil.class.getDeclaredMethod("validateRequest", String.class, Map.class);
 		method.setAccessible(true);
-		method.invoke(new HttpUtil(), "http://test.com", null);
+		method.invoke(httpUtil, "http://test.com", null);
 	}
 
 	@Test
@@ -75,7 +76,7 @@ public class HttpUtilTest {
 				}});
 			}});
 		}};
-		Response response = HttpUtil.post("http://test.com/abc", req, header);
+		Response response = httpUtil.post("http://test.com/abc", req, header);
 		validateResponse(response);
 	}
 
@@ -84,7 +85,7 @@ public class HttpUtilTest {
 		Map<String, String> header = new HashMap<String, String>() {{
 			put("x-channel-id", "test-channel");
 		}};
-		HttpUtil.post("http://test.com/abc", new HashMap<String, Object>(), header);
+		httpUtil.post("http://test.com/abc", new HashMap<String, Object>(), header);
 	}
 
 	@Test
@@ -92,7 +93,7 @@ public class HttpUtilTest {
 		Map<String, String> header = new HashMap<String, String>() {{
 			put("x-channel-id", "test-channel");
 		}};
-		Response response = HttpUtil.get("http://test.com/abc", null, header);
+		Response response = httpUtil.get("http://test.com/abc", null, header);
 		validateResponse(response);
 	}
 
@@ -101,7 +102,7 @@ public class HttpUtilTest {
 		Map<String, String> header = new HashMap<String, String>() {{
 			put("x-channel-id", "test-channel");
 		}};
-		Response response = HttpUtil.get("http://test.com/abc", "mode=edit", header);
+		Response response = httpUtil.get("http://test.com/abc", "mode=edit", header);
 		validateResponse(response);
 	}
 
@@ -109,7 +110,7 @@ public class HttpUtilTest {
 	public void testGetResponse() throws Exception {
 		Method method = HttpUtil.class.getDeclaredMethod("getResponse", HttpResponse.class);
 		method.setAccessible(true);
-		Response resp = (Response) method.invoke(new HttpUtil(), httpResponse);
+		Response resp = (Response) method.invoke(httpUtil, httpResponse);
 		validateResponse(resp);
 	}
 
@@ -121,7 +122,7 @@ public class HttpUtilTest {
 		HttpResponse<String> httpResp = new HttpResponse(response, String.class);
 		Method method = HttpUtil.class.getDeclaredMethod("getResponse", HttpResponse.class);
 		method.setAccessible(true);
-		Response resp = (Response) method.invoke(new HttpUtil(), httpResp);
+		Response resp = (Response) method.invoke(httpUtil, httpResp);
 		assertTrue(null != resp);
 		assertTrue(StringUtils.equalsIgnoreCase("SERVER_ERROR", resp.getResponseCode().toString()));
 	}
@@ -134,7 +135,7 @@ public class HttpUtilTest {
 		HttpResponse<String> httpResp = new HttpResponse(response, String.class);
 		Method method = HttpUtil.class.getDeclaredMethod("getResponse", HttpResponse.class);
 		method.setAccessible(true);
-		method.invoke(new HttpUtil(), httpResp);
+		method.invoke(httpUtil, httpResp);
 	}
 
 	private void validateResponse(Response resp) {
