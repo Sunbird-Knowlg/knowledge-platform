@@ -19,8 +19,7 @@ object AcceptFlagManager {
 
   def acceptFlag(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     DataNode.read(request).map(node => {
-      if (!StringUtils.equals(ContentConstants.CONTENT_OBJECT_TYPE, node.getObjectType) ||
-        !StringUtils.equals(ContentConstants.FLAGGED, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String])) {
+      if (!StringUtils.equals(ContentConstants.FLAGGED, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String])) {
         Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ContentConstants.ERR_INVALID_CONTENT, "Invalid Flagged Content! Content Can Not Be Accepted."))
       } else {
         request.getContext.put(ContentConstants.IDENTIFIER, node.getIdentifier)
@@ -54,7 +53,12 @@ object AcceptFlagManager {
     DataNode.update(request).map(updatedOriginalNode => {
       if (StringUtils.equals(updatedOriginalNode.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String], ContentConstants.COLLECTION_MIME_TYPE)) {
         request.put(ContentConstants.ROOT_ID, updatedOriginalNode.getIdentifier)
-        updateHierarchy(request, updatedOriginalNode.getMetadata.get(ContentConstants.VERSION_KEY).asInstanceOf[String], updatedOriginalNode.getMetadata.get(ContentConstants.LAST_STATUS_CHANGED_ON).asInstanceOf[String]).map(hierarchyResponse => {
+        val updateMetadata = Map(
+          ContentConstants.VERSION_KEY -> updatedOriginalNode.getMetadata.get(ContentConstants.VERSION_KEY).asInstanceOf[String],
+          ContentConstants.LAST_STATUS_CHANGED_ON -> updatedOriginalNode.getMetadata.get(ContentConstants.LAST_STATUS_CHANGED_ON).asInstanceOf[String],
+          ContentConstants.LAST_UPDATED_ON -> updatedOriginalNode.getMetadata.get(ContentConstants.LAST_UPDATED_ON).asInstanceOf[String]
+        )
+        updateHierarchy(request, updateMetadata).map(hierarchyResponse => {
           if (!ResponseHandler.checkError(hierarchyResponse)) {
             ResponseHandler.OK()
           } else {
@@ -67,7 +71,7 @@ object AcceptFlagManager {
     }).flatMap(f => f)
   }
 
-  protected def updateHierarchy(request: Request, versionKey: String, lastStatusChangedOn: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  protected def updateHierarchy(request: Request, updateMetadata: Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
     HierarchyManager.getHierarchy(request).map(hierarchyResponse => {
       if (!ResponseHandler.checkError(hierarchyResponse)) {
@@ -75,8 +79,9 @@ object AcceptFlagManager {
         updatedHierarchy.putAll(new util.HashMap[String, AnyRef]() {
           {
             put(ContentConstants.STATUS, ContentConstants.RETIRED)
-            put(ContentConstants.VERSION_KEY, versionKey)
-            put(ContentConstants.LAST_STATUS_CHANGED_ON, lastStatusChangedOn)
+            put(ContentConstants.VERSION_KEY, updateMetadata.get(ContentConstants.VERSION_KEY))
+            put(ContentConstants.LAST_STATUS_CHANGED_ON, updateMetadata.get(ContentConstants.LAST_STATUS_CHANGED_ON))
+            put(ContentConstants.LAST_UPDATED_ON, updateMetadata.get(ContentConstants.LAST_UPDATED_ON))
           }
         })
         val req: Request = new Request(request)
