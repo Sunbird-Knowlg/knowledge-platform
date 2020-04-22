@@ -9,7 +9,7 @@ import org.apache.commons.collections.MapUtils
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.HttpStatus
-import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.{HttpUtil, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
 import org.sunbird.graph.dac.model.Node
@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 
 
 object ReserveDialcodeUtil {
+    val httpUtil = new HttpUtil
 
     def reserveDialcodes(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
@@ -88,27 +89,33 @@ object ReserveDialcodeUtil {
     }
 
     private def getGeneratedDialcodes(request: Request, dialcodeCount: Integer)(implicit executionContext: ExecutionContext): util.List[String] = {
-        val generateRequest = "{\n" +
-            "    \"request\": {\n" +
-            "        \"dialcodes\": {\n" +
-            "            \"count\": " + dialcodeCount + ",\n" +
-            "            \"publisher\": \"" + request.get(ContentConstants.PUBLISHER) + "\",\n" +
-            "            \"batchCode\": \" " + request.get(ContentConstants.IDENTIFIER) + "\"\n" +
-            "        }\n" +
-            "    }\n" +
-            "}"
         val headerParam = new util.HashMap[String, String]
-        headerParam.put(ContentConstants.CHANNEL_ID, request.getContext.get(ContentConstants.CHANNEL_ID).asInstanceOf[String])
-        headerParam.put("Content-Type", "application/json")
-        headerParam.put("Authorization", "Bearer" + " " + Platform.config.getString("dialcode.api.authorization=auth_key"))
+        headerParam.put(ContentConstants.CHANNEL_ID, request.getContext.get(ContentConstants.CHANNEL).asInstanceOf[String])
+        headerParam.put("Authorization", "Bearer" + " " + Platform.config.getString("dialcode.api.authorization"))
         val url: String = Platform.getString("dialcode.api.generate.url", "https://qa.ekstep.in/api/dialcode/v3/generate")
-        val httpResponse = Unirest.post(url).headers(headerParam).body(generateRequest).asString
-        if (httpResponse.getStatus == HttpStatus.SC_OK) {
-            val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
-            if (CollectionUtils.isNotEmpty(response.getResult.getOrDefault(ContentConstants.DIAL_CODES, new util.ArrayList[String]()).asInstanceOf[util.List[String]])) {
-                response.get(ContentConstants.DIAL_CODES).asInstanceOf[util.List[String]]
-            } else throw new ServerException(ContentConstants.SERVER_ERROR, "Dialcode generated list is empty. Please Try Again After Sometime!")
-        } else throw new ServerException(ContentConstants.SERVER_ERROR, "Could not generate dialcodes due to some unknown error. Please check authorization/ request structure")
+        val response: Response = httpUtil.post(url, getGenerateDialcodeRequest(dialcodeCount, request), headerParam)
+        if (CollectionUtils.isNotEmpty(response.getResult.getOrDefault(ContentConstants.DIAL_CODES, new util.ArrayList[String]()).asInstanceOf[util.List[String]])) {
+            response.get(ContentConstants.DIAL_CODES).asInstanceOf[util.List[String]]
+        } else throw new ServerException(ContentConstants.SERVER_ERROR, "Dialcode generated list is empty. Please Try Again After Sometime!")
+    }
+
+    private def getGenerateDialcodeRequest(dialcodeCount: Integer, request: Request): util.HashMap[String, AnyRef] = {
+        new util.HashMap[String, AnyRef]() {
+            {
+                put(ContentConstants.REQUEST, new util.HashMap[String, AnyRef]() {
+                    {
+                        put(ContentConstants.DIAL_CODES, new util.HashMap[String, AnyRef]() {
+                            {
+                                put(ContentConstants.COUNT, dialcodeCount)
+                                put(ContentConstants.PUBLISHER, request.get(ContentConstants.PUBLISHER))
+                                put(ContentConstants.BATCH_CODE, request.get(ContentConstants.IDENTIFIER))
+                            }
+                        })
+                    }
+                })
+
+            }
+        }
     }
 
     private def updateNodes(request: Request, dialCodeMap: util.Map[String, Integer])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {

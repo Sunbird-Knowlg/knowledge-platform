@@ -1,5 +1,7 @@
 package org.sunbird.graph
 
+import java.util
+
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
@@ -30,5 +32,9 @@ class GraphService {
 
     def getNodeProperty(graphId: String, identifier: String, property: String): Future[Property] = {
         SearchAsyncOperations.getNodeProperty(graphId, identifier, property)
+    }
+
+    def updateNodes(graphId: String, identifiers:util.List[String], metadata:util.Map[String,AnyRef]):Future[util.Map[String, Node]] = {
+        NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
     }
 }
