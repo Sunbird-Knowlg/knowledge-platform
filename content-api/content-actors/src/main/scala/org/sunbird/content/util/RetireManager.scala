@@ -30,69 +30,59 @@ object RetireManager {
     def retire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
         getNodeToRetire(request).flatMap(node => {
+            val updateMetadataMap = Map(ContentConstants.STATUS -> "Retired", HierarchyConstants.LAST_UPDATED_ON -> DateUtils.formatCurrentDate, HierarchyConstants.LAST_STATUS_CHANGED_ON -> DateUtils.formatCurrentDate)
             val futureList = Task.parallel[Response](
-                handleCollectionToRetire(node, request),
-                updateNodesToRetire(request))
+                handleCollectionToRetire(node, request, updateMetadataMap),
+                updateNodesToRetire(request, updateMetadataMap))
             futureList.map(f => {
                 val response = ResponseHandler.OK()
-                response.put("identifier", request.get("identifier"))
-                response.put("node_id", request.get("identifier"))
+                response.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
+                response.put("node_id", request.get(ContentConstants.IDENTIFIER))
             })
         })
     }
 
     private def getNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = DataNode.read(request).map(node => {
-        if (StringUtils.equalsIgnoreCase("Retired", node.getMetadata.get("status").asInstanceOf[String]))
-            throw new ClientException("ERR_CONTENT_RETIRE", "Content with Identifier " + node.getIdentifier + " is already Retired.")
+        if (StringUtils.equalsIgnoreCase("Retired", node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String]))
+            throw new ClientException(ContentConstants.ERR_CONTENT_RETIRE, "Content with Identifier " + node.getIdentifier + " is already Retired.")
         node
     })
 
     private def validateRequest(request: Request) = {
-        val contentId: String = request.get("identifier").asInstanceOf[String]
-        if (StringUtils.isBlank(contentId) || StringUtils.endsWithIgnoreCase(contentId, HierarchyConstants.IMAGE_SUFFIX)) {
-            throw new ClientException("ERR_INVALID_CONTENT_ID", "Please Provide Valid Content Identifier.")
-        }
+        val contentId: String = request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
+        if (StringUtils.isBlank(contentId) || StringUtils.endsWithIgnoreCase(contentId, HierarchyConstants.IMAGE_SUFFIX))
+            throw new ClientException(ContentConstants.ERR_INVALID_CONTENT_ID, "Please Provide Valid Content Identifier.")
     }
 
-    private def updateNodesToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-        RedisCache.delete(request.get("identifier").asInstanceOf[String])
+    private def updateNodesToRetire(request: Request, updateMetadataMap: Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+        RedisCache.delete(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
         val updateReq = new Request(request)
-        updateReq.put("identifiers", java.util.Arrays.asList(request.get("identifier").asInstanceOf[String], request.get("identifier").asInstanceOf[String] + HierarchyConstants.IMAGE_SUFFIX))
-        updateReq.put("metadata", new util.HashMap[String, AnyRef]() {
-            {
-                put(HierarchyConstants.STATUS, "Retired")
-                put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
-                put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
-            }
-        })
+        updateReq.put(ContentConstants.IDENTIFIERS, java.util.Arrays.asList(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String], request.get(ContentConstants.IDENTIFIER).asInstanceOf[String] + HierarchyConstants.IMAGE_SUFFIX))
+        updateReq.put(ContentConstants.METADATA, updateMetadataMap)
         DataNode.bulkUpdate(updateReq).map(node => ResponseHandler.OK())
     }
 
 
-    private def handleCollectionToRetire(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-        if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.content-collection", node.getMetadata.get("mimeType").asInstanceOf[String]) && finalStatus.contains(node.getMetadata.get("status"))) {
+    private def handleCollectionToRetire(node: Node, request: Request, updateMetadataMap: Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+        if (StringUtils.equalsIgnoreCase(ContentConstants.COLLECTION_MIME_TYPE, node.getMetadata.get(ContentConstants.MIME_TYPE).asInstanceOf[String]) && finalStatus.contains(node.getMetadata.get(ContentConstants.STATUS))) {
             RedisCache.delete("hierarchy_" + node.getIdentifier)
             val req = new Request(request)
-            req.getContext.put("schemaName", "collection")
-            req.put("identifier", request.get("identifier"))
-            ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
+            req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
+            req.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
+            ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).flatMap(resp => {
                 val hierarchyString = resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
                 if (StringUtils.isNotBlank(hierarchyString)) {
                     val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
                     val childIds = getChildrenIdentifiers(hierarchyMap)
-                    //TODO : Implement Delete Units from Elastic Search
                     if (CollectionUtils.isNotEmpty(childIds)) {
                         val topicName = Platform.getString("kafka.topics.graph.event", "sunbirddev.learning.graph.events")
                         childIds.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
                         RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
                     }
-                    hierarchyMap.put("status", "Retired")
-                    hierarchyMap.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
-                    hierarchyMap.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
-                    req.put("hierarchy", ScalaJsonUtils.serialize(hierarchyMap))
+                    hierarchyMap.putAll(updateMetadataMap)
+                    req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(hierarchyMap))
                     ExternalPropsManager.saveProps(req)
-                }
-                ResponseHandler.OK()
+                } else Future(ResponseHandler.OK())
             }) recover { case e: ResourceNotFoundException =>
                 TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + node.getIdentifier)
                 throw new ServerException("ERR_CONTENT_RETIRE", "Unable to fetch Hierarchy for Root Node: [" + node.getIdentifier + "]")
@@ -115,6 +105,6 @@ object RetireManager {
         }
     }
 
-    private def getLearningGraphEvent(request: Request, id: String): Map[String, Any] = Map("ets" -> System.currentTimeMillis(), "channel" -> "in.ekstep", "mid" -> UUID.randomUUID.toString, "nodeType" -> "DATA_NODE", "userId" -> "Ekstep", "createdOn" -> DateUtils.format(new Date()), "objectType" -> "Content", "nodeUniqueId" -> id, "operationType" -> "DELETE", "graphId" -> request.getContext.get("graph_id"))
+    private def getLearningGraphEvent(request: Request, id: String): Map[String, Any] = Map("ets" -> System.currentTimeMillis(), "channel" -> request.getContext.get(ContentConstants.CHANNEL), "mid" -> UUID.randomUUID.toString, "nodeType" -> "DATA_NODE", "userId" -> "Ekstep", "createdOn" -> DateUtils.format(new Date()), "objectType" -> "Content", "nodeUniqueId" -> id, "operationType" -> "DELETE", "graphId" -> request.getContext.get("graph_id"))
 
 }

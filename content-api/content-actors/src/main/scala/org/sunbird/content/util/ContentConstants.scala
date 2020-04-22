@@ -39,4 +39,7 @@ object ContentConstants {
     val COLLECTION_SCHEMA_NAME: String = "collection"
     val IDENTIFIERS: String = "identifiers"
     val PACKAGE_VERSION: String = "pkgVersion"
+    val CHANNEL: String = "channel"
+    val ERR_CONTENT_RETIRE: String = "ERR_CONTENT_RETIRE"
+
 }
