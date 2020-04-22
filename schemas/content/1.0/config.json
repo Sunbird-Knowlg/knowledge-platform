@@ -26,7 +26,10 @@
             },
             "last_updated_on": {
                 "type": "timestamp"
-            }
+            },
+            "externallink": {
+                "type": "text"
+            },
         },
         "primaryKey": ["content_id"]
     },
