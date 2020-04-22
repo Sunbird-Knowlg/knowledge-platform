@@ -29,7 +29,7 @@
             },
             "externallink": {
                 "type": "text"
-            },
+            }
         },
         "primaryKey": ["content_id"]
     },
