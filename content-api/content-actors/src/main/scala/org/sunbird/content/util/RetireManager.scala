@@ -33,7 +33,7 @@ object RetireManager {
             val updateMetadataMap = Map(ContentConstants.STATUS -> "Retired", HierarchyConstants.LAST_UPDATED_ON -> DateUtils.formatCurrentDate, HierarchyConstants.LAST_STATUS_CHANGED_ON -> DateUtils.formatCurrentDate)
             val futureList = Task.parallel[Response](
                 handleCollectionToRetire(node, request, updateMetadataMap),
-                updateNodesToRetire(request, updateMetadataMap))
+                updateNodesToRetire(request, mapAsJavaMap[String,AnyRef](updateMetadataMap)))
             futureList.map(f => {
                 val response = ResponseHandler.OK()
                 response.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
@@ -54,7 +54,7 @@ object RetireManager {
             throw new ClientException(ContentConstants.ERR_INVALID_CONTENT_ID, "Please Provide Valid Content Identifier.")
     }
 
-    private def updateNodesToRetire(request: Request, updateMetadataMap: Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+    private def updateNodesToRetire(request: Request, updateMetadataMap: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         RedisCache.delete(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
         val updateReq = new Request(request)
         updateReq.put(ContentConstants.IDENTIFIERS, java.util.Arrays.asList(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String], request.get(ContentConstants.IDENTIFIER).asInstanceOf[String] + HierarchyConstants.IMAGE_SUFFIX))
