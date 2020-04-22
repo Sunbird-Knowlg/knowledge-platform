@@ -41,5 +41,5 @@ object ContentConstants {
     val PACKAGE_VERSION: String = "pkgVersion"
     val CHANNEL: String = "channel"
     val ERR_CONTENT_RETIRE: String = "ERR_CONTENT_RETIRE"
-
+    val ARTIFACT_BASE_PATH: String = "artifactBasePath"
 }

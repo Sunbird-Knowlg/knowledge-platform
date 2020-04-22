@@ -29,6 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object CopyManager {
+    implicit val oec: OntologyEngineContext = new OntologyEngineContext
     private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
     private val metadataNotTobeCopied = Platform.config.getStringList("content.copy.props_to_remove")
     private val invalidStatusList: util.List[String] = Platform.getStringList("content.copy.invalid_statusList", new util.ArrayList[String]())
@@ -268,8 +269,8 @@ object CopyManager {
                 if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
                     mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
                 else
-                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file)
-            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String])
+                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None)
+            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None)
             uploadFuture.map(uploadData => {
                 DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]))
             }).flatMap(f => f)

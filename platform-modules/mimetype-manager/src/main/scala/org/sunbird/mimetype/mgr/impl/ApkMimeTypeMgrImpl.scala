@@ -10,15 +10,15 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ApkMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
-	override def upload(objectId: String, node: Node, uploadFile: File)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
-		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId)
+		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		Future {
 			Map("identifier" -> objectId, "artifactUrl" -> result(1), "downloadUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0), "size" -> getCloudStoredFileSize(result(0)).asInstanceOf[AnyRef])
 		}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file = copyURLToFile(objectId, fileUrl)
 		Future {

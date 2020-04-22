@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
@@ -17,6 +18,8 @@ import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.kafka.client.KafkaClient
 
+import scala.collection.Map
+
 object UploadManager {
 
 	private val MEDIA_TYPE_LIST = List("image", "video")
@@ -26,13 +29,18 @@ object UploadManager {
 		val identifier: String = node.getIdentifier
 		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
 		val file = request.getRequest.get("file").asInstanceOf[File]
+		val reqFilePath: String = request.getRequest.getOrDefault("filePath", "").asInstanceOf[String].replaceAll("^/+|/+$", "")
+		val filePath = if(StringUtils.isBlank(reqFilePath)) None else Option(reqFilePath)
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
 		val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
 		val mediaType = node.getMetadata.getOrDefault("mediaType", "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
-		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl) else mgr.upload(identifier, node, file)
+		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
 		uploadFuture.map(result => {
-			updateNode(request, node.getIdentifier, mediaType, contentType, result)
+			if(filePath.isDefined)
+				updateNode(request, node.getIdentifier, mediaType, contentType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))
+			else
+				updateNode(request, node.getIdentifier, mediaType, contentType, result)
 		}).flatMap(f => f)
 	}
 
