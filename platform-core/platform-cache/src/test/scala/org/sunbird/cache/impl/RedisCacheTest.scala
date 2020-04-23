@@ -123,7 +123,7 @@ class RedisCacheTest extends AsyncFlatSpec with Matchers with BeforeAndAfterAll 
 	}
 
 	"getAsync with key not having data in cache" should "return Future[String] from handler" in {
-		val future: Future[String] = RedisCache.getAsync("kptest-113", (key: String) => Future("sample-data-handler"), 2)
+		val future: Future[String] = RedisCache.getAsync("kptest-113",2, Option((key: AnyRef) => Future("sample-data-handler")))
 		future map { result => {
 			assert(null != result)
 			result shouldEqual "sample-data-handler"
@@ -133,7 +133,7 @@ class RedisCacheTest extends AsyncFlatSpec with Matchers with BeforeAndAfterAll 
 
 	"getAsync with key having data in cache" should "return Future[String] from cache" in {
 		RedisCache.set("kptest-114", "sample-cache-data")
-		val future: Future[String] = RedisCache.getAsync("kptest-114", (key: String) => Future("sample-data-handler"), 2)
+		val future: Future[String] = RedisCache.getAsync("kptest-114", 2, Option((key: AnyRef) => Future("sample-data-handler")))
 		future map { result => {
 			assert(null != result)
 			result shouldEqual "sample-cache-data"

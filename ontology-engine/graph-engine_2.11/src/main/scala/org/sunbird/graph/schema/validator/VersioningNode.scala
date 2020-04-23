@@ -124,7 +124,7 @@ trait VersioningNode extends IDefinition {
     }
 
     def getCachedNode(identifier: String, ttl: Integer)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
+        val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, ttl, Option(nodeCacheAsyncHandler))
         nodeStringFuture.map(nodeString => {
             if (null != nodeString && !nodeString.asInstanceOf[String].isEmpty) {
                 val nodeMap: util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
@@ -137,8 +137,8 @@ trait VersioningNode extends IDefinition {
         }).flatMap(f => f)
     }
 
-    private def nodeCacheAsyncHandler(objKey: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[String] = {
-        super.getNode(objKey, "read", null).map(node => {
+    private def nodeCacheAsyncHandler(objKey: AnyRef)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+        super.getNode(objKey.asInstanceOf[String], "read", null).map(node => {
             if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
                 val nodeMap = NodeUtil.serialize(node, null, getSchemaName(), getSchemaVersion())
                 Future(ScalaJsonUtils.serialize(nodeMap))

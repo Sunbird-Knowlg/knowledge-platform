@@ -42,7 +42,8 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
         val headers = commonHeaders()
         val readFramework = new java.util.HashMap().asInstanceOf[java.util.Map[String, AnyRef]]
         readFramework.putAll(headers)
-        readFramework.putAll(Map("identifier" -> identifier,"categories" ->categories.getOrElse("")).asInstanceOf[Map[String, AnyRef]])
+        val requestedCategories = if(categories.isDefined) categories.get.split(",").toList  else List()
+        readFramework.putAll(Map("identifier" -> identifier,"categories" -> requestedCategories))
         val readRequest = getRequest(readFramework, headers, "readFramework")
         setRequestContext(readRequest, version, objectType, schemaName)
         getResult(ApiId.READ_FRAMEWORK, frameworkActor, readRequest)

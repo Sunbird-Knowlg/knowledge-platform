@@ -1,5 +1,14 @@
 {
   "objectType": "Framework",
+  "external": {
+    "tableName": "framework_hierarchy",
+    "properties": {
+      "hierarchy": {
+        "type": "string"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
   "relations": {
     "channels": {
       "type": "hasSequenceMember",
