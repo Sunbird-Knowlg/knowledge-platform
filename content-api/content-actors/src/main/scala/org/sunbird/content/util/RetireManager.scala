@@ -73,12 +73,7 @@ object RetireManager {
                 val hierarchyString = resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
                 if (StringUtils.isNotBlank(hierarchyString)) {
                     val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
-                    val childIds = getChildrenIdentifiers(hierarchyMap)
-                    if (CollectionUtils.isNotEmpty(childIds)) {
-                        val topicName = Platform.getString("kafka.topics.graph.event", "sunbirddev.learning.graph.events")
-                        childIds.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
-                        RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
-                    }
+                    handleChildrenForRetire(request, hierarchyMap)
                     hierarchyMap.putAll(updateMetadataMap)
                     req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(hierarchyMap))
                     ExternalPropsManager.saveProps(req)
@@ -88,6 +83,15 @@ object RetireManager {
                 throw new ServerException("ERR_CONTENT_RETIRE", "Unable to fetch Hierarchy for Root Node: [" + node.getIdentifier + "]")
             }
         } else Future(ResponseHandler.OK())
+    }
+
+    private def handleChildrenForRetire(request: Request, hierarchyMap: util.HashMap[String, AnyRef]): Unit = {
+        val childIds = getChildrenIdentifiers(hierarchyMap)
+        if (CollectionUtils.isNotEmpty(childIds)) {
+            val topicName = Platform.getString("kafka.topics.graph.event", "sunbirddev.learning.graph.events")
+            childIds.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
+            RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
+        }
     }
 
     private def getChildrenIdentifiers(hierarchyMap: util.HashMap[String, AnyRef]): util.List[String] = {
