@@ -82,6 +82,17 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
+    it should "return client error response for retireContent" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234.img")
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234.img")))
+        request.setOperation("retireContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    }
+
     private def getContentRequest(): Request = {
         val request = new Request()
         request.setContext(new util.HashMap[String, AnyRef]() {
@@ -128,6 +139,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         })
         node
     }
+
     it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -137,8 +149,8 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getContext.put("identifier","domain")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "domain")))
+        request.getContext.put("identifier","do1234")
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
         request.setOperation("retireContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
