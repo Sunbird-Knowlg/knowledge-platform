@@ -40,7 +40,7 @@ object AcceptFlagManager {
     }).flatMap(f => f)
   }
 
-  protected def createOrUpdateImageNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+  private def createOrUpdateImageNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val req: Request = new Request(request)
     req.put(ContentConstants.STATUS, ContentConstants.FLAG_DRAFT)
     req.put(ContentConstants.IDENTIFIER, node.getIdentifier)
@@ -49,7 +49,7 @@ object AcceptFlagManager {
     })
   }
 
-  protected def updateOriginalNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  private def updateOriginalNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     val currentDate = DateUtils.formatCurrentDate
     request.put(ContentConstants.STATUS, ContentConstants.RETIRED)
     request.put(ContentConstants.LAST_STATUS_CHANGED_ON, currentDate)
@@ -72,19 +72,22 @@ object AcceptFlagManager {
             }
           })
           request.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
-          DataNode.update(request).map(updatedOriginalNode => {
-            RedisCache.delete(ContentConstants.HIERARCHY_PREFIX + request.get(ContentConstants.IDENTIFIER))
-            ResponseHandler.OK()
-          })
+          RedisCache.delete(ContentConstants.HIERARCHY_PREFIX + request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
+          updateNode(request)
         } else {
           Future(hierarchyResponse)
         }
       }).flatMap(f => f)
     } else {
-      DataNode.update(request).map(updatedOriginalNode => {
-        ResponseHandler.OK()
-      })
+      updateNode(request)
     }
+  }
+
+  private def updateNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+    DataNode.update(request).map(updatedOriginalNode => {
+      RedisCache.delete(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
+      ResponseHandler.OK()
+    })
   }
 
 }
