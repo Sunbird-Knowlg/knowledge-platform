@@ -3,6 +3,7 @@ package org.sunbird.cache.impl
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.cache.util.RedisConnector
+import org.sunbird.common.dto.Request
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,7 +61,7 @@ object RedisCache extends RedisConnector {
 		} finally returnConnection(jedis)
 	}
 
-	/**
+	/*/**
 	 * This Method Returns Future[String] for given key
 	 *
 	 * @param key
@@ -87,8 +88,42 @@ object RedisCache extends RedisConnector {
 				logger.error("Exception Occurred While Fetching String Data from Redis Cache for Key : " + key + "| Exception is:", e)
 				throw e
 		} finally returnConnection(jedis)
-	}
+	}*/
 
+    /**
+     * This Method Returns Future[String] for given key
+     *
+     * @param key
+     * @param asyncHandler
+     * @param ttl
+     * @param ec
+     * @return Future[String]
+     */
+    def getAsync(key: String, ttl: Int = 0, asyncHandler: Option[(AnyRef) => Future[String]] = None, request: Option[Request] = None)(implicit ec: ExecutionContext): Future[String] = {
+        val jedis = getConnection
+        try {
+            val data = jedis.get(key)
+            if((null == data || data.isEmpty) && asyncHandler.isDefined) {
+				val dataFuture: Future[String] = {
+					if (request.isDefined) {
+						asyncHandler.get(request.get)
+					} else 
+						asyncHandler.get(key)
+				}
+                dataFuture.map(value => {
+                    if (null != value && !value.isEmpty)
+                        set(key, value, ttl)
+                    value
+                })
+            } else Future{data}
+        }
+        catch {
+            case e: Exception =>
+                logger.error("Exception Occurred While Fetching String Data from Redis Cache for Key : " + key + "| Exception is:", e)
+                throw e
+        } finally returnConnection(jedis)
+    }
+    
 	/**
 	 * This method increment the value by 1 into cache for given key and returns the new value
 	 *
