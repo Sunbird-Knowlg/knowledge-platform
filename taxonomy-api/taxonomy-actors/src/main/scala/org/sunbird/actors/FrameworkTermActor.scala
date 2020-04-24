@@ -17,7 +17,7 @@ import org.sunbird.manager.BaseTaxonomyActor
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseTaxonomyActor{
+class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseTaxonomyActor {
 
     override def onReceive(request: Request): Future[Response] = request.getOperation match {
         case "createTerm" => create(request)
@@ -25,12 +25,12 @@ class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends 
         case "updateTerm" => update(request)
         case _ => ERROR(request.getOperation)
     }
-    
+
     private val TERM_CREATION_LIMIT = {
         if (Platform.config.hasPath("framework.max_term_creation_limit")) Platform.config.getInt("framework.max_term_creation_limit")
         else 200
     }
-    
+
     @SuppressWarnings(Array("unchecked"))
     private def create(request: Request): Future[Response] = {
         val requestList: util.List[util.Map[String, AnyRef]] = getRequestData(request)
@@ -51,7 +51,7 @@ class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends 
             }
         })
     }
-    
+
     private def getTermList(requestList: util.List[util.Map[String, AnyRef]], request: Request, responseList:util.List[util.List[String]])(implicit ec : ExecutionContext)= {
         var categoryId: String = request.get("categoryId").asInstanceOf[String]
         val scopeId: String = request.get("frameworkId").asInstanceOf[String]
@@ -84,7 +84,6 @@ class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends 
                     val response = resp.asInstanceOf[Future[Response]]
                     futureList += response
                     Future.sequence(futureList.toList)
-
                 })
             }
             else {
@@ -100,7 +99,7 @@ class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends 
             id = Slug.makeSlug(scopeId + "_" + code)
         id
     }
-    
+
     private def validateRequest(scopeId: String, categoryId: String, request: Request) = {
         var valid: Boolean = false
         val originalCategory: String = request.get("categoryId").asInstanceOf[String]
@@ -127,7 +126,7 @@ class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends 
         }
         else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide required fields. category framework should not be empty.")
     }
-    
+
     private def validateCategoryNode(request: Request) = {
         val categoryId: String = request.get("categoryId").asInstanceOf[String]
         if (StringUtils.isNotBlank(categoryId)) {
@@ -186,7 +185,7 @@ class FrameworkTermActor @Inject()(implicit oec: OntologyEngineContext) extends 
             }
         })
     }
-    
+
     def retire(request: Request):Future[Response] = {
         var newCategoryId = request.get("categoryId").asInstanceOf[String]
         val scopeId = request.get("frameworkId").asInstanceOf[String]

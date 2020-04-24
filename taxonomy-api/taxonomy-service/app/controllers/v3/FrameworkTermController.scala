@@ -10,7 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.common.dto.ResponseHandler
 import utils.{ActorNames, ApiId, JavaJsonUtils}
 @Singleton
-class FrameworkTermController @Inject()(@Named(ActorNames.FRAMEWORK_TERM_ACTOR) termCategoryActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext)  extends BaseController(cc) {
+class FrameworkTermController @Inject()(@Named(ActorNames.FRAMEWORK_TERM_ACTOR) frameworkTermActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext)  extends BaseController(cc) {
 
     val objectType = "Term"
     val schemaName: String = "term"
@@ -24,7 +24,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.FRAMEWORK_TERM_ACTOR) 
         term.putAll(Map("frameworkId" -> identifier, "categoryId" -> category).asInstanceOf[Map[String, Object]])
         val termRequest = getRequest(term, headers, "createTerm")
         setRequestContext(termRequest, version, objectType, schemaName)
-        getResult(ApiId.CREATE_FRAMEWORK_TERM, termCategoryActor, termRequest)
+        getResult(ApiId.CREATE_FRAMEWORK_TERM, frameworkTermActor, termRequest)
     }
 
     def read(identifier: String, category: String) = Action.async { implicit request =>
@@ -41,7 +41,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.FRAMEWORK_TERM_ACTOR) 
         term.putAll(Map("termId"-> identifier,"frameworkId" -> framework, "categoryId" -> category).asInstanceOf[Map[String, Object]])
         val termRequest = getRequest(term, headers, "updateTerm")
         setRequestContext(termRequest, version, objectType, schemaName)
-        getResult(ApiId.UPDATE_FRAMEWORK_TERM, termCategoryActor, termRequest)
+        getResult(ApiId.UPDATE_FRAMEWORK_TERM, frameworkTermActor, termRequest)
     }
 
     def search(category: String) = Action.async { implicit request =>
@@ -57,7 +57,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.FRAMEWORK_TERM_ACTOR) 
         term.putAll(Map("termId" -> identifier, "frameworkId" -> framework, "categoryId" -> category).asInstanceOf[Map[String, Object]])
         val retiretermRequest = getRequest(term, headers, "retireTerm")
         setRequestContext(retiretermRequest, version, objectType, schemaName)
-        getResult(ApiId.RETIRE_FRAMEWORK_TERM, termCategoryActor, retiretermRequest)
+        getResult(ApiId.RETIRE_FRAMEWORK_TERM, frameworkTermActor, retiretermRequest)
     }
 
 }
