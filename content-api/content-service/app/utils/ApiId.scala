@@ -34,6 +34,6 @@ object ApiId {
 	val LIST_CHANNEL = "api.channel.list"
 	val RETIRE_CHANNEL = "api.channel.retire"
 
-
+	val RELEASE_DIALCODE = "api.content.dialcode.release"
 
 }
