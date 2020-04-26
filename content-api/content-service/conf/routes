@@ -2,6 +2,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 GET		  /health						    controllers.HealthController.health
+GET       /service/health                   controllers.HealthController.serviceHealth
 
 POST      /content/v3/create                controllers.v3.ContentController.create
 PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.update(identifier:String)
