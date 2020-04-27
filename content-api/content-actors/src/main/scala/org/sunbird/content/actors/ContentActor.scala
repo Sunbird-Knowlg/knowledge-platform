@@ -9,7 +9,7 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{CopyManager, FlagManager, DiscardManager}
+import org.sunbird.content.util.{CopyManager, FlagManager, DiscardManager, AcceptFlagManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -37,6 +37,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case "discardContent" => discard(request)
 			case "flagContent" => flag(request)
+			case "acceptFlag" => acceptFlag(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -120,6 +121,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def flag(request: Request): Future[Response] = {
 		FlagManager.flag(request)
+	}
+
+	def acceptFlag(request: Request): Future[Response] = {
+		AcceptFlagManager.acceptFlag(request)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
