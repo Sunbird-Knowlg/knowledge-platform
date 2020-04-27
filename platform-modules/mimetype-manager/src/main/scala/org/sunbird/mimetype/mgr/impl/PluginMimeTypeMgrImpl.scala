@@ -54,7 +54,7 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 				if(targets.isInstanceOf[String]) JsonUtils.deserialize(targets.asInstanceOf[String], classOf[java.util.List[Object]])
 				else targets.asInstanceOf[List[AnyRef]].asJava.asInstanceOf[java.util.List[Object]]
 			}
-			Map[String, AnyRef]("version" -> version, "targets" -> targetList)
+			Map[String, AnyRef]("semanticVersion" -> version, "targets" -> targetList)
 		}else Map[String, AnyRef]()
 	}
 }
