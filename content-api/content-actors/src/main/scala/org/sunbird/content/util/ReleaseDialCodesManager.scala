@@ -24,27 +24,27 @@ object ReleaseDialCodesManager {
     if (StringUtils.isEmpty(request.get(ContentConstants.CHANNEL).asInstanceOf[String])) {
       Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ContentConstants.ERR_CHANNEL_BLANK_OBJECT, "Channel can not be blank or null"))
     }
-
     request.put(ContentConstants.ROOT_ID, request.get(ContentConstants.IDENTIFIER))
     request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
-    val assignedDialCodes = new util.HashSet[String]()
-    val hierarchyResponse = getHierarchy(request, assignedDialCodes)
-
+    val hierarchyResponse = getHierarchy(request)
     hierarchyResponse.map(hierarchyResponse => {
       val hierarchy = hierarchyResponse.getResult.get(ContentConstants.CONTENT).asInstanceOf[util.Map[String, AnyRef]]
       validateRequest(hierarchy, request.get(ContentConstants.CHANNEL).asInstanceOf[String])
-
+      val assignedDialCodes = new util.HashSet[String]()
+      if(ContentConstants.VALID_STATUS.contains(hierarchy.get(ContentConstants.STATUS))){
+        assignedDialCodes.addAll(getDialCodes(hierarchy, ContentConstants.PARENT))
+        populateAssignedDialCodeOfHierarchyImg(request, assignedDialCodes)
+      }
+      getAssignedDialCodesFromImgNode(request, assignedDialCodes)
       val releasedDialCodes = new util.HashSet[String]()
       val updatedMap = getUpdatedMap(request, hierarchy, assignedDialCodes, releasedDialCodes)
       getResponse(request, updatedMap, releasedDialCodes, hierarchy)
     }).flatMap(f => f)
   }
 
-  private def getHierarchy(request: Request, assignedDialCodes: util.Set[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  private def getHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     HierarchyManager.getHierarchy(request).map(hierarchyResponse => {
       if (!ResponseHandler.checkError(hierarchyResponse)) {
-        populateAssignedDialCodeOfHierarchyImg(request, assignedDialCodes)
-        getAssignedDialCodesFromImageNode(request, assignedDialCodes)
         Future(hierarchyResponse)
       } else {
         request.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
@@ -63,6 +63,7 @@ object ReleaseDialCodesManager {
   private def validateRequest(hierarchy: util.Map[String, AnyRef], channelId: String)(implicit ec: ExecutionContext): Unit = {
     validateContentForReservedDialCodes(hierarchy)
     validateChannel(hierarchy, channelId)
+    validateIsNodeRetired(hierarchy)
   }
 
   private def validateContentForReservedDialCodes(hierarchy: util.Map[String, AnyRef]) = {
@@ -75,9 +76,14 @@ object ReleaseDialCodesManager {
   }
 
   private def validateChannel(hierarchy: util.Map[String, AnyRef], channelId: String) = {
-    if (!StringUtils.equals(hierarchy.get(ContentConstants.CHANNEL).asInstanceOf[String], channelId)) {
+    if (!StringUtils.equals(hierarchy.getOrDefault(ContentConstants.CHANNEL, "").asInstanceOf[String], channelId)) {
       throw new ClientException(ContentConstants.ERR_CONTENT_INVALID_CHANNEL, "Invalid Channel Id.")
     }
+  }
+
+  private def validateIsNodeRetired(hierarchy: util.Map[String, AnyRef]) = {
+    if (StringUtils.equals(hierarchy.get(ContentConstants.STATUS).asInstanceOf[String], ContentConstants.STATUS_RETIRED))
+      throw new ResourceNotFoundException(ContentConstants.ERR_CONTENT_NOT_FOUND, "Error! Content not found with id: " + hierarchy.get(ContentConstants.IDENTIFIER))
   }
 
   private def getUpdatedMap(request: Request, hierarchy: util.Map[String, AnyRef], assignedDialCodes: util.Set[String], releasedDialCodes: util.Set[String]): util.HashMap[String, AnyRef] = {
@@ -85,15 +91,12 @@ object ReleaseDialCodesManager {
     if (MapUtils.isEmpty(reservedDialCodeMap)) {
       throw new ClientException(ContentConstants.ERR_NO_RESERVED_DIALCODES, "Error! No DIAL Codes are Reserved for content: " + request.get(ContentConstants.IDENTIFIER))
     }
-
     getAssignedDialCodes(hierarchy.getOrDefault(ContentConstants.CHILDREN, new util.ArrayList[AnyRef]).asInstanceOf[util.List[util.Map[String, AnyRef]]], assignedDialCodes, ContentConstants.DEFAULT)
-
     releasedDialCodes.addAll(getReleasedDialCodes(reservedDialCodeMap, assignedDialCodes))
     if (CollectionUtils.isEmpty(releasedDialCodes)) {
       throw new ClientException(ContentConstants.ERR_ALL_DIALCODES_UTILIZED, "Error! All Reserved DIAL Codes are Utilized.")
     }
     releasedDialCodes.foreach(dialCode => reservedDialCodeMap.remove(dialCode))
-
     val updatedMap = new util.HashMap[String, AnyRef]()
     if (MapUtils.isEmpty(reservedDialCodeMap)) {
       updatedMap.put(ContentConstants.RESERVED_DIALCODES, null)
@@ -148,7 +151,7 @@ object ReleaseDialCodesManager {
     }
   }
 
-  private def getAssignedDialCodesFromImageNode(request: Request, assignedDialCodes: util.Set[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
+  private def getAssignedDialCodesFromImgNode(request: Request, assignedDialCodes: util.Set[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
     request.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
     DataNode.read(request).map(imgNode => {
       assignedDialCodes.addAll(getDialCodes(imgNode.getMetadata, ContentConstants.PARENT))
@@ -179,10 +182,10 @@ object ReleaseDialCodesManager {
           RedisCache.delete(ContentConstants.HIERARCHY_PREFIX + request.get(ContentConstants.IDENTIFIER))
           RedisCache.delete(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
           val response = ResponseHandler.OK()
-          response.put(ContentConstants.COUNT, releasedDialCodes.size())
-          response.put(ContentConstants.RELEASED_DIALCODES, releasedDialCodes)
-          response.put(ContentConstants.NODE_ID, request.get(ContentConstants.IDENTIFIER))
           response.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
+          response.put(ContentConstants.NODE_ID, request.get(ContentConstants.IDENTIFIER))
+          response.put(ContentConstants.RELEASED_DIALCODES, releasedDialCodes)
+          response.put(ContentConstants.COUNT, releasedDialCodes.size())
           response
         } else {
           hierarchyResponse

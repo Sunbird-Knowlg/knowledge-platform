@@ -57,4 +57,6 @@ object ContentConstants {
     val COUNT: String = "count"
     val RELEASED_DIALCODES: String = "releasedDialcodes"
     val NODE_ID: String = "node_id"
+    val VALID_STATUS: List[String] = List("Live", "Unlisted")
+    val STATUS_RETIRED: String = "Retired"
 }
