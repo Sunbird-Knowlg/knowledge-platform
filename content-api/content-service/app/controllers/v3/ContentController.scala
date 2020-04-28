@@ -165,11 +165,15 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(discardRequest, version, objectType, schemaName)
         getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest)
     }
-
     def retire(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.put("identifier", identifier)
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "retireContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.RETIRE_CONTENT, contentActor, contentRequest)
     }
 
     def linkDialCode() = Action.async { implicit request =>

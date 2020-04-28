@@ -9,11 +9,11 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{CopyManager, FlagManager, DiscardManager, AcceptFlagManager}
+import org.sunbird.content.util.{CopyManager, DiscardManager, FlagManager, RetireManager, AcceptFlagManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
@@ -33,6 +33,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case "discardContent" => discard(request)
@@ -114,6 +115,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
 
+	def retire(request: Request): Future[Response] = {
+		RetireManager.retire(request)
+	}
 	def discard(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		DiscardManager.discard(request)

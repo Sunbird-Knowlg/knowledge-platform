@@ -1,9 +1,12 @@
 package org.sunbird.graph
 
+import java.util
+import java.util.concurrent.CompletionException
+import java.util.HashMap
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
-
+import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
 class GraphService {
@@ -31,4 +34,8 @@ class GraphService {
     def getNodeProperty(graphId: String, identifier: String, property: String): Future[Property] = {
         SearchAsyncOperations.getNodeProperty(graphId, identifier, property)
     }
+    def updateNodes(graphId: String, identifiers:util.List[String], metadata:util.Map[String,AnyRef]):Future[util.Map[String, Node]] = {
+        NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
+    }
+
 }
