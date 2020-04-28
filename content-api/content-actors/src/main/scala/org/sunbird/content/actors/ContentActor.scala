@@ -9,19 +9,16 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.cloud.storage.util.JSONUtils
-import org.sunbird.content.util.{CopyManager, DiscardManager, FlagManager, RetireManager}
+import org.sunbird.content.util.{CopyManager, DiscardManager, FlagManager, RetireManager, AcceptFlagManager}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, DateUtils, Platform, Slug}
+import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.utils.HierarchyConstants
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,6 +38,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case "discardContent" => discard(request)
 			case "flagContent" => flag(request)
+			case "acceptFlag" => acceptFlag(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -127,6 +125,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def flag(request: Request): Future[Response] = {
 		FlagManager.flag(request)
+	}
+
+	def acceptFlag(request: Request): Future[Response] = {
+		AcceptFlagManager.acceptFlag(request)
 	}
 
 	def populateDefaultersForCreation(request: Request) = {
