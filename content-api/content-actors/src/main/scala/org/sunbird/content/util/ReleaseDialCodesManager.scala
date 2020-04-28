@@ -82,7 +82,7 @@ object ReleaseDialCodesManager {
   }
 
   private def validateIsNodeRetired(hierarchy: util.Map[String, AnyRef]) = {
-    if (StringUtils.equals(hierarchy.get(ContentConstants.STATUS).asInstanceOf[String], ContentConstants.STATUS_RETIRED))
+    if (StringUtils.equals(hierarchy.get(ContentConstants.STATUS).asInstanceOf[String], ContentConstants.RETIRED))
       throw new ResourceNotFoundException(ContentConstants.ERR_CONTENT_NOT_FOUND, "Error! Content not found with id: " + hierarchy.get(ContentConstants.IDENTIFIER))
   }
 
