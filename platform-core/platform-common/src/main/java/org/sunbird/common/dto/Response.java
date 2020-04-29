@@ -31,8 +31,9 @@ public class Response implements Serializable {
         return id;
     }
 
-    public void setId(String id) {
+    public Response setId(String id) {
         this.id = id;
+        return this;
     }
 
     public String getVer() {
