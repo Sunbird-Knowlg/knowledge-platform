@@ -15,12 +15,14 @@ object ApiId {
 	val DISCARD_CONTENT = "api.content.discard"
 	val FlAG_CONTENT = "api.content.flag"
 	val ACCEPT_FLAG = "api.content.flag.accept"
+	val LINK_DIAL_CONTENT = "api.content.dialcode.link"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
 	val REMOVE_HIERARCHY = "api.content.hierarchy.remove"
 	val UPDATE_HIERARCHY = "api.content.hierarchy.update"
 	val GET_HIERARCHY = "api.content.hierarchy.get"
+	val LINK_DIAL_COLLECTION = "api.collection.dialcode.link"
 
 	//License APIs
 	val CREATE_LICENSE = "api.license.create"
