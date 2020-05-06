@@ -2,6 +2,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 GET		  /health						    controllers.HealthController.health
+GET       /service/health                   controllers.HealthController.serviceHealth
 
 # ItemSet API's
 POST      /itemset/v3/create                controllers.v3.ItemSetController.create
