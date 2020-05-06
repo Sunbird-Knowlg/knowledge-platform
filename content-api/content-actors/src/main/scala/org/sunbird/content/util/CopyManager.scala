@@ -19,6 +19,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
@@ -37,8 +38,6 @@ object CopyManager {
     private val originMetadataKeys: util.List[String] = Platform.getStringList("content.copy.origin_data", new util.ArrayList[String]())
     private val internalHierarchyProps = List("identifier", "parent", "index", "depth")
     private val restrictedMimeTypesForUpload = List("application/vnd.ekstep.ecml-archive","application/vnd.ekstep.content-collection")
-    val collSchemaName: String = "collection"
-    val version = "1.0"
 
     implicit val ss: StorageService = new StorageService
 
@@ -80,8 +79,8 @@ object CopyManager {
         val copyType = request.getRequest.get(ContentConstants.COPY_TYPE).asInstanceOf[String]
         copyContent(originNode, request).map(node => {
             val req = new Request(request)
-            req.getContext.put("schemaName", collSchemaName)
-            req.getContext.put("version", version)
+            req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
+            req.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
             req.put(ContentConstants.ROOT_ID, request.get(ContentConstants.IDENTIFIER))
             req.put(ContentConstants.MODE, request.get(ContentConstants.MODE))
             HierarchyManager.getHierarchy(req).map(response => {
@@ -95,19 +94,19 @@ object CopyManager {
     }
 
     def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
-        val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node, copyType)
+        val updateHierarchyRequest = prepareHierarchyRequest(originHierarchy, originNode, node, copyType, request)
         val hierarchyRequest = new Request(request)
         hierarchyRequest.putAll(updateHierarchyRequest)
-        hierarchyRequest.getContext.put("schemaName", collSchemaName)
-        hierarchyRequest.getContext.put("version", version)
+        hierarchyRequest.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
+        hierarchyRequest.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
         UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response=>node)
     }
 
     def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val childrenHierarchy = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
         val req = new Request(request)
-        req.getContext.put("schemaName", collSchemaName)
-        req.getContext.put("version", version)
+        req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
+        req.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
         req.getContext.put(ContentConstants.IDENTIFIER, node.getIdentifier)
         req.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef](){{
             put(ContentConstants.IDENTIFIER, node.getIdentifier)
@@ -127,6 +126,11 @@ object CopyManager {
         val keysNotPresent = ContentConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
         if (keysNotPresent.nonEmpty)
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
+        if (StringUtils.equalsIgnoreCase(request.getRequest.getOrDefault(ContentConstants.COPY_TYPE, ContentConstants.COPY_TYPE_DEEP).asInstanceOf[String], ContentConstants.COPY_TYPE_SHALLOW) &&
+            StringUtils.isNotBlank(request.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]))
+            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Cannot Shallow copy content, with any copy scheme.")
+        if(!DefinitionNode.getAllCopyScheme(request).contains(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
+            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Invalid copy scheme, Please provide valid copy scheme")
     }
 
     def emptyCheckFilter(key: AnyRef): Boolean = key match {
@@ -140,6 +144,7 @@ object CopyManager {
         val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), ContentConstants.CONTENT_SCHEMA_NAME, ContentConstants.SCHEMA_VERSION)
         val requestMap = request.getRequest
         requestMap.remove(ContentConstants.MODE)
+        requestMap.remove(ContentConstants.COPY_SCHEME).asInstanceOf[String]
         val copyType = requestMap.remove(ContentConstants.COPY_TYPE).asInstanceOf[String]
         val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         cleanUpCopiedData(metadata, copyType)
@@ -149,6 +154,7 @@ object CopyManager {
         metadata.put(ContentConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
         if (MapUtils.isNotEmpty(originData))
             metadata.put(ContentConstants.ORIGIN_DATA, originData)
+        updateToCopySchemeContentType(request, metadata.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String], metadata)
         val req = new Request(request)
         req.setRequest(metadata)
         if (StringUtils.equalsIgnoreCase("application/vnd.ekstep.ecml-archive", node.getMetadata.get("mimeType").asInstanceOf[String])) {
@@ -170,7 +176,7 @@ object CopyManager {
             put(ContentConstants.COPY_TYPE, copyType)
         }}
     }
-    
+
     def cleanUpCopiedData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
         if(StringUtils.equalsIgnoreCase(ContentConstants.COPY_TYPE_SHALLOW, copyType)) {
             metadata.keySet().removeAll(metadataNotTobeCopied.asScala.toList.filter(str => !str.contains("dial")).asJava)
@@ -210,7 +216,7 @@ object CopyManager {
 
     protected def isInternalUrl(url: String): Boolean = url.contains(ss.getContainerName())
 
-    def prepareHierarchyRequest(originHierarchy: util.Map[String, AnyRef], originNode: Node, node: Node, copyType: String):util.HashMap[String, AnyRef] = {
+    def prepareHierarchyRequest(originHierarchy: util.Map[String, AnyRef], originNode: Node, node: Node, copyType: String, request: Request):util.HashMap[String, AnyRef] = {
         val children:util.List[util.Map[String, AnyRef]] = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
         if(null != children && !children.isEmpty) {
             val nodesModified = new util.HashMap[String, AnyRef]()
@@ -220,7 +226,7 @@ object CopyManager {
                 put(ContentConstants.ROOT, true.asInstanceOf[AnyRef])
                 put(ContentConstants.CONTENT_TYPE, node.getMetadata.get(ContentConstants.CONTENT_TYPE))
             }})
-            populateHierarchyRequest(children, nodesModified, hierarchy, node.getIdentifier, copyType)
+            populateHierarchyRequest(children, nodesModified, hierarchy, node.getIdentifier, copyType, request)
             new util.HashMap[String, AnyRef](){{
                 put(ContentConstants.NODES_MODIFIED, nodesModified)
                 put(ContentConstants.HIERARCHY, hierarchy)
@@ -228,14 +234,14 @@ object CopyManager {
         } else new util.HashMap[String, AnyRef]()
     }
 
-    def populateHierarchyRequest(children: util.List[util.Map[String, AnyRef]], nodesModified: util.HashMap[String, AnyRef], hierarchy: util.HashMap[String, AnyRef], parentId: String, copyType: String): Unit = {
+    def populateHierarchyRequest(children: util.List[util.Map[String, AnyRef]], nodesModified: util.HashMap[String, AnyRef], hierarchy: util.HashMap[String, AnyRef], parentId: String, copyType: String, request: Request): Unit = {
         if (null != children && !children.isEmpty) {
             children.asScala.toList.foreach(child => {
                 val id = if ("Parent".equalsIgnoreCase(child.get(ContentConstants.VISIBILITY).asInstanceOf[String])) {
                         val identifier = UUID.randomUUID().toString
+                        updateToCopySchemeContentType(request, child.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String],  child)
                         nodesModified.put(identifier, new util.HashMap[String, AnyRef]() {{
                                 put(ContentConstants.METADATA,  cleanUpCopiedData(new util.HashMap[String, AnyRef]() {{
-
                                     putAll(child)
                                     put(ContentConstants.CHILDREN, new util.ArrayList())
                                     internalHierarchyProps.map(key => remove(key))
@@ -245,7 +251,7 @@ object CopyManager {
                                 put("setDefaultValue", false.asInstanceOf[AnyRef])
                             }})
                         identifier
-                    } else 
+                    } else
                         child.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
                 hierarchy.put(id, new util.HashMap[String, AnyRef]() {{
                         put(ContentConstants.CHILDREN, new util.ArrayList[String]())
@@ -253,7 +259,7 @@ object CopyManager {
                         put(ContentConstants.CONTENT_TYPE, child.get(ContentConstants.CONTENT_TYPE))
                     }})
                 hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(ContentConstants.CHILDREN).asInstanceOf[util.List[String]].add(id)
-                populateHierarchyRequest(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType)
+                populateHierarchyRequest(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType, request)
             })
         }
     }
@@ -282,5 +288,10 @@ object CopyManager {
         if(StringUtils.equalsIgnoreCase("shallow", copyType) && !StringUtils.equalsIgnoreCase("Live", node.getMetadata.get("status").asInstanceOf[String]))
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Content with status " + node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String].toLowerCase + " cannot be partially (shallow) copied.")
         //TODO: check if need to throw client exception for combination of copyType=shallow and mode=edit
+    }
+
+    def updateToCopySchemeContentType(request: Request, contentType: String, metadata: util.Map[String, AnyRef]): Unit = {
+        if (StringUtils.isNotBlank(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
+            metadata.put(ContentConstants.CONTENT_TYPE, DefinitionNode.getCopySchemeContentType(request, contentType))
     }
 }

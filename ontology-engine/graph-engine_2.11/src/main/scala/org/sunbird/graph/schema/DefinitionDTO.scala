@@ -4,6 +4,7 @@ import java.util
 
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.dto.Request
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
@@ -91,6 +92,17 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getRelationsMap(): java.util.HashMap[String, AnyRef] = {
         schemaValidator.getConfig
             .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, AnyRef]]
+    }
+
+    def getAllCopySchemes(): List[String] = schemaValidator.getConfig.hasPath("copy.scheme") match {
+        case true => val copySchemeSet = Set.empty ++ schemaValidator.getConfig.getObject("copy.scheme").keySet().asScala
+            (for (prop <- copySchemeSet) yield prop) (collection.breakOut)
+        case false => List()
+    }
+
+    def getCopySchemeContentType(copyScheme: String, contentType: String): String = schemaValidator.getConfig.hasPath("copy.scheme" + copyScheme + contentType) match {
+        case true => schemaValidator.getConfig.getString("copy.scheme" + copyScheme + contentType)
+        case false => contentType
     }
 
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {
