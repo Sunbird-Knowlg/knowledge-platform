@@ -53,4 +53,5 @@ object ContentConstants {
     val ERR_INVALID_CONTENT: String = "ERR_INVALID_CONTENT"
     val CONTENT_OBJECT_TYPE: String = "Content"
     val LAST_UPDATED_ON:String = "lastUpdatedOn"
+    val SYSTEM_ERROR:String = "SYSTEM_ERROR"
 }
