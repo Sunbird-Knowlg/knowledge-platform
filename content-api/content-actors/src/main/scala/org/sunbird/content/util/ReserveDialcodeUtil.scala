@@ -22,7 +22,6 @@ import scala.collection.JavaConversions._
 
 
 object ReserveDialcodeUtil {
-    val httpUtil = new HttpUtil
 
     def reserveDialcodes(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
@@ -88,12 +87,12 @@ object ReserveDialcodeUtil {
         error
     }
 
-    private def getGeneratedDialcodes(request: Request, dialcodeCount: Integer)(implicit executionContext: ExecutionContext): util.List[String] = {
+    private def getGeneratedDialcodes(request: Request, dialcodeCount: Integer)(implicit executionContext: ExecutionContext, oec: OntologyEngineContext): util.List[String] = {
         val headerParam = new util.HashMap[String, String]
         headerParam.put(ContentConstants.CHANNEL_ID, request.getContext.get(ContentConstants.CHANNEL).asInstanceOf[String])
         headerParam.put("Authorization", "Bearer" + " " + Platform.config.getString("dialcode.api.authorization"))
         val url: String = Platform.getString("dialcode.api.generate.url", "https://qa.ekstep.in/api/dialcode/v3/generate")
-        val response: Response = httpUtil.post(url, getGenerateDialcodeRequest(dialcodeCount, request), headerParam)
+        val response: Response = oec.httpUtil.post(url, getGenerateDialcodeRequest(dialcodeCount, request), headerParam)
         if (CollectionUtils.isNotEmpty(response.getResult.getOrDefault(ContentConstants.DIAL_CODES, new util.ArrayList[String]()).asInstanceOf[util.List[String]])) {
             response.get(ContentConstants.DIAL_CODES).asInstanceOf[util.List[String]]
         } else throw new ServerException(ContentConstants.SERVER_ERROR, "Dialcode generated list is empty. Please Try Again After Sometime!")
