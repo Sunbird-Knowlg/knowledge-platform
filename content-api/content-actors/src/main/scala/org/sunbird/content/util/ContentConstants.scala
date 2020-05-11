@@ -54,7 +54,6 @@ object ContentConstants {
     val CONTENT_OBJECT_TYPE: String = "Content"
     val LAST_UPDATED_ON:String = "lastUpdatedOn"
     val RESERVED_DIALCODES: String = "reservedDialcodes"
-    val CHANNEL: String = "channel"
     val ERR_CHANNEL_BLANK_OBJECT: String = "ERR_CHANNEL_BLANK_OBJECT"
     val ERR_CONTENT_NOT_FOUND: String = "ERR_CONTENT_NOT_FOUND"
     val TEXT_BOOK: String = "TextBook"

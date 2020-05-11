@@ -60,7 +60,7 @@ object ReleaseDialCodesManager {
     }).flatMap(f => f)
   }
 
-  private def validateRequest(hierarchy: util.Map[String, AnyRef], channelId: String)(implicit ec: ExecutionContext): Unit = {
+  def validateRequest(hierarchy: util.Map[String, AnyRef], channelId: String)(implicit ec: ExecutionContext): Unit = {
     validateContentForReservedDialCodes(hierarchy)
     validateChannel(hierarchy, channelId)
     validateIsNodeRetired(hierarchy)
@@ -86,7 +86,7 @@ object ReleaseDialCodesManager {
       throw new ResourceNotFoundException(ContentConstants.ERR_CONTENT_NOT_FOUND, "Error! Content not found with id: " + hierarchy.get(ContentConstants.IDENTIFIER))
   }
 
-  private def getUpdatedMap(request: Request, hierarchy: util.Map[String, AnyRef], assignedDialCodes: util.Set[String], releasedDialCodes: util.Set[String]): util.HashMap[String, AnyRef] = {
+  def getUpdatedMap(request: Request, hierarchy: util.Map[String, AnyRef], assignedDialCodes: util.Set[String], releasedDialCodes: util.Set[String]): util.HashMap[String, AnyRef] = {
     val reservedDialCodeMap = getReservedDialCodes(hierarchy)
     if (MapUtils.isEmpty(reservedDialCodeMap)) {
       throw new ClientException(ContentConstants.ERR_NO_RESERVED_DIALCODES, "Error! No DIAL Codes are Reserved for content: " + request.get(ContentConstants.IDENTIFIER))
@@ -167,7 +167,7 @@ object ReleaseDialCodesManager {
       reservedDialCodes.filter(!assignedDialCodes.contains(_)).toList
   }
 
-  private def getResponse(request: Request, updateMap: util.Map[String, AnyRef], releasedDialCodes: util.Set[String], hierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  def getResponse(request: Request, updateMap: util.Map[String, AnyRef], releasedDialCodes: util.Set[String], hierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     request.put(ContentConstants.IDENTIFIERS, new util.ArrayList[String]() {
       {
         add(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
