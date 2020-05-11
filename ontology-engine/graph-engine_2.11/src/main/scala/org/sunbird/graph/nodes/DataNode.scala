@@ -67,7 +67,7 @@ object DataNode {
 
 
     @throws[Exception]
-    def list(request: Request)(implicit ec: ExecutionContext): Future[util.List[Node]] = {
+    def list(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
         val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
 
         if(null == identifiers || identifiers.isEmpty) {
@@ -85,16 +85,16 @@ object DataNode {
                 addMetadata(mc)
                 setCountQuery(false)
             }}
-            SearchAsyncOperations.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
+            oec.graphService.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
         }
     }
 
     @throws[Exception]
-    def bulkUpdate(request: Request)(implicit ec: ExecutionContext): Future[util.Map[String, Node]] = {
+    def bulkUpdate(request: Request)(implicit ec: ExecutionContext,oec: OntologyEngineContext): Future[util.Map[String, Node]] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifiers: util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
         val metadata: util.Map[String, AnyRef] = request.get("metadata").asInstanceOf[util.Map[String, AnyRef]]
-        NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
+        oec.graphService.updateNodes(graphId, identifiers, metadata)
     }
 
     @throws[Exception]
