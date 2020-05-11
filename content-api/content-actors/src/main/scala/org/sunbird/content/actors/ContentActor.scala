@@ -9,11 +9,12 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{CopyManager, DiscardManager, FlagManager, ReserveDialcodeUtil}
+import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager, FlagManager, RetireManager, ReserveDialcodeUtil}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.ClientException
+import org.sunbird.content.dial.DIALManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
@@ -33,11 +34,14 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readContent" => read(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
 			case "discardContent" => discard(request)
 			case "flagContent" => flag(request)
 			case "reserveDialcode" => reserveDialcodes(request)
+			case "acceptFlag" => acceptFlag(request)
+			case "linkDIALCode" => linkDIALCode(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -114,6 +118,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
 
+	def retire(request: Request): Future[Response] = {
+		RetireManager.retire(request)
+	}
 	def discard(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		DiscardManager.discard(request)
@@ -126,6 +133,13 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def reserveDialcodes(request:Request): Future[Response] = {
 		ReserveDialcodeUtil.reserveDialcodes(request)
 	}
+
+	def acceptFlag(request: Request): Future[Response] = {
+		AcceptFlagManager.acceptFlag(request)
+	}
+
+	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
+
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)

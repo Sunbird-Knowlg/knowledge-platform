@@ -3,9 +3,8 @@ package org.sunbird.graph
 import java.util
 
 import org.sunbird.common.dto.{Property, Request}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
-
 import scala.concurrent.Future
 
 class GraphService {
@@ -37,4 +36,9 @@ class GraphService {
     def updateNodes(graphId: String, identifiers:util.List[String], metadata:util.Map[String,AnyRef]):Future[util.Map[String, Node]] = {
         NodeAsyncOperations.updateNodes(graphId, identifiers, metadata)
     }
+
+    def getNodeByUniqueIds(graphId:String, searchCriteria: SearchCriteria): Future[util.List[Node]] = {
+        SearchAsyncOperations.getNodeByUniqueIds(graphId, searchCriteria)
+    }
+
 }

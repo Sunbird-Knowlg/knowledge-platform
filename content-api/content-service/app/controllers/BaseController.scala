@@ -82,6 +82,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 case ResponseCode.OK => Ok(response).as("application/json")
                 case ResponseCode.CLIENT_ERROR => BadRequest(response).as("application/json")
                 case ResponseCode.RESOURCE_NOT_FOUND => NotFound(response).as("application/json")
+                case ResponseCode.PARTIAL_SUCCESS => MultiStatus(response).as("application/json")
                 case _ => play.api.mvc.Results.InternalServerError(response).as("application/json")
             }
         })
