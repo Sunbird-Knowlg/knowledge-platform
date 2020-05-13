@@ -80,11 +80,11 @@
     },
     "copy": {
         "scheme": {
-            "TextBookToCurriculumCourse": {
-                "TextBook": "CurriculumCourse",
+            "TextBookToCourse": {
+                "TextBook": "Course",
                 "TextBookUnit": "CourseUnit"
             },
-            "TextBookToCourse": {
+            "TextBookToLessonPlan": {
             }
         }
     },
