@@ -450,7 +450,8 @@
                 "SelfAssess",
                 "PracticeResource",
                 "eTextBook",
-                "OnboardingResource"
+                "OnboardingResource",
+                "CurriculumCourse"
             ]
         },
         "resourceType": {
