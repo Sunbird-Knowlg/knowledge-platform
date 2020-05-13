@@ -105,12 +105,21 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
         "return success response for linkDialCode API" in {
             val controller = app.injector.instanceOf[controllers.v3.ContentController]
             val result = controller.linkDialCode()(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+        "return success response for collectionLinkDialCode API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.collectionLinkDialCode("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
         "return success response for reserveDialCode API" in {
             val controller = app.injector.instanceOf[controllers.v3.ContentController]
             val result = controller.reserveDialCode("01234")(FakeRequest())

@@ -1,8 +1,11 @@
 package org.sunbird.graph
 
+import org.sunbird.common.HttpUtil
+
 class OntologyEngineContext {
 
     private val graphDB = new GraphService
+    private val hUtil = new HttpUtil
 
     def graphService = {
         graphDB
@@ -15,4 +18,6 @@ class OntologyEngineContext {
     def redis = {
 
     }
+
+    def httpUtil = hUtil
 }

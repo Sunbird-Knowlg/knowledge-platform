@@ -208,7 +208,7 @@ object HierarchyManager {
         DataNode.read(req)
     }
 
-    def fetchLeafNodes(request: Request)(implicit ec: ExecutionContext): Future[List[Node]] =  {
+    def fetchLeafNodes(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] =  {
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val req = new Request(request)
         req.put("identifiers", leafNodes)
