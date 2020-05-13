@@ -10,6 +10,8 @@ import org.sunbird.common.dto.{RequestParams, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.telemetry.TelemetryParams
+import org.sunbird.telemetry.dto.Telemetry
+import org.sunbird.telemetry.logger.TelemetryManager
 import play.api.mvc._
 
 import scala.collection.JavaConversions._
@@ -50,6 +52,9 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
             result.setId(apiId)
             setResponseEnvelope(result)
             val resultStr = JsonUtils.serialize(result)
+            if(ResponseCode.OK != result.getResponseCode) {
+                TelemetryManager.info("Failure response :: " + resultStr);
+            }
             result.getResponseCode match {
                 case ResponseCode.OK => play.api.mvc.Results.Ok(resultStr).as("application/json")
                 case ResponseCode.CLIENT_ERROR => play.api.mvc.Results.BadRequest(resultStr).as("application/json")
