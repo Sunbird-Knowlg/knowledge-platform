@@ -450,8 +450,7 @@
                 "SelfAssess",
                 "PracticeResource",
                 "eTextBook",
-                "OnboardingResource",
-                "CurriculumCourse"
+                "OnboardingResource"
             ]
         },
         "resourceType": {
@@ -1011,6 +1010,13 @@
         },
         "board" : {
             "type": "string"
+        },
+        "courseType": {
+            "type": "string",
+            "enum": [
+                "TrainingCourse",
+                "CurriculumCourse"
+            ]
         }
     }
 }
