@@ -47,5 +47,15 @@
     "properties": {
       "license": "License"
     }
+  },
+  "copy": {
+    "scheme": {
+      "TextBookToCourse": {
+        "TextBook": "Course",
+        "TextBookUnit": "CourseUnit"
+      },
+      "TextBookToLessonPlan": {
+      }
+    }
   }
 }

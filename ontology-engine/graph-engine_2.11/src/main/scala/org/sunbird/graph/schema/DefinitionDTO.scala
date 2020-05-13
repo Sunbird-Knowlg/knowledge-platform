@@ -100,8 +100,8 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         case false => List()
     }
 
-    def getCopySchemeContentType(copyScheme: String, contentType: String): String = schemaValidator.getConfig.hasPath("copy.scheme" + copyScheme + contentType) match {
-        case true => schemaValidator.getConfig.getString("copy.scheme" + copyScheme + contentType)
+    def getCopySchemeContentType(copyScheme: String, contentType: String): String = schemaValidator.getConfig.hasPath("copy.scheme" + "." + copyScheme + "." + contentType) match {
+        case true => schemaValidator.getConfig.getString("copy.scheme" + "." + copyScheme + "." + contentType)
         case false => contentType
     }
 

@@ -45,6 +45,7 @@ object CopyManager {
         validateRequest(request)
         DataNode.read(request).map(node => {
             validateExistingNode(node)
+            request.getContext.put(ContentConstants.COPY_SCHEME, request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, ""))
             val copiedNodeFuture: Future[Node] = node.getMetadata.get(ContentConstants.MIME_TYPE) match {
                 case ContentConstants.COLLECTION_MIME_TYPE =>
                     node.setInRelations(null)
@@ -129,7 +130,7 @@ object CopyManager {
         if (StringUtils.equalsIgnoreCase(request.getRequest.getOrDefault(ContentConstants.COPY_TYPE, ContentConstants.COPY_TYPE_DEEP).asInstanceOf[String], ContentConstants.COPY_TYPE_SHALLOW) &&
             StringUtils.isNotBlank(request.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]))
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Cannot Shallow copy content, with any copy scheme.")
-        if(!DefinitionNode.getAllCopyScheme(request).contains(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
+        if(StringUtils.isNotBlank(request.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]) && !DefinitionNode.getAllCopyScheme(request).contains(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Invalid copy scheme, Please provide valid copy scheme")
     }
 
@@ -291,7 +292,7 @@ object CopyManager {
     }
 
     def updateToCopySchemeContentType(request: Request, contentType: String, metadata: util.Map[String, AnyRef]): Unit = {
-        if (StringUtils.isNotBlank(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
+        if (StringUtils.isNotBlank(request.getContext.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
             metadata.put(ContentConstants.CONTENT_TYPE, DefinitionNode.getCopySchemeContentType(request, contentType))
     }
 }

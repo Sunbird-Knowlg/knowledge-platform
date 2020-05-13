@@ -274,7 +274,7 @@ object DefinitionNode {
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-        definition.getCopySchemeContentType(request.get("copyScheme").asInstanceOf[String], contentType)
+        definition.getCopySchemeContentType(request.getContext.get("copyScheme").asInstanceOf[String], contentType)
     }
 }
 
