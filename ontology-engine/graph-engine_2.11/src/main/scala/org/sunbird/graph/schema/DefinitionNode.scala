@@ -269,12 +269,12 @@ object DefinitionNode {
         definition.getAllCopySchemes()
     }
 
-    def getCopySchemeContentType(request: Request, contentType: String):String = {
+    def getCopySchemeContentType(request: Request): java.util.HashMap[String, Object] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
-        definition.getCopySchemeContentType(request.getContext.get("copyScheme").asInstanceOf[String], contentType)
+        definition.getCopySchemeMap(request)
     }
 }
 

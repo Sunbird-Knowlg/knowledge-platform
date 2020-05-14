@@ -41,11 +41,14 @@ object CopyManager {
 
     implicit val ss: StorageService = new StorageService
 
+    private var copySchemeMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
+
     def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
         DataNode.read(request).map(node => {
             validateExistingNode(node)
             request.getContext.put(ContentConstants.COPY_SCHEME, request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, ""))
+            copySchemeMap = DefinitionNode.getCopySchemeContentType(request)
             val copiedNodeFuture: Future[Node] = node.getMetadata.get(ContentConstants.MIME_TYPE) match {
                 case ContentConstants.COLLECTION_MIME_TYPE =>
                     node.setInRelations(null)
@@ -61,6 +64,7 @@ object CopyManager {
                 response.put("node_id", new util.HashMap[String, AnyRef](){{
                     put(node.getIdentifier, copiedNode.getIdentifier)
                 }})
+                response.put(ContentConstants.VERSION_KEY, copiedNode.getMetadata.get(ContentConstants.VERSION_KEY))
                 response
             })
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
@@ -128,9 +132,9 @@ object CopyManager {
         if (keysNotPresent.nonEmpty)
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
         if (StringUtils.equalsIgnoreCase(request.getRequest.getOrDefault(ContentConstants.COPY_TYPE, ContentConstants.COPY_TYPE_DEEP).asInstanceOf[String], ContentConstants.COPY_TYPE_SHALLOW) &&
-            StringUtils.isNotBlank(request.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]))
-            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Cannot Shallow copy content, with any copy scheme.")
-        if(StringUtils.isNotBlank(request.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]) && !DefinitionNode.getAllCopyScheme(request).contains(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
+            StringUtils.isNotBlank(request.getContext.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]))
+            throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Content can not be shallow copied with copy scheme.")
+        if(StringUtils.isNotBlank(request.getContext.get(ContentConstants.COPY_SCHEME).asInstanceOf[String]) && !DefinitionNode.getAllCopyScheme(request).contains(request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Invalid copy scheme, Please provide valid copy scheme")
     }
 
@@ -293,6 +297,6 @@ object CopyManager {
 
     def updateToCopySchemeContentType(request: Request, contentType: String, metadata: util.Map[String, AnyRef]): Unit = {
         if (StringUtils.isNotBlank(request.getContext.getOrDefault(ContentConstants.COPY_SCHEME, "").asInstanceOf[String]))
-            metadata.put(ContentConstants.CONTENT_TYPE, DefinitionNode.getCopySchemeContentType(request, contentType))
+            metadata.put(ContentConstants.CONTENT_TYPE, copySchemeMap.getOrDefault(contentType, contentType))
     }
 }

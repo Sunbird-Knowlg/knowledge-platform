@@ -100,10 +100,12 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         case false => List()
     }
 
-    def getCopySchemeContentType(copyScheme: String, contentType: String): String = schemaValidator.getConfig.hasPath("copy.scheme" + "." + copyScheme + "." + contentType) match {
-        case true => schemaValidator.getConfig.getString("copy.scheme" + "." + copyScheme + "." + contentType)
-        case false => contentType
-    }
+    def getCopySchemeMap(request: Request): java.util.HashMap[String, Object] =
+        (StringUtils.isNotEmpty(request.getContext.getOrDefault("copyScheme", "").asInstanceOf[String])
+            && schemaValidator.getConfig.hasPath("copy.scheme" + "." + request.getContext.get("copyScheme"))) match {
+            case true => schemaValidator.getConfig.getAnyRef("copy.scheme" + "." + request.getContext.get("copyScheme")).asInstanceOf[java.util.HashMap[String, Object]]
+            case false => new java.util.HashMap[String, Object]()
+        }
 
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {
         val relationMetadata = relation._2.asInstanceOf[java.util.HashMap[String, Object]]
