@@ -110,7 +110,7 @@ public class SearchActor extends SearchBaseActor {
                 List<String> courseTypeList = null;
                 if (null != courseTypeFromFilter)
                     courseTypeList = getList(courseTypeFromFilter);
-                if (CollectionUtils.isNotEmpty(contentTypeList) && (contentTypeList.contains("Course") && CollectionUtils.isEmpty(courseTypeList)))
+                if ((CollectionUtils.isNotEmpty(contentTypeList) && contentTypeList.size() == 1) && (contentTypeList.contains("Course") && CollectionUtils.isEmpty(courseTypeList)))
                     filters.put(SearchConstants.courseType, "TrainingCourse");
             }
 
