@@ -44,10 +44,10 @@ object CopyManager {
     private var copySchemeMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
 
     def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+        request.getContext.put(ContentConstants.COPY_SCHEME, request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, ""))
         validateRequest(request)
         DataNode.read(request).map(node => {
             validateExistingNode(node)
-            request.getContext.put(ContentConstants.COPY_SCHEME, request.getRequest.getOrDefault(ContentConstants.COPY_SCHEME, ""))
             copySchemeMap = DefinitionNode.getCopySchemeContentType(request)
             val copiedNodeFuture: Future[Node] = node.getMetadata.get(ContentConstants.MIME_TYPE) match {
                 case ContentConstants.COLLECTION_MIME_TYPE =>
