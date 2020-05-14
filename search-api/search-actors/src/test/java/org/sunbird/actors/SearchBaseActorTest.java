@@ -148,6 +148,15 @@ public class SearchBaseActorTest {
             add("test-board2");
         }});
         addToIndex("10000034", content);
+
+        content = getContentTestRecord("do_10000035", 35, "test-board4");
+        content.put("name", "Test Course - TrainingCourse");
+        content.put("description", "Test Course - TrainingCourse");
+        content.put("status","Live");
+        content.put("mimeType", "application/vnd.ekstep.content-collection");
+        content.put("contentType", "Course");
+        content.put("courseType", "TrainingCourse");
+        addToIndex("10000035", content);
     }
 
     private static void addToIndex(String uniqueId, Map<String, Object> doc) throws Exception {

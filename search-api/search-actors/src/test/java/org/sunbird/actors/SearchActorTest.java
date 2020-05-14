@@ -257,7 +257,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         Map<String, Object> result = response.getResult();
         List<Object> list = (List<Object>) result.get("results");
         Assert.assertNotNull(list);
-        Assert.assertTrue(list.size() == 34);
+        Assert.assertTrue(list.size() == 35);
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             String objectType = (String) content.get("objectType");
@@ -726,11 +726,11 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(list.size() == 2);
         Map<String, Object> content1 = (Map<String, Object>) list.get(0);
         String id1 = (String) content1.get("identifier");
-        Assert.assertEquals("do_10000034", id1);
+        Assert.assertEquals("do_10000035", id1);
 
         Map<String, Object> content2 = (Map<String, Object>) list.get(1);
         String id2 = (String) content2.get("identifier");
-        Assert.assertEquals("do_10000033", id2);
+        Assert.assertEquals("do_10000034", id2);
     }
 
     @Test
@@ -760,7 +760,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         Response response = getSearchResponse(request);
         Map<String, Object> result = response.getResult();
         Integer count = (Integer) result.get("count");
-        Assert.assertTrue(count == 34);
+        Assert.assertTrue(count == 35);
     }
 
     @Test
@@ -1229,5 +1229,45 @@ public class SearchActorTest extends SearchBaseActorTest {
             found = true;
         }
         Assert.assertTrue(found);
+    }
+
+    @Test
+    public void testSearchWithoutCourseType() {
+        Request request = getSearchRequest();
+        List<String> objectTypes = new ArrayList<String>();
+        objectTypes.add("Content");
+        request.put("filters", new HashMap<String, Object>() {{
+            put("status", new ArrayList<String>());
+            put("objectType", objectTypes);
+            put("contentType", "Course");
+        }});
+
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        List<Object> list = (List<Object>) result.get("results");
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.size() == 1);
+        Map<String, Object> content = (Map<String, Object>) list.get(0);
+        Assert.assertEquals(content.get("identifier"), "do_10000035");
+        Assert.assertEquals(content.get("courseType"), "TrainingCourse");
+    }
+
+    @Test
+    public void testSearchWithCourseType() {
+        Request request = getSearchRequest();
+        List<String> objectTypes = new ArrayList<String>();
+        objectTypes.add("Content");
+        request.put("filters", new HashMap<String, Object>() {{
+            put("status", new ArrayList<String>());
+            put("objectType", objectTypes);
+            put("contentType", "Course");
+            put("courseType", "CurriculumCourse");
+        }});
+
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        List<Object> list = (List<Object>) result.get("results");
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.size() == 0);
     }
 }
