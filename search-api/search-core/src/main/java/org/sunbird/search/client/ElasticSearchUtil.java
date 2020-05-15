@@ -108,7 +108,7 @@ public class ElasticSearchUtil {
 					.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
 						@Override
 						public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder) {
-							return requestConfigBuilder.setConnectTimeout(10000);
+							return requestConfigBuilder.setConnectTimeout(-1);
 						}
 					});
 			RestHighLevelClient client = new RestHighLevelClient(builder);
