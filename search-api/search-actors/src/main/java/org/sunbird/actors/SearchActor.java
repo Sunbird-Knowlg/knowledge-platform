@@ -106,13 +106,15 @@ public class SearchActor extends SearchBaseActor {
 
             if (filters.containsKey(SearchConstants.contentType) && null != filters.get(SearchConstants.contentType)) {
                 List<String> contentTypeList = getList(filters.get(SearchConstants.contentType));
-                if ((CollectionUtils.isNotEmpty(contentTypeList) && contentTypeList.size() == 1) && contentTypeList.contains("Course")) {
-                    Object courseTypeFromFilter = filters.get(SearchConstants.courseType);
-                    List<String> courseTypeList = null;
-                    if (null != courseTypeFromFilter)
-                        courseTypeList = getList(courseTypeFromFilter);
-                    if (CollectionUtils.isEmpty(courseTypeList))
-                        filters.put(SearchConstants.courseType, "TrainingCourse");
+                if (CollectionUtils.isNotEmpty(contentTypeList) && contentTypeList.size() == 1) {
+                    if(StringUtils.equalsIgnoreCase("Course", contentTypeList.get(0))) {
+                        Object courseTypeFromFilter = filters.get(SearchConstants.courseType);
+                        List<String> courseTypeList = null;
+                        if (null != courseTypeFromFilter)
+                            courseTypeList = getList(courseTypeFromFilter);
+                        if (CollectionUtils.isEmpty(courseTypeList))
+                            filters.put(SearchConstants.courseType, "TrainingCourse");
+                    }
                 }
             }
 
