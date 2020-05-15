@@ -2,7 +2,8 @@ package org.sunbird.content.util
 
 import java.util
 
-import org.scalamock.scalatest.{AsyncMockFactory}
+import org.apache.commons.collections.MapUtils
+import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request}
@@ -72,6 +73,17 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
             CopyManager.validateRequest(request)
         }
         exception.getMessage shouldEqual "Invalid copy scheme, Please provide valid copy scheme"
+    }
+
+    "Valid scheme type update" should "should populate new contentType in metadata" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        implicit val ss = mock[StorageService]
+        val request = getInvalidCopyRequest_3()
+        request.getContext.put("identifier","do_1234")
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        val metadata = new util.HashMap[String,Object]()
+        CopyManager.updateToCopySchemeContentType(getValidCopyRequest_1(), "TextBook", metadata)
+        assert(MapUtils.isNotEmpty(metadata))
     }
 
 
@@ -217,6 +229,37 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
                 put("objectType", "Content")
                 put("schemaName", "content")
                 put("copyScheme", "TextBookToCurriculumCourse")
+            }
+        })
+        request.setObjectType("Content")
+        request.putAll(new util.HashMap[String, AnyRef]() {
+            {
+                put("createdBy", "EkStep")
+                put("createdFor", new util.ArrayList[String]() {
+                    {
+                        add("Ekstep")
+                    }
+                })
+                put("organisation", new util.ArrayList[String]() {
+                    {
+                        add("ekstep")
+                    }
+                })
+                put("framework", "DevCon-NCERT")
+            }
+        })
+        request
+    }
+
+    private def getValidCopyRequest_1(): Request = {
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("objectType", "Content")
+                put("schemaName", "content")
+                put("copyScheme", "TextBookToCourse")
             }
         })
         request.setObjectType("Content")
