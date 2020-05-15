@@ -9,7 +9,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.client.RestClientBuilder;
 import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.elasticsearch.action.ActionListener;
@@ -102,8 +105,15 @@ public class ElasticSearchUtil {
 			for (String host : hostPort.keySet()) {
 				httpHosts.add(new HttpHost(host, hostPort.get(host)));
 			}
-			RestHighLevelClient client = new RestHighLevelClient(
-					RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()])));
+			RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()]))
+					.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
+						@Override
+						public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpClientBuilder) {
+							return httpClientBuilder.setDefaultIOReactorConfig(
+									IOReactorConfig.custom().setIoThreadCount(8).build());
+						}
+					});
+			RestHighLevelClient client = new RestHighLevelClient(builder);
 			if (null != client)
 				esClient.put(indexName, client);
 		}
