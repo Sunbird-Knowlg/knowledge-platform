@@ -137,6 +137,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
+		setDefaultsBasedOnContentType(request, ContentParams.create.name)
 		setDefaultLicense(request)
 	}
 
@@ -166,6 +167,14 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			else request.put(ContentParams.contentEncoding.name, ContentParams.identity.name)
 			if (mimeType.endsWith("youtube") || mimeType.endsWith("x-url")) request.put(ContentParams.contentDisposition.name, ContentParams.online.name)
 			else request.put(ContentParams.contentDisposition.name, ContentParams.inline.name)
+		}
+	}
+
+	private def setDefaultsBasedOnContentType(request: Request, operation: String): Unit = {
+		val contentType = request.getRequest.getOrDefault(ContentParams.contentType.name, "").asInstanceOf[String]
+		if (operation.equalsIgnoreCase(ContentParams.create.name) && StringUtils.isNotBlank(contentType)
+			&& StringUtils.equalsIgnoreCase("Course", contentType) && StringUtils.isBlank(request.getRequest.getOrDefault(ContentParams.courseType.name, "").asInstanceOf[String])) {
+			request.put(ContentParams.courseType.name, "CurriculumCourse")
 		}
 	}
 
