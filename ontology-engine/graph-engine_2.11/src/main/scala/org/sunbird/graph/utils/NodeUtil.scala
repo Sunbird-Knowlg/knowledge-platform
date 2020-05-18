@@ -148,6 +148,9 @@ object NodeUtil {
                 put("relation", rel.getRelationType)
                 put("description", rel.getEndNodeMetadata.get("description"))
                 put("status", rel.getEndNodeMetadata.get("status"))
+                val seqIndex = rel.getMetadata().get("IL_SEQUENCE_INDEX")
+                if (null != seqIndex)
+                    put("index", seqIndex.asInstanceOf[AnyRef])
             }}
         else
             new util.HashMap[String, Object]() {{
