@@ -30,6 +30,10 @@
       "type": "string",
       "default": "NCF"
     },
+    "defaultCourseFramework":{
+      "type": "string",
+      "default": "TPD"
+    },
     "createdBy":{
       "type": "string"
     },
