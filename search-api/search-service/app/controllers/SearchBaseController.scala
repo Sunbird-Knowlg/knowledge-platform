@@ -10,8 +10,6 @@ import org.sunbird.common.dto.{RequestParams, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.telemetry.TelemetryParams
-import org.sunbird.telemetry.dto.Telemetry
-import org.sunbird.telemetry.logger.TelemetryManager
 import play.api.mvc._
 
 import scala.collection.JavaConversions._
