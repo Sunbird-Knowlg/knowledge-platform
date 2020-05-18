@@ -3,8 +3,9 @@ package org.sunbird.actors;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.dispatch.Futures;
+import akka.dispatch.Recover;
 import akka.pattern.Patterns;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
+import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseParams;
@@ -36,7 +37,13 @@ public abstract class SearchBaseActor extends AbstractActor {
 
     private Future<Response> internalOnReceive(Request request) {
         try {
-            return onReceive(request);
+            return onReceive(request).recoverWith(new Recover<Future<Response>>() {
+                @Override
+                public Future<Response> recover(Throwable failure) throws Throwable {
+                    TelemetryManager.error("Unable to process the request:: Request: " + JsonUtils.serialize(request), failure);
+                    return ERROR(request.getOperation(), failure);
+                }
+            }, getContext().dispatcher());
         } catch (Throwable e) {
             return ERROR(request.getOperation(), e);
         }
@@ -67,10 +74,10 @@ public abstract class SearchBaseActor extends AbstractActor {
             params.setErr(mwException.getErrCode());
             response.put("messages", mwException.getMessage());
         } else {
-            e.printStackTrace();
+            TelemetryManager.error("Error while processing", e);
             params.setErr("ERR_SYSTEM_EXCEPTION");
         }
-        System.out.println("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage());
+        TelemetryManager.error("Exception occurred - class :" + e.getClass().getName() + " with message :" , e);
         params.setErrmsg(setErrMessage(e));
         response.setParams(params);
         setResponseCode(response, e);
@@ -152,9 +159,12 @@ public abstract class SearchBaseActor extends AbstractActor {
     protected String setErrMessage(Throwable e){
 		if (e instanceof MiddlewareException)
         		return e.getMessage();
-		else if  (e instanceof SearchPhaseExecutionException)
-			return e.getCause().getMessage();
-         else 
-        	 	return "Something went wrong in server while processing the request";
+        else {
+            if (e.getSuppressed().length > 0) {
+                return e.getSuppressed()[0].getMessage();
+            } else {
+                return e.getMessage();
+            }
+        }
     }
 }
