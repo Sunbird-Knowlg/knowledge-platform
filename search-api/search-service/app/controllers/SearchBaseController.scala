@@ -52,9 +52,6 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
             result.setId(apiId)
             setResponseEnvelope(result)
             val resultStr = JsonUtils.serialize(result)
-            if(ResponseCode.OK != result.getResponseCode) {
-                TelemetryManager.info("Failure response :: " + resultStr);
-            }
             result.getResponseCode match {
                 case ResponseCode.OK => play.api.mvc.Results.Ok(resultStr).as("application/json")
                 case ResponseCode.CLIENT_ERROR => play.api.mvc.Results.BadRequest(resultStr).as("application/json")

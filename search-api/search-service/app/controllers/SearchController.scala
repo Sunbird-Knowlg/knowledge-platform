@@ -15,7 +15,6 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
     val mgr: SearchManager = new SearchManager()
 
     def search() = Action.async { implicit request =>
-        TelemetryManager.info("Received request for search at" + System.currentTimeMillis() + " :: " + requestBody())
         val internalReq = getRequest(ApiId.APPLICATION_SEARCH)
         setHeaderContext(internalReq)
         getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_SEARCH)
