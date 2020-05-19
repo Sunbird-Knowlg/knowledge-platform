@@ -27,7 +27,6 @@ import scala.concurrent.{ExecutionContext, Future}
 object RetireManager {
     private val finalStatus: util.List[String] = util.Arrays.asList("Flagged", "Live", "Unlisted")
     private val kfClient = new KafkaClient
-    private val httpUtil = new HttpUtil
 
     def retire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
@@ -114,10 +113,10 @@ object RetireManager {
 
     private def getLearningGraphEvent(request: Request, id: String): Map[String, Any] = Map("ets" -> System.currentTimeMillis(), "channel" -> request.getContext.get(ContentConstants.CHANNEL), "mid" -> UUID.randomUUID.toString, "nodeType" -> "DATA_NODE", "userId" -> "Ekstep", "createdOn" -> DateUtils.format(new Date()), "objectType" -> "Content", "nodeUniqueId" -> id, "operationType" -> "DELETE", "graphId" -> request.getContext.get("graph_id"))
 
-    private def getShallowCopy(identifier: String): List[String] = {
+    private def getShallowCopy(identifier: String)(implicit oec: OntologyEngineContext): List[String] = {
         try {
             val url = Platform.getString("kp.search_service.base_url", "http://search-service") + "/v3/search"
-            val searchResponse = httpUtil.post(url, getSearchRequest(identifier), new util.HashMap[String, String])
+            val searchResponse = oec.httpUtil.post(url, getSearchRequest(identifier), new util.HashMap[String, String])
             if ((searchResponse.getResponseCode == ResponseCode.OK) && MapUtils.isNotEmpty(searchResponse.getResult)) {
                 val searchResult = searchResponse.getResult
                 val count = searchResult.get("count").asInstanceOf[Integer]
@@ -128,7 +127,7 @@ object RetireManager {
                         .map(res => res.get("identifier").asInstanceOf[String]).toList
                 else List()
             } else {
-                TelemetryManager.info("Recevied Invalid Search Response For Shallow Copy. Response is : " + searchResponse)
+                TelemetryManager.info("Received Invalid Search Response For Shallow Copy. Response is : " + searchResponse)
                 throw new ServerException(ContentConstants.SYSTEM_ERROR, "Something Went Wrong While Processing Your Request. Please Try Again After Sometime!")
             }
         } catch {
