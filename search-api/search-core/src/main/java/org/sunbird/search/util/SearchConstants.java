@@ -111,6 +111,4 @@ public class SearchConstants {
     public static final String mode = "mode";
     public static final String softConstraints = "softConstraints";
     public static String soft = "soft";
-    public static String contentType = "contentType";
-    public static String courseType = "courseType";
 }
