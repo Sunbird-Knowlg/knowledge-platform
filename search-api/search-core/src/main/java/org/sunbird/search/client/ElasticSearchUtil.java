@@ -9,7 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.client.RestClientBuilder;
 import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.elasticsearch.action.ActionListener;
@@ -102,8 +104,14 @@ public class ElasticSearchUtil {
 			for (String host : hostPort.keySet()) {
 				httpHosts.add(new HttpHost(host, hostPort.get(host)));
 			}
-			RestHighLevelClient client = new RestHighLevelClient(
-					RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()])));
+			RestClientBuilder builder = RestClient.builder(httpHosts.toArray(new HttpHost[httpHosts.size()]))
+					.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
+						@Override
+						public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder) {
+							return requestConfigBuilder.setConnectionRequestTimeout(-1);
+						}
+					});
+			RestHighLevelClient client = new RestHighLevelClient(builder);
 			if (null != client)
 				esClient.put(indexName, client);
 		}

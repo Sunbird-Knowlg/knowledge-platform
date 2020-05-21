@@ -24,7 +24,7 @@ public class DefinitionUtil {
         String version = objectTypeSchemaMap.get(objectType.toLowerCase()).getOrDefault("version", "1.0");
         ISchemaValidator schemaValidator = SchemaValidatorFactory.getInstance(schemaName, version);
         if(schemaValidator.getConfig().hasPath("searchProps")){
-            metadata.putAll(schemaValidator.getConfig().getObject("searchProps"));
+            metadata.putAll(schemaValidator.getConfig().getObject("searchProps").unwrapped());
         }
         return metadata;
     } 
