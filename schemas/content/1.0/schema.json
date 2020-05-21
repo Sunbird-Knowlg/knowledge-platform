@@ -1010,13 +1010,6 @@
         },
         "board" : {
             "type": "string"
-        },
-        "courseType": {
-            "type": "string",
-            "enum": [
-                "TrainingCourse",
-                "CurriculumCourse"
-            ]
         }
     }
 }
