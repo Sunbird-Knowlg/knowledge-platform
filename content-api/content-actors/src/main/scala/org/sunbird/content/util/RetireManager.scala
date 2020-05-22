@@ -46,6 +46,9 @@ object RetireManager {
     private def getNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = DataNode.read(request).map(node => {
         if (StringUtils.equalsIgnoreCase("Retired", node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String]))
             throw new ClientException(ContentConstants.ERR_CONTENT_RETIRE, "Content with Identifier " + node.getIdentifier + " is already Retired.")
+        if (StringUtils.equalsIgnoreCase(ContentConstants.COLLECTION_MIME_TYPE, node.getMetadata.get(ContentConstants.MIME_TYPE).asInstanceOf[String]) && finalStatus.contains(node.getMetadata.get(ContentConstants.STATUS))
+            && CollectionUtils.isNotEmpty(getShallowCopy(node.getIdentifier)))
+            throw new ClientException(ContentConstants.ERR_CONTENT_RETIRE, "Content With Identifier [" + node.getIdentifier + "] Can Not Be Retired. It Has Been Adopted By Other Users.")
         node
     })
 
@@ -65,10 +68,7 @@ object RetireManager {
 
 
     private def handleCollectionToRetire(node: Node, request: Request, updateMetadataMap: Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-        if (StringUtils.equalsIgnoreCase(ContentConstants.COLLECTION_MIME_TYPE, node.getMetadata.get(ContentConstants.MIME_TYPE).asInstanceOf[String])) {
-            if (CollectionUtils.isNotEmpty(getShallowCopy(node.getIdentifier)))
-                throw new ClientException(ContentConstants.ERR_CONTENT_RETIRE, "Content With Identifier [" + node.getIdentifier + "] Can Not Be Retired. It Has Been Adopted By Other Users.")
-            if (finalStatus.contains(node.getMetadata.get(ContentConstants.STATUS))) {
+        if (StringUtils.equalsIgnoreCase(ContentConstants.COLLECTION_MIME_TYPE, node.getMetadata.get(ContentConstants.MIME_TYPE).asInstanceOf[String]) && finalStatus.contains(node.getMetadata.get(ContentConstants.STATUS))) {
                 RedisCache.delete("hierarchy_" + node.getIdentifier)
                 val req = new Request(request)
                 req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
@@ -91,7 +91,6 @@ object RetireManager {
                     TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + node.getIdentifier)
                     throw new ServerException("ERR_CONTENT_RETIRE", "Unable to fetch Hierarchy for Root Node: [" + node.getIdentifier + "]")
                 }
-            } else Future(ResponseHandler.OK())
         } else Future(ResponseHandler.OK())
     }
 
