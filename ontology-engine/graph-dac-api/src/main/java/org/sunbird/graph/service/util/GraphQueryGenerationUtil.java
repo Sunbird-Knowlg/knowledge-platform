@@ -1,12 +1,12 @@
 package org.sunbird.graph.service.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.exceptions.ClientException;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.types.Relationship;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ServerException;
@@ -779,7 +779,7 @@ public class GraphQueryGenerationUtil extends BaseQueryGenerationUtil {
 			try (Session session = driver.session()) {
 				TelemetryManager.log("Session Initialised. | [Graph Id: " + graphId + "]");
 
-				StatementResult result = session
+				Result result = session
 						.run(generateGetAllRelationsCypherQuery(graphId, startNodeId, direction));
 				for (Record record : result.list()) {
 					relationships.add(record.get("r").asRelationship());

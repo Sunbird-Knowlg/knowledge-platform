@@ -2,8 +2,9 @@ package org.sunbird.graph.service.operation;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.async.AsyncSession;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
 import org.sunbird.common.exception.ClientException;
@@ -40,24 +41,15 @@ public class GraphAsyncOperations {
 		Map<String, Object> dataMap = new HashMap<String, Object>(){{
 			put("data",relationData);
 		}};
-		try (Session session = driver.session()) {
-			CompletionStage<Response> cs = session.runAsync(query, dataMap)
-					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
-						return ResponseHandler.OK();
-					}).exceptionally(error -> {
-						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-								"Error! Something went wrong while creating node object. ", error.getCause());
-					});
-			return FutureConverters.toScala(cs);
-		} catch (Throwable e) {
-			e.printStackTrace();
-			if (!(e instanceof MiddlewareException)) {
-				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
-			} else {
-				throw e;
-			}
-		}
+		AsyncSession session = driver.asyncSession();
+		CompletionStage<Response> cs = session.runAsync(query, dataMap)
+				.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
+					return ResponseHandler.OK();
+				}).exceptionally(error -> {
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while creating node object. ", error.getCause());
+				});
+		return FutureConverters.toScala(cs);
 	}
 
 	public static Future<Response> removeRelation(String graphId, List<Map<String, Object>> relationData) {
@@ -75,23 +67,14 @@ public class GraphAsyncOperations {
 		Map<String, Object> dataMap = new HashMap<String, Object>(){{
 			put("data",relationData);
 		}};
-		try (Session session = driver.session()) {
-			CompletionStage<Response> cs = session.runAsync(query, dataMap)
-					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
-						return ResponseHandler.OK();
-					}).exceptionally(error -> {
-						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-								"Error! Something went wrong while creating node object. ", error.getCause());
-					});
-			return FutureConverters.toScala(cs);
-		} catch (Throwable e) {
-			e.printStackTrace();
-			if (!(e instanceof MiddlewareException)) {
-				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
-			} else {
-				throw e;
-			}
-		}
+		AsyncSession session = driver.asyncSession();
+		CompletionStage<Response> cs = session.runAsync(query, dataMap)
+				.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
+					return ResponseHandler.OK();
+				}).exceptionally(error -> {
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while creating node object. ", error.getCause());
+				});
+		return FutureConverters.toScala(cs);
 	}
 }

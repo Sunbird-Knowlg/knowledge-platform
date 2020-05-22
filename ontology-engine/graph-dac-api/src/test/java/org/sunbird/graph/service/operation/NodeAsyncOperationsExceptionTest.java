@@ -5,9 +5,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.dac.model.Node;
@@ -25,7 +25,9 @@ import java.util.concurrent.CompletionException;
 
 public class NodeAsyncOperationsExceptionTest {
 
+	private static DatabaseManagementService managementService = null;
 	protected static GraphDatabaseService graphDb = null;
+	private static String GRAPH_DIRECTORY_PROPERTY_KEY = "graph.dir";
 
 	@BeforeClass
 	public static void setup() throws Exception {
@@ -62,13 +64,20 @@ public class NodeAsyncOperationsExceptionTest {
 
 
 	private static void startEmbeddedNeo4jWithReadOnly() {
-		GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-		graphDb = new GraphDatabaseFactory()
-				.newEmbeddedDatabaseBuilder(new File(Platform.config.getString("graph.dir")))
-				.setConfig(bolt.type, "BOLT").setConfig(bolt.enabled, "true")
-				.setConfig(GraphDatabaseSettings.read_only, "true")
-				.setConfig(bolt.address, "localhost:7687").newGraphDatabase();
-		registerShutdownHook(graphDb);
+
+		if (graphDb == null) {
+			managementService = new DatabaseManagementServiceBuilder(new File(Platform.config.getString(GRAPH_DIRECTORY_PROPERTY_KEY))).build();
+			graphDb = managementService.database("graph.db");
+			registerShutdownHook(graphDb);
+		}
+
+//		GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
+//		graphDb = new GraphDatabaseFactory()
+//				.newEmbeddedDatabaseBuilder(new File(Platform.config.getString("graph.dir")))
+//				.setConfig(bolt.type, "BOLT").setConfig(bolt.enabled, "true")
+//				.setConfig(GraphDatabaseSettings.read_only, "true")
+//				.setConfig(bolt.address, "localhost:7687").newGraphDatabase();
+//		registerShutdownHook(graphDb);
 	}
 
 	protected static void registerShutdownHook(final GraphDatabaseService graphDb) {
@@ -86,8 +95,8 @@ public class NodeAsyncOperationsExceptionTest {
 	}
 
 	private static void tearEmbeddedNeo4JSetup() throws Exception {
-		if (null != graphDb)
-			graphDb.shutdown();
+		if (null != managementService)
+			managementService.shutdown();
 		Thread.sleep(2000);
 		FileUtils.deleteDirectory(new File(Platform.config.getString("graph.dir")));
 	}

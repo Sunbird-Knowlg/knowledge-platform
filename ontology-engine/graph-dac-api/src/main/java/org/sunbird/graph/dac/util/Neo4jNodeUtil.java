@@ -1,7 +1,7 @@
 package org.sunbird.graph.dac.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Value;
+import org.neo4j.driver.Value;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Relationship;
 import org.sunbird.common.exception.ServerException;
@@ -73,7 +73,7 @@ public class Neo4jNodeUtil {
      * @param endNodeMap
      * @return
      */
-    public static Node getNode(String graphId, org.neo4j.driver.v1.types.Node neo4jNode, Map<Long, Object> relationMap,
+    public static Node getNode(String graphId, org.neo4j.driver.types.Node neo4jNode, Map<Long, Object> relationMap,
                                Map<Long, Object> startNodeMap, Map<Long, Object> endNodeMap) {
 
         if (null == neo4jNode)
@@ -124,7 +124,7 @@ public class Neo4jNodeUtil {
             List<Relation> outRelations = new ArrayList<Relation>();
 
             for (Map.Entry<Long, Object> entry : relationMap.entrySet()) {
-                org.neo4j.driver.v1.types.Relationship relationship = (org.neo4j.driver.v1.types.Relationship) entry
+                org.neo4j.driver.types.Relationship relationship = (org.neo4j.driver.types.Relationship) entry
                         .getValue();
                 if (relationship.startNodeId() == neo4jNode.id()) {
                     outRelations.add(new Relation(graphId, relationship, startNodeMap, endNodeMap));

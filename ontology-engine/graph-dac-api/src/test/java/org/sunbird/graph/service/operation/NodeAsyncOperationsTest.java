@@ -24,7 +24,7 @@ public class NodeAsyncOperationsTest extends BaseTest {
 
 	@BeforeClass
 	public static void setUp() {
-		graphDb.execute("UNWIND [{nodeId:'do_000000123', name: 'Test Node'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});");
+		graphDb.executeTransactionally("UNWIND [{nodeId:'do_000000123', name: 'Test Node'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});");
 
 	}
 

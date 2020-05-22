@@ -1,10 +1,10 @@
 package org.sunbird.graph.service.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.Config;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.exceptions.ClientException;
 import org.sunbird.common.Platform;
 import org.sunbird.graph.service.common.DACConfigurationConstants;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
@@ -15,6 +15,7 @@ import org.sunbird.telemetry.logger.TelemetryManager;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class DriverUtil {
 
@@ -44,11 +45,11 @@ public class DriverUtil {
 	}
 
 	public static Config getConfig() {
-		Config.ConfigBuilder config = Config.build();
-		config.withEncryptionLevel(Config.EncryptionLevel.NONE);
-		config.withMaxIdleSessions(DACConfigurationConstants.NEO4J_SERVER_MAX_IDLE_SESSION);
+		Config.ConfigBuilder config = Config.builder();
+		config.withoutEncryption();
+		config.withMaxConnectionLifetime(DACConfigurationConstants.NEO4J_SERVER_MAX_IDLE_SESSION, TimeUnit.SECONDS);
 		config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
-		return config.toConfig();
+		return config.build();
 	}
 
 	public static void closeDrivers() {

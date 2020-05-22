@@ -3,7 +3,7 @@ package org.sunbird.graph.dac.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Value;
+import org.neo4j.driver.Value;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.sunbird.common.exception.ServerException;
@@ -71,7 +71,7 @@ public class Relation implements Serializable {
 		}
 	}
 
-	public Relation(String graphId, org.neo4j.driver.v1.types.Relationship relationship, Map<Long, Object> startNodeMap,
+	public Relation(String graphId, org.neo4j.driver.types.Relationship relationship, Map<Long, Object> startNodeMap,
 			Map<Long, Object> endNodeMap) {
 		if (null == relationship)
 			throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_REL.name(),
@@ -79,9 +79,9 @@ public class Relation implements Serializable {
 		this.id = relationship.id();
 		this.graphId = graphId;
 
-		org.neo4j.driver.v1.types.Node startNode = (org.neo4j.driver.v1.types.Node) startNodeMap
+		org.neo4j.driver.types.Node startNode = (org.neo4j.driver.types.Node) startNodeMap
 				.get(relationship.startNodeId());
-		org.neo4j.driver.v1.types.Node endNode = (org.neo4j.driver.v1.types.Node) endNodeMap
+		org.neo4j.driver.types.Node endNode = (org.neo4j.driver.types.Node) endNodeMap
 				.get(relationship.endNodeId());
 		this.startNodeId = startNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
 		this.endNodeId = endNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
@@ -134,7 +134,7 @@ public class Relation implements Serializable {
 		return name;
 	}
 
-	private String getName(org.neo4j.driver.v1.types.Node node) {
+	private String getName(org.neo4j.driver.types.Node node) {
 		String name = node.get("name").asString();
 		if (StringUtils.isBlank(name) || StringUtils.equalsIgnoreCase("null", name)) {
 			name = node.get("title").asString();
@@ -147,7 +147,7 @@ public class Relation implements Serializable {
 		return name;
 	}
 
-	private String getNodeType(org.neo4j.driver.v1.types.Node node) {
+	private String getNodeType(org.neo4j.driver.types.Node node) {
 		return node.get(SystemProperties.IL_SYS_NODE_TYPE.name()).asString();
 	}
 
@@ -159,7 +159,7 @@ public class Relation implements Serializable {
 		return (String) node.getProperty(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), null);
 	}
 
-	private String getObjectType(org.neo4j.driver.v1.types.Node node) {
+	private String getObjectType(org.neo4j.driver.types.Node node) {
 		return node.get(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).asString();
 	}
 
@@ -176,7 +176,7 @@ public class Relation implements Serializable {
 		return metadata;
 	}
 
-	private Map<String, Object> getNodeMetadata(org.neo4j.driver.v1.types.Node node) {
+	private Map<String, Object> getNodeMetadata(org.neo4j.driver.types.Node node) {
 		Map<String, Object> metadata = new HashMap<String, Object>();
 		if (null != node) {
 			Iterable<String> keys = node.keys();

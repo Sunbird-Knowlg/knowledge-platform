@@ -1,10 +1,10 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.exceptions.ClientException;
 import org.sunbird.graph.common.enums.GraphDACParams;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
@@ -64,7 +64,7 @@ public class Neo4JBoltSearchOperations {
 			parameterMap.put(GraphDACParams.relationType.name(), relationType);
 			parameterMap.put(GraphDACParams.endNodeId.name(), endNodeId);
 
-			StatementResult result = session
+			Result result = session
 					.run(SearchQueryGenerationUtil.generateCheckCyclicLoopCypherQuery(parameterMap));
 			if (null != result && result.hasNext()) {
 				cyclicLoopMap.put(GraphDACParams.loop.name(), new Boolean(true));

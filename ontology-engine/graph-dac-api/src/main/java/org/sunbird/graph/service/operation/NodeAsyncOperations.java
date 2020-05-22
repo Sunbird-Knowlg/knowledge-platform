@@ -3,12 +3,13 @@ package org.sunbird.graph.service.operation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.async.AsyncSession;
+import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
@@ -62,37 +63,28 @@ public class NodeAsyncOperations {
         Map<String, Object> queryMap = (Map<String, Object>) parameterMap.get(GraphDACParams.queryStatementMap.name());
         Map<String, Object> entry = (Map<String, Object>) queryMap.entrySet().stream().findFirst().get().getValue();
 
-        try (Session session = driver.session()) {
-            String statementTemplate = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
-            Map<String, Object> statementParameters = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
-            CompletionStage<Node> cs = session.runAsync(statementTemplate, statementParameters)
-            .thenCompose(fn -> fn.singleAsync())
-            .thenApply(record -> {
-                org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
-                String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                node.setGraphId(graphId);
-                node.setIdentifier(identifier);
-                if (StringUtils.isNotBlank(versionKey))
-                    node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
-                return node;
-            }).exceptionally(error -> {
-                        if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ClientException)
-                            throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + node.getIdentifier());
-                        else
-                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                    "Error! Something went wrong while creating node object. ", error.getCause());
-            });
-            return FutureConverters.toScala(cs);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            if (!(e instanceof MiddlewareException)) {
-                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
-            } else {
-                throw e;
-            }
-        }
+        AsyncSession session = driver.asyncSession();
+        String statementTemplate = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
+        Map<String, Object> statementParameters = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
+        CompletionStage<Node> cs = session.runAsync(statementTemplate, statementParameters)
+        .thenCompose(fn -> fn.singleAsync())
+        .thenApply(record -> {
+            org.neo4j.driver.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+            String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
+            String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+            node.setGraphId(graphId);
+            node.setIdentifier(identifier);
+            if (StringUtils.isNotBlank(versionKey))
+                node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
+            return node;
+        }).exceptionally(error -> {
+                    if (error.getCause() instanceof org.neo4j.driver.exceptions.ClientException)
+                        throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + node.getIdentifier());
+                    else
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
+        });
+        return FutureConverters.toScala(cs);
     }
 
     public static Future<Node> upsertNode(String graphId, Node node, Request request) {
@@ -117,32 +109,24 @@ public class NodeAsyncOperations {
         Map<String, Object> entry = (Map<String, Object>) queryMap.entrySet().stream().findFirst().get().getValue();
 
 
-        try(Session session = driver.session()) {
-            String statement = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
-            Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
-            CompletionStage<Node> cs = session.runAsync(statement, statementParams).thenCompose(fn -> fn.singleAsync())
-                    .thenApply(record -> {
-                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                        String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
-                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                        node.setGraphId(graphId);
-                        node.setIdentifier(identifier);
-                        if (StringUtils.isNotBlank(versionKey))
-                            node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
-                        return node;
-                    }).exceptionally(error -> {
-                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                "Error! Something went wrong while creating node object. ", error.getCause());
-                    });
-            return FutureConverters.toScala(cs);
-        } catch (Exception e) {
-            if (!(e instanceof MiddlewareException)) {
-                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage());
-            } else {
-                throw e;
-            }
-        }
+        AsyncSession session = driver.asyncSession();
+        String statement = StringUtils.removeEnd((String) entry.get(GraphDACParams.query.name()), CypherQueryConfigurationConstants.COMMA);
+        Map<String, Object> statementParams = (Map<String, Object>) entry.get(GraphDACParams.paramValueMap.name());
+        CompletionStage<Node> cs = session.runAsync(statement, statementParams).thenCompose(fn -> fn.singleAsync())
+                .thenApply(record -> {
+                    org.neo4j.driver.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                    String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
+                    String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                    node.setGraphId(graphId);
+                    node.setIdentifier(identifier);
+                    if (StringUtils.isNotBlank(versionKey))
+                        node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
+                    return node;
+                }).exceptionally(error -> {
+                    throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                            "Error! Something went wrong while creating node object. ", error.getCause());
+                });
+        return FutureConverters.toScala(cs);
     }
 
     public static Future<Map<String, Node>> updateNodes(String graphId, List<String> identifiers, Map<String, Object> data) {
@@ -161,25 +145,24 @@ public class NodeAsyncOperations {
         Map<String, Object> parameterMap = new HashMap<>();
         Map<String, Node> output = new HashMap<>();
         String query = NodeQueryGenerationUtil.generateUpdateNodesQuery(graphId, identifiers, setPrimitiveData(data), parameterMap);
-        try (Session session = driver.session()) {
-            CompletionStage<Map<String, Node>> cs = session.runAsync(query, parameterMap).thenCompose(fn -> fn.listAsync())
-                    .thenApply(result -> {
-                        if (null != result) {
-                            for (Record record : result) {
-                                if (null != record) {
-                                    org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                                    String identifier = neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                                    Node node = Neo4jNodeUtil.getNode(graphId, neo4JNode, null, null, null);
-                                    output.put(identifier, node);
-                                }
+        AsyncSession session = driver.asyncSession();
+        CompletionStage<Map<String, Node>> cs = session.runAsync(query, parameterMap).thenCompose(fn -> fn.listAsync())
+                .thenApply(result -> {
+                    if (null != result) {
+                        for (Record record : result) {
+                            if (null != record) {
+                                org.neo4j.driver.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                                String identifier = neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                                Node node = Neo4jNodeUtil.getNode(graphId, neo4JNode, null, null, null);
+                                output.put(identifier, node);
                             }
                         }
-                        return output;
-                    }).exceptionally(error -> {
-                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(), "Error! Something went wrong while performing bulk update operations. ", error.getCause());
-                    });
-            return FutureConverters.toScala(cs);
-        }
+                    }
+                    return output;
+                }).exceptionally(error -> {
+                    throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(), "Error! Something went wrong while performing bulk update operations. ", error.getCause());
+                });
+        return FutureConverters.toScala(cs);
     }
 
 
@@ -192,51 +175,47 @@ public class NodeAsyncOperations {
         node.setMetadata(new HashMap<String, Object>());
         Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
         TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
-        try (Session session = driver.session()) {
-            TelemetryManager.log("Session Initialised. | [Graph Id: " + graphId + "]");
+        AsyncSession session = driver.asyncSession();
+        TelemetryManager.log("Session Initialised. | [Graph Id: " + graphId + "]");
 
-            // Generating Root Node Id
-            String rootNodeUniqueId = Identifier.getIdentifier(graphId, SystemNodeTypes.ROOT_NODE.name());
-            TelemetryManager.log("Generated Root Node Id: " + rootNodeUniqueId);
+        // Generating Root Node Id
+        String rootNodeUniqueId = Identifier.getIdentifier(graphId, SystemNodeTypes.ROOT_NODE.name());
+        TelemetryManager.log("Generated Root Node Id: " + rootNodeUniqueId);
 
-            node.setGraphId(graphId);
-            node.setNodeType(SystemNodeTypes.ROOT_NODE.name());
-            node.setIdentifier(rootNodeUniqueId);
-            node.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name(), rootNodeUniqueId);
-            node.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.ROOT_NODE.name());
-            node.getMetadata().put(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
-            node.getMetadata().put(GraphDACParams.Nodes_Count.name(), 0);
-            node.getMetadata().put(GraphDACParams.Relations_Count.name(), 0);
+        node.setGraphId(graphId);
+        node.setNodeType(SystemNodeTypes.ROOT_NODE.name());
+        node.setIdentifier(rootNodeUniqueId);
+        node.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name(), rootNodeUniqueId);
+        node.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.ROOT_NODE.name());
+        node.getMetadata().put(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
+        node.getMetadata().put(GraphDACParams.Nodes_Count.name(), 0);
+        node.getMetadata().put(GraphDACParams.Relations_Count.name(), 0);
 
-            Map<String, Object> parameterMap = new HashMap<String, Object>();
-            parameterMap.put(GraphDACParams.graphId.name(), graphId);
-            parameterMap.put(GraphDACParams.rootNode.name(), node);
-            parameterMap.put(GraphDACParams.request.name(), request);
+        Map<String, Object> parameterMap = new HashMap<String, Object>();
+        parameterMap.put(GraphDACParams.graphId.name(), graphId);
+        parameterMap.put(GraphDACParams.rootNode.name(), node);
+        parameterMap.put(GraphDACParams.request.name(), request);
 
-            CompletionStage<Node> cs = session.runAsync(NodeQueryGenerationUtil.generateUpsertRootNodeCypherQuery(parameterMap))
-                    .thenCompose(fn -> fn.singleAsync())
-                    .thenApply(record -> {
-                        org.neo4j.driver.v1.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
-                        String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
-                        String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
-                        node.setGraphId(graphId);
-                        node.setIdentifier(identifier);
-                        if (StringUtils.isNotBlank(versionKey))
-                            node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
-                        return node;
-                    }).exceptionally(error -> {
-                        if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ServiceUnavailableException)
-                            throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-                                    DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + error.getMessage(), error.getCause());
-                        else
-                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                    "Error! Something went wrong while creating node object. ", error.getCause());
-                    });
-            return FutureConverters.toScala(cs);
-        } catch (Exception e) {
-                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-                        DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
-        }
+        CompletionStage<Node> cs = session.runAsync(NodeQueryGenerationUtil.generateUpsertRootNodeCypherQuery(parameterMap))
+                .thenCompose(fn -> fn.singleAsync())
+                .thenApply(record -> {
+                    org.neo4j.driver.types.Node neo4JNode = record.get(DEFAULT_CYPHER_NODE_OBJECT).asNode();
+                    String versionKey = (String) neo4JNode.get(GraphDACParams.versionKey.name()).asString();
+                    String identifier = (String) neo4JNode.get(SystemProperties.IL_UNIQUE_ID.name()).asString();
+                    node.setGraphId(graphId);
+                    node.setIdentifier(identifier);
+                    if (StringUtils.isNotBlank(versionKey))
+                        node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
+                    return node;
+                }).exceptionally(error -> {
+                    if (error.getCause() instanceof org.neo4j.driver.exceptions.ServiceUnavailableException)
+                        throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+                                DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + error.getMessage(), error.getCause());
+                    else
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while creating node object. ", error.getCause());
+                });
+        return FutureConverters.toScala(cs);
     }
 
     public static Future<Boolean> deleteNode(String graphId, String nodeId, Request request) {
@@ -251,28 +230,24 @@ public class NodeAsyncOperations {
 
         Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
         TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
-        try (Session session = driver.session()) {
-            Map<String, Object> parameterMap = new HashMap<String, Object>();
-            parameterMap.put(GraphDACParams.graphId.name(), graphId);
-            parameterMap.put(GraphDACParams.nodeId.name(), nodeId);
-            parameterMap.put(GraphDACParams.request.name(), request);
+        AsyncSession session = driver.asyncSession();
+        Map<String, Object> parameterMap = new HashMap<String, Object>();
+        parameterMap.put(GraphDACParams.graphId.name(), graphId);
+        parameterMap.put(GraphDACParams.nodeId.name(), nodeId);
+        parameterMap.put(GraphDACParams.request.name(), request);
 
-            CompletionStage<Boolean> cs = session.runAsync(NodeQueryGenerationUtil.generateDeleteNodeCypherQuery(parameterMap))
-                    .thenCompose(fn -> fn.singleAsync())
-                    .thenApply(record ->  true)
-                    .exceptionally(error -> {
-                        if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
-                            throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
-                                    DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
-                        else
-                            throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                                    "Error! Something went wrong while deleting node object. ", error.getCause());                    });
-            // TODO: Implement Redis Delete
-            return FutureConverters.toScala(cs);
-        } catch (Exception e) {
-            throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
-                    DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage());
-        }
+        CompletionStage<Boolean> cs = session.runAsync(NodeQueryGenerationUtil.generateDeleteNodeCypherQuery(parameterMap))
+                .thenCompose(fn -> fn.singleAsync())
+                .thenApply(record ->  true)
+                .exceptionally(error -> {
+                    if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
+                        throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                                DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId);
+                    else
+                        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+                                "Error! Something went wrong while deleting node object. ", error.getCause());                    });
+        // TODO: Implement Redis Delete
+        return FutureConverters.toScala(cs);
     }
 
     private static Node setPrimitiveData(Node node) {

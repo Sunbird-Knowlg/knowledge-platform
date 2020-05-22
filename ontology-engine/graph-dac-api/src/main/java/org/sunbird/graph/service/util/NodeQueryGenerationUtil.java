@@ -1,7 +1,7 @@
 package org.sunbird.graph.service.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.exceptions.ClientException;
 import org.sunbird.common.DateUtils;
 import org.sunbird.graph.common.Identifier;
 import org.sunbird.graph.common.enums.GraphDACParams;

@@ -1,16 +1,15 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Transaction;
+import org.neo4j.driver.exceptions.ClientException;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.GraphDACParams;
-import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
 import org.sunbird.graph.service.common.GraphOperation;
@@ -19,7 +18,6 @@ import org.sunbird.graph.service.util.GraphQueryGenerationUtil;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Neo4JBoltGraphOperations {
@@ -74,12 +72,12 @@ public class Neo4JBoltGraphOperations {
 
 			if (StringUtils.isNotBlank(query)) {
 				try ( Transaction tx = session.beginTransaction() ){
-					StatementResult result;
+					Result result;
 					if (null != paramValuesMap && !paramValuesMap.isEmpty())
 						result = tx.run(query, paramValuesMap);
 					else
 						result = tx.run(query);
-					tx.success();
+					tx.close();
 					for (Record record : result.list())
 						TelemetryManager.log("'Create Relation' Operation Finished.", record.asMap());
 				}
@@ -143,12 +141,12 @@ public class Neo4JBoltGraphOperations {
 
 				if (StringUtils.isNotBlank(query)) {
 					try ( Transaction tx = session.beginTransaction() ){
-						StatementResult result;
+						Result result;
 						if (null != paramValuesMap && !paramValuesMap.isEmpty())
 							result = tx.run(query, paramValuesMap);
 						else
 							result = tx.run(query);
-						tx.success();
+						tx.close();
 						for (Record record : result.list()) {
 							TelemetryManager.log("'Update Relation' Operation Finished.", record.asMap());
 						}
@@ -205,8 +203,8 @@ public class Neo4JBoltGraphOperations {
 			parameterMap.put(GraphDACParams.request.name(), request);
 
 			try ( Transaction tx = session.beginTransaction() ) {
-				StatementResult result = tx.run(GraphQueryGenerationUtil.generateDeleteRelationCypherQuery(parameterMap));
-				tx.success();
+				Result result = tx.run(GraphQueryGenerationUtil.generateDeleteRelationCypherQuery(parameterMap));
+				tx.close();
 				for (Record record : result.list()) {
 					TelemetryManager.log("'Delete Relation' Operation Finished.", record.asMap());
 				}
