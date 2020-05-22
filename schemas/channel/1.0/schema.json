@@ -63,6 +63,14 @@
     },
     "defaultLicense":{
       "type": "string"
+    },
+    "autoCreateBatch": {
+      "type": "string",
+      "enum": [
+        "Enabled",
+        "Disabled"
+      ],
+      "default": "Enabled"
     }
   }
 }

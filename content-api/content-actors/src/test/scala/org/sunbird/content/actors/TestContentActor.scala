@@ -35,6 +35,19 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     }
 
+    it should "create a node and store it in neo4j" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+        val request = getContentRequest()
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "channel" -> "in.ekstep")))
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.get("identifier") != null)
+        assert(response.get("versionKey") != null)
+    }
 
     it should "generate and return presigned url" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
@@ -101,7 +114,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("version", "1.0")
                 put("objectType", "Content")
                 put("schemaName", "content")
-
+                put("X-Channel-Id", "in.ekstep")
             }
         })
         request.setObjectType("Content")
@@ -135,6 +148,23 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("status", "Live")
                 put("contentType", "Resource")
                 put("name", "Node To discard")
+            }
+        })
+        node
+    }
+
+    private def getValidNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_1234")
+        node.setNodeType("DATA_NODE")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_1234")
+                put("mimeType", "application/vnd.ekstep.content-collection")
+                put("status", "Draft")
+                put("contentType", "Course")
+                put("name", "Course_1")
+                put("versionKey", "1878141")
             }
         })
         node
