@@ -54,4 +54,6 @@ object ContentConstants {
     val CONTENT_OBJECT_TYPE: String = "Content"
     val LAST_UPDATED_ON:String = "lastUpdatedOn"
     val SYSTEM_ERROR:String = "SYSTEM_ERROR"
+    val VERSION:String = "version"
+    val COPY_SCHEME:String = "copyScheme"
 }

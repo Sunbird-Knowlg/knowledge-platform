@@ -260,5 +260,21 @@ object DefinitionNode {
             case e: Exception => entry._2
         }
     }
+
+    def getAllCopyScheme(request: Request): List[String] = {
+        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        definition.getAllCopySchemes()
+    }
+
+    def getCopySchemeContentType(request: Request): java.util.HashMap[String, Object] = {
+        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        definition.getCopySchemeMap(request)
+    }
 }
 
