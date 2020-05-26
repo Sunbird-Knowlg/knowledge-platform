@@ -225,7 +225,7 @@ class TestContentActor extends BaseSpec with MockFactory {
             {
                 put("identifier", "do_1234")
                 put("mimeType", "application/vnd.ekstep.content-collection")
-                put("status", "Draft")
+                put("status", "Live")
                 put("contentType", "Course")
                 put("name", "Node To Retire")
             }
