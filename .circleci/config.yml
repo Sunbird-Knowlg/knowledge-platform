@@ -3,6 +3,7 @@ executorType: machine
 jobs:
   kp-build:
     docker:
+      - image: circleci/redis:latest
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
     steps:
       - checkout
