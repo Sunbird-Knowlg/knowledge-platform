@@ -14,7 +14,6 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.BaseMimeTypeManager
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 
