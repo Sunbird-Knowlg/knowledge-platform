@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-xml_2.11</artifactId>
+            <artifactId>scala-xml_${scala.maj.version}</artifactId>
             <version>1.2.0</version>
         </dependency>
         <dependency>
@@ -76,7 +76,7 @@
         </dependency>
         <dependency>
             <groupId>org.scalamock</groupId>
-            <artifactId>scalamock_2.11</artifactId>
+            <artifactId>scalamock_${scala.maj.version}</artifactId>
             <version>4.4.0</version>
             <scope>test</scope>
         </dependency>
