@@ -12,13 +12,9 @@
     <packaging>pom</packaging>
     <name>content-api</name>
     <properties>
-        <version.compiler.plugin>2.3.1</version.compiler.plugin>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <scoverage.plugin.version>1.1.1</scoverage.plugin.version>
-        <scala.version>2.11.8</scala.version>
+        <scala.version>2.12.11</scala.version>
     </properties>
     <modules>
         <module>content-service</module>

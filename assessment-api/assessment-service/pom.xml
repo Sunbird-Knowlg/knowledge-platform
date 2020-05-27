@@ -34,7 +34,6 @@
         <play2.version>2.7.2</play2.version>
         <play2.plugin.version>1.0.0-rc5</play2.plugin.version>
         <sbt-compiler.plugin.version>1.0.0</sbt-compiler.plugin.version>
-        <scala.major.version>2.12</scala.major.version>
     </properties>
 
     <dependencies>
@@ -79,7 +78,7 @@
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.maj.version}</artifactId>
-            <version>3.0.6</version>
+            <version>3.1.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
