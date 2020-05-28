@@ -148,6 +148,33 @@ class TestUpdateHierarchy extends BaseSpec {
         }
         exception.getMessage shouldEqual "Please Provide Valid Root Node Identifier"
     }
+
+    "updateHierarchy on already existing hierarchy empty hierarcy request" should "recompose the hierarchy structure with existing hierarchy" in {
+        UpdateHierarchyManager.getContentNode("do_31250856200414822416938", HierarchyConstants.TAXONOMY_ID).map(node => {
+            println("Node data from neo4j ----- id: " + node.getIdentifier + "node type:  " + node.getNodeType + " node metadata : " + node.getMetadata)
+            val request = new Request()
+            val context = getContext()
+            context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+            request.setContext(context)
+            request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
+            request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
+            UpdateHierarchyManager.updateHierarchy(request).map(response => {
+                assert(response.getResponseCode.code() == 200)
+                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+                    .one().getString(HierarchyConstants.HIERARCHY)
+                assert(StringUtils.isNotEmpty(hierarchy))
+                request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_TOC_UPLOAD_STYLE())
+                request.put(HierarchyConstants.HIERARCHY, getHierarchy_Null())
+                UpdateHierarchyManager.updateHierarchy(request).map(resp => {
+                    assert(response.getResponseCode.code() == 200)
+                    val hierarchy_updated = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+                        .one().getString(HierarchyConstants.HIERARCHY)
+                    assert(StringUtils.isNotEmpty(hierarchy_updated))
+                })
+            }).flatMap(f => f)
+        }).flatMap(f => f)
+    }
+
     //Text Book -> root, New Unit
     def getNodesModified_1(): util.HashMap[String, AnyRef] = {
         val nodesModifiedString: String =    "{\n"+
@@ -235,6 +262,35 @@ class TestUpdateHierarchy extends BaseSpec {
             "          ]\n" +
             "        }\n" +
             "      }"
+        JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
+    }
+
+    def getNodesModified_TOC_UPLOAD_STYLE(): util.HashMap[String, AnyRef] = {
+        val nodesModifiedString: String = "{" +
+            "\"do_112971262874558464179\": {\n" +
+            "                    \"root\": false,\n" +
+            "                    \"isNew\": true,\n" +
+            "                    \"metadata\": {\n" +
+            "                        \"attributions\": [\n" +
+            "                            \"mk\"\n" +
+            "                        ],\n" +
+            "                        \"name\": \"Test update hierarchy-30918948914\",\n" +
+            "                        \"contentType\": \"TextBookUnit\",\n" +
+            "                        \"mimeType\": \"application/vnd.ekstep.content-collection\",\n" +
+            "                        \"versionKey\": \"1583406182466\"\n" +
+            "                    }\n" +
+            "                },\n" +
+            "                \"do_11294581887465881611\": {\n" +
+            "                    \"isNew\": false,\n" +
+            "                    \"root\": true,\n" +
+            "                    \"metadata\": {}\n" +
+            "                }" +
+            "}"
+        JsonUtils.deserialize(nodesModifiedString, classOf[util.HashMap[String, AnyRef]])
+    }
+
+    def getHierarchy_Null(): util.HashMap[String, AnyRef] = {
+        val hierarchyString: String = "{}"
         JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
     }
 
