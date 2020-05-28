@@ -3,10 +3,15 @@ package org.sunbird.graph.service.operation;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.graphdb.Result;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.graph.dac.model.Node;
+import org.sunbird.graph.service.common.GraphOperation;
+import org.sunbird.graph.service.util.DriverUtil;
 import org.sunbird.test.BaseTest;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
@@ -24,7 +29,10 @@ public class NodeAsyncOperationsTest extends BaseTest {
 
 	@BeforeClass
 	public static void setUp() {
-		graphDb.execute("UNWIND [{nodeId:'do_000000123', name: 'Test Node'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});");
+		Driver driver = DriverUtil.getDriver("domain", GraphOperation.WRITE);
+		driver.session().run("UNWIND [{nodeId:'do_000000123', name: 'Test Node'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});");
+		System.out.println("Setup before.....");
+//		graphDb.execute("UNWIND [{nodeId:'do_000000123', name: 'Test Node'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});");
 
 	}
 
@@ -54,6 +62,7 @@ public class NodeAsyncOperationsTest extends BaseTest {
 	@Test
 	public void testUpdateNodes() throws Exception {
 		createBulkNodes();
+
 		List<String> ids = Arrays.asList("do_0000123", "do_0000234");
 		Map<String, Object> data = new HashMap<String, Object>() {{
 			put("status", "Review");
@@ -94,7 +103,7 @@ public class NodeAsyncOperationsTest extends BaseTest {
 		Node node = new Node("domain","DATA_NODE","Content");
 		node.setIdentifier("do_000000111");
 		node.setMetadata(new HashMap<String, Object>(){{put("status","Draft");}});
-		Future<Node> resultFuture = NodeAsyncOperations.addNode("graphId",node);
+		Future<Node> resultFuture = NodeAsyncOperations.addNode("domain",node);
 		Node result = Await.result(resultFuture, Duration.apply("30s"));
 		Assert.assertTrue(null!=node);
 		Assert.assertEquals("do_000000111",result.getIdentifier());

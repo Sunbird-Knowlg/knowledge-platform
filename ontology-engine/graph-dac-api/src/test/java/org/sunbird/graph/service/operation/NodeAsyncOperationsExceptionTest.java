@@ -38,6 +38,7 @@ public class NodeAsyncOperationsExceptionTest {
 		DriverUtil.closeDrivers();
 	}
 
+	@Ignore
 	@Test(expected = CompletionException.class)
 	public void testAddNodeExpectServerException() throws Exception {
 		Node node = new Node("domain", "DATA_NODE", "Content");
