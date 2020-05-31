@@ -42,6 +42,7 @@ object UpdateHierarchyManager {
                     idMap += (rootId -> rootId)
                     updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
                         getChildrenHierarchy(nodeList, rootId, hierarchy, idMap, existingHierarchy).map(children => {
+                            TelemetryManager.info("Children for root id :" + rootId +" :: " + JsonUtils.serialize(children))
                             updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                 val response = ResponseHandler.OK()
                                 response.put(HierarchyConstants.CONTENT_ID, rootId)
@@ -253,15 +254,18 @@ object UpdateHierarchyManager {
     @throws[Exception]
     private def getChildrenHierarchy(nodeList: ListBuffer[Node], rootId: String, hierarchyData: util.HashMap[String, AnyRef], idMap: mutable.Map[String, String], existingHierarchy : util.HashMap[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
         val childrenIdentifiersMap: Map[String, Map[String, Int]] = getChildrenIdentifiersMap(hierarchyData, idMap, existingHierarchy)
+        TelemetryManager.info("Children Id map for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
         getPreparedHierarchyData(nodeList, hierarchyData, rootId, childrenIdentifiersMap).map(nodeMaps => {
             val filteredNodeMaps = nodeMaps.filter(nodeMap => null != nodeMap.get(HierarchyConstants.DEPTH)).toList
             val identifierNodeMap: Map[String, AnyRef] = filteredNodeMaps.map(nodeMap => nodeMap.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String] -> nodeMap).toMap
             val hierarchyMap = constructHierarchy(childrenIdentifiersMap, identifierNodeMap)
             //        util.hierarchyCleanUp(collectionHierarchy)
-            if (MapUtils.isNotEmpty(hierarchyMap))
+            if (MapUtils.isNotEmpty(hierarchyMap)) {
+                TelemetryManager.info("hierarchyMap for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
                 hierarchyMap.getOrDefault(rootId, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-                    .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-                    .filter(child => MapUtils.isNotEmpty(child))
+                        .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+                        .filter(child => MapUtils.isNotEmpty(child))
+            }
             else
                 new util.ArrayList[util.Map[String, AnyRef]]()
 
