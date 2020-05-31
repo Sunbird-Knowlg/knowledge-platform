@@ -260,11 +260,12 @@ object UpdateHierarchyManager {
             val identifierNodeMap: Map[String, AnyRef] = filteredNodeMaps.map(nodeMap => nodeMap.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String] -> nodeMap).toMap
             val hierarchyMap = constructHierarchy(childrenIdentifiersMap, identifierNodeMap)
             //        util.hierarchyCleanUp(collectionHierarchy)
-            if (MapUtils.isNotEmpty(hierarchyMap))
+            if (MapUtils.isNotEmpty(hierarchyMap)) {
                 TelemetryManager.info("hierarchyMap for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
                 hierarchyMap.getOrDefault(rootId, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-                    .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-                    .filter(child => MapUtils.isNotEmpty(child))
+                        .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+                        .filter(child => MapUtils.isNotEmpty(child))
+            }
             else
                 new util.ArrayList[util.Map[String, AnyRef]]()
 
