@@ -391,8 +391,6 @@ object UpdateHierarchyManager {
         req.getContext.put(HierarchyConstants.IDENTIFIER, rootId)
         val metadata = cleanUpRootData(node)
         req.getRequest.putAll(metadata)
-        val currentDate = DateUtils.formatCurrentDate()
-        req.getRequest.putAll(Map(HierarchyConstants.LAST_STATUS_CHANGED_ON -> currentDate, HierarchyConstants.LAST_UPDATED_ON -> currentDate))
         req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
         req.put(HierarchyConstants.IDENTIFIER, rootId)
         req.put(HierarchyConstants.CHILDREN, new util.ArrayList())
@@ -404,6 +402,8 @@ object UpdateHierarchyManager {
         DefinitionNode.fetchJsonProps(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.CONTENT_SCHEMA_NAME)
             .foreach(key => node.getMetadata.remove(key))
         node.getMetadata.remove(HierarchyConstants.STATUS)
+        node.getMetadata.remove(HierarchyConstants.LAST_UPDATED_ON)
+        node.getMetadata.remove(HierarchyConstants.LAST_STATUS_CHANGED_ON)
         node.getMetadata
     }
 
