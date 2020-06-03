@@ -39,7 +39,8 @@ object UpdateHierarchyManager {
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
-                    TelemetryManager.info("NodeList for root id :" + rootId +" :: " + nodeList.toList)
+                    val nodeMap: Map[String, AnyRef] = nodeList.toList.map(node => node.getIdentifier -> node.getMetadata.get("visibility")).toMap
+                    TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeMap))
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
                     updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
@@ -357,7 +358,8 @@ object UpdateHierarchyManager {
                         tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
                 else
                     Future(ResponseHandler.OK())
-            } else
+            } else {
+                TelemetryManager.info("GetContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
                     updatedNodeList.add(node)
@@ -367,6 +369,7 @@ object UpdateHierarchyManager {
                     else
                         ResponseHandler.OK()
                 }) recoverWith { case e: CompletionException => throw e.getCause }
+            }
         })
         if (CollectionUtils.isNotEmpty(futures)) Future.sequence(futures) else Future(ResponseHandler.OK())
     }
