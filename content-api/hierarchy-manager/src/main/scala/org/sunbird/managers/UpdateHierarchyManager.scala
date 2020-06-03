@@ -39,7 +39,7 @@ object UpdateHierarchyManager {
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
-                    TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeList.toList))
+                    TelemetryManager.info("NodeList for root id :" + rootId +" :: " + nodeList.toList)
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
                     updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
@@ -184,7 +184,7 @@ object UpdateHierarchyManager {
                 Future(nodeList)
             }
         else {
-            TelemetryManager.info("Visibility is empty for child :" + JsonUtils.serialize(child))
+            println("Visibility is empty for child :" + child)
             Future(nodeList)
         }
     }
