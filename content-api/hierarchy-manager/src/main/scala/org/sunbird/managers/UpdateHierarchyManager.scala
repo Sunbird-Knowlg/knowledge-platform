@@ -34,10 +34,11 @@ object UpdateHierarchyManager {
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
         var nodeList: ListBuffer[Node] = ListBuffer[Node]()
         getValidatedRootNode(rootId, request).map(node => {
-            nodeList += node
+            nodeList.add(node)
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
+                    TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeList.toList))
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
                     updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
@@ -168,16 +169,17 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
                     node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
-                    nodeList += node
-                    Future(nodeList)
-                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+                    nodeList.add(node)
+                    nodeList
+                }) recoverWith { case e: CompletionException => throw e.getCause }
             } else {
                 val childData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
                 childData.putAll(child)
                 childData.remove(HierarchyConstants.CHILDREN)
                 childData.put(HierarchyConstants.STATUS, "Draft")
                 childData.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String] ).getMetadata.get(HierarchyConstants.CHANNEL))
-                nodeList += NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
+                val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
+                nodeList.add(node)
                 Future(nodeList)
             }
         else Future(nodeList)
@@ -321,7 +323,7 @@ object UpdateHierarchyManager {
         if (MapUtils.isNotEmpty(childrenIdentifiersMap)) {
             val childNodeIds: mutable.HashSet[String] = mutable.HashSet[String]()
             val updatedNodeList: ListBuffer[Node] = ListBuffer()
-            updatedNodeList += getTempNode(nodeList, rootId)
+            updatedNodeList.add(getTempNode(nodeList, rootId))
             updateHierarchyRelatedData(childrenIdentifiersMap.getOrElse(rootId, Map[String, Int]()), 1,
                 rootId, nodeList, childrenIdentifiersMap, childNodeIds, updatedNodeList).map(response => {
                 updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {
