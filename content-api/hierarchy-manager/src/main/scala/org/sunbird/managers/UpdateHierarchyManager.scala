@@ -402,6 +402,8 @@ object UpdateHierarchyManager {
         DefinitionNode.fetchJsonProps(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.CONTENT_SCHEMA_NAME)
             .foreach(key => node.getMetadata.remove(key))
         node.getMetadata.remove(HierarchyConstants.STATUS)
+        node.getMetadata.remove(HierarchyConstants.LAST_UPDATED_ON)
+        node.getMetadata.remove(HierarchyConstants.LAST_STATUS_CHANGED_ON)
         node.getMetadata
     }
 
