@@ -35,12 +35,14 @@ object UpdateHierarchyManager {
         var nodeList: ListBuffer[Node] = ListBuffer[Node]()
         getValidatedRootNode(rootId, request).map(node => {
             nodeList += node
-            getExistingHierarchyChildren(request, node).map(existingChildren => {
+            getExistingHierarchy(request, node).map(existingHierarchy => {
+                val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     val idMap: mutable.Map[String, String] = mutable.Map()
                     idMap += (rootId -> rootId)
                     updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
-                        getChildrenHierarchy(nodeList, rootId, hierarchy, idMap).map(children => {
+                        getChildrenHierarchy(nodeList, rootId, hierarchy, idMap, existingHierarchy).map(children => {
+                            TelemetryManager.info("Children for root id :" + rootId +" :: " + JsonUtils.serialize(children))
                             updateHierarchyData(rootId, children, nodeList, request).map(node => {
                                 val response = ResponseHandler.OK()
                                 response.put(HierarchyConstants.CONTENT_ID, rootId)
@@ -103,12 +105,11 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def getExistingHierarchyChildren(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[util.ArrayList[util.HashMap[String, AnyRef]]] = {
+    private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[util.HashMap[String, AnyRef]] = {
         fetchHierarchy(request, rootNode).map(hierarchyString => {
             if (!hierarchyString.asInstanceOf[String].isEmpty) {
-                val hierarchyMap = JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[util.HashMap[String, AnyRef]])
-                hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
-            } else new util.ArrayList[util.HashMap[String, AnyRef]]()
+                JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[util.HashMap[String, AnyRef]])
+            } else new util.HashMap[String, AnyRef]()
         })
     }
 
@@ -250,40 +251,78 @@ object UpdateHierarchyManager {
         DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
 
+    def constructHierarchy(list: List[util.Map[String, AnyRef]]): util.Map[String, AnyRef] = {
+        val hierarchy: util.Map[String, AnyRef] = list.filter(root => root.get(HierarchyConstants.DEPTH).asInstanceOf[Number].intValue() == 0).head
+        if(MapUtils.isNotEmpty(hierarchy)){
+            val maxDepth = list.map(node => node.get(HierarchyConstants.DEPTH).asInstanceOf[Number].intValue()).max
+            for(i <- 0 to maxDepth) {
+                val depth = i
+                val currentLevelNodes: Map[String, List[util.Map[String, Object]]] = list.filter(node => node.get(HierarchyConstants.DEPTH).asInstanceOf[Number].intValue() == depth).groupBy(_.get("identifier").asInstanceOf[String].replaceAll(".img", ""))
+                val nextLevel: List[util.Map[String, AnyRef]] = list.filter(node => node.get(HierarchyConstants.DEPTH).asInstanceOf[Number].intValue() == (depth + 1))
+                if(CollectionUtils.isNotEmpty(nextLevel) && MapUtils.isNotEmpty(currentLevelNodes)) {
+                    nextLevel.foreach(e => {
+                        val parentId = e.get("parent").asInstanceOf[String]
+                        currentLevelNodes.getOrDefault(parentId, List[util.Map[String, AnyRef]]()).foreach(parent => {
+                            val children = parent.getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+                            children.add(e)
+                            parent.put(HierarchyConstants.CHILDREN , sortByIndex(children))
+                        })
+                    })
+                }
+            }
+        }
+        hierarchy   
+    }
+
     @throws[Exception]
-    private def getChildrenHierarchy(nodeList: ListBuffer[Node], rootId: String, hierarchyData: util.HashMap[String, AnyRef], idMap: mutable.Map[String, String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
-        val childrenIdentifiersMap: Map[String, List[String]] = if (MapUtils.isNotEmpty(hierarchyData)) {
-            val tempChildMap = hierarchyData.filter(entry => entry._2.asInstanceOf[util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.CHILDREN)).map(entry => idMap.getOrDefault(entry._1, entry._1) -> entry._2.asInstanceOf[util.HashMap[String, AnyRef]]
-                .get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[String]]
-                .map(id => idMap.getOrDefault(id, id)).toList).toMap
-            val tempResourceMap = hierarchyData.filter(entry => entry._2.asInstanceOf[util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.CHILDREN)).flatMap(entry => entry._2.asInstanceOf[util.HashMap[String, AnyRef]]
-                .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[String]())
-                .asInstanceOf[util.ArrayList[String]])
-                .filter(child => !tempChildMap.contains(idMap.getOrDefault(child, child))).map(child => idMap.getOrDefault(child, child) -> List()).toMap
-            tempChildMap.++(tempResourceMap)
-        } else Map()
+    private def getChildrenHierarchy(nodeList: ListBuffer[Node], rootId: String, hierarchyData: util.HashMap[String, AnyRef], idMap: mutable.Map[String, String], existingHierarchy : util.HashMap[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
+        val childrenIdentifiersMap: Map[String, Map[String, Int]] = getChildrenIdentifiersMap(hierarchyData, idMap, existingHierarchy)
+        TelemetryManager.info("Children Id map for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
         getPreparedHierarchyData(nodeList, hierarchyData, rootId, childrenIdentifiersMap).map(nodeMaps => {
             val filteredNodeMaps = nodeMaps.filter(nodeMap => null != nodeMap.get(HierarchyConstants.DEPTH)).toList
-            val identifierNodeMap: Map[String, AnyRef] = filteredNodeMaps.map(nodeMap => nodeMap.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String] -> nodeMap).toMap
-            val hierarchyMap = constructHierarchy(childrenIdentifiersMap, identifierNodeMap)
-            //        util.hierarchyCleanUp(collectionHierarchy)
-            if (MapUtils.isNotEmpty(hierarchyMap))
-                hierarchyMap.getOrDefault(rootId, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-                    .getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-                    .filter(child => MapUtils.isNotEmpty(child))
+            TelemetryManager.info("filteredNodeMaps for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(filteredNodeMaps))
+            val hierarchyMap = constructHierarchy(filteredNodeMaps)
+            if (MapUtils.isNotEmpty(hierarchyMap)) {
+                hierarchyMap.getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+                        .filter(child => MapUtils.isNotEmpty(child))
+            }
             else
                 new util.ArrayList[util.Map[String, AnyRef]]()
 
         })
     }
 
+    private def getChildrenIdentifiersMap(hierarchyData: util.HashMap[String, AnyRef], idMap: mutable.Map[String, String], existingHierarchy: util.HashMap[String, AnyRef]): Map[String, Map[String, Int]] = {
+        if (MapUtils.isNotEmpty(hierarchyData)) {
+            hierarchyData.map(entry => idMap.getOrDefault(entry._1, entry._1) -> entry._2.asInstanceOf[util.HashMap[String, AnyRef]]
+                            .get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[String]]
+                            .map(id => idMap.getOrDefault(id, id)).zipWithIndex.toMap).toMap
+        } else {
+            val tempChildMap: util.HashMap[String, Map[String, Int]] = new util.HashMap[String, Map[String, Int]]()
+            val tempResourceMap: util.HashMap[String, Map[String, Int]] =  new util.HashMap[String, Map[String, Int]]()
+            getChildrenIdMapFromExistingHierarchy(existingHierarchy, tempChildMap, tempResourceMap)
+            tempChildMap.putAll(tempResourceMap)
+            tempChildMap.toMap
+        }
+    }
+
+    private def getChildrenIdMapFromExistingHierarchy(existingHierarchy: util.HashMap[String, AnyRef], tempChildMap: util.HashMap[String, Map[String, Int]], tempResourceMap: util.HashMap[String, Map[String, Int]]): Unit = {
+        if (existingHierarchy.containsKey(HierarchyConstants.CHILDREN) && CollectionUtils.isNotEmpty(existingHierarchy.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]])) {
+            tempChildMap.put(existingHierarchy.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String], existingHierarchy.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
+                .map(child => child.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String] -> child.get(HierarchyConstants.INDEX).asInstanceOf[Int]).toMap)
+            existingHierarchy.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
+                .foreach(child => getChildrenIdMapFromExistingHierarchy(child, tempChildMap, tempResourceMap))
+        } else
+            tempResourceMap.put(existingHierarchy.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String], Map[String, Int]())
+    }
+
     @throws[Exception]
-    private def getPreparedHierarchyData(nodeList: ListBuffer[Node], hierarchyData: util.HashMap[String, AnyRef], rootId: String, childrenIdentifiersMap: Map[String, List[String]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
-        if (MapUtils.isNotEmpty(hierarchyData) && MapUtils.isNotEmpty(childrenIdentifiersMap)) {
+    private def getPreparedHierarchyData(nodeList: ListBuffer[Node], hierarchyData: util.HashMap[String, AnyRef], rootId: String, childrenIdentifiersMap: Map[String, Map[String, Int]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
+        if (MapUtils.isNotEmpty(childrenIdentifiersMap)) {
             val childNodeIds: mutable.HashSet[String] = mutable.HashSet[String]()
             val updatedNodeList: ListBuffer[Node] = ListBuffer()
             updatedNodeList += getTempNode(nodeList, rootId)
-            updateHierarchyRelatedData(childrenIdentifiersMap.getOrElse(rootId, List()), 1,
+            updateHierarchyRelatedData(childrenIdentifiersMap.getOrElse(rootId, Map[String, Int]()), 1,
                 rootId, nodeList, childrenIdentifiersMap, childNodeIds, updatedNodeList).map(response => {
                 updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
@@ -292,23 +331,24 @@ object UpdateHierarchyManager {
                 validateNodes(updatedNodeList, rootId).map(result => HierarchyManager.convertNodeToMap(updatedNodeList.toList))
             }).flatMap(f => f)
         } else {
-            updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {})
+            updateNodeList(nodeList, rootId, new util.HashMap[String, AnyRef]() {{put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])}})
             validateNodes(nodeList, rootId).map(result => HierarchyManager.convertNodeToMap(nodeList.toList))
         }
     }
 
     @throws[Exception]
-    private def updateHierarchyRelatedData(childrenIds: List[String], depth: Int, parent: String, nodeList: ListBuffer[Node], hierarchyStructure: Map[String, List[String]], childNodeIds: mutable.HashSet[String], updatedNodeList: ListBuffer[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[AnyRef] = {
-        var index: Int = 1
-        val futures = childrenIds.map(id => {
+    private def updateHierarchyRelatedData(childrenIds: Map[String, Int], depth: Int, parent: String, nodeList: ListBuffer[Node], hierarchyStructure: Map[String, Map[String, Int]], childNodeIds: mutable.HashSet[String], updatedNodeList: ListBuffer[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[AnyRef] = {
+        val futures = childrenIds.map(child => {
+            val id = child._1
+            val index = child._2 + 1
             val tempNode = getTempNode(nodeList, id)
             if (null != tempNode && StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, tempNode.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
                 populateHierarchyRelatedData(tempNode, depth, index, parent)
                 updatedNodeList.add(tempNode)
                 childNodeIds.add(id)
-                index += 1
-                if (CollectionUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, List())))
-                    updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
+                if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(child._1, Map[String, Int]())))
+                    updateHierarchyRelatedData(hierarchyStructure.getOrDefault(child._1, Map[String, Int]()), 
+                        tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
                 else
                     Future(ResponseHandler.OK())
             } else
@@ -316,9 +356,8 @@ object UpdateHierarchyManager {
                     populateHierarchyRelatedData(node, depth, index, parent)
                     updatedNodeList.add(node)
                     childNodeIds.add(id)
-                    index += 1
-                    if (CollectionUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, List())))
-                        updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, List()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
+                    if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]())))
+                        updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
                     else
                         ResponseHandler.OK()
                 }) recoverWith { case e: CompletionException => throw e.getCause }
@@ -328,30 +367,8 @@ object UpdateHierarchyManager {
 
     private def populateHierarchyRelatedData(tempNode: Node, depth: Int, index: Int, parent: String) = {
         tempNode.getMetadata.put(HierarchyConstants.DEPTH, depth.asInstanceOf[AnyRef])
-        tempNode.getMetadata.put(HierarchyConstants.PARENT, parent)
+        tempNode.getMetadata.put(HierarchyConstants.PARENT, parent.replaceAll(".img", ""))
         tempNode.getMetadata.put(HierarchyConstants.INDEX, index.asInstanceOf[AnyRef])
-    }
-
-    private def constructHierarchy(childrenIdentifiersMap: Map[String, List[String]], identifierNodeMap: Map[String, AnyRef]): mutable.Map[String, AnyRef] = {
-        val clonedIdentifiersMap = mutable.Map[String, List[String]]() ++= childrenIdentifiersMap
-        var populatedChildMap = mutable.Map[String, AnyRef]()
-        do {
-            childrenIdentifiersMap.map(entry => {
-                if (CollectionUtils.isEmpty(childrenIdentifiersMap.getOrDefault(entry._1, List()))) {
-                    populatedChildMap += (entry._1 -> identifierNodeMap.getOrDefault(entry._1, new HashMap[String, AnyRef]()).asInstanceOf[HashMap[String, AnyRef]])
-                    clonedIdentifiersMap.remove(entry._1)
-                } else {
-                    if (isFullyPopulated(childrenIdentifiersMap.getOrDefault(entry._1, List()), populatedChildMap)) {
-                        val tempMap = identifierNodeMap.getOrDefault(entry._1, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]
-                        val tempChildren: util.List[HashMap[String, AnyRef]] = sortByIndex(childrenIdentifiersMap.getOrDefault(entry._1, List()).map(id => populatedChildMap.getOrDefault(id, new util.HashMap()).asInstanceOf[HashMap[String, AnyRef]]).toList)
-                        tempMap.put(HierarchyConstants.CHILDREN, tempChildren)
-                        populatedChildMap.put(entry._1, tempMap)
-                        clonedIdentifiersMap.remove(entry._1)
-                    }
-                }
-            })
-        } while (MapUtils.isNotEmpty(clonedIdentifiersMap))
-        populatedChildMap
     }
 
     /**
@@ -428,8 +445,8 @@ object UpdateHierarchyManager {
         flag
     }
 
-    def sortByIndex(childrenMaps: util.List[HashMap[String, AnyRef]]): util.List[util.HashMap[String, AnyRef]] = {
-        seqAsJavaList(childrenMaps.sortBy(_.get("index").asInstanceOf[Int]))
+    def sortByIndex(childrenMaps: util.List[util.Map[String, AnyRef]]): util.List[util.Map[String, AnyRef]] = {
+        bufferAsJavaList(childrenMaps.sortBy(_.get("index").asInstanceOf[Int]))
     }
 
 
@@ -439,5 +456,4 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
     }
-
 }
