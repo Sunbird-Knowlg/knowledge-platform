@@ -16,6 +16,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
+import org.sunbird.telemetry.dto.Telemetry
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
@@ -182,7 +183,10 @@ object UpdateHierarchyManager {
                 nodeList.add(node)
                 Future(nodeList)
             }
-        else Future(nodeList)
+        else {
+            TelemetryManager.info("Visibility is empty for child :" + JsonUtils.serialize(child))
+            Future(nodeList)
+        }
     }
 
 
