@@ -421,9 +421,9 @@ object UpdateHierarchyManager {
       */
     private def getTempNode(nodeList: util.List[Node], id: String) = {
         try {
-            nodeList.toList.find(node => StringUtils.startsWith(node.getIdentifier, id)).orNull
+            nodeList.find(node => StringUtils.startsWith(node.getIdentifier, id)).orNull
         } catch {
-            case e: _ =>
+            case e: Throwable =>
                 e.printStackTrace()
                 e.getCause
             throw e
