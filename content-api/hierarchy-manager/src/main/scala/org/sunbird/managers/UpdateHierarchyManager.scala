@@ -190,26 +190,11 @@ object UpdateHierarchyManager {
             }).toList
             Future.sequence(futures).map(f => f.reduce((a, b) => {
                 a.addAll(b)
-                a
-            }).distinct.asJava)
-        } else {
+                a.distinct.asJava
+            }))
+        } else {UpdateHierarchyManager
             Future(nodeList)
         }
-
-        /*val listOfFuture: Future[List[util.List[Node]]] = if (CollectionUtils.isNotEmpty(childrenMaps)) {
-            val futures = childrenMaps.map(child => {
-                addNodeToList(child, request, nodeList).map(modifiedList => {
-                    if (!StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]))
-                        addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], request, nodeList)
-                    else
-                        Future(modifiedList)
-                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
-            }).toList
-            Future.sequence(futures) recoverWith { case e: CompletionException => throw e.getCause }
-        } else {
-            Future(List(nodeList))
-        }
-        listOfFuture.map(f => f.flatMap(f => f))*/
     }
 
     private def addNodeToList(child: util.HashMap[String, AnyRef], request: Request, nodeList: util.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[Node]] = {
@@ -486,8 +471,11 @@ object UpdateHierarchyManager {
     }
 
     private def updateNodeList(nodeList: util.List[Node], id: String, metadata: util.HashMap[String, AnyRef]): Unit = {
-        if (MapUtils.isNotEmpty(metadata))
-            nodeList.toList.filter(node => node.getIdentifier.startsWith(id)).foreach(node => node.getMetadata.putAll(metadata))
+        nodeList.foreach(node => {
+            if(node.getIdentifier.startsWith(id)){
+                node.getMetadata.putAll(metadata)
+            }
+        })
     }
 
     def getContentNode(identifier: String, graphId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
