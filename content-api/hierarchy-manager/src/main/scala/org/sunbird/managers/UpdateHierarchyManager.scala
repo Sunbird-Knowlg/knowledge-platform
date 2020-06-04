@@ -189,10 +189,7 @@ object UpdateHierarchyManager {
         } else {
             Future(List(nodeList))
         }
-        listOfFuture.map(f => f.reduce((a,b) => {
-            a.addAll(b)
-            a
-        }))
+        listOfFuture.map(f => f.flatMap(f => f))
     }
 
     private def addNodeToList(child: util.HashMap[String, AnyRef], request: Request, nodeList: util.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[Node]] = {
