@@ -36,7 +36,7 @@ object UpdateHierarchyManager {
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.HashMap[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                 val nodes = List(node)
-                addChildNodesInNodeList(existingChildren, request, nodes).map(list => (existingHierarchy, list.distinct))
+                addChildNodesInNodeList(existingChildren, request, nodes).map(list => (existingHierarchy, list))
             }).flatMap(f => f)
               .map(result => {
                   val nodes = result._2
@@ -145,16 +145,22 @@ object UpdateHierarchyManager {
     private def addChildNodesInNodeList(childrenMaps: java.util.List[java.util.Map[String, AnyRef]], request: Request, nodes: scala.collection.immutable.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[scala.collection.immutable.List[Node]] = {
         if (CollectionUtils.isNotEmpty(childrenMaps)) {
             val futures = childrenMaps.map(child => {
-                println("Executing for child : " + child.get("identifier"));
+//                println("Executing for child : " + child.get("identifier"));
                 addNodeToList(child, request, nodes).map(modifiedList => {
                     if (!StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-                        println("Calling next level for child : " + child.get("identifier"));
+//                        println("Calling next level for child : " + child.get("identifier"));
                         addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]], request, modifiedList)
                     } else
                         Future(modifiedList)
                 }).flatMap(f => f)
             }).toList
-            Future.sequence(futures).map(f => f.flatten)
+            Future.sequence(futures).map(f => {
+                val flatList = f.flatten
+                println("Nodes size for flatList: " + flatList)
+                val distList = flatList.distinct
+                println("Nodes size for distList: " + flatList)
+                distList
+            })
         } else {
             Future(nodes)
         }
