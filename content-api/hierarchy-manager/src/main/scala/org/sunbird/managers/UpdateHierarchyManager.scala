@@ -47,10 +47,11 @@ object UpdateHierarchyManager {
                   TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeMap))
                   val idMap: mutable.Map[String, String] = mutable.Map()
                   idMap += (rootId -> rootId)
-                  updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).map(resp => {
-                      getChildrenHierarchy(nodes, rootId, hierarchy, idMap, result._1).map(children => {
+                  updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).map(modifiedNodeList => {
+
+                      getChildrenHierarchy(modifiedNodeList, rootId, hierarchy, idMap, result._1).map(children => {
                           TelemetryManager.info("Children for root id :" + rootId +" :: " + JsonUtils.serialize(children))
-                          updateHierarchyData(rootId, children, nodes, request).map(node => {
+                          updateHierarchyData(rootId, children, modifiedNodeList, request).map(node => {
                               val response = ResponseHandler.OK()
                               response.put(HierarchyConstants.CONTENT_ID, rootId)
                               idMap.remove(rootId)
@@ -193,7 +194,7 @@ object UpdateHierarchyManager {
     }
 
 
-    private def updateNodesModifiedInNodeList(nodeList: List[Node], nodesModified: java.util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {
+    private def updateNodesModifiedInNodeList(nodeList: List[Node], nodesModified: java.util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
         val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
                 .map(nodeModified => {
@@ -212,13 +213,15 @@ object UpdateHierarchyManager {
                             createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                     } else {
                         updateTempNode(nodeModified._1, nodeList, idMap, metadata)
-                        Future(ResponseHandler.OK())
+                        Future(nodeList.distinct)
                     }
                 })
-        if (CollectionUtils.isNotEmpty(futures)) Future.sequence(futures.toList) else Future(ResponseHandler.OK())
+        if (CollectionUtils.isNotEmpty(futures))
+            Future.sequence(futures.toList).map(f => f.flatten)
+        else Future(nodeList)
     }
 
-    private def updateRootNode(rootId: String, nodeList: java.util.List[Node], nodesModified: java.util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
+    private def updateRootNode(rootId: String, nodeList: List[Node], nodesModified: java.util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
         if (nodesModified.containsKey(rootId)) {
             val metadata = nodesModified.getOrDefault(rootId, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]]
             updateNodeList(nodeList, rootId, metadata)
@@ -226,7 +229,7 @@ object UpdateHierarchyManager {
         }
     }
 
-    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef], nodeList: List[Node], request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {
+    private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef], nodeList: List[Node], request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
         idMap += (nodeId -> identifier)
         metadata.put(HierarchyConstants.IDENTIFIER, identifier)
@@ -241,8 +244,8 @@ object UpdateHierarchyManager {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
             node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)
-            nodeList.add(node)
-            nodeList
+            val updatedList = node :: nodeList
+            updatedList.distinct
         })
     }
 
@@ -432,7 +435,7 @@ object UpdateHierarchyManager {
         nodeList.find(node => StringUtils.startsWith(node.getIdentifier, id)).orNull
     }
 
-    private def updateNodeList(nodeList: java.util.List[Node], id: String, metadata: java.util.HashMap[String, AnyRef]): Unit = {
+    private def updateNodeList(nodeList: List[Node], id: String, metadata: java.util.HashMap[String, AnyRef]): Unit = {
         nodeList.foreach(node => {
             if(node.getIdentifier.startsWith(id)){
                 node.getMetadata.putAll(metadata)
