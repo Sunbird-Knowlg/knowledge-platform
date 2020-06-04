@@ -20,6 +20,7 @@ import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+//import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 object UpdateHierarchyManager {
@@ -39,6 +40,7 @@ object UpdateHierarchyManager {
             }).flatMap(f => f)
               .map(result => {
                   val nodes = result._2
+                  TelemetryManager.info("NodeList final size: " + nodes.size)
                   val nodeMap: Map[String, AnyRef] = nodes.map(node => node.getIdentifier -> node.getMetadata.get("visibility")).toMap
                   TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeMap))
                   val idMap: mutable.Map[String, String] = mutable.Map()
@@ -141,10 +143,10 @@ object UpdateHierarchyManager {
     private def addChildNodesInNodeList(childrenMaps: java.util.List[java.util.Map[String, AnyRef]], request: Request, nodes: scala.collection.immutable.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[scala.collection.immutable.List[Node]] = {
         if (CollectionUtils.isNotEmpty(childrenMaps)) {
             val futures = childrenMaps.map(child => {
-                println("Executing for child : " + child.get("name"));
+                println("Executing for child : " + child.get("identifier"));
                 addNodeToList(child, request, nodes).map(modifiedList => {
                     if (!StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-                        println("Calling next level for child : " + child.get("name"));
+                        println("Calling next level for child : " + child.get("identifier"));
                         addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]], request, modifiedList)
                     } else
                         Future(modifiedList)
