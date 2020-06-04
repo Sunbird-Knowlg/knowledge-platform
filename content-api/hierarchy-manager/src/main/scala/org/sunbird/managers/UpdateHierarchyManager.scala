@@ -156,8 +156,8 @@ object UpdateHierarchyManager {
                     else
                         Future(modifiedList)
                 }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
-            })
-            Future.sequence(futures.toList) recoverWith { case e: CompletionException => throw e.getCause }
+            }).toList
+            Future.sequence(futures) recoverWith { case e: CompletionException => throw e.getCause }
         } else
             Future(nodeList)
     }
@@ -420,7 +420,14 @@ object UpdateHierarchyManager {
       * @return
       */
     private def getTempNode(nodeList: util.List[Node], id: String) = {
-        nodeList.toList.find(node => StringUtils.startsWith(node.getIdentifier, id)).orNull
+        try {
+            nodeList.toList.find(node => StringUtils.startsWith(node.getIdentifier, id)).orNull
+        } catch {
+            case e: _ =>
+                e.printStackTrace()
+                e.getCause
+            throw e
+        }
     }
 
     private def updateNodeList(nodeList: util.List[Node], id: String, metadata: util.HashMap[String, AnyRef]): Unit = {
