@@ -75,6 +75,43 @@ object UpdateHierarchyManager {
             nodeList.add(node)
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
+                addChildNodesInNodeList(existingChildren, request, nodeList).map(list => (existingHierarchy, list))
+            }).flatMap(f => f)
+              .map(result => {
+                  val nodeMap: Map[String, AnyRef] = nodeList.toList.map(node => node.getIdentifier -> node.getMetadata.get("visibility")).toMap
+                  TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeMap))
+                  val idMap: mutable.Map[String, String] = mutable.Map()
+                  idMap += (rootId -> rootId)
+                  updateNodesModifiedInNodeList(nodeList, nodesModified, request, idMap).map(resp => {
+                      getChildrenHierarchy(nodeList, rootId, hierarchy, idMap, result._1).map(children => {
+                          TelemetryManager.info("Children for root id :" + rootId +" :: " + JsonUtils.serialize(children))
+                          updateHierarchyData(rootId, children, nodeList, request).map(node => {
+                              val response = ResponseHandler.OK()
+                              response.put(HierarchyConstants.CONTENT_ID, rootId)
+                              idMap.remove(rootId)
+                              response.put(HierarchyConstants.IDENTIFIERS, mapAsJavaMap(idMap))
+                              if (request.getContext.getOrDefault("shouldImageDelete", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
+                                  deleteHierarchy(request)
+                              Future(response)
+                          }).flatMap(f => f)
+                      }).flatMap(f => f)
+                  }).flatMap(f => f)
+              })
+        }).flatMap(f => f).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }
+
+    @throws[Exception]
+    def updateHierarchyOld(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+        validateRequest(request)
+        val nodesModified: util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[util.HashMap[String, AnyRef]]
+        val hierarchy: util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[util.HashMap[String, AnyRef]]
+        val rootId: String = getRootId(nodesModified, hierarchy)
+        request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
+        var nodeList: util.List[Node] = new util.ArrayList[Node]()
+        getValidatedRootNode(rootId, request).map(node => {
+            nodeList.add(node)
+            getExistingHierarchy(request, node).map(existingHierarchy => {
+                val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]]
                 addChildNodesInNodeList(existingChildren, request, nodeList).map(data => {
                     val nodeMap: Map[String, AnyRef] = nodeList.toList.map(node => node.getIdentifier -> node.getMetadata.get("visibility")).toMap
                     TelemetryManager.info("NodeList for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(nodeMap))
