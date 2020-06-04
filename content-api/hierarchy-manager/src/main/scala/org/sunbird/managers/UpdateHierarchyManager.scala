@@ -36,7 +36,7 @@ object UpdateHierarchyManager {
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.HashMap[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                 val nodes = List(node)
-                addChildNodesInNodeList(existingChildren, request, nodes).map(list => (existingHierarchy, list))
+                addChildNodesInNodeList(existingChildren, request, nodes).map(list => (existingHierarchy, list.distinct))
             }).flatMap(f => f)
               .map(result => {
                   val nodes = result._2
