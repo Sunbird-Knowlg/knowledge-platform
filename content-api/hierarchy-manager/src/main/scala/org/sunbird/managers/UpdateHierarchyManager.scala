@@ -19,7 +19,6 @@ import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 object UpdateHierarchyManager {
@@ -283,12 +282,12 @@ object UpdateHierarchyManager {
     @throws[Exception]
     private def getChildrenHierarchy(nodeList: List[Node], rootId: String, hierarchyData: java.util.HashMap[String, AnyRef], idMap: mutable.Map[String, String], existingHierarchy: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[java.util.List[java.util.Map[String, AnyRef]]] = {
         val childrenIdentifiersMap: Map[String, Map[String, Int]] = getChildrenIdentifiersMap(hierarchyData, idMap, existingHierarchy)
-        TelemetryManager.info("Children Id map for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
+//        TelemetryManager.log("Children Id map for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
         getPreparedHierarchyData(nodeList, rootId, childrenIdentifiersMap).map(nodeMaps => {
-            println("prepared hierarchy list without filtering: " + nodeMaps.size())
+            TelemetryManager.info("prepared hierarchy list without filtering: " + nodeMaps.size())
             val filteredNodeMaps = nodeMaps.filter(nodeMap => null != nodeMap.get(HierarchyConstants.DEPTH)).toList
-            println("prepared hierarchy list with filtering: " + filteredNodeMaps.size())
-            TelemetryManager.log("filteredNodeMaps for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(filteredNodeMaps))
+            TelemetryManager.info("prepared hierarchy list with filtering: " + filteredNodeMaps.size())
+//            TelemetryManager.log("filteredNodeMaps for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(filteredNodeMaps))
             val hierarchyMap = constructHierarchy(filteredNodeMaps)
             if (MapUtils.isNotEmpty(hierarchyMap)) {
                 hierarchyMap.getOrDefault(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.Map[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
@@ -331,8 +330,8 @@ object UpdateHierarchyManager {
             val updatedNodeList = getTempNode(nodeList, rootId) :: List()
             updateHierarchyRelatedData(childrenIdentifiersMap.getOrElse(rootId, Map[String, Int]()), 1,
                 rootId, nodeList, childrenIdentifiersMap, childNodeIds, updatedNodeList).map(finalEnrichedNodeList => {
-                println("Final enriched list size: " + finalEnrichedNodeList.size)
-                println("Final enriched list ids: " + childNodeIds + " :: size: " + childNodeIds.size)
+//                println("Final enriched list size: " + finalEnrichedNodeList.size)
+//                println("Final enriched list ids: " + childNodeIds + " :: size: " + childNodeIds.size)
                 updateNodeList(nodeList, rootId, new java.util.HashMap[String, AnyRef]() {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
                     put(HierarchyConstants.CHILD_NODES, new java.util.ArrayList[String](childNodeIds))
@@ -365,7 +364,7 @@ object UpdateHierarchyManager {
                 else
                     Future(nxtEnrichedNodeList)
             } else {
-                TelemetryManager.info("GetContentNode as TempNode is null for ID: " + id)
+//                TelemetryManager.info("Get ContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
                     val nxtEnrichedNodeList = node :: enrichedNodeList
