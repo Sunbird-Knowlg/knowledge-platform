@@ -60,8 +60,8 @@ public class HttpUtil {
 	private void validateRequest(String url, Map<String, String> headerParam) {
 		if (StringUtils.isBlank(url))
 			throw new ServerException("ERR_INVALID_URL", "Url Parameter is Missing!");
-		if (MapUtils.isEmpty(headerParam))
-			throw new ServerException("ERR_INVALID_HEADER_PARAM", "Header Parameter is Missing!");
+		if (null == headerParam)
+			throw new ServerException("ERR_INVALID_HEADER_PARAM", "Header Parameter Map can't be null!");
 	}
 
 	private Response getResponse(HttpResponse<String> response) {
