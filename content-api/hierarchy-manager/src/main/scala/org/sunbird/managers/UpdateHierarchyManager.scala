@@ -363,7 +363,7 @@ object UpdateHierarchyManager {
                     updateHierarchyRelatedData(hierarchyStructure.getOrDefault(child._1, Map[String, Int]()),
                         tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, nxtEnrichedNodeList)
                 else
-                    Future(enrichedNodeList)
+                    Future(nxtEnrichedNodeList)
             } else {
                 TelemetryManager.info("GetContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
@@ -373,7 +373,7 @@ object UpdateHierarchyManager {
                     if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {
                         updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, nxtEnrichedNodeList)
                     } else
-                        Future(enrichedNodeList)
+                        Future(nxtEnrichedNodeList)
                 }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
             }
         })
