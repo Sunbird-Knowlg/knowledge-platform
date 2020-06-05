@@ -283,8 +283,8 @@ object UpdateHierarchyManager {
     @throws[Exception]
     private def getChildrenHierarchy(nodeList: List[Node], rootId: String, hierarchyData: java.util.HashMap[String, AnyRef], idMap: mutable.Map[String, String], existingHierarchy: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[java.util.List[java.util.Map[String, AnyRef]]] = {
         val childrenIdentifiersMap: Map[String, Map[String, Int]] = getChildrenIdentifiersMap(hierarchyData, idMap, existingHierarchy)
-        TelemetryManager.log("Children Id map for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
-        getPreparedHierarchyData(nodeList, hierarchyData, rootId, childrenIdentifiersMap).map(nodeMaps => {
+        TelemetryManager.info("Children Id map for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
+        getPreparedHierarchyData(nodeList, rootId, childrenIdentifiersMap).map(nodeMaps => {
             println("prepared hierarchy list without filtering: " + nodeMaps.size())
             val filteredNodeMaps = nodeMaps.filter(nodeMap => null != nodeMap.get(HierarchyConstants.DEPTH)).toList
             println("prepared hierarchy list with filtering: " + filteredNodeMaps.size())
@@ -325,59 +325,63 @@ object UpdateHierarchyManager {
     }
 
     @throws[Exception]
-    private def getPreparedHierarchyData(nodeList: List[Node], hierarchyData: java.util.Map[String, AnyRef], rootId: String, childrenIdentifiersMap: Map[String, Map[String, Int]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[java.util.List[java.util.Map[String, AnyRef]]] = {
+    private def getPreparedHierarchyData(nodeList: List[Node], rootId: String, childrenIdentifiersMap: Map[String, Map[String, Int]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[java.util.List[java.util.Map[String, AnyRef]]] = {
         if (MapUtils.isNotEmpty(childrenIdentifiersMap)) {
             val childNodeIds: mutable.HashSet[String] = mutable.HashSet[String]()
-            val updatedNodeList: ListBuffer[Node] = ListBuffer()
-            updatedNodeList.add(getTempNode(nodeList, rootId))
+            val updatedNodeList = getTempNode(nodeList, rootId) :: List()
             updateHierarchyRelatedData(childrenIdentifiersMap.getOrElse(rootId, Map[String, Int]()), 1,
-                rootId, nodeList, childrenIdentifiersMap, childNodeIds, updatedNodeList).map(response => {
+                rootId, nodeList, childrenIdentifiersMap, childNodeIds, updatedNodeList).map(finalEnrichedNodeList => {
+                println("Final enriched list size: " + finalEnrichedNodeList.size)
+                println("Final enriched list ids: " + childNodeIds + " :: size: " + childNodeIds.size)
                 updateNodeList(nodeList, rootId, new java.util.HashMap[String, AnyRef]() {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
                     put(HierarchyConstants.CHILD_NODES, new java.util.ArrayList[String](childNodeIds))
                 })
-                validateNodes(updatedNodeList, rootId).map(result => HierarchyManager.convertNodeToMap(updatedNodeList.toList))
+                validateNodes(finalEnrichedNodeList, rootId).map(result => HierarchyManager.convertNodeToMap(finalEnrichedNodeList))
             }).flatMap(f => f)
         } else {
             updateNodeList(nodeList, rootId, new java.util.HashMap[String, AnyRef]() {
                 {
                     put(HierarchyConstants.DEPTH, 0.asInstanceOf[AnyRef])
-                    put(HierarchyConstants.CHILD_NODES, new java.util.ArrayList[String]())
                 }
             })
-            validateNodes(nodeList, rootId).map(result => HierarchyManager.convertNodeToMap(nodeList.toList))
+            validateNodes(nodeList, rootId).map(result => HierarchyManager.convertNodeToMap(nodeList))
         }
     }
 
     @throws[Exception]
-    private def updateHierarchyRelatedData(childrenIds: Map[String, Int], depth: Int, parent: String, nodeList: List[Node], hierarchyStructure: Map[String, Map[String, Int]], childNodeIds: mutable.HashSet[String], updatedNodeList: ListBuffer[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[AnyRef] = {
+    private def updateHierarchyRelatedData(childrenIds: Map[String, Int], depth: Int, parent: String, nodeList: List[Node], hierarchyStructure: Map[String, Map[String, Int]], childNodeIds: mutable.HashSet[String], enrichedNodeList: scala.collection.immutable.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
         val futures = childrenIds.map(child => {
             val id = child._1
             val index = child._2 + 1
             val tempNode = getTempNode(nodeList, id)
             if (null != tempNode && StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, tempNode.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
                 populateHierarchyRelatedData(tempNode, depth, index, parent)
-                updatedNodeList.add(tempNode)
+                val nxtEnrichedNodeList = tempNode :: enrichedNodeList
                 childNodeIds.add(id)
                 if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(child._1, Map[String, Int]())))
                     updateHierarchyRelatedData(hierarchyStructure.getOrDefault(child._1, Map[String, Int]()),
-                        tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
+                        tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, nxtEnrichedNodeList)
                 else
-                    Future(ResponseHandler.OK())
+                    Future(enrichedNodeList)
             } else {
                 TelemetryManager.info("GetContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
-                    updatedNodeList.add(node)
+                    val nxtEnrichedNodeList = node :: enrichedNodeList
                     childNodeIds.add(id)
-                    if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]())))
-                        updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, updatedNodeList)
-                    else
-                        ResponseHandler.OK()
-                }) recoverWith { case e: CompletionException => throw e.getCause }
+                    if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {
+                        updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, childNodeIds, nxtEnrichedNodeList)
+                    } else
+                        Future(enrichedNodeList)
+                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
             }
         })
-        if (CollectionUtils.isNotEmpty(futures)) Future.sequence(futures) else Future(ResponseHandler.OK())
+        if (CollectionUtils.isNotEmpty(futures)) {
+            val listOfFutures = Future.sequence(futures.toList)
+            listOfFutures.map(f => f.flatten.distinct)
+        } else
+            Future(enrichedNodeList)
     }
 
     private def populateHierarchyRelatedData(tempNode: Node, depth: Int, index: Int, parent: String) = {
