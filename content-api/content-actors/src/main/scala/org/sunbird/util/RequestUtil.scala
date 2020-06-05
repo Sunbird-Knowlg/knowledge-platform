@@ -1,5 +1,7 @@
 package org.sunbird.util
 
+import java.util.stream.Collectors
+
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.schema.DefinitionNode
@@ -13,6 +15,6 @@ object RequestUtil {
 		val schemaName = request.getContext.getOrDefault("schemaName","").asInstanceOf[String]
 		val operation = request.getOperation.toLowerCase.replace(objectType.toLowerCase, "")
 		val restrictedProps =DefinitionNode.getRestrictedProperties(graphId, version, operation, schemaName)
-		if (restrictedProps.exists(prop => request.getRequest.containsKey(prop))) throw new ClientException("ERROR_RESTRICTED_PROP", "Properties in list " + restrictedProps + " are not allowed in request")
+		if (restrictedProps.exists(prop => request.getRequest.containsKey(prop))) throw new ClientException("ERROR_RESTRICTED_PROP", "Properties in list " + restrictedProps.mkString("[", ",", "]") + " are not allowed in request")
 	}
 }
