@@ -1,7 +1,5 @@
 package org.sunbird.util
 
-import java.util.stream.Collectors
-
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.schema.DefinitionNode
