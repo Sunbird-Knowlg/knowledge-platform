@@ -154,11 +154,7 @@ object UpdateHierarchyManager {
                         Future(modifiedList)
                 }).flatMap(f => f)
             }).toList
-            Future.sequence(futures).map(f => {
-                val flatList = f.flatten
-                val distList = flatList.distinct
-                distList
-            })
+            Future.sequence(futures).map(f => f.flatten.distinct)
         } else {
             Future(nodes)
         }
