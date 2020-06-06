@@ -329,9 +329,9 @@ object UpdateHierarchyManager {
             val updatedNodeList = getTempNode(nodeList, rootId) :: List()
             updateHierarchyRelatedData(childrenIdentifiersMap.getOrElse(rootId, Map[String, Int]()), 1,
                 rootId, nodeList, childrenIdentifiersMap, updatedNodeList).map(finalEnrichedNodeList => {
-                println("Final enriched list size: " + finalEnrichedNodeList.size)
+                TelemetryManager.info("Final enriched list size: " + finalEnrichedNodeList.size)
                 val childNodeIds = finalEnrichedNodeList.map(node => node.getIdentifier).filterNot(id => rootId.equalsIgnoreCase(id)).distinct
-                println("Final enriched list ids: " + childNodeIds + " :: size: " + childNodeIds.size)
+                TelemetryManager.info("Final enriched ids (childNodes): " + childNodeIds + " :: size: " + childNodeIds.size)
                 // UNDERSTANDING: below we used nodeList to update DEPTH and CHILD_NODES. It automatically updated to finalEnrichedNodeList.
                 // Because, the Node object is a Java POJO with metadata using java.util.Map.
                 updateNodeList(nodeList, rootId, new java.util.HashMap[String, AnyRef]() {
