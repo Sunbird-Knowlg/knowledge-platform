@@ -450,7 +450,13 @@
                 "SelfAssess",
                 "PracticeResource",
                 "eTextBook",
-                "OnboardingResource"
+                "OnboardingResource",
+                "ExplanationVideo",
+                "ClassroomTeachingVideo",
+                "ExplanationReadingMaterial",
+                "LearningActivity",
+                "PreviousBoardExamPapers",
+                "LessonPlanResource"
             ]
         },
         "resourceType": {
