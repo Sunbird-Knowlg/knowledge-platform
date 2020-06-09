@@ -47,7 +47,7 @@ object DataNode {
                     updateRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
             }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
-        }).flatMap(f => f)
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
     }
 
     @throws[Exception]
