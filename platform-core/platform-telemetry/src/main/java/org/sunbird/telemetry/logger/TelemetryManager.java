@@ -226,4 +226,10 @@ public class TelemetryManager {
 		// TODO: refactor this.
 		return defaultValue;
 	}
+
+	public static void logRequestBody(String message) {
+		Map<String, String> context = getContext();
+		String event = TelemetryGenerator.log(context, "system", Level.INFO.name(), message, null, null);
+		telemetryHandler.send(event, Level.INFO, true);
+	}
 }
