@@ -112,6 +112,11 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		if (null != file && file.exists()) {
 			val zipFile: ZipFile = new ZipFile(file)
 			try {
+				val actualEntries = zipFile.entries()
+				while (actualEntries.hasMoreElements) {
+					val element = actualEntries.nextElement()
+					println(file.getName + " :: Entry name: " + element.getName)
+				}
 				val entries = checkParams.filter(fileName => null != zipFile.getEntry(fileName))
 				null != entries && !entries.isEmpty
 			}
