@@ -81,7 +81,7 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 	def validateFilePackage(file: File) = {
 		if(null != file && file.exists()){
 			if(!isValidMimeType(file, DEFAULT_PACKAGE_MIME_TYPE)) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_FILE_MIME_TYPE_ERROR | [The uploaded package is invalid]")
-			if(!isValidPackageStructure(file, List("index.json", "index.ecml"))) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_STRUCTURE_ERROR | ['index' file and other folders (assets, data & widgets) should be at root location]")
+			if(!isValidPackageStructure(file, List("index.json", "index.ecml", "/index.json", "/index.ecml"))) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_STRUCTURE_ERROR | ['index' file and other folders (assets, data & widgets) should be at root location]")
 			if(file.length() > maxPackageSize) throw new ClientException("VALIDATOR_ERROR", "INVALID_CONTENT_PACKAGE_SIZE_ERROR | [Content Package file size is too large]")
 		}
 		else{
