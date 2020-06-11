@@ -229,7 +229,7 @@ public class TelemetryManager {
 
 	public static void logRequestBody(String message) {
 		Map<String, String> context = getContext();
-		String event = TelemetryGenerator.log(context, "system", Level.INFO.name(), message, null, null);
+		String event = TelemetryGenerator.log(context, "payload", Level.INFO.name(), message, null, null);
 		telemetryHandler.send(event, Level.INFO, true);
 	}
 }

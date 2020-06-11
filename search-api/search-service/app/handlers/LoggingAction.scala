@@ -15,12 +15,11 @@ class LoggingAction @Inject() (parser: BodyParsers.Default)(implicit ec: Executi
 
     override def invokeBlock[A](request: play.api.mvc.Request[A], block: (Request[A]) => Future[Result]) = {
         if(logEnabled)
-            TelemetryManager.logRequestBody("Search Request : " + requestBody(request.asInstanceOf[Request[AnyContent]]))
+            TelemetryManager.logRequestBody(requestBody(request.asInstanceOf[Request[AnyContent]]))
         block(request)
     }
 
     def requestBody(request: Request[AnyContent]) = {
-        val body = request.body.asJson.getOrElse("{}").toString
-        JsonUtils.deserialize(body, classOf[java.util.Map[String, Object]])
+        request.body.asJson.getOrElse("{}").toString
     }
 }
