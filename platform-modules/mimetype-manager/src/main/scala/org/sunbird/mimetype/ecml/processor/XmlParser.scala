@@ -150,7 +150,7 @@ object XmlParser {
         val strBuilder = StringBuilder.newBuilder
         if(null != data){
             strBuilder.append(START_TAG_OPENING + data.get("cwp_element_name").get)
-            data.map(entry => strBuilder.append(BLANK_SPACE + entry._1 + ATTRIBUTE_KEY_VALUE_SEPARATOR + DOUBLE_QUOTE + entry._2 + DOUBLE_QUOTE))
+            data.filterKeys(key=>(!StringUtils.equalsIgnoreCase("cwp_element_name", key))).map(entry => strBuilder.append(BLANK_SPACE + entry._1 + ATTRIBUTE_KEY_VALUE_SEPARATOR + DOUBLE_QUOTE + entry._2 + DOUBLE_QUOTE))
             strBuilder.append(TAG_CLOSING)
         }
         strBuilder
