@@ -18,7 +18,7 @@ object XmlParser {
 
 
     def parse(xml: String): Plugin = {
-        val xmlObj = XML.loadString(xml)
+        val xmlObj: Node = XMLLoaderWithCData.loadString(xml)
         processDocument(xmlObj)
     }
 
@@ -150,7 +150,7 @@ object XmlParser {
         val strBuilder = StringBuilder.newBuilder
         if(null != data){
             strBuilder.append(START_TAG_OPENING + data.get("cwp_element_name").get)
-            data.map(entry => strBuilder.append(BLANK_SPACE + entry._1 + ATTRIBUTE_KEY_VALUE_SEPARATOR + DOUBLE_QUOTE + entry._2 + DOUBLE_QUOTE))
+            data.filterKeys(key=>(!StringUtils.equalsIgnoreCase("cwp_element_name", key))).map(entry => strBuilder.append(BLANK_SPACE + entry._1 + ATTRIBUTE_KEY_VALUE_SEPARATOR + DOUBLE_QUOTE + entry._2 + DOUBLE_QUOTE))
             strBuilder.append(TAG_CLOSING)
         }
         strBuilder
@@ -168,7 +168,7 @@ object XmlParser {
         strBuilder
     }
 
-    def getContentManifestXml(manifest: Manifest) = {
+    def getContentManifestXml(manifest: Manifest): StringBuilder = {
         val strBuilder = StringBuilder.newBuilder
         if(null != manifest && null != manifest.medias && !manifest.medias.isEmpty){
             strBuilder.append(getElementXml(manifest.data)).append(getInnerTextXml(manifest.innerText))
@@ -176,6 +176,7 @@ object XmlParser {
             .append(getMediaXml(manifest.medias))
             .append(getEndTag(manifest.data.getOrElse("cwp_element_name", "").asInstanceOf[String]))
         }
+	    strBuilder
     }
 
     def getPluginsXml(childrenPlugin: List[Plugin]): StringBuilder = {
