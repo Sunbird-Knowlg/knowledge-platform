@@ -18,7 +18,7 @@ object XmlParser {
 
 
     def parse(xml: String): Plugin = {
-        val xmlObj = XML.loadString(xml)
+        val xmlObj: Node = XMLLoaderWithCData.loadString(xml)
         processDocument(xmlObj)
     }
 
@@ -168,7 +168,7 @@ object XmlParser {
         strBuilder
     }
 
-    def getContentManifestXml(manifest: Manifest) = {
+    def getContentManifestXml(manifest: Manifest): StringBuilder = {
         val strBuilder = StringBuilder.newBuilder
         if(null != manifest && null != manifest.medias && !manifest.medias.isEmpty){
             strBuilder.append(getElementXml(manifest.data)).append(getInnerTextXml(manifest.innerText))
@@ -176,6 +176,7 @@ object XmlParser {
             .append(getMediaXml(manifest.medias))
             .append(getEndTag(manifest.data.getOrElse("cwp_element_name", "").asInstanceOf[String]))
         }
+	    strBuilder
     }
 
     def getPluginsXml(childrenPlugin: List[Plugin]): StringBuilder = {
