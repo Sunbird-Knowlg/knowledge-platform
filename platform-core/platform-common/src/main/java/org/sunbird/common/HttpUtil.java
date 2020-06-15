@@ -72,8 +72,8 @@ public class HttpUtil {
 			Map<String, Object> metadataMap = new HashMap<>();
 			HttpResponse<String> response = Unirest.head(url).headers(headers).asString();
 			if (response.getStatus() == 200) {
-				metadataMap.put("Content-Length", ((Number) Long.parseLong(response.getHeaders().get("Content-Length").get(0))).longValue());
-				metadataMap.put("Content-Type", response.getHeaders().get("Content-Type").get(0));
+				metadataMap.put("Content-Length", ((Number) Long.parseLong(response.getHeaders().getOrDefault("Content-Length", response.getHeaders().get("content-length")).get(0))).longValue());
+				metadataMap.put("Content-Type", response.getHeaders().getOrDefault("Content-Type", response.getHeaders().get("content-type")).get(0));
 				return metadataMap;
 			} else {
 				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + "and message: " + response.getStatusText());
@@ -107,4 +107,5 @@ public class HttpUtil {
 		if(!headerParam.containsKey("user-id"))
 			headerParam.put("user-id", PLATFORM_API_USERID);
 	}
+
 }
