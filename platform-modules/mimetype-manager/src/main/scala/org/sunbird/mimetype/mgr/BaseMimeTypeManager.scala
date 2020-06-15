@@ -12,7 +12,7 @@ import org.apache.tika.Tika
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.{ClientException, ServerException}
-import org.sunbird.common.{Platform, Slug}
+import org.sunbird.common.{HttpUtil, Platform, Slug}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
@@ -35,6 +35,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	val FILENAME_EXTENSION_SEPARATOR = "."
 	val DEFAULT_ZIP_EXTENSION = "zip"
 	private val tika: Tika = new Tika()
+	val httpUtil = new HttpUtil
 
 	val IDX_S3_KEY = 0
 	val IDX_S3_URL = 1
@@ -148,6 +149,10 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 				TelemetryManager.error("Error While getting the file size from Cloud Storage: " + key, e)
 		}
 		size
+	}
+
+	protected def getMetadata(url: String, headers: java.util.Map[String, String] = new java.util.HashMap[String, String]()): java.util.Map[String, Object] = {
+		httpUtil.getMetadata(url, headers)
 	}
 
 	def getFileMimeType(file: File): String = {

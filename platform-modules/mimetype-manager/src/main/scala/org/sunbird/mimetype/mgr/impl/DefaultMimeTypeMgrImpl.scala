@@ -7,7 +7,6 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
-import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -28,9 +27,8 @@ class DefaultMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMa
 
 	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
-		val file = copyURLToFile(objectId, fileUrl)
 		Future {
-			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getFileSize(file).asInstanceOf[AnyRef])
+			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getMetadata(fileUrl).get("Content-Length"))
 		}
 	}
 
