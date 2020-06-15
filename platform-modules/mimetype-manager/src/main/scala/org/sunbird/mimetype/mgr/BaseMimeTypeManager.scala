@@ -151,7 +151,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		size
 	}
 
-	protected def getMetadata(url: String, headers: java.util.Map[String, String] = new java.util.HashMap[String, String]()): java.util.Map[String, String] = {
+	protected def getMetadata(url: String, headers: java.util.Map[String, String] = new java.util.HashMap[String, String]()): java.util.Map[String, Object] = {
 		httpUtil.getMetadata(url, headers)
 	}
 
