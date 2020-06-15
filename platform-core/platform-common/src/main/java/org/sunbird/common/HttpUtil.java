@@ -6,9 +6,11 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
+import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.common.exception.ServerException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HttpUtil {
@@ -52,6 +54,30 @@ public class HttpUtil {
 		try {
 			HttpResponse<String> response = Unirest.get(reqUrl).headers(headerParam).asString();
 			return getResponse(response);
+		} catch (Exception e) {
+			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
+		}
+	}
+
+	/**
+	 *  This method is to get file related metadata (size and mimeType)from file url, without downloading.
+	 * @param url
+	 * @param headers
+	 * @return
+	 */
+	public Map<String, String> getFileMetadata(String url, Map<String, String> headers) {
+		try {
+			validateRequest(url, headers);
+			setDefaultHeader(headers);
+			Map<String, String> metadataMap = new HashMap<>();
+			HttpResponse<String> response = Unirest.head(url).headers(headers).asString();
+			if (response.getStatus() == 200) {
+				metadataMap.put("size", response.getHeaders().get("Content-Length").get(0));
+				metadataMap.put("mimeType", response.getHeaders().get("Content-Type").get(0));
+				return metadataMap;
+			} else {
+				throw new ClientException("ERR_API_CALL", "Fetching file related metadata Failed with response code " + response.getStatus() + "and message: " + response.getStatusText());
+			}
 		} catch (Exception e) {
 			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
 		}
