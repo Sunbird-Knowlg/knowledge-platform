@@ -65,18 +65,18 @@ public class HttpUtil {
 	 * @param headers
 	 * @return
 	 */
-	public Map<String, String> getFileMetadata(String url, Map<String, String> headers) {
+	public Map<String, Object> getMetadata(String url,  Map<String, String> headers) {
 		try {
 			validateRequest(url, headers);
 			setDefaultHeader(headers);
-			Map<String, String> metadataMap = new HashMap<>();
+			Map<String, Object> metadataMap = new HashMap<>();
 			HttpResponse<String> response = Unirest.head(url).headers(headers).asString();
 			if (response.getStatus() == 200) {
-				metadataMap.put("size", response.getHeaders().get("Content-Length").get(0));
-				metadataMap.put("mimeType", response.getHeaders().get("Content-Type").get(0));
+				metadataMap.put("Content-Length", ((Number) Long.parseLong(response.getHeaders().get("Content-Length").get(0))).longValue());
+				metadataMap.put("Content-Type", response.getHeaders().get("Content-Type").get(0));
 				return metadataMap;
 			} else {
-				throw new ClientException("ERR_API_CALL", "Fetching file related metadata Failed with response code " + response.getStatus() + "and message: " + response.getStatusText());
+				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + "and message: " + response.getStatusText());
 			}
 		} catch (Exception e) {
 			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
@@ -86,7 +86,7 @@ public class HttpUtil {
 	private void validateRequest(String url, Map<String, String> headerParam) {
 		if (StringUtils.isBlank(url))
 			throw new ServerException("ERR_INVALID_URL", "Url Parameter is Missing!");
-		if (MapUtils.isEmpty(headerParam))
+		if (headerParam == null)
 			throw new ServerException("ERR_INVALID_HEADER_PARAM", "Header Parameter is Missing!");
 	}
 
