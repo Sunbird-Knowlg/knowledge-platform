@@ -76,8 +76,10 @@ public class HttpUtil {
 				metadataMap.put("Content-Type", response.getHeaders().getOrDefault("Content-Type", response.getHeaders().get("content-type")).get(0));
 				return metadataMap;
 			} else {
-				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + "and message: " + response.getStatusText());
+				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + " and message: " + response.getStatusText());
 			}
+		} catch (ClientException e) {
+			throw new ClientException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
 		} catch (Exception e) {
 			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
 		}
