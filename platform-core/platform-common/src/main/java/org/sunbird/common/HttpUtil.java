@@ -72,7 +72,7 @@ public class HttpUtil {
 			Map<String, Object> metadataMap = new HashMap<>();
 			HttpResponse<String> response = Unirest.head(url).headers(headers).asString();
 			if (response.getStatus() == 200) {
-				metadataMap.put("Content-Length", ((Number) Long.parseLong(response.getHeaders().getOrDefault("Content-Length", response.getHeaders().get("content-length")).get(0))).longValue());
+				metadataMap.put("Content-Length", ((Number) Double.parseDouble(response.getHeaders().getOrDefault("Content-Length", response.getHeaders().get("content-length")).get(0))).doubleValue());
 				metadataMap.put("Content-Type", response.getHeaders().getOrDefault("Content-Type", response.getHeaders().get("content-type")).get(0));
 				return metadataMap;
 			} else {
