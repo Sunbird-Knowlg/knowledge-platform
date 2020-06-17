@@ -72,12 +72,14 @@ public class HttpUtil {
 			Map<String, Object> metadataMap = new HashMap<>();
 			HttpResponse<String> response = Unirest.head(url).headers(headers).asString();
 			if (response.getStatus() == 200) {
-				metadataMap.put("Content-Length", ((Number) Long.parseLong(response.getHeaders().getOrDefault("Content-Length", response.getHeaders().get("content-length")).get(0))).longValue());
+				metadataMap.put("Content-Length", ((Number) Double.parseDouble(response.getHeaders().getOrDefault("Content-Length", response.getHeaders().get("content-length")).get(0))).doubleValue());
 				metadataMap.put("Content-Type", response.getHeaders().getOrDefault("Content-Type", response.getHeaders().get("content-type")).get(0));
 				return metadataMap;
 			} else {
-				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + "and message: " + response.getStatusText());
+				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + " and message: " + response.getStatusText());
 			}
+		} catch (ClientException e) {
+			throw new ClientException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
 		} catch (Exception e) {
 			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
 		}
