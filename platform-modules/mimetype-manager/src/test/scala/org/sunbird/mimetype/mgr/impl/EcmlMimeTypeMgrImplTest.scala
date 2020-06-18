@@ -35,12 +35,10 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         val node = getNode()
         val identifier = "do_1234"
         implicit val ss = mock[StorageService]
-        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier)).repeated(3)
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
         val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml.zip").toURI), None)
         resFuture.map(result => {
-            println("Response: " + result)
-            result
             assert(null != result)
             assert(result.nonEmpty)
             assert("do_123" == result.getOrElse("identifier",""))
@@ -57,8 +55,6 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
         val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson.zip").toURI), None)
         resFuture.map(result => {
-            println("Response: " + result)
-            result
             assert(null != result)
             assert(result.nonEmpty)
             assert("do_123" == result.getOrElse("identifier",""))

@@ -6,9 +6,11 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
+import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.common.exception.ServerException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class HttpUtil {
@@ -57,10 +59,36 @@ public class HttpUtil {
 		}
 	}
 
+	/**
+	 *  This method is to get file related metadata (size and mimeType)from file url, without downloading.
+	 * @param url
+	 * @param headers
+	 * @return
+	 */
+	public Map<String, Object> getMetadata(String url,  Map<String, String> headers) {
+		try {
+			validateRequest(url, headers);
+			setDefaultHeader(headers);
+			Map<String, Object> metadataMap = new HashMap<>();
+			HttpResponse<String> response = Unirest.head(url).headers(headers).asString();
+			if (response.getStatus() == 200) {
+				metadataMap.put("Content-Length", ((Number) Double.parseDouble(response.getHeaders().getOrDefault("Content-Length", response.getHeaders().get("content-length")).get(0))).doubleValue());
+				metadataMap.put("Content-Type", response.getHeaders().getOrDefault("Content-Type", response.getHeaders().get("content-type")).get(0));
+				return metadataMap;
+			} else {
+				throw new ClientException("ERR_API_CALL", "Fetching of file related metadata Failed with response code " + response.getStatus() + " and message: " + response.getStatusText());
+			}
+		} catch (ClientException e) {
+			throw new ClientException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
+		} catch (Exception e) {
+			throw new ServerException("ERR_API_CALL", "Something Went Wrong While Making API Call | Error is: " + e.getMessage());
+		}
+	}
+
 	private void validateRequest(String url, Map<String, String> headerParam) {
 		if (StringUtils.isBlank(url))
 			throw new ServerException("ERR_INVALID_URL", "Url Parameter is Missing!");
-		if (MapUtils.isEmpty(headerParam))
+		if (headerParam == null)
 			throw new ServerException("ERR_INVALID_HEADER_PARAM", "Header Parameter is Missing!");
 	}
 
@@ -81,4 +109,5 @@ public class HttpUtil {
 		if(!headerParam.containsKey("user-id"))
 			headerParam.put("user-id", PLATFORM_API_USERID);
 	}
+
 }

@@ -68,4 +68,12 @@ public class Platform {
 		return config.hasPath(key) ? config.getStringList(key) : defaultVal;
 	}
 
+	public static Long getLong(String key, Long defaultVal) {
+		return config.hasPath(key) ? config.getLong(key) : defaultVal;
+	}
+
+	public static Double getDouble(String key, Double defaultVal) {
+		return config.hasPath(key) ? config.getDouble(key) : defaultVal;
+	}
+
 }
