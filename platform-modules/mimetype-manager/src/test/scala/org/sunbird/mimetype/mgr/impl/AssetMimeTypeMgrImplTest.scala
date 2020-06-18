@@ -17,6 +17,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
 
   "upload with valid file" should "return artifactUrl with successful response" in {
     val node = getNode()
+    node.getMetadata.put("mimeType", "image/jpg")
     val identifier = "do_123"
     val inputUrl = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_123/artifact/human_vs_robot-.jpg"
     implicit val ss = mock[StorageService]
@@ -43,9 +44,9 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "org.ekstep.video")
-        put("mimeType", "image/jpg")
         put("status", "Draft")
         put("contentType", "Plugin")
+        put("mimeType", "application/pdf")
       }
     })
     node
@@ -62,4 +63,19 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
       assert(inputUrl == result.getOrElse("artifactUrl", ""))
     })
   }
+
+
+  "upload with valid 3GB file url for big video testing" should "return artifactUrl with successful response" in {
+    val node = getNode()
+    node.getMetadata.put("mimeType", "video/mp4")
+    val inputUrl = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/assets/do_1130384356456120321307/3point4gb.mp4"
+    val resFuture = new AssetMimeTypeMgrImpl().upload("do_123", node, inputUrl, None)
+    resFuture.map(result => {
+      assert(null != result)
+      assert(!result.isEmpty)
+      assert("do_123" == result.getOrElse("identifier", ""))
+      assert(inputUrl == result.getOrElse("artifactUrl", ""))
+    })
+  }
+
 }

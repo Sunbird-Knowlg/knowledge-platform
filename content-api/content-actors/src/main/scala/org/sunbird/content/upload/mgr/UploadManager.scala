@@ -24,6 +24,8 @@ object UploadManager {
 
 	private val MEDIA_TYPE_LIST = List("image", "video")
 	private val kfClient = new KafkaClient
+	private val CONTENT_ARTIFACT_ONLINE_SIZE: Double = Platform.getDouble("content.artifact.size.for_online", 209715200.asInstanceOf[Double])
+
 
 	def upload(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val identifier: String = node.getIdentifier
@@ -47,10 +49,13 @@ object UploadManager {
 	def updateNode(request: Request, identifier: String, mediaType: String, contentType: String, result: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val updatedResult = result - "identifier"
 		val artifactUrl = updatedResult.getOrElse("artifactUrl", "").asInstanceOf[String]
+		val size: Double = updatedResult.getOrElse("size", 0.asInstanceOf[Double]).asInstanceOf[Double]
 		if (StringUtils.isNotBlank(artifactUrl)) {
 			val updateReq = new Request(request)
 			updateReq.getContext().put("identifier", identifier)
 			updateReq.getRequest.putAll(mapAsJavaMap(updatedResult))
+			if( size > CONTENT_ARTIFACT_ONLINE_SIZE)
+				updateReq.put("contentDisposition", "online-only")
 			if (StringUtils.equalsIgnoreCase("Asset", contentType) && MEDIA_TYPE_LIST.contains(mediaType))
 				updateReq.put("status", "Processing")
 
