@@ -10,6 +10,17 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mimetype-manager</artifactId>
 
+    <repositories>
+        <repository>
+            <id>cloud-store-sdk</id>
+            <name>cloud-store-sdk</name>
+            <url>https://oss.sonatype.org/content/repositories/orgsunbird-1075</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.sunbird</groupId>
@@ -26,7 +37,7 @@
         <dependency>
             <groupId>org.sunbird</groupId>
             <artifactId>cloud-store-sdk</artifactId>
-            <version>1.2.6</version>
+            <version>1.2.8</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>

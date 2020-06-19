@@ -30,6 +30,10 @@
       "type": "string",
       "default": "NCF"
     },
+    "defaultCourseFramework":{
+      "type": "string",
+      "default": "TPD"
+    },
     "createdBy":{
       "type": "string"
     },
@@ -59,6 +63,14 @@
     },
     "defaultLicense":{
       "type": "string"
+    },
+    "autoCreateBatch": {
+      "type": "string",
+      "enum": [
+        "Enabled",
+        "Disabled"
+      ],
+      "default": "Enabled"
     }
   }
 }

@@ -105,7 +105,8 @@
       "enum": [
         "inline",
         "online",
-        "attachment"
+        "attachment",
+        "online-only"
       ],
       "default": "inline"
     },
@@ -438,7 +439,13 @@
         "ExplanationResource",
         "ExperientialResource",
         "eTextBook",
-        "OnboardingResource"
+        "OnboardingResource",
+        "ExplanationVideo",
+        "ClassroomTeachingVideo",
+        "ExplanationReadingMaterial",
+        "LearningActivity",
+        "PreviousBoardExamPapers",
+        "LessonPlanResource"
       ]
     },
     "resourceType": {

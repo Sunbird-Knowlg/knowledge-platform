@@ -18,7 +18,7 @@ object XmlParser {
 
 
     def parse(xml: String): Plugin = {
-        val xmlObj = XML.loadString(xml)
+        val xmlObj: Node = XMLLoaderWithCData.loadString(xml)
         processDocument(xmlObj)
     }
 
@@ -79,7 +79,9 @@ object XmlParser {
             if(validateNode){
                 if(StringUtils.isBlank(id))
                     throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('id' is required.) in '" + node.buildString(true) + "' ...")
-                if(!(StringUtils.isNotBlank(`type`) && (StringUtils.equalsIgnoreCase(`type`, "js") || StringUtils.equalsIgnoreCase(`type`, "css"))))
+                if(StringUtils.isBlank(id) && !(StringUtils.isNotBlank(`type`) && (StringUtils.equalsIgnoreCase(`type`, "js") || StringUtils.equalsIgnoreCase(`type`, "css"))))
+                    throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('type' is required.) in '" + node.buildString(true) + "' ...")
+                if(StringUtils.isBlank(`type`))
                     throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('type' is required.) in '" + node.buildString(true) + "' ...")
                 if(StringUtils.isBlank(src))
                     throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('src' is required.) in '" + node.buildString(true) + "' ...")
@@ -91,7 +93,7 @@ object XmlParser {
     def getManifest(node: Node, validateNode: Boolean): Manifest = {
         val childNodes = node.child
         var manifestNode : Node = null
-        childNodes.toList.filter(childNode => childNode.isInstanceOf[PCData]).map(childNode => manifestNode = childNode)
+        childNodes.toList.filter(childNode => StringUtils.equalsIgnoreCase(childNode.label, "manifest")).map(childNode => manifestNode = childNode)
         val mediaList = {
             if(null != manifestNode && !manifestNode.child.isEmpty){
                 manifestNode.child.toList.filter(childNode => childNode.isInstanceOf[Elem] && "media".equalsIgnoreCase(childNode.label)).map(childNode => getMedia(childNode, validateNode))
@@ -150,7 +152,7 @@ object XmlParser {
         val strBuilder = StringBuilder.newBuilder
         if(null != data){
             strBuilder.append(START_TAG_OPENING + data.get("cwp_element_name").get)
-            data.map(entry => strBuilder.append(BLANK_SPACE + entry._1 + ATTRIBUTE_KEY_VALUE_SEPARATOR + DOUBLE_QUOTE + entry._2 + DOUBLE_QUOTE))
+            data.filterKeys(key=>(!StringUtils.equalsIgnoreCase("cwp_element_name", key))).map(entry => strBuilder.append(BLANK_SPACE + entry._1 + ATTRIBUTE_KEY_VALUE_SEPARATOR + DOUBLE_QUOTE + entry._2 + DOUBLE_QUOTE))
             strBuilder.append(TAG_CLOSING)
         }
         strBuilder
@@ -168,7 +170,7 @@ object XmlParser {
         strBuilder
     }
 
-    def getContentManifestXml(manifest: Manifest) = {
+    def getContentManifestXml(manifest: Manifest): StringBuilder = {
         val strBuilder = StringBuilder.newBuilder
         if(null != manifest && null != manifest.medias && !manifest.medias.isEmpty){
             strBuilder.append(getElementXml(manifest.data)).append(getInnerTextXml(manifest.innerText))
@@ -176,6 +178,7 @@ object XmlParser {
             .append(getMediaXml(manifest.medias))
             .append(getEndTag(manifest.data.getOrElse("cwp_element_name", "").asInstanceOf[String]))
         }
+	    strBuilder
     }
 
     def getPluginsXml(childrenPlugin: List[Plugin]): StringBuilder = {

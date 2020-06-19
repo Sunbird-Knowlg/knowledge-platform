@@ -65,6 +65,16 @@ public class HttpUtilTest {
 	}
 
 	@Test
+	public void testSetDefaultHeader() throws Exception {
+		Method method = HttpUtil.class.getDeclaredMethod("setDefaultHeader", Map.class);
+		method.setAccessible(true);
+		Map<String, String> header = new HashMap<String, String>();
+		method.invoke(httpUtil, header);
+		assertTrue(header.size() == 2);
+		assertTrue(header.containsKey("Content-Type"));
+	}
+
+	@Test
 	public void testPost() throws Exception {
 		Map<String, String> header = new HashMap<String, String>() {{
 			put("x-channel-id", "test-channel");

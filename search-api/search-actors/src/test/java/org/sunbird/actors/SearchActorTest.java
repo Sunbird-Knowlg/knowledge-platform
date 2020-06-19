@@ -257,7 +257,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         Map<String, Object> result = response.getResult();
         List<Object> list = (List<Object>) result.get("results");
         Assert.assertNotNull(list);
-        Assert.assertTrue(list.size() == 34);
+        Assert.assertTrue(list.size() == 35);
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             String objectType = (String) content.get("objectType");
@@ -726,11 +726,11 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(list.size() == 2);
         Map<String, Object> content1 = (Map<String, Object>) list.get(0);
         String id1 = (String) content1.get("identifier");
-        Assert.assertEquals("do_10000034", id1);
+        Assert.assertEquals("do_10000035", id1);
 
         Map<String, Object> content2 = (Map<String, Object>) list.get(1);
         String id2 = (String) content2.get("identifier");
-        Assert.assertEquals("do_10000033", id2);
+        Assert.assertEquals("do_10000034", id2);
     }
 
     @Test
@@ -760,7 +760,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         Response response = getSearchResponse(request);
         Map<String, Object> result = response.getResult();
         Integer count = (Integer) result.get("count");
-        Assert.assertTrue(count == 34);
+        Assert.assertTrue(count == 35);
     }
 
     @Test
@@ -1230,4 +1230,5 @@ public class SearchActorTest extends SearchBaseActorTest {
         }
         Assert.assertTrue(found);
     }
+
 }

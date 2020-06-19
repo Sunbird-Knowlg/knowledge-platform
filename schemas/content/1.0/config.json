@@ -78,6 +78,16 @@
             "license": "License"
         }
     },
+    "copy": {
+        "scheme": {
+            "TextBookToCourse": {
+                "TextBook": "Course",
+                "TextBookUnit": "CourseUnit"
+            },
+            "TextBookToLessonPlan": {
+            }
+        }
+    },
     "cacheEnabled": true,
     "searchProps": {
         "status": ["Live"],

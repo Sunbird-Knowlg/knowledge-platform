@@ -9,11 +9,12 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{CopyManager, DiscardManager, FlagManager, RetireManager, AcceptFlagManager}
+import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.content.dial.DIALManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
@@ -39,6 +40,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "discardContent" => discard(request)
 			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
+			case "linkDIALCode" => linkDIALCode(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -130,6 +132,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def acceptFlag(request: Request): Future[Response] = {
 		AcceptFlagManager.acceptFlag(request)
 	}
+
+	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)

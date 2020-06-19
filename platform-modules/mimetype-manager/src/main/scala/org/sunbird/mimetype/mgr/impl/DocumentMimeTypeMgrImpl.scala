@@ -44,7 +44,7 @@ class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeM
 		validateUploadRequest(objectId, node, fileUrl)
 		validateFileUrlExtension(node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String], fileUrl)
 		Future {
-			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl)
+			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getMetadata(fileUrl).get("Content-Length"))
 		}
 	}
 
