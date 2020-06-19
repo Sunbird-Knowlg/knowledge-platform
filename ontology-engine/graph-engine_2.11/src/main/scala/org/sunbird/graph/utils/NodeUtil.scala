@@ -67,7 +67,15 @@ object NodeUtil {
                             put("description", relMap.get("description"))
                             put("status", relMap.get("status"))
                         }})
-                        if(null != relMap.get("index") && 0 < relMap.get("index").asInstanceOf[Integer]){
+                        val index:Integer = {
+                            if(null != relMap.get("index")) {
+                                if(relMap.get("index").isInstanceOf[String]){
+                                    Integer.parseInt(relMap.get("index").asInstanceOf[String])
+                                } else relMap.get("index").asInstanceOf[Number].intValue()
+                            } else
+                                null
+                        }
+                        if(null != index && 0 < index){
                             rel.setMetadata(new util.HashMap[String, AnyRef](){{
                                 put(SystemProperties.IL_SEQUENCE_INDEX.name(), relMap.get("index"))
                             }})
