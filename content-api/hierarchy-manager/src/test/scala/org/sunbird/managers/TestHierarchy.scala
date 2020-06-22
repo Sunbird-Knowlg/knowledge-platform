@@ -3,12 +3,10 @@ package org.sunbird.managers
 import java.util
 
 import org.apache.commons.collections4.CollectionUtils
-import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.nodes.DataNode
 
 class TestHierarchy extends BaseSpec {
 
@@ -315,7 +313,6 @@ class TestHierarchy extends BaseSpec {
             assert(null != response.get("content"))
             val children = response.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children").asInstanceOf[util.List[Map[String, AnyRef]]]
             assert(CollectionUtils.isNotEmpty(children))
-            children.stream().anyMatch(t => StringUtils.equalsAnyIgnoreCase("do_11300155996401664014", _.)
         })
     }
 
