@@ -546,7 +546,7 @@ object HierarchyManager {
                 request.put("identifiers", imageNodeIds)
                 DataNode.list(request).map(imageNodes => {
                     val imageLeafNodeMap: util.Map[String, AnyRef] = JavaConverters.mapAsJavaMapConverter(imageNodes.toList.map(imageNode => (imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, ""), NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap).asJava
-                    leafNodeMap.entrySet().foreach(entry => if(imageLeafNodeMap.containsKey(entry.getKey)) entry.setValue(imageLeafNodeMap.get(entry.getKey)))
+                    leafNodeMap.entrySet().map(entry => if(imageLeafNodeMap.containsKey(entry.getKey)) entry.setValue(imageLeafNodeMap.get(entry.getKey)))
                     leafNodeMap
                 })
             }).flatMap(f => f)
