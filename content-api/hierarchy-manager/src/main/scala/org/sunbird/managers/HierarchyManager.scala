@@ -541,13 +541,19 @@ object HierarchyManager {
             })
             request.put("identifiers", leafNodeIds)
             DataNode.list(request).map(nodes => {
-                val leafNodeMap: util.Map[String, AnyRef] = JavaConverters.mapAsJavaMapConverter(nodes.toList.map(node => (node.getIdentifier, NodeUtil.serialize(node, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap).asJava
+                val leafNodeMap: Map[String, AnyRef] = nodes.toList.map(node => (node.getIdentifier, NodeUtil.serialize(node, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap
                 val imageNodeIds: util.List[String] = JavaConverters.seqAsJavaListConverter(leafNodeIds.toList.map(id => id + HierarchyConstants.IMAGE_SUFFIX)).asJava
                 request.put("identifiers", imageNodeIds)
                 DataNode.list(request).map(imageNodes => {
-                    val imageLeafNodeMap: util.Map[String, AnyRef] = JavaConverters.mapAsJavaMapConverter(imageNodes.toList.map(imageNode => (imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, ""), NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap).asJava
-                    leafNodeMap.entrySet().map(entry => if(imageLeafNodeMap.containsKey(entry.getKey)) entry.setValue(imageLeafNodeMap.get(entry.getKey)))
-                    leafNodeMap
+                    //val imageLeafNodeMap: Map[String, AnyRef] = imageNodes.toList.map(imageNode => (imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, ""), NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap
+                    val imageLeafNodeMap: Map[String, AnyRef] = imageNodes.toList.map(imageNode => {
+                        val identifier = imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, "")
+                        val metadata = NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true)
+                        metadata.replace("identifier", identifier)
+                        (identifier, metadata.asInstanceOf[AnyRef])
+                    }).toMap
+                    val updatedMap = leafNodeMap ++ imageLeafNodeMap
+                    JavaConverters.mapAsJavaMapConverter(updatedMap).asJava
                 })
             }).flatMap(f => f)
         } else {
