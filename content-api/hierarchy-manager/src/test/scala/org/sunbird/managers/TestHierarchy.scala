@@ -2,11 +2,11 @@ package org.sunbird.managers
 
 import java.util
 
+import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.nodes.DataNode
 
 class TestHierarchy extends BaseSpec {
 
@@ -286,8 +286,33 @@ class TestHierarchy extends BaseSpec {
         val future = HierarchyManager.getHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
-            assert(null != response.getResult.get("content"))
-            assert(null == response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children"))
+            assert(null != response.get("content"))
+            assert(CollectionUtils.isEmpty(response.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children").asInstanceOf[util.List[Map[String, AnyRef]]]))
+        })
+    }
+
+    "getHierarchy mode=edit" should "return latest leafNodes" in {
+        val query = "INSERT INTO hierarchy_store.content_hierarchy(identifier, hierarchy) values ('do_11300156035268608015', '{\"identifier\":\"do_11300156035268608015\",\"children\":[{\"ownershipType\":[\"createdBy\"],\"parent\":\"do_11300156035268608015\",\"code\":\"2cb4d698-dc19-4f0c-9990-96f49daff753\",\"channel\":\"in.ekstep\",\"description\":\"Test_TextBookUnit_desc_8330194200\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.ekstep.content-collection\",\"idealScreenSize\":\"normal\",\"createdOn\":\"2020-04-17T11:53:04.855+0530\",\"objectType\":\"Content\",\"children\":[{\"ownershipType\":[\"createdBy\"],\"parent\":\"do_11300156075913216016\",\"code\":\"test-Resourcce\",\"channel\":\"in.ekstep\",\"language\":[\"English\"],\"mimeType\":\"application/pdf\",\"idealScreenSize\":\"normal\",\"createdOn\":\"2020-04-17T11:51:30.230+0530\",\"objectType\":\"Content\",\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2020-04-17T11:51:30.230+0530\",\"contentEncoding\":\"identity\",\"contentType\":\"Resource\",\"dialcodeRequired\":\"No\",\"identifier\":\"do_11300155996401664014\",\"lastStatusChangedOn\":\"2020-04-17T11:51:30.230+0530\",\"audience\":[\"Learner\"],\"os\":[\"All\"],\"visibility\":\"Default\",\"index\":1,\"mediaType\":\"content\",\"osId\":\"org.ekstep.quiz.app\",\"languageCode\":[\"en\"],\"version\":2,\"versionKey\":\"1587104490230\",\"license\":\"CC BY 4.0\",\"idealScreenDensity\":\"hdpi\",\"framework\":\"NCF\",\"depth\":2,\"concepts\":[{\"identifier\":\"Num:C2:SC1\",\"name\":\"Counting\",\"description\":\"Counting\",\"objectType\":\"Concept\",\"relation\":\"associatedTo\",\"status\":\"Retired\"}],\"compatibilityLevel\":1,\"name\":\"test resource\",\"status\":\"Draft\"}],\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2020-04-17T11:53:04.855+0530\",\"contentEncoding\":\"gzip\",\"contentType\":\"TextBookUnit\",\"dialcodeRequired\":\"No\",\"identifier\":\"do_11300156075913216016\",\"lastStatusChangedOn\":\"2020-04-17T11:53:04.855+0530\",\"audience\":[\"Learner\"],\"os\":[\"All\"],\"visibility\":\"Parent\",\"index\":1,\"mediaType\":\"content\",\"osId\":\"org.ekstep.launcher\",\"languageCode\":[\"en\"],\"versionKey\":\"1587104584855\",\"license\":\"CC BY 4.0\",\"idealScreenDensity\":\"hdpi\",\"depth\":1,\"compatibilityLevel\":1,\"name\":\"Test_TextBookUnit_name_7240493202\",\"status\":\"Draft\"}]}')"
+        executeCassandraQuery(query)
+        graphDb.execute("UNWIND [{ownershipType:[\"createdBy\"],code:\"txtbk\",channel:\"in.ekstep\",description:\"Text Book Test\",language:[\"English\"],mimeType:\"application/vnd.ekstep.content-collection\",idealScreenSize:\"normal\",createdOn:\"2020-04-17T11:52:15.303+0530\",contentDisposition:\"inline\",contentEncoding:\"gzip\",lastUpdatedOn:\"2020-04-17T11:53:05.434+0530\",contentType:\"Course\",dialcodeRequired:\"No\",identifier:\"do_11300156035268608015\",audience:[\"Learner\"],lastStatusChangedOn:\"2020-04-17T11:52:15.303+0530\",os:[\"All\"],visibility:\"Default\",IL_SYS_NODE_TYPE:\"DATA_NODE\",childNodes:[\"do_11300156075913216016\",\"do_11300155996401664014\"],mediaType:\"content\",osId:\"org.ekstep.quiz.app\",version:2,versionKey:\"1587104585434\",license:\"CC BY 4.0\",idealScreenDensity:\"hdpi\",depth:0,framework:\"NCF\",compatibilityLevel:1,IL_FUNC_OBJECT_TYPE:\"Content\",name:\"TextBook\",IL_UNIQUE_ID:\"do_11300156035268608015\",status:\"Draft\"},{ownershipType:[\"createdBy\"],code:\"test-Resourcce\",prevStatus:\"Live\",channel:\"in.ekstep\",language:[\"English\"],mimeType:\"application/pdf\",idealScreenSize:\"normal\",createdOn:\"2020-04-17T11:51:30.230+0530\",contentDisposition:\"inline\",contentEncoding:\"identity\",lastUpdatedOn:\"2020-04-17T13:38:24.720+0530\",contentType:\"Resource\",dialcodeRequired:\"No\",audience:[\"Learner\"],lastStatusChangedOn:\"2020-04-17T13:38:22.954+0530\",os:[\"All\"],visibility:\"Default\",IL_SYS_NODE_TYPE:\"DATA_NODE\",mediaType:\"content\",osId:\"org.ekstep.quiz.app\",version:2,versionKey:\"1587110904720\",license:\"CC BY 4.0\",idealScreenDensity:\"hdpi\",framework:\"NCF\",compatibilityLevel:1,IL_FUNC_OBJECT_TYPE:\"Content\",name:\"updated\",IL_UNIQUE_ID:\"do_11300155996401664014\",status:\"Draft\"}] as row CREATE (n:domain) SET n += row")
+        val request = new Request()
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("objectType", "Content")
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("schemaName", "collection")
+                put("channel", "in.ekstep")
+            }
+        })
+        request.put("mode","edit")
+        request.put("rootId", "do_11300156035268608015")
+        val future = HierarchyManager.getHierarchy(request)
+        future.map(response => {
+            assert(response.getResponseCode.code() == 200)
+            assert(null != response.get("content"))
+            val children = response.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children").asInstanceOf[util.List[Map[String, AnyRef]]]
+            assert(CollectionUtils.isNotEmpty(children))
         })
     }
 

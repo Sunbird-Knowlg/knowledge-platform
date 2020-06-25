@@ -19,16 +19,18 @@ object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-    def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String): util.Map[String, AnyRef] = {
+    def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
-        val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
-        var finalMetadata = new util.HashMap[String, AnyRef]()
+        val finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.put("objectType",node.getObjectType)
         finalMetadata.putAll(updatedMetadataMap)
-        finalMetadata.putAll(relMap)
+        if(!withoutRelations){
+            val relMap:util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(node, updatedMetadataMap, definitionMap)
+            finalMetadata.putAll(relMap)
+        }
         if (CollectionUtils.isNotEmpty(fields))
             finalMetadata.keySet.retainAll(fields)
         finalMetadata.put("identifier", node.getIdentifier)
