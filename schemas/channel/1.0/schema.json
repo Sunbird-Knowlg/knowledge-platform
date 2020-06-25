@@ -73,7 +73,7 @@
       "default": "Enabled"
     },
     "publisher": {
-      "type": "object"
+      "type": "array"
     }
   }
 }
