@@ -71,6 +71,9 @@
         "Disabled"
       ],
       "default": "Enabled"
+    },
+    "publisher": {
+      "type": "array"
     }
   }
 }
