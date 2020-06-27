@@ -32,8 +32,14 @@
 		<dependency>
 		    <groupId>org.neo4j</groupId>
 		    <artifactId>neo4j-graphdb-api</artifactId>
-		    <version>3.3.4</version>
+		    <version>3.5.0</version>
  		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>3.5.0</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-api-mockito</artifactId>
@@ -49,13 +55,13 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-bolt</artifactId>
-			<version>3.3.4</version>
+			<version>3.5.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-cypher</artifactId>
-			<version>3.3.4</version>
+			<version>3.5.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
