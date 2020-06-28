@@ -67,12 +67,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M4</version>
                 <configuration>
-                    <systemProperties>
-                        <property>
-                            <name>illegal-access</name>
-                            <value>warn</value>
-                        </property>
-                    </systemProperties>
+                    <argLine>
+                        --illegal-access=warn
+                    </argLine>
                 </configuration>
             </plugin>
             <plugin>
