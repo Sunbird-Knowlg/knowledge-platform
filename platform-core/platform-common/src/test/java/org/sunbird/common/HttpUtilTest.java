@@ -30,7 +30,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(HttpClientHelper.class)
-@PowerMockIgnore({"javax.management.*", "sun.security.ssl.*", "javax.net.ssl.*", "javax.crypto.*"})
+@PowerMockIgnore({"jdk.internal.reflect.*", "javax.management.*", "sun.security.ssl.*", "javax.net.ssl.*", "javax.crypto.*"})
 public class HttpUtilTest {
 
 	private static HttpResponse<String> httpResponse = null;

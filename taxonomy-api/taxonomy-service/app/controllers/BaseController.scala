@@ -31,7 +31,10 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             } else {
                 collection.mutable.HashMap[String, Object]().asJava
             }
-        }).flatten.toMap.asJava
+        }).reduce((a, b) => {
+            a.putAll(b)
+            return a
+        })
     }
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {
@@ -60,7 +63,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     }
 
     def setRequestContext(request:org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
-        var contextMap: java.util.Map[String, AnyRef] = new mutable.HashMap[String, AnyRef](){{
+        var contextMap: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef](){{
             put("graph_id", "domain")
             put("version" , version)
             put("objectType" , objectType)

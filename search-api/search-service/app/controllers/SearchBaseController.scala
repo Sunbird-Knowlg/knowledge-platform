@@ -38,7 +38,10 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
                 }else 
                     collection.mutable.HashMap[String, Object]().asJava
             }
-        }).flatten.toMap.asJava
+        }).reduce((a, b) => {
+            a.putAll(b)
+            return a
+        })
     }
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {
