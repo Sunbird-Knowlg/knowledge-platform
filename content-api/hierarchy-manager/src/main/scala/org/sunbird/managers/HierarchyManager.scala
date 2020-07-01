@@ -150,6 +150,13 @@ object HierarchyManager {
                         val unPublishedBookmarkHierarchy = getUnpublishedBookmarkHierarchy(request, rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])
                         unPublishedBookmarkHierarchy.map(hierarchy => {
                             if (!hierarchy.isEmpty) {
+                                val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+                                val leafNodeIds = new util.ArrayList[String]()
+                                fetchAllLeafNodes(children, leafNodeIds)
+                                getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
+                                    updateLatestLeafNodes(children, leafNodesMap)
+                                    hierarchy.put("children", children)
+                                    })
                                 ResponseHandler.OK.put("content", hierarchy)
                             } else
                                 ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
