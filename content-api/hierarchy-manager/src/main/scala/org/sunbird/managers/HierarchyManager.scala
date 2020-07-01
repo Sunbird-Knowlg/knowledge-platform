@@ -170,7 +170,7 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def getPublishedHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
         val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
             Future(mapAsJavaMap(Map("content" -> mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))))
@@ -379,7 +379,7 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
-    def getCassandraHierarchy(request: Request)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
+    def getCassandraHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
         val rootHierarchy: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
         val hierarchy = fetchHierarchy(request, request.getRequest.get("rootId").asInstanceOf[String])
         hierarchy.map(hierarchy => {
@@ -426,8 +426,7 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
-    def searchRootIdInElasticSearch(rootId: String)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
-        val mapper: ObjectMapper = new ObjectMapper()
+    def searchRootIdInElasticSearch(rootId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
         val searchRequest: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]() {
             put("request", new util.HashMap[String, AnyRef]() {
                 put("filters", new util.HashMap[String, AnyRef]() {
@@ -447,9 +446,11 @@ object HierarchyManager {
             })
         }
         val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
-        val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body(mapper.writeValueAsString(searchRequest)).asString
-        if (httpResponse.getStatus == 200) {
-            val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
+        println("url :::: "+url)
+        println("search request ::: "+searchRequest)
+        val response = oec.httpUtil.post(url, searchRequest, new util.HashMap[String, String]())
+        println("response code ::: "+response.getResponseCode.toString+ " result :::: "+response.getResult)
+        if (response.getResponseCode.code()==200 && MapUtils.isNotEmpty(response.getResult)) {
             if (response.get("count").asInstanceOf[Integer] > 0 && CollectionUtils.isNotEmpty(response.get("content").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]])) {
                 Future(response.get("content").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].get(0))
             } else {

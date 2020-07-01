@@ -1,6 +1,6 @@
 package org.sunbird.managers
 
-import java.io.{File, IOException}
+import java.io.File
 
 import com.datastax.driver.core.{ResultSet, Session}
 import org.apache.commons.io.FileUtils
@@ -13,7 +13,7 @@ import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, BeforeAndAfterEach, Matc
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.Platform
 
-class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach{
+class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
     var graphDb: GraphDatabaseService = null
     var session: Session = null
