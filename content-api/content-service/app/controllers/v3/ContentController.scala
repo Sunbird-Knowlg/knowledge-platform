@@ -7,7 +7,8 @@ import javax.inject.{Inject, Named}
 import org.sunbird.common.dto.ResponseHandler
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, JavaJsonUtils}
-import scala.collection.JavaConversions._
+
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -20,7 +21,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
@@ -43,7 +44,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asInstanceOf[Map[String, Object]])
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
         getResult(ApiId.READ_CONTENT, contentActor, readRequest)
@@ -52,7 +53,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
@@ -83,7 +84,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def updateHierarchy() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val data = body.getOrElse("data", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val data = body.getOrDefault("data", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         data.putAll(headers)
         val contentRequest = getRequest(data, headers, "updateHierarchy")
         setRequestContext(contentRequest, version, objectType, schemaName)
@@ -94,7 +95,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("")))
+        content.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
         getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
@@ -104,7 +105,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("rootId" -> identifier, "bookmarkId" -> bookmarkId, "mode" -> mode.getOrElse("")))
+        content.putAll(Map("rootId" -> identifier, "bookmarkId" -> bookmarkId, "mode" -> mode.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
         getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
@@ -115,7 +116,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         val content = body
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier))
+        content.putAll(Map("identifier" -> identifier).asJava)
         val contentRequest = getRequest(content, headers, "flagContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
@@ -126,7 +127,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier))
+        content.putAll(Map("identifier" -> identifier).asJava)
         val acceptRequest = getRequest(content, headers, "acceptFlag")
         setRequestContext(acceptRequest, version, objectType, schemaName)
         getResult(ApiId.ACCEPT_FLAG, contentActor, acceptRequest)
@@ -160,7 +161,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier))
+        content.putAll(Map("identifier" -> identifier).asJava)
         val discardRequest = getRequest(content, headers, "discardContent")
         setRequestContext(discardRequest, version, objectType, schemaName)
         getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest)
@@ -168,7 +169,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def retire(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.put("identifier", identifier)
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "retireContent")
@@ -235,9 +236,9 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse(""), "copyType" -> copyType))
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse(""), "copyType" -> copyType).asJava)
         val contentRequest = getRequest(content, headers, "copy")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY_CONTENT, contentActor, contentRequest)
@@ -246,9 +247,9 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def uploadPreSigned(identifier: String, `type`: Option[String])= Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrElse("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")))
+        content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")).asJava)
         val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.UPLOAD_PRE_SIGNED_CONTENT, contentActor, contentRequest)

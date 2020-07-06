@@ -1,7 +1,10 @@
 version: 2.1
+executorType: machine
 jobs:
   kp-build:
-    machine: true
+    docker:
+      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+      - image: circleci/redis:latest
     steps:
       - checkout
       - restore_cache:
