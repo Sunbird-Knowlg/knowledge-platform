@@ -280,8 +280,8 @@ object CopyManager {
                 if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
                     mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
                 else
-                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None)
-            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None)
+                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None, false)
+            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None, false)
             uploadFuture.map(uploadData => {
                 DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]))
             }).flatMap(f => f)

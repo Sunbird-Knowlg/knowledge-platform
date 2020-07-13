@@ -221,13 +221,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         Future(Ok(response).as("application/json"))
     }
 
-    def upload(identifier: String) = Action.async { implicit request =>
+    def upload(identifier: String, h5pComposed: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = requestFormData()
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.putAll(Map("identifier" ->  identifier, "h5pComposed" -> h5pComposed.exists(_.toBoolean).asInstanceOf[AnyRef]))
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
     }
 
@@ -253,4 +253,5 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.UPLOAD_PRE_SIGNED_CONTENT, contentActor, contentRequest)
     }
+
 }

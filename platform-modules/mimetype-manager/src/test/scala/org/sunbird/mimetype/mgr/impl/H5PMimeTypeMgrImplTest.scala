@@ -21,7 +21,7 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
     "H5PMimeTypeManager" should "upload and download H5P file with validation" in {
         implicit val ss = mock[StorageService]
         val exception = intercept[ClientException] {
-            new H5PMimeTypeMgrImpl().upload("do_123", new Node(), new File(Resources.getResource("validEcmlContent.zip").toURI), None)
+            new H5PMimeTypeMgrImpl().upload("do_123", new Node(), new File(Resources.getResource("validEcmlContent.zip").toURI), None, false)
         }
         exception.getMessage shouldEqual "Please Provide Valid File!"
     }
@@ -45,7 +45,7 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *).returns(Future(List(identifier, identifier)))
-        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("valid_h5p_content.h5p").toURI), None)
+        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("valid_h5p_content.h5p").toURI), None, false)
         resFuture.map(result => {
             assert("do_1234" == result.getOrElse("identifier", ""))
             assert(result.get("artifactUrl") != null)
@@ -60,9 +60,39 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *).returns(Future(List(identifier, identifier)))
-        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node,"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/test-cases/valid_h5p_content.h5p", None)
+        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node,"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/test-cases/valid_h5p_content.h5p", None, false)
         resFuture.map(result => {
             assert("do_1234" == result.getOrElse("identifier", "do_1234"))
+            assert(result.get("artifactUrl") != null)
+            assert(result.get("s3Key") != null)
+            assert(result.get("size") != null)
+        })
+    }
+
+    it should "upload H5P composed zip file url extension and return public url" in {
+        val node = getNode()
+        val identifier = "do_1234"
+        implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *).returns(Future(List(identifier, identifier)))
+        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node,"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11306315278539161611102/artifact/1594623151887_do_11306315278539161611102.zip", None, true)
+        resFuture.map(result => {
+            assert("do_1234" == result.getOrElse("identifier", "do_1234"))
+            assert(result.get("artifactUrl") != null)
+            assert(result.get("s3Key") != null)
+            assert(result.get("size") != null)
+        })
+    }
+
+    it should "upload H5P composed zip file and return public url" in {
+        val node = getNode()
+        val identifier = "do_1234"
+        implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *).returns(Future(List(identifier, identifier)))
+        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("valid_composed_h5p.zip").toURI), None, true)
+        resFuture.map(result => {
+            assert("do_1234" == result.getOrElse("identifier", ""))
             assert(result.get("artifactUrl") != null)
             assert(result.get("s3Key") != null)
             assert(result.get("size") != null)

@@ -14,12 +14,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager()(ss) with MimeTypeManager {
 
-    override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
-        if (isValidPackageStructure(uploadFile, List[String]("h5p.json"))) {
+        if (isValidPackageStructure(uploadFile, List[String]("h5p.json"), h5pComposed)) {
             val extractionBasePath = getBasePath(objectId)
-            val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
-            val zipFile = new File(zippedFileName)
+            val zipFile = if (!h5pComposed) {
+                val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
+                new File(zippedFileName)
+            } else uploadFile
             val urls: Array[String] = uploadArtifactToCloud(zipFile, objectId, filePath)
             if (zipFile.exists) zipFile.delete
             extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
@@ -31,10 +33,13 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         }
     }
 
-    override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
-        upload(objectId, node, file, filePath)
+        if (h5pComposed)
+            Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getFileSize(file).asInstanceOf[AnyRef]))
+        else
+            upload(objectId, node, file, filePath, h5pComposed)
     }
 
     /**

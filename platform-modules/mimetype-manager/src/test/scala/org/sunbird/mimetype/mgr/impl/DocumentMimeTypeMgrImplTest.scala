@@ -18,7 +18,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 		node.setMetadata(new util.HashMap[String, AnyRef](){{
 			put("mimeType","application/pdf")
 		}})
-		val resFuture = new DocumentMimeTypeMgrImpl().upload("do_123", node, inputUrl, None)
+		val resFuture = new DocumentMimeTypeMgrImpl().upload("do_123", node, inputUrl, None, false)
 		resFuture.map(result => {
 			assert(null != result)
 			assert(!result.isEmpty)
@@ -50,21 +50,21 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 
 	"upload with invalid file url" should "return client exception" in {
 		val exception = intercept[ClientException] {
-			new DocumentMimeTypeMgrImpl().upload("do_123", new Node(), "abcd", None)
+			new DocumentMimeTypeMgrImpl().upload("do_123", new Node(), "abcd", None, false)
 		}
 		exception.getMessage shouldEqual "Please Provide Valid File Url!"
 	}
 
 	"upload with empty objectId" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			new DocumentMimeTypeMgrImpl().upload("", new Node(), "https://abc.com/content/sample.pdf", None)
+			new DocumentMimeTypeMgrImpl().upload("", new Node(), "https://abc.com/content/sample.pdf", None, false)
 		}
 		exception.getMessage shouldEqual "Please Provide Valid Identifier!"
 	}
 
 	"upload with empty node object" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			new DocumentMimeTypeMgrImpl().upload("do_123", null, "https://abc.com/content/sample.pdf", None)
+			new DocumentMimeTypeMgrImpl().upload("do_123", null, "https://abc.com/content/sample.pdf", None, false)
 		}
 		exception.getMessage shouldEqual "Please Provide Valid Node!"
 	}
@@ -76,7 +76,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 				put("mimeType", "application/pdf")
 			}})
 		val exception = intercept[ClientException] {
-			new DocumentMimeTypeMgrImpl().upload("do_123", node, file, None)
+			new DocumentMimeTypeMgrImpl().upload("do_123", node, file, None, false)
 		}
 		exception.getMessage shouldEqual "Uploaded file is not a pdf file. Please upload a valid pdf file."
 	}
@@ -88,7 +88,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 			put("mimeType", "application/epub")
 		}})
 		val exception = intercept[ClientException] {
-			new DocumentMimeTypeMgrImpl().upload("do_123", node, file, None)
+			new DocumentMimeTypeMgrImpl().upload("do_123", node, file, None, false)
 		}
 		exception.getMessage shouldEqual "Uploaded file is not a epub file. Please upload a valid epub file."
 	}
@@ -100,7 +100,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 			put("mimeType", "application/msword")
 		}})
 		val exception = intercept[ClientException] {
-			new DocumentMimeTypeMgrImpl().upload("do_123", node, file, None)
+			new DocumentMimeTypeMgrImpl().upload("do_123", node, file, None, false)
 		}
 		exception.getMessage shouldEqual "Uploaded file is not a word file. Please upload a valid word file."
 	}
@@ -113,7 +113,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 		val identifier ="do_123"
 		implicit val ss = mock[StorageService]
 		(ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
-		val resFuture = new DocumentMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("sample.pdf").toURI), None)
+		val resFuture = new DocumentMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("sample.pdf").toURI), None, false)
 		resFuture.map(result => {
 			println("Response: " + result)
 			result
@@ -130,7 +130,7 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 		val identifier ="do_123"
 		implicit val ss = mock[StorageService]
 		(ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
-		val resFuture = new DocumentMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("igp-twss.epub").toURI), None)
+		val resFuture = new DocumentMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("igp-twss.epub").toURI), None, false)
 		resFuture.map(result => {
 			println("Response: " + result)
 			result

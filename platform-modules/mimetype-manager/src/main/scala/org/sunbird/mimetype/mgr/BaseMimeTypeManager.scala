@@ -109,11 +109,13 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		if (null != file && file.exists) file.length else 0
 	}
 
-	def isValidPackageStructure(file: File, checkParams: List[String]): Boolean = {
+	def isValidPackageStructure(file: File, checkParams: List[String], h5pComposed: Boolean = false): Boolean = {
 		if (null != file && file.exists()) {
 			val zipFile: ZipFile = new ZipFile(file)
 			try {
-				val entries = checkParams.filter(fileName => null != zipFile.getEntry(fileName))
+				val entries = checkParams
+					.map(fileName => if (h5pComposed) File.separator + "content" + File.separator + fileName else fileName)
+					.filter(fileName => null != zipFile.getEntry(fileName))
 				null != entries && !entries.isEmpty
 			}
 			catch {

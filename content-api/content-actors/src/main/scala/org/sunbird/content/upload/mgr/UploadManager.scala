@@ -37,7 +37,8 @@ object UploadManager {
 		val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
 		val mediaType = node.getMetadata.getOrDefault("mediaType", "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
-		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
+		val h5pComposed =  request.getContext.getOrDefault("h5pComposed", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean]
+		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath, h5pComposed) else mgr.upload(identifier, node, file, filePath, h5pComposed)
 		uploadFuture.map(result => {
 			if(filePath.isDefined)
 				updateNode(request, node.getIdentifier, mediaType, contentType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))
