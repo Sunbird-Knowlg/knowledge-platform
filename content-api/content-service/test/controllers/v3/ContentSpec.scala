@@ -157,7 +157,7 @@ class ContentSpec extends BaseSpec {
         val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
         val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
         val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
-        val result = controller.upload("01234")(fakeRequest)
+        val result = controller.upload("01234", Option("false"))(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
     }
@@ -167,7 +167,7 @@ class ContentSpec extends BaseSpec {
         val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
         val multipartBody = MultipartFormData(Map[String, Seq[String]]("fileUrl" -> Seq("https://abc.com/content/sample.pdf"), "filePath" -> Seq("/program/id")), files, Seq[BadPart]())
         val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
-        val result = controller.upload("01234")(fakeRequest)
+        val result = controller.upload("01234", Option("false"))(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
     }

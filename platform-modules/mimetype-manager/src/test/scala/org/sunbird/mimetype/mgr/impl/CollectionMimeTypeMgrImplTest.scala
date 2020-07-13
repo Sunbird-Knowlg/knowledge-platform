@@ -13,14 +13,14 @@ class CollectionMimeTypeMgrImplTest  extends AsyncFlatSpec with Matchers {
 
 	"upload with file" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			new CollectionMimeTypeMgrImpl().upload("do_123", new Node(), new File("/tmp/test.pdf"), None)
+			new CollectionMimeTypeMgrImpl().upload("do_123", new Node(), new File("/tmp/test.pdf"), None, false)
 		}
 		exception.getMessage shouldEqual "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 	}
 
 	"upload with fileUrl" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			new CollectionMimeTypeMgrImpl().upload("do_123", new Node(), "https://abc.com/content/sample.pdf", None)
+			new CollectionMimeTypeMgrImpl().upload("do_123", new Node(), "https://abc.com/content/sample.pdf", None, false)
 		}
 		exception.getMessage shouldEqual "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 	}

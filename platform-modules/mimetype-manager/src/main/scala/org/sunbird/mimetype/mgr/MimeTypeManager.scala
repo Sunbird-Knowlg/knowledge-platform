@@ -7,9 +7,9 @@ import scala.concurrent.{ExecutionContext, Future}
 trait MimeTypeManager {
 
 	@throws[Exception]
-	def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
+	def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
 
 	@throws[Exception]
-	def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
+	def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]]
 
 }

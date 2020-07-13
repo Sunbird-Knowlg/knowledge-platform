@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
-	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val fileMimeType = getFileMimeType(uploadFile)
 		val nodeMimeType = node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
@@ -27,7 +27,7 @@ class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
 		}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		Future {Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl,"size" -> getMetadata(fileUrl).get("Content-Length"))}
 	}
