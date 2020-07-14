@@ -6,6 +6,7 @@ import java.util
 import com.google.common.io.Resources
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
@@ -18,14 +19,14 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
 
     it should "Throw Client Exception for null file url" in {
         val exception = intercept[ClientException] {
-            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), "", None, false)
+            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), "", None, UploadParams())
         }
         exception.getMessage shouldEqual "Please Provide Valid File Url!"
     }
 
     it should "Throw Client Except for non zip file " in {
         val exception = intercept[ClientException] {
-            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), new File(Resources.getResource("sample.pdf").toURI), None, false)
+            new EcmlMimeTypeMgrImpl().upload("do_1234", getNode(), new File(Resources.getResource("sample.pdf").toURI), None, UploadParams())
         }
         exception.getMessage shouldEqual "INVALID_CONTENT_PACKAGE_FILE_MIME_TYPE_ERROR | [The uploaded package is invalid]"
     }
@@ -37,7 +38,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier)).repeated(3)
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml.zip").toURI), None, false)
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml.zip").toURI), None, UploadParams())
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)
@@ -53,7 +54,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson.zip").toURI), None, false)
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson.zip").toURI), None, UploadParams())
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)

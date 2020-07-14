@@ -9,6 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mimetype-manager</artifactId>
+    <properties>
+        <scala.major.version>2.11</scala.major.version>
+        <play2.version>2.7.2</play2.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -79,6 +83,17 @@
             <artifactId>scalamock_2.11</artifactId>
             <version>4.4.0</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play_${scala.major.version}</artifactId>
+            <version>${play2.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

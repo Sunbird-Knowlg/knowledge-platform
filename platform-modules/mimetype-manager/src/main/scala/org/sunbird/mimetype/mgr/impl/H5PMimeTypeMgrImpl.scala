@@ -3,6 +3,8 @@ package org.sunbird.mimetype.mgr.impl
 import java.io.File
 import java.util.concurrent.CompletionException
 
+import org.apache.hadoop.util.StringUtils
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Slug
 import org.sunbird.common.exception.ClientException
@@ -14,11 +16,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager()(ss) with MimeTypeManager {
 
-    override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
-        if (isValidPackageStructure(uploadFile, List[String]("h5p.json"), h5pComposed)) {
+        val validationParams = if (StringUtils.equalsIgnoreCase(params.fileFormat, COMPOSED_H5P_ZIP))
+            List[String]("/content/h5p.json") else List[String]("h5p.json")
+        if (isValidPackageStructure(uploadFile, validationParams)) {
             val extractionBasePath = getBasePath(objectId)
-            val zipFile = if (!h5pComposed) {
+            val zipFile = if (!StringUtils.equalsIgnoreCase(params.fileFormat, COMPOSED_H5P_ZIP)) {
                 val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
                 new File(zippedFileName)
             } else uploadFile
@@ -33,13 +37,13 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
         }
     }
 
-    override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], h5pComposed: Boolean)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
-        if (h5pComposed)
+        if (StringUtils.equalsIgnoreCase(params.fileFormat, COMPOSED_H5P_ZIP))
             Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getFileSize(file).asInstanceOf[AnyRef]))
         else
-            upload(objectId, node, file, filePath, h5pComposed)
+            upload(objectId, node, file, filePath, params)
     }
 
     /**
