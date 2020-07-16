@@ -40,10 +40,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
     override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
-        if (StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP))
-            Future(Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getFileSize(file).asInstanceOf[AnyRef]))
-        else
-            upload(objectId, node, file, filePath, params)
+        upload(objectId, node, file, filePath, params)
     }
 
     /**
