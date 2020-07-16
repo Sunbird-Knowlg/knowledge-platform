@@ -74,6 +74,8 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         val node = getNode()
         val identifier = "do_1234"
         implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        (ss.uploadDirectoryAsync(_:String, _:File, _: Option[Boolean])(_: ExecutionContext)).expects(*, *, *, *).returns(Future(List(identifier, identifier)))
         val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node,"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11306315278539161611102/artifact/1594623151887_do_11306315278539161611102.zip", None, UploadParams(Some("composed-h5p-zip")))
         resFuture.map(result => {
             assert("do_1234" == result.getOrElse("identifier", "do_1234"))
