@@ -54,4 +54,19 @@ class DefaultMimeTypeImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         exception.getMessage shouldEqual "Uploaded File MimeType is not same as Node (Object) MimeType."
     }
 
+    "upload pdf file with invalid mimetype but validation false" should "upload pdf file and return public url" in {
+        val node = new Node()
+        node.setMetadata(new java.util.HashMap[String, AnyRef]() {{
+            put("mimeType", "application/pdf")
+        }})
+        val identifier ="do_123"
+        implicit val ss = mock[StorageService]
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
+        val resFuture = new DefaultMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("sample.pdf").toURI), None,  UploadParams(Some(""), Some(false)))
+        resFuture.map(result => {
+            println("Response: " + result)
+            assert(result != null)
+        })
+    }
+
 }

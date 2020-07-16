@@ -20,7 +20,6 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
     val node = getNode()
     node.getMetadata.put("mimeType", "image/jpg")
     val identifier = "do_123"
-    val inputUrl = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_123/artifact/human_vs_robot-.jpg"
     implicit val ss = mock[StorageService]
     (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
     val resFuture = new AssetMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("filesToZip/human_vs_robot-.jpg").toURI), None,  UploadParams())
@@ -28,7 +27,6 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
       println("Response: " + result)
       result
     })
-
     assert(true)
   }
 
@@ -46,7 +44,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
       {
         put("identifier", "org.ekstep.video")
         put("status", "Draft")
-        put("contentType", "Plugin")
+        put("contentType", "Asset")
         put("mimeType", "application/pdf")
       }
     })

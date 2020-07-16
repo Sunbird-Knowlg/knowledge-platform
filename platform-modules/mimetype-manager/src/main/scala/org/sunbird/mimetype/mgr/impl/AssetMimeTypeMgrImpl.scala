@@ -19,11 +19,8 @@ class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
 		val fileMimeType = getFileMimeType(uploadFile)
 		val nodeMimeType = node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
 		TelemetryManager.log("Uploading Asset MimeType: " + fileMimeType)
-		//TODO: Throw Client Exception Here
 		if (!StringUtils.equalsIgnoreCase(fileMimeType, nodeMimeType)) {
 			TelemetryManager.log("Uploaded File MimeType is not same as Node (Object) MimeType. [Uploading MimeType: " + fileMimeType + " | Node (Object) MimeType: " + nodeMimeType + "]")
-			if(params.validation)
-				throw new ClientException("ERR_INVALID_FILE", "Uploaded File MimeType is not same as Node (Object) MimeType. [Uploading MimeType: " + fileMimeType + " | Node (Object) MimeType: " + nodeMimeType + "]")
 		}
 		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		//TODO: depreciate s3Key. use cloudStorageKey instead

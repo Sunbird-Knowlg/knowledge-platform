@@ -2,12 +2,12 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
-import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
 import org.sunbird.common.exception.ClientException
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,9 +16,11 @@ class DefaultMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMa
 	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val nodeMimeType = node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
-		//TODO: Throw Client Exception Here
-		if (!isValidMimeType(uploadFile, nodeMimeType))
-			throw new ClientException("VALIDATION_ERROR", "Uploaded File MimeType is not same as Node (Object) MimeType.");
+		if (params.validation.getOrElse(true))
+			if (!isValidMimeType(uploadFile, nodeMimeType)) {
+				TelemetryManager.log("Uploaded File MimeType is not same as Node (Object) MimeType. [Node (Object) MimeType: " + nodeMimeType + "]")
+				throw new ClientException("VALIDATION_ERROR", "Uploaded File MimeType is not same as Node (Object) MimeType.")
+			}
 		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		//TODO: depreciate s3Key. use cloudStorageKey instead
 		Future {
