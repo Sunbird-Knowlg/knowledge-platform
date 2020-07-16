@@ -5,6 +5,7 @@ import java.io.File
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -19,8 +20,11 @@ class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
 		val nodeMimeType = node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
 		TelemetryManager.log("Uploading Asset MimeType: " + fileMimeType)
 		//TODO: Throw Client Exception Here
-		if (!StringUtils.equalsIgnoreCase(fileMimeType, nodeMimeType))
+		if (!StringUtils.equalsIgnoreCase(fileMimeType, nodeMimeType)) {
 			TelemetryManager.log("Uploaded File MimeType is not same as Node (Object) MimeType. [Uploading MimeType: " + fileMimeType + " | Node (Object) MimeType: " + nodeMimeType + "]")
+			if(params.validation)
+				throw new ClientException("ERR_INVALID_FILE", "Uploaded File MimeType is not same as Node (Object) MimeType. [Uploading MimeType: " + fileMimeType + " | Node (Object) MimeType: " + nodeMimeType + "]")
+		}
 		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		//TODO: depreciate s3Key. use cloudStorageKey instead
 		Future {
