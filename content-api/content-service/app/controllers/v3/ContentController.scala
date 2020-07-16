@@ -4,9 +4,11 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
+import org.sunbird.models.UploadParams
 import org.sunbird.common.dto.ResponseHandler
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, JavaJsonUtils}
+
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -221,13 +223,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         Future(Ok(response).as("application/json"))
     }
 
-    def upload(identifier: String) = Action.async { implicit request =>
+    def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = requestFormData()
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))))
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
     }
 
@@ -253,4 +255,5 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.UPLOAD_PRE_SIGNED_CONTENT, contentActor, contentRequest)
     }
+
 }

@@ -6,6 +6,7 @@ import java.util
 import com.google.common.io.Resources
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
@@ -18,7 +19,7 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
         val identifier = "org.ekstep.video"
         (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_: String, _: File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new PluginMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("plugin.zip").toURI), None)
+        val resFuture = new PluginMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("plugin.zip").toURI), None, UploadParams())
         resFuture.map(result => {
             println("Response: " + result)
             result
@@ -33,7 +34,7 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
         val identifier = "org.ekstep.summary"
         (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_: String, _: File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new PluginMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/org.ekstep.summary/artifact/org.ekstep.summary-1.0_1576230748183.zip", None)
+        val resFuture = new PluginMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/org.ekstep.summary/artifact/org.ekstep.summary-1.0_1576230748183.zip", None, UploadParams())
         resFuture.map(result => {
             println("Response: " + result)
             result
@@ -45,7 +46,7 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
     it should "upload Invalid plugin zip file url and Throw Client Exception" in {
         implicit val ss = new StorageService
         val exception = intercept[ClientException] {
-            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/content/do_11218758555843788817/artifact/akshara_kan_1487743191313.zip", None)
+            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/content/do_11218758555843788817/artifact/akshara_kan_1487743191313.zip", None, UploadParams())
         }
         exception.getMessage shouldEqual "Error !Invalid Content Package File Structure. | [manifest.json should be at root location]"
     }
@@ -53,7 +54,7 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
     it should "upload Invalid plugin zip file and Throw Client Exception" in {
         implicit val ss = new StorageService
         val exception = intercept[ClientException] {
-            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), new File(Resources.getResource("validEcmlContent.zip").toURI), None)
+            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), new File(Resources.getResource("validEcmlContent.zip").toURI), None, UploadParams())
         }
         exception.getMessage shouldEqual "Error !Invalid Content Package File Structure. | [manifest.json should be at root location]"
     }
@@ -61,7 +62,7 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
     it should "upload Invalid File for plugin and Throw Client Exception" in {
         implicit val ss = new StorageService
         val exception = intercept[ClientException] {
-            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), new File(Resources.getResource("sample.pdf").toURI), None)
+            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), new File(Resources.getResource("sample.pdf").toURI), None, UploadParams())
         }
         exception.getMessage shouldEqual "Error! Invalid Content Package Mime Type."
     }
