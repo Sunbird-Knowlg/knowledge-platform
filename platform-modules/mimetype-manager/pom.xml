@@ -84,17 +84,6 @@
             <version>4.4.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.typesafe.play</groupId>
-            <artifactId>play_${scala.major.version}</artifactId>
-            <version>${play2.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <build>

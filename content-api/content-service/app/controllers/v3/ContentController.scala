@@ -223,13 +223,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         Future(Ok(response).as("application/json"))
     }
 
-    def upload(identifier: String, params: UploadParams = UploadParams()) = Action.async { implicit request =>
+    def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = requestFormData()
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> params))
+        contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))))
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
     }
 
