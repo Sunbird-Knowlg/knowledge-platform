@@ -18,9 +18,9 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
 
     override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
-        val validationParams = if (StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP))
-            List[String]("/content/h5p.json") else List[String]("h5p.json")
-        if (isValidPackageStructure(uploadFile, validationParams)) {
+        val validationParams = List[String]("h5p.json")
+        if (StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP)
+            || isValidPackageStructure(uploadFile, validationParams)) {
             val extractionBasePath = getBasePath(objectId)
             val zipFile = if (!StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP)) {
                 val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
