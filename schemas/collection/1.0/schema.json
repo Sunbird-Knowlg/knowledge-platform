@@ -1000,6 +1000,9 @@
     },
     "board" : {
       "type": "string"
+    },
+    "category": {
+      "type": "array"
     }
   }
 }
