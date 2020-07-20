@@ -26,7 +26,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
                 val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
                 new File(zippedFileName)
             } else {
-                extractPackage(uploadFile, extractionBasePath + File.separator + "content")
+                extractPackage(uploadFile, extractionBasePath)
                 uploadFile
             }
             val urls: Array[String] = uploadArtifactToCloud(zipFile, objectId, filePath)
