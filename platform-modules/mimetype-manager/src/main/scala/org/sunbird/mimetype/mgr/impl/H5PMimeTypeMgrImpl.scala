@@ -25,7 +25,10 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             val zipFile = if (!StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP)) {
                 val zippedFileName = createH5PZipFile(extractionBasePath, uploadFile, objectId)
                 new File(zippedFileName)
-            } else uploadFile
+            } else {
+                extractPackage(uploadFile, extractionBasePath + File.separator + "content")
+                uploadFile
+            }
             val urls: Array[String] = uploadArtifactToCloud(zipFile, objectId, filePath)
             if (zipFile.exists) zipFile.delete
             extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
