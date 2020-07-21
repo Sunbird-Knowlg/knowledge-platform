@@ -1,0 +1,14 @@
+{
+  "objectType": "Category",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "status", "identifier"
+    ]
+  }
+}
