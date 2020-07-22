@@ -97,6 +97,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		RequestUtil.restrictProperties(request)
 		CopyManager.copy(request)
 	}
+
 	def uploadPreSignedUrl(request: Request): Future[Response] = {
 		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
 		val fileName: String = request.get("fileName").asInstanceOf[String]
