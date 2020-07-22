@@ -42,8 +42,7 @@ public class SearchManager {
     private static final Logger perfLogger = LogManager.getLogger("PerformanceTestLogger");
     private static final String JSON_TYPE = "application/json";
     private static Timeout WAIT_TIMEOUT = new Timeout(Duration.create(30000, TimeUnit.MILLISECONDS));
-    private static Boolean contentTaggingFlag = Platform.config.hasPath("content.tagging.backward_enable")?
-            Platform.config.getBoolean("content.tagging.backward_enable"): false;
+    private static Boolean contentTaggingFlag = true;
     private static List<String> contentTaggedKeys = Platform.config.hasPath("content.tagging.property") ?
             Platform.config.getStringList("content.tagging.property"):
             new ArrayList<>(Arrays.asList("subject","medium"));
