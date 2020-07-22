@@ -230,7 +230,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))))
+        contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))).asJava)
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest)
     }
 
