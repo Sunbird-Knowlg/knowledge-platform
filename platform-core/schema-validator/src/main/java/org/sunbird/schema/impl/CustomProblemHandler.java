@@ -3,7 +3,6 @@ package org.sunbird.schema.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.Problem;
 import org.leadpony.justify.api.ProblemHandler;
-import scala.collection.immutable.StringOps;
 
 import java.util.ArrayList;
 import java.util.Arrays;

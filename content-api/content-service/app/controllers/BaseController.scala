@@ -14,9 +14,7 @@ import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
 import utils.JavaJsonUtils
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
@@ -32,19 +30,19 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             val multipartData = request.body.asMultipartFormData.get
             if (null != multipartData.asFormUrlEncoded && !multipartData.asFormUrlEncoded.isEmpty) {
                 if(multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).length > 0){
-                    val fileUrl: String = multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).get(0)
+                    val fileUrl: String = multipartData.asFormUrlEncoded.getOrElse("fileUrl",Seq()).head
                     if (StringUtils.isNotBlank(fileUrl))
                         reqMap.put("fileUrl", fileUrl)
                 }
                 if(multipartData.asFormUrlEncoded.getOrElse("filePath",Seq()).length > 0){
-                    val filePath: String = multipartData.asFormUrlEncoded.getOrElse("filePath",Seq()).get(0)
+                    val filePath: String = multipartData.asFormUrlEncoded.getOrElse("filePath",Seq()).head
                     if (StringUtils.isNotBlank(filePath))
                         reqMap.put("filePath", filePath)
                 }
             }
             if (null != multipartData.files && !multipartData.files.isEmpty) {
-                val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.get(0).filename)
-                multipartData.files.get(0).ref.copyTo(file, false)
+                val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.head.filename)
+                multipartData.files.head.ref.copyTo(file, false)
                 reqMap.put("file", file)
             }
         }
@@ -64,7 +62,10 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             } else {
                 collection.mutable.HashMap[String, Object]().asJava
             }
-        }).flatten.toMap.asJava
+        }).reduce((a, b) => {
+            a.putAll(b)
+            return a
+        })
     }
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {
@@ -94,7 +95,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     }
 
     def setRequestContext(request:org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
-        var contextMap: java.util.Map[String, AnyRef] = new mutable.HashMap[String, AnyRef](){{
+        var contextMap: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef](){{
             put("graph_id", "domain")
             put("version" , version)
             put("objectType" , objectType)

@@ -134,6 +134,7 @@ object HierarchyManager {
                 getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
                     updateLatestLeafNodes(children, leafNodesMap)
                     metadata.put("children", children)
+                    metadata.put("identifier", request.get("rootId"))
                     if(StringUtils.isNotEmpty(bookmarkId))
                         metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
                     if (MapUtils.isEmpty(metadata)) {

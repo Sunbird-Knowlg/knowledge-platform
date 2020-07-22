@@ -37,13 +37,13 @@
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.11</artifactId>
+            <artifactId>scalatest_${scala.maj.version}</artifactId>
             <version>3.0.8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.manub</groupId>
-            <artifactId>scalatest-embedded-kafka_2.11</artifactId>
+            <artifactId>scalatest-embedded-kafka_${scala.maj.version}</artifactId>
             <version>1.1.0-kafka1.1-nosr</version>
             <scope>test</scope>
         </dependency>
@@ -54,22 +54,28 @@
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
-                <!-- see http://davidb.github.com/scala-maven-plugin -->
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>4.4.0</version>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                    <checkMultipleScalaVersions>false</checkMultipleScalaVersions>
+                </configuration>
                 <executions>
                     <execution>
+                        <id>scala-compile-first</id>
+                        <phase>process-resources</phase>
                         <goals>
+                            <goal>add-source</goal>
                             <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>scala-test-compile</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
                             <goal>testCompile</goal>
                         </goals>
-                        <configuration>
-                            <args>
-                                <arg>-dependencyfile</arg>
-                                <arg>${project.build.directory}/.scala_dependencies</arg>
-                            </args>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
