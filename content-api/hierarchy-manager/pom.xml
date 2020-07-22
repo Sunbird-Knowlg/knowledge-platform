@@ -51,6 +51,16 @@
             <artifactId>cassandra-unit</artifactId>
             <version>3.11.2.0</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>httpcore</artifactId>
+                    <groupId>org.apache.httpcomponents</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>httpclient</artifactId>
+                    <groupId>org.apache.httpcomponents</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.mashape.unirest</groupId>
