@@ -13,8 +13,6 @@ import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.{ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.telemetry.logger.TelemetryManager
 
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 class ExternalStore(keySpace: String , table: String , primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
@@ -27,6 +25,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         request.remove("last_updated_on")
         if(propsMapping.keySet.contains("last_updated_on"))
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
+        import scala.collection.JavaConverters._
         for ((key, value) <- request.asScala) {
             if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
                 insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
@@ -73,6 +72,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                     val row = resultSet.one()
                     val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap
                     val response = ResponseHandler.OK()
+                    import scala.collection.JavaConverters._
                     response.putAll(externalMetadataMap.asJava)
                     response
                 } else {
@@ -90,6 +90,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
 
     def delete(identifiers: List[String])(implicit ec: ExecutionContext): Future[Response] = {
         val delete = QueryBuilder.delete()
+        import scala.collection.JavaConversions._
         val deleteQuery = delete.from(keySpace, table).where(QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers)))
         try {
             val session: Session = CassandraConnector.getSession

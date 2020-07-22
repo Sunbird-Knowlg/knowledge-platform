@@ -12,10 +12,7 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 
 import scala.collection.JavaConversions.mapAsJavaMap
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-
-
+import scala.concurrent.Future
 
 class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 

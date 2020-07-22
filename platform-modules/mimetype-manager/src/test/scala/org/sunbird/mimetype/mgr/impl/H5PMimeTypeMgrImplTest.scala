@@ -15,7 +15,6 @@ import org.sunbird.mimetype.mgr.BaseMimeTypeManager
 import org.sunbird.models.UploadParams
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 

@@ -7,7 +7,6 @@ import javax.inject.{Inject, Named}
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext}
 
 @Singleton
@@ -40,7 +39,7 @@ class ChannelController  @Inject()(@Named(ActorNames.CHANNEL_ACTOR) channelActor
   def update(identifier: String) = Action.async { implicit request =>
     val headers = commonHeaders(Option(List("x-channel-id")))
     val body = requestBody()
-    val channel = body.getOrElse("channel", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    val channel = body.getOrDefault("channel", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     channel.putAll(headers)
     val channelRequest = getRequest(channel, headers, "updateChannel")
     setRequestContext(channelRequest, version, objectType, schemaName)

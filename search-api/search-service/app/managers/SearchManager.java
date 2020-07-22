@@ -42,10 +42,6 @@ public class SearchManager {
     private static final Logger perfLogger = LogManager.getLogger("PerformanceTestLogger");
     private static final String JSON_TYPE = "application/json";
     private static Timeout WAIT_TIMEOUT = new Timeout(Duration.create(30000, TimeUnit.MILLISECONDS));
-    private static Boolean contentTaggingFlag = true;
-    private static List<String> contentTaggedKeys = Platform.config.hasPath("content.tagging.property") ?
-            Platform.config.getStringList("content.tagging.property"):
-            new ArrayList<>(Arrays.asList("subject","medium"));
 
     public Future<Response> search(Request request, ActorRef actor) {
         request.setOperation(SearchOperations.INDEX_SEARCH.name());
@@ -172,7 +168,6 @@ public class SearchManager {
                         content.put("variants",variantsMap);
                         contentMap.set(contentMap.indexOf(content), content);
                     }
-                    updateContentTaggedProperty(content);
                     contentMap.set(contentMap.indexOf(content), content);
                 }
                 response.getResult().put("content", contentMap);
@@ -180,7 +175,6 @@ public class SearchManager {
             if(response.getResult().containsKey("collections")) {
                 List<Map<String,Object>> collectionList = (List<Map<String, Object>>) response.getResult().get("collections");
                 for(Map<String,Object> collection : collectionList){
-                    updateContentTaggedProperty(collection);
                     collectionList.set(collectionList.indexOf(collection), collection);
                 }
                 response.getResult().put("collections", collectionList);
@@ -372,31 +366,6 @@ public class SearchManager {
         }
 
         return count;
-    }
-
-    private void updateContentTaggedProperty(Map<String,Object> content) {
-        if(contentTaggingFlag) {
-            for(String contentTagKey : contentTaggedKeys) {
-                if(content.containsKey(contentTagKey)) {
-                    List<String> prop = null;
-                    try {
-                        Object value = content.get(contentTagKey);
-                        if (value instanceof String[]) {
-                            prop = Arrays.asList((String[]) value);
-                        } else if(value instanceof  List) {
-                            prop = (List<String>) value;
-                        }else {
-                            prop = mapper.readValue((String) value, List.class);
-                        }
-                        if (CollectionUtils.isNotEmpty(prop))
-                            content.put(contentTagKey, prop.get(0));
-                    } catch (IOException e) {
-                        content.put(contentTagKey, (String) content.get(contentTagKey));
-                    }
-
-                }
-            }
-        }
     }
 
 }
