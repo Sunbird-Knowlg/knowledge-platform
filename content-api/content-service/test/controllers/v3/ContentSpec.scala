@@ -5,6 +5,7 @@ import java.io.File
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import org.sunbird.models.UploadParams
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{OK, status}
 import play.api.test.Helpers._
@@ -157,17 +158,29 @@ class ContentSpec extends BaseSpec {
         val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
         val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
         val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
-        val result = controller.upload("01234")(fakeRequest)
+        val result = controller.upload("01234", None, None)(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
     }
+
     "return success response for upload API with fileUrl" in {
         val controller = app.injector.instanceOf[controllers.v3.ContentController]
         val file = new File("test/resources/sample.pdf")
         val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
         val multipartBody = MultipartFormData(Map[String, Seq[String]]("fileUrl" -> Seq("https://abc.com/content/sample.pdf"), "filePath" -> Seq("/program/id")), files, Seq[BadPart]())
         val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
-        val result = controller.upload("01234")(fakeRequest)
+        val result = controller.upload("01234", None, None)(fakeRequest)
+        isOK(result)
+        status(result) must equalTo(OK)
+    }
+
+    "return success response for upload API with fileUrl and fileFormat" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val file = new File("test/resources/sample.pdf")
+        val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
+        val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
+        val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
+        val result = controller.upload("01234", Some("composed-h5p-zip"), None)(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
     }

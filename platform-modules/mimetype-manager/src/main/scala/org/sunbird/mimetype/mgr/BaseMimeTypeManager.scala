@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
 import org.apache.tika.Tika
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{HttpUtil, Platform, Slug}
 import org.sunbird.graph.dac.model.Node
@@ -41,6 +40,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	val IDX_S3_URL = 1
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
+	val COMPOSED_H5P_ZIP: String = "composed-h5p-zip"
 
 
 	def validateUploadRequest(objectId: String, node: Node, data: AnyRef)(implicit ec: ExecutionContext): Unit = {
@@ -113,7 +113,8 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		if (null != file && file.exists()) {
 			val zipFile: ZipFile = new ZipFile(file)
 			try {
-				val entries = checkParams.filter(fileName => null != zipFile.getEntry(fileName))
+				val entries = checkParams
+					.filter(fileName => null != zipFile.getEntry(fileName))
 				null != entries && !entries.isEmpty
 			}
 			catch {
@@ -266,5 +267,6 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 			case e: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + e.getMessage, e)
 		} finally if (zos != null) zos.close()
 	}
+
 }
 

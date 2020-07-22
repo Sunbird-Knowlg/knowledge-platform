@@ -9,7 +9,7 @@ POST      /content/v3/create                controllers.v3.ContentController.cre
 PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.update(identifier:String)
 GET       /content/v3/read/:identifier      controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 POST      /content/v3/upload/url/:identifier     controllers.v3.ContentController.uploadPreSigned(identifier:String, type: Option[String])
-POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String)
+POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 POST      /content/v3/copy/:identifier           controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 POST     /content/v3/dialcode/link               controllers.v3.ContentController.linkDialCode()
 
