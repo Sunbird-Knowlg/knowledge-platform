@@ -151,7 +151,7 @@ object CopyManager {
         requestMap.remove(ContentConstants.MODE)
         requestMap.remove(ContentConstants.COPY_SCHEME).asInstanceOf[String]
         val copyType = requestMap.remove(ContentConstants.COPY_TYPE).asInstanceOf[String]
-        val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
+        val originData: java.util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         cleanUpCopiedData(metadata, copyType)
         metadata.putAll(requestMap)
         metadata.put(ContentConstants.STATUS, "Draft")
@@ -176,7 +176,7 @@ object CopyManager {
         } else Future {req}
     }
 
-    def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
+    def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): java.util.Map[String, AnyRef] = {
         new java.util.HashMap[String, AnyRef](){{
             putAll(originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava)
             put(ContentConstants.COPY_TYPE, copyType)

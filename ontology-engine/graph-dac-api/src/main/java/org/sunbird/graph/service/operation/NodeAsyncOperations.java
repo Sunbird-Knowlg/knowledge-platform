@@ -290,6 +290,7 @@ public class NodeAsyncOperations {
     private static Node setPrimitiveData(Node node) throws Exception {
         Map<String, Object> metadata = node.getMetadata();
         System.out.println("NodeAsyncOperation :: setPrimitiveData Before " + JsonUtils.serialize(node.getMetadata().get("originData")));
+        System.out.println("NodeAsyncOperation :: setPrimitiveData Before " + (node.getMetadata().get("originData") instanceof Map) + "Class " +  node.getMetadata().get("originData").getClass() );
         metadata.entrySet().stream()
                 .map(entry -> {
                     Object value = entry.getValue();
