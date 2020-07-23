@@ -14,6 +14,7 @@ import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, S
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOperations, SearchAsyncOperations}
+import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._
@@ -25,6 +26,7 @@ object DataNode {
     def create(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
+            println("DataNode :: create :: " + ScalaJsonUtils.serialize(node.getMetadata.get("originData")))
             val response = oec.graphService.addNode(graphId, node)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
