@@ -24,6 +24,10 @@
         },
         "identifier": {
             "type": "string"
+        },
+        "trackable": {
+            "type": "boolean",
+            "default": false
         }
     },
     "additionalProperties": true
