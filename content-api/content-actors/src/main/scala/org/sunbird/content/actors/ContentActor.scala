@@ -48,7 +48,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
-		request.put("category", request.get(ContentParams.contentType.name).asInstanceOf[String])
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
 			response.put("identifier", node.getIdentifier)

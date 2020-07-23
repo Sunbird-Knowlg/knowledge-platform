@@ -28,10 +28,11 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         (oec.graphService _).expects().returns(graphDB)
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         val request = getCategoryRequest()
-        request.putAll(mapAsJavaMap(Map("name" -> "New Category")))
+        request.putAll(mapAsJavaMap(Map("name" -> "do_1234")))
         request.setOperation("createCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.get("identifier") != null)
+        assert(response.get("identifier").equals("cat-do_1234"))
     }
 
 
@@ -100,11 +101,11 @@ class TestCategoryActor extends BaseSpec with MockFactory{
 
     private def getValidNode(): Node = {
         val node = new Node()
-        node.setIdentifier("do_1234")
+        node.setIdentifier("cat-do_1234")
         node.setNodeType("DATA_NODE")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
-                put("identifier", "do_1234")
+                put("identifier", "cat-do_1234")
                 put("objectType", "Category")
                 put("status", "Live")
                 put("name", "do_1234")

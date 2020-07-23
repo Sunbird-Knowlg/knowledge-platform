@@ -35,7 +35,7 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     private def create(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
         if (request.getRequest.containsKey("identifier")) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
-        if (request.getRequest.containsKey("name")) request.getRequest.put("identifier", Slug.makeSlug(request.getRequest.get("name").asInstanceOf[String]))
+        if (request.getRequest.containsKey("name")) request.getRequest.put("identifier", "cat-" + Slug.makeSlug(request.getRequest.get("name").asInstanceOf[String]))
         DataNode.create(request).map(node => {
             val response = ResponseHandler.OK
             response.put("identifier", node.getIdentifier)
