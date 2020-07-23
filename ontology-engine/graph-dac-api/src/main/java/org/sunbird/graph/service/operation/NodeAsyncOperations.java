@@ -77,6 +77,7 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                 return node;
             }).exceptionally(error -> {
+                        error.printStackTrace();
                         if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ClientException)
                             throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + node.getIdentifier());
                         else
@@ -131,6 +132,7 @@ public class NodeAsyncOperations {
                             node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                         return node;
                     }).exceptionally(error -> {
+                        error.printStackTrace();
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                                 "Error! Something went wrong while creating node object. ", error.getCause());
                     });
@@ -225,6 +227,7 @@ public class NodeAsyncOperations {
                             node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
                         return node;
                     }).exceptionally(error -> {
+                        error.printStackTrace();
                         if (error.getCause() instanceof org.neo4j.driver.v1.exceptions.ServiceUnavailableException)
                             throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
                                     DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + error.getMessage(), error.getCause());

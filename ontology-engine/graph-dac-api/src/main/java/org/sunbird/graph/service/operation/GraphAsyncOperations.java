@@ -45,6 +45,7 @@ public class GraphAsyncOperations {
 					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
 						return ResponseHandler.OK();
 					}).exceptionally(error -> {
+						error.printStackTrace();
 						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
 								"Error! Something went wrong while creating node object. ", error.getCause());
 					});
@@ -80,6 +81,7 @@ public class GraphAsyncOperations {
 					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
 						return ResponseHandler.OK();
 					}).exceptionally(error -> {
+						error.printStackTrace();
 						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
 								"Error! Something went wrong while creating node object. ", error.getCause());
 					});

@@ -87,6 +87,7 @@ public class SearchAsyncOperations {
                         }
                         return nodes;
                     }).exceptionally(error -> {
+                        error.printStackTrace();
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                                 "Error! Something went wrong while creating node object. ", error.getCause());
                     });
