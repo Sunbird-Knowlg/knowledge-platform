@@ -250,9 +250,10 @@ object DefinitionNode {
         val jsonProps = fetchJsonProps(graphId, version, schemaName)
         nodes.map(node => {
             val metadata = node.getMetadata
-            metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
+            metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, JsonUtils.deserialize(entry._2.asInstanceOf[String], classOf[Object])))
         })
     }
+
     def convertJsonProperties(entry: (String, AnyRef), jsonProps: scala.List[String]) = {
         try {
             mapper.readTree(entry._2.asInstanceOf[String])
