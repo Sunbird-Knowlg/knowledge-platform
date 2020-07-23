@@ -287,13 +287,15 @@ public class NodeAsyncOperations {
         }
     }
 
-    private static Node setPrimitiveData(Node node) {
+    private static Node setPrimitiveData(Node node) throws Exception {
         Map<String, Object> metadata = node.getMetadata();
+        System.out.println("NodeAsyncOperation :: setPrimitiveData Before " + JsonUtils.serialize(node.getMetadata().get("originData")));
         metadata.entrySet().stream()
                 .map(entry -> {
                     Object value = entry.getValue();
                     try {
                         if(value instanceof Map) {
+                            System.out.println("NodeAsyncOperation :: setPrimitiveData " + entry.getKey());
                             value = JsonUtils.serialize(value);
                         } else if (value instanceof List) {
                             List listValue = (List) value;
@@ -309,6 +311,7 @@ public class NodeAsyncOperations {
                     return entry;
                 })
                 .collect(HashMap::new, (m,v)->m.put(v.getKey(), v.getValue()), HashMap::putAll);
+        System.out.println("NodeAsyncOperation :: setPrimitiveData  After " + JsonUtils.serialize(node.getMetadata().get("originData")));
         return node;
     }
 
