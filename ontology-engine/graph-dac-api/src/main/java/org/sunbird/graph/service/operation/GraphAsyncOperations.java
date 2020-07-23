@@ -36,6 +36,7 @@ public class GraphAsyncOperations {
 		Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
 		TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
 		String query = GraphQueryGenerationUtil.generateCreateBulkRelationsCypherQuery(graphId);
+		System.out.println("GraphAsyncOperations.createRelation :: query :: " + query);
 
 		Map<String, Object> dataMap = new HashMap<String, Object>(){{
 			put("data",relationData);
@@ -45,6 +46,7 @@ public class GraphAsyncOperations {
 					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
 						return ResponseHandler.OK();
 					}).exceptionally(error -> {
+						System.out.println("GraphAsyncOperations.createRelation :: ");
 						error.printStackTrace();
 						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
 								"Error! Something went wrong while creating node object. ", error.getCause());
@@ -72,7 +74,7 @@ public class GraphAsyncOperations {
 		Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
 		TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
 		String query = GraphQueryGenerationUtil.generateDeleteBulkRelationsCypherQuery(graphId);
-
+		System.out.println("GraphAsyncOperations.removeRelation :: query :: " + query);
 		Map<String, Object> dataMap = new HashMap<String, Object>(){{
 			put("data",relationData);
 		}};
@@ -81,6 +83,7 @@ public class GraphAsyncOperations {
 					.thenCompose(fn -> fn.singleAsync()).thenApply(record->{
 						return ResponseHandler.OK();
 					}).exceptionally(error -> {
+						System.out.println("GraphAsyncOperations.removeRelation :: ");
 						error.printStackTrace();
 						throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
 								"Error! Something went wrong while creating node object. ", error.getCause());

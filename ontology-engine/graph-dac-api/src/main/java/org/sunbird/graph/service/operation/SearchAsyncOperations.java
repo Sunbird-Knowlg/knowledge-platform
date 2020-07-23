@@ -1,5 +1,6 @@
 package org.sunbird.graph.service.operation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
@@ -45,7 +46,7 @@ public class SearchAsyncOperations {
      *            the search criteria
      * @return the node by unique ids
      */
-    public static Future<List<Node>> getNodeByUniqueIds(String graphId, SearchCriteria searchCriteria) {
+    public static Future<List<Node>> getNodeByUniqueIds(String graphId, SearchCriteria searchCriteria) throws Exception{
 
         if (StringUtils.isBlank(graphId))
             throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
@@ -70,6 +71,7 @@ public class SearchAsyncOperations {
             Map<Long, Object> endNodeMap = new HashMap<Long, Object>();
             String query = SearchQueryGenerationUtil.generateGetNodeByUniqueIdsCypherQuery(parameterMap);
             Map<String, Object> params = searchCriteria.getParams();
+            System.out.println("SearchAsyncOperations.getNodeByUniqueIds :: searchParams ::  " + new ObjectMapper().writeValueAsString(params));
             CompletionStage<List<Node>> cs = session.runAsync(query, params)
                     .thenCompose(fn -> fn.listAsync()).thenApply(result -> {
                         if (null != result) {
@@ -87,6 +89,7 @@ public class SearchAsyncOperations {
                         }
                         return nodes;
                     }).exceptionally(error -> {
+                        System.out.println("SearchAsyncOperations.getNodeByUniqueIds :: ");
                         error.printStackTrace();
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                                 "Error! Something went wrong while creating node object. ", error.getCause());
