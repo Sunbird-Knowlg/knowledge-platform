@@ -42,6 +42,7 @@ object DataNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
+            println("DataNode :: create :: " + ScalaJsonUtils.serialize(node.getMetadata.get("originData")))
             val response = oec.graphService.upsertNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
