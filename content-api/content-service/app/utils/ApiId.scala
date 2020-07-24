@@ -38,6 +38,11 @@ object ApiId {
 	val LIST_CHANNEL = "api.channel.list"
 	val RETIRE_CHANNEL = "api.channel.retire"
 
+	//Category APIs
+	val CREATE_CATEGORY = "api.category.create"
+	val READ_CATEGORY = "api.category.read"
+	val UPDATE_CATEGORY = "api.category.update"
+	val RETIRE_CATEGORY = "api.category.retire"
 
 
 }
