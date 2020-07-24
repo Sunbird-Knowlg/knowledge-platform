@@ -26,7 +26,6 @@ object DataNode {
     def create(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
-            println("DataNode :: create :: " + ScalaJsonUtils.serialize(node.getMetadata.get("originData")))
             val response = oec.graphService.addNode(graphId, node)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
@@ -42,7 +41,6 @@ object DataNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
-            println("DataNode :: update :: " + ScalaJsonUtils.serialize(node.getMetadata.get("originData")))
             val response = oec.graphService.upsertNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](

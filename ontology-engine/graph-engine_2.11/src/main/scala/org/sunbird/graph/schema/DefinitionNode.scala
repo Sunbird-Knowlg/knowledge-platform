@@ -17,8 +17,6 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
-    val mapper: ObjectMapper = new ObjectMapper()
-    mapper.registerModule(DefaultScalaModule)
 
   def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]

@@ -31,7 +31,6 @@ object UpdateHierarchyManager {
         val rootId: String = getRootId(nodesModified, hierarchy)
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
         getValidatedRootNode(rootId, request).map(node => {
-            println("UpdateHierarchyManager :: updateHierarchy " +  ScalaJsonUtils.serialize(node.getMetadata.get("originData")))
             getExistingHierarchy(request, node).map(existingHierarchy => {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.HashMap[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                 val nodes = List(node)
@@ -421,7 +420,6 @@ object UpdateHierarchyManager {
         //TODO: Remove the code added to ignore originData to support dock team in release-3.1.0
         DefinitionNode.fetchJsonProps(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.CONTENT_SCHEMA_NAME)
                 .foreach(key => if(!StringUtils.equalsAnyIgnoreCase("originData", key)) node.getMetadata.remove(key))
-        println("UpdateHierarchyManager :: cleanUpRootData " +  ScalaJsonUtils.serialize(node.getMetadata.get("originData")))
         node.getMetadata.remove(HierarchyConstants.STATUS)
         node.getMetadata.remove(HierarchyConstants.LAST_UPDATED_ON)
         node.getMetadata.remove(HierarchyConstants.LAST_STATUS_CHANGED_ON)

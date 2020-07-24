@@ -71,7 +71,6 @@ public class SearchAsyncOperations {
             Map<Long, Object> endNodeMap = new HashMap<Long, Object>();
             String query = SearchQueryGenerationUtil.generateGetNodeByUniqueIdsCypherQuery(parameterMap);
             Map<String, Object> params = searchCriteria.getParams();
-            System.out.println("SearchAsyncOperations.getNodeByUniqueIds :: searchParams ::  " + new ObjectMapper().writeValueAsString(params));
             CompletionStage<List<Node>> cs = session.runAsync(query, params)
                     .thenCompose(fn -> fn.listAsync()).thenApply(result -> {
                         if (null != result) {
@@ -89,7 +88,6 @@ public class SearchAsyncOperations {
                         }
                         return nodes;
                     }).exceptionally(error -> {
-                        System.out.println("SearchAsyncOperations.getNodeByUniqueIds :: ");
                         error.printStackTrace();
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                                 "Error! Something went wrong while creating node object. ", error.getCause());
