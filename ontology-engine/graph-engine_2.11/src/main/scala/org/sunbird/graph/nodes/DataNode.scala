@@ -14,7 +14,6 @@ import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, S
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOperations, SearchAsyncOperations}
-import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._

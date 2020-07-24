@@ -281,7 +281,7 @@ public class NodeAsyncOperations {
         }
     }
 
-    private static Node setPrimitiveData(Node node) throws Exception {
+    private static Node setPrimitiveData(Node node) {
         Map<String, Object> metadata = node.getMetadata();
         metadata.entrySet().stream()
                 .map(entry -> {
