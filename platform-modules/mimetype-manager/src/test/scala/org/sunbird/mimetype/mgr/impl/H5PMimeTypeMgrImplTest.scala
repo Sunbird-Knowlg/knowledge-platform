@@ -68,6 +68,7 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         })
     }
 
+
     def getNode(): Node = {
         val node = new Node()
         node.setIdentifier("do_1234")

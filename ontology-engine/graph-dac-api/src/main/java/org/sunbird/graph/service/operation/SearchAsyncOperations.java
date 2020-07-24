@@ -45,7 +45,7 @@ public class SearchAsyncOperations {
      *            the search criteria
      * @return the node by unique ids
      */
-    public static Future<List<Node>> getNodeByUniqueIds(String graphId, SearchCriteria searchCriteria) {
+    public static Future<List<Node>> getNodeByUniqueIds(String graphId, SearchCriteria searchCriteria) throws Exception{
 
         if (StringUtils.isBlank(graphId))
             throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
@@ -87,6 +87,7 @@ public class SearchAsyncOperations {
                         }
                         return nodes;
                     }).exceptionally(error -> {
+                        error.printStackTrace();
                         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                                 "Error! Something went wrong while creating node object. ", error.getCause());
                     });
