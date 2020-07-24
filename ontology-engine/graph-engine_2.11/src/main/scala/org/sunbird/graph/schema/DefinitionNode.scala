@@ -3,8 +3,6 @@ package org.sunbird.graph.schema
 import java.util
 import java.util.concurrent.CompletionException
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
