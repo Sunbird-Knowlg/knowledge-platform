@@ -36,7 +36,6 @@ public class GraphAsyncOperations {
 		Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
 		TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
 		String query = GraphQueryGenerationUtil.generateCreateBulkRelationsCypherQuery(graphId);
-		System.out.println("GraphAsyncOperations.createRelation :: query :: " + query);
 
 		Map<String, Object> dataMap = new HashMap<String, Object>(){{
 			put("data",relationData);
@@ -73,7 +72,6 @@ public class GraphAsyncOperations {
 		Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
 		TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
 		String query = GraphQueryGenerationUtil.generateDeleteBulkRelationsCypherQuery(graphId);
-		System.out.println("GraphAsyncOperations.removeRelation :: query :: " + query);
 		Map<String, Object> dataMap = new HashMap<String, Object>(){{
 			put("data",relationData);
 		}};

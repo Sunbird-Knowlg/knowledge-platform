@@ -1,6 +1,5 @@
 package org.sunbird.graph.service.operation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Driver;
@@ -46,7 +45,7 @@ public class SearchAsyncOperations {
      *            the search criteria
      * @return the node by unique ids
      */
-    public static Future<List<Node>> getNodeByUniqueIds(String graphId, SearchCriteria searchCriteria) throws Exception{
+    public static Future<List<Node>> getNodeByUniqueIds(String graphId, SearchCriteria searchCriteria) {
 
         if (StringUtils.isBlank(graphId))
             throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
