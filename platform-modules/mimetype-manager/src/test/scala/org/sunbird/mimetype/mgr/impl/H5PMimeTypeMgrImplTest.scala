@@ -68,38 +68,6 @@ class H5PMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockF
         })
     }
 
-    it should "upload valid  H5P zip file less than 1mb and return public url" in {
-        val node = getNode()
-        val identifier = "do_1234"
-        implicit val ss = new StorageService
-        val startTime = System.currentTimeMillis()
-        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("valid_h5p_content.h5p").toURI), None)
-        resFuture.map(result => {
-            val endTime = System.currentTimeMillis()
-            assert(endTime-startTime < 30000)
-            assert("do_1234" == result.getOrElse("identifier", ""))
-            assert(result.get("artifactUrl") != null)
-            assert(result.get("s3Key") != null)
-            assert(result.get("size") != null)
-        })
-    }
-
-    it should "upload valid H5P zip file 12 mb and return public url" in {
-        val node = getNode()
-        val identifier = "do_1234"
-        implicit val ss = new StorageService
-        val startTime = System.currentTimeMillis()
-        val resFuture = new H5PMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("h5p_valid_12_mb.h5p").toURI), None)
-        resFuture.map(result => {
-            val endTime = System.currentTimeMillis()
-            assert(endTime-startTime < 30000)
-            assert("do_1234" == result.getOrElse("identifier", ""))
-            assert(result.get("artifactUrl") != null)
-            assert(result.get("s3Key") != null)
-            assert(result.get("size") != null)
-        })
-    }
-
     def getNode(): Node = {
         val node = new Node()
         node.setIdentifier("do_1234")
