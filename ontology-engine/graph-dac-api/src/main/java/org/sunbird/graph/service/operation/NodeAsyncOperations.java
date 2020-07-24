@@ -1,6 +1,5 @@
 package org.sunbird.graph.service.operation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,7 @@ public class NodeAsyncOperations {
     private final static String DEFAULT_CYPHER_NODE_OBJECT = "ee";
 
 
-    public static Future<Node> addNode(String graphId, Node node) throws Exception {
+    public static Future<Node> addNode(String graphId, Node node) {
         if (StringUtils.isBlank(graphId))
             throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
                     DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]");
@@ -98,7 +97,7 @@ public class NodeAsyncOperations {
         }
     }
 
-    public static Future<Node> upsertNode(String graphId, Node node, Request request) throws Exception {
+    public static Future<Node> upsertNode(String graphId, Node node, Request request) {
         TelemetryManager.log("Applying the Consumer Authorization Check for Node Id: " + node.getIdentifier());
         setRequestContextToNode(node, request);
         validateAuthorization(graphId, node, request);
