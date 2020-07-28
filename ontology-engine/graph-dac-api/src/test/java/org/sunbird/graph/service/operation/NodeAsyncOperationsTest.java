@@ -1,11 +1,13 @@
 package org.sunbird.graph.service.operation;
 
+import com.mashape.unirest.http.JsonNode;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ResourceNotFoundException;
+import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.test.BaseTest;
 import scala.concurrent.Await;
@@ -152,12 +154,41 @@ public class NodeAsyncOperationsTest extends BaseTest {
 		Await.result(resultFuture2, Duration.apply("30s"));
 	}
 
+	@Test(expected = ServerException.class )
+	public void testAddNodeNeo4jException() throws Exception {
+		Node node = getNode();
+		node.getMetadata().put("originData", new JsonNode("{\n" +
+				"                \"name\": \"TB-001\",\n" +
+				"                \"copyType\": \"deep\",\n" +
+				"                \"license\": \"CC BY-NC 4.0\",\n" +
+				"                \"author\": \"b00bc992ef25f1a9a8d63291e20efc8d\"\n" +
+				"            }"));
+
+		Future<Node> resultFuture = NodeAsyncOperations.addNode("graphId", node);
+		Await.result(resultFuture, Duration.apply("30s"));
+	}
+
+
+	@Test(expected = ServerException.class )
+	public void testUpsertNodeNeo4jException() throws Exception {
+		Node node = getNode();
+		node.getMetadata().put("originData", new JsonNode("{\n" +
+				"                \"name\": \"TB-001\",\n" +
+				"                \"copyType\": \"deep\",\n" +
+				"                \"license\": \"CC BY-NC 4.0\",\n" +
+				"                \"author\": \"b00bc992ef25f1a9a8d63291e20efc8d\"\n" +
+				"            }"));
+
+		Future<Node> resultFuture = NodeAsyncOperations.upsertNode("graphId", node, new Request());
+		Await.result(resultFuture, Duration.apply("30s"));
+	}
+
 	private Node getNode() throws Exception {
 		Node node = new Node("domain", "DATA_NODE", "Content");
 		node.setIdentifier("do_000000123");
 		node.setMetadata(new HashMap<String, Object>() {{
 			put("status", "Draft");
-			put("name", "Test Node for Delete");
+			put("name", "Test Node");
 			put("identifier", "do_000000123");
 		}});
 		return node;
