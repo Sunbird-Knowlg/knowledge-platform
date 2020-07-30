@@ -45,7 +45,8 @@
   "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
   "edge": {
     "properties": {
-      "license": "License"
+      "license": "License",
+      "primaryCategory": "Category"
     }
   },
   "copy": {

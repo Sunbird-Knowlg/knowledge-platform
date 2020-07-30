@@ -359,6 +359,15 @@
             "type": "string",
             "default": "CC BY 4.0"
         },
+        "primaryCategory": {
+            "type": "string"
+        },
+        "displayCategories": {
+            "type": "array"
+        },
+        "categories": {
+            "type": "array"
+        },
         "language": {
             "type": "array",
             "items": {

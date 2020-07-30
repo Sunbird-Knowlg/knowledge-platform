@@ -25,6 +25,9 @@
         "identifier": {
             "type": "string"
         },
+        "displayCategories": {
+            "type": "array"
+        },
         "trackable": {
             "type": "boolean",
             "default": false
