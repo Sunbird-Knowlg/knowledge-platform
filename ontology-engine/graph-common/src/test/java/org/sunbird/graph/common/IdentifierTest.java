@@ -14,21 +14,18 @@ public class IdentifierTest {
     @Test
     public void getUniqueIdFromNeo4jId() throws Exception {
         String id = Identifier.getUniqueIdFromNeo4jId(System.currentTimeMillis());
-        System.out.println(id);
         Assert.assertTrue(StringUtils.endsWith(id, "1"));
     }
 
     @Test
     public void getUniqueIdFromTimestamp() throws Exception {
         String id = Identifier.getUniqueIdFromTimestamp();
-        System.out.println(id);
-        Assert.assertTrue(StringUtils.endsWith(id, "1"));
+        Assert.assertTrue(StringUtils.startsWith(id, "1"));
     }
 
     @Test
     public void getIdentifier() throws Exception {
         String id = Identifier.getIdentifier("domain", "1234");
-        System.out.println(id);
         Assert.assertTrue(StringUtils.equals(id, "do_1234"));
     }
 
