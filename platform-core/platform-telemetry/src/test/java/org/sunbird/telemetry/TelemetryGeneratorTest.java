@@ -1,8 +1,10 @@
 package org.sunbird.telemetry;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.sunbird.common.JsonUtils;
 import org.sunbird.telemetry.handler.Level;
 
 import java.util.ArrayList;
@@ -22,6 +24,20 @@ public class TelemetryGeneratorTest {
     public void testAccessTelemetry() throws Exception {
         String accessLog = TelemetryGenerator.access(getContext(), getParams());
         Assert.assertNotNull(accessLog);
+        Map<String, Object> accessMap = JsonUtils.deserialize(accessLog, Map.class);
+        Assert.assertEquals(accessMap.get("eid"), "LOG");
+        Assert.assertTrue(accessMap.get("ets") instanceof Long);
+        Assert.assertEquals(accessMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) accessMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("context")).get("did"), "mac");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("edata")).get("level"), "INFO");
+        Assert.assertEquals(((Map<String, Object>) accessMap.get("edata")).get("type"), "api_access");
+        Assert.assertNotNull(accessMap.get("syncts"));
     }
 
     @Test
@@ -30,6 +46,20 @@ public class TelemetryGeneratorTest {
                 Level.INFO.name(), "This is an info log", "1234",
                 getParams());
         Assert.assertNotNull(event);
+        Map<String, Object> eventMap = JsonUtils.deserialize(event, Map.class);
+        Assert.assertEquals(eventMap.get("eid"), "LOG");
+        Assert.assertTrue(eventMap.get("ets") instanceof Long);
+        Assert.assertEquals(eventMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) eventMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("did"), "mac");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("level"), "INFO");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("type"), "payload");
+        Assert.assertNotNull(eventMap.get("syncts"));
     }
 
     @Test
@@ -37,6 +67,20 @@ public class TelemetryGeneratorTest {
         String event = TelemetryGenerator.log(getContext(), "payload",
                 Level.INFO.name(), "This is an info log");
         Assert.assertNotNull(event);
+        Map<String, Object> eventMap = JsonUtils.deserialize(event, Map.class);
+        Assert.assertEquals(eventMap.get("eid"), "LOG");
+        Assert.assertTrue(eventMap.get("ets") instanceof Long);
+        Assert.assertEquals(eventMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) eventMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("did"), "mac");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("level"), "INFO");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("type"), "payload");
+        Assert.assertNotNull(eventMap.get("syncts"));
     }
 
     @Test
@@ -44,6 +88,20 @@ public class TelemetryGeneratorTest {
         String event = TelemetryGenerator.error(getContext(), "ERR_INVALID_DATA",
                 Level.ERROR.name(), getStacktrace());
         Assert.assertNotNull(event);
+        Map<String, Object> eventMap = JsonUtils.deserialize(event, Map.class);
+        Assert.assertEquals(eventMap.get("eid"), "ERROR");
+        Assert.assertTrue(eventMap.get("ets") instanceof Long);
+        Assert.assertEquals(eventMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) eventMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("did"), "mac");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("err"), "ERR_INVALID_DATA");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("errtype"), "ERROR");
+        Assert.assertNotNull(eventMap.get("syncts"));
     }
 
     @Test
@@ -51,18 +109,58 @@ public class TelemetryGeneratorTest {
         String event = TelemetryGenerator.error(getContext(), "ERR_INVALID_DATA",
                 Level.ERROR.name(), getStacktrace(), "1234", Arrays.asList("object"));
         Assert.assertNotNull(event);
+        Map<String, Object> eventMap = JsonUtils.deserialize(event, Map.class);
+        Assert.assertEquals(eventMap.get("eid"), "ERROR");
+        Assert.assertTrue(eventMap.get("ets") instanceof Long);
+        Assert.assertEquals(eventMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) eventMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("did"), "mac");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("err"), "ERR_INVALID_DATA");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("edata")).get("errtype"), "ERROR");
+        Assert.assertNotNull(eventMap.get("syncts"));
     }
 
     @Test
     public void testAudit_1() throws Exception {
         String event = TelemetryGenerator.audit(getContext(), Arrays.asList("identifier", "status"), "Review", "Draft");
         Assert.assertNotNull(event);
+        Map<String, Object> eventMap = JsonUtils.deserialize(event, Map.class);
+        Assert.assertEquals(eventMap.get("eid"), "AUDIT");
+        Assert.assertTrue(eventMap.get("ets") instanceof Long);
+        Assert.assertEquals(eventMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) eventMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("did"), "mac");
+        Assert.assertNotNull(((Map<String, Object>) eventMap.get("edata")).get("duration"));
+        Assert.assertNotNull(eventMap.get("syncts"));
     }
 
     @Test
     public void testAudit_2() throws Exception {
         String event = TelemetryGenerator.audit(getContext(), Arrays.asList("identifier", "status"), "Review", "Draft", getCdata());
         Assert.assertNotNull(event);
+        Map<String, Object> eventMap = JsonUtils.deserialize(event, Map.class);
+        Assert.assertEquals(eventMap.get("eid"), "AUDIT");
+        Assert.assertTrue(eventMap.get("ets") instanceof Long);
+        Assert.assertEquals(eventMap.get("ver"), "3.0");
+        Assert.assertTrue(StringUtils.startsWith((String) eventMap.get("mid"), "LP."));
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("id"), "org.sunbird.learning.platform");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("actor")).get("type"), "System");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("channel"), "TEST_CHANNEL");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("env"), "TEST_ENV");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("sid"), "37948134149401");
+        Assert.assertEquals(((Map<String, Object>) eventMap.get("context")).get("did"), "mac");
+        Assert.assertNotNull(((Map<String, Object>) eventMap.get("edata")).get("duration"));
+        Assert.assertNotNull(eventMap.get("syncts"));
     }
 
 
