@@ -75,6 +75,17 @@ public class NodeQueryGenerationUtilTest {
 		NodeQueryGenerationUtil.generateUpdateNodeCypherQuery(parameterMap);
 	}
 
+	@Test
+	public void testGenerateUpsertRootNodeCypherQuery() {
+		List<String> ids = Arrays.asList("do_123", "do_234");
+		Map<String, Object> parameterMap = new HashMap<String, Object>() {{
+			put("graphId", "domain");
+			put("rootNode", getNode());
+		}};
+		String query = NodeQueryGenerationUtil.generateUpsertRootNodeCypherQuery(parameterMap);
+		Assert.assertTrue(StringUtils.isNoneBlank(query));
+	}
+
 	@Test(expected=ClientException.class)
 	public void testGenerateUpsertRootNodeCypherQueryWithoutRootNode() {
 		List<String> ids = Arrays.asList("do_123", "do_234");
