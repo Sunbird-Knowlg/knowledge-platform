@@ -66,13 +66,14 @@ public class NodeQueryGenerationUtilTest {
 		NodeQueryGenerationUtil.generateUpdateNodeCypherQuery(parameterMap);
 	}
 
-	@Test(expected=NullPointerException.class)
+	@Test
 	public void testGenerateUpdateNodeCypherQueryEmptyNode() {
 		Map<String, Object> parameterMap = new HashMap<String, Object>() {{
 			put("graphId", "domain");
 			put("node", new Node());
 		}};
 		NodeQueryGenerationUtil.generateUpdateNodeCypherQuery(parameterMap);
+		Assert.assertTrue(MapUtils.isNotEmpty((Map<String, Object>) parameterMap.get("queryStatementMap")));
 	}
 
 	@Test
