@@ -18,6 +18,7 @@ import org.sunbird.schema.ISchemaValidator;
 import org.sunbird.schema.SchemaValidatorFactory;
 import org.sunbird.schema.dto.ValidationResult;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 @PrepareForTest({Config.class})
@@ -25,6 +26,7 @@ public class TestBaseSchemaValidator {
 
     static ISchemaValidator validator;
     ObjectMapper mapper = new ObjectMapper();
+    private BaseSchemaValidator baseSchemaValidator;
 
     @BeforeClass
     public static void init(){
@@ -53,21 +55,39 @@ public class TestBaseSchemaValidator {
 
     @Test
     public void testGetStructuredData() throws Exception {
-        Config config = Mockito.mock(Config.class);
-        Mockito.when(config.hasPath("relations")).thenReturn(true);
-        BaseSchemaValidator baseSchemaValidator = Mockito.mock(BaseSchemaValidator.class);
-        Whitebox.setInternalState(baseSchemaValidator, "name", "version");
-        Mockito.when(baseSchemaValidator.getConfig()).thenReturn(config);
-        ConfigObject obj = Mockito.mock(ConfigObject.class);
-        Mockito.when(baseSchemaValidator.getConfig().getObject("relations")).thenReturn(obj);
+        mockClass();
         Mockito.doCallRealMethod().when(baseSchemaValidator).getStructuredData(getInput());
         ValidationResult result = baseSchemaValidator.getStructuredData(getInput());
         Assert.assertTrue(MapUtils.isNotEmpty(result.getMetadata()));
         Assert.assertTrue(StringUtils.equals((String) result.getMetadata().get("name"), "c-12"));
     }
 
+    @Test
+    public void testCleanEmptyKeys() throws Exception {
+        mockClass();
+        Method cleanEmptyKeys = BaseSchemaValidator.class.getDeclaredMethod("cleanEmptyKeys", Map.class);
+        cleanEmptyKeys.setAccessible(true);
+        Map<String, Object> inputMap = getInput();
+        inputMap.put("emptyString", "");
+        inputMap.put("emptyMap", new HashMap<>());
+        Map<String, Object> resultMap = (Map<String, Object>) cleanEmptyKeys.invoke(baseSchemaValidator, inputMap);
+        Assert.assertTrue(MapUtils.isNotEmpty(resultMap));
+        Assert.assertTrue(!resultMap.containsKey("emptyString"));
+        Assert.assertTrue(!resultMap.containsKey("emptyMap"));
+    }
+
     public Map<String, Object> getInput() throws Exception {
         Map<String, Object> input = mapper.readValue("{\"contentType\":\"Resource\",\"name\":\"c-12\",\"code\":\"c-12\",\"mimeType\":\"application/pdf\",\"tags\":[\"colors\",\"games\"],\"subject\":[\"Hindi\",\"English\"],\"medium\":[\"Hindi\",\"English\"],\"channel\":\"in.ekstep\",\"osId\":\"org.ekstep.quiz.app\",\"contentEncoding\":\"identity\",\"contentDisposition\":\"inline\"}", Map.class);
         return input;
+    }
+
+    public void mockClass() {
+        Config config = Mockito.mock(Config.class);
+        Mockito.when(config.hasPath("relations")).thenReturn(true);
+        baseSchemaValidator = Mockito.mock(BaseSchemaValidator.class);
+        Whitebox.setInternalState(baseSchemaValidator, "name", "version");
+        Mockito.when(baseSchemaValidator.getConfig()).thenReturn(config);
+        ConfigObject obj = Mockito.mock(ConfigObject.class);
+        Mockito.when(baseSchemaValidator.getConfig().getObject("relations")).thenReturn(obj);
     }
 }
