@@ -1,13 +1,14 @@
 package org.sunbird.content.actors
 
 import java.util
+import java.io.File
 
 import org.sunbird.graph.dac.model.Node
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.JsonUtils
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
@@ -186,4 +187,148 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
+    it should "return success response for readContent" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("Content", None)
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for updateContent" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNode()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123"))))
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.setOperation("updateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+        assert("do_1234".equals(response.get("identifier")))
+        assert("test_123".equals(response.get("versionKey")))
+    }
+
+    it should "return client exception for updateContent with invalid versionKey" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNode()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_xyz"))))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.setOperation("updateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("CLIENT_ERROR".equals(response.getParams.getErr))
+        assert("Invalid version Key".equals(response.getParams.getErrmsg))
+    }
+
+    it should "return client exception for updateContent without versionKey" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "updated description")))
+        request.setOperation("updateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
+        assert("Please Provide Version Key!".equals(response.getParams.getErrmsg))
+    }
+
+    it should "return success response for uploadContent" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeToUpload()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_321"))))
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNodeToUpload()))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        val path = getClass.getResource("/sample.pdf").getPath
+        val file = new File(path)
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "file" -> file)))
+        request.setOperation("uploadContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+        assert("testurl".equals(response.get("artifactUrl")))
+        assert("testurl".equals(response.get("content_url")))
+    }
+
+    it should "return success response for copyContent" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNode()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
+        request.setOperation("copy")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+        assert(response.getResult.containsKey("node_id"))
+        assert("test_321".equals(response.get("versionKey")))
+    }
+
+    private def getNodeToUpload(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_1234")
+        node.setNodeType("DATA_NODE")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_1234")
+                put("mimeType", "application/pdf")
+                put("status", "Live")
+                put("contentType", "Resource")
+                put("name", "Resource_1")
+                put("versionKey", "test_321")
+                put("channel", "in.ekstep")
+                put("code", "Resource_1")
+                put("artifactUrl", "testurl")
+            }
+        })
+        node
+    }
+
+    private def getNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_1234")
+        node.setNodeType("DATA_NODE")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_1234")
+                put("mimeType", "application/pdf")
+                put("status", "Live")
+                put("contentType", "Resource")
+                put("name", "Resource_1")
+                put("versionKey", "test_321")
+                put("channel", "in.ekstep")
+                put("code", "Resource_1")
+            }
+        })
+        node
+    }
 }
