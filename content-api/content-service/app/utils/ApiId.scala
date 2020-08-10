@@ -17,6 +17,7 @@ object ApiId {
 	val FlAG_CONTENT = "api.content.flag"
 	val ACCEPT_FLAG = "api.content.flag.accept"
 	val LINK_DIAL_CONTENT = "api.content.dialcode.link"
+	val IMPORT_CONTENT = "api.content.import"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"

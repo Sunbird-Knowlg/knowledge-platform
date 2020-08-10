@@ -171,4 +171,11 @@ class ContentSpec extends BaseSpec {
         isOK(result)
         status(result) must equalTo(OK)
     }
+
+    "return success response for importContent API" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val result = controller.importContent()(FakeRequest())
+        isOK(result)
+        status(result) must equalTo(OK)
+    }
 }

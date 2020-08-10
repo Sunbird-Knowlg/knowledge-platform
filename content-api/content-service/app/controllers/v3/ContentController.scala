@@ -254,4 +254,14 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.UPLOAD_PRE_SIGNED_CONTENT, contentActor, contentRequest)
     }
+
+    def importContent() = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        val contentRequest = getRequest(body, headers, "importContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.IMPORT_CONTENT, contentActor, contentRequest)
+
+    }
 }

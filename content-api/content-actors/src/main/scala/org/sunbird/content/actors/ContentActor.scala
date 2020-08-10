@@ -14,6 +14,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.content.`import`.ImportManager
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
@@ -41,6 +42,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
+			case "importContent" => importContent(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -134,6 +136,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
+
+	def importContent(request: Request): Future[Response] = ImportManager.importContent(request)
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
