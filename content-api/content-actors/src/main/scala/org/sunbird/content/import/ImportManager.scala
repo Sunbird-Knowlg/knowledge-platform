@@ -58,9 +58,9 @@ object ImportManager {
         val sourceMetadata: util.Map[String, AnyRef] = getMetadata(source)
         val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
           sourceMetadata.putAll(reqMetadata)
+          sourceMetadata.put(ImportConstants.SOURCE, source)
           sourceMetadata
         } else reqMetadata
-        finalMetadata.put(ImportConstants.SOURCE, source)
         finalMetadata.put(ImportConstants.PROCESS_ID, processId)
         if (!validateMetadata(finalMetadata))
           invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
