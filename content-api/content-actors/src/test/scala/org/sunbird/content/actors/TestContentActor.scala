@@ -1,7 +1,6 @@
 package org.sunbird.content.actors
 
 import java.util
-import java.io.File
 
 import org.sunbird.graph.dac.model.Node
 import akka.actor.Props
@@ -250,27 +249,6 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("failed".equals(response.getParams.getStatus))
         assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
         assert("Please Provide Version Key!".equals(response.getParams.getErrmsg))
-    }
-
-    it should "return success response for 'uploadContent'" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNodeToUpload()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_321"))))
-        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNodeToUpload()))
-        implicit val ss = mock[StorageService]
-        val request = getContentRequest()
-        request.getContext.put("identifier","do_1234")
-        val path = getClass.getResource("/sample.pdf").getPath
-        val file = new File(path)
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "file" -> file)))
-        request.setOperation("uploadContent")
-        val response = callActor(request, Props(new ContentActor()))
-        assert("successful".equals(response.getParams.getStatus))
-        assert("testurl".equals(response.get("artifactUrl")))
-        assert("testurl".equals(response.get("content_url")))
     }
 
     it should "return success response for 'copyContent'" in {
