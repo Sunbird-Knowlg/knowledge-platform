@@ -187,7 +187,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    it should "return success response for readContent" in {
+    it should "return success response for 'readContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -202,7 +202,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    it should "return success response for updateContent" in {
+    it should "return success response for 'updateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -221,7 +221,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("test_123".equals(response.get("versionKey")))
     }
 
-    it should "return client exception for updateContent with invalid versionKey" in {
+    it should "return client exception for 'updateContent' with invalid versionKey" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -239,7 +239,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("Invalid version Key".equals(response.getParams.getErrmsg))
     }
 
-    it should "return client exception for updateContent without versionKey" in {
+    it should "return client exception for 'updateContent' without versionKey" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
@@ -252,7 +252,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("Please Provide Version Key!".equals(response.getParams.getErrmsg))
     }
 
-    it should "return success response for uploadContent" in {
+    it should "return success response for 'uploadContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -273,7 +273,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("testurl".equals(response.get("content_url")))
     }
 
-    it should "return success response for copyContent" in {
+    it should "return success response for 'copyContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
