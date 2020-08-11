@@ -2,3 +2,5 @@
 **/target/**
 **/.idea/**
 **/*.iml
+**/node_modules/**
+functional-tests/package-lock.json
