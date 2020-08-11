@@ -445,7 +445,8 @@
         "ExplanationReadingMaterial",
         "LearningActivity",
         "PreviousBoardExamPapers",
-        "LessonPlanResource"
+        "LessonPlanResource",
+        "TVLesson"
       ]
     },
     "resourceType": {
