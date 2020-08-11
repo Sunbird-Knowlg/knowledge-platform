@@ -204,6 +204,10 @@ class TestContentActor extends BaseSpec with MockFactory {
             put("metadata", new util.HashMap[String, AnyRef](){{
                 put("name", "Test Content")
                 put("description", "Test Content")
+                put("mimeType", "application/pdf")
+                put("code", "test.res.1")
+                put("contentType", "Resource")
+                put("framework", "NCF")
             }})
         }})
         request.setOperation("importContent")
