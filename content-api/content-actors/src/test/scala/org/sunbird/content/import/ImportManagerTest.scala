@@ -148,8 +148,6 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
     }})
     resp.put("mimeType","application/pdf")
     (hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
-    (oec.kafkaClient _).expects().returns(kfClient)
-    (kfClient.send(_: String, _: String)).expects(*, *).returns(None)
     val resFuture = ImportManager.importContent(request)
     resFuture.map(result => {
       assert(result.getResponseCode.toString=="OK")
