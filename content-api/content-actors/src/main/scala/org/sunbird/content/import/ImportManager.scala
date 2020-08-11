@@ -113,7 +113,7 @@ object ImportManager {
     val edata: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef] {{
         put("action", "auto-create")
         put("iteration", 1.asInstanceOf[AnyRef])
-        put(ImportConstants.OBJECT_TYPE, metadata.getOrDefault(ImportConstants.OBJECT_TYPE, "").asInstanceOf[String])
+        put(ImportConstants.OBJECT_TYPE, metadata.getOrDefault(ImportConstants.OBJECT_TYPE, "Content").asInstanceOf[String])
         if (null != metadata.get(ImportConstants.SOURCE))
           put(ImportConstants.REPOSITORY, metadata.get(ImportConstants.SOURCE).asInstanceOf[String])
         else put(ImportConstants.IDENTIFIER, identifier)
