@@ -146,6 +146,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
         put("code", "test.res.1")
         put("framework", "NCF")
         put("contentType", "Resource")
+        put("artifactUrl", "http://test.com/test.pdf")
       }})
     }})
     (hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)

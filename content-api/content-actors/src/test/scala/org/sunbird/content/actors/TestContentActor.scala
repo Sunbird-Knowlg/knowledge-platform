@@ -194,12 +194,15 @@ class TestContentActor extends BaseSpec with MockFactory {
         val hUtil = mock[HttpUtil]
         (oec.httpUtil _).expects().returns(hUtil)
         val resp :Response = ResponseHandler.OK()
-        resp.put("mimeType","application/pdf")
+        resp.put("content", new util.HashMap[String, AnyRef](){{
+            put("framework", "NCF")
+            put("artifactUrl", "http://test.com/test.pdf")
+        }})
         (hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
         (oec.kafkaClient _).expects().returns(kfClient)
         (kfClient.send(_: String, _: String)).expects(*, *).returns(None)
         val request = getContentRequest()
-        request.getRequest.putAll(new util.HashMap[String, AnyRef](){{
+        request.getRequest.put("content", new util.HashMap[String, AnyRef](){{
             put("source", "https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
             put("metadata", new util.HashMap[String, AnyRef](){{
                 put("name", "Test Content")
@@ -207,7 +210,6 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("mimeType", "application/pdf")
                 put("code", "test.res.1")
                 put("contentType", "Resource")
-                put("framework", "NCF")
             }})
         }})
         request.setOperation("importContent")
