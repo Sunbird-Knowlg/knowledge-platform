@@ -5,6 +5,7 @@ import java.util
 
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
@@ -19,7 +20,7 @@ class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeM
 	val DEFAULT_ALLOWED_EXTENSIONS_WORD = util.Arrays.asList("doc", "docx", "ppt", "pptx", "key", "odp", "pps", "odt", "wpd", "wps", "wks")
 	val ALLOWED_EXTENSIONS_WORD: List[String] = Platform.getStringList("mimetype.allowed_extensions.word", DEFAULT_ALLOWED_EXTENSIONS_WORD).asScala.toList
 
-	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
 		validateFileExtension(mimeType, uploadFile)
@@ -40,7 +41,7 @@ class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeM
 		}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		validateFileUrlExtension(node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String], fileUrl)
 		Future {

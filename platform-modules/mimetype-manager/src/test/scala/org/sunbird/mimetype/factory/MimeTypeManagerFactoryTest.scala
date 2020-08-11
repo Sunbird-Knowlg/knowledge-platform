@@ -89,4 +89,22 @@ class MimeTypeManagerFactoryTest extends FlatSpec with Matchers {
 		assert(mgr.isInstanceOf[DefaultMimeTypeMgrImpl])
 	}
 
+	"getManager with mimeType text/x-url and contentType Asset" should "give instance of YouTubeMimeTypeMgrImpl" in {
+		val mgr = MimeTypeManagerFactory.getManager("Asset", "text/x-url")
+		assert(null != mgr)
+		assert(mgr.isInstanceOf[YouTubeMimeTypeMgrImpl])
+	}
+
+	"getManager with mimeType video/x-youtube and contentType Asset" should "give instance of YouTubeMimeTypeMgrImpl" in {
+		val mgr = MimeTypeManagerFactory.getManager("Asset", "video/x-youtube")
+		assert(null != mgr)
+		assert(mgr.isInstanceOf[YouTubeMimeTypeMgrImpl])
+	}
+
+	"getManager with mimeType video/youtube and contentType Asset" should "give instance of YouTubeMimeTypeMgrImpl" in {
+		val mgr = MimeTypeManagerFactory.getManager("Asset", "video/youtube")
+		assert(null != mgr)
+		assert(mgr.isInstanceOf[YouTubeMimeTypeMgrImpl])
+	}
+
 }

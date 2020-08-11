@@ -9,6 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mimetype-manager</artifactId>
+    <properties>
+        <scala.major.version>2.11</scala.major.version>
+        <play2.version>2.7.2</play2.version>
+    </properties>
 
     <dependencies>
         <dependency>
