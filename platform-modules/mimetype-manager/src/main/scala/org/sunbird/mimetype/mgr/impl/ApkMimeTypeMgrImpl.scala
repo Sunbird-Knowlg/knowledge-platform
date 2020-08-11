@@ -2,6 +2,7 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
@@ -10,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ApkMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 
-	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		Future {
@@ -18,7 +19,7 @@ class ApkMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
 		}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file = copyURLToFile(objectId, fileUrl)
 		Future {

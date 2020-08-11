@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.FileUtils
+import org.sunbird.models.UploadParams
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.exception.ClientException
 import org.sunbird.cloudstore.StorageService
@@ -18,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
 	private val DEF_CONTENT_PACKAGE_MIME_TYPE: String = "application/zip"
 	
-	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		validatePluginPackage(uploadFile)
 		val basePath = getBasePath(objectId)
@@ -31,10 +32,10 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 		Future{data ++ Map("identifier"->objectId,"artifactUrl" -> result(1), "cloudStorageKey" -> result(0), "s3Key" -> result(0))}
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, fileUrl)
 		val file = copyURLToFile(objectId, fileUrl)
-		upload(objectId, node, file, filePath)
+		upload(objectId, node, file, filePath, params)
 	}
 
 	def validatePluginPackage(uploadFile: File) = {
