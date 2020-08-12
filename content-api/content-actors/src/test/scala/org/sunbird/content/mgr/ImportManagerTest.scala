@@ -1,4 +1,4 @@
-package org.sunbird.content.`import`
+package org.sunbird.content.mgr
 
 import java.util
 
@@ -10,6 +10,7 @@ import org.scalatest.AsyncFlatSpec
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.content.mgr.ImportManager
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 

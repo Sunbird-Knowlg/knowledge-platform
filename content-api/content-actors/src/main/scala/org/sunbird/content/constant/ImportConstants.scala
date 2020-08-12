@@ -1,4 +1,4 @@
-package org.sunbird.content.`import`
+package org.sunbird.content.constant
 
 object ImportConstants {
 
