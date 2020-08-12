@@ -6,10 +6,11 @@ import org.sunbird.graph.dac.model.Node
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.JsonUtils
-import org.sunbird.common.dto.{Property, Request}
+import org.sunbird.common.{HttpUtil, JsonUtils}
+import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.kafka.client.KafkaClient
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
@@ -269,6 +270,36 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
         assert(response.getResult.containsKey("node_id"))
         assert("test_321".equals(response.get("versionKey")))
+    }
+
+    it should "send events to kafka topic" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val kfClient = mock[KafkaClient]
+        val hUtil = mock[HttpUtil]
+        (oec.httpUtil _).expects().returns(hUtil)
+        val resp :Response = ResponseHandler.OK()
+        resp.put("content", new util.HashMap[String, AnyRef](){{
+            put("framework", "NCF")
+            put("artifactUrl", "http://test.com/test.pdf")
+        }})
+        (hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
+        (oec.kafkaClient _).expects().returns(kfClient)
+        (kfClient.send(_: String, _: String)).expects(*, *).returns(None)
+        val request = getContentRequest()
+        request.getRequest.put("content", new util.HashMap[String, AnyRef](){{
+            put("source", "https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
+            put("metadata", new util.HashMap[String, AnyRef](){{
+                put("name", "Test Content")
+                put("description", "Test Content")
+                put("mimeType", "application/pdf")
+                put("code", "test.res.1")
+                put("contentType", "Resource")
+            }})
+        }})
+        request.setOperation("importContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.get("processId") != null)
     }
 
     private def getNodeToUpload(): Node = {
