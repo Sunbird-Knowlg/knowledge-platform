@@ -94,6 +94,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 
 
   "getInstructionEvent with valid input" should "return kafka event string" in {
+    val source = "https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477"
     val metadata = new util.HashMap[String, AnyRef](){{
       put("source","https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
       put("name", "Test Content 2")
@@ -110,7 +111,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
         put("unitId", "do_3456")
       }})
     }}
-    val result = ImportManager.getInstructionEvent("do_11307822356267827219477", metadata, collection)
+    val result = ImportManager.getInstructionEvent("do_11307822356267827219477", source, metadata, collection)
     assert(StringUtils.isNoneBlank(result))
     val resultMap = JsonUtils.deserialize(result, classOf[util.Map[String, AnyRef]])
     assert(MapUtils.isNotEmpty(resultMap))
