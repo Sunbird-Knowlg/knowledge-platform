@@ -3,8 +3,13 @@
 	"name": "Functional Test - Environment",
 	"values": [
 		{
-			"key": "host",
+			"key": "content_host",
 			"value": "http://11.2.6.6/content",
+			"enabled": true
+		},
+		{
+			"key": "search_host",
+			"value": "http://11.2.6.6/search",
 			"enabled": true
 		}
 	],
