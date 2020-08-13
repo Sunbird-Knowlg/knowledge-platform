@@ -15,7 +15,7 @@ public class DateUtilsTest {
         String date = DateUtils.format(new Date());
         System.out.println(date);
         Assert.assertNotNull(date);
-        Assert.assertTrue(StringUtils.containsAny(date, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"));
+        Assert.assertTrue(StringUtils.containsAny(date, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z"));
     }
 
     @Test
@@ -41,21 +41,21 @@ public class DateUtilsTest {
     public void testGetDateFormat() throws Exception {
         SimpleDateFormat sdf = DateUtils.getDateFormat();
         Assert.assertNotNull(sdf);
-        Assert.assertTrue(StringUtils.containsAny(sdf.get2DigitYearStart().toString(), "\\w+\\s?\\w+\\s?\\d{2}\\s?\\d{2}:\\d{2}:\\d{2}"));
+        Assert.assertTrue(StringUtils.containsAny(sdf.get2DigitYearStart().toString(), "\\w+\\s?\\w+\\s?\\d{2}\\s?\\d{2}:\\d{2}:\\d{2}.\\d{3}Z"));
     }
 
     @Test
     public void testformatCurrentDate() throws Exception {
         String date = DateUtils.formatCurrentDate();
         Assert.assertNotNull(date);
-        Assert.assertTrue(StringUtils.containsAny(date, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"));
+        Assert.assertTrue(StringUtils.containsAny(date, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z"));
     }
 
     @Test
     public void testformatCurrentDateWithPattern() throws Exception {
         String date = DateUtils.formatCurrentDate("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         Assert.assertNotNull(date);
-        Assert.assertTrue(StringUtils.containsAny(date, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"));
+        Assert.assertTrue(StringUtils.containsAny(date, "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z"));
     }
 
     @Test
