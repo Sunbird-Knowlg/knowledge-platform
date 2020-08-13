@@ -1,0 +1,167 @@
+{
+	"info": {
+		"_postman_id": "019ed3f7-c51a-4ed8-aed2-6080879f196a",
+		"name": "Content - Scenarios",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create",
+			"item": [
+				{
+					"name": "Invalid Requests",
+					"item": [
+						{
+							"name": "Create - Empty Request",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d31a63f8-e69f-4c67-9c71-bf7b3b697d19",
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "mahesh"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{api_key}}"
+									},
+									{
+										"key": "X-Authenticated-User-Token",
+										"value": "{{user_token}}",
+										"type": "text"
+									},
+									{
+										"key": "X-Channel-ID",
+										"value": "in.sunbird",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {}\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/content/v3/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								},
+								"description": "Content Create API Request with empty request body."
+							},
+							"response": []
+						},
+						{
+							"name": "Create - Only Name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "fb744723-3e29-4671-8012-921a34578a63",
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "mahesh"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{api_key}}"
+									},
+									{
+										"key": "X-Authenticated-User-Token",
+										"type": "text",
+										"value": "{{user_token}}"
+									},
+									{
+										"key": "X-Channel-ID",
+										"type": "text",
+										"value": "in.sunbird"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Testing only with name\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/content/v3/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								},
+								"description": "Content Create API Request with only \"name\" property."
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "8ca2dce4-fe47-4ade-881b-2d4e951ca559",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a5927e20-0c64-404f-bf21-33d83b32158a",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
