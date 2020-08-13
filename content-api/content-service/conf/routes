@@ -12,6 +12,7 @@ POST      /content/v3/upload/url/:identifier     controllers.v3.ContentControlle
 POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 POST      /content/v3/copy/:identifier           controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 POST     /content/v3/dialcode/link               controllers.v3.ContentController.linkDialCode()
+POST     /content/v3/import                 controllers.v3.ContentController.importContent()
 
 # Content APIs - with mock response
 POST     /content/v3/flag/:identifier           controllers.v3.ContentController.flag(identifier:String)
