@@ -4,6 +4,7 @@ import java.io.File
 import java.util
 
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.models.UploadParams
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
@@ -37,7 +38,8 @@ object UploadManager {
 		val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
 		val mediaType = node.getMetadata.getOrDefault("mediaType", "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
-		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath) else mgr.upload(identifier, node, file, filePath)
+		val params: UploadParams = request.getContext.get("params").asInstanceOf[UploadParams]
+		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath, params) else mgr.upload(identifier, node, file, filePath, params)
 		uploadFuture.map(result => {
 			if(filePath.isDefined)
 				updateNode(request, node.getIdentifier, mediaType, contentType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))

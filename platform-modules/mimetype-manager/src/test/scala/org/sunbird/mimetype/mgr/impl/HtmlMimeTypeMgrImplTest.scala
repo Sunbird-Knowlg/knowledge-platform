@@ -6,6 +6,7 @@ import java.util
 import com.google.common.io.Resources
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
@@ -17,14 +18,14 @@ class HtmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
 
     "upload invalid html file" should "return client exception" in {
         val exception = intercept[ClientException] {
-            new HtmlMimeTypeMgrImpl().upload("do_123", new Node(), new File(Resources.getResource("invalidHtmlContent.zip").toURI), None)
+            new HtmlMimeTypeMgrImpl().upload("do_123", new Node(), new File(Resources.getResource("invalidHtmlContent.zip").toURI), None, UploadParams())
         }
         exception.getMessage shouldEqual "Please Provide Valid File!"
     }
 
     "upload invalid html file url" should "return client exception" in {
         val exception = intercept[ClientException] {
-            new HtmlMimeTypeMgrImpl().upload("do_123", new Node(), "invalid.html", None)
+            new HtmlMimeTypeMgrImpl().upload("do_123", new Node(), "invalid.html", None, UploadParams())
         }
         exception.getMessage shouldEqual "Please Provide Valid File Url!"
     }
@@ -35,7 +36,7 @@ class HtmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new HtmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validHtml.zip").toURI), None)
+        val resFuture = new HtmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validHtml.zip").toURI), None, UploadParams())
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)
@@ -53,7 +54,7 @@ class HtmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new HtmlMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_1126981080516608001180/artifact/1.-_1550062024041.zip", None)
+        val resFuture = new HtmlMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_1126981080516608001180/artifact/1.-_1550062024041.zip", None, UploadParams())
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)

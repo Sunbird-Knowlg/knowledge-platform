@@ -2,6 +2,7 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.Node
@@ -10,11 +11,11 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import scala.concurrent.{ExecutionContext, Future}
 
 class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
-	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		throw new ClientException("UPLOAD_DENIED", UPLOAD_DENIED_ERR_MSG)
 	}
 
-	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String])(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+	override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		throw new ClientException("UPLOAD_DENIED", UPLOAD_DENIED_ERR_MSG)
 	}
 }

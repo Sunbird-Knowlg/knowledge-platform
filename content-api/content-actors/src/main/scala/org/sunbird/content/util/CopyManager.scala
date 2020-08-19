@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang.StringUtils
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -280,8 +281,8 @@ object CopyManager {
                 if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
                     mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
                 else
-                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None)
-            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None)
+                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None, UploadParams())
+            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None, UploadParams())
             uploadFuture.map(uploadData => {
                 DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]))
             }).flatMap(f => f)
