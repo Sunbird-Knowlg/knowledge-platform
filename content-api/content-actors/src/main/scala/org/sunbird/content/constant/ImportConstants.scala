@@ -13,5 +13,6 @@ object ImportConstants {
 	val IDENTIFIER: String = "identifier"
 	val OBJECT_TYPE: String = "objectType"
 	val REPOSITORY: String = "repository"
+	val STAGE: String = "stage"
 
 }
