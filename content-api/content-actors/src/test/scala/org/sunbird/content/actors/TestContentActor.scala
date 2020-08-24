@@ -282,6 +282,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         resp.put("content", new util.HashMap[String, AnyRef](){{
             put("framework", "NCF")
             put("artifactUrl", "http://test.com/test.pdf")
+            put("channel", "test")
         }})
         (hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
         (oec.kafkaClient _).expects().returns(kfClient)

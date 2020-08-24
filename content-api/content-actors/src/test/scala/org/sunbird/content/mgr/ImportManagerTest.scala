@@ -3,7 +3,7 @@ package org.sunbird.content.mgr
 import java.util
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
-import org.apache.commons.lang3.StringUtils
+import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.AsyncFlatSpec
@@ -111,7 +111,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 				put("unitId", "do_3456")
 			}})
 		}}
-		val result = ImportManager.getInstructionEvent("do_11307822356267827219477", source, metadata, collection)
+		val result = ImportManager.getInstructionEvent("do_11307822356267827219477", source, metadata, collection, "")
 		assert(StringUtils.isNoneBlank(result))
 		val resultMap = JsonUtils.deserialize(result, classOf[util.Map[String, AnyRef]])
 		assert(MapUtils.isNotEmpty(resultMap))
@@ -124,6 +124,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		val request = getRequest()
 		request.putAll(new util.HashMap[String, AnyRef](){{
 			put("content", new util.HashMap[String, AnyRef](){{
+				put("stage", "upload")
 				put("source","https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
 				put("metadata", new util.HashMap[String, AnyRef](){{
 					put("name", "Test Content 2")
@@ -149,6 +150,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 				put("framework", "NCF")
 				put("contentType", "Resource")
 				put("artifactUrl", "http://test.com/test.pdf")
+				put("channel", "test")
 			}})
 		}})
 		(hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
@@ -160,6 +162,16 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 			assert(result.getResponseCode.toString=="OK")
 			assert(null != result.getResult.get("processId"))
 		})
+	}
+
+	"validateStage with invalid input" should "return false" in {
+		val result = ImportManager.validateStage("Flagged")
+		assert(BooleanUtils.isFalse(result))
+	}
+
+	"validateStage with valid input" should "return true" in {
+		val result = ImportManager.validateStage("review")
+		assert(BooleanUtils.isTrue(result))
 	}
 
 	private def getRequest(): Request = {
