@@ -124,7 +124,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		val request = getRequest()
 		request.putAll(new util.HashMap[String, AnyRef](){{
 			put("content", new util.HashMap[String, AnyRef](){{
-				put("stage", "Draft")
+				put("stage", "upload")
 				put("source","https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
 				put("metadata", new util.HashMap[String, AnyRef](){{
 					put("name", "Test Content 2")
@@ -170,7 +170,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 	}
 
 	"validateStage with valid input" should "return true" in {
-		val result = ImportManager.validateStage("Review")
+		val result = ImportManager.validateStage("review")
 		assert(BooleanUtils.isTrue(result))
 	}
 

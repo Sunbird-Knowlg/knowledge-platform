@@ -26,7 +26,7 @@ object ImportManager {
 	val REQUEST_LIMIT = Platform.getInteger("content.import.request_size_limit", 200)
 	val AUTO_CREATE_TOPIC_NAME = Platform.config.getString("content.import.topic_name")
 	val REQUIRED_PROPS = Platform.getStringList("content.import.required_props", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework"))
-	val VALID_CONTENT_STAGE = Platform.getStringList("content.import.valid_stages", java.util.Arrays.asList("Draft", "Review", "Live"))
+	val VALID_CONTENT_STAGE = Platform.getStringList("content.import.valid_stages", java.util.Arrays.asList("create", "upload", "review", "publish"))
 
 	def importContent(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
