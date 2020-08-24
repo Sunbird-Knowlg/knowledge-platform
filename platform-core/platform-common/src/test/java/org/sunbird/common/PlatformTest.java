@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class PlatformTest {
 			put("test.bool", true);
 			put("test.long", 1380914990);
 			put("test.double", 900923.0);
+			put("content.graph_ids", Arrays.asList("es","ko"));
 			put("test.strlist", new ArrayList<String>() {{
 				add("val1");
 				add("val2");
@@ -108,4 +110,25 @@ public class PlatformTest {
 		Assert.assertTrue(null != result );
 		Assert.assertEquals(expected, result);
 	}
+
+    @Test
+    public void testGetGraphIds() {
+        List<String> values = Platform.getGraphIds("content");
+        Assert.assertNotNull(values);
+        Assert.assertEquals(2, values.size());
+    }
+
+    @Test
+    public void testGetGraphIdsInvalidService() {
+        List<String> values = Platform.getGraphIds("search");
+        Assert.assertNotNull(values);
+        Assert.assertEquals(0, values.size());
+    }
+
+    @Test
+    public void testGetTimeout() {
+        int timeout = Platform.getTimeout();
+        Assert.assertNotNull(timeout);
+        Assert.assertEquals(30, timeout);
+    }
 }
