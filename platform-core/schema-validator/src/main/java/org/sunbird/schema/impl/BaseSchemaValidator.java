@@ -174,4 +174,24 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         }
         return new ArrayList<>();
     }
+    
+    public List<String> getAllProps() {
+        List<String> propsList = new ArrayList<>();
+        try {
+           propsList.addAll(((Map<String, Object>) (new ObjectMapper().readValue(((BasicJsonSchema) schema).get("properties")
+                    .getValueAsJson().asJsonObject().toString(), Map.class))).keySet());
+           
+           if(null != config && config.hasPath("external.properties")) 
+               propsList.addAll(config.getObject("external.properties").keySet());
+           
+           if(null != config && config.hasPath("relations")) 
+               propsList.addAll(config.getObject("relations").keySet());
+
+            if(null != config && config.hasPath("edge.properties"))
+                propsList.addAll(config.getObject("edge.properties").keySet());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return propsList;
+    }
 }
