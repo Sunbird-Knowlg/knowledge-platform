@@ -189,7 +189,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
 
             if(null != config && config.hasPath("edge.properties"))
                 propsList.addAll(config.getObject("edge.properties").keySet());
-            propsList.addAll(Arrays.asList("objectType", "identifier"));
+            propsList.addAll(Arrays.asList("objectType", "identifier", "languageCode"));
         } catch (IOException e) {
             e.printStackTrace();
         }
