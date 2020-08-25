@@ -33,7 +33,8 @@ public class CustomProblemHandler implements ProblemHandler {
     }
 
     private String processMessage(Problem problem) {
-        switch (problem.getKeyword()) {
+        String keyword = StringUtils.isNotBlank(problem.getKeyword()) ? problem.getKeyword() : "additionalProp";
+        switch (keyword) {
             case "enum":
                 return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
                         .filter(StringUtils::isNotBlank)
@@ -52,6 +53,13 @@ public class CustomProblemHandler implements ProblemHandler {
                         + " should be a/an "
                         + StringUtils.capitalize(((Enum) problem.parametersAsMap().get("expected")).name().toLowerCase())).replace("\"", "")
                         + " value";
+            }
+            case "additionalProp": {
+                return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
+                        .filter(StringUtils::isNotBlank)
+                        .findFirst().get()
+                        + " cannot have new property with name "
+                        + ((String) problem.parametersAsMap().get("name")).replace("\"", ""));
             }
             default:
                 return "";
