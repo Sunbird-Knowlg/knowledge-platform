@@ -1040,8 +1040,8 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "email",
-                    "phone"
+                    "Yes",
+                    "No"
                 ]
             }
         },
