@@ -57,5 +57,6 @@
       "TextBookToLessonPlan": {
       }
     }
-  }
+  },
+  "schema_restrict_api": true
 }

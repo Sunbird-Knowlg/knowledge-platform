@@ -115,11 +115,13 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     }
     
     def validateRequest(request: Request) = {
-        val propsList: List[String] = schemaValidator.getAllProps.asScala.toList
-        val invalidProps: List[String] = request.getRequest.keySet().asScala.toList.filterNot(key => propsList.contains(key))
-        
-        if(null != invalidProps && !invalidProps.isEmpty)
-            throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid request", java.util.Arrays.asList("Invalid Props are : " + invalidProps.asJavaCollection))
+        if(schemaValidator.getConfig.hasPath("schema_restrict_api") && schemaValidator.getConfig.getBoolean("schema_restrict_api")){
+            val propsList: List[String] = schemaValidator.getAllProps.asScala.toList
+            val invalidProps: List[String] = request.getRequest.keySet().asScala.toList.filterNot(key => propsList.contains(key))
+
+            if(null != invalidProps && !invalidProps.isEmpty)
+                throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid request", java.util.Arrays.asList("Invalid Props are : " + invalidProps.asJavaCollection))
+        }
     }
 
 }
