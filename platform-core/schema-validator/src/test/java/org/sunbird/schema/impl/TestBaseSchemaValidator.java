@@ -76,6 +76,17 @@ public class TestBaseSchemaValidator {
         Assert.assertTrue(!resultMap.containsKey("emptyMap"));
     }
 
+    @Test
+    public void testGetAllProps() {
+        try{
+            List<String> jsonProps = validator.getAllProps();
+            Assert.assertNotNull(jsonProps);
+            Assert.assertFalse(jsonProps.isEmpty());
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
     public Map<String, Object> getInput() throws Exception {
         Map<String, Object> input = mapper.readValue("{\"contentType\":\"Resource\",\"name\":\"c-12\",\"code\":\"c-12\",\"mimeType\":\"application/pdf\",\"tags\":[\"colors\",\"games\"],\"subject\":[\"Hindi\",\"English\"],\"medium\":[\"Hindi\",\"English\"],\"channel\":\"in.ekstep\",\"osId\":\"org.ekstep.quiz.app\",\"contentEncoding\":\"identity\",\"contentDisposition\":\"inline\"}", Map.class);
         return input;
