@@ -1018,6 +1018,12 @@
         },
         "board" : {
             "type": "string"
+        },
+        "licenseterms" : {
+            "type": "string"
+        },
+        "copyrightYear" : {
+            "type": "number"
         }
     }
 }
