@@ -87,13 +87,5 @@ public class Response implements Serializable {
     public ResponseCode getResponseCode() {
         return this.responseCode;
     }
-    
-    public Boolean containsKey(String key) {
-        return result.containsKey(key);
-    }
-    
-    public Object remove(String key) {
-        return result.remove(key);
-    }
 
 }
