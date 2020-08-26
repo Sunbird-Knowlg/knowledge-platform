@@ -516,4 +516,45 @@ class TestDataNode extends BaseSpec {
         }
         } flatMap(f => f)
     }
+
+    "createNode with invalid metadata" should "throw client error" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        request.put("test", "test")
+        assertThrows[ClientException](DataNode.create(request))
+        // recoverToSucceededIf[ClientException](DataNode.create(request))
+    }
+
+    "update content with invalid data" should "throw client error" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        val future: Future[Node] = DataNode.create(request)
+        future map {node => {assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            req.put("name", "updated name")
+            req.put("test", "test")
+            assertThrows[ClientException](DataNode.update(req))
+            //recoverToSucceededIf[ClientException](DataNode.update(req))
+        }
+        } flatMap(f => f)
+    }
 }

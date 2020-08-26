@@ -5,6 +5,7 @@ import java.util
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
@@ -111,6 +112,14 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         val relationMetadata = relation._2.asInstanceOf[java.util.HashMap[String, Object]]
         val objects = relationMetadata.get("objects").asInstanceOf[java.util.List[String]].asScala
         objects.flatMap(objectType => Map((relationMetadata.get("type").asInstanceOf[String] + "_" + relationMetadata.get("direction") + "_" + objectType) -> relation._1)).toMap
+    }
+    
+    def validateRequest(request: Request) = {
+        val propsList: List[String] = schemaValidator.getAllProps.asScala.toList
+        val invalidProps: List[String] = request.getRequest.keySet().asScala.toList.filterNot(key => propsList.contains(key))
+        
+        if(null != invalidProps && !invalidProps.isEmpty)
+            throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid request", java.util.Arrays.asList("Invalid Props are : " + invalidProps.asJavaCollection))
     }
 
 }
