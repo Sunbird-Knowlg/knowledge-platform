@@ -178,11 +178,11 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Learner",
-                    "Instructor"
+                    "Student",
+                    "Teacher"
                 ]
             },
-            "default": ["Learner"]
+            "default": ["Student"]
         },
         "posterImage": {
             "type": "string",
@@ -1024,6 +1024,53 @@
         },
         "copyrightYear" : {
             "type": "number"
+        },
+        "monitorable": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "progress-report",
+                    "score-report"
+                ]
+            }
+        },
+        "userConsent": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "email",
+                    "phone"
+                ]
+            }
+        },
+        "trackable": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "Yes"
+                },
+                "autoBatch": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "Yes"
+                }
+            },
+            "additionalProperties": false
+        },
+        "credentials": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "No"
+                }
+            },
+            "additionalProperties": false
         }
     }
 }
