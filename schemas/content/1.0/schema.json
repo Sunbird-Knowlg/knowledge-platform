@@ -1071,6 +1071,9 @@
                 }
             },
             "additionalProperties": false
+        },
+        "processId": {
+            "type": "string"
         }
     }
 }
