@@ -27,6 +27,7 @@ object ImportManager {
 	val AUTO_CREATE_TOPIC_NAME = Platform.config.getString("content.import.topic_name")
 	val REQUIRED_PROPS = Platform.getStringList("content.import.required_props", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework"))
 	val VALID_CONTENT_STAGE = Platform.getStringList("content.import.valid_stages", java.util.Arrays.asList("create", "upload", "review", "publish"))
+	val PROPS_TO_REMOVE = Platform.getStringList("content.import.remove_props", java.util.Arrays.asList("downloadUrl","variants","previewUrl","streamingUrl","itemSets"))
 
 	def importContent(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
@@ -63,6 +64,7 @@ object ImportManager {
 					sourceMetadata.put(ImportConstants.SOURCE, source)
 					sourceMetadata
 				} else reqMetadata
+				finalMetadata.keySet().removeAll(PROPS_TO_REMOVE)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
 				if (!validateMetadata(finalMetadata))
 					invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
