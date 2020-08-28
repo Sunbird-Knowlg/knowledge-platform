@@ -43,7 +43,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB)
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "channel" -> "in.ekstep")))
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "LearningResource", "channel" -> "in.ekstep")))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -133,6 +133,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("status", "Draft")
                 put("contentType", "Resource")
                 put("name", "Node To discard")
+                put("primaryCategory", "LearningResource")
             }
         })
         node
@@ -149,6 +150,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("status", "Live")
                 put("contentType", "Resource")
                 put("name", "Node To discard")
+                put("primaryCategory", "LearningResource")
             }
         })
         node
@@ -166,6 +168,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("contentType", "Course")
                 put("name", "Course_1")
                 put("versionKey", "1878141")
+                put("primaryCategory", "LearningResource")
             }
         })
         node
@@ -296,6 +299,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("mimeType", "application/pdf")
                 put("code", "test.res.1")
                 put("contentType", "Resource")
+                put("primaryCategory", "LearningResource")
             }})
         }})
         request.setOperation("importContent")
@@ -318,6 +322,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("channel", "in.ekstep")
                 put("code", "Resource_1")
                 put("artifactUrl", "testurl")
+                put("primaryCategory", "LearningResource")
             }
         })
         node
@@ -337,6 +342,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("versionKey", "test_321")
                 put("channel", "in.ekstep")
                 put("code", "Resource_1")
+                put("primaryCategory", "LearningResource")
             }
         })
         node
