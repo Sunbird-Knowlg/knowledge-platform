@@ -34,6 +34,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             print(node)
@@ -52,6 +53,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         request.put("concepts", new util.ArrayList[util.Map[String, AnyRef]](){{
             add(new util.HashMap[String, AnyRef](){{
                 put("identifier", "Num:C3:SC2")
@@ -83,6 +85,7 @@ class TestDataNode extends BaseSpec {
         request.put("description", "test")
         request.put("channel", "in.ekstep")
         request.put("body", "body")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map { node => {
             assert(null != node)
@@ -112,6 +115,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         request.put("concepts", new util.ArrayList[util.Map[String, AnyRef]](){{
             add(new util.HashMap[String, AnyRef](){{
                 put("identifier", "invalidConcept")
@@ -132,6 +136,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             print(node)
@@ -160,6 +165,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         request.put("children", new util.ArrayList[util.Map[String, AnyRef]](){{
             add(new util.HashMap[String, AnyRef](){{
                 put("identifier", "rel_content_0000000001")
@@ -201,6 +207,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map { node => {
             assert(null != node)
@@ -226,6 +233,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             print(node)
@@ -254,6 +262,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             print(node)
@@ -302,7 +311,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
-
+        request.put("primaryCategory", "LearningResource")
         val contentCredits = new util.ArrayList[AnyRef]() {
             {
                 add(new util.HashMap[String, AnyRef]() {
@@ -418,6 +427,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         request.put("concepts", new util.ArrayList[util.Map[String, AnyRef]](){{
             add(new util.HashMap[String, AnyRef](){{
                 put("identifier", "rel_concept_00000001")
@@ -481,6 +491,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         request.put("collections", new util.ArrayList[util.Map[String, AnyRef]](){{
             add(new util.HashMap[String, AnyRef](){{
                 put("identifier", "rel_collections_0000000101")
@@ -529,6 +540,7 @@ class TestDataNode extends BaseSpec {
         request.put("description", "test")
         request.put("channel", "in.ekstep")
         request.put("test", "test")
+        request.put("primaryCategory", "LearningResource")
         assertThrows[ClientException](DataNode.create(request))
         // recoverToSucceededIf[ClientException](DataNode.create(request))
     }
@@ -544,6 +556,7 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "LearningResource")
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             print(node)
