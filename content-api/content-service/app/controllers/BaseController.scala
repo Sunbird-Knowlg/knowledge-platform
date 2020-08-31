@@ -117,11 +117,21 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             new util.HashMap[String, AnyRef]()
         val (updatedContentType, updatedPrimaryCategory): (String, String) = if(categoryMapping) {
             if(StringUtils.isNotBlank(contentType) && StringUtils.isNotBlank(primaryCategory)) (contentType, primaryCategory)
-            else if(StringUtils.isNotBlank(contentType)) (contentType, categoryMap.get(contentType).asInstanceOf[String])
+            else if(StringUtils.isNotBlank(contentType)) {
+                if(StringUtils.equalsIgnoreCase(contentType, "Resource")) getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String])
+                else (contentType, categoryMap.get(contentType).asInstanceOf[String])
+            }
             else if(StringUtils.isNotBlank(primaryCategory)) (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String],primaryCategory)).keys.head, primaryCategory)
             else (contentType, primaryCategory)
         } else (contentType, primaryCategory)
         input.put("contentType", updatedContentType)
         input.put("primaryCategory", updatedPrimaryCategory)
+    }
+
+    private def getCategoryForResource(mimeType:String): String = {
+        if(List("video/avi", "video/mpeg", "video/quicktime", "video/3gpp", "video/mp4", "video/ogg", "video/webm", "video/x-youtube").contains(mimeType)) "ExplanationContent"
+        if(List("application/pdf", "application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive").contains(mimeType)) "LearningResource"
+        if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource"
+        else "QuestionSet"
     }
 }
