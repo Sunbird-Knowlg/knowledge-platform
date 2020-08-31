@@ -1037,14 +1037,11 @@
             }
         },
         "userConsent": {
-            "type": "array",
-            "items": {
-                "type": "string",
-                "enum": [
-                    "Yes",
-                    "No"
-                ]
-            }
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
         },
         "trackable": {
             "type": "object",
