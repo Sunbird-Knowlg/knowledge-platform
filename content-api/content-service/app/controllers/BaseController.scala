@@ -8,7 +8,7 @@ import java.util.UUID
 import akka.actor.ActorRef
 import akka.pattern.Patterns
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.DateUtils
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
@@ -68,7 +68,9 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         })
     }
 
-    def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {
+    def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String, categoryMapping: Boolean = false): org.sunbird.common.dto.Request = {
+        //Todo mapping and reverse mapping
+        setContentAndCategoryTypes(input, categoryMapping)
         new org.sunbird.common.dto.Request(context, input, operation, null);
     }
 
@@ -104,5 +106,22 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         contextMap.putAll(request.getContext)
         request.setObjectType(objectType);
         request.setContext(contextMap)
+    }
+
+    private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef], categoryMapping: Boolean) = {
+        val contentType = input.getOrDefault("contentType", "").asInstanceOf[String]
+        val primaryCategory = input.getOrDefault("primaryCategory", "").asInstanceOf[String]
+        val categoryMap: java.util.Map[String, AnyRef] = if(Platform.config.hasPath("contentType_primaryCategory_mapping"))
+            Platform.config.getAnyRef("contentType_primaryCategory_mapping").asInstanceOf[java.util.Map[String, AnyRef]]
+        else
+            new util.HashMap[String, AnyRef]()
+        val (updatedContentType, updatedPrimaryCategory): (String, String) = if(categoryMapping) {
+            if(StringUtils.isNotBlank(contentType) && StringUtils.isNotBlank(primaryCategory)) (contentType, primaryCategory)
+            else if(StringUtils.isNotBlank(contentType)) (contentType, categoryMap.get(contentType).asInstanceOf[String])
+            else if(StringUtils.isNotBlank(primaryCategory)) (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String],primaryCategory)).keys.head, primaryCategory)
+            else (contentType, primaryCategory)
+        } else (contentType, primaryCategory)
+        input.put("contentType", updatedContentType)
+        input.put("primaryCategory", updatedPrimaryCategory)
     }
 }
