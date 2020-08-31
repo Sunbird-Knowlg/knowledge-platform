@@ -111,8 +111,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef], categoryMapping: Boolean) = {
         val contentType = input.getOrDefault("contentType", "").asInstanceOf[String]
         val primaryCategory = input.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        val categoryMap: java.util.Map[String, AnyRef] = if(Platform.config.hasPath("contentType_primaryCategory_mapping"))
-            Platform.config.getAnyRef("contentType_primaryCategory_mapping").asInstanceOf[java.util.Map[String, AnyRef]]
+        val categoryMap: java.util.Map[String, AnyRef] = if(Platform.config.hasPath("contentTypeToPrimaryCategory"))
+            Platform.config.getAnyRef("contentTypeToPrimaryCategory").asInstanceOf[java.util.Map[String, AnyRef]]
         else
             new util.HashMap[String, AnyRef]()
         val (updatedContentType, updatedPrimaryCategory): (String, String) = if(categoryMapping) {
