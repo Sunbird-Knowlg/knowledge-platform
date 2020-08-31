@@ -118,7 +118,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         val (updatedContentType, updatedPrimaryCategory): (String, String) = if(categoryMapping) {
             if(StringUtils.isNotBlank(contentType) && StringUtils.isNotBlank(primaryCategory)) (contentType, primaryCategory)
             else if(StringUtils.isNotBlank(contentType)) {
-                if(StringUtils.equalsIgnoreCase(contentType, "Resource")) getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String])
+                if(StringUtils.equalsIgnoreCase(contentType, "Resource")) (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
                 else (contentType, categoryMap.get(contentType).asInstanceOf[String])
             }
             else if(StringUtils.isNotBlank(primaryCategory)) (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String],primaryCategory)).keys.head, primaryCategory)
