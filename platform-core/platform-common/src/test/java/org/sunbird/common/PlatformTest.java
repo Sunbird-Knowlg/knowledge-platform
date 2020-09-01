@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PlatformTest {
 
@@ -24,6 +25,10 @@ public class PlatformTest {
 			put("test.strlist", new ArrayList<String>() {{
 				add("val1");
 				add("val2");
+			}});
+			put("test.map", new HashMap<String, Object>() {{
+				put("key1", "val1");
+				put("key2","val2");
 			}});
 		}}).resolve();
 	}
@@ -131,4 +136,18 @@ public class PlatformTest {
         Assert.assertNotNull(timeout);
         Assert.assertEquals(30, timeout);
     }
+
+	@Test
+	public void testGetAnyRefWithValidConfig() {
+		Map<String, Object> result = (Map<String, Object>) Platform.getAnyRef("test.map", new HashMap<String, Object>());
+		Assert.assertTrue(null != result );
+		Assert.assertEquals("val1", result.get("key1"));
+	}
+
+	@Test
+	public void testGetAnyRefWithInvalidConfig() {
+		Map<String, Object> result = (Map<String, Object>) Platform.getAnyRef("test.map1", new HashMap<String, Object>());
+		Assert.assertTrue(null != result );
+		Assert.assertEquals(null, result.get("key1"));
+	}
 }
