@@ -49,7 +49,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_CONTENT, contentActor, readRequest)
+        getResult(ApiId.READ_CONTENT, contentActor, readRequest, true)
     }
 
     def update(identifier: String) = Action.async { implicit request =>

@@ -70,16 +70,17 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String, categoryMapping: Boolean = false): org.sunbird.common.dto.Request = {
         //Todo mapping and reverse mapping
-        setContentAndCategoryTypes(input, categoryMapping)
+        if (categoryMapping) setContentAndCategoryTypes(input)
         new org.sunbird.common.dto.Request(context, input, operation, null);
     }
 
-    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request) : Future[Result] = {
+    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false) : Future[Result] = {
         val future = Patterns.ask(actor, request, 30000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
         future.map(f => {
             val result = f.asInstanceOf[Response]
             result.setId(apiId)
             setResponseEnvelope(result)
+            if (categoryMapping) setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             val response = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
@@ -108,24 +109,20 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         request.setContext(contextMap)
     }
 
-    private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef], categoryMapping: Boolean) = {
+    private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
         val contentType = input.getOrDefault("contentType", "").asInstanceOf[String]
         val primaryCategory = input.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        val categoryMap: java.util.Map[String, AnyRef] = if(Platform.config.hasPath("contentTypeToPrimaryCategory"))
-            Platform.config.getAnyRef("contentTypeToPrimaryCategory").asInstanceOf[java.util.Map[String, AnyRef]]
-        else
-            new util.HashMap[String, AnyRef]()
-        val (updatedContentType, updatedPrimaryCategory): (String, String) = if(categoryMapping) {
-            if(StringUtils.isNotBlank(contentType) && StringUtils.isNotBlank(primaryCategory)) (contentType, primaryCategory)
-            else if(StringUtils.isNotBlank(contentType)) {
-                if(StringUtils.equalsIgnoreCase(contentType, "Resource")) (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
-                else (contentType, categoryMap.get(contentType).asInstanceOf[String])
+        val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
+            new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+            val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
+                case (x: String, y: String) => (x, y)
+                case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
+                case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
+                case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.head, y)
+                case _ => (contentType, primaryCategory)
             }
-            else if(StringUtils.isNotBlank(primaryCategory)) (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String],primaryCategory)).keys.head, primaryCategory)
-            else (contentType, primaryCategory)
-        } else (contentType, primaryCategory)
-        input.put("contentType", updatedContentType)
-        input.put("primaryCategory", updatedPrimaryCategory)
+            input.put("contentType", updatedContentType)
+            input.put("primaryCategory", updatedPrimaryCategory)
     }
 
     private def getCategoryForResource(mimeType:String): String = {
