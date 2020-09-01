@@ -110,8 +110,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     }
 
     private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
-        val contentType = input.getOrDefault("contentType", "").asInstanceOf[String]
-        val primaryCategory = input.getOrDefault("primaryCategory", "").asInstanceOf[String]
+        val contentType = input.get("contentType").asInstanceOf[String]
+        val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
         val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
             new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
