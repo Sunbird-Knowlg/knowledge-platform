@@ -128,7 +128,6 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     private def getCategoryForResource(mimeType:String): String = {
         if(List("video/avi", "video/mpeg", "video/quicktime", "video/3gpp", "video/mp4", "video/ogg", "video/webm", "video/x-youtube").contains(mimeType)) "ExplanationContent"
         if(List("application/pdf", "application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive").contains(mimeType)) "LearningResource"
-        if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource"
-        else "QuestionSet"
+        if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource" else "QuestionSet"
     }
 }
