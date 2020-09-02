@@ -18,6 +18,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
+    val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
+        new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
 
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
@@ -80,7 +82,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             val result = f.asInstanceOf[Response]
             result.setId(apiId)
             setResponseEnvelope(result)
-            if (categoryMapping) setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
+            if (categoryMapping && result.getResponseCode == ResponseCode.OK) setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             val response = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
@@ -112,8 +114,6 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
         val contentType = input.get("contentType").asInstanceOf[String]
         val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
-        val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
-            new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
                 case (x: String, y: String) => (x, y)
                 case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
