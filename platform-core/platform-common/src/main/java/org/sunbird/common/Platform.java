@@ -76,4 +76,8 @@ public class Platform {
 		return config.hasPath(key) ? config.getDouble(key) : defaultVal;
 	}
 
+	public static Object getAnyRef(String key, Object defaultVal) {
+		return config.hasPath(key) ? config.getAnyRef(key) : defaultVal;
+	}
+
 }

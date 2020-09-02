@@ -8,7 +8,7 @@ import java.util.UUID
 import akka.actor.ActorRef
 import akka.pattern.Patterns
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.DateUtils
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
@@ -18,6 +18,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
+    val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
+        new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
 
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
@@ -68,16 +70,19 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         })
     }
 
-    def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {
+    def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String, categoryMapping: Boolean = false): org.sunbird.common.dto.Request = {
+        //Todo mapping and reverse mapping
+        if (categoryMapping) setContentAndCategoryTypes(input)
         new org.sunbird.common.dto.Request(context, input, operation, null);
     }
 
-    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request) : Future[Result] = {
+    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false) : Future[Result] = {
         val future = Patterns.ask(actor, request, 30000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
         future.map(f => {
             val result = f.asInstanceOf[Response]
             result.setId(apiId)
             setResponseEnvelope(result)
+            if (categoryMapping && result.getResponseCode == ResponseCode.OK) setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             val response = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
@@ -104,5 +109,25 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         contextMap.putAll(request.getContext)
         request.setObjectType(objectType);
         request.setContext(contextMap)
+    }
+
+    private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
+        val contentType = input.get("contentType").asInstanceOf[String]
+        val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
+            val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
+                case (x: String, y: String) => (x, y)
+                case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
+                case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
+                case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
+                case _ => (contentType, primaryCategory)
+            }
+            input.put("contentType", updatedContentType)
+            input.put("primaryCategory", updatedPrimaryCategory)
+    }
+
+    private def getCategoryForResource(mimeType:String): String = {
+        if(List("video/avi", "video/mpeg", "video/quicktime", "video/3gpp", "video/mp4", "video/ogg", "video/webm", "video/x-youtube").contains(mimeType)) "ExplanationContent"
+        if(List("application/pdf", "application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive").contains(mimeType)) "LearningResource"
+        if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource" else "QuestionSet"
     }
 }
