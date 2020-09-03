@@ -1,5 +1,4 @@
-package controllers.v3
-
+package controllers.v4
 
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
@@ -13,7 +12,7 @@ class ObjectCategorySpec extends BaseSpec {
 
     "Category Controller " should {
 
-        val controller = app.injector.instanceOf[controllers.v3.ObjectCategoryController]
+        val controller = app.injector.instanceOf[ObjectCategoryController]
 
         "return success response for create API" in {
             val result = controller.create()(FakeRequest())

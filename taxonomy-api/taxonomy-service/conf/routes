@@ -19,6 +19,6 @@ POST      /framework/v3/publish/:identifier               controllers.v3.Framewo
 
 
 # Object Category API's
-POST      /object/category/v4/create                           controllers.v3.ObjectCategoryController.create
-PATCH     /object/category/v4/update/:identifier               controllers.v3.ObjectCategoryController.update(identifier:String)
-GET       /object/category/v4/read/:identifier                 controllers.v3.ObjectCategoryController.read(identifier:String, fields:Option[String])
+POST      /object/category/v4/create                           controllers.v4.ObjectCategoryController.create
+PATCH     /object/category/v4/update/:identifier               controllers.v4.ObjectCategoryController.update(identifier:String)
+GET       /object/category/v4/read/:identifier                 controllers.v4.ObjectCategoryController.read(identifier:String, fields:Option[String])
