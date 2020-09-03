@@ -12,7 +12,8 @@ import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
-import utils.JavaJsonUtils
+import utils.{Constants, JavaJsonUtils}
+
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -82,7 +83,12 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             val result = f.asInstanceOf[Response]
             result.setId(apiId)
             setResponseEnvelope(result)
-            if (categoryMapping && result.getResponseCode == ResponseCode.OK) setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
+            //TODO Mapping for backward compatibility
+            if (categoryMapping && result.getResponseCode == ResponseCode.OK){
+                setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
+                val objectType = result.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].getOrDefault("objectType", "Content").asInstanceOf[String]
+                setObjectTypeForRead(objectType, result.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]])
+            }
             val response = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
@@ -99,15 +105,37 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         response.getParams.setResmsgid(UUID.randomUUID().toString)
     }
 
-    def setRequestContext(request:org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
-        var contextMap: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef](){{
-            put("graph_id", "domain")
-            put("version" , version)
-            put("objectType" , objectType)
-            put("schemaName", schemaName)
-        }};
+    def setRequestContext(request: org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
+        val mimeType = request.getRequest.getOrDefault("mimeType", "").asInstanceOf[String]
+        val contentType = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
+        val primaryCategory = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
+        val contextMap: java.util.Map[String, AnyRef] = if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, Constants.COLLECTION_MIME_TYPE)) {
+            request.setObjectType(Constants.COLLECTION_OBJECT_TYPE)
+            new java.util.HashMap[String, AnyRef]() {{
+                    put("graph_id", "domain")
+                    put("version", Constants.COLLECTION_VERSION)
+                    put("objectType", Constants.COLLECTION_OBJECT_TYPE)
+                    put("schemaName", Constants.COLLECTION_SCHEMA_NAME)
+                }}
+        } else if (StringUtils.isNotBlank(contentType) && StringUtils.equalsIgnoreCase(contentType, Constants.ASSET_CONTENT_TYPE)
+            || StringUtils.isNotBlank(primaryCategory) && StringUtils.equalsIgnoreCase(primaryCategory, Constants.ASSET_CONTENT_TYPE)) {
+            request.setObjectType(Constants.ASSET_OBJECT_TYPE)
+            new java.util.HashMap[String, AnyRef]() {{
+                    put("graph_id", "domain")
+                    put("version", Constants.ASSET_VERSION)
+                    put("objectType", Constants.ASSET_OBJECT_TYPE)
+                    put("schemaName", Constants.ASSET_SCHEMA_NAME)
+                }}
+        } else {
+            request.setObjectType(objectType)
+            new java.util.HashMap[String, AnyRef]() {{
+                    put("graph_id", "domain")
+                    put("version", version)
+                    put("objectType", objectType)
+                    put("schemaName", schemaName)
+                }}
+        }
         contextMap.putAll(request.getContext)
-        request.setObjectType(objectType);
         request.setContext(contextMap)
     }
 
@@ -129,5 +157,14 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         if(List("video/avi", "video/mpeg", "video/quicktime", "video/3gpp", "video/mp4", "video/ogg", "video/webm", "video/x-youtube").contains(mimeType)) "ExplanationContent"
         if(List("application/pdf", "application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive").contains(mimeType)) "LearningResource"
         if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource" else "QuestionSet"
+    }
+
+    private def setObjectTypeForRead(objectType: String, result: java.util.Map[String, AnyRef]): Unit = {
+        val updatedObjectType = objectType match {
+            case "Asset" => "Content"
+            case "Collection" => "Content"
+            case _ => "Content"
+        }
+        result.put("objectType", updatedObjectType)
     }
 }
