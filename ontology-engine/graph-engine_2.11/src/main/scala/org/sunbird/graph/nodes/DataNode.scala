@@ -54,8 +54,9 @@ object DataNode {
     def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         DefinitionNode.getNode(request).map(node => {
+            val schema = if (StringUtils.equalsAnyIgnoreCase(node.getObjectType.toLowerCase, "contentimage")) "content" else node.getObjectType.toLowerCase
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
-            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], node.getObjectType.toLowerCase)
+            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
