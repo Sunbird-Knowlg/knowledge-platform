@@ -25,6 +25,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setObjectType("Channel")
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("name", "channel_test")
