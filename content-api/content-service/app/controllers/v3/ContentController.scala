@@ -60,7 +60,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
-        getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest, true)
     }
 
     def addHierarchy() = Action.async { implicit request =>
