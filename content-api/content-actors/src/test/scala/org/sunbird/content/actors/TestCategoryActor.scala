@@ -125,6 +125,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         val node = new Node()
         node.setIdentifier("cat-do_1234")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Category")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "cat-do_1234")
