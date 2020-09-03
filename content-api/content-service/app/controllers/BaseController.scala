@@ -145,6 +145,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
                 case (x: String, y: String) => (x, y)
                 case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
+                case("Asset", y) => (contentType, "Asset")
                 case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
                 case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
                 case _ => (contentType, primaryCategory)
