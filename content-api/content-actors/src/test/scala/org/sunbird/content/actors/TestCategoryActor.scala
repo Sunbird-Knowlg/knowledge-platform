@@ -15,7 +15,7 @@ import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class TestCategoryActor extends BaseSpec with MockFactory{
+class TestCategoryActor extends BaseSpec with MockFactory {
 
     "CategoryActor" should "return failed response for 'unknown' operation" in {
         implicit val ss = mock[StorageService]
