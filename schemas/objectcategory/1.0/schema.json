@@ -19,6 +19,13 @@
         },
         "translations": {
             "type": "object"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Live"
+            ],
+            "default": "Live"
         }
     },
     "additionalProperties": true
