@@ -97,7 +97,6 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   private def getRequest(): Request = {
     val request = new Request()
-    request.setObjectType("Channel")
     request.setContext(new util.HashMap[String, AnyRef]() {
       {
         put("objectType", "Channel")
