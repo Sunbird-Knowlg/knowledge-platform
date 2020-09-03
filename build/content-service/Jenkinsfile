@@ -7,8 +7,7 @@ node('build-slave') {
         String ANSI_YELLOW = "\u001B[33m"
 
         ansiColor('xterm') {
-            withEnv(['JAVA_HOME=']) {
-                sh "export JAVA_HOME=${env.JAVA11_HOME}"
+            withEnv(["JAVA_HOME=${JAVA11_HOME}"]) {
                 stage('Checkout') {
                     if (!env.hub_org) {
                         println(ANSI_BOLD + ANSI_RED + "Uh Oh! Please set a Jenkins environment variable named hub_org with value as registery/sunbidrded" + ANSI_NORMAL)
