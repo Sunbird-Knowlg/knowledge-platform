@@ -917,7 +917,8 @@
       "type": "array"
     },
     "version": {
-      "type": "number"
+      "type": "number",
+      "default": 2
     },
     "qrCodeProcessId": {
       "type": "string"
