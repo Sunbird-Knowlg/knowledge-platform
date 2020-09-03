@@ -12,7 +12,8 @@
     "code",
     "contentEncoding",
     "contentDisposition",
-    "mediaType"
+    "mediaType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {
@@ -176,7 +177,8 @@
         "type": "string",
         "enum": [
           "Student",
-          "Teacher"
+          "Teacher",
+          "Administrator"
         ]
       },
       "default": ["Student"]
@@ -1019,14 +1021,11 @@
       }
     },
     "userConsent": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "Yes",
-          "No"
-        ]
-      }
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
     },
     "trackable": {
       "type": "object",
@@ -1054,6 +1053,59 @@
         }
       },
       "additionalProperties": false
+    },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "ExplanationContent",
+        "LearningResource",
+        "OnlineCourse",
+        "QuestionSet",
+        "eTextBook",
+        "TeacherResource",
+        "CourseAssessment",
+        "ETB",
+        "ContentPlayList",
+        "GenericCollection",
+        "TVLesson",
+        "Template",
+        "Asset",
+        "Plugin",
+        "LessonPlanUnit",
+        "CourseUnit",
+        "TextBookUnit"
+      ]
+    },
+    "additionalCategories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ClassroomTeachingVideo",
+          "ConceptMap",
+          "CuriosityQuestionSet",
+          "Textbook",
+          "ExperientialResource",
+          "ExplanationVideo",
+          "FocusSpot",
+          "LearningOutcomeDefinition",
+          "MarkingSchemeRubric",
+          "PedagogyFlow",
+          "PracticeQuestionSet",
+          "LessonPlan",
+          "PreviousBoardExamPapers",
+          "ExplanationContent",
+          "LearningResource",
+          "OnlineCourse",
+          "QuestionSet",
+          "eTextBook",
+          "TeacherResource",
+          "CourseAssessment",
+          "ETB",
+          "ContentPlayList",
+          "GenericCollection"
+        ]
+      }
     }
   }
 }

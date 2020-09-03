@@ -25,7 +25,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
-        val contentRequest = getRequest(content, headers, "createContent")
+        val contentRequest = getRequest(content, headers, "createContent", true)
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest)
 
@@ -49,7 +49,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_CONTENT, contentActor, readRequest)
+        getResult(ApiId.READ_CONTENT, contentActor, readRequest, true)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
