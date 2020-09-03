@@ -1,5 +1,5 @@
 @Library('deploy-conf') _
-node('slave-java11') {
+node('build-slave') {
     try {
         String ANSI_GREEN = "\u001B[32m"
         String ANSI_NORMAL = "\u001B[0m"
@@ -8,8 +8,7 @@ node('slave-java11') {
         String ANSI_YELLOW = "\u001B[33m"
 
         ansiColor('xterm') {
-            withEnv(['JAVA_HOME=']) {
-                sh "export JAVA_HOME=${env.JAVA11_HOME}"
+            withEnv(["JAVA_HOME=${JAVA11_HOME}"]) {
                 stage('Checkout') {
                     tag_name = env.JOB_NAME.split("/")[-1]
                     pre_checks()
