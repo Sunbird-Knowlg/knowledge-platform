@@ -93,6 +93,8 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
         DataNode.read(req).map(rootNode => {
             val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new java.util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+            //TODO: Remove the Populate category mapping before updating for backward
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
             if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.COLLECTION_MIME_TYPE)) {
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
@@ -230,6 +232,7 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.CREATED_ON, DateUtils.formatCurrentDate)
         metadata.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
         metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
+        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
         val createRequest: Request = new Request(request)
         createRequest.setRequest(metadata)
         DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
@@ -245,6 +248,8 @@ object UpdateHierarchyManager {
         val tempNode: Node = getTempNode(nodeList, nodeId)
         if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
+            //TODO: Remove when not it use for backward compatibility
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
             idMap += (nodeId -> tempNode.getIdentifier)
             updateNodeList(nodeList, tempNode.getIdentifier, metadata)
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
@@ -252,8 +257,6 @@ object UpdateHierarchyManager {
 
     private def validateNodes(nodeList: java.util.List[Node], rootId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val nodesToValidate = nodeList.filter(node => StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]) || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
-        //TODO: Remove the Populate category mapping before updating for backward
-        nodesToValidate.foreach(node => HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata))
         DefinitionNode.updateJsonPropsInNodes(nodeList.toList, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
         DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
