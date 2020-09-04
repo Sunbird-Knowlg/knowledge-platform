@@ -74,6 +74,24 @@
     },
     "publisher": {
       "type": "array"
+    },
+    "contentPrimaryCategory": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "collectionPrimaryCategory": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assetPrimaryCategory": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

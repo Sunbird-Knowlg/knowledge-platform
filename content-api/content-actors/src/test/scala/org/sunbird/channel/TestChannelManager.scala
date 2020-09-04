@@ -50,4 +50,62 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         ChannelManager.channelLicenseCache(request, "channel_test")
         assert(null != RedisCache.get("channel_channel_test_license"))
     }
+
+    "validate objectCategory with contentPrimaryCategory" should "success if objectCategory present" in {
+        val request = new Request()
+        request.setRequest(new util.HashMap[String, AnyRef]() {
+            {
+                put("contentPrimaryCategory", new util.ArrayList[String]() {
+                    {
+                        add("-text")
+                    }
+                })
+            }
+        })
+        ChannelManager.validateObjectCategory(request)
+        assert(true)
+    }
+
+
+    "validate objectCategory with all type" should "success if objectCategory present" in {
+        val request = new Request()
+        request.setRequest(new util.HashMap[String, AnyRef]() {
+            {
+                put("contentPrimaryCategory", new util.ArrayList[String]() {
+                    {
+                        add("-text")
+                    }
+                })
+                put("collectionPrimaryCategory", new util.ArrayList[String]() {
+                    {
+                        add("-text")
+                    }
+                })
+                put("assetPrimaryCategory", new util.ArrayList[String]() {
+                    {
+                        add("-text")
+                    }
+                })
+            }
+        })
+        ChannelManager.validateObjectCategory(request)
+        assert(true)
+    }
+
+    "validate objectCategory" should "throw exception" in {
+        val exception = intercept[ClientException] {
+            val request = new Request()
+            request.setRequest(new util.HashMap[String, AnyRef]() {
+                {
+                    put("contentPrimaryCategory", new util.ArrayList[String]() {
+                        {
+                            add("xyz")
+                        }
+                    })
+                }
+            })
+            ChannelManager.validateObjectCategory(request)
+        }
+        exception.getMessage shouldEqual "Please provide valid category object."
+    }
 }
