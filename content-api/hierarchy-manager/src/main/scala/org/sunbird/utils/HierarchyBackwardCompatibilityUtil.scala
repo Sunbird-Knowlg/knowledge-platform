@@ -13,10 +13,10 @@ object HierarchyBackwardCompatibilityUtil {
 
     def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
         val contentType = input.get("contentType").asInstanceOf[String]
-        print("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :::: identifier " + input.get("identifier") )
-        print("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :::: contentType " + contentType )
+        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :::: identifier " + input.get("identifier") )
+        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :::: contentType " + contentType )
         val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
-        print("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: primaryCategory " + primaryCategory )
+        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: primaryCategory " + primaryCategory )
         val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
             case (x: String, y: String) => (x, y)
             case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
@@ -25,8 +25,8 @@ object HierarchyBackwardCompatibilityUtil {
             case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
             case _ => (contentType, primaryCategory)
         }
-        print("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: updated CT " + updatedContentType )
-        print("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: updated PC " + updatedPrimaryCategory )
+        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: updated CT " + updatedContentType )
+        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: updated PC " + updatedPrimaryCategory )
         input.put("contentType", updatedContentType)
         input.put("primaryCategory", updatedPrimaryCategory)
     }

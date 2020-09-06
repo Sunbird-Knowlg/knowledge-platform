@@ -232,6 +232,7 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.CREATED_ON, DateUtils.formatCurrentDate)
         metadata.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
         metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
+        //TODO: Remove when not it use for backward compatibility
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
         val createRequest: Request = new Request(request)
         createRequest.setRequest(metadata)
@@ -248,8 +249,6 @@ object UpdateHierarchyManager {
         val tempNode: Node = getTempNode(nodeList, nodeId)
         if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
-            //TODO: Remove when not it use for backward compatibility
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
             idMap += (nodeId -> tempNode.getIdentifier)
             updateNodeList(nodeList, tempNode.getIdentifier, metadata)
         } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
