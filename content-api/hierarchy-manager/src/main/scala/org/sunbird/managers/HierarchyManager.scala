@@ -182,8 +182,9 @@ object HierarchyManager {
         val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
         val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
             //TODO: Remove content Mapping for backward compatibility
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(redisHierarchy.asInstanceOf[util.HashMap[String, AnyRef]])
-            val children = redisHierarchy.asInstanceOf[util.Map[String, AnyRef]].getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+            val redisMap = JsonUtils.deserialize(redisHierarchy, classOf[util.Map[String, AnyRef]])
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(redisMap)
+            val children = redisMap.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
             updateContentMappingInChildren(children)
             Future(mapAsJavaMap(Map("content" -> mapAsJavaMap(JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]).toMap))))
         } else getCassandraHierarchy(request)
