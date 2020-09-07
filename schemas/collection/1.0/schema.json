@@ -1106,6 +1106,9 @@
           "GenericCollection"
         ]
       }
+    },
+    "prevStatus": {
+      "type": "string"
     }
   }
 }
