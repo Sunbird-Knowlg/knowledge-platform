@@ -117,8 +117,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                     put("objectType", Constants.COLLECTION_OBJECT_TYPE)
                     put("schemaName", Constants.COLLECTION_SCHEMA_NAME)
                 }}
-        } else if (StringUtils.isNotBlank(contentType) && StringUtils.equalsIgnoreCase(contentType, Constants.ASSET_CONTENT_TYPE)
-            || StringUtils.isNotBlank(primaryCategory) && StringUtils.equalsIgnoreCase(primaryCategory, Constants.ASSET_CONTENT_TYPE)) {
+        } else if ((StringUtils.isNotBlank(contentType) && StringUtils.equalsIgnoreCase(contentType, Constants.ASSET_CONTENT_TYPE))
+            || (StringUtils.isNotBlank(primaryCategory) && StringUtils.equalsIgnoreCase(primaryCategory, Constants.ASSET_CONTENT_TYPE))) {
             request.setObjectType(Constants.ASSET_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {{
                     put("graph_id", "domain")
