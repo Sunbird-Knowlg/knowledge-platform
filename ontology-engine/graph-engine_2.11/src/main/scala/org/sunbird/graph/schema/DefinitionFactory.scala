@@ -8,7 +8,7 @@ object DefinitionFactory {
 
     private var definitions: Map[String, DefinitionDTO] = Map()
 
-    def getDefinition(graphId: String, schemaName: String, version: String, categoryId: String = ""): DefinitionDTO = {
+    def getDefinition(graphId: String, schemaName: String, version: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): DefinitionDTO = {
         val key = getKey(graphId, schemaName, version, categoryId)
         val definition = definitions.getOrElse(key, new DefinitionDTO(graphId, schemaName, version, categoryId))
         if (!definitions.contains(key))

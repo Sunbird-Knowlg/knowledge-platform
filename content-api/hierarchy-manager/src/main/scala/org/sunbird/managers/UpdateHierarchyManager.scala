@@ -416,7 +416,7 @@ object UpdateHierarchyManager {
         DataNode.update(req)
     }
 
-    private def cleanUpRootData(node: Node): java.util.Map[String, AnyRef] = {
+    private def cleanUpRootData(node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.Map[String, AnyRef] = {
         //TODO: Remove the code added to ignore originData to support dock team in release-3.1.0
         DefinitionNode.fetchJsonProps(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.CONTENT_SCHEMA_NAME)
                 .foreach(key => if(!StringUtils.equalsAnyIgnoreCase("originData", key)) node.getMetadata.remove(key))

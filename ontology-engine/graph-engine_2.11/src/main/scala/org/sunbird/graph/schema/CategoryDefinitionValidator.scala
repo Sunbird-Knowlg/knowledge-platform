@@ -18,7 +18,7 @@ import scala.io.Source
 
 class CategoryDefinitionValidator(schemaName: String, version: String) extends BaseSchemaValidator(schemaName, version){
     private val basePath = {if (Platform.config.hasPath("schema.base_path")) Platform.config.getString("schema.base_path") 
-    else "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/"} + File.separator +  schemaName.toLowerCase + File.separator + version 
+    else "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/"} + File.separator +  schemaName.toLowerCase + File.separator + version + File.separator
     
     override def resolveSchema(id: URI): JsonSchema = {
         null
@@ -40,13 +40,9 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
         val schemaMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(jsonString, classOf[java.util.Map[String, AnyRef]])
         val configMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(getFileToString("config.json"), classOf[java.util.Map[String, AnyRef]])
         val request: Request = new Request()
-        request.put("identifier", categoryId)
-        request.getContext.put("schemaName", schemaName)
-        request.getContext.put("version", version)
-        request.getContext.put("graphId", "domain")
-        Await.result(DataNode.read(request).map(node => {
-            val nodeSchema = node.getMetadata.getOrDefault("schema", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]]
-            schemaMap.putAll(nodeSchema)
+        Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId, false, request).map(node => {
+            val nodeSchema = node.getMetadata.getOrDefault("schema", "{}").asInstanceOf[String]
+            schemaMap.putAll(JsonUtils.deserialize(nodeSchema, classOf[java.util.Map[String, AnyRef]]))
             configMap.putAll(node.getMetadata.getOrDefault("config", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]])
             this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
             this.config = ConfigFactory.parseMap(configMap)

@@ -234,7 +234,7 @@ object HierarchyManager {
         nodes
     }
 
-    def convertNodeToMap(leafNodes: List[Node]): java.util.List[java.util.Map[String, AnyRef]] = {
+    def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
             val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, schemaName, schemaVersion)
             nodeMap.keySet().removeAll(keyTobeRemoved)
@@ -295,7 +295,7 @@ object HierarchyManager {
         DataNode.update(req)
     }
 
-    def updateHierarchy(unitId: String, hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit ec: ExecutionContext) = {
+    def updateHierarchy(unitId: String, hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val children =  hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
         val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
         if("add".equalsIgnoreCase(operation)){
