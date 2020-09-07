@@ -21,7 +21,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.{ HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
 
@@ -125,10 +125,6 @@ object HierarchyManager {
             }
             val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
             var metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-            //TODO: Remove the Populate category mapping before updating for backward
-            val objectType = metadata.getOrDefault("objectType", "Collection").asInstanceOf[String]
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
-            HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(objectType, metadata)
             val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
             hierarchy.map(hierarchy => {
                 val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
@@ -530,10 +526,6 @@ object HierarchyManager {
 
     def fetchAllLeafNodes(children: util.List[util.Map[String, AnyRef]], leafNodeIds: util.List[String]): List[Any] = {
         children.toList.map(content => {
-            //TODO: Remove the Populate category mapping before updating for backward
-            val objectType = content.getOrDefault("objectType", "Collection").asInstanceOf[String]
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
-            HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(objectType, content)
             if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
                 leafNodeIds.add(content.get("identifier").asInstanceOf[String])
                 leafNodeIds
