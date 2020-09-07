@@ -168,6 +168,8 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
                     node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
+                    //TODO: Remove the Populate category mapping before updating for backward
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
                     val updatedNodes = node :: nodes
                     updatedNodes
                 }) recoverWith { case e: CompletionException => throw e.getCause }
@@ -177,6 +179,8 @@ object UpdateHierarchyManager {
                 childData.remove(HierarchyConstants.CHILDREN)
                 childData.put(HierarchyConstants.STATUS, "Draft")
                 childData.put(HierarchyConstants.CHANNEL, getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
+                //TODO: Remove the Populate category mapping before updating for backward
+                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(childData)
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)

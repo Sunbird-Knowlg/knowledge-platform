@@ -194,7 +194,7 @@ object HierarchyManager {
                 val rootHierarchy  = result.get("content").asInstanceOf[util.Map[String, AnyRef]]
                 if (StringUtils.isEmpty(bookmarkId)) {
                     //TODO: Remove content Mapping for backward compatibility
-                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]])
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootHierarchy)
                     val children = rootHierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
                     updateContentMappingInChildren(children)
                     ResponseHandler.OK.put("content", rootHierarchy)
