@@ -284,7 +284,6 @@ object UpdateHierarchyManager {
         val childrenIdentifiersMap: Map[String, Map[String, Int]] = getChildrenIdentifiersMap(hierarchyData, idMap, existingHierarchy)
 //        TelemetryManager.log("Children Id map for root id :" + rootId + " :: " + ScalaJsonUtils.serialize(childrenIdentifiersMap))
         getPreparedHierarchyData(nodeList, rootId, childrenIdentifiersMap).map(nodeMaps => {
-            print("UpdateHierarchyManager::getChildrenHierarchy:: Check if control comes here")
             TelemetryManager.info("prepared hierarchy list without filtering: " + nodeMaps.size())
             val filteredNodeMaps = nodeMaps.filter(nodeMap => null != nodeMap.get(HierarchyConstants.DEPTH)).toList
             TelemetryManager.info("prepared hierarchy list with filtering: " + filteredNodeMaps.size())
