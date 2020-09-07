@@ -1126,6 +1126,9 @@
                     "GenericCollection"
                 ]
             }
+        },
+        "prevStatus": {
+            "type": "string"
         }
     }
 }
