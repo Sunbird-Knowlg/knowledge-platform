@@ -16,8 +16,8 @@ object DefinitionFactory {
         definition
     }
     
-    def getKey(graphId: String, schemaName: String, version: String, categoryId: String): String = {
-        List(graphId, schemaName, version, categoryId) filter (_.nonEmpty) mkString ":"
+    def getKey(graphId: String, schemaName: String, version: String, categoryId: String = ""): String = {
+        List(graphId, schemaName, version, categoryId) filter (value => null!= value && value.nonEmpty) mkString ":"
     }
 
 

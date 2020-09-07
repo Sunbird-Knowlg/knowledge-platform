@@ -566,8 +566,8 @@ class TestDataNode extends BaseSpec {
             req.getContext.put("identifier", node.getIdentifier)
             req.put("name", "updated name")
             req.put("test", "test")
-            assertThrows[ClientException](DataNode.update(req))
-            //recoverToSucceededIf[ClientException](DataNode.update(req))
+//            assertThrows[ClientException](DataNode.update(req))
+            recoverToSucceededIf[ClientException](DataNode.update(req))
         }
         } flatMap(f => f)
     }

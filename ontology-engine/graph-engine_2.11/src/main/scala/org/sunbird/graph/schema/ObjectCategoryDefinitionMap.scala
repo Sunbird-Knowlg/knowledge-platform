@@ -24,7 +24,7 @@ object ObjectCategoryDefinitionMap {
     
     def prepareCategoryId(categoryName: String, objectType: String, channel: String = "all") = {
         if(!categoryName.isBlank)
-            Slug.makeSlug("obj-cat:"+ categoryName + "_" + objectType + "_" + channel, true)
+            "obj-cat"+ ":" + Slug.makeSlug(categoryName + "_" + objectType + "_" + channel, true)
         else ""
     }
 }

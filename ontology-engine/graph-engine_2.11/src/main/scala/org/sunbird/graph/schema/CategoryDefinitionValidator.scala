@@ -2,14 +2,13 @@ package org.sunbird.graph.schema
 
 import java.io.{ByteArrayInputStream, File}
 import java.net.URI
-import java.util.concurrent.CompletionException
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.leadpony.justify.api.JsonSchema
 import org.sunbird.common.dto.Request
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.schema.impl.BaseSchemaValidator
 
 import scala.concurrent.duration.Duration
@@ -40,14 +39,15 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
         val schemaMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(jsonString, classOf[java.util.Map[String, AnyRef]])
         val configMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(getFileToString("config.json"), classOf[java.util.Map[String, AnyRef]])
         val request: Request = new Request()
-        Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId, false, request).map(node => {
-            val nodeSchema = node.getMetadata.getOrDefault("schema", "{}").asInstanceOf[String]
-            schemaMap.putAll(JsonUtils.deserialize(nodeSchema, classOf[java.util.Map[String, AnyRef]]))
-            configMap.putAll(node.getMetadata.getOrDefault("config", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]])
-            this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
-            this.config = ConfigFactory.parseMap(configMap)
-            ObjectCategoryDefinitionMap.put(categoryId, Map("schema" -> schema, "config" -> config))
-        }) recoverWith { case e: CompletionException => throw e.getCause }, Duration.apply("30 seconds"))
+        val resultNode: Node = Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId, false, request), Duration.apply("30 seconds"))
+
+        val objectMetadata = JsonUtils.deserialize(resultNode.getMetadata.getOrDefault("objectMetadata", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
+        val nodeSchema = objectMetadata.getOrDefault("schema", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]]
+        schemaMap.putAll(nodeSchema)
+        configMap.putAll(objectMetadata.getOrDefault("config", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]])
+        this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
+        this.config = ConfigFactory.parseMap(configMap)
+        ObjectCategoryDefinitionMap.put(categoryId, Map("schema" -> schema, "config" -> config))
     }
     
     def getFileToString(fileName: String): String = {
