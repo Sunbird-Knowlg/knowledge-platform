@@ -86,8 +86,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             //TODO Mapping for backward compatibility
             if (categoryMapping && result.getResponseCode == ResponseCode.OK){
                 setContentAndCategoryTypes(result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
-                val objectType = result.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].getOrDefault("objectType", "Content").asInstanceOf[String]
-                setObjectTypeForRead(objectType, result.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]])
+                val objectType = result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault("objectType", "Content").asInstanceOf[String]
+                setObjectTypeForRead(objectType, result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]() ).asInstanceOf[util.Map[String, AnyRef]])
             }
             val response = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
