@@ -590,7 +590,7 @@ object HierarchyManager {
     def updateContentMappingInChildren(children: util.List[util.Map[String, AnyRef]]): List[Any] = {
         children.toList.map(content => {
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
-            fetchAllLeafNodes(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], leafNodeIds)
+            updateContentMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
         })
     }
 }
