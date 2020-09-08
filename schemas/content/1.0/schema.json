@@ -1135,6 +1135,9 @@
         },
         "prevStatus": {
             "type": "string"
+        },
+        "cloudStorageKey": {
+            "type": "string"
         }
     }
 }
