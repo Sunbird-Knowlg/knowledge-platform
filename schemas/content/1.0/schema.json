@@ -1077,6 +1077,10 @@
         "primaryCategory": {
             "type": "string",
             "enum": [
+                "Course",
+                "PracticeQuestionSet",
+                "DigitalTextBook",
+                "ContentPlaylist",
                 "ExplanationContent",
                 "LearningResource",
                 "OnlineCourse",
@@ -1123,7 +1127,9 @@
                     "CourseAssessment",
                     "ETB",
                     "ContentPlayList",
-                    "GenericCollection"
+                    "GenericCollection",
+                    "TextBook",
+                    "TVLesson"
                 ]
             }
         },
