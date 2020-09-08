@@ -178,6 +178,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes()))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111")))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getCategoryDefinitionNode("obj-cat:learningresource_content_test")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
 		val request = getContentDIALRequest()
 		val resFuture = DIALManager.link(request)
@@ -337,6 +338,23 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 				put("channel", "test")
 				put("versionKey", "1234")
 				put("primaryCategory", "LearningResource")
+			}
+		})
+		node
+	}
+
+	private def getCategoryDefinitionNode(identifier: String): Node = {
+		val node = new Node()
+		node.setIdentifier(identifier)
+		node.setNodeType("DATA_NODE")
+		node.setMetadata(new util.HashMap[String, AnyRef]() {
+			{
+				put("identifier", identifier)
+				put("categoryId", "obj-cat:1234")
+				put("objectType", "ObjectCategoryDefinition")
+				put("name", "Test Category Definition")
+				put("targetObjectType", "Content")
+				put("objectMetadata", "{\"config\":{},\"schema\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"additionalProperties\":false}}}")
 			}
 		})
 		node

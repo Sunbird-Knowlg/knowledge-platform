@@ -282,7 +282,7 @@ object DefinitionNode {
 
 
     def getPrimaryCategory(request: java.util.Map[String, AnyRef], schemaName: String, channel: String = "all"): String = {
-        if(request.containsKey("primaryCategory")) {
+        if(null != request && request.containsKey("primaryCategory")) {
             val categoryName = request.get("primaryCategory").asInstanceOf[String]
             ObjectCategoryDefinitionMap.prepareCategoryId(categoryName, schemaName, channel)
         } else ""
