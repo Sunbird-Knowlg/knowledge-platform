@@ -1057,6 +1057,10 @@
     "primaryCategory": {
       "type": "string",
       "enum": [
+        "Course",
+        "PracticeQuestionSet",
+        "DigitalTextBook",
+        "ContentPlaylist",
         "ExplanationContent",
         "LearningResource",
         "OnlineCourse",
@@ -1103,12 +1107,32 @@
           "CourseAssessment",
           "ETB",
           "ContentPlayList",
-          "GenericCollection"
+          "GenericCollection",
+          "TextBook",
+          "TVLesson"
         ]
       }
     },
     "prevStatus": {
       "type": "string"
+    },
+    "batches": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "c_sunbird_dev_private_batch_count": {
+      "type": "number"
+    },
+    "c_sunbird_dev_open_batch_count": {
+      "type": "number"
+    },
+    "c_staging_private_batch_count": {
+      "type": "number"
+    },
+    "c_staging_open_batch_count": {
+      "type": "number"
     }
   }
 }
