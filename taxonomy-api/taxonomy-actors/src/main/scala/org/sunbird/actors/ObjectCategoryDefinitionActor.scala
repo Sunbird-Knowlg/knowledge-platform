@@ -34,8 +34,8 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY_ID, "").asInstanceOf[String]
 		val channelId = request.getRequest.getOrDefault(Constants.CHANNEL, "all").asInstanceOf[String]
 		val targetObjectType = request.getRequest.getOrDefault(Constants.TARGET_OBJECT_TYPE, "").asInstanceOf[String]
-		if (StringUtils.isNotBlank(categoryId)) {
-			val identifier = Slug.makeSlug(categoryId) + "_" + Slug.makeSlug(targetObjectType) + "_" + channelId
+		if (StringUtils.isNotBlank(categoryId) && (StringUtils.isNotBlank(targetObjectType) && StringUtils.isNotBlank(channelId))) {
+			val identifier = categoryId + "_" + Slug.makeSlug(targetObjectType) + "_" + Slug.makeSlug(channelId)
 			request.put(Constants.IDENTIFIER, identifier)
 			val getCategoryReq = new Request()
 			getCategoryReq.setContext(request.getContext)
@@ -52,7 +52,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 					})
 				} else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category identifier")
 			}).flatMap(f => f)
-		} else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category identifier")
+		} else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
 	}
 
 	private def read(request: Request): Future[Response] = {

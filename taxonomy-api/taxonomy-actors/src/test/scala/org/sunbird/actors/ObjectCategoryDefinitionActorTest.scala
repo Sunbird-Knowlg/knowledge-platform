@@ -22,7 +22,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		testUnknownOperation(Props(new ObjectCategoryDefinitionActor()), getCategoryDefintionRequest())
 	}
 
-	it should "create a categoryDefinitionNode and store it in neo4j" in {
+	it should "create a categoryDefinition node and store it in neo4j" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -64,7 +64,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-		assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "Please provide valid category identifier"))
+		assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "Invalid Request. Please Provide Required Properties!"))
 	}
 
 	it should "return success response for readCategoryDefinition" in {
