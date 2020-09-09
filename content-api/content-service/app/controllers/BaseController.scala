@@ -24,6 +24,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
     val categoryMapForResourceType: java.util.Map[String, AnyRef] = Platform.getAnyRef("resourceTypeToPrimaryCategory",
         new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+    val mimeTypesToCheck = List("application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive", "application/vnd.android.package-archive",
+        "video/webm", "video/x-youtube", "video/mp4")
 
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
@@ -132,7 +134,12 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     private def getCategoryForResource(mimeType: String, resourceType: String): String = (mimeType, resourceType) match {
         case ("", "") => "Learning Resource"
-        case (x: String, y: String) => categoryMapForResourceType.getOrDefault(y, "Learning Resource").asInstanceOf[String]
+        case (x: String, y: String) => {
+            if (mimeTypesToCheck.contains(x))
+                categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource")
+            else
+                categoryMapForResourceType.getOrDefault(y, "Learning Resource").asInstanceOf[String]
+        }
         case (x: String, "") => categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource")
         case _ => "Learning Resource"
     }
