@@ -178,8 +178,10 @@ object UpdateHierarchyManager {
                 childData.putAll(child)
                 childData.remove(HierarchyConstants.CHILDREN)
                 childData.put(HierarchyConstants.STATUS, "Draft")
-                childData.put(HierarchyConstants.CHANNEL, getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
                 //TODO: Remove the Populate category mapping before updating for backward
+                val rootNode = getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
+                childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
+                childData.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
                 HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(childData)
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 val updatedNodes = node :: nodes
@@ -235,7 +237,9 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.VERSION_KEY, System.currentTimeMillis + "")
         metadata.put(HierarchyConstants.CREATED_ON, DateUtils.formatCurrentDate)
         metadata.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
-        metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
+        val rootNode = getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
+        metadata.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
+        metadata.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
         val createRequest: Request = new Request(request)
         //TODO: Remove the Populate category mapping before updating for backward
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
