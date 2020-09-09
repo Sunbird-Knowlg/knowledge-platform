@@ -1079,13 +1079,13 @@
             "enum": [
                 "Course",
                 "PracticeQuestionSet",
-                "DigitalTextBook",
+                "DigitalTextbook",
                 "ContentPlaylist",
                 "ExplanationContent",
                 "LearningResource",
                 "OnlineCourse",
                 "QuestionSet",
-                "eTextBook",
+                "eTextbook",
                 "TeacherResource",
                 "CourseAssessment",
                 "ETB",
@@ -1097,7 +1097,7 @@
                 "Plugin",
                 "LessonPlanUnit",
                 "CourseUnit",
-                "TextBookUnit"
+                "TextbookUnit"
             ]
         },
         "additionalCategories": {
@@ -1122,7 +1122,7 @@
                     "LearningResource",
                     "OnlineCourse",
                     "QuestionSet",
-                    "eTextBook",
+                    "eTextbook",
                     "TeacherResource",
                     "CourseAssessment",
                     "ETB",

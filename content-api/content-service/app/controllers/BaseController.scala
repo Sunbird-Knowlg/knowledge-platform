@@ -20,6 +20,10 @@ import scala.concurrent.{ExecutionContext, Future}
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
     val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
         new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+    val categoryMapForMimeType: java.util.Map[String, AnyRef] = Platform.getAnyRef("mimeTypeToPrimaryCategory",
+        new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+    val categoryMapForResourceType: java.util.Map[String, AnyRef] = Platform.getAnyRef("resourceTypeToPrimaryCategory",
+        new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
 
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
@@ -116,7 +120,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
                 case (x: String, y: String) => (x, y)
-                case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "application/pdf").asInstanceOf[String]))
+                case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
+                    input.getOrDefault("resourceType", "").asInstanceOf[String]))
                 case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
                 case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
                 case _ => (contentType, primaryCategory)
@@ -125,9 +130,11 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             input.put("primaryCategory", updatedPrimaryCategory)
     }
 
-    private def getCategoryForResource(mimeType:String): String = {
-        if(List("video/avi", "video/mpeg", "video/quicktime", "video/3gpp", "video/mp4", "video/ogg", "video/webm", "video/x-youtube").contains(mimeType)) "ExplanationContent"
-        if(List("application/pdf", "application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive").contains(mimeType)) "LearningResource"
-        if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource" else "QuestionSet"
+    private def getCategoryForResource(mimeType: String, resourceType: String): String = (mimeType, resourceType) match {
+        case ("", "") => "Learning Resource"
+        case (x: String, y: String) => categoryMapForResourceType.getOrDefault(y, "Learning Resource").asInstanceOf[String]
+        case (x: String, "") => categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource")
+        case _ => "Learning Resource"
     }
+
 }
