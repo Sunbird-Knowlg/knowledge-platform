@@ -86,11 +86,21 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
                             add("xyz")
                         }
                     })
+                    put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
+                        {
+                            add("xyz")
+                        }
+                    })
+                    put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
+                        {
+                            add("xyz")
+                        }
+                    })
                 }
             })
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "Please provide valid primary category for : content"
+        exception.getMessage shouldEqual "Please provide valid primary category for : content, collection, asset"
     }
 
     it should "throw exception for empty objectCategory" in {
