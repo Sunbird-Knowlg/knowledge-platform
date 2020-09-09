@@ -531,8 +531,8 @@ object HierarchyManager {
     def updateLatestLeafNodes(children: util.List[util.Map[String, AnyRef]], leafNodeMap: util.Map[String, AnyRef]): List[Any] = {
         children.toList.map(content => {
             if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
-                val metadata: util.Map[String, AnyRef] = leafNodeMap.get(content.get("identifier").asInstanceOf[String]).asInstanceOf[util.Map[String, AnyRef]]
-                if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.get("status").asInstanceOf[String])){
+                val metadata: util.Map[String, AnyRef] = leafNodeMap.getOrDefault(content.get("identifier").asInstanceOf[String], new java.util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+                if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.getOrDefault("status", HierarchyConstants.RETIRED_STATUS).asInstanceOf[String])){
                     children.remove(content)
                 } else {
                     content.putAll(metadata)
