@@ -27,21 +27,16 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
     }
 
     def commonHeaders()(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
-        val customHeaders = Map("x-channel-id" -> "CHANNEL_ID", "X-Consumer-ID" -> "CONSUMER_ID", "X-App-Id" -> "APP_ID", "x-session-id" -> "SESSION_ID", "x-device-id" -> "DEVICE_ID")
-        customHeaders.map(ch => {
-            val value = request.headers.get(ch._1)
-            if (value.isDefined && !value.isEmpty) {
-                collection.mutable.HashMap[String, Object](ch._2 -> value.get).asJava
-            } else {
-                if("x-channel-id".equalsIgnoreCase(ch._1)){
-                    collection.mutable.HashMap[String, Object](ch._2 -> DEFAULT_CHANNEL_ID).asJava
-                }else 
-                    collection.mutable.HashMap[String, Object]().asJava
-            }
-        }).reduce((a, b) => {
-            a.putAll(b)
-            return a
-        })
+        val customHeaders = Map("x-channel-id" -> "CHANNEL_ID", "x-consumer-id" -> "CONSUMER_ID", "x-app-id" -> "APP_ID", "x-session-id" -> "SESSION_ID", "x-device-id" -> "DEVICE_ID")
+        val headers = request.headers.headers.groupBy(_._1).mapValues(_.map(_._2))
+        val appHeaders = headers.filter(header => customHeaders.keySet.contains(header._1.toLowerCase))
+                .map(entry => (customHeaders.get(entry._1.toLowerCase()).get, entry._2.head))
+        val contextMap = {
+            if(appHeaders.contains("CHANNEL_ID"))
+                appHeaders
+            else appHeaders + ("CHANNEL_ID"-> DEFAULT_CHANNEL_ID)
+        }
+        mapAsJavaMap(contextMap)
     }
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {
