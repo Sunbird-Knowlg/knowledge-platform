@@ -51,11 +51,21 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         assert(null != RedisCache.get("channel_channel_test_license"))
     }
 
-    "validate objectCategory with contentPrimaryCategory" should "success if objectCategory present" in {
+    it should "return success for valid objectCategory" in {
         val request = new Request()
         request.setRequest(new util.HashMap[String, AnyRef]() {
             {
-                put("contentPrimaryCategory", new util.ArrayList[String]() {
+                put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
+                    {
+                        add("-text")
+                    }
+                })
+                put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
+                    {
+                        add("-text")
+                    }
+                })
+                put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
                     {
                         add("-text")
                     }
@@ -66,38 +76,12 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         assert(true)
     }
 
-
-    "validate objectCategory with all type" should "success if objectCategory present" in {
-        val request = new Request()
-        request.setRequest(new util.HashMap[String, AnyRef]() {
-            {
-                put("contentPrimaryCategory", new util.ArrayList[String]() {
-                    {
-                        add("-text")
-                    }
-                })
-                put("collectionPrimaryCategory", new util.ArrayList[String]() {
-                    {
-                        add("-text")
-                    }
-                })
-                put("assetPrimaryCategory", new util.ArrayList[String]() {
-                    {
-                        add("-text")
-                    }
-                })
-            }
-        })
-        ChannelManager.validateObjectCategory(request)
-        assert(true)
-    }
-
-    "validate objectCategory" should "throw exception" in {
+    it should "throw exception for invalid objectCategory" in {
         val exception = intercept[ClientException] {
             val request = new Request()
             request.setRequest(new util.HashMap[String, AnyRef]() {
                 {
-                    put("contentPrimaryCategory", new util.ArrayList[String]() {
+                    put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
                         {
                             add("xyz")
                         }
@@ -106,6 +90,23 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
             })
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "Please provide valid category object."
+        exception.getMessage shouldEqual "Please provide valid primary category for : content"
+    }
+
+    it should "throw exception for empty objectCategory" in {
+        val exception = intercept[ClientException] {
+            val request = new Request()
+            request.setRequest(new util.HashMap[String, AnyRef]() {
+                {
+                    put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
+                        {
+                            add("")
+                        }
+                    })
+                }
+            })
+            ChannelManager.validateObjectCategory(request)
+        }
+        exception.getMessage shouldEqual "Please provide valid primary category for : content"
     }
 }

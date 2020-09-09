@@ -15,6 +15,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
 
@@ -50,11 +51,29 @@ object ChannelManager {
       if (200 != httpResponse.getStatus)
         throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object category.")
       val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
-      val categoryList: util.List[util.Map[String, AnyRef]] = response.getResult.get(ChannelConstants.CONTENT).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+      val categoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
       val masterCategoriesList: util.List[String] = categoryList.map(a => a.get("name").asInstanceOf[String]).toList
-      val requestedCategoryList: util.List[String] = categoryKeyList.map(a => request.getRequest.get(a).asInstanceOf[util.ArrayList[String]]).toList.filter(a => a!=null).flatMap(a => a)
-      if (util.Collections.disjoint(masterCategoriesList, requestedCategoryList)) {
-        throw new ClientException("ERR_CATEGORY_OBJECT_NOT_PRESENT", "Please provide valid category object.")
+      val errMsg: ListBuffer[String] = ListBuffer()
+      if(request.getRequest.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)){
+        val requestedContentCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
+        if (util.Collections.disjoint(masterCategoriesList, requestedContentCategoryList)) {
+          errMsg += "content"
+        }
+      }
+      if(request.getRequest.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)){
+        val requestedCollectionCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
+        if (util.Collections.disjoint(masterCategoriesList, requestedCollectionCategoryList)) {
+          errMsg += "collection"
+        }
+      }
+      if(request.getRequest.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)){
+        val requestedAssetCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.ASSET_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
+        if (util.Collections.disjoint(masterCategoriesList, requestedAssetCategoryList)) {
+          errMsg += "asset"
+        }
+      }
+      if(errMsg.nonEmpty){
+        throw new ClientException("ERR_CATEGORY_OBJECT_NOT_PRESENT", "Please provide valid primary category for : " + errMsg.mkString(", "))
       }
     }
   }
