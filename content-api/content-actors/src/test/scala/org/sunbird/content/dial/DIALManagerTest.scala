@@ -174,7 +174,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 	"link DIAL with valid request for content" should "update the contents successfully" in {
 		(oec.httpUtil _).expects().returns(httpUtil)
-		(oec.graphService _).expects().returns(graphDB).repeated(3)
+		(oec.graphService _).expects().returns(graphDB).repeated(4)
 		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes()))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111")))
