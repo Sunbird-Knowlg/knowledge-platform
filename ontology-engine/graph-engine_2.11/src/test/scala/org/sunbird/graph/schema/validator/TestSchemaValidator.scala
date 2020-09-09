@@ -33,7 +33,7 @@ class TestSchemaValidator extends BaseSpec {
       put("mimeType", "application/vnd.ekstep.content-collection")
       put("channel", "in.ekstep")
       put("contentCredits", a)
-      put("primaryCategory", "LearningResource")
+      put("primaryCategory", "Learning Resource")
     }}
 
 
