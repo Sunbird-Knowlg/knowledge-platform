@@ -394,7 +394,7 @@ object HierarchyManager {
             if (!hierarchy.isEmpty) {
                 if (StringUtils.isNotEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
                     //TODO: Remove mapping
-                    val hierarchyMap = mapPrimaryCategories(mapAsJavaMap(hierarchy))
+                    val hierarchyMap = mapPrimaryCategories(hierarchy)
                     rootHierarchy.put("content", hierarchyMap)
                     RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchyMap))
                     Future(rootHierarchy)
@@ -590,7 +590,7 @@ object HierarchyManager {
 
     private def mapPrimaryCategories(hierarchy: java.util.Map[String, AnyRef]):util.Map[String, AnyRef] = {
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(hierarchy)
-        val children = mapAsJavaMap(hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+        val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
         updateContentMappingInChildren(children)
         hierarchy
     }
