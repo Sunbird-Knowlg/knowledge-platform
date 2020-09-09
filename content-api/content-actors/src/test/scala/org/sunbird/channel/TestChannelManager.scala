@@ -57,17 +57,17 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
             {
                 put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
                     {
-                        add("-text")
+                        add("test-g-4")
                     }
                 })
                 put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
                     {
-                        add("-text")
+                        add("test-g-4")
                     }
                 })
                 put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
                     {
-                        add("-text")
+                        add("test-g-4")
                     }
                 })
             }

@@ -51,8 +51,8 @@ object ChannelManager {
       if (200 != httpResponse.getStatus)
         throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object category.")
       val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
-      val categoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
-      val masterCategoriesList: util.List[String] = categoryList.map(a => a.get("name").asInstanceOf[String]).toList
+      val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+      val masterCategoriesList: util.List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
       val errMsg: ListBuffer[String] = ListBuffer()
       if(request.getRequest.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)){
         val requestedContentCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]

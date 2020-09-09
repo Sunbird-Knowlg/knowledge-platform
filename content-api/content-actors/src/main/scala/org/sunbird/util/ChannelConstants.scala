@@ -11,5 +11,6 @@ object ChannelConstants {
   val ASSET_PRIMARY_CATEGORIES: String = "assetPrimaryCategories"
   val CONTENT: String = "content"
   val NAME: String = "name"
+  val OBJECT_CATEGORY: String = "ObjectCategory"
   val categoryKeyList: List[String] = List(CONTENT_PRIMARY_CATEGORIES,COLLECTION_PRIMARY_CATEGORIES,ASSET_PRIMARY_CATEGORIES)
 }
