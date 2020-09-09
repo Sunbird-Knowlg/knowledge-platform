@@ -75,19 +75,19 @@
     "publisher": {
       "type": "array"
     },
-    "contentPrimaryCategory": {
+    "contentPrimaryCategories": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "collectionPrimaryCategory": {
+    "collectionPrimaryCategories": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "assetPrimaryCategory": {
+    "assetPrimaryCategories": {
       "type": "array",
       "items": {
         "type": "string"
