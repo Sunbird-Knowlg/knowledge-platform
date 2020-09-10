@@ -119,4 +119,17 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         }
         exception.getMessage shouldEqual "Please provide valid primary category for : content"
     }
+
+    it should "throw exception for invalid dataType for objectCategory" in {
+        val exception = intercept[ClientException] {
+            val request = new Request()
+            request.setRequest(new util.HashMap[String, AnyRef]() {
+                {
+                    put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, "test-string")
+                }
+            })
+            ChannelManager.validateObjectCategory(request)
+        }
+        exception.getMessage shouldEqual "Please provide valid list for primary categories"
+    }
 }

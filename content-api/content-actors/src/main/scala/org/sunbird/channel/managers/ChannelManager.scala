@@ -54,26 +54,35 @@ object ChannelManager {
       val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
       val masterCategoriesList: util.List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
       val errMsg: ListBuffer[String] = ListBuffer()
-      if(request.getRequest.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)){
-        val requestedContentCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
-        if (util.Collections.disjoint(masterCategoriesList, requestedContentCategoryList)) {
-          errMsg += "content"
+      try {
+        if (request.getRequest.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)) {
+          val requestedContentCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
+          if (util.Collections.disjoint(masterCategoriesList, requestedContentCategoryList)) {
+            errMsg += "content"
+          }
         }
-      }
-      if(request.getRequest.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)){
-        val requestedCollectionCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
-        if (util.Collections.disjoint(masterCategoriesList, requestedCollectionCategoryList)) {
-          errMsg += "collection"
+        if (request.getRequest.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)) {
+          val requestedCollectionCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
+          if (util.Collections.disjoint(masterCategoriesList, requestedCollectionCategoryList)) {
+            errMsg += "collection"
+          }
         }
-      }
-      if(request.getRequest.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)){
-        val requestedAssetCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.ASSET_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
-        if (util.Collections.disjoint(masterCategoriesList, requestedAssetCategoryList)) {
-          errMsg += "asset"
+        if (request.getRequest.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)) {
+          val requestedAssetCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.ASSET_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
+          if (util.Collections.disjoint(masterCategoriesList, requestedAssetCategoryList)) {
+            errMsg += "asset"
+          }
         }
-      }
-      if(errMsg.nonEmpty){
-        throw new ClientException("ERR_CATEGORY_OBJECT_NOT_PRESENT", "Please provide valid primary category for : " + errMsg.mkString(", "))
+        if (errMsg.nonEmpty) {
+          throw new ClientException("ERR_CATEGORY_OBJECT_NOT_PRESENT", "Please provide valid primary category for : " + errMsg.mkString(", "))
+        }
+      } catch {
+        case x: ClassCastException => {
+          throw new ClientException("ERR_INVALID_PRIMARY_CATEGORY_DATA_TYPE", "Please provide valid list for primary categories")
+        }
+        case x: Exception => {
+          throw new ClientException("ERR_VALIDATING_PRIMARY_CATEGORY", "Please provide valid primary categories")
+        }
       }
     }
   }
