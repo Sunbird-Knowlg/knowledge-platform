@@ -180,9 +180,7 @@ object HierarchyManager {
     @throws[Exception]
     def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
-        var backwardCompatibility = true
         val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
-            backwardCompatibility = false
             Future(mapAsJavaMap(Map("content" -> JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]))))
         } else getCassandraHierarchy(request)
         hierarchyFuture.map(result => {
@@ -190,18 +188,9 @@ object HierarchyManager {
                 val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
                 val rootHierarchy  = result.get("content").asInstanceOf[util.Map[String, AnyRef]]
                 if (StringUtils.isEmpty(bookmarkId)) {
-                    //TODO: Remove content Mapping for backward compatibility
-                    if(backwardCompatibility) {
-                        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootHierarchy)
-                        val children = rootHierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-                        updateContentMappingInChildren(children)
-                    }
                     ResponseHandler.OK.put("content", rootHierarchy)
                 } else {
                     val children = rootHierarchy.getOrElse("children", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-                    //TODO: Remove content Mapping for backward compatibility
-                    if(backwardCompatibility)
-                        updateContentMappingInChildren(children)
                     val bookmarkHierarchy = filterBookmarkHierarchy(children, bookmarkId)
                     if (MapUtils.isEmpty(bookmarkHierarchy)) {
                         ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
@@ -404,8 +393,10 @@ object HierarchyManager {
         hierarchy.map(hierarchy => {
             if (!hierarchy.isEmpty) {
                 if (StringUtils.isNotEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
-                    rootHierarchy.put("content", new util.HashMap[String, AnyRef](hierarchy))
-                    RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(new util.HashMap[String, AnyRef](hierarchy)))
+                    //TODO: Remove mapping
+                    val hierarchyMap = mapPrimaryCategories(hierarchy)
+                    rootHierarchy.put("content", hierarchyMap)
+                    RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchyMap))
                     Future(rootHierarchy)
                 } else {
                     Future(new util.HashMap[String, AnyRef]())
@@ -421,8 +412,10 @@ object HierarchyManager {
                                     if (StringUtils.isNoneEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && CollectionUtils.isNotEmpty(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]])) {
                                         val bookmarkHierarchy = filterBookmarkHierarchy(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]], request.get("rootId").asInstanceOf[String])
                                         if (!bookmarkHierarchy.isEmpty) {
-                                            rootHierarchy.put("content", hierarchy)
-                                            RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(new util.HashMap[String, AnyRef](bookmarkHierarchy)))
+                                            //TODO: Remove mapping
+                                            val hierarchyMap = mapPrimaryCategories(bookmarkHierarchy)
+                                            rootHierarchy.put("content", hierarchyMap)
+                                            RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchyMap))
                                             rootHierarchy
                                         } else {
                                             new util.HashMap[String, AnyRef]()
@@ -531,8 +524,8 @@ object HierarchyManager {
     def updateLatestLeafNodes(children: util.List[util.Map[String, AnyRef]], leafNodeMap: util.Map[String, AnyRef]): List[Any] = {
         children.toList.map(content => {
             if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
-                val metadata: util.Map[String, AnyRef] = leafNodeMap.get(content.get("identifier").asInstanceOf[String]).asInstanceOf[util.Map[String, AnyRef]]
-                if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.get("status").asInstanceOf[String])){
+                val metadata: util.Map[String, AnyRef] = leafNodeMap.getOrDefault(content.get("identifier").asInstanceOf[String], new java.util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+                if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.getOrDefault("status", HierarchyConstants.RETIRED_STATUS).asInstanceOf[String])){
                     children.remove(content)
                 } else {
                     content.putAll(metadata)
@@ -593,5 +586,13 @@ object HierarchyManager {
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
             updateContentMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
         })
+    }
+
+    private def mapPrimaryCategories(hierarchy: java.util.Map[String, AnyRef]):util.Map[String, AnyRef] = {
+        val updatedHierarchy = new util.HashMap[String, AnyRef](hierarchy)
+        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
+        val children = new util.HashMap[String, AnyRef](hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+        updateContentMappingInChildren(children)
+        updatedHierarchy
     }
 }

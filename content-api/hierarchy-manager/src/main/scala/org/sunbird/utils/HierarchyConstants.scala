@@ -49,4 +49,5 @@ object HierarchyConstants {
     val MIME_TYPE: String = "mimeType"
     val COPY_TYPE_SHALLOW: String = "shallow"
     val RETIRED_STATUS: String = "Retired"
+    val AUDIENCE: String = "audience"
 }

@@ -30,7 +30,7 @@ class TestAcceptFlagManager extends BaseSpec with MockFactory {
       put("contentType", "Resource")
       put("channel", "Test")
       put("mimeType", "application/pdf")
-      put("primaryCategory", "LearningResource")
+      put("primaryCategory", "Learning Resource")
     }}
     val node = getNode("Content", Option(nodeMetaData))
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()

@@ -337,7 +337,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 				put("status", "Draft")
 				put("channel", "test")
 				put("versionKey", "1234")
-				put("primaryCategory", "LearningResource")
+				put("primaryCategory", "Learning Resource")
 			}
 		})
 		node

@@ -1057,27 +1057,21 @@
     "primaryCategory": {
       "type": "string",
       "enum": [
+        "Explanation Content",
+        "Learning Resource",
         "Course",
-        "PracticeQuestionSet",
-        "DigitalTextBook",
-        "ContentPlaylist",
-        "ExplanationContent",
-        "LearningResource",
-        "OnlineCourse",
-        "QuestionSet",
-        "eTextBook",
-        "TeacherResource",
-        "CourseAssessment",
-        "ETB",
-        "ContentPlayList",
-        "GenericCollection",
-        "TVLesson",
+        "Practice Question Set",
+        "eTextbook",
+        "Teacher Resource",
+        "Course Assessment",
+        "Digital Textbook",
+        "Content Playlist",
         "Template",
         "Asset",
         "Plugin",
-        "LessonPlanUnit",
-        "CourseUnit",
-        "TextBookUnit"
+        "Lesson Plan Unit",
+        "Course Unit",
+        "Textbook Unit"
       ]
     },
     "additionalCategories": {
@@ -1085,31 +1079,8 @@
       "items": {
         "type": "string",
         "enum": [
-          "ClassroomTeachingVideo",
-          "ConceptMap",
-          "CuriosityQuestionSet",
           "Textbook",
-          "ExperientialResource",
-          "ExplanationVideo",
-          "FocusSpot",
-          "LearningOutcomeDefinition",
-          "MarkingSchemeRubric",
-          "PedagogyFlow",
-          "PracticeQuestionSet",
-          "LessonPlan",
-          "PreviousBoardExamPapers",
-          "ExplanationContent",
-          "LearningResource",
-          "OnlineCourse",
-          "QuestionSet",
-          "eTextBook",
-          "TeacherResource",
-          "CourseAssessment",
-          "ETB",
-          "ContentPlayList",
-          "GenericCollection",
-          "TextBook",
-          "TVLesson"
+          "Lesson Plan"
         ]
       }
     },
@@ -1121,30 +1092,6 @@
       "items": {
         "type": "object"
       }
-    },
-    "c_sunbird_dev_private_batch_count": {
-      "type": "number"
-    },
-    "c_sunbird_dev_open_batch_count": {
-      "type": "number"
-    },
-    "c_diksha_stage_open_batch_count": {
-      "type": "number"
-    },
-    "c_diksha_stage_private_batch_count": {
-      "type": "number"
-    },
-    "c_diksha_preprod_open_batch_count": {
-      "type": "number"
-    },
-    "c_diksha_preprod_private_batch_count": {
-      "type": "number"
-    },
-    "c_diksha_open_batch_count": {
-      "type": "number"
-    },
-    "c_diksha_private_batch_count": {
-      "type": "number"
     }
   }
 }
