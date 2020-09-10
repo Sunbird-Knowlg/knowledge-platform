@@ -1077,23 +1077,21 @@
         "primaryCategory": {
             "type": "string",
             "enum": [
-                "ExplanationContent",
-                "LearningResource",
-                "OnlineCourse",
-                "QuestionSet",
-                "eTextBook",
-                "TeacherResource",
-                "CourseAssessment",
-                "ETB",
-                "ContentPlayList",
-                "GenericCollection",
-                "TVLesson",
+                "Explanation Content",
+                "Learning Resource",
+                "Course",
+                "Practice Question Set",
+                "eTextbook",
+                "Teacher Resource",
+                "Course Assessment",
+                "Digital Textbook",
+                "Content Playlist",
                 "Template",
                 "Asset",
                 "Plugin",
-                "LessonPlanUnit",
-                "CourseUnit",
-                "TextBookUnit"
+                "Lesson Plan Unit",
+                "Course Unit",
+                "Textbook Unit"
             ]
         },
         "additionalCategories": {
@@ -1101,31 +1099,33 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "ClassroomTeachingVideo",
-                    "ConceptMap",
-                    "CuriosityQuestionSet",
                     "Textbook",
-                    "ExperientialResource",
-                    "ExplanationVideo",
-                    "FocusSpot",
-                    "LearningOutcomeDefinition",
-                    "MarkingSchemeRubric",
-                    "PedagogyFlow",
-                    "PracticeQuestionSet",
-                    "LessonPlan",
-                    "PreviousBoardExamPapers",
-                    "ExplanationContent",
-                    "LearningResource",
-                    "OnlineCourse",
-                    "QuestionSet",
-                    "eTextBook",
-                    "TeacherResource",
-                    "CourseAssessment",
-                    "ETB",
-                    "ContentPlayList",
-                    "GenericCollection"
+                    "TV Lesson",
+                    "Previous Board Exam Papers",
+                    "Pedagogy Flow",
+                    "Marking Scheme Rubric",
+                    "Lesson Plan",
+                    "Learning Outcome Definition",
+                    "Focus Spot",
+                    "Explanation Video",
+                    "Experiential Resource",
+                    "Curiosity Question Set",
+                    "Concept Map",
+                    "Classroom Teaching Video"
                 ]
             }
+        },
+        "prevStatus": {
+            "type": "string"
+        },
+        "cloudStorageKey": {
+            "type": "string"
+        },
+      "batches": {
+        "type": "array",
+        "items": {
+          "type": "object"
         }
+      }
     }
 }

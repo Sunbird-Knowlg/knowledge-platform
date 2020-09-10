@@ -27,11 +27,14 @@ object ImportManager {
 	val AUTO_CREATE_TOPIC_NAME = Platform.config.getString("content.import.topic_name")
 	val REQUIRED_PROPS = Platform.getStringList("content.import.required_props", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework"))
 	val VALID_CONTENT_STAGE = Platform.getStringList("content.import.valid_stages", java.util.Arrays.asList("create", "upload", "review", "publish"))
+	val PROPS_TO_REMOVE = Platform.getStringList("content.import.remove_props", java.util.Arrays.asList("downloadUrl","variants","previewUrl","streamingUrl","itemSets"))
 
 	def importContent(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
 		val reqList: util.List[util.Map[String, AnyRef]] = getRequest(request)
-		if (CollectionUtils.isNotEmpty(reqList) && reqList.size > REQUEST_LIMIT)
+		if (CollectionUtils.isEmpty(reqList))
+			throw new ClientException(ImportErrors.ERR_INVALID_IMPORT_REQUEST, ImportErrors.ERR_INVALID_IMPORT_REQUEST_MSG)
+		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > REQUEST_LIMIT)
 			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + REQUEST_LIMIT)
 		val processId: String = UUID.randomUUID().toString
 		val invalidCodes: util.List[String] = new util.ArrayList[String]()
@@ -63,6 +66,7 @@ object ImportManager {
 					sourceMetadata.put(ImportConstants.SOURCE, source)
 					sourceMetadata
 				} else reqMetadata
+				finalMetadata.keySet().removeAll(PROPS_TO_REMOVE)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
 				if (!validateMetadata(finalMetadata))
 					invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])

@@ -151,6 +151,8 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 				put("contentType", "Resource")
 				put("artifactUrl", "http://test.com/test.pdf")
 				put("channel", "test")
+				put("downloadUrl", "http://test.com/test.ecar")
+				put("itemSets", "do_123")
 			}})
 		}})
 		(hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
@@ -162,6 +164,18 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 			assert(result.getResponseCode.toString=="OK")
 			assert(null != result.getResult.get("processId"))
 		})
+	}
+
+	"importContent with invalid input" should "throw client exception" in {
+		val request = getRequest()
+		request.putAll(new util.HashMap[String, AnyRef](){{
+			put("content", new util.ArrayList[String]())
+		}})
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val exception = intercept[ClientException] {
+			ImportManager.importContent(request)
+		}
+		assert(exception.getMessage ==  "Invalid Request! Please Provide Valid Request.")
 	}
 
 	"validateStage with invalid input" should "return false" in {

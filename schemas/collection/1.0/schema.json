@@ -1057,23 +1057,21 @@
     "primaryCategory": {
       "type": "string",
       "enum": [
-        "ExplanationContent",
-        "LearningResource",
-        "OnlineCourse",
-        "QuestionSet",
-        "eTextBook",
-        "TeacherResource",
-        "CourseAssessment",
-        "ETB",
-        "ContentPlayList",
-        "GenericCollection",
-        "TVLesson",
+        "Explanation Content",
+        "Learning Resource",
+        "Course",
+        "Practice Question Set",
+        "eTextbook",
+        "Teacher Resource",
+        "Course Assessment",
+        "Digital Textbook",
+        "Content Playlist",
         "Template",
         "Asset",
         "Plugin",
-        "LessonPlanUnit",
-        "CourseUnit",
-        "TextBookUnit"
+        "Lesson Plan Unit",
+        "Course Unit",
+        "Textbook Unit"
       ]
     },
     "additionalCategories": {
@@ -1081,30 +1079,18 @@
       "items": {
         "type": "string",
         "enum": [
-          "ClassroomTeachingVideo",
-          "ConceptMap",
-          "CuriosityQuestionSet",
           "Textbook",
-          "ExperientialResource",
-          "ExplanationVideo",
-          "FocusSpot",
-          "LearningOutcomeDefinition",
-          "MarkingSchemeRubric",
-          "PedagogyFlow",
-          "PracticeQuestionSet",
-          "LessonPlan",
-          "PreviousBoardExamPapers",
-          "ExplanationContent",
-          "LearningResource",
-          "OnlineCourse",
-          "QuestionSet",
-          "eTextBook",
-          "TeacherResource",
-          "CourseAssessment",
-          "ETB",
-          "ContentPlayList",
-          "GenericCollection"
+          "Lesson Plan"
         ]
+      }
+    },
+    "prevStatus": {
+      "type": "string"
+    },
+    "batches": {
+      "type": "array",
+      "items": {
+        "type": "object"
       }
     }
   }
