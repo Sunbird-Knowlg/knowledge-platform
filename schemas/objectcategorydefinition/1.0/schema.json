@@ -60,6 +60,18 @@
         }
       },
       "additionalProperties": false
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "versionKey": {
+      "type": "string"
     }
   },
   "additionalProperties": false
