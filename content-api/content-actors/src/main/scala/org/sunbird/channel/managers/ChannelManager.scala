@@ -44,8 +44,7 @@ object ChannelManager {
   }
 
   def validateObjectCategory(request: Request) = {
-    val categoryKeyList: util.List[String] = ChannelConstants.categoryKeyList
-    if (!util.Collections.disjoint(request.getRequest.keySet(), categoryKeyList)) {
+    if (!util.Collections.disjoint(request.getRequest.keySet(), ChannelConstants.categoryKeyList)) {
       val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
       val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("""{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name"]}}""").asString
       if (200 != httpResponse.getStatus)
@@ -54,40 +53,36 @@ object ChannelManager {
       val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
       if (objectCategoryList.isEmpty)
         throw new ClientException("ERR_NO_MASTER_OBJECT_CATEGORY_DEFINED", "Master category object not present")
-      val masterCategoriesList: util.List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
+      val masterCategoriesList: List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
       val errMsg: ListBuffer[String] = ListBuffer()
-      try {
-        if (request.getRequest.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)) {
-          val requestedContentCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
-          if (util.Collections.disjoint(masterCategoriesList, requestedContentCategoryList)) {
-            errMsg += "content"
-          }
-        }
-        if (request.getRequest.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)) {
-          val requestedCollectionCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
-          if (util.Collections.disjoint(masterCategoriesList, requestedCollectionCategoryList)) {
-            errMsg += "collection"
-          }
-        }
-        if (request.getRequest.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)) {
-          val requestedAssetCategoryList: util.List[String] = request.getRequest.get(ChannelConstants.ASSET_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]
-          if (util.Collections.disjoint(masterCategoriesList, requestedAssetCategoryList)) {
-            errMsg += "asset"
-          }
-        }
-        if (errMsg.nonEmpty) {
-          throw new ClientException("ERR_CATEGORY_OBJECT_NOT_PRESENT", "Please provide valid primary category for : " + errMsg.mkString(", "))
-        }
-      } catch {
-        case e: ClassCastException => {
-          throw new ClientException("ERR_INVALID_PRIMARY_CATEGORY_DATA_TYPE", "Please provide valid list for primary categories")
-        }
-        case e: ClientException => {
-          throw new ClientException(e.getErrCode, e.getMessage)
-        }
-        case e: Exception => {
-          throw new ClientException("ERR_VALIDATING_PRIMARY_CATEGORY", "Please provide valid primary categories")
-        }
+      compareWithMasterCategory(request, masterCategoriesList, errMsg)
+      if (errMsg.nonEmpty)
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "please provide valid : " + errMsg.mkString("[", ",", "]"))
+    }
+  }
+
+  def compareWithMasterCategory(request: Request, masterCat: List[String], errMsg: ListBuffer[String]): Unit = {
+    ChannelConstants.categoryKeyList.map(cat => {
+      if (request.getRequest.containsKey(cat)) {
+        val requestedCategoryList: util.List[String] = getRequestedCategoryList(request, cat)
+        if (util.Collections.disjoint(masterCat, requestedCategoryList))
+          errMsg += cat
+      }
+    })
+  }
+
+  def getRequestedCategoryList(request: Request, cat: String): util.ArrayList[String] = {
+    try {
+      val requestedList = request.getRequest.get(cat).asInstanceOf[util.ArrayList[String]]
+      if (requestedList.isEmpty)
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "empty list not allowed for " + cat)
+      requestedList
+    } catch {
+      case e: ClassCastException => {
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "Please provide valid list for " + cat)
+      }
+      case e: ClientException => {
+        throw new ClientException(e.getErrCode, e.getMessage)
       }
     }
   }

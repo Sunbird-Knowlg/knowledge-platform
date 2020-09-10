@@ -53,25 +53,11 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
 
     it should "return success for valid objectCategory" in {
         val request = new Request()
-        request.setRequest(new util.HashMap[String, AnyRef]() {
-            {
-                put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                    {
-                        add("Learning Resource")
-                    }
-                })
-                put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                    {
-                        add("Learning Resource")
-                    }
-                })
-                put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                    {
-                        add("Learning Resource")
-                    }
-                })
-            }
-        })
+        request.setRequest(new util.HashMap[String, AnyRef]() {{
+                put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("Learning Resource")}})
+                put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("Learning Resource")}})
+                put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("Learning Resource")}})
+        }})
         ChannelManager.validateObjectCategory(request)
         assert(true)
     }
@@ -79,57 +65,36 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
     it should "throw exception for invalid objectCategory" in {
         val exception = intercept[ClientException] {
             val request = new Request()
-            request.setRequest(new util.HashMap[String, AnyRef]() {
-                {
-                    put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                        {
-                            add("xyz")
-                        }
-                    })
-                    put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                        {
-                            add("xyz")
-                        }
-                    })
-                    put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                        {
-                            add("xyz")
-                        }
-                    })
-                }
-            })
+            request.setRequest(new util.HashMap[String, AnyRef]() {{
+                put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("xyz")}})
+                put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("xyz")}})
+                put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("xyz")}})
+            }})
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "Please provide valid primary category for : content, collection, asset"
+        exception.getMessage shouldEqual "please provide valid : [contentPrimaryCategories,collectionPrimaryCategories,assetPrimaryCategories]"
     }
 
     it should "throw exception for empty objectCategory" in {
         val exception = intercept[ClientException] {
             val request = new Request()
-            request.setRequest(new util.HashMap[String, AnyRef]() {
-                {
-                    put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {
-                        {
-                            add("")
-                        }
-                    })
-                }
-            })
+            request.setRequest(new util.HashMap[String, AnyRef]() {{
+                    put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]())
+                }})
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "Please provide valid primary category for : content"
+        exception.getMessage shouldEqual "empty list not allowed for contentPrimaryCategories"
     }
 
     it should "throw exception for invalid dataType for objectCategory" in {
         val exception = intercept[ClientException] {
             val request = new Request()
-            request.setRequest(new util.HashMap[String, AnyRef]() {
-                {
+            request.setRequest(new util.HashMap[String, AnyRef]() {{
                     put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, "test-string")
-                }
-            })
+                }})
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "Please provide valid list for primary categories"
+        exception.getMessage shouldEqual "Please provide valid list for contentPrimaryCategories"
     }
+
 }
