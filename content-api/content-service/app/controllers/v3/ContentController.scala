@@ -57,7 +57,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
-        val contentRequest = getRequest(content, headers, "updateContent", true)
+        val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
         getResult(ApiId.UPDATE_CONTENT, contentActor, contentRequest)

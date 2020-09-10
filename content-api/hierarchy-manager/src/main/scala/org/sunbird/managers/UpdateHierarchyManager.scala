@@ -93,8 +93,6 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
         DataNode.read(req).map(rootNode => {
             val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new java.util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-            //TODO: Remove the Populate category mapping before updating for backward
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)
             if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.COLLECTION_MIME_TYPE)) {
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
@@ -108,6 +106,8 @@ object UpdateHierarchyManager {
             if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW))
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "Hierarchy update is not allowed for partially (shallow) copied content : " + identifier)
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
+            //TODO: Remove the Populate category mapping before updating for backward
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)s
             rootNode
         })
     }
