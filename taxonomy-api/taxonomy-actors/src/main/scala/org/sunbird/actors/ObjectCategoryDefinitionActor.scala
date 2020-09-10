@@ -38,7 +38,8 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 			val identifier = categoryId + "_" + Slug.makeSlug(targetObjectType) + "_" + Slug.makeSlug(channelId)
 			request.put(Constants.IDENTIFIER, identifier)
 			val getCategoryReq = new Request()
-			getCategoryReq.setContext(request.getContext)
+			val reqContext = request.getContext
+			getCategoryReq.setContext(reqContext)
 			getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.OBJECT_CATEGORY_SCHEMA_NAME)
 			getCategoryReq.getContext.put(Constants.VERSION, Constants.OBJECT_CATEGORY_SCHEMA_VERSION)
 			getCategoryReq.put(Constants.IDENTIFIER, categoryId)
