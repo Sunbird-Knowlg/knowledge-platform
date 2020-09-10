@@ -589,9 +589,10 @@ object HierarchyManager {
     }
 
     private def mapPrimaryCategories(hierarchy: java.util.Map[String, AnyRef]):util.Map[String, AnyRef] = {
-        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(new util.HashMap[String, AnyRef](hierarchy))
+        val updatedHierarchy = new util.HashMap[String, AnyRef](hierarchy)
+        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
         val children = new util.HashMap[String, AnyRef](hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
         updateContentMappingInChildren(children)
-        hierarchy
+        updatedHierarchy
     }
 }
