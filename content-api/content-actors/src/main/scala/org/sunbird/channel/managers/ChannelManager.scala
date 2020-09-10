@@ -52,6 +52,8 @@ object ChannelManager {
         throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object category.")
       val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
       val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+      if (objectCategoryList.isEmpty)
+        throw new ClientException("ERR_NO_MASTER_OBJECT_CATEGORY_DEFINED", "Master category object not present")
       val masterCategoriesList: util.List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
       val errMsg: ListBuffer[String] = ListBuffer()
       try {
