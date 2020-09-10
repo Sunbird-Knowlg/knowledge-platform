@@ -134,8 +134,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     private def getCategoryForResource(mimeType: String, resourceType: String): String = (mimeType, resourceType) match {
         case ("", "") => "Learning Resource"
-        case (x: String, y: String) => if (mimeTypesToCheck.contains(x)) categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource") else categoryMapForResourceType.getOrDefault(y, "Learning Resource").asInstanceOf[String]
         case (x: String, "") => categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource")
+        case (x: String, y: String) => if (mimeTypesToCheck.contains(x)) categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource") else categoryMapForResourceType.getOrDefault(y, "Learning Resource").asInstanceOf[String]
         case _ => "Learning Resource"
     }
 
