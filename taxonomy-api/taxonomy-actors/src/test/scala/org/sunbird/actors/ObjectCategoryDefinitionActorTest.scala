@@ -37,7 +37,11 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
 		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryDefinitionNode()))
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("name" -> "Test Category Definition", "targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> Map("schema" -> Map()), "config" -> Map())))
+		val objectMetadata = new util.HashMap[String, AnyRef](){{
+			put("schema", new util.HashMap())
+			put("config", new util.HashMap())
+		}}
+		request.putAll(mapAsJavaMap(Map("name" -> "Test Category Definition", "targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> objectMetadata)))
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.get(Constants.IDENTIFIER) != null)
