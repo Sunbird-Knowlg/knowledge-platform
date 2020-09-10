@@ -77,10 +77,13 @@ object ChannelManager {
           throw new ClientException("ERR_CATEGORY_OBJECT_NOT_PRESENT", "Please provide valid primary category for : " + errMsg.mkString(", "))
         }
       } catch {
-        case x: ClassCastException => {
+        case e: ClassCastException => {
           throw new ClientException("ERR_INVALID_PRIMARY_CATEGORY_DATA_TYPE", "Please provide valid list for primary categories")
         }
-        case x: Exception => {
+        case e: ClientException => {
+          throw new ClientException(e.getErrCode, e.getMessage)
+        }
+        case e: Exception => {
           throw new ClientException("ERR_VALIDATING_PRIMARY_CATEGORY", "Please provide valid primary categories")
         }
       }
