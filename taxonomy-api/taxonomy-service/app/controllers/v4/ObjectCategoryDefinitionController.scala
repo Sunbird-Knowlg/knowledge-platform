@@ -19,6 +19,7 @@ class ObjectCategoryDefinitionController @Inject()(@Named(ActorNames.OBJECT_CATE
 
 	def create() = Action.async { implicit request =>
 		val headers = commonHeaders()
+		headers.remove("channel")
 		val body = requestBody()
 		val categoryDefinition = body.getOrDefault(OBJECT_CATEGORY_DEFINITION, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
 		categoryDefinition.putAll(headers)
