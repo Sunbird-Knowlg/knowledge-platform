@@ -107,7 +107,7 @@ object UpdateHierarchyManager {
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "Hierarchy update is not allowed for partially (shallow) copied content : " + identifier)
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
             //TODO: Remove the Populate category mapping before updating for backward
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)s
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)
             rootNode
         })
     }
