@@ -32,7 +32,9 @@ object ImportManager {
 	def importContent(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
 		val reqList: util.List[util.Map[String, AnyRef]] = getRequest(request)
-		if (CollectionUtils.isNotEmpty(reqList) && reqList.size > REQUEST_LIMIT)
+		if (CollectionUtils.isEmpty(reqList))
+			throw new ClientException(ImportErrors.ERR_INVALID_IMPORT_REQUEST, ImportErrors.ERR_INVALID_IMPORT_REQUEST_MSG)
+		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > REQUEST_LIMIT)
 			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + REQUEST_LIMIT)
 		val processId: String = UUID.randomUUID().toString
 		val invalidCodes: util.List[String] = new util.ArrayList[String]()
