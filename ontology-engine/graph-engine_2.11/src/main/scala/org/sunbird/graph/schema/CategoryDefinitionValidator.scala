@@ -2,6 +2,7 @@ package org.sunbird.graph.schema
 
 import java.io.{ByteArrayInputStream, File}
 import java.net.URI
+import java.util
 import java.util.concurrent.CompletionException
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -55,7 +56,8 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
         }
         val objectMetadata = JsonUtils.deserialize(resultNode.getMetadata.getOrDefault("objectMetadata", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
         val nodeSchema = objectMetadata.getOrDefault("schema", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]]
-        schemaMap.putAll(nodeSchema)
+        schemaMap.getOrDefault("properties", new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]].putAll(nodeSchema.getOrDefault("properties", new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]])
+        schemaMap.getOrDefault("required", new java.util.ArrayList[String]()).asInstanceOf[java.util.List[String]].addAll(nodeSchema.getOrDefault("required", new java.util.ArrayList[String]()).asInstanceOf[java.util.List[String]])
         configMap.putAll(objectMetadata.getOrDefault("config", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]])
         this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
         this.config = ConfigFactory.parseMap(configMap)
