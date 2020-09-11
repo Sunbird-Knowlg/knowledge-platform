@@ -14,6 +14,8 @@ import org.sunbird.common.JsonUtils
 import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
 
@@ -38,6 +40,53 @@ object ChannelManager {
       val languageCodes = if(Platform.config.hasPath("platform.language.codes")) Platform.config.getStringList("platform.language.codes") else new util.ArrayList[String]()
       if (translations.asScala.exists(entry => !languageCodes.contains(entry._1)))
         throw new ClientException("ERR_INVALID_LANGUAGE_CODE", "Please Provide Valid Language Code For translations. Valid Language Codes are : " + languageCodes)
+    }
+  }
+
+  def validateObjectCategory(request: Request) = {
+    if (!util.Collections.disjoint(request.getRequest.keySet(), ChannelConstants.categoryKeyList)) {
+      val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
+      val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("""{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name"]}}""").asString
+      if (200 != httpResponse.getStatus)
+        throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object category.")
+      val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
+      val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+      if (objectCategoryList.isEmpty)
+        throw new ClientException("ERR_NO_MASTER_OBJECT_CATEGORY_DEFINED", "Master category object not present")
+      val masterCategoriesList: List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
+      val errMsg: ListBuffer[String] = ListBuffer()
+      compareWithMasterCategory(request, masterCategoriesList, errMsg)
+      if (errMsg.nonEmpty)
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "Please provide valid : " + errMsg.mkString("[", ",", "]"))
+    }
+  }
+
+  def compareWithMasterCategory(request: Request, masterCat: List[String], errMsg: ListBuffer[String]): Unit = {
+    ChannelConstants.categoryKeyList.map(cat => {
+      if (request.getRequest.containsKey(cat)) {
+        val requestedCategoryList: util.List[String] = getRequestedCategoryList(request, cat)
+        if (!masterCat.containsAll(requestedCategoryList))
+          errMsg += cat
+      }
+    })
+  }
+
+  def getRequestedCategoryList(request: Request, cat: String): util.ArrayList[String] = {
+    try {
+      val requestedList = request.getRequest.get(cat).asInstanceOf[util.ArrayList[String]]
+      if (requestedList.isEmpty)
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "Empty list not allowed for " + cat)
+      requestedList
+    } catch {
+      case e: ClassCastException => {
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "Please provide valid list for " + cat)
+      }
+      case e: ClientException => {
+        throw new ClientException(e.getErrCode, e.getMessage)
+      }
+      case e: Exception => {
+        throw new ServerException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, e.getMessage)
+      }
     }
   }
 }
