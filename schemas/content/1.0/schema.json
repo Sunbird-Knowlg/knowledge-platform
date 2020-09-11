@@ -1068,7 +1068,7 @@
         },
         "me_totalRatingsCount": {
             "type": "number"
-        }
+        },
         "monitorable": {
             "type": "array",
             "items": {
