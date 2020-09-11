@@ -85,7 +85,7 @@ object ChannelManager {
         throw new ClientException(e.getErrCode, e.getMessage)
       }
       case e: Exception => {
-        throw new ServerException("ERR_VALIDATING_PRIMARY_CATEGORY", e.getMessage)
+        throw new ServerException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, e.getMessage)
       }
     }
   }
