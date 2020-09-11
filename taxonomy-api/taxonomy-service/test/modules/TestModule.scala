@@ -13,6 +13,7 @@ class TestModule extends AbstractModule with AkkaGuiceSupport {
 	override def configure(): Unit = {
 		bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
 		bindActor(classOf[TestActor], ActorNames.OBJECT_CATEGORY_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.OBJECT_CATEGORY_DEFINITION_ACTOR)
 		println("Test Module is initialized...")
 	}
 }
