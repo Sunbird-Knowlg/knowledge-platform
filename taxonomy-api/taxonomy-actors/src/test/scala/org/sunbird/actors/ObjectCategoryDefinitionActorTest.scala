@@ -32,6 +32,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 			{
 				put("identifier", "obj-cat:1234");
 				put("objectType", "ObjectCategory")
+				put("name", "1234")
 			}
 		})
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -41,7 +42,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 			put("schema", new util.HashMap())
 			put("config", new util.HashMap())
 		}}
-		request.putAll(mapAsJavaMap(Map("name" -> "Test Category Definition", "targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> objectMetadata)))
+		request.putAll(mapAsJavaMap(Map("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> objectMetadata)))
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.get(Constants.IDENTIFIER) != null)
@@ -54,7 +55,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(null))
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("name" -> "Test Category Definition", "targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> Map("schema" -> Map()), "config" -> Map())))
+		request.putAll(mapAsJavaMap(Map("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> Map("schema" -> Map()), "config" -> Map())))
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -64,7 +65,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 	it should "should throw exception for blank categoryId" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("name" -> "Test Category Definition", "tagetObjectType" -> "Content", "categoryId" -> "")))
+		request.putAll(mapAsJavaMap(Map("tagetObjectType" -> "Content", "categoryId" -> "")))
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -80,6 +81,21 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		val request = getCategoryDefintionRequest()
 		request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234_content_all")
 		request.putAll(mapAsJavaMap(Map("fields" -> "")))
+		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
+		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
+		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		assert("successful".equals(response.getParams.getStatus))
+		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
+	}
+
+	it should "return success response for readCategoryDefinition with post request" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val node = getCategoryDefinitionNode()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+		val request = getCategoryDefintionRequest()
+		request.putAll(mapAsJavaMap(Map("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234")))
 		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
