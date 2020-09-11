@@ -1,0 +1,78 @@
+{
+  "$id": "objectcategorydefinition-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ObjectCategoryDefinition",
+  "type": "object",
+  "required": [
+    "categoryId",
+    "targetObjectType",
+    "objectMetadata",
+    "name"
+  ],
+  "properties": {
+    "identifier": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "description": {
+      "type": "string"
+    },
+    "categoryId": {
+      "type": "string"
+    },
+    "objectType": {
+      "type": "string"
+    },
+    "targetObjectType": {
+      "type": "string",
+      "enum": [
+        "Content",
+        "Collection",
+        "Asset",
+        "ItemSet"
+      ]
+    },
+    "channel": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Live"
+      ],
+      "default": "Live"
+    },
+    "objectMetadata": {
+      "type": "object",
+      "required": [
+        "config",
+        "schema"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
+        },
+        "schema": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "versionKey": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

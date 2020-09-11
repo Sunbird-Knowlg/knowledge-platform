@@ -1,0 +1,22 @@
+{
+  "objectType": "ObjectCategoryDefinition",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "schema_restrict_api": true,
+  "restrictProps": {
+    "create": [
+      "identifier",
+      "status",
+      "objectType"
+    ],
+    "update": [
+      "identifier",
+      "categoryId",
+      "targetObjectType",
+      "channel",
+      "status",
+      "objectType"
+    ]
+  }
+}

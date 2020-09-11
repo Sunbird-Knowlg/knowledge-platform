@@ -16,10 +16,6 @@ import scala.collection.JavaConverters._
 class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0") extends BaseDefinitionNode(graphId, schemaName, version) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
 
     def getOutRelationObjectTypes: List[String] = outRelationObjectTypes
-    //Todo:: Remove this after v4 apis
-    val propsToNotValidate = List("c_sunbird_dev_private_batch_count", "c_sunbird_dev_open_batch_count", "c_diksha_stage_open_batch_count",
-        "c_diksha_stage_private_batch_count", "c_diksha_preprod_open_batch_count", "c_diksha_preprod_private_batch_count",
-        "c_diksha_open_batch_count", "c_diksha_private_batch_count")
 
     def getNode(identifier: String, input: java.util.Map[String, AnyRef], nodeType: String): Node = {
         val result = schemaValidator.getStructuredData(input)
@@ -121,9 +117,8 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def validateRequest(request: Request) = {
         if(schemaValidator.getConfig.hasPath("schema_restrict_api") && schemaValidator.getConfig.getBoolean("schema_restrict_api")){
             val propsList: List[String] = schemaValidator.getAllProps.asScala.toList
-            val updatedList = propsList ++ propsToNotValidate
             //Todo:: Remove this after v4 apis
-            val invalidProps: List[String] = request.getRequest.keySet().asScala.toList.filterNot(key => updatedList.contains(key))
+            val invalidProps: List[String] = request.getRequest.keySet().asScala.toList.filterNot(key => propsList.contains(key) || StringUtils.endsWith(key, "batch_count"))
 
             if(null != invalidProps && !invalidProps.isEmpty)
                 throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid request", java.util.Arrays.asList("Invalid Props are : " + invalidProps.asJavaCollection))
