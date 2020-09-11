@@ -57,7 +57,7 @@ object ChannelManager {
       val errMsg: ListBuffer[String] = ListBuffer()
       compareWithMasterCategory(request, masterCategoriesList, errMsg)
       if (errMsg.nonEmpty)
-        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "please provide valid : " + errMsg.mkString("[", ",", "]"))
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "Please provide valid : " + errMsg.mkString("[", ",", "]"))
     }
   }
 
@@ -65,7 +65,7 @@ object ChannelManager {
     ChannelConstants.categoryKeyList.map(cat => {
       if (request.getRequest.containsKey(cat)) {
         val requestedCategoryList: util.List[String] = getRequestedCategoryList(request, cat)
-        if (util.Collections.disjoint(masterCat, requestedCategoryList))
+        if (!masterCat.containsAll(requestedCategoryList))
           errMsg += cat
       }
     })
@@ -75,7 +75,7 @@ object ChannelManager {
     try {
       val requestedList = request.getRequest.get(cat).asInstanceOf[util.ArrayList[String]]
       if (requestedList.isEmpty)
-        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "empty list not allowed for " + cat)
+        throw new ClientException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, "Empty list not allowed for " + cat)
       requestedList
     } catch {
       case e: ClassCastException => {
@@ -83,6 +83,9 @@ object ChannelManager {
       }
       case e: ClientException => {
         throw new ClientException(e.getErrCode, e.getMessage)
+      }
+      case e: Exception => {
+        throw new ServerException("ERR_VALIDATING_PRIMARY_CATEGORY", e.getMessage)
       }
     }
   }

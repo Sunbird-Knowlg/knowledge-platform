@@ -72,7 +72,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
             }})
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "please provide valid : [contentPrimaryCategories,collectionPrimaryCategories,assetPrimaryCategories]"
+        exception.getMessage shouldEqual "Please provide valid : [contentPrimaryCategories,collectionPrimaryCategories,assetPrimaryCategories]"
     }
 
     it should "throw exception for empty objectCategory" in {
@@ -83,7 +83,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
                 }})
             ChannelManager.validateObjectCategory(request)
         }
-        exception.getMessage shouldEqual "empty list not allowed for contentPrimaryCategories"
+        exception.getMessage shouldEqual "Empty list not allowed for contentPrimaryCategories"
     }
 
     it should "throw exception for invalid dataType for objectCategory" in {
