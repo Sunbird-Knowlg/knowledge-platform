@@ -1092,6 +1092,12 @@
       "items": {
         "type": "object"
       }
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     }
   }
 }
