@@ -1135,6 +1135,9 @@
             "items": {
                 "type": "object"
             }
+        },
+        "showNotification": {
+            "type": "boolean"
         }
     }
 }
