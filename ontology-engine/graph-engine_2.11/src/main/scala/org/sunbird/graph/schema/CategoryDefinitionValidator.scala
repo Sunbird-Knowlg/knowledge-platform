@@ -49,7 +49,15 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
                 if( e.getCause.isInstanceOf[ResourceNotFoundException]){
                     if("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
                         throw e.getCause
-                    else Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all"), false, request), Duration.apply("30 seconds"))
+                    else {
+                        try {
+                            Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all"), false, request), Duration.apply("30 seconds"))
+                        } catch {
+                            case e: CompletionException => {
+                                throw e.getCause
+                            }
+                        }
+                    }
                 }
                 else throw e.getCause   
             }
