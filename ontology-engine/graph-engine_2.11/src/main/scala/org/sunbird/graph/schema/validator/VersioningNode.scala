@@ -140,6 +140,7 @@ trait VersioningNode extends IDefinition {
     private def nodeCacheAsyncHandler(objKey: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[String] = {
         super.getNode(objKey, "read", null).map(node => {
             if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
+                
                 val nodeMap = NodeUtil.serialize(node, null, getSchemaName(), getSchemaVersion())
                 Future(ScalaJsonUtils.serialize(nodeMap))
             } else Future("")
