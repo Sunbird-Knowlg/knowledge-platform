@@ -22,7 +22,7 @@ object NodeUtil {
 
     def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
-        val categoryDefinitionId = ObjectCategoryDefinitionMap.prepareCategoryId(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
+        val categoryDefinitionId = ObjectCategoryDefinitionMap.prepareCategoryId(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], schemaName, node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName, categoryDefinitionId)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName, categoryDefinitionId).asJava
