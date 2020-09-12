@@ -3,6 +3,8 @@ package controllers.v4
 import akka.actor.{ActorRef, ActorSystem}
 import controllers.BaseController
 import javax.inject.{Inject, Named}
+import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.exception.ClientException
 import org.sunbird.utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
@@ -49,4 +51,19 @@ class ObjectCategoryDefinitionController @Inject()(@Named(ActorNames.OBJECT_CATE
 		categoryDefinitionReq.getContext.put(Constants.IDENTIFIER, identifier)
 		getResult(ApiId.UPDATE_OBJECT_CATEGORY_DEFINITION, objCategoryDefinitionActor, categoryDefinitionReq)
 	}
+
+	def readCategoryDefinition(fields: Option[String]) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		headers.remove("channel")
+		val body = requestBody()
+		val categoryDefinition = body.getOrDefault(OBJECT_CATEGORY_DEFINITION, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+		categoryDefinition.putAll(headers)
+		categoryDefinition.put(Constants.FIELDS, fields.getOrElse(""))
+		categoryDefinition.put("REQ_METHOD", request.method)
+		val categoryDefinitionReq = getRequest(categoryDefinition, headers, Constants.READ_OBJECT_CATEGORY_DEFINITION)
+		setRequestContext(categoryDefinitionReq, SCHEMA_VERSION, OBJECT_TYPE, SCHEMA_NAME)
+		getResult(ApiId.READ_OBJECT_CATEGORY_DEFINITION, objCategoryDefinitionActor, categoryDefinitionReq)
+	}
+
+
 }
