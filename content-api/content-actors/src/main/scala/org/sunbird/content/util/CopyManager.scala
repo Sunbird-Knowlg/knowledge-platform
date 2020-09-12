@@ -128,7 +128,7 @@ object CopyManager {
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Cannot Copy content which is in " + node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String].toLowerCase + " status")
     }
 
-    def validateRequest(request: Request): Unit = {
+    def validateRequest(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
         val keysNotPresent = ContentConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
         if (keysNotPresent.nonEmpty)
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)

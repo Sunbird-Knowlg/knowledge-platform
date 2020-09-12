@@ -14,6 +14,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
@@ -47,6 +48,9 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 			getCategoryReq.put("fields", new util.ArrayList[String])
 			DataNode.read(getCategoryReq).map(node => {
 				if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
+					val name = node.getMetadata.getOrDefault("name", "").asInstanceOf[String]
+					val description = node.getMetadata.getOrDefault("description", "").asInstanceOf[String]
+					request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
 					DataNode.create(request).map(node => {
 						val response = ResponseHandler.OK
 						response.put(Constants.IDENTIFIER, node.getIdentifier)
@@ -58,6 +62,16 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 	}
 
 	private def read(request: Request): Future[Response] = {
+		val requestMethod = request.getRequest.getOrDefault("REQ_METHOD", "").asInstanceOf[String]
+		if(StringUtils.equalsAnyIgnoreCase("POST", requestMethod)) {
+			val channel = request.getRequest.getOrDefault("channel", "all").asInstanceOf[String]
+			val categoryName = request.getRequest.getOrDefault("name", "").asInstanceOf[String]
+			val objectType = request.getRequest.getOrDefault("objectType", "").asInstanceOf[String]
+			if(StringUtils.isBlank(categoryName) || StringUtils.isBlank(objectType))
+				throw new ClientException("ERR_INVALID_REQUEST", "Please provide required properties!")
+			val identifier = Constants.CATEGORY_PREFIX + Slug.makeSlug(categoryName) + "_" + Slug.makeSlug(objectType) + "_" + Slug.makeSlug(channel)
+			request.getRequest.put(Constants.IDENTIFIER, identifier)
+		}
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put(Constants.FIELDS, fields)
 		DataNode.read(request).map(node => {

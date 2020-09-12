@@ -1168,6 +1168,18 @@
         "items": {
           "type": "object"
         }
-      }
+      },
+        "year": {
+            "type": "string"
+        },
+        "plugins": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "showNotification": {
+            "type": "boolean"
+        }
     }
 }

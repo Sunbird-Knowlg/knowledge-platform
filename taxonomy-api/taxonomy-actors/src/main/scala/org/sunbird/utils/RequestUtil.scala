@@ -2,11 +2,14 @@ package org.sunbird.utils
 
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.DefinitionNode
+
+import scala.concurrent.ExecutionContext
 
 object RequestUtil {
 
-	def restrictProperties(request: Request): Unit = {
+	def restrictProperties(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
 		val graphId = request.getContext.getOrDefault("graph_id","").asInstanceOf[String]
 		val version = request.getContext.getOrDefault("version","").asInstanceOf[String]
 		val objectType = request.getContext.getOrDefault("objectType", "").asInstanceOf[String]
