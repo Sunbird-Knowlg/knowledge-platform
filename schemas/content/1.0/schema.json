@@ -1057,9 +1057,6 @@
         "sourceURL" : {
             "type": "string"
         },
-        "showNotification": {
-            "type": "boolean"
-        },
         "me_totalTimeSpentInSec": {
             "type": "object"
         },
