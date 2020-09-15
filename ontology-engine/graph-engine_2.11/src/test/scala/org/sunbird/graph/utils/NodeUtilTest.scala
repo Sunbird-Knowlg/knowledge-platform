@@ -1,10 +1,16 @@
 package org.sunbird.graph.utils
 
 import java.util
+
 import org.scalatest.{FlatSpec, Matchers}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 
+import scala.concurrent.ExecutionContext
+
 class NodeUtilTest extends FlatSpec with Matchers {
+	implicit val oec: OntologyEngineContext = new OntologyEngineContext
+	implicit  val ec: ExecutionContext = ExecutionContext.global
 
 	"getLanguageCodes with node having language with string type" should "return language code successfully" in {
 		val node:Node = new Node("domain","DATA_NODE","Content");

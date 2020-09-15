@@ -27,3 +27,4 @@ GET       /object/category/v4/read/:identifier                 controllers.v4.Ob
 POST      /object/category/definition/v4/create                controllers.v4.ObjectCategoryDefinitionController.create
 GET       /object/category/definition/v4/read/:identifier      controllers.v4.ObjectCategoryDefinitionController.read(identifier:String, fields:Option[String])
 PATCH     /object/category/definition/v4/update/:identifier    controllers.v4.ObjectCategoryDefinitionController.update(identifier:String)
+POST       /object/category/definition/v4/read                 controllers.v4.ObjectCategoryDefinitionController.readCategoryDefinition(fields:Option[String])

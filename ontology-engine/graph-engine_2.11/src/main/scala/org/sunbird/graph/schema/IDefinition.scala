@@ -6,9 +6,10 @@ import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-abstract class IDefinition(graphId: String, schemaName: String, version: String = "1.0") extends CoreDomainObject(graphId, schemaName, version) {
+abstract class IDefinition(graphId: String, schemaName: String, version: String = "1.0", categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends CoreDomainObject(graphId, schemaName, version, categoryId) {
 
-    var schemaValidator: ISchemaValidator = SchemaValidatorFactory.getInstance(schemaName, version)
+    var schemaValidator: ISchemaValidator = if(categoryId.isBlank) SchemaValidatorFactory.getInstance(schemaName, version) else new CategoryDefinitionValidator(schemaName, version).loadSchema(categoryId)
+    
     def getNode(input: java.util.Map[String, AnyRef]): Node
 
     @throws[Exception]

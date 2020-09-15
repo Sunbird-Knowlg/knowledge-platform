@@ -1027,6 +1027,45 @@
         "copyrightYear" : {
             "type": "number"
         },
+        "organisationId" : {
+            "type": "string"
+        },
+        "programId": {
+            "type": "string"
+        },
+        "textbook_name" : {
+            "type": "array"
+        },
+        "level1Name" : {
+            "type": "array"
+        },
+        "level1Concept" : {
+            "type": "array"
+        },
+        "level2Name" : {
+            "type": "array"
+        },
+        "level2Concept" : {
+            "type": "array"
+        },
+        "level3Name" : {
+            "type": "array"
+        },
+        "level3Concept" : {
+            "type": "array"
+        },
+        "sourceURL" : {
+            "type": "string"
+        },
+        "me_totalTimeSpentInSec": {
+            "type": "object"
+        },
+        "me_totalPlaySessionCount": {
+            "type": "object"
+        },
+        "me_totalRatingsCount": {
+            "type": "number"
+        },
         "monitorable": {
             "type": "array",
             "items": {
@@ -1135,6 +1174,9 @@
             "items": {
                 "type": "object"
             }
+        },
+        "showNotification": {
+            "type": "boolean"
         }
     }
 }

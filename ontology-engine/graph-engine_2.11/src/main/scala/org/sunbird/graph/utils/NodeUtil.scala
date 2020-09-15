@@ -7,9 +7,10 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
-import org.sunbird.graph.schema.DefinitionNode
+import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinitionMap}
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -19,11 +20,12 @@ object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
 
-    def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false): util.Map[String, AnyRef] = {
+    def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
-        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName)
+        val categoryDefinitionId = ObjectCategoryDefinitionMap.prepareCategoryId(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], schemaName, node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
+        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, schemaName, categoryDefinitionId)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
-        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName).asJava
+        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, schemaName, categoryDefinitionId).asJava
         val finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.put("objectType",node.getObjectType)
         finalMetadata.putAll(updatedMetadataMap)

@@ -30,5 +30,11 @@ class ObjectCategoryDefinitionSpec extends BaseSpec {
 			isOK(result)
 			status(result) must equalTo(OK)
 		}
+
+		"return success response for read category api" in {
+			val result = controller.readCategoryDefinition(None)(FakeRequest())
+			isOK(result)
+			status(result) must equalTo(OK)
+		}
 	}
 }
