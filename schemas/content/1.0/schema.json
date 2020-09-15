@@ -1033,6 +1033,9 @@
         "programId": {
             "type": "string"
         },
+        "itemSetPreviewUrl": {
+            "type": "string"
+        },
         "textbook_name" : {
             "type": "array"
         },
