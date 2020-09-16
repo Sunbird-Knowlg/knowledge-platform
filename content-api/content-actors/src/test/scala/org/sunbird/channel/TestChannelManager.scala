@@ -101,7 +101,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         val metaDataMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
         ChannelManager.getObjectCategories(metaDataMap)
         assert(metaDataMap.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES))
-        assert(CollectionUtils.isNotEmpty(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]]))
+        assert(CollectionUtils.isNotEmpty(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.List[String]]))
     }
 
     it should "not change objectCategory into channel read response" in {
@@ -110,7 +110,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         }}
         ChannelManager.getObjectCategories(metaDataMap)
         assert(metaDataMap.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES))
-        assert(CollectionUtils.isEqualCollection(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.ArrayList[String]],
+        assert(CollectionUtils.isEqualCollection(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.List[String]],
             new util.ArrayList[String]() {{add("Learning Resource")}}))
     }
 }

@@ -10,7 +10,6 @@ import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
-import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.common.JsonUtils
 import org.sunbird.graph.utils.ScalaJsonUtils
 
@@ -19,6 +18,10 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
+
+  val contentPrimaryCategoriesList = Platform.getStringList("contentPrimaryCategories", java.util.Arrays.asList("Explanation Content", "Learning Resource", "Practice Question Set", "eTextbook", "Teacher Resource", "Course Assessment"))
+  val collectionPrimaryCategoriesList = Platform.getStringList("collectionPrimaryCategories", java.util.Arrays.asList("Course", "Digital Textbook", "Content Playlist"))
+  val assetPrimaryCategoriesList = Platform.getStringList("assetPrimaryCategories", java.util.Arrays.asList("Asset"))
 
   def channelLicenseCache(request: Request, identifier: String): Unit = {
     if (request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
@@ -92,21 +95,14 @@ object ChannelManager {
   }
 
   def getObjectCategories(metadata: util.Map[String, AnyRef]): Unit = {
-    val contentPrimaryCategories: util.ArrayList[String] = Platform.getStringList(ChannelConstants.CONTENT_PRIMARY_CATEGORIES,
-      new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]]
-    val collectionPrimaryCategories: util.ArrayList[String] = Platform.getStringList(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES,
-      new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]]
-    val assetPrimaryCategories: util.ArrayList[String] = Platform.getStringList(ChannelConstants.ASSET_PRIMARY_CATEGORIES,
-      new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]]
-
-    if (CollectionUtils.isEmpty(metadata.getOrDefault(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]])) {
-      metadata.put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, contentPrimaryCategories)
+    if (!metadata.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)) {
+      metadata.put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, contentPrimaryCategoriesList)
     }
-    if (CollectionUtils.isEmpty(metadata.getOrDefault(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]])) {
-      metadata.put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, collectionPrimaryCategories)
+    if (!metadata.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)) {
+      metadata.put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, collectionPrimaryCategoriesList)
     }
-    if (CollectionUtils.isEmpty(metadata.getOrDefault(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]])) {
-      metadata.put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, assetPrimaryCategories)
+    if (!metadata.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)) {
+      metadata.put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, assetPrimaryCategoriesList)
     }
   }
 }
