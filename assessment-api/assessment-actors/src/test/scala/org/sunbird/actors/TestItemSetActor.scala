@@ -125,6 +125,7 @@ class TestItemSetActor extends BaseSpec with MockFactory {
         put("name", "test-itemset")
       }
     })
+    node.setObjectType("ItemSet")
     node
   }
 
