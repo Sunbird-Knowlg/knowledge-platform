@@ -19,9 +19,9 @@ import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
 
-  val contentPrimaryCategoriesList = Platform.getStringList("contentPrimaryCategories", java.util.Arrays.asList("Explanation Content", "Learning Resource", "Practice Question Set", "eTextbook", "Teacher Resource", "Course Assessment"))
-  val collectionPrimaryCategoriesList = Platform.getStringList("collectionPrimaryCategories", java.util.Arrays.asList("Course", "Digital Textbook", "Content Playlist"))
-  val assetPrimaryCategoriesList = Platform.getStringList("assetPrimaryCategories", java.util.Arrays.asList("Asset"))
+  val contentPrimaryCategoriesList = Platform.getStringList("channel.content.primarycategories", java.util.Arrays.asList("Explanation Content", "Learning Resource", "Practice Question Set", "eTextbook", "Teacher Resource", "Course Assessment"))
+  val collectionPrimaryCategoriesList = Platform.getStringList("channel.collection.primarycategories", java.util.Arrays.asList("Course", "Digital Textbook", "Content Playlist"))
+  val assetPrimaryCategoriesList = Platform.getStringList("channel.asset.primarycategories", java.util.Arrays.asList("Asset"))
 
   def channelLicenseCache(request: Request, identifier: String): Unit = {
     if (request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
