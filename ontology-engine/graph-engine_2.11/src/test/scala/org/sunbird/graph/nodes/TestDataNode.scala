@@ -35,10 +35,13 @@ class TestDataNode extends BaseSpec {
         request.put("description", "test")
         request.put("channel", "in.ekstep")
         request.put("primaryCategory", "Learning Resource")
-        val future: Future[Node] = DataNode.create(request)
+        val future: Future[Node] = DataNode.create(request,dataModifier)
         future map {node => {assert(null != node)
             print(node)
-            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))}}
+            
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            assert(node.getMetadata.get("trackable").asInstanceOf[String].contains("\"enabled\":\"Yes\""))
+            assert(node.getMetadata.get("contentType").asInstanceOf[String].equalsIgnoreCase("Course"))}}
     }
 
 
@@ -570,5 +573,14 @@ class TestDataNode extends BaseSpec {
             recoverToSucceededIf[ClientException](DataNode.update(req))
         }
         } flatMap(f => f)
+    }
+
+    def dataModifier(node: Node): Node = {
+        if(node.getMetadata.containsKey("trackable") &&
+                node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
+                "Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
+            node.getMetadata.put("contentType", "Course")
+        }
+        node
     }
 }
