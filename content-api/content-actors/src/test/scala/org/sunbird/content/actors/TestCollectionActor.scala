@@ -24,7 +24,7 @@ class TestCollectionActor extends BaseSpec {
 
             }
         })
-        request.setObjectType("Content")
+        request.setObjectType("Collection")
         request
     }
 }

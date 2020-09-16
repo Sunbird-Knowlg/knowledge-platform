@@ -123,6 +123,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     val node = new Node()
     node.setIdentifier("do_1234")
     node.setNodeType("DATA_NODE")
+    node.setObjectType("License")
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("objectType", "License")
