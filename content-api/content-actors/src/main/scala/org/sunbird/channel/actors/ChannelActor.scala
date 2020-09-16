@@ -55,6 +55,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
                 val frameworkList = ChannelManager.getAllFrameworkList()
                 if (!frameworkList.isEmpty) metadata.put("suggested_frameworks", frameworkList)
             }
+            ChannelManager.getObjectCategories(metadata)
             val response = ResponseHandler.OK
             response.put("channel", metadata)
             response

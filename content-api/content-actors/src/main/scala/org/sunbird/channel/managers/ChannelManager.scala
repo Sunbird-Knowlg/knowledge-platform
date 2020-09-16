@@ -10,6 +10,7 @@ import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
+import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.common.JsonUtils
 import org.sunbird.graph.utils.ScalaJsonUtils
 
@@ -87,6 +88,25 @@ object ChannelManager {
       case e: Exception => {
         throw new ServerException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, e.getMessage)
       }
+    }
+  }
+
+  def getObjectCategories(metadata: util.Map[String, AnyRef]): Unit = {
+    val contentPrimaryCategories: util.ArrayList[String] = Platform.getStringList(ChannelConstants.CONTENT_PRIMARY_CATEGORIES,
+      new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]]
+    val collectionPrimaryCategories: util.ArrayList[String] = Platform.getStringList(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES,
+      new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]]
+    val assetPrimaryCategories: util.ArrayList[String] = Platform.getStringList(ChannelConstants.ASSET_PRIMARY_CATEGORIES,
+      new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]]
+
+    if (CollectionUtils.isEmpty(metadata.getOrDefault(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]])) {
+      metadata.put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, contentPrimaryCategories)
+    }
+    if (CollectionUtils.isEmpty(metadata.getOrDefault(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]])) {
+      metadata.put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, collectionPrimaryCategories)
+    }
+    if (CollectionUtils.isEmpty(metadata.getOrDefault(ChannelConstants.ASSET_PRIMARY_CATEGORIES, new util.ArrayList[String]()).asInstanceOf[util.ArrayList[String]])) {
+      metadata.put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, assetPrimaryCategories)
     }
   }
 }
