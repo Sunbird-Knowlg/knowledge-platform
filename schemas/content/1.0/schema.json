@@ -1092,13 +1092,17 @@
                 "enabled": {
                     "type": "string",
                     "enum": ["Yes","No"],
-                    "default": "Yes"
+                    "default": "No"
                 },
                 "autoBatch": {
                     "type": "string",
                     "enum": ["Yes","No"],
-                    "default": "Yes"
+                    "default": "No"
                 }
+            },
+            "default": {
+                "enabled": "No",
+                "autoBatch": "No"
             },
             "additionalProperties": false
         },
@@ -1110,6 +1114,9 @@
                     "enum": ["Yes","No"],
                     "default": "No"
                 }
+            },
+            "default": {
+                "enabled": "No"
             },
             "additionalProperties": false
         },
