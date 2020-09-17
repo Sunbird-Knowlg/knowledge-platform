@@ -19,6 +19,10 @@ import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
 
+  val contentPrimaryCategoriesList = Platform.getStringList("channel.content.primarycategories", java.util.Arrays.asList("Explanation Content", "Learning Resource", "Practice Question Set", "eTextbook", "Teacher Resource", "Course Assessment"))
+  val collectionPrimaryCategoriesList = Platform.getStringList("channel.collection.primarycategories", java.util.Arrays.asList("Course", "Digital Textbook", "Content Playlist"))
+  val assetPrimaryCategoriesList = Platform.getStringList("channel.asset.primarycategories", java.util.Arrays.asList("Asset"))
+
   def channelLicenseCache(request: Request, identifier: String): Unit = {
     if (request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
       RedisCache.set(ChannelConstants.CHANNEL_LICENSE_CACHE_PREFIX + identifier + ChannelConstants.CHANNEL_LICENSE_CACHE_SUFFIX, request.getRequest.get(ChannelConstants.DEFAULT_LICENSE).asInstanceOf[String], 0)
@@ -87,6 +91,18 @@ object ChannelManager {
       case e: Exception => {
         throw new ServerException(ChannelConstants.ERR_VALIDATING_PRIMARY_CATEGORY, e.getMessage)
       }
+    }
+  }
+
+  def getObjectCategories(metadata: util.Map[String, AnyRef]): Unit = {
+    if (!metadata.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)) {
+      metadata.put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, contentPrimaryCategoriesList)
+    }
+    if (!metadata.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)) {
+      metadata.put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, collectionPrimaryCategoriesList)
+    }
+    if (!metadata.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)) {
+      metadata.put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, assetPrimaryCategoriesList)
     }
   }
 }
