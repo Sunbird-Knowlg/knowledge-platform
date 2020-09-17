@@ -20,7 +20,7 @@ import scala.io.Source
 
 class CategoryDefinitionValidator(schemaName: String, version: String) extends BaseSchemaValidator(schemaName, version){
     private val basePath = {if (Platform.config.hasPath("schema.base_path")) Platform.config.getString("schema.base_path") 
-    else "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/"} +  schemaName.toLowerCase + File.separator + version + File.separator
+    else "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/"} + File.separator + schemaName.toLowerCase + File.separator + version + File.separator
     
     override def resolveSchema(id: URI): JsonSchema = {
         null
