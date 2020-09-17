@@ -19,6 +19,7 @@ import org.sunbird.content.mgr.ImportManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 
@@ -50,7 +51,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
-		DataNode.create(request).map(node => {
+		DataNode.create(request, dataModifier).map(node => {
 			val response = ResponseHandler.OK
 			response.put("identifier", node.getIdentifier)
 			response.put("node_id", node.getIdentifier)
@@ -183,6 +184,15 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			throw new ClientException("ERR_INVALID_PRESIGNED_URL_TYPE", "Invalid pre-signed url type. It should be one of " + StringUtils.join(preSignedObjTypes, ","))
 		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
+	}
+	
+	def dataModifier(node: Node): Node = {
+		if(node.getMetadata.containsKey("trackable") && 
+				node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
+		"Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
+			node.getMetadata.put("contentType", "Course")
+		}
+		node
 	}
 
 }

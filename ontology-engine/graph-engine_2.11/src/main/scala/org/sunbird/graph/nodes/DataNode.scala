@@ -22,10 +22,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object DataNode {
     @throws[Exception]
-    def create(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
-            val response = oec.graphService.addNode(graphId, node)
+            val response = oec.graphService.addNode(graphId, dataModifier(node))
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
@@ -167,5 +167,9 @@ object DataNode {
             else throw new ClientException("ERR_INVALID_RELATION_OBJECT", "Invalid Relation Object Found.")
         }
         list
+    }
+    
+    private def defaultDataModifier(node: Node) = {
+        node
     }
 }
