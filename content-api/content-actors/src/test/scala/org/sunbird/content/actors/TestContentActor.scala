@@ -54,7 +54,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(new Node()))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNode()))
         implicit val ss = mock[StorageService]
         (ss.getSignedURL(_: String, _: Option[Int], _: Option[String])).expects(*, *, *).returns("cloud store url")
         val request = getContentRequest()
@@ -126,6 +126,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val node = new Node()
         node.setIdentifier("do_12346")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_12346")
@@ -143,6 +144,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val node = new Node()
         node.setIdentifier("do_12346")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_12346")
@@ -160,6 +162,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val node = new Node()
         node.setIdentifier("do_1234")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_1234")
@@ -332,6 +335,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val node = new Node()
         node.setIdentifier("do_1234")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_1234")

@@ -1,5 +1,5 @@
 {
-  "objectType": "Content",
+  "objectType": "Collection",
   "external": {
     "tableName": "content_hierarchy",
     "properties": {

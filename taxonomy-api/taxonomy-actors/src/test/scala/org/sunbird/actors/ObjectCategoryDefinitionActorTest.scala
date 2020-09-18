@@ -28,6 +28,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234")
+		node.setObjectType("ObjectCategoryDefinition")
 		node.setMetadata(new util.HashMap[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234");
@@ -53,7 +54,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(null))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getCategoryDefinitionNode()))
 		val request = getCategoryDefintionRequest()
 		request.putAll(mapAsJavaMap(Map("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> Map("schema" -> Map()), "config" -> Map())))
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
@@ -174,6 +175,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234_content_all")
 		node.setNodeType("DATA_NODE")
+		node.setObjectType("ObjectCategoryDefinition")
 		node.setMetadata(new util.HashMap[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234_content_all")

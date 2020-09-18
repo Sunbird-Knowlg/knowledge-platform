@@ -25,6 +25,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setObjectType("Channel")
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("name", "channel_test")
@@ -56,7 +57,9 @@ class TestChannelActor extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))))
+    val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    node.setObjectType("Channel")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("identifier", "channel_test")
     request.setOperation("readChannel")
@@ -69,6 +72,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getNode("Channel", None)
+    node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
     val request = getRequest()
@@ -84,6 +88,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getNode("Channel", None)
+    node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
     val request = getRequest()
