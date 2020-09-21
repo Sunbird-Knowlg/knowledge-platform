@@ -404,6 +404,7 @@ object UpdateHierarchyManager {
         tempNode.getMetadata.put(HierarchyConstants.DEPTH, depth.asInstanceOf[AnyRef])
         tempNode.getMetadata.put(HierarchyConstants.PARENT, parent.replaceAll(".img", ""))
         tempNode.getMetadata.put(HierarchyConstants.INDEX, index.asInstanceOf[AnyRef])
+        tempNode.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
         //Added content mapping as well as object type mapping
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(tempNode.getMetadata)
         HierarchyBackwardCompatibilityUtil.setNewObjectType(tempNode.getMetadata)
