@@ -108,7 +108,7 @@ object UpdateHierarchyManager {
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
             //TODO: Remove the Populate category mapping before updating for backward
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)
-            HierarchyBackwardCompatibilityUtil.setNewObjectType(rootNode.getMetadata)
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(rootNode)
             rootNode
         })
     }
@@ -171,7 +171,7 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
                     //TODO: Remove the Populate category mapping before updating for backward
                     HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
-                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val updatedNodes = node :: nodes
                     updatedNodes
                 }) recoverWith { case e: CompletionException => throw e.getCause }
@@ -185,8 +185,8 @@ object UpdateHierarchyManager {
                 childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
                 childData.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
                 HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(childData)
-                HierarchyBackwardCompatibilityUtil.setNewObjectType(childData)
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
+                HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)
             }
@@ -246,13 +246,12 @@ object UpdateHierarchyManager {
         val createRequest: Request = new Request(request)
         //TODO: Remove the Populate category mapping before updating for backward
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
-        //Object type mapping
-        HierarchyBackwardCompatibilityUtil.setNewObjectType(metadata)
         createRequest.setRequest(metadata)
         DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
-            node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)
+            //Object type mapping
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
             val updatedList = node :: nodeList
             updatedList.distinct
         })
@@ -404,10 +403,6 @@ object UpdateHierarchyManager {
         tempNode.getMetadata.put(HierarchyConstants.DEPTH, depth.asInstanceOf[AnyRef])
         tempNode.getMetadata.put(HierarchyConstants.PARENT, parent.replaceAll(".img", ""))
         tempNode.getMetadata.put(HierarchyConstants.INDEX, index.asInstanceOf[AnyRef])
-        tempNode.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
-        //Added content mapping as well as object type mapping
-        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(tempNode.getMetadata)
-        HierarchyBackwardCompatibilityUtil.setNewObjectType(tempNode.getMetadata)
     }
 
     /**

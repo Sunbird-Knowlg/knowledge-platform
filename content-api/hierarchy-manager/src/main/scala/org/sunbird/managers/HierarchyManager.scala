@@ -243,7 +243,7 @@ object HierarchyManager {
 
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
-            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, schemaName, schemaVersion)
+            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase().replace("image", ""), schemaVersion)
             nodeMap.keySet().removeAll(keyTobeRemoved)
             nodeMap
         })
