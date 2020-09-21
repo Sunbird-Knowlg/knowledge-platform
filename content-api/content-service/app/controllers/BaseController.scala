@@ -147,6 +147,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 }
             }
         }
+        request.setContext(contextMap)
     }
 
     private def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {

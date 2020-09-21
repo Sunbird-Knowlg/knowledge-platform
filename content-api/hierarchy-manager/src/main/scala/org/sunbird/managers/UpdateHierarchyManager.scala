@@ -108,6 +108,7 @@ object UpdateHierarchyManager {
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
             //TODO: Remove the Populate category mapping before updating for backward
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(rootNode.getMetadata)
             rootNode
         })
     }
@@ -170,6 +171,7 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
                     //TODO: Remove the Populate category mapping before updating for backward
                     HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node.getMetadata)
                     val updatedNodes = node :: nodes
                     updatedNodes
                 }) recoverWith { case e: CompletionException => throw e.getCause }
@@ -183,6 +185,7 @@ object UpdateHierarchyManager {
                 childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
                 childData.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
                 HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(childData)
+                HierarchyBackwardCompatibilityUtil.setNewObjectType(childData)
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)
@@ -243,6 +246,8 @@ object UpdateHierarchyManager {
         val createRequest: Request = new Request(request)
         //TODO: Remove the Populate category mapping before updating for backward
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
+        //Object type mapping
+        HierarchyBackwardCompatibilityUtil.setNewObjectType(metadata)
         createRequest.setRequest(metadata)
         DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
@@ -492,4 +497,5 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
     }
+
 }
