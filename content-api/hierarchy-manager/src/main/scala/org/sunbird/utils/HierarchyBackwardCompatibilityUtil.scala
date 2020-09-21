@@ -41,4 +41,18 @@ object HierarchyBackwardCompatibilityUtil {
         result.put("objectType", "Content")
     }
 
+    def setNewObjectType(metadata: java.util.Map[String, AnyRef]) = {
+        val mimeType = metadata.getOrDefault("mimeType", "").asInstanceOf[String]
+        val contentType = metadata.getOrDefault("contentType", "").asInstanceOf[String]
+        val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
+        val primaryCategory = metadata.getOrDefault("primaryCategory", "").asInstanceOf[String]
+        if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, HierarchyConstants.COLLECTION_MIME_TYPE)) {
+            metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.COLLECTION_OBJECT_TYPE)
+        } else if ((StringUtils.isNotBlank(contentType) && StringUtils.equalsIgnoreCase(contentType, HierarchyConstants.ASSET_CONTENT_TYPE))
+            || (StringUtils.isNotBlank(primaryCategory) && StringUtils.equalsIgnoreCase(primaryCategory, HierarchyConstants.ASSET_CONTENT_TYPE))) {
+            metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.ASSET_OBJECT_TYPE)
+        } else {
+            metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
+        }
+    }
 }
