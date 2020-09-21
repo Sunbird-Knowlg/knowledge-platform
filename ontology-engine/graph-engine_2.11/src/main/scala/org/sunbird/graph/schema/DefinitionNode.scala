@@ -84,12 +84,13 @@ object DefinitionNode {
         val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getNode(identifier, "update", null, versioning).map(dbNode => {
-            val categoryId: String = getPrimaryCategory(dbNode.getMetadata, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
-            val categoryDefinition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+            val schema = dbNode.getObjectType.toLowerCase.replace("image", "")
+            val categoryId: String = getPrimaryCategory(dbNode.getMetadata, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+            val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, categoryId)
             categoryDefinition.validateRequest(request)
-            resetJsonProperties(dbNode, graphId, version, schemaName, categoryId)
+            resetJsonProperties(dbNode, graphId, version, schema, categoryId)
             val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
-            val dbRels = getDBRelations(graphId, schemaName, version, req, dbNode, categoryId)
+            val dbRels = getDBRelations(graphId, schema, version, req, dbNode, categoryId)
             setRelationship(dbNode, inputNode, dbRels)
             if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
                 inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
