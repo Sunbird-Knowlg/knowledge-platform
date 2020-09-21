@@ -265,6 +265,8 @@ object UpdateHierarchyManager {
     private def validateNodes(nodeList: java.util.List[Node], rootId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val nodesToValidate = nodeList.filter(node => StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]) || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
         DefinitionNode.updateJsonPropsInNodes(nodeList.toList, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
+        //Object type mapping
+        nodeList.foreach(node => setNewObjectType(node.getMetadata))
         DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
 
@@ -491,5 +493,20 @@ object UpdateHierarchyManager {
         val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
+    }
+
+    def setNewObjectType(metadata: java.util.Map[String, AnyRef]) = {
+        val mimeType = metadata.getOrDefault("mimeType", "").asInstanceOf[String]
+        val contentType = metadata.getOrDefault("contentType", "").asInstanceOf[String]
+        val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
+        val primaryCategory = metadata.getOrDefault("primaryCategory", "").asInstanceOf[String]
+        if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, HierarchyConstants.COLLECTION_MIME_TYPE)) {
+            metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.COLLECTION_OBJECT_TYPE)
+        } else if ((StringUtils.isNotBlank(contentType) && StringUtils.equalsIgnoreCase(contentType, HierarchyConstants.ASSET_CONTENT_TYPE))
+            || (StringUtils.isNotBlank(primaryCategory) && StringUtils.equalsIgnoreCase(primaryCategory, HierarchyConstants.ASSET_CONTENT_TYPE))) {
+            metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.ASSET_OBJECT_TYPE)
+        } else {
+            metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
+        }
     }
 }
