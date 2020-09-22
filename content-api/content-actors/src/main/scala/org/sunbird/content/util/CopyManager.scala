@@ -147,7 +147,7 @@ object CopyManager {
     }
 
     def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
-        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), ContentConstants.CONTENT_SCHEMA_NAME, ContentConstants.SCHEMA_VERSION)
+        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), node.getObjectType.toLowerCase.replace("image", ""), ContentConstants.SCHEMA_VERSION)
         val requestMap = request.getRequest
         requestMap.remove(ContentConstants.MODE)
         requestMap.remove(ContentConstants.COPY_SCHEME).asInstanceOf[String]
