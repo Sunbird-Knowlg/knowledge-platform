@@ -252,8 +252,9 @@ object DefinitionNode {
         Future.sequence(futures)
     }
     def updateJsonPropsInNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
-        val jsonProps = fetchJsonProps(graphId, version, schemaName)
         nodes.map(node => {
+            val schema = node.getObjectType.toLowerCase.replace("image", "")
+            val jsonProps = fetchJsonProps(graphId, version, schema)
             val metadata = node.getMetadata
             metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
         })

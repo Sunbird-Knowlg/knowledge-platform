@@ -4,6 +4,7 @@ import java.util
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
+import org.sunbird.graph.dac.model.Node
 
 import scala.collection.JavaConverters._
 
@@ -41,17 +42,27 @@ object HierarchyBackwardCompatibilityUtil {
         result.put("objectType", "Content")
     }
 
-    def setNewObjectType(metadata: java.util.Map[String, AnyRef]) = {
+    def setNewObjectType(node: Node) = {
+        val metadata = node.getMetadata
         val mimeType = metadata.getOrDefault("mimeType", "").asInstanceOf[String]
+        print("HierarchyBackwardCompatibility::setNewObjectType::mimeType " + mimeType)
         val contentType = metadata.getOrDefault("contentType", "").asInstanceOf[String]
+        print("HierarchyBackwardCompatibility::setNewObjectType::contentType " + contentType)
         val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
+        print("HierarchyBackwardCompatibility::setNewObjectType:: objectType " + objectType)
         val primaryCategory = metadata.getOrDefault("primaryCategory", "").asInstanceOf[String]
+        print("HierarchyBackwardCompatibility::setNewObjectType::primaryCategory " + primaryCategory)
         if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, HierarchyConstants.COLLECTION_MIME_TYPE)) {
+            println("In level 1")
             metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.COLLECTION_OBJECT_TYPE)
+            node.setObjectType(HierarchyConstants.COLLECTION_OBJECT_TYPE)
         } else if ((StringUtils.isNotBlank(contentType) && StringUtils.equalsIgnoreCase(contentType, HierarchyConstants.ASSET_CONTENT_TYPE))
             || (StringUtils.isNotBlank(primaryCategory) && StringUtils.equalsIgnoreCase(primaryCategory, HierarchyConstants.ASSET_CONTENT_TYPE))) {
+            println("In level 2")
             metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.ASSET_OBJECT_TYPE)
+            node.setObjectType(HierarchyConstants.ASSET_OBJECT_TYPE)
         } else {
+            println("In level 3")
             metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
         }
     }
