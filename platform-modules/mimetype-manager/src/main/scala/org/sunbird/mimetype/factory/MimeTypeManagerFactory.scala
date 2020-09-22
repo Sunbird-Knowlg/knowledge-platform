@@ -26,10 +26,10 @@ object MimeTypeManagerFactory {
 		"application/vnd.android.package-archive" -> new ApkMimeTypeMgrImpl
 	)
 
-	def getManager(contentType: String, mimeType: String): MimeTypeManager = {
+	def getManager(objectType: String, mimeType: String): MimeTypeManager = {
 		if(ONLINE_MIMETYPES.contains(mimeType))
 			mimeTypeMgr.getOrElse(mimeType.toLowerCase(), defaultMimeTypeMgrImpl)
-		else if (StringUtils.equalsIgnoreCase("Asset", contentType)) {
+		else if (StringUtils.equalsIgnoreCase("Asset", objectType)) {
 			mimeTypeMgr.get("assets").get
 		} else {
 			if(null != mimeType)

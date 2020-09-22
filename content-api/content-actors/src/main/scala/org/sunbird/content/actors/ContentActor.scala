@@ -92,6 +92,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put("identifier", identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
 		}).flatMap(f => f)
 	}
