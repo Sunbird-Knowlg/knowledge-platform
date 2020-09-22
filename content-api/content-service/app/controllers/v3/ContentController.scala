@@ -100,7 +100,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
-        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
+        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest, true)
     }
 
     def getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String]) = Action.async { implicit request =>
@@ -110,7 +110,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(Map("rootId" -> identifier, "bookmarkId" -> bookmarkId, "mode" -> mode.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
-        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest)
+        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest, true)
     }
 
     def flag(identifier: String) = Action.async { implicit request =>

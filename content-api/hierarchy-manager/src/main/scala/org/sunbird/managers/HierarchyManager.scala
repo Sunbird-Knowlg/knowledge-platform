@@ -38,6 +38,9 @@ object HierarchyManager {
             java.util.Arrays.asList("collections","children","usedByContent","item_sets","methods","libraries","editorState")
     }
 
+    val mapPrimaryCategoriesEnabled: Boolean = if (Platform.config.hasPath("collection.primarycategories.mapping.enabled")) Platform.config.getBoolean("collection.primarycategories.mapping.enabled") else true
+    val objectTypeAsContentEnabled: Boolean = if (Platform.config.hasPath("objecttype.as.content.enabled")) Platform.config.getBoolean("objecttype.as.content.enabled") else true
+
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
@@ -528,6 +531,7 @@ object HierarchyManager {
                 if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.getOrDefault("status", HierarchyConstants.RETIRED_STATUS).asInstanceOf[String])){
                     children.remove(content)
                 } else {
+                    HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(metadata)
                     content.putAll(metadata)
                 }
             } else {
@@ -553,21 +557,18 @@ object HierarchyManager {
             request.setContext(new util.HashMap[String, AnyRef]() {
                 {
                     put(HierarchyConstants.GRAPH_ID, HierarchyConstants.TAXONOMY_ID)
-                    put(HierarchyConstants.VERSION, HierarchyConstants.SCHEMA_VERSION)
-                    put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
-                    put(HierarchyConstants.SCHEMA_NAME, HierarchyConstants.CONTENT_SCHEMA_NAME)
                 }
             })
             request.put("identifiers", leafNodeIds)
             DataNode.list(request).map(nodes => {
-                val leafNodeMap: Map[String, AnyRef] = nodes.toList.map(node => (node.getIdentifier, NodeUtil.serialize(node, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap
+                val leafNodeMap: Map[String, AnyRef] = nodes.toList.map(node => (node.getIdentifier, NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap
                 val imageNodeIds: util.List[String] = JavaConverters.seqAsJavaListConverter(leafNodeIds.toList.map(id => id + HierarchyConstants.IMAGE_SUFFIX)).asJava
                 request.put("identifiers", imageNodeIds)
                 DataNode.list(request).map(imageNodes => {
                     //val imageLeafNodeMap: Map[String, AnyRef] = imageNodes.toList.map(imageNode => (imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, ""), NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap
                     val imageLeafNodeMap: Map[String, AnyRef] = imageNodes.toList.map(imageNode => {
                         val identifier = imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, "")
-                        val metadata = NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true)
+                        val metadata = NodeUtil.serialize(imageNode, null, imageNode.getObjectType.toLowerCase.replace("image", ""), HierarchyConstants.SCHEMA_VERSION, true)
                         metadata.replace("identifier", identifier)
                         (identifier, metadata.asInstanceOf[AnyRef])
                     }).toMap
@@ -583,14 +584,20 @@ object HierarchyManager {
 
     def updateContentMappingInChildren(children: util.List[util.Map[String, AnyRef]]): List[Any] = {
         children.toList.map(content => {
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
+            if (mapPrimaryCategoriesEnabled)
+                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
+            if (objectTypeAsContentEnabled)
+                HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(content)
             updateContentMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
         })
     }
 
     private def mapPrimaryCategories(hierarchy: java.util.Map[String, AnyRef]):util.Map[String, AnyRef] = {
         val updatedHierarchy = new util.HashMap[String, AnyRef](hierarchy)
-        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
+        if (mapPrimaryCategoriesEnabled)
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
+        if (objectTypeAsContentEnabled)
+            HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(updatedHierarchy)
         val children = new util.HashMap[String, AnyRef](hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
         updateContentMappingInChildren(children)
         updatedHierarchy

@@ -38,7 +38,7 @@ object HierarchyBackwardCompatibilityUtil {
         if(List("application/vnd.ekstep.ecml-archive").contains(mimeType)) "LearningResource" else "QuestionSet"
     }
 
-    def setObjectTypeForRead(objectType: String, result: java.util.Map[String, AnyRef]): Unit = {
+    def setObjectTypeForRead(result: java.util.Map[String, AnyRef]): Unit = {
         result.put("objectType", "Content")
     }
 
