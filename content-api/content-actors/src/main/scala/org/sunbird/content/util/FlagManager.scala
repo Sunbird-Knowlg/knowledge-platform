@@ -31,7 +31,7 @@ object FlagManager {
       val flaggedBy: String = request.get("flaggedBy").asInstanceOf[String]
       val flags: util.List[String] = request.get("flags").asInstanceOf[util.ArrayList[String]]
       
-      val metadata: util.Map[String, Object] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])//node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
+      val metadata: util.Map[String, Object] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])//node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
       val status: String = metadata.get("status").asInstanceOf[String]
       val versionKey = node.getMetadata.get("versionKey").asInstanceOf[String]
       request.put("identifier", node.getIdentifier)
