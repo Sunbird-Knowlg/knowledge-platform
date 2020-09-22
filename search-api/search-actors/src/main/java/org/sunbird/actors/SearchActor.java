@@ -407,6 +407,7 @@ public class SearchActor extends SearchBaseActor {
                         }
                         if(!publishedStatus) {
                             objectTypes.add(val + "Image");
+                            objectTypes.add("CollectionImage");
                         }
                     }
                     entry.setValue(new ArrayList<String>(objectTypes));
