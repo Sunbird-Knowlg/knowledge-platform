@@ -48,7 +48,7 @@ object HierarchyBackwardCompatibilityUtil {
         val contentType = metadata.getOrDefault("contentType", "").asInstanceOf[String]
         val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
         val primaryCategory = metadata.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        println("HierarchyBackwardCompatibility::setNewObjectType:: mimeType :: " + mimeType + "primaryCategory " + primaryCategory + "contentType " + contentType + "objectType " + objectType)
+        println("HierarchyBackwardCompatibility::setNewObjectType:: mimeType :: " + mimeType + " primaryCategory " + primaryCategory + " contentType " + contentType + " objectType " + objectType)
         if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, HierarchyConstants.COLLECTION_MIME_TYPE)) {
             metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.COLLECTION_OBJECT_TYPE)
             node.setObjectType(HierarchyConstants.COLLECTION_OBJECT_TYPE)
