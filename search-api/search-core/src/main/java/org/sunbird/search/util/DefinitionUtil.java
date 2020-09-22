@@ -20,7 +20,7 @@ public class DefinitionUtil {
     
     public static Map<String, Object> getMetaData(String objectType) throws Exception {
         Map<String, Object> metadata = new HashMap<>();
-        String schemaName = objectTypeSchemaMap.get(objectType.toLowerCase()).getOrDefault("schemaName", "content");
+        String schemaName = objectTypeSchemaMap.get(objectType.toLowerCase()).getOrDefault("schemaName", objectType.toLowerCase());
         String version = objectTypeSchemaMap.get(objectType.toLowerCase()).getOrDefault("version", "1.0");
         ISchemaValidator schemaValidator = SchemaValidatorFactory.getInstance(schemaName, version);
         if(schemaValidator.getConfig().hasPath("searchProps")){
