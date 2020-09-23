@@ -402,11 +402,14 @@ public class SearchActor extends SearchBaseActor {
 
                     for (Object val : value) {
                         if((StringUtils.equalsIgnoreCase("Content", (String) val) || StringUtils.equalsIgnoreCase("Collection", (String) val) || StringUtils.equalsIgnoreCase("Asset", (String) val))){
+                            objectTypes.add("Content");
                             objectTypes.add("Collection");
                             objectTypes.add("Asset");
                         }
-                        if(!publishedStatus) {
-                            objectTypes.add(val + "Image");
+                        if((StringUtils.equalsIgnoreCase("Content", (String) val) || StringUtils.equalsIgnoreCase("Collection", (String) val) || StringUtils.equalsIgnoreCase("Asset", (String) val)) && !publishedStatus) {
+                            objectTypes.add("ContentImage");
+                            objectTypes.add("Asset");
+                            objectTypes.add("CollectionImage");
                         }
                     }
                     entry.setValue(new ArrayList<String>(objectTypes));
