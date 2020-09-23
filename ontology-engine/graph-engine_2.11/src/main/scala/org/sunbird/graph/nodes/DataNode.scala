@@ -41,7 +41,7 @@ object DataNode {
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
             request.getContext().put("schemaName", node.getObjectType.toLowerCase.replace("image", ""))
-            val response = oec.graphService.upsertNode(graphId, node, request)
+            val response = oec.graphService.upsertNode(graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
