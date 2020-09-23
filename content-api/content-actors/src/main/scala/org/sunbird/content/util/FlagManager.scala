@@ -49,7 +49,7 @@ object FlagManager {
       if (CollectionUtils.isNotEmpty(flagReasons))
         request.put("flagReasons", addDataIntoList(flagReasons, metadata, "flagReasons"))
       request.getContext.put("versioning", "disable")
-      request.put("versionkey", versionKey)
+      request.put("versionKey", versionKey)
       updateContentFlag(node, request).map(flaggedNode => {
         val response = ResponseHandler.OK
         val identifier: String = flaggedNode.getIdentifier
