@@ -76,7 +76,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		populateDefaultersForUpdation(request)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
 		RequestUtil.restrictProperties(request)
-		DataNode.update(request).map(node => {
+		DataNode.update(request, dataModifier).map(node => {
 			val response: Response = ResponseHandler.OK
 			val identifier: String = node.getIdentifier.replace(".img", "")
 			response.put("node_id", identifier)

@@ -87,7 +87,7 @@ trait VersioningNode extends IDefinition {
                             node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
                             oec.graphService.addNode(node.getGraphId, node).map(imgNode => {
                                 imgNode.getMetadata.put("isImageNodeCreated", "yes");
-                                copyExternalProps(identifier, node.getGraphId).map(response => {
+                                copyExternalProps(imageId, node.getGraphId).map(response => {
                                     if(!ResponseHandler.checkError(response)) {
                                         if(null != response.getResult && !response.getResult.isEmpty)
                                             imgNode.setExternalData(response.getResult)
