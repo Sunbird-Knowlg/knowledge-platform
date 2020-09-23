@@ -160,6 +160,7 @@ object CopyManager {
         metadata.put(ContentConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
         if (MapUtils.isNotEmpty(originData))
             metadata.put(ContentConstants.ORIGIN_DATA, originData)
+        request.getContext().put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
         updateToCopySchemeContentType(request, metadata.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String], metadata)
         val req = new Request(request)
         req.setRequest(metadata)
