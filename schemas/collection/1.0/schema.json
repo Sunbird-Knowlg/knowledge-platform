@@ -1082,6 +1082,9 @@
     },
     "collectionId" : {
       "type": "string"
+    },
+    "courseId": {
+      "type": "string"
     }
   }
 }

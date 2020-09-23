@@ -203,7 +203,6 @@ object UpdateHierarchyManager {
                 .map(nodeModified => {
                     val metadata = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]]
                     metadata.remove(HierarchyConstants.DIALCODES)
-                    metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
                     metadata.put(HierarchyConstants.STATUS, "Draft")
                     metadata.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
                     if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.IS_NEW)

@@ -89,7 +89,7 @@ object DefinitionNode {
             val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, categoryId)
             categoryDefinition.validateRequest(request)
             resetJsonProperties(dbNode, graphId, version, schema, categoryId)
-            val inputNode: Node = definition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
+            val inputNode: Node = categoryDefinition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             val dbRels = getDBRelations(graphId, schema, version, req, dbNode, categoryId)
             setRelationship(dbNode, inputNode, dbRels)
             if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
