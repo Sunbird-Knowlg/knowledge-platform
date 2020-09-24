@@ -141,7 +141,7 @@ trait VersioningNode extends IDefinition {
         super.getNode(objKey, "read", null).map(node => {
             if (List("Live", "Unlisted").contains(node.getMetadata.get("status").asInstanceOf[String])) {
 
-                val nodeMap = NodeUtil.serialize(node, null, getSchemaName(), getSchemaVersion())
+                val nodeMap = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase().replace("image", ""), getSchemaVersion())
                 Future(ScalaJsonUtils.serialize(nodeMap))
             } else Future("")
         }).flatMap(f => f)
