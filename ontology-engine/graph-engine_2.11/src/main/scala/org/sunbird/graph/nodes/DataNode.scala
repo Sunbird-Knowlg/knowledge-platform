@@ -40,6 +40,7 @@ object DataNode {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
+            resetSchemaName(request, node)
             val response = oec.graphService.upsertNode(graphId, node, request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
@@ -166,5 +167,11 @@ object DataNode {
             else throw new ClientException("ERR_INVALID_RELATION_OBJECT", "Invalid Relation Object Found.")
         }
         list
+    }
+
+    // This is not required from release-3.3.0
+    def resetSchemaName(request: Request, node: Node) = {
+        if("application/vnd.ekstep.content-collection".equalsIgnoreCase(node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]))
+            request.getContext.put("schemaName", "collection")
     }
 }
