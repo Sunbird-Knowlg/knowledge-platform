@@ -46,6 +46,11 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   it should "throw invalid identifier exception for channelUpdate" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB)
+    val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    node.setObjectType("Channel")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("name", "channel_test2")
     request.setOperation("updateChannel")
@@ -110,6 +115,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
         put("schemaName", "channel")
       }
     })
+    request.setObjectType("Channel")
     request
   }
 
