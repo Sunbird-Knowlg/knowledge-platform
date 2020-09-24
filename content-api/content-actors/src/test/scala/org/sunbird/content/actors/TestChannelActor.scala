@@ -25,6 +25,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     val request = getRequest()
@@ -49,6 +50,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     val request = getRequest()
@@ -63,6 +65,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     val request = getRequest()

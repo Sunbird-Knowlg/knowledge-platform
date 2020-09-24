@@ -92,8 +92,8 @@ object DefinitionNode {
             val inputNode: Node = categoryDefinition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
             val dbRels = getDBRelations(graphId, schema, version, req, dbNode, categoryId)
             setRelationship(dbNode, inputNode, dbRels)
-            if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.get("isImageNodeCreated").asInstanceOf[String])) {
-                inputNode.getMetadata.put("versionKey", dbNode.getMetadata.get("versionKey"))
+            if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.getOrDefault("isImageNodeCreated", "").asInstanceOf[String])) {
+                inputNode.getMetadata.put("versionKey", dbNode.getMetadata.getOrDefault("versionKey", ""))
                 dbNode.getMetadata.remove("isImageNodeCreated")
             }
             dbNode.getMetadata.putAll(inputNode.getMetadata)
