@@ -5,17 +5,17 @@ import org.sunbird.common.dto.Request
 import java.util
 
 import org.apache.commons.collections.CollectionUtils
-
+import org.scalamock.scalatest.MockFactory
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.ClientException
-
 import org.sunbird.util.ChannelConstants
 import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
+import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 
-class TestChannelManager extends AsyncFlatSpec with Matchers {
+class TestChannelManager extends AsyncFlatSpec with Matchers with MockFactory {
 
     "get All framework list" should "return a list of frameworks from search service" in {
         val frameworkList = ChannelManager.getAllFrameworkList()

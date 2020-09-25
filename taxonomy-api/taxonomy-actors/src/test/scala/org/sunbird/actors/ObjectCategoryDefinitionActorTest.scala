@@ -110,6 +110,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234_content_all")
+		node.setObjectType("ObjectCategoryDefinition")
 		node.setMetadata(new util.HashMap[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234_content_all")
