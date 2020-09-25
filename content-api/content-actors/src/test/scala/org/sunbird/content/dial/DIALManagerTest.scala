@@ -327,6 +327,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		val node = new Node()
 		node.setIdentifier(identifier)
 		node.setNodeType("DATA_NODE")
+		node.setObjectType("Content")
 		node.setMetadata(new util.HashMap[String, AnyRef]() {
 			{
 				put("identifier", identifier)

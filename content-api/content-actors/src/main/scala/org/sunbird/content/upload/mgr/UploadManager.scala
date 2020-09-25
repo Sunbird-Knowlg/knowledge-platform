@@ -35,20 +35,19 @@ object UploadManager {
 		val reqFilePath: String = request.getRequest.getOrDefault("filePath", "").asInstanceOf[String].replaceAll("^/+|/+$", "")
 		val filePath = if(StringUtils.isBlank(reqFilePath)) None else Option(reqFilePath)
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
-		val contentType = node.getMetadata.getOrDefault("contentType", "").asInstanceOf[String]
 		val mediaType = node.getMetadata.getOrDefault("mediaType", "").asInstanceOf[String]
-		val mgr = MimeTypeManagerFactory.getManager(contentType, mimeType)
+		val mgr = MimeTypeManagerFactory.getManager(node.getObjectType, mimeType)
 		val params: UploadParams = request.getContext.get("params").asInstanceOf[UploadParams]
 		val uploadFuture: Future[Map[String, AnyRef]] = if (StringUtils.isNotBlank(fileUrl)) mgr.upload(identifier, node, fileUrl, filePath, params) else mgr.upload(identifier, node, file, filePath, params)
 		uploadFuture.map(result => {
 			if(filePath.isDefined)
-				updateNode(request, node.getIdentifier, mediaType, contentType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))
+				updateNode(request, node.getIdentifier, mediaType, node.getObjectType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))
 			else
-				updateNode(request, node.getIdentifier, mediaType, contentType, result)
+				updateNode(request, node.getIdentifier, mediaType, node.getObjectType, result)
 		}).flatMap(f => f)
 	}
 
-	def updateNode(request: Request, identifier: String, mediaType: String, contentType: String, result: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+	def updateNode(request: Request, identifier: String, mediaType: String, objectType: String, result: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val updatedResult = result - "identifier"
 		val artifactUrl = updatedResult.getOrElse("artifactUrl", "").asInstanceOf[String]
 		val size: Double = updatedResult.getOrElse("size", 0.asInstanceOf[Double]).asInstanceOf[Double]
@@ -58,11 +57,11 @@ object UploadManager {
 			updateReq.getRequest.putAll(mapAsJavaMap(updatedResult))
 			if( size > CONTENT_ARTIFACT_ONLINE_SIZE)
 				updateReq.put("contentDisposition", "online-only")
-			if (StringUtils.equalsIgnoreCase("Asset", contentType) && MEDIA_TYPE_LIST.contains(mediaType))
+			if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType))
 				updateReq.put("status", "Processing")
 
 			DataNode.update(updateReq).map(node => {
-				if (StringUtils.equalsIgnoreCase("Asset", contentType) && MEDIA_TYPE_LIST.contains(mediaType) && null != node)
+				if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType) && null != node)
 					pushInstructionEvent(identifier, node)
 				getUploadResponse(node)
 			})
@@ -91,14 +90,15 @@ object UploadManager {
 		val context: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 		val objectData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 		val edata: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-		generateInstructionEventMetadata(actor, context, objectData, edata, node.getMetadata, identifier)
+		generateInstructionEventMetadata(actor, context, objectData, edata, node, identifier)
 		val beJobRequestEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor, context, objectData, edata)
 		val topic: String = Platform.getString("kafka.topics.instruction","sunbirddev.learning.job.request")
 		if (StringUtils.isBlank(beJobRequestEvent)) throw new ClientException("BE_JOB_REQUEST_EXCEPTION", "Event is not generated properly.")
 		kfClient.send(beJobRequestEvent, topic)
 	}
 
-	private def generateInstructionEventMetadata(actor: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectData: util.Map[String, AnyRef], edata: util.Map[String, AnyRef], metadata: util.Map[String, AnyRef], identifier: String): Unit = {
+	private def generateInstructionEventMetadata(actor: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectData: util.Map[String, AnyRef], edata: util.Map[String, AnyRef], node: Node, identifier: String): Unit = {
+		val metadata: util.Map[String, AnyRef] = node.getMetadata
 		actor.put("id", "Asset Enrichment Samza Job")
 		actor.put("type", "System")
 		context.put("channel", metadata.get("channel"))
@@ -115,6 +115,6 @@ object UploadManager {
 		edata.put("action", "assetenrichment")
 		edata.put("status", metadata.get("status"))
 		edata.put("mediaType", metadata.get("mediaType"))
-		edata.put("contentType", metadata.get("contentType"))
+		edata.put("objectType", node.getObjectType)
 	}
 }

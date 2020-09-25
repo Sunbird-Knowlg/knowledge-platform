@@ -64,7 +64,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
-			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 			response.put("content", metadata)
@@ -92,6 +92,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put("identifier", identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
 		}).flatMap(f => f)
 	}

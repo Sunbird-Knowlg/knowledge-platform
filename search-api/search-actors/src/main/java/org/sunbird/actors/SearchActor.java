@@ -25,8 +25,10 @@ import scala.concurrent.duration.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -395,14 +397,22 @@ public class SearchActor extends SearchBaseActor {
                     } else {
                         value = (List<String>) entry.getValue();
                     }
-                    List<String> objectTypes = new ArrayList<>();
+                    Set<String> objectTypes = new HashSet<>();
                     objectTypes.addAll((List<String>) (List<?>) value);
 
                     for (Object val : value) {
-                        if(StringUtils.equalsIgnoreCase("Content", (String) val) && !publishedStatus)
-                            objectTypes.add(val + "Image");
+                        if((StringUtils.equalsIgnoreCase("Content", (String) val) || StringUtils.equalsIgnoreCase("Collection", (String) val) || StringUtils.equalsIgnoreCase("Asset", (String) val))){
+                            objectTypes.add("Content");
+                            objectTypes.add("Collection");
+                            objectTypes.add("Asset");
+                        }
+                        if((StringUtils.equalsIgnoreCase("Content", (String) val) || StringUtils.equalsIgnoreCase("Collection", (String) val) || StringUtils.equalsIgnoreCase("Asset", (String) val)) && !publishedStatus) {
+                            objectTypes.add("ContentImage");
+                            objectTypes.add("Asset");
+                            objectTypes.add("CollectionImage");
+                        }
                     }
-                    entry.setValue(objectTypes);
+                    entry.setValue(new ArrayList<String>(objectTypes));
                 }
                 Object filterObject = entry.getValue();
                 if (filterObject instanceof Map) {
@@ -549,7 +559,10 @@ public class SearchActor extends SearchBaseActor {
                         if (obj instanceof Map) {
                             Map<String, Object> map = (Map<String, Object>) obj;
                             String objectType = ((String) map.getOrDefault("objectType", "")).replaceAll("Image", "");
-                            map.replace("objectType", objectType);
+                            if(StringUtils.equalsIgnoreCase("Collection", objectType) || StringUtils.equalsIgnoreCase("Asset", objectType))
+                                map.replace("objectType", "Content");
+                            else 
+                                map.replace("objectType", objectType);
                             if (StringUtils.isNotBlank(objectType)) {
                                 String key = getResultParamKey(objectType);
                                 if (StringUtils.isNotBlank(key)) {
@@ -589,7 +602,7 @@ public class SearchActor extends SearchBaseActor {
                 return "methods";
             else if (StringUtils.equalsIgnoreCase("Misconception", objectType))
                 return "misconceptions";
-            else if (StringUtils.equalsIgnoreCase("Content", objectType))
+            else if (StringUtils.equalsIgnoreCase("Content", objectType) || StringUtils.equalsIgnoreCase("Collection", objectType) || StringUtils.equalsIgnoreCase("Asset", objectType))
                 return "content";
             else if (StringUtils.equalsIgnoreCase("AssessmentItem", objectType))
                 return "items";
@@ -641,6 +654,8 @@ public class SearchActor extends SearchBaseActor {
                 Map<String, Object> filters = new HashMap<String, Object>();
                 List<String> objectTypes = new ArrayList<String>();
                 objectTypes.add("Content");
+                objectTypes.add("Collection");
+                objectTypes.add("Asset");
                 filters.put(SearchConstants.objectType, objectTypes);
                 List<String> mimeTypes = new ArrayList<String>();
                 mimeTypes.add("application/vnd.ekstep.content-collection");
