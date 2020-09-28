@@ -1,9 +1,11 @@
 package org.sunbird.content.actors
 
+import java.io.File
 import java.util
 
 import org.sunbird.graph.dac.model.Node
 import akka.actor.Props
+import com.google.common.io.Resources
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{HttpUtil, JsonUtils}
@@ -310,22 +312,42 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-    private def getNodeToUpload(): Node = {
+    it should "return success response for 'uploadContent' with jpeg asset" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getAssetNodeToUpload()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
+        request.put("file", new File(Resources.getResource("jpegImage.jpeg").toURI))
+        request.setOperation("uploadContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    private def getAssetNodeToUpload(): Node = {
         val node = new Node()
         node.setIdentifier("do_1234")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Asset")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_1234")
-                put("mimeType", "application/pdf")
-                put("status", "Live")
-                put("contentType", "Resource")
-                put("name", "Resource_1")
+                put("mimeType", "image/jpeg")
+                put("contentType", "Asset")
+                put("name", "Asset_1")
                 put("versionKey", "test_321")
                 put("channel", "in.ekstep")
                 put("code", "Resource_1")
-                put("artifactUrl", "testurl")
-                put("primaryCategory", "Learning Resource")
+                put("primaryCategory", "Asset")
+                put("versionKey", "1234")
             }
         })
         node
