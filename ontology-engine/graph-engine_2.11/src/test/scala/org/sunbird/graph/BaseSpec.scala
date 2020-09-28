@@ -21,6 +21,8 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
     private val script_1 = "CREATE KEYSPACE IF NOT EXISTS content_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
     private val script_2 = "CREATE TABLE IF NOT EXISTS content_store.content_data (content_id text, last_updated_on timestamp,body blob,oldBody blob,screenshots blob,stageIcons blob,externallink text,PRIMARY KEY (content_id));"
+    private val script_3 = "CREATE KEYSPACE IF NOT EXISTS hierarchy_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
+    private val script_4 = "CREATE TABLE IF NOT EXISTS hierarchy_store.content_hierarchy (identifier text, hierarchy text,PRIMARY KEY (identifier));"
 
 
     def setUpEmbeddedNeo4j(): Unit = {
@@ -77,8 +79,8 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         tearEmbeddedNeo4JSetup()
         setUpEmbeddedNeo4j()
         setUpEmbeddedCassandra()
-        executeCassandraQuery(script_1, script_2)
         executeNeo4jQuery("UNWIND [{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Content\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_content_all\"}]  as row CREATE (n:domain) SET n += row;")
+        executeCassandraQuery(script_1, script_2, script_3, script_4)
     }
 
     override def afterAll(): Unit = {

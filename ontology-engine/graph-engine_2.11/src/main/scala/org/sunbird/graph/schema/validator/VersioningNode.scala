@@ -12,7 +12,7 @@ import org.sunbird.graph.common.enums.AuditProperties
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.external.ExternalPropsManager
-import org.sunbird.graph.schema.IDefinition
+import org.sunbird.graph.schema.{DefinitionFactory, IDefinition}
 import org.sunbird.graph.service.operation.{NodeAsyncOperations, SearchAsyncOperations}
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -25,6 +25,7 @@ trait VersioningNode extends IDefinition {
     val statusList = List("Live", "Unlisted", "Flagged")
     val IMAGE_SUFFIX = ".img"
     val IMAGE_OBJECT_SUFFIX = "Image"
+    val COLLECTION_MIME_TYPE = "application/vnd.ekstep.content-collection"
 
 
     abstract override def getNode(identifier: String, operation: String, mode: String = "read", versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
@@ -87,7 +88,7 @@ trait VersioningNode extends IDefinition {
                             node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
                             oec.graphService.addNode(node.getGraphId, node).map(imgNode => {
                                 imgNode.getMetadata.put("isImageNodeCreated", "yes");
-                                copyExternalProps(identifier, node.getGraphId).map(response => {
+                                copyExternalProps(identifier, node.getGraphId, getSchemaNameFromMimeType(imgNode)).map(response => {
                                     if(!ResponseHandler.checkError(response)) {
                                         if(null != response.getResult && !response.getResult.isEmpty)
                                             imgNode.setExternalData(response.getResult)
@@ -104,20 +105,21 @@ trait VersioningNode extends IDefinition {
             Future{node}
     }
 
-    private def copyExternalProps(identifier: String, graphId: String)(implicit ec : ExecutionContext) = {
+    private def copyExternalProps(identifier: String, graphId: String, schemaName: String)(implicit ec : ExecutionContext) = {
         val request = new Request()
         request.setContext(new util.HashMap[String, AnyRef](){{
-            put("schemaName", getSchemaName())
+            put("schemaName", schemaName)
             put("version", getSchemaVersion())
             put("graph_id", graphId)
         }})
         request.put("identifier", identifier)
-        ExternalPropsManager.fetchProps(request, getExternalPropsList())
+        ExternalPropsManager.fetchProps(request, getExternalPropsList(graphId, schemaName, getSchemaVersion()))
     }
 
-    private def getExternalPropsList(): List[String] ={
-        if(schemaValidator.getConfig.hasPath("external.properties")){
-            new util.ArrayList[String](schemaValidator.getConfig.getObject("external.properties").keySet()).toList
+    private def getExternalPropsList(graphId: String, schemaName: String, version: String): List[String] ={
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        if(definition.schemaValidator.getConfig.hasPath("external.properties")){
+            new util.ArrayList[String](definition.schemaValidator.getConfig.getObject("external.properties").keySet()).toList
         }else{
             List[String]()
         }
@@ -145,5 +147,11 @@ trait VersioningNode extends IDefinition {
                 Future(ScalaJsonUtils.serialize(nodeMap))
             } else Future("")
         }).flatMap(f => f)
+    }
+    
+    private def getSchemaNameFromMimeType(node: Node) : String = {
+        if(COLLECTION_MIME_TYPE.equalsIgnoreCase(node.getMetadata.get("mimeType").asInstanceOf[String]))
+            "collection"
+        else getSchemaName()
     }
 }
