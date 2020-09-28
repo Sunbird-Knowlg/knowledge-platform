@@ -39,6 +39,7 @@ class BaseSpec extends FlatSpec with Matchers {
         }})
         node.setMetadata(nodeMetadata)
         node.setObjectType(objectType)
+        node.setIdentifier("test_id")
         node
     }
 }
