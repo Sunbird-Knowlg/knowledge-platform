@@ -446,9 +446,9 @@ object HierarchyManager {
         val searchRequest: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]() {
             put("request", new util.HashMap[String, AnyRef]() {
                 put("filters", new util.HashMap[String, AnyRef]() {
-                    put("objectType", "Content")
                     put("status", new util.ArrayList[String]() {
-                        add("Live")
+                        add("Live");
+                        add("Unlisted")
                     })
                     put("mimeType", "application/vnd.ekstep.content-collection")
                     put("childNodes", new util.ArrayList[String]() {
