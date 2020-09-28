@@ -11,6 +11,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
+import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
@@ -50,6 +51,32 @@ class TestContentActor extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
         assert(response.get("versionKey") != null)
+    }
+
+    it should "create a plugin node and store it in neo4j" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
+        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+        val request = getContentRequest()
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.get("identifier") != null)
+        assert(response.get("versionKey") != null)
+    }
+
+    it should "create a plugin node with invalid request, should through client exception" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        val request = getContentRequest()
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
     it should "generate and return presigned url" in {
@@ -371,6 +398,18 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("primaryCategory", "Learning Resource")
             }
         })
+        node
+    }
+
+
+    def getDefinitionNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("obj-cat:learning-resource_content_in.ekstep")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
+        node.setGraphId("domain")
+        node.setMetadata(mapAsJavaMap(
+            ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:learning-resource\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n            \"license\",\n            \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
         node
     }
 }
