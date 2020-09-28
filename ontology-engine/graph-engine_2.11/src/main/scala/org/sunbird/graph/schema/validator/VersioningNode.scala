@@ -88,7 +88,7 @@ trait VersioningNode extends IDefinition {
                             node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
                             oec.graphService.addNode(node.getGraphId, node).map(imgNode => {
                                 imgNode.getMetadata.put("isImageNodeCreated", "yes");
-                                copyExternalProps(identifier, node.getGraphId, getSchemaNameFromMimeType(imgNode)).map(response => {
+                                copyExternalProps(identifier, node.getGraphId, imgNode.getObjectType.toLowerCase().replace("image", "")).map(response => {
                                     if(!ResponseHandler.checkError(response)) {
                                         if(null != response.getResult && !response.getResult.isEmpty)
                                             imgNode.setExternalData(response.getResult)
@@ -105,7 +105,7 @@ trait VersioningNode extends IDefinition {
             Future{node}
     }
 
-    private def copyExternalProps(identifier: String, graphId: String, schemaName: String)(implicit ec : ExecutionContext) = {
+    private def copyExternalProps(identifier: String, graphId: String, schemaName: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
         val request = new Request()
         request.setContext(new util.HashMap[String, AnyRef](){{
             put("schemaName", schemaName)
@@ -116,7 +116,7 @@ trait VersioningNode extends IDefinition {
         ExternalPropsManager.fetchProps(request, getExternalPropsList(graphId, schemaName, getSchemaVersion()))
     }
 
-    private def getExternalPropsList(graphId: String, schemaName: String, version: String): List[String] ={
+    private def getExternalPropsList(graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] ={
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         if(definition.schemaValidator.getConfig.hasPath("external.properties")){
             new util.ArrayList[String](definition.schemaValidator.getConfig.getObject("external.properties").keySet()).toList
@@ -150,8 +150,6 @@ trait VersioningNode extends IDefinition {
     }
     
     private def getSchemaNameFromMimeType(node: Node) : String = {
-        if(COLLECTION_MIME_TYPE.equalsIgnoreCase(node.getMetadata.get("mimeType").asInstanceOf[String]))
-            "collection"
-        else getSchemaName()
+       node.getObjectType.replaceAll("Image", "").toLowerCase()
     }
 }
