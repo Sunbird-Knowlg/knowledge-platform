@@ -340,15 +340,16 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-    it should "return success response for 'uploadContent' with jpeg asset" ignore {
+    it should "return success response for 'uploadContent' with jpeg asset" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getAssetNodeToUpload()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array("do_1234", "do_1234"))
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
-        implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
