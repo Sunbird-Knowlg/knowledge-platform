@@ -38,6 +38,8 @@ class BaseSpec extends FlatSpec with Matchers {
             put("status", "Draft")
         }})
         node.setMetadata(nodeMetadata)
+        node.setObjectType(objectType)
+        node.setIdentifier("test_id")
         node
     }
 }

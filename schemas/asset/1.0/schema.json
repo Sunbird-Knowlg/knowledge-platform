@@ -1,7 +1,7 @@
 {
-    "$id": "content-schema.json",
+    "$id": "asset-schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Content",
+    "title": "Asset",
     "type": "object",
     "required": [
         "name",
@@ -57,7 +57,6 @@
                 "application/vnd.ekstep.html-archive",
                 "application/vnd.android.package-archive",
                 "application/vnd.ekstep.content-archive",
-                "application/vnd.ekstep.content-collection",
                 "application/vnd.ekstep.plugin-archive",
                 "application/vnd.ekstep.h5p-archive",
                 "application/epub",
@@ -430,7 +429,6 @@
             "type": "string",
             "enum": [
                 "Resource",
-                "Collection",
                 "TextBook",
                 "LessonPlan",
                 "Course",
@@ -1027,48 +1025,6 @@
         "copyrightYear" : {
             "type": "number"
         },
-        "organisationId" : {
-            "type": "string"
-        },
-        "programId": {
-            "type": "string"
-        },
-        "itemSetPreviewUrl": {
-            "type": "string"
-        },
-        "textbook_name" : {
-            "type": "array"
-        },
-        "level1Name" : {
-            "type": "array"
-        },
-        "level1Concept" : {
-            "type": "array"
-        },
-        "level2Name" : {
-            "type": "array"
-        },
-        "level2Concept" : {
-            "type": "array"
-        },
-        "level3Name" : {
-            "type": "array"
-        },
-        "level3Concept" : {
-            "type": "array"
-        },
-        "sourceURL" : {
-            "type": "string"
-        },
-        "me_totalTimeSpentInSec": {
-            "type": "object"
-        },
-        "me_totalPlaySessionCount": {
-            "type": "object"
-        },
-        "me_totalRatingsCount": {
-            "type": "number"
-        },
         "monitorable": {
             "type": "array",
             "items": {
@@ -1092,17 +1048,13 @@
                 "enabled": {
                     "type": "string",
                     "enum": ["Yes","No"],
-                    "default": "No"
+                    "default": "Yes"
                 },
                 "autoBatch": {
                     "type": "string",
                     "enum": ["Yes","No"],
-                    "default": "No"
+                    "default": "Yes"
                 }
-            },
-            "default": {
-                "enabled": "No",
-                "autoBatch": "No"
             },
             "additionalProperties": false
         },
@@ -1115,9 +1067,6 @@
                     "default": "No"
                 }
             },
-            "default": {
-                "enabled": "No"
-            },
             "additionalProperties": false
         },
         "processId": {
@@ -1126,21 +1075,8 @@
         "primaryCategory": {
             "type": "string",
             "enum": [
-                "Explanation Content",
-                "Learning Resource",
-                "Course",
-                "Practice Question Set",
-                "eTextbook",
-                "Teacher Resource",
-                "Course Assessment",
-                "Digital Textbook",
-                "Content Playlist",
-                "Template",
                 "Asset",
-                "Plugin",
-                "Lesson Plan Unit",
-                "Course Unit",
-                "Textbook Unit"
+                "CertificateTemplate"
             ]
         },
         "additionalCategories": {
@@ -1148,34 +1084,44 @@
             "items": {
                 "type": "string",
                 "enum": [
+                    "ClassroomTeachingVideo",
+                    "ConceptMap",
+                    "CuriosityQuestionSet",
                     "Textbook",
-                    "TV Lesson",
-                    "Previous Board Exam Papers",
-                    "Pedagogy Flow",
-                    "Marking Scheme Rubric",
-                    "Lesson Plan",
-                    "Learning Outcome Definition",
-                    "Focus Spot",
+                    "ExperientialResource",
                     "Explanation Video",
-                    "Experiential Resource",
-                    "Curiosity Question Set",
-                    "Concept Map",
-                    "Classroom Teaching Video"
+                    "FocusSpot",
+                    "LearningOutcomeDefinition",
+                    "MarkingSchemeRubric",
+                    "PedagogyFlow",
+                    "PracticeQuestionSet",
+                    "LessonPlan",
+                    "Previous Board Exam Papers",
+                    "ExplanationContent",
+                    "LearningResource",
+                    "OnlineCourse",
+                    "QuestionSet",
+                    "eTextBook",
+                    "TeacherResource",
+                    "CourseAssessment",
+                    "ETB",
+                    "ContentPlayList",
+                    "GenericCollection"
                 ]
             }
-        },
-        "prevStatus": {
-            "type": "string"
         },
         "cloudStorageKey": {
             "type": "string"
         },
-      "batches": {
-        "type": "array",
-        "items": {
-          "type": "object"
-        }
-      },
+        "prevStatus": {
+            "type": "string"
+        },
+        "batches": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
         "year": {
             "type": "string"
         },

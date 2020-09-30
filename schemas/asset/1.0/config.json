@@ -1,0 +1,80 @@
+{
+    "objectType": "Asset",
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "copy" : [
+            "status"
+        ],
+        "update": []
+    },
+    "relations": {
+        "concepts": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Concept"]
+        },
+        "questions": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["AssessmentItem"]
+        },
+        "children": {
+            "type": "hasSequenceMember",
+            "direction": "out",
+            "objects": ["Content", "ContentImage"]
+        },
+        "collections": {
+            "type": "hasSequenceMember",
+            "direction": "in",
+            "objects": ["Content", "ContentImage"]
+        },
+        "usedByContent": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        },
+        "usesContent": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Content"]
+        },
+        "itemSets": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["ItemSet"]
+        }
+    },
+    "version": "enable",
+    "versionCheckMode": "ON",
+    "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "edge": {
+        "properties": {
+            "license": "License"
+        }
+    },
+    "copy": {
+        "scheme": {
+            "TextBookToCourse": {
+                "TextBook": "Course",
+                "TextBookUnit": "CourseUnit"
+            },
+            "TextBookToLessonPlan": {
+            }
+        }
+    },
+    "cacheEnabled": true,
+    "searchProps": {
+        "status": ["Live"],
+        "softConstraints": {
+            "medium": 15,
+            "subject": 15,
+            "ageGroup": 1,
+            "gradeLevel": 7,
+            "board": 4,
+            "relatedBoards": 4
+        }
+    },
+    "schema_restrict_api": true
+}

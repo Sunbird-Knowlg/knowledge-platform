@@ -5,17 +5,17 @@ import org.sunbird.common.dto.Request
 import java.util
 
 import org.apache.commons.collections.CollectionUtils
-
+import org.scalamock.scalatest.MockFactory
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.ClientException
-
 import org.sunbird.util.ChannelConstants
 import org.sunbird.channel.managers.ChannelManager
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
+import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 
-class TestChannelManager extends AsyncFlatSpec with Matchers {
+class TestChannelManager extends AsyncFlatSpec with Matchers with MockFactory {
 
     "get All framework list" should "return a list of frameworks from search service" in {
         val frameworkList = ChannelManager.getAllFrameworkList()
@@ -97,4 +97,20 @@ class TestChannelManager extends AsyncFlatSpec with Matchers {
         exception.getMessage shouldEqual "Please provide valid list for contentPrimaryCategories"
     }
 
+    it should "add objectCategory into channel read response" in {
+        val metaDataMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
+        ChannelManager.getObjectCategories(metaDataMap)
+        assert(metaDataMap.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES))
+        assert(CollectionUtils.isNotEmpty(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.List[String]]))
+    }
+
+    it should "not change objectCategory into channel read response" in {
+        val metaDataMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){{
+            put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("Learning Resource")}})
+        }}
+        ChannelManager.getObjectCategories(metaDataMap)
+        assert(metaDataMap.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES))
+        assert(CollectionUtils.isEqualCollection(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.List[String]],
+            new util.ArrayList[String]() {{add("Learning Resource")}}))
+    }
 }

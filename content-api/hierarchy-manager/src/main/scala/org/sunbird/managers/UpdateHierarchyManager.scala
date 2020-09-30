@@ -108,6 +108,7 @@ object UpdateHierarchyManager {
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
             //TODO: Remove the Populate category mapping before updating for backward
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(rootNode)
             rootNode
         })
     }
@@ -170,6 +171,7 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
                     //TODO: Remove the Populate category mapping before updating for backward
                     HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val updatedNodes = node :: nodes
                     updatedNodes
                 }) recoverWith { case e: CompletionException => throw e.getCause }
@@ -184,6 +186,7 @@ object UpdateHierarchyManager {
                 childData.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
                 HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(childData)
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
+                HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)
             }
@@ -200,7 +203,6 @@ object UpdateHierarchyManager {
                 .map(nodeModified => {
                     val metadata = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]]
                     metadata.remove(HierarchyConstants.DIALCODES)
-                    metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
                     metadata.put(HierarchyConstants.STATUS, "Draft")
                     metadata.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
                     if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.IS_NEW)
@@ -246,8 +248,9 @@ object UpdateHierarchyManager {
         createRequest.setRequest(metadata)
         DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
-            node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)
+            //Object type mapping
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
             val updatedList = node :: nodeList
             updatedList.distinct
         })
@@ -380,6 +383,10 @@ object UpdateHierarchyManager {
 //                TelemetryManager.info("Get ContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
+                    node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
+                    //TODO: Populate category mapping before updating for backward
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val nxtEnrichedNodeList = node :: enrichedNodeList
                     if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {
                         updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, nxtEnrichedNodeList)
@@ -492,4 +499,5 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
     }
+
 }

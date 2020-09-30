@@ -10,8 +10,10 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{OK, status}
 import play.api.test.Helpers._
 import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile}
+import play.api.libs.json.JsValue
 import play.api.mvc.MultipartFormData
 import play.api.mvc.MultipartFormData.{BadPart, FilePart}
+import play.api.libs.json.Json
 
 @RunWith(classOf[JUnitRunner])
 class ContentSpec extends BaseSpec {
@@ -19,7 +21,9 @@ class ContentSpec extends BaseSpec {
     "Content Controller " should {
         "return success response for create API" in {
             val controller = app.injector.instanceOf[controllers.v3.ContentController]
-            val result = controller.create()(FakeRequest())
+            val json: JsValue = Json.parse("""{"request": {"content": {"contentType": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/content/v3/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
         }
@@ -188,6 +192,31 @@ class ContentSpec extends BaseSpec {
     "return success response for importContent API" in {
         val controller = app.injector.instanceOf[controllers.v3.ContentController]
         val result = controller.importContent()(FakeRequest())
+        isOK(result)
+        status(result) must equalTo(OK)
+    }
+
+    "return success response for hierarchy update API" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val json: JsValue = Json.parse("""{"request": {"data": {"mimeType": "application/vnd.ekstep.content-collection"}}}""")
+        val fakeRequest = FakeRequest("POST", "/content/v3/hierarchy/update").withJsonBody(json)
+        val result = controller.updateHierarchy()(fakeRequest)
+        isOK(result)
+        status(result) must equalTo(OK)
+    }
+
+    "return success response for bookmark hierarchy API" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val result = controller.getBookmarkHierarchy("do_123", "do_1234", Option.apply("read"))(FakeRequest())
+        isOK(result)
+        status(result) must equalTo(OK)
+    }
+
+    "return success response for copy API" in {
+        val controller = app.injector.instanceOf[controllers.v3.ContentController]
+        val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Asset"}}}""")
+        val fakeRequest = FakeRequest("POST", "/content/v3/copy/do_123").withJsonBody(json)
+        val result = controller.copy("do_123", Option.apply("read"), "shallowCopy")(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
     }

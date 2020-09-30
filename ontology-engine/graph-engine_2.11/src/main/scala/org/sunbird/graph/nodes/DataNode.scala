@@ -22,10 +22,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object DataNode {
     @throws[Exception]
-    def create(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
-            val response = oec.graphService.addNode(graphId, node)
+            val response = oec.graphService.addNode(graphId, dataModifier(node))
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
@@ -36,11 +36,12 @@ object DataNode {
     }
 
     @throws[Exception]
-    def update(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    def update(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
-            val response = oec.graphService.upsertNode(graphId, node, request)
+            request.getContext().put("schemaName", node.getObjectType.toLowerCase.replace("image", ""))
+            val response = oec.graphService.upsertNode(graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
@@ -52,10 +53,11 @@ object DataNode {
 
     @throws[Exception]
     def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         DefinitionNode.getNode(request).map(node => {
+            val schema = node.getObjectType.toLowerCase.replace("image", "")
+            request.getContext().put("schemaName", schema)
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
-            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schemaName)
+            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
@@ -166,5 +168,9 @@ object DataNode {
             else throw new ClientException("ERR_INVALID_RELATION_OBJECT", "Invalid Relation Object Found.")
         }
         list
+    }
+    
+    private def defaultDataModifier(node: Node) = {
+        node
     }
 }
