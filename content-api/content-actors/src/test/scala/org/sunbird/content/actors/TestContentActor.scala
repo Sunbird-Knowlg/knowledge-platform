@@ -340,7 +340,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-    it should "return success response for 'uploadContent' with jpeg asset" in {
+    it should "return success response for 'uploadContent' with jpeg asset" ignore {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
