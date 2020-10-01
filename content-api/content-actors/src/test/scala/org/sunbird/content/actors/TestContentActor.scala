@@ -1,14 +1,17 @@
 package org.sunbird.content.actors
 
+import java.io.File
 import java.util
 
 import org.sunbird.graph.dac.model.Node
 import akka.actor.Props
+import com.google.common.io.Resources
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
+import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
@@ -40,14 +43,41 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB)
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
         assert(response.get("versionKey") != null)
+    }
+
+    it should "create a plugin node and store it in neo4j" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
+        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+        val request = getContentRequest()
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.get("identifier") != null)
+        assert(response.get("versionKey") != null)
+    }
+
+    it should "create a plugin node with invalid request, should through client exception" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        val request = getContentRequest()
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
     it should "generate and return presigned url" in {
@@ -310,22 +340,43 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-    private def getNodeToUpload(): Node = {
+    it should "return success response for 'uploadContent' with jpeg asset" ignore  {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getAssetNodeToUpload()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array("do_1234", "do_1234"))
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
+        request.put("file", new File(Resources.getResource("jpegImage.jpeg").toURI))
+        request.setOperation("uploadContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    private def getAssetNodeToUpload(): Node = {
         val node = new Node()
         node.setIdentifier("do_1234")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Asset")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_1234")
-                put("mimeType", "application/pdf")
-                put("status", "Live")
-                put("contentType", "Resource")
-                put("name", "Resource_1")
+                put("mimeType", "image/jpeg")
+                put("contentType", "Asset")
+                put("name", "Asset_1")
                 put("versionKey", "test_321")
                 put("channel", "in.ekstep")
                 put("code", "Resource_1")
-                put("artifactUrl", "testurl")
-                put("primaryCategory", "Learning Resource")
+                put("primaryCategory", "Asset")
+                put("versionKey", "1234")
             }
         })
         node
@@ -349,6 +400,18 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("primaryCategory", "Learning Resource")
             }
         })
+        node
+    }
+
+
+    def getDefinitionNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("obj-cat:learning-resource_content_in.ekstep")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
+        node.setGraphId("domain")
+        node.setMetadata(mapAsJavaMap(
+            ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:learning-resource\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n            \"license\",\n            \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
         node
     }
 }
