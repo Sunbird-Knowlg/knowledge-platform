@@ -9,7 +9,7 @@ import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.models.UploadParams
 import play.api.mvc.ControllerComponents
-import utils.{ActorNames, ApiId}
+import utils.{ActorNames, ApiId, JavaJsonUtils}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,11 +32,14 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val body = requestBody()
         val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        if (StringUtils.isBlank(content.getOrDefault("primaryCategory", "").asInstanceOf[String]))
-            BadRequest(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")).as("application/json")
-        val contentRequest = getRequest(content, headers, "createContent", true)
-        setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = "4.0")
+        if (StringUtils.isBlank(content.getOrDefault("primaryCategory", "").asInstanceOf[String])) {
+            val response: String = JavaJsonUtils.serialize(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter"));
+            Future(BadRequest(response).as("application/json"))
+        } else {
+            val contentRequest = getRequest(content, headers, "createContent", true)
+            setRequestContext(contentRequest, version, objectType, schemaName)
+            getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = "4.0")
+        }
     }
 
     /**
