@@ -4,6 +4,8 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
+import org.apache.commons.lang.StringUtils
+import org.sunbird.common.exception.ClientException
 import org.sunbird.models.UploadParams
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
@@ -29,6 +31,8 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val body = requestBody()
         val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
+        if(StringUtils.isBlank(content.getOrDefault("primaryCategory", "").asInstanceOf[String]))
+            throw new ClientException("ERR_PRIMARY_CATEGORY_IS_MANDATORY", "primaryCategory is a mandatory parameter")
         val contentRequest = getRequest(content, headers, "createContent", true)
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = "4.0")
