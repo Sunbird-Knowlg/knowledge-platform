@@ -115,7 +115,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     def setRequestContext(request: org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
         val mimeType = request.getRequest.getOrDefault("mimeType", "").asInstanceOf[String]
         val contentType = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
-        val primaryCategory = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
+        val primaryCategory = request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String]
         val contextMap: java.util.Map[String, AnyRef] = if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, Constants.COLLECTION_MIME_TYPE)) {
             request.setObjectType(Constants.COLLECTION_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {
