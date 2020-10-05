@@ -83,10 +83,10 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         new org.sunbird.common.dto.Request(context, input, operation, null);
     }
 
-    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false) : Future[Result] = {
+    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false, version: String = "3.0") : Future[Result] = {
         val future = Patterns.ask(actor, request, 30000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
         future.map(f => {
-            val result = f.asInstanceOf[Response]
+            val result: Response = f.asInstanceOf[Response]
             result.setId(apiId)
             setResponseEnvelope(result)
             //TODO Mapping for backward compatibility
@@ -95,7 +95,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 val objectType = result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault("objectType", "Content").asInstanceOf[String]
                 setObjectTypeForRead(objectType, result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             }
-            val response = JavaJsonUtils.serialize(result);
+            val response: String = JavaJsonUtils.serialize(result);
+            result.setVer(version)
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
                 case ResponseCode.CLIENT_ERROR => BadRequest(response).as("application/json")

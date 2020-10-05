@@ -31,7 +31,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent", true)
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.CREATE_ASSET, contentActor, contentRequest)
+        getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = "4.0")
     }
 
     /**
@@ -52,7 +52,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_ASSET, contentActor, readRequest, true)
+        getResult(ApiId.READ_ASSET, contentActor, readRequest, true, "4.0")
     }
 
     def update(identifier: String) = Action.async { implicit request =>
@@ -63,7 +63,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
-        getResult(ApiId.UPDATE_ASSET, contentActor, contentRequest)
+        getResult(ApiId.UPDATE_ASSET, contentActor, contentRequest, version = "4.0")
     }
 
     def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
@@ -73,6 +73,6 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))).asJava)
-        getResult(ApiId.UPLOAD_ASSET, contentActor, contentRequest)
+        getResult(ApiId.UPLOAD_ASSET, contentActor, contentRequest, version = "4.0")
     }
 }
