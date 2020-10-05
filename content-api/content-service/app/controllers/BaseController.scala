@@ -88,6 +88,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         future.map(f => {
             val result: Response = f.asInstanceOf[Response]
             result.setId(apiId)
+            result.setVer(version)
             setResponseEnvelope(result)
             //TODO Mapping for backward compatibility
             if (categoryMapping && result.getResponseCode == ResponseCode.OK) {
@@ -96,7 +97,6 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 setObjectTypeForRead(objectType, result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             }
             val response: String = JavaJsonUtils.serialize(result);
-            result.setVer(version)
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
                 case ResponseCode.CLIENT_ERROR => BadRequest(response).as("application/json")
