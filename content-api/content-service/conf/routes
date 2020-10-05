@@ -54,3 +54,9 @@ POST    /category/v3/create                      controllers.v3.CategoryControll
 GET     /category/v3/read/:identifier            controllers.v3.CategoryController.read(identifier: String, fields:Option[String])
 PATCH   /category/v3/update/:identifier          controllers.v3.CategoryController.update(identifier: String)
 DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryController.retire(identifier: String)
+
+#Asset V4 Api's
+POST      /asset/v4/create                controllers.v4.AssetController.create
+PATCH     /asset/v4/update/:identifier    controllers.v4.AssetController.update(identifier:String)
+GET       /asset/v4/read/:identifier      controllers.v4.AssetController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /asset/v4/upload/:identifier         controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])

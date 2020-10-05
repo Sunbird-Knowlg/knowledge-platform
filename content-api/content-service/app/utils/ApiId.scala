@@ -45,5 +45,10 @@ object ApiId {
 	val UPDATE_CATEGORY = "api.category.update"
 	val RETIRE_CATEGORY = "api.category.retire"
 
+	//Asset V4 apis
+	val CREATE_ASSET = "api.content.create"
+	val READ_ASSET = "api.content.read"
+	val UPDATE_ASSET = "api.content.update"
+	val UPLOAD_ASSET = "api.content.upload"
 
 }
