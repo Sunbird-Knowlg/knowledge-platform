@@ -29,11 +29,11 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent", true)
-        if(!validatePrimaryCategory(contentRequest.getRequest))
-            getErrorResponse(ApiId.CREATE_ASSET, version = apiVersion)
+        if(validatePrimaryCategory(contentRequest.getRequest))
+            getErrorResponse(ApiId.CREATE_COLLECTION, version = apiVersion)
         else {
             setRequestContext(contentRequest, version, objectType, schemaName)
-            getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = apiVersion)
+            getResult(ApiId.CREATE_COLLECTION, contentActor, contentRequest, version = apiVersion)
         }
     }
 
@@ -55,7 +55,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_ASSET, contentActor, readRequest, version = apiVersion)
+        getResult(ApiId.READ_COLLECTION, contentActor, readRequest, version = apiVersion)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
@@ -66,7 +66,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
-        getResult(ApiId.UPDATE_ASSET, contentActor, contentRequest, version = apiVersion)
+        getResult(ApiId.UPDATE_COLLECTION, contentActor, contentRequest, version = apiVersion)
     }
 
     def addHierarchy() = Action.async { implicit request =>
@@ -76,7 +76,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(body, headers, "addHierarchy")
         contentRequest.put("mode", "edit");
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.ADD_HIERARCHY, collectionActor, contentRequest)
+        getResult(ApiId.ADD_HIERARCHY_V4, collectionActor, contentRequest)
     }
 
     def removeHierarchy() = Action.async { implicit request =>
@@ -86,7 +86,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(body, headers, "removeHierarchy")
         contentRequest.put("mode", "edit");
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.REMOVE_HIERARCHY, collectionActor, contentRequest)
+        getResult(ApiId.REMOVE_HIERARCHY_V4, collectionActor, contentRequest)
     }
 
     def updateHierarchy() = Action.async { implicit request =>
@@ -96,7 +96,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         data.putAll(headers)
         val contentRequest = getRequest(data, headers, "updateHierarchy")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.UPDATE_HIERARCHY, collectionActor, contentRequest)
+        getResult(ApiId.UPDATE_HIERARCHY_V4, collectionActor, contentRequest)
     }
 
     def getHierarchy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
@@ -106,7 +106,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
-        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest, true)
+        getResult(ApiId.GET_HIERARCHY_V4, collectionActor, readRequest, true)
     }
 
     def getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String]) = Action.async { implicit request =>
@@ -116,7 +116,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(Map("rootId" -> identifier, "bookmarkId" -> bookmarkId, "mode" -> mode.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "getHierarchy")
         setRequestContext(readRequest, version, objectType, null)
-        getResult(ApiId.GET_HIERARCHY, collectionActor, readRequest, true)
+        getResult(ApiId.GET_HIERARCHY_V4, collectionActor, readRequest, true)
     }
 
     def flag(identifier: String) = Action.async { implicit request =>
@@ -128,7 +128,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(content, headers, "flagContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
-        getResult(ApiId.FlAG_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.FlAG_COLLECTION, contentActor, contentRequest)
     }
 
     def acceptFlag(identifier: String) = Action.async { implicit request =>
@@ -138,7 +138,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(Map("identifier" -> identifier).asJava)
         val acceptRequest = getRequest(content, headers, "acceptFlag")
         setRequestContext(acceptRequest, version, objectType, schemaName)
-        getResult(ApiId.ACCEPT_FLAG, contentActor, acceptRequest)
+        getResult(ApiId.ACCEPT_FLAG_COLLECTION, contentActor, acceptRequest)
     }
 
     def discard(identifier: String) = Action.async { implicit request =>
@@ -148,27 +148,17 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(Map("identifier" -> identifier).asJava)
         val discardRequest = getRequest(content, headers, "discardContent")
         setRequestContext(discardRequest, version, objectType, schemaName)
-        getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest)
+        getResult(ApiId.DISCARD_COLLECTION, contentActor, discardRequest)
     }
     def retire(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.put("identifier", identifier)
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "retireContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.RETIRE_CONTENT, contentActor, contentRequest)
-    }
-
-    def linkDialCode() = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        body.putAll(headers)
-        val contentRequest = getRequest(body, headers, "linkDIALCode")
-        setRequestContext(contentRequest, version, objectType, schemaName)
-        contentRequest.getContext.put("linkType", "content")
-        getResult(ApiId.LINK_DIAL_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.RETIRE_COLLECTION, contentActor, contentRequest)
     }
 
     def collectionLinkDialCode(identifier: String) = Action.async { implicit request =>
