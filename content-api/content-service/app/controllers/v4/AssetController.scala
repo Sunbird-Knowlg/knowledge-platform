@@ -12,7 +12,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext}
 @Singleton
 class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {
-
     val objectType = "Asset"
     val schemaName: String = "asset"
     val version = "1.0"
@@ -57,7 +56,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_ASSET, contentActor, readRequest, true, apiVersion)
+        getResult(ApiId.READ_ASSET, contentActor, readRequest,  version = apiVersion)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
@@ -80,4 +79,5 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))).asJava)
         getResult(ApiId.UPLOAD_ASSET, contentActor, contentRequest, version = apiVersion)
     }
+
 }
