@@ -4,21 +4,19 @@ import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
-import org.apache.commons.lang.StringUtils
-import org.sunbird.common.dto.ResponseHandler
-import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.models.UploadParams
 import play.api.mvc.ControllerComponents
-import utils.{ActorNames, ApiId, JavaJsonUtils}
+import utils.{ActorNames, ApiId}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext}
 @Singleton
 class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {
 
     val objectType = "Asset"
     val schemaName: String = "asset"
     val version = "1.0"
+    val apiVersion = "4.0"
 
     /**
       * This Api end point takes a body
@@ -32,14 +30,10 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val body = requestBody()
         val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        if (StringUtils.isBlank(content.getOrDefault("primaryCategory", "").asInstanceOf[String])) {
-            val response: String = JavaJsonUtils.serialize(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter"));
-            Future(BadRequest(response).as("application/json"))
-        } else {
-            val contentRequest = getRequest(content, headers, "createContent", true)
-            setRequestContext(contentRequest, version, objectType, schemaName)
-            getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = "4.0")
-        }
+        val contentRequest = getRequest(content, headers, "createContent", true)
+        validatePrimaryCategory(contentRequest.getRequest, ApiId.CREATE_ASSET, apiVersion )
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = apiVersion)
     }
 
     /**
@@ -60,7 +54,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_ASSET, contentActor, readRequest, true, "4.0")
+        getResult(ApiId.READ_ASSET, contentActor, readRequest, true, apiVersion)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
@@ -71,7 +65,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
-        getResult(ApiId.UPDATE_ASSET, contentActor, contentRequest, version = "4.0")
+        getResult(ApiId.UPDATE_ASSET, contentActor, contentRequest, version = apiVersion)
     }
 
     def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
@@ -81,6 +75,6 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.putAll(Map("identifier" ->  identifier, "params" -> UploadParams(fileFormat, validation.map(_.toBoolean))).asJava)
-        getResult(ApiId.UPLOAD_ASSET, contentActor, contentRequest, version = "4.0")
+        getResult(ApiId.UPLOAD_ASSET, contentActor, contentRequest, version = apiVersion)
     }
 }

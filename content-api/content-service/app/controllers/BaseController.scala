@@ -14,7 +14,6 @@ import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
 import utils.{Constants, JavaJsonUtils}
 
-
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -173,8 +172,18 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         case _ => "Learning Resource"
     }
 
-        private def setObjectTypeForRead(objectType: String, result: java.util.Map[String, AnyRef]): Unit = {
-            result.put("objectType", "Content")
+    private def setObjectTypeForRead(objectType: String, result: java.util.Map[String, AnyRef]): Unit = {
+        result.put("objectType", "Content")
+    }
+
+    def validatePrimaryCategory(input: java.util.Map[String, AnyRef], apiId: String, version: String): Unit = {
+        if (StringUtils.isBlank(input.getOrDefault("primaryCategory", "").asInstanceOf[String])) {
+            val result = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
+            result.setId(apiId)
+            result.setVer(version)
+            setResponseEnvelope(result)
+            Future(BadRequest(JavaJsonUtils.serialize(result)).as("application/json"))
         }
+    }
 
 }
