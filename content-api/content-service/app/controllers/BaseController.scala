@@ -176,14 +176,15 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         result.put("objectType", "Content")
     }
 
-    def validatePrimaryCategory(input: java.util.Map[String, AnyRef], apiId: String, version: String): Unit = {
-        if (StringUtils.isBlank(input.getOrDefault("primaryCategory", "").asInstanceOf[String])) {
-            val result = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
-            result.setId(apiId)
-            result.setVer(version)
-            setResponseEnvelope(result)
-            Future(BadRequest(JavaJsonUtils.serialize(result)).as("application/json"))
-        }
+    def validatePrimaryCategory(input: java.util.Map[String, AnyRef]): Boolean = StringUtils.isBlank(input.getOrDefault("primaryCategory", "").asInstanceOf[String])
+
+
+    def getErrorResponse(apiId: String, version: String): Future[Result] = {
+        val result = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
+        result.setId(apiId)
+        result.setVer(version)
+        setResponseEnvelope(result)
+        Future(BadRequest(JavaJsonUtils.serialize(result)).as("application/json"))
     }
 
 }
