@@ -30,7 +30,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent", true)
-        if(!validatePrimaryCategory(contentRequest.getRequest))
+        if(validatePrimaryCategory(contentRequest.getRequest))
             getErrorResponse(ApiId.CREATE_ASSET, version = apiVersion)
         else {
             setRequestContext(contentRequest, version, objectType, schemaName)
