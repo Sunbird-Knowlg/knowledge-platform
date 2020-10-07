@@ -80,4 +80,15 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         getResult(ApiId.UPLOAD_ASSET, contentActor, contentRequest, version = apiVersion)
     }
 
+    def uploadPreSigned(identifier: String, `type`: Option[String])= Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")).asJava)
+        val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.UPLOAD_PRE_SIGNED_ASSET, contentActor, contentRequest)
+    }
+
 }

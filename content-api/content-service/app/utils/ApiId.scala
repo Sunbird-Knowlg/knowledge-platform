@@ -50,6 +50,8 @@ object ApiId {
 	val READ_ASSET = "api.asset.read"
 	val UPDATE_ASSET = "api.asset.update"
 	val UPLOAD_ASSET = "api.asset.upload"
+	val UPLOAD_PRE_SIGNED_ASSET= "api.asset.upload.url"
+
 
 
 	//Collection V4 apis

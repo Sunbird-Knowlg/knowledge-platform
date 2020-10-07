@@ -20,8 +20,8 @@ class AssetSpec extends BaseSpec {
     "AssetController " should {
         "return success response for create API" in {
             val controller = app.injector.instanceOf[controllers.v4.AssetController]
-            val json: JsValue = Json.parse("""{"request": {"content": {"contentType": "Asset"}}}""")
-            val fakeRequest = FakeRequest("POST", "/content/v3/create ").withJsonBody(json)
+            val json: JsValue = Json.parse("""{"request": {"asset": {"contentType": "Asset", "primaryCategory": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/asset/v3/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
@@ -70,6 +70,13 @@ class AssetSpec extends BaseSpec {
             val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
             val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
             val result = controller.upload("01234", Some("composed-h5p-zip"), None)(fakeRequest)
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
+        "return success response for pre signed Url upload API" in {
+            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val result = controller.uploadPreSigned("01234", None)(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
