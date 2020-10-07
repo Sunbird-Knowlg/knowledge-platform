@@ -82,7 +82,7 @@ object ChannelManager {
   }
 
   def setPrimaryAndAdditionCategories(metadata: util.Map[String, AnyRef]): Unit = {
-    val masterCategories = getMasterCategoryList()
+    val masterCategories = seqAsJavaList(getMasterCategoryList())
     metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, masterCategories)
     metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, masterCategories)
     metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, masterCategories)
