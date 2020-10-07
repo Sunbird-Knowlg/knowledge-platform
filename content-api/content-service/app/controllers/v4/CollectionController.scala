@@ -29,8 +29,8 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent", true)
-        if(validatePrimaryCategory(contentRequest.getRequest))
-            getErrorResponse(ApiId.CREATE_COLLECTION, version = apiVersion)
+        if(!validatePrimaryCategory(contentRequest.getRequest))
+            getErrorResponse(ApiId.CREATE_COLLECTION, apiVersion, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
         else {
             setRequestContext(contentRequest, version, objectType, schemaName)
             getResult(ApiId.CREATE_COLLECTION, contentActor, contentRequest, version = apiVersion)
