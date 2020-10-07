@@ -99,7 +99,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers with MockFactory {
 
     it should "add objectCategory into channel read response" in {
         val metaDataMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
-        ChannelManager.getObjectCategories(metaDataMap)
+        ChannelManager.setPrimaryAndAdditionCategories(metaDataMap)
         assert(metaDataMap.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES))
         assert(CollectionUtils.isNotEmpty(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.List[String]]))
     }
@@ -108,7 +108,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers with MockFactory {
         val metaDataMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){{
             put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, new util.ArrayList[String]() {{add("Learning Resource")}})
         }}
-        ChannelManager.getObjectCategories(metaDataMap)
+        ChannelManager.setPrimaryAndAdditionCategories(metaDataMap)
         assert(metaDataMap.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES))
         assert(CollectionUtils.isEqualCollection(metaDataMap.get(ChannelConstants.CONTENT_PRIMARY_CATEGORIES).asInstanceOf[util.List[String]],
             new util.ArrayList[String]() {{add("Learning Resource")}}))

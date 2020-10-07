@@ -14,4 +14,7 @@ object ChannelConstants {
   val OBJECT_CATEGORY: String = "ObjectCategory"
   val categoryKeyList: List[String] = List(CONTENT_PRIMARY_CATEGORIES,COLLECTION_PRIMARY_CATEGORIES,ASSET_PRIMARY_CATEGORIES)
   val ERR_VALIDATING_PRIMARY_CATEGORY: String = "ERR_VALIDATING_PRIMARY_CATEGORY"
+  val CONTENT_ADDITIONAL_CATEGORIES: String = "contentAdditionalCategories"
+  val COLLECTION_ADDITIONAL_CATEGORIES: String = "collectionAdditionalCategories"
+  val ASSET_ADDITIONAL_CATEGORIES: String = "assetAdditionalCategories"
 }

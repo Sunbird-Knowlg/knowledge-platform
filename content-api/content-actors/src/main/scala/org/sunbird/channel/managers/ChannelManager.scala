@@ -11,17 +11,12 @@ import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.sunbird.common.JsonUtils
-import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
-
-  val contentPrimaryCategoriesList = Platform.getStringList("channel.content.primarycategories", java.util.Arrays.asList("Explanation Content", "Learning Resource", "Practice Question Set", "eTextbook", "Teacher Resource", "Course Assessment"))
-  val collectionPrimaryCategoriesList = Platform.getStringList("channel.collection.primarycategories", java.util.Arrays.asList("Course", "Digital Textbook", "Content Playlist"))
-  val assetPrimaryCategoriesList = Platform.getStringList("channel.asset.primarycategories", java.util.Arrays.asList("Asset"))
 
   def channelLicenseCache(request: Request, identifier: String): Unit = {
     if (request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
@@ -49,15 +44,7 @@ object ChannelManager {
 
   def validateObjectCategory(request: Request) = {
     if (!util.Collections.disjoint(request.getRequest.keySet(), ChannelConstants.categoryKeyList)) {
-      val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
-      val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("""{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name"]}}""").asString
-      if (200 != httpResponse.getStatus)
-        throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object category.")
-      val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
-      val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
-      if (objectCategoryList.isEmpty)
-        throw new ClientException("ERR_NO_MASTER_OBJECT_CATEGORY_DEFINED", "Master category object not present")
-      val masterCategoriesList: List[String] = objectCategoryList.map(a => a.get("name").asInstanceOf[String]).toList
+      val masterCategoriesList: List[String] = getMasterCategoryList()
       val errMsg: ListBuffer[String] = ListBuffer()
       compareWithMasterCategory(request, masterCategoriesList, errMsg)
       if (errMsg.nonEmpty)
@@ -94,15 +81,25 @@ object ChannelManager {
     }
   }
 
-  def getObjectCategories(metadata: util.Map[String, AnyRef]): Unit = {
-    if (!metadata.containsKey(ChannelConstants.CONTENT_PRIMARY_CATEGORIES)) {
-      metadata.put(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, contentPrimaryCategoriesList)
-    }
-    if (!metadata.containsKey(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES)) {
-      metadata.put(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, collectionPrimaryCategoriesList)
-    }
-    if (!metadata.containsKey(ChannelConstants.ASSET_PRIMARY_CATEGORIES)) {
-      metadata.put(ChannelConstants.ASSET_PRIMARY_CATEGORIES, assetPrimaryCategoriesList)
-    }
+  def setPrimaryAndAdditionCategories(metadata: util.Map[String, AnyRef]): Unit = {
+    val masterCategories = getMasterCategoryList()
+    metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, masterCategories)
+    metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, masterCategories)
+    metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, masterCategories)
+    metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, masterCategories)
+    metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, masterCategories)
+    metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, masterCategories)
+  }
+
+  def getMasterCategoryList(): List[String] = {
+    val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
+    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("""{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name"]}}""").asString
+    if (200 != httpResponse.getStatus)
+      throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object category.")
+    val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
+    val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+    if (objectCategoryList.isEmpty)
+      throw new ClientException("ERR_NO_MASTER_OBJECT_CATEGORY_DEFINED", "Master category object not present")
+    objectCategoryList.map(a => a.getOrDefault("name", "").asInstanceOf[String]).toList
   }
 }
