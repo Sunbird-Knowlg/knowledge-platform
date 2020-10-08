@@ -56,10 +56,11 @@ PATCH   /category/v3/update/:identifier          controllers.v3.CategoryControll
 DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryController.retire(identifier: String)
 
 #Asset V4 Api's
-POST      /asset/v4/create                controllers.v4.AssetController.create
-PATCH     /asset/v4/update/:identifier    controllers.v4.AssetController.update(identifier:String)
-GET       /asset/v4/read/:identifier      controllers.v4.AssetController.read(identifier:String, mode:Option[String], fields:Option[String])
-POST      /asset/v4/upload/:identifier    controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /asset/v4/create                       controllers.v4.AssetController.create
+PATCH     /asset/v4/update/:identifier           controllers.v4.AssetController.update(identifier:String)
+GET       /asset/v4/read/:identifier             controllers.v4.AssetController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /asset/v4/upload/:identifier           controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /asset/v4/upload/url/:identifier       controllers.v4.AssetController.uploadPreSigned(identifier:String, type: Option[String])
 
 # Collection v4 Api's
 POST     /collection/v4/flag/:identifier           controllers.v4.CollectionController.flag(identifier:String)
@@ -76,7 +77,6 @@ POST     /collection/v4/copy/:identifier                     controllers.v4.Coll
 
 
 # Content v4 APIs
-
 POST      /content/v4/create                       controllers.v4.ContentController.create
 PATCH     /content/v4/update/:identifier           controllers.v4.ContentController.update(identifier:String)
 GET       /content/v4/read/:identifier             controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
