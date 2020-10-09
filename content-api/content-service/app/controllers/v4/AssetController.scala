@@ -27,7 +27,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent", true)
         if(!validatePrimaryCategory(contentRequest.getRequest))
@@ -62,7 +62,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
@@ -83,7 +83,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
     def uploadPreSigned(identifier: String, `type`: Option[String])= Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")).asJava)
         val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
