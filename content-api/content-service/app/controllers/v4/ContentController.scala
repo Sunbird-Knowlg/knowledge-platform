@@ -26,12 +26,12 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val body = requestBody()
         val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
-        val contentRequest = getRequest(content, headers, "createContent", true)
-        if(!validatePrimaryCategory(contentRequest.getRequest))
+        if(!validatePrimaryCategory(content))
             getErrorResponse(ApiId.CREATE_CONTENT, apiVersion, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
-        else if(validateContentType(contentRequest.getRequest))
-            getErrorResponse(ApiId.CREATE_ASSET, apiVersion, "VALIDATION_ERROR", "contentType cannot be set from request.")
+        else if(validateContentType(content))
+            getErrorResponse(ApiId.CREATE_CONTENT, apiVersion, "VALIDATION_ERROR", "contentType cannot be set from request.")
         else {
+            val contentRequest = getRequest(content, headers, "createContent", true)
             setRequestContext(contentRequest, version, objectType, schemaName)
             getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = apiVersion)
         }

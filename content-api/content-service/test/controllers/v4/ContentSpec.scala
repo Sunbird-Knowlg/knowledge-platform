@@ -20,7 +20,7 @@ class ContentSpec extends BaseSpec {
     "Content Controller " should {
         "return success response for create API" in {
             val controller = app.injector.instanceOf[controllers.v4.ContentController]
-            val json: JsValue = Json.parse("""{"request": {"content": {"contentType": "Asset"}}}""")
+            val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Learning Resource"}}}""")
             val fakeRequest = FakeRequest("POST", "/content/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
             isOK(result)
@@ -130,5 +130,25 @@ class ContentSpec extends BaseSpec {
         val result = controller.copy("do_123", Option.apply("read"), "shallowCopy")(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
+    }
+
+    "Content Controller with invalid request " should {
+        "return client error response for create API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val json: JsValue = Json.parse("""{"request": {"content": { "contentType": "TextBook"}}}""")
+            val fakeRequest = FakeRequest("POST", "/content/v4/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
+        }
+    }
+
+    "Content Controller with invalid request " should {
+        "return client error response for create API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val json: JsValue = Json.parse("""{"request": {"content": { "name": "Resource"}}}""")
+            val fakeRequest = FakeRequest("POST", "/content/v4/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
+        }
     }
 }

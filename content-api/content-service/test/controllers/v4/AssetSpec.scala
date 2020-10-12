@@ -20,12 +20,13 @@ class AssetSpec extends BaseSpec {
     "AssetController " should {
         "return success response for create API" in {
             val controller = app.injector.instanceOf[controllers.v4.AssetController]
-            val json: JsValue = Json.parse("""{"request": {"asset": {"contentType": "Asset", "primaryCategory": "Asset"}}}""")
-            val fakeRequest = FakeRequest("POST", "/asset/v3/create ").withJsonBody(json)
+            val json: JsValue = Json.parse("""{"request": {"asset": { "primaryCategory": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/asset/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
         }
+
 
         "return success response for update API" in {
             val controller = app.injector.instanceOf[controllers.v4.AssetController]
@@ -79,6 +80,26 @@ class AssetSpec extends BaseSpec {
             val result = controller.uploadPreSigned("01234", None)(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
+        }
+    }
+
+    "Asset controller with invalid request " should {
+        "return client error response for create API" in {
+            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val json: JsValue = Json.parse("""{"request": {"asset": { "contentType": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/asset/v4/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
+        }
+    }
+
+    "Asset controller with invalid request " should {
+        "return client error response for create API" in {
+            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val json: JsValue = Json.parse("""{"request": {"asset": { "name": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/asset/v4/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
         }
     }
 }

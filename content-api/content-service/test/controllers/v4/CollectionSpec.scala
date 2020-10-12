@@ -16,7 +16,7 @@ class CollectionSpec extends BaseSpec {
     "Collection Controller " should {
         "return success response for create API" in {
             val controller = app.injector.instanceOf[controllers.v4.CollectionController]
-            val json: JsValue = Json.parse("""{"request": {"collection": {"contentType": "TextBook", "primaryCategory": "Digital Textbook"}}}""")
+            val json: JsValue = Json.parse("""{"request": {"collection": {"name": "Collection","primaryCategory": "Digital Textbook"}}}""")
             val fakeRequest = FakeRequest("POST", "/collection/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
             isOK(result)
@@ -114,5 +114,25 @@ class CollectionSpec extends BaseSpec {
         val result = controller.copy("do_123", Option.apply("read"), "shallowCopy")(fakeRequest)
         isOK(result)
         status(result) must equalTo(OK)
+    }
+
+    "Collection Controller with invalid request " should {
+        "return client error response for create API" in {
+            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val json: JsValue = Json.parse("""{"request": {"collection": { "contentType": "TextBook"}}}""")
+            val fakeRequest = FakeRequest("POST", "/collection/v4/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
+        }
+    }
+
+    "Collection Controller with invalid request " should {
+        "return client error response for create API" in {
+            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val json: JsValue = Json.parse("""{"request": {"collection": { "name": "Textbook"}}}""")
+            val fakeRequest = FakeRequest("POST", "/collection/v4/create ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
+        }
     }
 }
