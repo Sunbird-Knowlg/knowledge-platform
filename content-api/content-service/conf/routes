@@ -54,3 +54,42 @@ POST    /category/v3/create                      controllers.v3.CategoryControll
 GET     /category/v3/read/:identifier            controllers.v3.CategoryController.read(identifier: String, fields:Option[String])
 PATCH   /category/v3/update/:identifier          controllers.v3.CategoryController.update(identifier: String)
 DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryController.retire(identifier: String)
+
+#Asset V4 Api's
+POST      /asset/v4/create                       controllers.v4.AssetController.create
+PATCH     /asset/v4/update/:identifier           controllers.v4.AssetController.update(identifier:String)
+GET       /asset/v4/read/:identifier             controllers.v4.AssetController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /asset/v4/upload/:identifier           controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /asset/v4/upload/url/:identifier       controllers.v4.AssetController.uploadPreSigned(identifier:String, type: Option[String])
+
+# Collection v4 Api's
+POST     /collection/v4/create                     controllers.v4.CollectionController.create
+PATCH    /collection/v4/update/:identifier         controllers.v4.CollectionController.update(identifier:String)
+GET      /collection/v4/read/:identifier           controllers.v4.CollectionController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST     /collection/v4/flag/:identifier           controllers.v4.CollectionController.flag(identifier:String)
+POST     /collection/v4/flag/accept/:identifier    controllers.v4.CollectionController.acceptFlag(identifier:String)
+DELETE   /collection/v4/discard/:identifier        controllers.v4.CollectionController.discard(identifier:String)
+DELETE   /collection/v4/retire/:identifier         controllers.v4.CollectionController.retire(identifier:String)
+PATCH    /collection/v4/hierarchy/add              controllers.v4.CollectionController.addHierarchy
+DELETE   /collection/v4/hierarchy/remove           controllers.v4.CollectionController.removeHierarchy
+PATCH    /collection/v4/hierarchy/update           controllers.v4.CollectionController.updateHierarchy
+GET      /collection/v4/hierarchy/:identifier      controllers.v4.CollectionController.getHierarchy(identifier:String, mode:Option[String])
+GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.CollectionController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
+POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
+POST     /collection/v4/copy/:identifier                     controllers.v4.CollectionController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
+
+
+# Content v4 APIs
+POST      /content/v4/create                       controllers.v4.ContentController.create
+PATCH     /content/v4/update/:identifier           controllers.v4.ContentController.update(identifier:String)
+GET       /content/v4/read/:identifier             controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /content/v4/upload/url/:identifier       controllers.v4.ContentController.uploadPreSigned(identifier:String, type: Option[String])
+POST      /content/v4/upload/:identifier           controllers.v4.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /content/v4/copy/:identifier             controllers.v4.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
+POST      /content/v4/dialcode/link                controllers.v4.ContentController.linkDialCode()
+POST      /content/v4/import                       controllers.v4.ContentController.importContent()
+POST      /content/v4/flag/:identifier             controllers.v4.ContentController.flag(identifier:String)
+POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentController.acceptFlag(identifier:String)
+DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
+DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
+

@@ -14,7 +14,6 @@ import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
 import utils.{Constants, JavaJsonUtils}
 
-
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -83,11 +82,12 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         new org.sunbird.common.dto.Request(context, input, operation, null);
     }
 
-    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false) : Future[Result] = {
+    def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false, version: String = "3.0") : Future[Result] = {
         val future = Patterns.ask(actor, request, 30000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
         future.map(f => {
-            val result = f.asInstanceOf[Response]
+            val result: Response = f.asInstanceOf[Response]
             result.setId(apiId)
+            result.setVer(version)
             setResponseEnvelope(result)
             //TODO Mapping for backward compatibility
             if (categoryMapping && result.getResponseCode == ResponseCode.OK) {
@@ -95,7 +95,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 val objectType = result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault("objectType", "Content").asInstanceOf[String]
                 setObjectTypeForRead(objectType, result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             }
-            val response = JavaJsonUtils.serialize(result);
+            val response: String = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
                 case ResponseCode.CLIENT_ERROR => BadRequest(response).as("application/json")
@@ -114,7 +114,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     def setRequestContext(request: org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
         val mimeType = request.getRequest.getOrDefault("mimeType", "").asInstanceOf[String]
         val contentType = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
-        val primaryCategory = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
+        val primaryCategory = request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String]
         val contextMap: java.util.Map[String, AnyRef] = if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, Constants.COLLECTION_MIME_TYPE)) {
             request.setObjectType(Constants.COLLECTION_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {
@@ -172,8 +172,21 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         case _ => "Learning Resource"
     }
 
-        private def setObjectTypeForRead(objectType: String, result: java.util.Map[String, AnyRef]): Unit = {
-            result.put("objectType", "Content")
-        }
+    private def setObjectTypeForRead(objectType: String, result: java.util.Map[String, AnyRef]): Unit = {
+        result.put("objectType", "Content")
+    }
+
+    def validatePrimaryCategory(input: java.util.Map[String, AnyRef]): Boolean = StringUtils.isNotBlank(input.getOrDefault("primaryCategory", "").asInstanceOf[String])
+
+    def validateContentType(input: java.util.Map[String, AnyRef]): Boolean = StringUtils.isNotBlank(input.getOrDefault("contentType", "").asInstanceOf[String])
+
+
+    def getErrorResponse(apiId: String, version: String, errCode: String, errMessage: String): Future[Result] = {
+        val result = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, errCode, errMessage)
+        result.setId(apiId)
+        result.setVer(version)
+        setResponseEnvelope(result)
+        Future(BadRequest(JavaJsonUtils.serialize(result)).as("application/json"))
+    }
 
 }

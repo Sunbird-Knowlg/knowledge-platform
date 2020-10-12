@@ -45,5 +45,27 @@ object ApiId {
 	val UPDATE_CATEGORY = "api.category.update"
 	val RETIRE_CATEGORY = "api.category.retire"
 
+	//Asset V4 apis
+	val CREATE_ASSET = "api.asset.create"
+	val READ_ASSET = "api.asset.read"
+	val UPDATE_ASSET = "api.asset.update"
+	val UPLOAD_ASSET = "api.asset.upload"
+	val UPLOAD_PRE_SIGNED_ASSET= "api.asset.upload.url"
+
+
+
+	//Collection V4 apis
+	val CREATE_COLLECTION = "api.collection.create"
+	val READ_COLLECTION = "api.collection.read"
+	val UPDATE_COLLECTION = "api.collection.update"
+	val RETIRE_COLLECTION = "api.collection.retire"
+	val COPY_COLLECTION = "api.collection.copy"
+	val DISCARD_COLLECTION = "api.collection.discard"
+	val FlAG_COLLECTION = "api.collection.flag"
+	val ACCEPT_FLAG_COLLECTION = "api.collection.flag.accept"
+	val ADD_HIERARCHY_V4 = "api.collection.hierarchy.add"
+	val REMOVE_HIERARCHY_V4 = "api.collection.hierarchy.remove"
+	val UPDATE_HIERARCHY_V4 = "api.collection.hierarchy.update"
+	val GET_HIERARCHY_V4 = "api.collection.hierarchy.get"
 
 }
