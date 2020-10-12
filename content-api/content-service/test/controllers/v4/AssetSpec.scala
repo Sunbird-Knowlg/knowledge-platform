@@ -81,6 +81,14 @@ class AssetSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+
+        "return success response for retire API" in {
+            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val result = controller.retire("01234")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
 
     "Asset controller with invalid request " should {
