@@ -31,7 +31,9 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "createContent", true)
         if(!validatePrimaryCategory(contentRequest.getRequest))
-            getErrorResponse(ApiId.CREATE_ASSET, apiVersion, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
+            getErrorResponse(ApiId.CREATE_ASSET, apiVersion, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter.")
+        else if(validateContentType(contentRequest.getRequest))
+            getErrorResponse(ApiId.CREATE_ASSET, apiVersion, "VALIDATION_ERROR", "contentType cannot be set from request.")
         else {
             setRequestContext(contentRequest, version, objectType, schemaName)
             getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = apiVersion)

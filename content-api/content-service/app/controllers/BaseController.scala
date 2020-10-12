@@ -178,6 +178,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     def validatePrimaryCategory(input: java.util.Map[String, AnyRef]): Boolean = StringUtils.isNotBlank(input.getOrDefault("primaryCategory", "").asInstanceOf[String])
 
+    def validateContentType(input: java.util.Map[String, AnyRef]): Boolean = StringUtils.isNotBlank(input.getOrDefault("contentType", "").asInstanceOf[String])
+
 
     def getErrorResponse(apiId: String, version: String, errCode: String, errMessage: String): Future[Result] = {
         val result = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, errCode, errMessage)
