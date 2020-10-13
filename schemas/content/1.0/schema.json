@@ -1190,6 +1190,12 @@
         },
         "collectionId" : {
             "type": "string"
+        },
+        "learningOutcome": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }
