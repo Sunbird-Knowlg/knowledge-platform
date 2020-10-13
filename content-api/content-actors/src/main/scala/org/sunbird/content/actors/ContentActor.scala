@@ -67,7 +67,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
-			response.put("content", metadata)
+			response.put(node.getObjectType.toLowerCase().replace("image", ""), metadata)
 			response
 		})
 	}
