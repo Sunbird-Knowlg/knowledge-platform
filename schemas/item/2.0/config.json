@@ -1,0 +1,32 @@
+{
+    "objectType": "Item",
+    "relations": {
+        "concepts": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Concept"]
+        }
+    },
+    "version": "disable",
+    "versionCheckMode": "OFF",
+    "frameworkCategories": ["board","medium","subject","gradeLevel","topic"],
+    "cacheEnabled": false,
+    "external": {
+        "tableName": "content_data",
+        "properties": {
+            "question": {
+                "type": "blob"
+            },
+            "solutions": {
+                "type": "blob"
+            },
+            "editorState": {
+                "type": "blob"
+            },
+            "body": {
+                "type": "blob"
+            }
+        },
+        "primaryKey": ["content_id"]
+    }
+}
