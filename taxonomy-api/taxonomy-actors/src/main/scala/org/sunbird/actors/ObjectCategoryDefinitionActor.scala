@@ -80,6 +80,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		nodeFuture recoverWith {
 			case e: CompletionException => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
+				println("ObjectCategoryDefinitionActor ::: read ::: node not found with id :"+id + " | Fetching node with _all")
 				if (e.getCause.isInstanceOf[ResourceNotFoundException] && (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) &&
 				  !StringUtils.endsWithIgnoreCase(id, "_all"))) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
