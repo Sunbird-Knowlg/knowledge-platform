@@ -1,13 +1,14 @@
 package org.sunbird.actors
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
@@ -74,7 +75,19 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		}
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put(Constants.FIELDS, fields)
-		DataNode.read(request).map(node => {
+
+		val nodeFuture = DataNode.read(request).map(node => node)
+		nodeFuture recoverWith {
+			case e: CompletionException => {
+				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
+				if (e.getCause.isInstanceOf[ResourceNotFoundException] && (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) &&
+				  !StringUtils.endsWithIgnoreCase(id, "_all"))) {
+					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
+					DataNode.read(request).map(node => node)
+				} else
+					throw e.getCause
+			}
+		} map (node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
 			val response: Response = ResponseHandler.OK
 			response.put(Constants.OBJECT_CATEGORY_DEFINITION, metadata)
