@@ -75,16 +75,14 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		}
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put(Constants.FIELDS, fields)
-
-		val nodeFuture = DataNode.read(request).map(node => node)
-		nodeFuture recoverWith {
-			case e: CompletionException => {
+		DataNode.read(request) recoverWith {
+			case e: ResourceNotFoundException => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
-				println("ObjectCategoryDefinitionActor ::: read ::: node not found with id :"+id + " | Fetching node with _all")
-				if (e.getCause.isInstanceOf[ResourceNotFoundException] && (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) &&
+				println("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
+				if (e.isInstanceOf[ResourceNotFoundException] && (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) &&
 				  !StringUtils.endsWithIgnoreCase(id, "_all"))) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
-					DataNode.read(request).map(node => node)
+					DataNode.read(request)
 				} else
 					throw e.getCause
 			}
