@@ -4,7 +4,7 @@ import java.util
 import java.util.Optional
 import java.util.concurrent.CompletionException
 
-import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.collections4.{CollectionUtils, ListUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes}
@@ -17,6 +17,7 @@ import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOpera
 import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -44,7 +45,7 @@ object DataNode {
             val response = oec.graphService.upsertNode(graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
-                    saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
+                    saveOrUpdateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
                     updateRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
             }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
@@ -111,6 +112,21 @@ object DataNode {
             externalProps.put("identifier", identifier)
             val request = new Request(context, externalProps, "", objectType)
             ExternalPropsManager.saveProps(request)
+        } else {
+            Future(new Response)
+        }
+    }
+
+    private def saveOrUpdateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+        if (MapUtils.isNotEmpty(externalProps)) {
+            if (StringUtils.equalsIgnoreCase(objectType, "ObjectCategoryDefinition")) {
+                val req = new Request(request)
+                req.put("identifier", identifier)
+                req.put("fields", externalProps.asScala.keys.toList)
+                req.put("values", externalProps.asScala.values.toList)
+                ExternalPropsManager.updateMapRecord(req)
+
+            } else saveExternalProperties(identifier, externalProps, context, objectType)
         } else {
             Future(new Response)
         }

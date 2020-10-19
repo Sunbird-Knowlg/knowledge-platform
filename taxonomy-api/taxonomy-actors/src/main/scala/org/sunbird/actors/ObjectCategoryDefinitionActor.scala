@@ -5,11 +5,12 @@ import java.util
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.Slug
+import org.sunbird.common.{JsonUtils, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
@@ -51,6 +52,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 					val name = node.getMetadata.getOrDefault("name", "").asInstanceOf[String]
 					val description = node.getMetadata.getOrDefault("description", "").asInstanceOf[String]
 					request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
+					convertExternalProperties(request)
 					DataNode.create(request).map(node => {
 						val response = ResponseHandler.OK
 						response.put(Constants.IDENTIFIER, node.getIdentifier)
@@ -84,10 +86,24 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 
 	private def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
+		convertExternalProperties(request)
 		DataNode.update(request).map(node => {
 			val response: Response = ResponseHandler.OK
 			response.put(Constants.IDENTIFIER, node.getIdentifier)
 			response
+		})
+	}
+
+	private def convertExternalProperties(request: Request): Unit = {
+		val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String],
+			request.getContext.get("schemaName").asInstanceOf[String])
+		extPropNameList.filter(prop => request.getRequest.containsKey(prop)).foreach(prop => {
+			val value = request.getRequest.get(prop).asInstanceOf[java.util.Map[String, AnyRef]]
+			value.asScala.foreach(entry => {
+				val internalVal = JsonUtils.serialize(entry._2)
+				value.put(entry._1, internalVal)
+			})
+			request.getRequest.put(prop, value )
 		})
 	}
 

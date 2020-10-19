@@ -7,6 +7,7 @@ import java.util.Date
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.cassandra.{CassandraConnector, CassandraStore}
 import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.common.dto.Response
@@ -103,6 +104,25 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             case e: Exception =>
                 TelemetryManager.error("Exception Occurred While Deleting The Record. | Exception is : " + e.getMessage, e)
                 throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
+        }
+    }
+
+    def updateMapRecord(identifier: String, columns: List[String], values: List[java.util.Map[String, AnyRef]])(implicit ec: ExecutionContext): Future[Response] = {
+        val update = QueryBuilder.update(keySpace, table)
+        val clause: Clause = QueryBuilder.eq(primaryKey.get(0), identifier)
+        update.where.and(clause)
+        for ((column, index) <- columns.view.zipWithIndex)  update.`with`(QueryBuilder.putAll(column, values(index)))
+        print("Query for update map record", update)
+        try {
+            val session: Session = CassandraConnector.getSession
+            session.executeAsync(update).asScala.map( resultset => {
+                ResponseHandler.OK()
+            })
+        } catch {
+            case e: Exception =>
+                e.printStackTrace()
+                TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
         }
     }
 
