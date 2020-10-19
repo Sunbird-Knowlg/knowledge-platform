@@ -9,29 +9,6 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
         "config": {},
         "schema": {
           "properties": {
-            "audience": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "Student",
-                  "Teacher"
-                ]
-              },
-              "default": [
-                "Student"
-              ]
-            },
-            "mimeType": {
-              "type": "string",
-              "enum": [
-                "application/pdf",
-                "application/vnd.ekstep.h5p-archive",
-                "application/vnd.ekstep.html-archive",
-                "video/mp4",
-                "video/webm"
-              ]
-            },
             "trackable": {
               "type": "object",
               "properties": {
