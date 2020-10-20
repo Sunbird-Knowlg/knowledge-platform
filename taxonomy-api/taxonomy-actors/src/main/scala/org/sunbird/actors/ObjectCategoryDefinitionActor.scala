@@ -79,13 +79,13 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 			case e: ResourceNotFoundException => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
 				println("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
-				if (e.isInstanceOf[ResourceNotFoundException] && (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) &&
-				  !StringUtils.endsWithIgnoreCase(id, "_all"))) {
+				if (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) && !StringUtils.endsWithIgnoreCase(id, "_all")) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
 					DataNode.read(request)
 				} else
-					throw e.getCause
+					throw e
 			}
+			case ex: Throwable => throw ex
 		} map (node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
 			val response: Response = ResponseHandler.OK
