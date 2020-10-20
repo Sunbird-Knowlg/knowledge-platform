@@ -95,7 +95,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 
 	"getInstructionEvent with valid input" should "return kafka event string" in {
 		val source = "https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477"
-		val metadata = new util.HashMap[String, AnyRef](){{
+		val metadata = new util.HashMap[String, AnyRef]() {{
 			put("source","https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
 			put("name", "Test Content 2")
 			put("code", "test.content.1")
@@ -105,19 +105,56 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 			put("channel", "in.ekstep")
 			put("versionKey", "12345")
 		}}
-		val collection = new util.ArrayList[util.Map[String, AnyRef]](){{
+		val collection = new util.ArrayList[util.Map[String, AnyRef]]() {{
 			add(new util.HashMap[String, AnyRef](){{
 				put("identifier", "do_123")
 				put("unitId", "do_3456")
 			}})
 		}}
-		val result = ImportManager.getInstructionEvent("do_11307822356267827219477", source, metadata, collection, "")
+		val originData = new util.HashMap[String, AnyRef]() {{
+			put("identifier", "do_1234")
+			put("repository", "https://dock.sunbirded.org/api/content/v1/read/do_1234")
+		}}
+		val result = ImportManager.getInstructionEvent("do_11307822356267827219477", source, metadata, collection, "publish", originData)
 		assert(StringUtils.isNoneBlank(result))
 		val resultMap = JsonUtils.deserialize(result, classOf[util.Map[String, AnyRef]])
 		assert(MapUtils.isNotEmpty(resultMap))
 		val edata = resultMap.getOrDefault("edata", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 		assert(MapUtils.isNotEmpty(edata))
 		assert(StringUtils.equalsIgnoreCase("auto-create", edata.get("action").asInstanceOf[String]))
+		assert(MapUtils.isNotEmpty(edata.get("originData").asInstanceOf[util.Map[String, AnyRef]]))
+	}
+
+	"getInstructionEvent with valid input having originData and empty source" should "return edata with empty originData" in {
+		val source = ""
+		val metadata = new util.HashMap[String, AnyRef]() {{
+			put("source","https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
+			put("name", "Test Content 2")
+			put("code", "test.content.1")
+			put("mimeType","application/pdf")
+			put("contentType","Resource")
+			put("description", "Test Content 2")
+			put("channel", "in.ekstep")
+			put("versionKey", "12345")
+		}}
+		val collection = new util.ArrayList[util.Map[String, AnyRef]]() {{
+			add(new util.HashMap[String, AnyRef](){{
+				put("identifier", "do_123")
+				put("unitId", "do_3456")
+			}})
+		}}
+		val originData = new util.HashMap[String, AnyRef]() {{
+			put("identifier", "do_1234")
+			put("repository", "https://dock.sunbirded.org/api/content/v1/read/do_1234")
+		}}
+		val result = ImportManager.getInstructionEvent("do_11307822356267827219477", source, metadata, collection, "publish", originData)
+		assert(StringUtils.isNoneBlank(result))
+		val resultMap = JsonUtils.deserialize(result, classOf[util.Map[String, AnyRef]])
+		assert(MapUtils.isNotEmpty(resultMap))
+		val edata = resultMap.getOrDefault("edata", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		assert(MapUtils.isNotEmpty(edata))
+		assert(StringUtils.equalsIgnoreCase("auto-create", edata.get("action").asInstanceOf[String]))
+		assert(MapUtils.isEmpty(edata.get("originData").asInstanceOf[util.Map[String, AnyRef]]))
 	}
 
 	"importContent with valid input" should "return the response having processId" in {
