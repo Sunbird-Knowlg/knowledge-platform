@@ -52,7 +52,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 					val name = node.getMetadata.getOrDefault("name", "").asInstanceOf[String]
 					val description = node.getMetadata.getOrDefault("description", "").asInstanceOf[String]
 					request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
-					convertExternalProperties(request)
+					convertExternalProperties(request, request.getRequest)
 					DataNode.create(request).map(node => {
 						val response = ResponseHandler.OK
 						response.put(Constants.IDENTIFIER, node.getIdentifier)
@@ -78,6 +78,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		request.getRequest.put(Constants.FIELDS, fields)
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+			convertExternalProperties(request, metadata)
 			val response: Response = ResponseHandler.OK
 			response.put(Constants.OBJECT_CATEGORY_DEFINITION, metadata)
 			response
@@ -86,7 +87,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 
 	private def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
-		convertExternalProperties(request)
+		convertExternalProperties(request, request.getRequest)
 		DataNode.update(request).map(node => {
 			val response: Response = ResponseHandler.OK
 			response.put(Constants.IDENTIFIER, node.getIdentifier)
@@ -94,16 +95,21 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		})
 	}
 
-	private def convertExternalProperties(request: Request): Unit = {
+	private def convertExternalProperties(request: Request, dataMap: util.Map[String, AnyRef]): Unit = {
 		val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String],
 			request.getContext.get("schemaName").asInstanceOf[String])
-		extPropNameList.filter(prop => request.getRequest.containsKey(prop)).foreach(prop => {
-			val value = request.getRequest.get(prop).asInstanceOf[java.util.Map[String, AnyRef]]
+		extPropNameList.filter(prop => dataMap.containsKey(prop)).foreach(prop => {
+			val value = dataMap.get(prop).asInstanceOf[java.util.Map[String, AnyRef]]
 			value.asScala.foreach(entry => {
-				val internalVal = JsonUtils.serialize(entry._2)
-				value.put(entry._1, internalVal)
+				if(StringUtils.equals(request.getOperation, Constants.READ_OBJECT_CATEGORY_DEFINITION)) {
+					val internalVal = JsonUtils.deserialize(entry._2.asInstanceOf[String], classOf[util.Map[String, AnyRef]] )
+					value.put(entry._1, internalVal)
+				} else {
+					val internalVal = JsonUtils.serialize(entry._2)
+					value.put(entry._1, internalVal)
+				}
 			})
-			request.getRequest.put(prop, value )
+			dataMap.put(prop, value)
 		})
 	}
 
