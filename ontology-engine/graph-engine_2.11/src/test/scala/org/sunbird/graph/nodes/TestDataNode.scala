@@ -597,6 +597,44 @@ class TestDataNode extends BaseSpec {
         } flatMap(f => f)
     }
 
+    "update content with map external props" should "update node" in {
+        val request = new Request()
+        request.setObjectType("ObjectCategoryDefinition")
+        request.setContext( new util.HashMap[String, AnyRef](){{
+            put("graph_id", "domain")
+            put("version" , "1.0")
+            put("objectType" , "ObjectCategoryDefinition")
+            put("schemaName", "objectcategorydefinition")
+        }})
+        request.put("name", "OK")
+        request.put("categoryId", "obj-cat:ok")
+        request.put("targetObjectType", "Content")
+        request.put("objectMetadata", new util.HashMap[String, AnyRef]() {{
+            put("config",  new util.HashMap[String, AnyRef](){{
+                put("key", "value")
+            }})
+        }})
+
+        val future: Future[Node] = DataNode.create(request)
+        future map {node => {assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("OK"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            req.put("objectMetadata", new util.HashMap[String, AnyRef]() {{
+                put("schema",  new util.HashMap[String, AnyRef](){{
+                    put("key", "value")
+                }})
+            }})
+            val updateFuture = DataNode.update(req)
+            updateFuture map { node => {
+                assert(node.getExternalData.get("objectMetadata") != null)
+            }
+            }
+        }
+        } flatMap(f => f)
+    }
+
     def dataModifier(node: Node): Node = {
         if(node.getMetadata.containsKey("trackable") &&
                 node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
