@@ -42,11 +42,13 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
     def prepareSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val request: Request = new Request()
         val context = new util.HashMap[String, AnyRef]()
-        context.put("schemaName", this.schemaName)
-        context.put("version", this.version)
+        context.put("schemaName", "objectcategorydefinition")
+        context.put("version", "1.0")
         request.setContext(context)
         request.put("identifier", categoryId)
-        ExternalPropsManager.fetchProps(request, List("objectMetadata")).map(response => populateSchema(response, categoryId)) recover { case e: ResourceNotFoundException =>
+        ExternalPropsManager.fetchProps(request, List("objectMetadata")).map(response => {
+            populateSchema(response, categoryId)
+        }) recover { case e: ResourceNotFoundException =>
             TelemetryManager.log("No schema found for entry with id: " + categoryId)
             if ("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
                 throw e.getCause
