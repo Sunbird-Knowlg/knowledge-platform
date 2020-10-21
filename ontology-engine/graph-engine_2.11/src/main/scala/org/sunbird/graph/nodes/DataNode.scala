@@ -45,7 +45,7 @@ object DataNode {
             val response = oec.graphService.upsertNode(graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
-                    saveOrUpdateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
+                    updateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
                     updateRelations(graphId, node, request.getContext))
                 futureList.map(list => result)
             }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
@@ -117,19 +117,14 @@ object DataNode {
         }
     }
 
-    private def saveOrUpdateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    private def updateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
-            if (StringUtils.equalsIgnoreCase(objectType, "ObjectCategoryDefinition")) {
                 val req = new Request(request)
                 req.put("identifier", identifier)
                 req.put("fields", externalProps.asScala.keys.toList)
                 req.put("values", externalProps.asScala.values.toList)
-                ExternalPropsManager.updateMapRecord(req)
-
-            } else saveExternalProperties(identifier, externalProps, context, objectType)
-        } else {
-            Future(new Response)
-        }
+                ExternalPropsManager.update(req)
+        } else Future(new Response)
     }
     
     private def createRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext) : Future[Response] = {
