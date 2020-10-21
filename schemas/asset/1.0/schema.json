@@ -1076,7 +1076,8 @@
             "type": "string",
             "enum": [
                 "Asset",
-                "Certificate Template"
+                "Certificate Template",
+                "CertAsset"
             ]
         },
         "additionalCategories": {
