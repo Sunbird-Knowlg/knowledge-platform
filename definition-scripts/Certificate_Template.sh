@@ -37,6 +37,16 @@ curl --location --request POST '{{host}}/object/category/definition/v4/create' \
                             "items": {
                                 "type": "string"
                             }
+                        },
+                        "certType": {
+                            "type": "string",
+                            "enum": [
+                              "cert template layout",
+                              "cert template"
+                            ]
+                        },
+                        "data": {
+                            "type": "object"
                         }
                     }
                 }
