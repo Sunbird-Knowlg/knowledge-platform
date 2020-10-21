@@ -6,7 +6,7 @@ import akka.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.ResponseCode
+import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.utils.Constants
@@ -97,6 +97,23 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		val request = getCategoryDefintionRequest()
 		request.putAll(mapAsJavaMap(Map("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234")))
+		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
+		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
+		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		assert("successful".equals(response.getParams.getStatus))
+		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
+	}
+
+	it should "return success response for readCategoryDefinition with post request for global definition" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val node = getCategoryDefinitionNode()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "obj-cat:1234_content_test", *, *).returns(Future.failed(new ResourceNotFoundException("NODE_NOT_FOUND", "Node not found!")))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "obj-cat:1234_content_all", *, *)
+		  .returns(Future(node)).anyNumberOfTimes()
+		val request = getCategoryDefintionRequest()
+		request.putAll(mapAsJavaMap(Map("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234", "channel" -> "test")))
 		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]

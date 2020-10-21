@@ -66,12 +66,14 @@ object ImportManager {
 					sourceMetadata.put(ImportConstants.SOURCE, source)
 					sourceMetadata
 				} else reqMetadata
+				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				finalMetadata.keySet().removeAll(PROPS_TO_REMOVE)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
 				if (!validateMetadata(finalMetadata))
 					invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
 				if(!validateStage(stage)) invalidStages.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
 				content.put(ImportConstants.METADATA, finalMetadata)
+				content.put(ImportConstants.ORIGIN_DATA, originData)
 				content
 			}).asJava
 		}
@@ -106,12 +108,13 @@ object ImportManager {
 
 	def validateStage(stage: String): Boolean = if(StringUtils.isNotBlank(stage)) VALID_CONTENT_STAGE.contains(stage) else true
 
-	def getInstructionEvent(identifier: String, source: String, metadata: util.Map[String, AnyRef], collection: util.List[util.Map[String, AnyRef]], stage: String): String = {
+	def getInstructionEvent(identifier: String, source: String, metadata: util.Map[String, AnyRef], collection: util.List[util.Map[String, AnyRef]], stage: String, originData: util.Map[String, AnyRef]): String = {
 		val actor = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("id" -> "Auto Creator", "type" -> "System"))
 		val context = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("pdata" -> mapAsJavaMap(Map[String, AnyRef]("id" -> "org.sunbird.platform", "ver" -> "1.0", "env" -> Platform.getString("cloud_storage.env", "dev"))), ImportConstants.CHANNEL -> metadata.getOrDefault(ImportConstants.CHANNEL, "")))
 		val objectData = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("id" -> identifier, "ver" -> metadata.get(ImportConstants.VERSION_KEY)))
 		val edata = mutable.Map[String, AnyRef]("action" -> "auto-create", "iteration" -> 1.asInstanceOf[AnyRef], ImportConstants.OBJECT_TYPE -> metadata.getOrDefault(ImportConstants.OBJECT_TYPE, "Content").asInstanceOf[String],
-			if (StringUtils.isNotBlank(source)) ImportConstants.REPOSITORY -> source else ImportConstants.IDENTIFIER -> identifier, ImportConstants.METADATA -> metadata, if (CollectionUtils.isNotEmpty(collection)) ImportConstants.COLLECTION -> collection else ImportConstants.COLLECTION -> List().asJava, ImportConstants.STAGE -> stage).asJava
+			if (StringUtils.isNotBlank(source)) ImportConstants.REPOSITORY -> source else ImportConstants.IDENTIFIER -> identifier, ImportConstants.METADATA -> metadata, if (CollectionUtils.isNotEmpty(collection)) ImportConstants.COLLECTION -> collection else ImportConstants.COLLECTION -> List().asJava,
+			ImportConstants.STAGE -> stage, if(StringUtils.isNotBlank(source) && MapUtils.isNotEmpty(originData)) ImportConstants.ORIGIN_DATA -> originData else ImportConstants.ORIGIN_DATA -> new util.HashMap[String, AnyRef]()).asJava
 		val kafkaEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor, context, objectData, edata)
 		if (StringUtils.isBlank(kafkaEvent)) throw new ClientException(ImportErrors.BE_JOB_REQUEST_EXCEPTION, ImportErrors.ERR_INVALID_IMPORT_REQUEST_MSG)
 		kafkaEvent
@@ -124,7 +127,8 @@ object ImportManager {
 		val identifier = if (StringUtils.isNotBlank(source)) source.substring(source.lastIndexOf('/') + 1) else Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)
 		val metadata = content.getOrDefault(ImportConstants.METADATA, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]]
 		val collection = content.getOrDefault(ImportConstants.COLLECTION, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
-		val event = getInstructionEvent(identifier, source, metadata, collection, stage)
+		val originData = content.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		val event = getInstructionEvent(identifier, source, metadata, collection, stage, originData)
 		oec.kafkaClient.send(event, AUTO_CREATE_TOPIC_NAME)
 	}
 }
