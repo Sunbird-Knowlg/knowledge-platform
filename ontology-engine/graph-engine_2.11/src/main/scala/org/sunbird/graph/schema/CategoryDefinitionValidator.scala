@@ -39,7 +39,7 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
         this
     }
 
-    def prepareSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    def prepareSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
         val request: Request = new Request()
         val context = new util.HashMap[String, AnyRef]()
         context.put("schemaName", "objectcategorydefinition")
