@@ -46,19 +46,29 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
         context.put("version", "1.0")
         request.setContext(context)
         request.put("identifier", categoryId)
-        ExternalPropsManager.fetchProps(request, List("objectMetadata")).map(response => {
-            populateSchema(response, categoryId)
-        }) recover { case e: ResourceNotFoundException =>
-            TelemetryManager.log("No schema found for entry with id: " + categoryId)
-            if ("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
-                throw e.getCause
-            else {
-                val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
-                request.put("identifier", updatedId)
-                ExternalPropsManager.fetchProps(request, List("objectMetadata"))
-                    .map(response => populateSchema(response, updatedId)) recover { case e: CompletionException => throw e.getCause }
+        val response: Response = try {
+            Await.result(ExternalPropsManager.fetchProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+        } catch {
+            case e: CompletionException => {
+                if( e.getCause.isInstanceOf[ResourceNotFoundException]){
+                    if("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
+                        throw e.getCause
+                    else {
+                        try {
+                            val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
+                            request.put("identifier", updatedId)
+                            Await.result(ExternalPropsManager.fetchProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+                        } catch {
+                            case e: CompletionException => {
+                                throw e.getCause
+                            }
+                        }
+                    }
+                }
+                else throw e.getCause
             }
         }
+        populateSchema(response, categoryId)
     }
 
     def populateSchema( response: Response, identifier: String) = {
