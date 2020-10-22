@@ -114,14 +114,12 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
 //        if(propsMapping.keySet.contains("last_updated_on"))
 //            update.`with`(QueryBuilder.add("last_updated_on", new Timestamp(new Date().getTime)))
         for ((column, index) <- columns.view.zipWithIndex)  {
-            if("blob".equalsIgnoreCase(propsMapping.getOrElse(column, "")))
-                update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
-            else if("object".equalsIgnoreCase(propsMapping.getOrElse(column, "")))
-                update.`with`(QueryBuilder.putAll(column, values(index).asInstanceOf[java.util.Map[String, AnyRef]]))
-            else if("array".equalsIgnoreCase(propsMapping.getOrElse(column, "")))
-                update.`with`(QueryBuilder.appendAll(column, values(index).asInstanceOf[java.util.List[String]]))
-            else
-                update.`with`(QueryBuilder.set(column, values(index)))
+            propsMapping.getOrElse(column, "").toLowerCase match {
+                case "blob" => update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
+                case "object" => update.`with`(QueryBuilder.putAll(column, values(index).asInstanceOf[java.util.Map[String, AnyRef]]))
+                case "array" => update.`with`(QueryBuilder.appendAll(column, values(index).asInstanceOf[java.util.List[String]]))
+                case _ => update.`with`(QueryBuilder.set(column, values(index)))
+            }
         }
         print("Query for update map record", update)
         try {
