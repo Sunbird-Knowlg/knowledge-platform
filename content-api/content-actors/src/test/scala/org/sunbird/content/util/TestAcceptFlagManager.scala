@@ -5,7 +5,7 @@ import java.util
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.dto.{Property, Request}
+import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.content.actors.{BaseSpec, ContentActor}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
@@ -36,6 +36,7 @@ class TestAcceptFlagManager extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234")))).anyNumberOfTimes()
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
     val request = getRequest()
     request.getContext.put("identifier","domain")
     request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "domain")))
