@@ -44,7 +44,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+//        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         val request = getContentRequest()
         request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
