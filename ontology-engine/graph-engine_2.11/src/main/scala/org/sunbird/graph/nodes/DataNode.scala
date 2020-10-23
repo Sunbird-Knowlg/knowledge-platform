@@ -107,23 +107,23 @@ object DataNode {
         oec.graphService.deleteNode(graphId, identifier, request)
     }
 
-    private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext): Future[Response] = {
+    private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)
             val request = new Request(context, externalProps, "", objectType)
-            ExternalPropsManager.saveProps(request)
+            oec.graphService.saveExternalProps(request)
         } else {
             Future(new Response)
         }
     }
 
-    private def updateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    private def updateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
                 val req = new Request(request)
                 req.put("identifier", identifier)
                 req.put("fields", externalProps.asScala.keys.toList)
                 req.put("values", externalProps.asScala.values.toList)
-                ExternalPropsManager.update(req)
+                oec.graphService.updateExternalProps(req)
         } else Future(new Response)
     }
     
@@ -136,10 +136,10 @@ object DataNode {
         }
     }
 
-    private def populateExternalProperties(fields: List[String], node: Node, request: Request, externalProps: List[String])(implicit ec: ExecutionContext): Future[Node] = {
+    private def populateExternalProperties(fields: List[String], node: Node, request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         if(StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
             request.put("identifier", node.getIdentifier)
-        val externalPropsResponse = ExternalPropsManager.fetchProps(request, externalProps.filter(prop => fields.contains(prop)))
+        val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps.filter(prop => fields.contains(prop)))
         externalPropsResponse.map(response => {
             node.getMetadata.putAll(response.getResult)
             Future {

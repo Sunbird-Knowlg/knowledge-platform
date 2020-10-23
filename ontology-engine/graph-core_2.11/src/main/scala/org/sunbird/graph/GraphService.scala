@@ -47,5 +47,13 @@ class GraphService {
     def readExternalProps(request: Request, fields: List[String]): Future[Response] = {
         ExternalPropsManager.fetchProps(request, fields)
     }
+
+    def saveExternalProps(request: Request): Future[Response] = {
+        ExternalPropsManager.saveProps(request)
+    }
+
+    def updateExternalProps(request: Request): Future[Response] = {
+        ExternalPropsManager.update(request)
+    }
 }
 
