@@ -1196,6 +1196,9 @@
             "items": {
                 "type": "string"
             }
+        },
+        "displayScore": {
+            "type": "boolean"
         }
     }
 }
