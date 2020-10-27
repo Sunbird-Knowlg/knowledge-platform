@@ -36,14 +36,6 @@ object ExternalPropsManager {
         store.delete(request.get("identifiers").asInstanceOf[List[String]])
     }
 
-    def update(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
-        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-        val version: String = request.getContext.get("version").asInstanceOf[String]
-        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
-        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
-        store.update(request.get("identifier").asInstanceOf[String], request.get("fields").asInstanceOf[List[String]],
-            request.get("values").asInstanceOf[List[java.util.Map[String, AnyRef]]], getPropsDataType(schemaName, version))
-    }
 
     def getPropsDataType(schemaName: String, version: String) = {
         val propTypes: Map[String, String] = SchemaValidatorFactory.getInstance(schemaName, version).getConfig.getAnyRef("external.properties")
