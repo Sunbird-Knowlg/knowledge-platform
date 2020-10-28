@@ -6,9 +6,10 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.commons.lang3.StringUtils
 import org.leadpony.justify.api.JsonSchema
-import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.ResourceNotFoundException
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -49,27 +50,19 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
         context.put("version", "1.0")
         request.setContext(context)
         request.put("identifier", categoryId)
-        val response: Response = try {
-            Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
-        } catch {
-            case e: CompletionException => {
-                if( e.getCause.isInstanceOf[ResourceNotFoundException]){
-                    if("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
-                        throw e.getCause
+        val response: Response = {
+            val resp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+            if (ResponseHandler.checkError(resp)) {
+                if(StringUtils.equalsAnyIgnoreCase(resp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
+                    if ("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
+                        throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
                     else {
-                        try {
-                            val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
-                            request.put("identifier", updatedId)
-                            Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
-                        } catch {
-                            case e: CompletionException => {
-                                throw e.getCause
-                            }
-                        }
+                        val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
+                        request.put("identifier", updatedId)
+                        Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
                     }
-                }
-                else throw e.getCause
-            }
+                } else throw new ServerException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
+            } else resp
         }
         populateSchema(response, categoryId)
     }
