@@ -5,7 +5,7 @@ import java.util
 import akka.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
@@ -38,6 +38,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		})
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
 		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryDefinitionNode()))
+		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(new Response()))
 		val request = getCategoryDefintionRequest()
 		val objectMetadata = new util.HashMap[String, AnyRef](){{
 			put("schema", new util.HashMap())
@@ -77,7 +78,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		val node = getCategoryDefinitionNode()
+		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		val request = getCategoryDefintionRequest()
 		request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234_content_all")
@@ -93,7 +94,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		val node = getCategoryDefinitionNode()
+		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		val request = getCategoryDefintionRequest()
 		request.putAll(mapAsJavaMap(Map("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234")))
@@ -108,7 +109,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		val node = getCategoryDefinitionNode()
+		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "obj-cat:1234_content_test", *, *).returns(Future.failed(new ResourceNotFoundException("NODE_NOT_FOUND", "Node not found!")))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "obj-cat:1234_content_all", *, *)
 		  .returns(Future(node)).anyNumberOfTimes()
@@ -205,6 +206,29 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 					{
 						put("config", new util.HashMap())
 						put("schema", new util.HashMap())
+					}
+				})
+			}
+		})
+		node
+	}
+
+	private def getCategoryDefinitionNodeForRead(): Node = {
+		val node = new Node()
+		node.setIdentifier("obj-cat:1234_content_all")
+		node.setNodeType("DATA_NODE")
+		node.setObjectType("ObjectCategoryDefinition")
+		node.setMetadata(new util.HashMap[String, AnyRef]() {
+			{
+				put("identifier", "obj-cat:1234_content_all")
+				put("categoryId", "obj-cat:1234")
+				put("objectType", "ObjectCategoryDefinition")
+				put("name", "Test Category Definition")
+				put("targetObjectType", "Content")
+				put("objectMetadata", new util.HashMap[String, AnyRef]() {
+					{
+						put("config", "{}")
+						put("schema", "{}")
 					}
 				})
 			}

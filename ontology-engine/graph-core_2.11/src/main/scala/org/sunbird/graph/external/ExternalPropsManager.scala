@@ -7,8 +7,8 @@ import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.external.store.ExternalStoreFactory
 import org.sunbird.schema.SchemaValidatorFactory
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
 
 object ExternalPropsManager {
     def saveProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
