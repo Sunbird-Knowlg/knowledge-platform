@@ -12,7 +12,8 @@ object AssetConstants {
   val ARTIFACT_URL: String = "artifactUrl"
   val COLLECTION_MIME_TYPE: String = "application/vnd.ekstep.content-collection"
   val MIME_TYPE: String = "mimeType"
-  val NAME: String = "Name"
+  val NAME: String = "name"
   val SCHEMA_VERSION: String = "1.0"
+  val ERR_INVALID_REQUEST: String = "ERR_INVALID_REQUEST"
 
 }

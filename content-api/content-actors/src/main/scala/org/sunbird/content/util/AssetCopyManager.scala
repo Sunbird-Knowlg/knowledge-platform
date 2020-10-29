@@ -27,24 +27,27 @@ object AssetCopyManager {
   implicit val ss: StorageService = new StorageService
 
   private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
-  private val restrictedMimeTypesForUpload = List("application/vnd.ekstep.ecml-archive","application/vnd.ekstep.content-collection")
 
   def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     request.getContext.put(AssetConstants.ASSET_COPY_SCHEME, request.getRequest.getOrDefault(AssetConstants.ASSET_COPY_SCHEME, ""))
     DataNode.read(request).map(node => {
+      if (!StringUtils.equals(node.getObjectType, "Asset"))
+        throw new ClientException(AssetConstants.ERR_INVALID_REQUEST, "Only asset can be copied")
       val copiedNodeFuture: Future[Node] = copyAsset(node, request)
       copiedNodeFuture.map(copiedNode => {
         val response = ResponseHandler.OK()
-        response.put("node_id", new util.HashMap[String, AnyRef](){{
-          put(node.getIdentifier, copiedNode.getIdentifier)
-        }})
+        response.put("node_id", new util.HashMap[String, AnyRef]() {
+          {
+            put(node.getIdentifier, copiedNode.getIdentifier)
+          }
+        })
         response.put(AssetConstants.VERSION_KEY, copiedNode.getMetadata.get(AssetConstants.VERSION_KEY))
         response
       })
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
-  def copyAsset(node: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[Node] = {
+  def copyAsset(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val copyCreateReq: Future[Request] = getCopyRequest(node, request)
     copyCreateReq.map(req => {
       DataNode.create(req).map(copiedNode => {
@@ -60,17 +63,20 @@ object AssetCopyManager {
     metadata.put(AssetConstants.ORIGIN, node.getIdentifier)
     metadata.put(AssetConstants.NAME, "Copy_" + metadata.getOrDefault(AssetConstants.NAME, ""))
     metadata.put(AssetConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
+    metadata.putAll(requestMap.getOrDefault("asset", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]])
     request.getContext().put(AssetConstants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
     val req = new Request(request)
     req.setRequest(metadata)
-    Future {req}
+    Future {
+      req
+    }
   }
 
   def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val artifactUrl = node.getMetadata.getOrDefault(AssetConstants.ARTIFACT_URL, "").asInstanceOf[String]
     val mimeType = node.getMetadata.get(AssetConstants.MIME_TYPE).asInstanceOf[String]
     val contentType = node.getMetadata.get(AssetConstants.CONTENT_TYPE).asInstanceOf[String]
-    if (StringUtils.isNotBlank(artifactUrl) && !restrictedMimeTypesForUpload.contains(mimeType)) {
+    if (StringUtils.isNotBlank(artifactUrl)) {
       val mimeTypeManager = MimeTypeManagerFactory.getManager(contentType, mimeType)
       val uploadFuture = if (isInternalUrl(artifactUrl)) {
         val file = copyURLToFile(copiedNode.getIdentifier, artifactUrl)
