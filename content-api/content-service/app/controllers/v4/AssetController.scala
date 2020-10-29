@@ -93,4 +93,14 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         getResult(ApiId.UPLOAD_PRE_SIGNED_ASSET, contentActor, contentRequest)
     }
 
+    def copy(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier).asJava)
+        val contentRequest = getRequest(content, headers, "copy")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.COPY_ASSET, contentActor, contentRequest, version = apiVersion)
+    }
 }
