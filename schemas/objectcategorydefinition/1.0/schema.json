@@ -6,7 +6,6 @@
   "required": [
     "categoryId",
     "targetObjectType",
-    "objectMetadata",
     "name"
   ],
   "properties": {

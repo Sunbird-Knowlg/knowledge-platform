@@ -8,8 +8,7 @@ import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import org.sunbird.cassandra.{CassandraConnector, CassandraStore}
-import org.sunbird.common.dto.ResponseHandler
-import org.sunbird.common.dto.Response
+import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.telemetry.logger.TelemetryManager
 
@@ -67,7 +66,9 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         selectQuery.where.and(clause)
         try {
             val session: Session = CassandraConnector.getSession
-            session.executeAsync(selectQuery).asScala.map(resultSet => {
+            val futureResult = session.executeAsync(selectQuery)
+            futureResult.asScala.map(resultSet => {
+                print(resultSet)
                 if (resultSet.iterator().hasNext) {
                     val row = resultSet.one()
                     val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap
@@ -110,8 +111,8 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         val update = QueryBuilder.update(keySpace, table)
         val clause: Clause = QueryBuilder.eq(primaryKey.get(0), identifier)
         update.where.and(clause)
-        //        if(propsMapping.keySet.contains("last_updated_on"))
-        //            update.`with`(QueryBuilder.add("last_updated_on", new Timestamp(new Date().getTime)))
+//        if(propsMapping.keySet.contains("last_updated_on"))
+//            update.`with`(QueryBuilder.add("last_updated_on", new Timestamp(new Date().getTime)))
         for ((column, index) <- columns.view.zipWithIndex)  {
             propsMapping.getOrElse(column, "").toLowerCase match {
                 case "blob" => update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
