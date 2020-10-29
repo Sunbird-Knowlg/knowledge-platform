@@ -55,5 +55,9 @@ class GraphService {
     def updateExternalProps(request: Request): Future[Response] = {
         ExternalPropsManager.update(request)
     }
+
+    def deleteExternalProps(request: Request): Future[Response] = {
+        ExternalPropsManager.deleteProps(request)
+    }
 }
 

@@ -113,7 +113,7 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[java.util.HashMap[String, AnyRef]] = {
+    private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.util.HashMap[String, AnyRef]] = {
         fetchHierarchy(request, rootNode).map(hierarchyString => {
             if (!hierarchyString.asInstanceOf[String].isEmpty) {
                 JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
@@ -121,10 +121,10 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def fetchHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[Any] = {
+    private def fetchHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
         val req = new Request(request)
         req.put(HierarchyConstants.IDENTIFIER, rootNode.getIdentifier)
-        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(response => {
+        oec.graphService.readExternalProps(req, List(HierarchyConstants.HIERARCHY)).map(response => {
             if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
                 if (CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get("status").asInstanceOf[String]))
                     throw new ServerException(HierarchyErrorCodes.ERR_HIERARCHY_NOT_FOUND, "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
@@ -136,7 +136,7 @@ object UpdateHierarchyManager {
                         request.getContext.put("shouldImageDelete", shouldImageBeDeleted(rootNode).asInstanceOf[AnyRef])
                         req.put(HierarchyConstants.IDENTIFIER, if (!rootNode.getIdentifier.endsWith(HierarchyConstants.IMAGE_SUFFIX)) rootNode.getIdentifier + HierarchyConstants.IMAGE_SUFFIX else rootNode.getIdentifier)
                     }
-                    ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
+                    oec.graphService.readExternalProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
                         resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
                     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier) }
                 }
@@ -493,11 +493,11 @@ object UpdateHierarchyManager {
     }
 
 
-    def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def deleteHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         val req = new Request(request)
         val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
-        ExternalPropsManager.deleteProps(req)
+        oec.graphService.deleteExternalProps(req)
     }
 
 }

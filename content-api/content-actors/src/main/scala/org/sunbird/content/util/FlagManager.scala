@@ -79,8 +79,8 @@ object FlagManager {
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
-  private def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Any] = {
-    ExternalPropsManager.fetchProps(request, List(HierarchyConstants.HIERARCHY)).map(resp => {
+  private def fetchHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
+    oec.graphService.readExternalProps(request, List(HierarchyConstants.HIERARCHY)).map(resp => {
       resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get(HierarchyConstants.IDENTIFIER)) }
   }
