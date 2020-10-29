@@ -81,6 +81,15 @@ class AssetSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+        "return success response for copy API" in {
+            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val json: JsValue = Json.parse("""{"request": {"asset": { "name": "Asset-Test"}}}""")
+            val fakeRequest = FakeRequest("POST", "/asset/v4/copy ").withJsonBody(json)
+            val result = controller.create()(fakeRequest)
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
 
     "Asset controller with invalid request " should {
