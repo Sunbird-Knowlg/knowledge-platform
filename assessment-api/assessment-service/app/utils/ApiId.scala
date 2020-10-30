@@ -11,4 +11,22 @@ object ApiId {
 	val UPDATE_ITEM_SET = "api.itemset.update"
 	val REVIEW_ITEM_SET = "api.itemset.review"
 	val RETIRE_ITEM_SET = "api.itemset.retire"
+
+	//Question APIs
+	val CREATE_QUESTION = "api.question.create"
+	val READ_QUESTION = "api.question.read"
+	val UPDATE_QUESTION = "api.question.update"
+	val REVIEW_QUESTION = "api.question.review"
+	val PUBLISH_QUESTION = "api.question.publish"
+	val RETIRE_QUESTION = "api.question.retire"
+
+	//QuestionSet APIs
+	val CREATE_QUESTION_SET = "api.questionset.create"
+	val READ_QUESTION_SET = "api.questionset.read"
+	val UPDATE_QUESTION_SET = "api.questionset.update"
+	val REVIEW_QUESTION_SET = "api.questionset.review"
+	val PUBLISH_QUESTION_SET = "api.questionset.publish"
+	val RETIRE_QUESTION_SET = "api.questionset.retire"
+	val ADD_QUESTION_SET = "api.questionset.add"
+	val REMOVE_QUESTION_SET = "api.questionset.remove"
 }
