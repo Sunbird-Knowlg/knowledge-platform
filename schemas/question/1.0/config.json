@@ -1,0 +1,15 @@
+{
+  "objectType": "Question",
+  "relations": {
+    "questionSet": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["QuestionSet", "QuestionSetImage"]
+    }
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": [],
+  "cacheEnabled": false,
+  "schema_restrict_api": true
+}
