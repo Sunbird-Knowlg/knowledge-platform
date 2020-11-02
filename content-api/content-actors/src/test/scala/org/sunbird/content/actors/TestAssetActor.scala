@@ -8,9 +8,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.utils.ScalaJsonUtils
 
-import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -22,18 +20,18 @@ class TestAssetActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new AssetActor()), getContentRequest())
   }
 
-  it should "return success response for 'copyContent'" ignore  {
+  it should "return success response for 'copyAsset'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getNode()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
-    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
     implicit val ss = mock[StorageService]
     val request = getContentRequest()
-    request.getContext.put("identifier","do1234")
-    request.putAll(mapAsJavaMap(Map("name" -> "Asset-Test")))
+    request.getContext.put("identifier","do_1234")
+    request.put("identifier","do_1234")
     request.setOperation("copy")
     val response = callActor(request, Props(new AssetActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -55,8 +53,9 @@ class TestAssetActor extends BaseSpec with MockFactory {
         put("versionKey", "test_321")
         put("channel", "in.ekstep")
         put("code", "Asset_Test")
+        put("contentType", "Asset")
         put("primaryCategory", "Asset")
-        put("artifactUrl", "https://utl-test/content/test_template_prad-2/artifact/sample.pdf")
+        put("artifactUrl", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_1234/artifact/file-0130860005482086401.svg")
       }
     })
     node
@@ -77,14 +76,4 @@ class TestAssetActor extends BaseSpec with MockFactory {
     request
   }
 
-  def getDefinitionNode(): Node = {
-    val node = new Node()
-    node.setIdentifier("obj-cat:asset_in.ekstep")
-    node.setNodeType("DATA_NODE")
-    node.setObjectType("Asset")
-    node.setGraphId("domain")
-    node.setMetadata(mapAsJavaMap(
-      ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\"name\": \"obj-cat:asset\",\"code\": \"Asset\",\"status\":\"Live\"}")))
-    node
-  }
 }

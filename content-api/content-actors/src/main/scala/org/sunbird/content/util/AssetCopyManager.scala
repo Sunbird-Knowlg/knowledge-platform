@@ -24,8 +24,6 @@ object AssetCopyManager {
   implicit val oec: OntologyEngineContext = new OntologyEngineContext
   implicit val ss: StorageService = new StorageService
 
-  private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
-
   def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     request.getContext.put(AssetConstants.ASSET_COPY_SCHEME, request.getRequest.getOrDefault(AssetConstants.ASSET_COPY_SCHEME, ""))
     DataNode.read(request).map(node => {
@@ -82,23 +80,6 @@ object AssetCopyManager {
     }
     Future(copiedNode)
   }
-
-  protected def isInternalUrl(url: String): Boolean = url.contains(ss.getContainerName())
-
-  def copyURLToFile(objectId: String, fileUrl: String): File = try {
-    val file = new File(getBasePath(objectId) + File.separator + getFileNameFromURL(fileUrl))
-    FileUtils.copyURLToFile(new URL(fileUrl), file)
-    file
-  } catch {
-    case e: IOException => throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
-  }
-
-  def getBasePath(objectId: String): String = {
-    if (!StringUtils.isBlank(objectId)) TEMP_FILE_LOCATION + File.separator + System.currentTimeMillis + "_temp" + File.separator + objectId else ""
-  }
-
-  protected def getFileNameFromURL(fileUrl: String): String = if (!FilenameUtils.getExtension(fileUrl).isEmpty)
-    FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis + "." + FilenameUtils.getExtension(fileUrl) else FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
 
   def getUpdateRequest(request: Request, copiedNode: Node): Request = {
     val req = new Request()
