@@ -60,6 +60,7 @@ object AssetCopyManager {
     requestMap.remove(AssetConstants.ASSET_COPY_SCHEME).asInstanceOf[String]
     metadata.put(AssetConstants.ORIGIN, node.getIdentifier)
     metadata.put(AssetConstants.NAME, "Copy_" + metadata.getOrDefault(AssetConstants.NAME, ""))
+    metadata.put(AssetConstants.STATUS, "Draft")
     metadata.put(AssetConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
     metadata.putAll(requestMap.getOrDefault("asset", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]])
     request.getContext().put(AssetConstants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
