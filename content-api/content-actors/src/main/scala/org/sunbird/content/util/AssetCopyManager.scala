@@ -1,14 +1,10 @@
 package org.sunbird.content.util
 
-import java.io.{File, IOException}
-import java.net.URL
 import java.util
 import java.util.concurrent.CompletionException
 
-import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.upload.mgr.UploadManager

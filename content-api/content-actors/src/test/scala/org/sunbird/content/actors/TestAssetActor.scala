@@ -6,6 +6,7 @@ import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
+import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 
@@ -37,6 +38,19 @@ class TestAssetActor extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
     assert(response.getResult.containsKey("node_id"))
     assert("test_321".equals(response.get("versionKey")))
+  }
+
+  it should "copy asset with invalid objectType, should through client exception" in {
+    implicit val ss = mock[StorageService]
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInvalidNode()))
+    val request = getContentRequest()
+    request.setOperation("copy")
+    val response = callActor(request, Props(new AssetActor()))
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErrmsg == "Only asset can be copied")
   }
 
   private def getNode(): Node = {
@@ -76,4 +90,11 @@ class TestAssetActor extends BaseSpec with MockFactory {
     request
   }
 
+  private def getInvalidNode(): Node = {
+    val node = new Node()
+    node.setIdentifier("do_1234")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Content")
+    node
+  }
 }
