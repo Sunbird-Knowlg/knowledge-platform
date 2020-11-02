@@ -86,7 +86,7 @@ class AssetSpec extends BaseSpec {
             val controller = app.injector.instanceOf[controllers.v4.AssetController]
             val json: JsValue = Json.parse("""{"request": {"asset": { "name": "Asset-Test"}}}""")
             val fakeRequest = FakeRequest("POST", "/asset/v4/copy ").withJsonBody(json)
-            val result = controller.create()(fakeRequest)
+            val result = controller.copy("01234")(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
         }
