@@ -11,14 +11,12 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.mimetype.factory.MimeTypeManagerFactory
-import org.sunbird.mimetype.mgr.impl.H5PMimeTypeMgrImpl
-import org.sunbird.models.UploadParams
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -74,21 +72,14 @@ object AssetCopyManager {
 
   def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val artifactUrl = node.getMetadata.getOrDefault(AssetConstants.ARTIFACT_URL, "").asInstanceOf[String]
-    val mimeType = node.getMetadata.get(AssetConstants.MIME_TYPE).asInstanceOf[String]
-    val contentType = node.getMetadata.get(AssetConstants.CONTENT_TYPE).asInstanceOf[String]
     if (StringUtils.isNotBlank(artifactUrl)) {
-      val mimeTypeManager = MimeTypeManagerFactory.getManager(contentType, mimeType)
-      val uploadFuture = if (isInternalUrl(artifactUrl)) {
-        val file = copyURLToFile(copiedNode.getIdentifier, artifactUrl)
-        if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
-          mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
-        else
-          mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None, UploadParams())
-      } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(AssetConstants.ARTIFACT_URL, "").asInstanceOf[String], None, UploadParams())
-      uploadFuture.map(uploadData => {
-        DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(AssetConstants.ARTIFACT_URL, "").asInstanceOf[String]))
-      }).flatMap(f => f)
-    } else Future(copiedNode)
+      val updatedReq = getUpdateRequest(request, copiedNode)
+      val responseFuture = UploadManager.upload(updatedReq, copiedNode)
+      responseFuture.map(result => {
+        copiedNode.getMetadata.put(AssetConstants.ARTIFACT_URL, result.getResult.getOrDefault(AssetConstants.ARTIFACT_URL, "").asInstanceOf[String])
+      })
+    }
+    Future(copiedNode)
   }
 
   protected def isInternalUrl(url: String): Boolean = url.contains(ss.getContainerName())
@@ -108,13 +99,13 @@ object AssetCopyManager {
   protected def getFileNameFromURL(fileUrl: String): String = if (!FilenameUtils.getExtension(fileUrl).isEmpty)
     FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis + "." + FilenameUtils.getExtension(fileUrl) else FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
 
-  def getUpdateRequest(request: Request, copiedNode: Node, artifactUrl: String): Request = {
+  def getUpdateRequest(request: Request, copiedNode: Node): Request = {
     val req = new Request()
     val context = request.getContext
     context.put(AssetConstants.IDENTIFIER, copiedNode.getIdentifier)
     req.setContext(context)
     req.put(AssetConstants.VERSION_KEY, copiedNode.getMetadata.get(AssetConstants.VERSION_KEY))
-    req.put(AssetConstants.ARTIFACT_URL, artifactUrl)
+    req.put(AssetConstants.FILE_URL, copiedNode.getMetadata.get(AssetConstants.ARTIFACT_URL))
     req
   }
 }
