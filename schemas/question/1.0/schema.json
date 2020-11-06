@@ -200,6 +200,9 @@
       },
       "visibility": {
           "type": "string"
+      },
+      "identifiers": {
+        "type": "array"
       }
   }
 }

@@ -38,12 +38,13 @@ class QuestionActor @Inject() (implicit oec: OntologyEngineContext) extends Base
 	def create(request: Request): Future[Response] = {
 		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
 		if (StringUtils.isBlank(visibility))
-			throw new ClientException("ERR_QUESTION_CREATE_FAILED", "Visibility is a mandatory parameter")
+			throw new ClientException("ERR_QUESTION_CREATE", "Visibility is a mandatory parameter")
 		visibility match {
 			case "Parent" => if (!request.getRequest.containsKey("parent"))
-				throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory") else
+				throw new ClientException("ERR_QUESTION_CREATE", "For visibility Parent, parent id is mandatory") else
 				request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
 			case "Public" => if (request.getRequest.containsKey("parent")) throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Public, question can't have parent id")
+			case _ => throw new ClientException("ERR_QUESTION_CREATE", "Visibility should be one of [\"Parent\", \"Public\"]")
 		}
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
@@ -66,10 +67,11 @@ class QuestionActor @Inject() (implicit oec: OntologyEngineContext) extends Base
 	}
 
 	def update(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		DataNode.read(request).flatMap(node => {
 			request.getRequest.getOrDefault("visibility", "") match {
-				case "Public" => request.put("parent", "")
-				case "Private" => if (!node.getMetadata.containsKey("parent") && !request.getRequest.containsKey("parent"))
+				case "Public" => request.put("parent", null)
+				case "Parent" => if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
 					throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
 				else request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
 				case _ => request
@@ -85,11 +87,12 @@ class QuestionActor @Inject() (implicit oec: OntologyEngineContext) extends Base
 	}
 
 	def review(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		getValidatedNodeToReview(request).flatMap(node => {
 			val updateRequest = new Request(request)
 			updateRequest.getContext.put("identifier", request.get("identifier"))
 			updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
-			updateRequest.put("prevStatus", "Draft")
+			updateRequest.put("prevState", "Draft")
 			updateRequest.put("status", "Review")
 			updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 			updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
@@ -104,6 +107,7 @@ class QuestionActor @Inject() (implicit oec: OntologyEngineContext) extends Base
 	}
 
 	def publish(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		getValidatedNodeToPublish(request).map(node => {
 			val identifier: String = node.getIdentifier.replace(".img", "")
 			pushInstructionEvent(node.getIdentifier, node)
@@ -114,10 +118,11 @@ class QuestionActor @Inject() (implicit oec: OntologyEngineContext) extends Base
 	}
 
 	def retire(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		getValidatedNodeToRetire(request).flatMap(node => {
 			val updateRequest = new Request(request)
 			updateRequest.put("identifiers", java.util.Arrays.asList(request.get("identifier").asInstanceOf[String], request.get("identifier").asInstanceOf[String] + ".img"))
-			updateRequest.put("prevStatus", node.getMetadata.get("status"))
+			updateRequest.put("prevState", node.getMetadata.get("status"))
 			updateRequest.put("status", "Review")
 			updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 			updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)

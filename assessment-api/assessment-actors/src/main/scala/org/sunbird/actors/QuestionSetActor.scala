@@ -63,7 +63,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 			val updateRequest = new Request(request)
 			updateRequest.getContext.put("identifier", request.get("identifier"))
 			updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
-			updateRequest.put("prevStatus", "Draft")
+			updateRequest.put("prevState", "Draft")
 			updateRequest.put("status", "Review")
 			updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 			updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
