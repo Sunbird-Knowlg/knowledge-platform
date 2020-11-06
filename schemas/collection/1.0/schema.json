@@ -1085,6 +1085,9 @@
     },
     "courseId": {
       "type": "string"
+    },
+    "me_totalRatingsCount": {
+      "type": "number"
     }
   }
 }
