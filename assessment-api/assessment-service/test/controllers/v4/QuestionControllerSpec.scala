@@ -18,7 +18,7 @@ class QuestionControllerSpec extends BaseSpec {
 	}
 
 	"read should return an question successfully for given valid identifier" in {
-		val result = controller.read("do_123", None)(FakeRequest())
+		val result = controller.read("do_123", None, None)(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}

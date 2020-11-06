@@ -25,7 +25,7 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		getResult(ApiId.CREATE_QUESTION, questionActor, questionRequest)
 	}
 
-	def read(identifier: String, fields: Option[String]) = Action.async { implicit request =>
+	def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val question = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
 		question.putAll(headers)
