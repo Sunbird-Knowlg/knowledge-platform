@@ -1083,12 +1083,7 @@
         "additionalCategories": {
             "type": "array",
             "items": {
-                "type": "string",
-                "enum": [
-                    "Asset",
-                    "Certificate Template",
-                    "CertAsset"
-                ]
+                "type": "string"
             }
         },
         "cloudStorageKey": {
