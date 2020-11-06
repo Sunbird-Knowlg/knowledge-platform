@@ -1137,6 +1137,9 @@
         },
         "collectionId" : {
             "type": "string"
+        },
+        "me_totalRatingsCount": {
+            "type": "number"
         }
     }
 }
