@@ -1054,8 +1054,21 @@
       "items": {
         "type": "string",
         "enum": [
-          "Textbook",
-          "Lesson Plan"
+          "Explanation Content",
+          "Learning Resource",
+          "Course",
+          "Practice Question Set",
+          "eTextbook",
+          "Teacher Resource",
+          "Course Assessment",
+          "Digital Textbook",
+          "Content Playlist",
+          "Template",
+          "Asset",
+          "Plugin",
+          "Lesson Plan Unit",
+          "Course Unit",
+          "Textbook Unit"
         ]
       }
     },

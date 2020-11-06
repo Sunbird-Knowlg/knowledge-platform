@@ -1085,29 +1085,9 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "ClassroomTeachingVideo",
-                    "ConceptMap",
-                    "CuriosityQuestionSet",
-                    "Textbook",
-                    "ExperientialResource",
-                    "Explanation Video",
-                    "FocusSpot",
-                    "LearningOutcomeDefinition",
-                    "MarkingSchemeRubric",
-                    "PedagogyFlow",
-                    "PracticeQuestionSet",
-                    "LessonPlan",
-                    "Previous Board Exam Papers",
-                    "ExplanationContent",
-                    "LearningResource",
-                    "OnlineCourse",
-                    "QuestionSet",
-                    "eTextBook",
-                    "TeacherResource",
-                    "CourseAssessment",
-                    "ETB",
-                    "ContentPlayList",
-                    "GenericCollection"
+                    "Asset",
+                    "Certificate Template",
+                    "CertAsset"
                 ]
             }
         },

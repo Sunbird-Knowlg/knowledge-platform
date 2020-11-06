@@ -1148,19 +1148,21 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Textbook",
-                    "TV Lesson",
-                    "Previous Board Exam Papers",
-                    "Pedagogy Flow",
-                    "Marking Scheme Rubric",
-                    "Lesson Plan",
-                    "Learning Outcome Definition",
-                    "Focus Spot",
-                    "Explanation Video",
-                    "Experiential Resource",
-                    "Curiosity Question Set",
-                    "Concept Map",
-                    "Classroom Teaching Video"
+                    "Explanation Content",
+                    "Learning Resource",
+                    "Course",
+                    "Practice Question Set",
+                    "eTextbook",
+                    "Teacher Resource",
+                    "Course Assessment",
+                    "Digital Textbook",
+                    "Content Playlist",
+                    "Template",
+                    "Asset",
+                    "Plugin",
+                    "Lesson Plan Unit",
+                    "Course Unit",
+                    "Textbook Unit"
                 ]
             }
         },
