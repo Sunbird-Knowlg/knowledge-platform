@@ -194,6 +194,12 @@
         "evaluate",
         "create"
       ]
-    }
+    },
+      "parent": {
+          "type": "string"
+      },
+      "visibility": {
+          "type": "string"
+      }
   }
 }
