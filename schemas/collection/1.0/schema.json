@@ -57,8 +57,8 @@
       ]
     },
     "osId": {
-        "type": "string",
-        "default": "org.ekstep.launcher"
+      "type": "string",
+      "default": "org.ekstep.launcher"
     },
     "contentEncoding": {
       "type": "string",
@@ -98,7 +98,7 @@
     "os": {
       "type": "array",
       "items": {
-        "type" : "string",
+        "type": "string",
         "enum": [
           "All",
           "Android",
@@ -106,7 +106,9 @@
           "Windows"
         ]
       },
-      "default": ["All"]
+      "default": [
+        "All"
+      ]
     },
     "minOsVersion": {
       "type": "string"
@@ -148,7 +150,9 @@
           "Administrator"
         ]
       },
-      "default": ["Student"]
+      "default": [
+        "Student"
+      ]
     },
     "posterImage": {
       "type": "string",
@@ -163,7 +167,7 @@
     "contentCredits": {
       "type": "array",
       "items": {
-          "type": "object"
+        "type": "object"
       }
     },
     "appIcon": {
@@ -347,7 +351,9 @@
           "Other"
         ]
       },
-      "default": ["English"]
+      "default": [
+        "English"
+      ]
     },
     "words": {
       "type": "array"
@@ -830,7 +836,9 @@
           "createdFor"
         ]
       },
-      "default": ["createdBy"]
+      "default": [
+        "createdBy"
+      ]
     },
     "reservedDialcodes": {
       "type": "object"
@@ -948,34 +956,34 @@
     "certTemplate": {
       "type": "object"
     },
-    "subject" : {
+    "subject": {
       "type": "array"
     },
-    "medium" : {
+    "medium": {
       "type": "array"
     },
-    "gradeLevel" : {
+    "gradeLevel": {
       "type": "array"
     },
-    "topic" : {
+    "topic": {
       "type": "array"
     },
-    "subDomains" : {
+    "subDomains": {
       "type": "array"
     },
-    "subjectCodes" : {
+    "subjectCodes": {
       "type": "array"
     },
-    "difficultyLevel" : {
+    "difficultyLevel": {
       "type": "string"
     },
-    "board" : {
+    "board": {
       "type": "string"
     },
-    "licenseterms" : {
+    "licenseterms": {
       "type": "string"
     },
-    "copyrightYear" : {
+    "copyrightYear": {
       "type": "number"
     },
     "monitorable": {
@@ -1000,12 +1008,18 @@
       "properties": {
         "enabled": {
           "type": "string",
-          "enum": ["Yes","No"],
+          "enum": [
+            "Yes",
+            "No"
+          ],
           "default": "No"
         },
         "autoBatch": {
           "type": "string",
-          "enum": ["Yes","No"],
+          "enum": [
+            "Yes",
+            "No"
+          ],
           "default": "No"
         }
       },
@@ -1020,7 +1034,10 @@
       "properties": {
         "enabled": {
           "type": "string",
-          "enum": ["Yes","No"],
+          "enum": [
+            "Yes",
+            "No"
+          ],
           "default": "No"
         }
       },
@@ -1080,11 +1097,14 @@
     "showNotification": {
       "type": "boolean"
     },
-    "collectionId" : {
+    "collectionId": {
       "type": "string"
     },
     "courseId": {
       "type": "string"
+    },
+    "relatedBoards": {
+      "type": "array"
     }
   }
 }
