@@ -809,6 +809,9 @@
         "me_totalDialcode": {
             "type": "array"
         },
+        "me_totalRatingsCount": {
+            "type": "number"
+        },
         "flagReasons": {
             "type": "array",
             "items": {
