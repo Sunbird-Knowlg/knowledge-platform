@@ -595,12 +595,13 @@ class TestDataNode extends BaseSpec {
             req.getContext.put("identifier", node.getIdentifier)
             req.put("name", "updated name")
             //TODO: Uncomment this line when schema_restrict_api is true
-            //        req.put("test", "test")
+//            req.put("test", "test")
+//            assertThrows[ClientException](DataNode.update(req))
+//            recoverToSucceededIf[ClientException](DataNode.update(req))
             //TODO: Remove this when schema_restrict_api is true
-            req.put("ownershipType", "test")
-            assertThrows[ClientException](DataNode.update(req))
-            recoverToSucceededIf[ClientException](DataNode.update(req))
-        }
+            DataNode.update(req).map(node =>
+                assert(node != null)
+            )}
         } flatMap(f => f)
     }
 
