@@ -16,5 +16,13 @@
   "versionCheckMode": "ON",
   "frameworkCategories": [],
   "cacheEnabled": false,
-  "schema_restrict_api": true
+  "schema_restrict_api": true,
+  "restrictProps": {
+    "create" : [
+      "children"
+    ],
+    "update" : [
+      "children"
+    ]
+  }
 }
