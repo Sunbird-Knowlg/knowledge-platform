@@ -5,7 +5,9 @@
   "type": "object",
   "required": [
     "name",
-    "code"
+    "code",
+    "contentType",
+    "mimeType"
   ],
   "properties": {
     "name": {
@@ -19,6 +21,12 @@
       "type": "string"
     },
     "mimeType": {
+      "type": "string",
+      "enum": [
+        "application/vnd.ekstep.qml-archive"
+      ]
+    },
+    "contentType": {
       "type": "string"
     },
     "status": {

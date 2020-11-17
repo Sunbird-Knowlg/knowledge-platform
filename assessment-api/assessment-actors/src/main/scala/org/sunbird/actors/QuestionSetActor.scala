@@ -1,10 +1,26 @@
 package org.sunbird.actors
 
-import javax.inject.Inject
-import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.graph.OntologyEngineContext
+import java.util
 
+import javax.inject.Inject
+import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.StringUtils
+import org.sunbird.actor.core.BaseActor
+import org.sunbird.common.{DateUtils, JsonUtils}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
+import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.external.ExternalPropsManager
+import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.QuestionManager
+import org.sunbird.telemetry.logger.TelemetryManager
+import org.sunbird.utils.RequestUtil
+
+import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
@@ -23,19 +39,202 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		case _ => ERROR(request.getOperation)
 	}
 
-	def create(request: Request): Future[Response] = ???
+	def create(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
+		if (StringUtils.isBlank(visibility))
+			throw new ClientException("ERR_QUESTION_SET_CREATE", "Visibility is a mandatory parameter")
+		visibility match {
+			case "Parent" => if (!request.getRequest.containsKey("parent"))
+				throw new ClientException("ERR_QUESTION_SET_CREATE", "For visibility Parent, parent id is mandatory") else
+				request.getRequest.put("parent", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
+			case "Public" => if (request.getRequest.containsKey("parent")) throw new ClientException("ERR_QUESTION_SET_CREATE", "For visibility Public, question can't have parent id")
+			case _ => throw new ClientException("ERR_QUESTION_SET_CREATE", "Visibility should be one of [\"Parent\", \"Public\"]")
+		}
+		DataNode.create(request).map(node => {
+			val response = ResponseHandler.OK
+			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+			response
+		})
+	}
 
-	def read(request: Request): Future[Response] = ???
+	def read(request: Request): Future[Response] = {
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		request.getRequest.put("fields", fields)
+		DataNode.read(request).map(node => {
+			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+			val response: Response = ResponseHandler.OK
+			response.put("questionset", metadata)
+			response
+		})
+	}
 
-	def update(request: Request): Future[Response] = ???
+	def update(request: Request): Future[Response] = {
+		RequestUtil.restrictProperties(request)
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		DataNode.read(request).flatMap(node => {
+			request.getRequest.getOrDefault("visibility", "") match {
+				case "Public" => request.put("parent", null)
+				case "Parent" => if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
+					throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
+				else request.getRequest.put("parent", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
+				case _ => request
+			}
+			DataNode.update(request).map(node => {
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
+			})
+		})
+	}
 
-	def review(request: Request): Future[Response] = ???
+	def review(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		getValidatedNodeToReview(request).flatMap(node => {
+			validateQuestionHierarchy(request)
+			val updateRequest = new Request(request)
+			updateRequest.getContext.put("identifier", request.get("identifier"))
+			updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
+			updateRequest.put("prevState", "Draft")
+			updateRequest.put("status", "Review")
+			updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+			updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
+			DataNode.update(updateRequest).map(node => {
+				val response: Response = ResponseHandler.OK
+				val identifier: String = node.getIdentifier.replace(".img", "")
+				response.put("identifier", identifier)
+				response.put("versionKey", node.getMetadata.get("versionKey"))
+				response
+			})
+		})
+	}
 
-	def publish(request: Request): Future[Response] = ???
 
-	def retire(request: Request): Future[Response] = ???
+	def publish(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		QuestionManager.getValidatedNodeToPublish(request).map(node => {
+			QuestionManager.pushInstructionEvent(node.getIdentifier, node)
+			val response = ResponseHandler.OK()
+			response.putAll(Map[String,AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
+			response
+		})
+	}
+	def retire(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		getValidatedNodeToRetire(request).flatMap(node => {
+			val updateRequest = new Request(request)
+			updateRequest.put("identifiers", java.util.Arrays.asList(request.get("identifier").asInstanceOf[String], request.get("identifier").asInstanceOf[String] + ".img"))
+			val updateMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
+			updateRequest.put("metadata", updateMetadata)
+			DataNode.bulkUpdate(updateRequest).map(nodes => {
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
+			})
+		})
+	}
 
-	def add(request: Request): Future[Response] = ???
+	def add(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		getValidatedQuestionSet(request).flatMap(node => {
+			val requestChildrenIds = request.getRequest.getOrDefault("children", "").asInstanceOf[util.List[String]]
+			val nodeChildrenIds = for (relation <- node.getOutRelations) yield relation.getEndNodeId
+			val childrenIds = CollectionUtils.union(requestChildrenIds, nodeChildrenIds)
+			val childrenMaps = for (child <- childrenIds) yield Map("identifier" -> child)
+			request.put("children", childrenMaps)
+			DataNode.update(request).map(node => {
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
+			})
+		})
+	}
 
-	def remove(request: Request): Future[Response] = ???
+	def remove(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		getValidatedQuestionSet(request).flatMap(node => {
+			val requestChildIds = request.getRequest.getOrDefault("children", "").asInstanceOf[util.List[String]]
+			val (publicChildIds, parentChildIds) = getChildIdsFromRelation(node)
+			val childrenIds = publicChildIds.removeAll(requestChildIds)
+			val childrenMaps = for (child <- childrenIds) yield Map("identifier" -> child)
+			request.put("children", childrenMaps)
+			DataNode.update(request).flatMap(node => {
+				val retireRequest = new Request(request)
+				retireRequest.put("identifiers", parentChildIds)
+				val retireMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
+				retireRequest.put("metadata", retireMetadata)
+				DataNode.bulkUpdate(request).map(response => {
+					val response: Response = ResponseHandler.OK
+					response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+					response
+				})
+			})
+		})
+	}
+
+	private def getValidatedNodeToReview(request: Request): Future[Node] = {
+		request.put("mode", "edit")
+		DataNode.read(request).map(node => {
+			if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
+				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Questions with visibility Parent, can't be sent for review individually.")
+			if(!StringUtils.equalsAnyIgnoreCase(node.getMetadata.getOrDefault("status", "").asInstanceOf[String], "Draft"))
+				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Question with status other than Draft can't be sent for review.")
+			node
+		})
+	}
+
+	private def validateQuestionHierarchy(request: Request): Unit = {
+		getQuestionHierarchy(request).map(hierarchyString => {
+			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+			} else new java.util.HashMap[String, AnyRef]()
+			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+			validateChildrenRecursive(children)
+		})
+
+	}
+
+	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
+		children.toList.foreach(content => {
+			if(!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+				&& StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
+				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
+			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+		})
+	}
+
+	private def getQuestionHierarchy(request: Request): Future[Any] = {
+		oec.graphService.readExternalProps(request, List("hierarchy")).flatMap(response => {
+			if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
+				oec.graphService.readExternalProps(request, List("hierarchy")).map(resp => {
+						resp.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String]
+					}) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get("identifier")) }
+			} else Future(response.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String])
+		})
+	}
+
+	private def getValidatedNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+		DataNode.read(request).map(node => {
+			if (StringUtils.equalsIgnoreCase("Retired", node.getMetadata.get("status").asInstanceOf[String]))
+				throw new ClientException("ERR_QUESTION_SET_RETIRE", "Question with Identifier " + node.getIdentifier + " is already Retired.")
+			node
+		})
+	}
+
+	private def getValidatedQuestionSet(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+		request.put("mode", "edit")
+		DataNode.read(request).map(node => {
+			if (!StringUtils.equalsIgnoreCase("QuestionSet", node.getMetadata.get("objectType").asInstanceOf[String]))
+				throw new ClientException("ERR_QUESTION_SET_ADD", "Question with Identifier " + node.getIdentifier + " is not a Question Set")
+			node
+		})
+	}
+
+	private def getChildIdsFromRelation(node: Node): (List[String], List[String]) = {
+		val visibilityIdMap: Map[String, List[String]] = node.getOutRelations
+			.groupBy(_.getEndNodeMetadata.get("visibility").asInstanceOf[String])
+			.mapValues(_.map(_.getEndNodeId).toList)
+		(visibilityIdMap.getOrDefault("Public", List()), visibilityIdMap.getOrDefault("Parent", List()))
+	}
 }

@@ -25,7 +25,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		getResult(ApiId.CREATE_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
 
-	def read(identifier: String, fields: Option[String]) = Action.async { implicit request =>
+	def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val questionSet = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
 		questionSet.putAll(headers)
