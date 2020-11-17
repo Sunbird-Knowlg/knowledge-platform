@@ -156,8 +156,8 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		getValidatedQuestionSet(request).flatMap(node => {
 			val requestChildIds = request.getRequest.getOrDefault("children", "").asInstanceOf[util.List[String]]
 			val (publicChildIds, parentChildIds) = getChildIdsFromRelation(node)
-			val childrenIds = publicChildIds.removeAll(requestChildIds)
-			val childrenMaps = for (child <- childrenIds) yield Map("identifier" -> child)
+			publicChildIds.removeAll(requestChildIds)
+			val childrenMaps = for (child <- requestChildIds) yield Map("identifier" -> child)
 			request.put("children", childrenMaps)
 			DataNode.update(request).flatMap(node => {
 				val retireRequest = new Request(request)

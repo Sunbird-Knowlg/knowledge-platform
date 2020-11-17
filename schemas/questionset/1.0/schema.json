@@ -225,6 +225,9 @@
         "evaluate",
         "create"
       ]
+    },
+    "visibility": {
+      "type": "string"
     }
   }
 }
