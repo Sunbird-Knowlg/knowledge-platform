@@ -92,7 +92,8 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def review(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		getValidatedNodeToReview(request).flatMap(node => {
-			validateQuestionHierarchy(request)
+//			validateQuestionHierarchy(request)
+			validateChildrenRecursive(node.getOutRelations)
 			val updateRequest = new Request(request)
 			updateRequest.getContext.put("identifier", request.get("identifier"))
 			updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
@@ -160,6 +161,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 			val updatedChildren = publicChildIds diff requestChildIds
 			val childrenMaps: List[util.Map[String, AnyRef]] = for (child <- updatedChildren) yield Map("identifier" -> child.asInstanceOf[AnyRef]).asJava
 			if (childrenMaps.nonEmpty) request.put("children", childrenMaps.asJava) else request.put("children", new util.ArrayList[String]())
+			request.getRequest.remove("mode")
 			DataNode.update(request).flatMap(node => {
 				if(parentChildIds.nonEmpty) {
 					val retireRequest = new Request(request)
@@ -191,23 +193,32 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		})
 	}
 
-	private def validateQuestionHierarchy(request: Request): Unit = {
-		getQuestionHierarchy(request).map(hierarchyString => {
-			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
-				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
-			} else new java.util.HashMap[String, AnyRef]()
-			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-			validateChildrenRecursive(children)
-		})
+//	private def validateQuestionHierarchy(request: Request): Unit = {
+//		getQuestionHierarchy(request).map(hierarchyString => {
+//			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+//				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+//			} else new java.util.HashMap[String, AnyRef]()
+//			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+//			validateChildrenRecursive(children)
+//		})
+//
+//	}
 
-	}
 
-	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
-		children.toList.foreach(content => {
-			if(!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
-				&& StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
-				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
-			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+//	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
+//		children.toList.foreach(content => {
+//			if(!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+//				&& StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
+//				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
+//			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+//		})
+//	}
+
+	private def validateChildrenRecursive(outRelations: util.List[Relation]): Unit = {
+		outRelations.toList.foreach(relation => {
+			if(!StringUtils.equalsAnyIgnoreCase(relation.getEndNodeMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+				&& !StringUtils.equalsIgnoreCase(relation.getEndNodeMetadata.getOrDefault("status", "").asInstanceOf[String], "Live"))
+				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + relation.getEndNodeId + "is not Live. Please Publish it.")
 		})
 	}
 
