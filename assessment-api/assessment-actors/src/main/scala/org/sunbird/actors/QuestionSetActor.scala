@@ -10,7 +10,7 @@ import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
@@ -138,11 +138,12 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def add(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		getValidatedQuestionSet(request).flatMap(node => {
-			val requestChildrenIds = request.getRequest.getOrDefault("children", "").asInstanceOf[util.List[String]]
-			val nodeChildrenIds = for (relation <- node.getOutRelations) yield relation.getEndNodeId
+			val requestChildrenIds = request.getRequest.getOrDefault("children", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+			val nodeChildrenIds: List[String] = if (node.getOutRelations != null) (for (relation <- node.getOutRelations) yield relation.getEndNodeId).toList else List()
 			val childrenIds = CollectionUtils.union(requestChildrenIds, nodeChildrenIds)
-			val childrenMaps = for (child <- childrenIds) yield Map("identifier" -> child)
-			request.put("children", childrenMaps)
+			val childrenMaps: List[util.Map[String, AnyRef]] = (for (child <- childrenIds) yield Map("identifier" -> child.asInstanceOf[AnyRef]).asJava).toList
+			if (childrenMaps.nonEmpty) request.put("children", childrenMaps.asJava)
+			request.getRequest.remove("mode")
 			DataNode.update(request).map(node => {
 				val response: Response = ResponseHandler.OK
 				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
@@ -155,20 +156,26 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		getValidatedQuestionSet(request).flatMap(node => {
 			val requestChildIds = request.getRequest.getOrDefault("children", "").asInstanceOf[util.List[String]]
-			val (publicChildIds, parentChildIds) = getChildIdsFromRelation(node)
-			publicChildIds.removeAll(requestChildIds)
-			val childrenMaps = for (child <- requestChildIds) yield Map("identifier" -> child)
-			request.put("children", childrenMaps)
+			val (publicChildIds: List[String], parentChildIds: List[String]) = getChildIdsFromRelation(node)
+			val updatedChildren = publicChildIds diff requestChildIds
+			val childrenMaps: List[util.Map[String, AnyRef]] = for (child <- updatedChildren) yield Map("identifier" -> child.asInstanceOf[AnyRef]).asJava
+			if (childrenMaps.nonEmpty) request.put("children", childrenMaps.asJava) else request.put("children", new util.ArrayList[String]())
 			DataNode.update(request).flatMap(node => {
-				val retireRequest = new Request(request)
-				retireRequest.put("identifiers", parentChildIds)
-				val retireMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
-				retireRequest.put("metadata", retireMetadata)
-				DataNode.bulkUpdate(request).map(response => {
+				if(parentChildIds.nonEmpty) {
+					val retireRequest = new Request(request)
+					retireRequest.put("identifiers", parentChildIds)
+					val retireMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
+					retireRequest.put("metadata", retireMetadata)
+					DataNode.bulkUpdate(request).map(response => {
+						val response: Response = ResponseHandler.OK
+						response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+						response
+					})
+				} else {
 					val response: Response = ResponseHandler.OK
 					response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-					response
-				})
+					Future(response)
+				}
 			})
 		})
 	}
@@ -225,14 +232,15 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	private def getValidatedQuestionSet(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
 		request.put("mode", "edit")
 		DataNode.read(request).map(node => {
-			if (!StringUtils.equalsIgnoreCase("QuestionSet", node.getMetadata.get("objectType").asInstanceOf[String]))
-				throw new ClientException("ERR_QUESTION_SET_ADD", "Question with Identifier " + node.getIdentifier + " is not a Question Set")
+			if (!StringUtils.equalsIgnoreCase("QuestionSet", node.getObjectType))
+				throw new ClientException("ERR_QUESTION_SET_ADD", "Node with Identifier " + node.getIdentifier + " is not a Question Set")
 			node
 		})
 	}
 
 	private def getChildIdsFromRelation(node: Node): (List[String], List[String]) = {
-		val visibilityIdMap: Map[String, List[String]] = node.getOutRelations
+		val outRelations: List[Relation] = if (node.getOutRelations != null) node.getOutRelations.asScala.toList else List[Relation]()
+		val visibilityIdMap: Map[String, List[String]] = outRelations
 			.groupBy(_.getEndNodeMetadata.get("visibility").asInstanceOf[String])
 			.mapValues(_.map(_.getEndNodeId).toList)
 		(visibilityIdMap.getOrDefault("Public", List()), visibilityIdMap.getOrDefault("Parent", List()))

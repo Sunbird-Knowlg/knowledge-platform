@@ -24,5 +24,14 @@
     "update" : [
       "children"
     ]
+  },
+  "external": {
+    "tableName": "question_set_data",
+    "properties": {
+      "children": {
+        "type": "string"
+      }
+    },
+    "primaryKey": ["identifier"]
   }
 }

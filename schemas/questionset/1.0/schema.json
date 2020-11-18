@@ -12,7 +12,8 @@
     "shuffle",
     "showFeedback",
     "showSolutions",
-    "showHints"
+    "showHints",
+    "mimeType"
   ],
   "properties": {
     "name": {
@@ -26,7 +27,10 @@
       "type": "string"
     },
     "mimeType": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "application/vnd.ekstep.questionset"
+      ]
     },
     "status": {
       "type": "string",
