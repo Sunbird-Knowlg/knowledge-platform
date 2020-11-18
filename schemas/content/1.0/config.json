@@ -100,5 +100,5 @@
             "relatedBoards": 4
         }
     },
-    "schema_restrict_api": true
+    "schema_restrict_api": false
 }
