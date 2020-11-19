@@ -565,7 +565,11 @@ class TestDataNode extends BaseSpec {
         request.put("contentType", "Resource")
         request.put("description", "test")
         request.put("channel", "in.ekstep")
-        request.put("test", "test")
+        //TODO: Uncomment this line when schema_restrict_api is true
+//        request.put("test", "test")
+        //TODO: Remove this when schema_restrict_api is true
+        request.put("ownershipType", "test")
+
         request.put("primaryCategory", "Learning Resource")
         assertThrows[ClientException](DataNode.create(request))
         // recoverToSucceededIf[ClientException](DataNode.create(request))
@@ -590,10 +594,14 @@ class TestDataNode extends BaseSpec {
             val req = new Request(request)
             req.getContext.put("identifier", node.getIdentifier)
             req.put("name", "updated name")
-            req.put("test", "test")
+            //TODO: Uncomment this line when schema_restrict_api is true
+//            req.put("test", "test")
 //            assertThrows[ClientException](DataNode.update(req))
-            recoverToSucceededIf[ClientException](DataNode.update(req))
-        }
+//            recoverToSucceededIf[ClientException](DataNode.update(req))
+            //TODO: Remove this when schema_restrict_api is true
+            DataNode.update(req).map(node =>
+                assert(node != null)
+            )}
         } flatMap(f => f)
     }
 
