@@ -51,6 +51,7 @@ object ApiId {
 	val UPDATE_ASSET = "api.asset.update"
 	val UPLOAD_ASSET = "api.asset.upload"
 	val UPLOAD_PRE_SIGNED_ASSET= "api.asset.upload.url"
+	val COPY_ASSET = "api.asset.copy"
 
 
 
