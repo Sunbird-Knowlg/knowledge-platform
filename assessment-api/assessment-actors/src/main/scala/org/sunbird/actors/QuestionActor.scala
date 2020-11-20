@@ -14,8 +14,8 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.QuestionManager
 
 import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -82,7 +82,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
     def review(request: Request): Future[Response] = {
         request.getRequest.put("identifier", request.getContext.get("identifier"))
-        QuestionManager.getValidatedNodeToReview(request).flatMap(node => {
+        QuestionManager.getQuestionNodeToReview(request).flatMap(node => {
             val updateRequest = new Request(request)
             updateRequest.getContext.put("identifier", request.get("identifier"))
             updateRequest.putAll(Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> "Draft", "status" -> "Review", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava)
@@ -96,7 +96,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
     def publish(request: Request): Future[Response] = {
         request.getRequest.put("identifier", request.getContext.get("identifier"))
-        QuestionManager.getValidatedNodeToPublish(request).map(node => {
+        QuestionManager.getQuestionNodeToPublish(request).map(node => {
             QuestionManager.pushInstructionEvent(node.getIdentifier, node)
             val response = ResponseHandler.OK()
             response.putAll(Map[String,AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
@@ -106,12 +106,12 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
     def retire(request: Request): Future[Response] = {
         request.getRequest.put("identifier", request.getContext.get("identifier"))
-        QuestionManager.getValidatedNodeToRetire(request).flatMap(node => {
+        QuestionManager.getQuestionNodeToRetire(request).flatMap(node => {
             val updateRequest = new Request(request)
             updateRequest.put("identifiers", java.util.Arrays.asList(request.get("identifier").asInstanceOf[String], request.get("identifier").asInstanceOf[String] + ".img"))
             val updateMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
             updateRequest.put("metadata", updateMetadata)
-            DataNode.bulkUpdate(updateRequest).map(nodes => {
+            DataNode.bulkUpdate(updateRequest).map(_ => {
                 val response: Response = ResponseHandler.OK
                 response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
                 response

@@ -43,12 +43,12 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         else null
     }
 
-    def checkCycle(req: Request): String = try {
+    def checkCycle(req: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): String = try {
         val request = new Request(req)
         request.put(GraphDACParams.start_node_id.name, this.endNode.getIdentifier)
         request.put(GraphDACParams.relation_type.name, getRelationType)
         request.put(GraphDACParams.end_node_id.name, this.startNode.getIdentifier)
-        val result = Neo4JBoltSearchOperations.checkCyclicLoop(graphId, this.endNode.getIdentifier, getRelationType(),this.startNode.getIdentifier);
+        val result = oec.graphService.checkCyclicLoop(graphId, this.endNode.getIdentifier, getRelationType(),this.startNode.getIdentifier)
         val loop = result.get(GraphDACParams.loop.name).asInstanceOf[Boolean]
         if (BooleanUtils.isTrue(loop)) {
             result.get(GraphDACParams.message.name).asInstanceOf[String]
