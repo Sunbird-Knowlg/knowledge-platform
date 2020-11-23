@@ -34,6 +34,8 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		case "retireQuestionSet" => retire(request)
 		case "addQuestion" => add(request)
 		case "removeQuestion" => remove(request)
+		case "updateHierarchyQuestion" => updateHierarchy(request)
+		case "readHierarchyQuestion" => readHierarchy(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -119,6 +121,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 			response
 		})
 	}
+
 	def retire(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		QuestionManager.getQuestionSetNodeToRetire(request).flatMap(node => {
@@ -179,5 +182,14 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 			})
 		})
 	}
+
+	def updateHierarchy(request: Request): Future[Response] = {
+		Future(ResponseHandler.OK())
+	}
+
+	def readHierarchy(request: Request): Future[Response] = {
+		Future(ResponseHandler.OK())
+	}
+
 
 }

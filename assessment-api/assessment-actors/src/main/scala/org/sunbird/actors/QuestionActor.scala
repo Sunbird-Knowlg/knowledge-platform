@@ -69,6 +69,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
                 case "Public" => request.put("parent", null)
                 case "Parent" => if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
                     throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
+                    if(node.getMetadata.containsKey("questionSet")) throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, cannot pass questionSet metadata")
                 else request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
                 case _ => request
             }

@@ -29,7 +29,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		val headers = commonHeaders()
 		val questionSet = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
 		questionSet.putAll(headers)
-		questionSet.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")).asJava)
+		questionSet.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode).asJava)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.readQuestionSet.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
 		getResult(ApiId.READ_QUESTION_SET, questionSetActor, questionSetRequest)
@@ -99,4 +99,27 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		questionSetRequest.getContext.put("identifier", identifier)
 		getResult(ApiId.REMOVE_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
+
+	def updateHierarchy(identifier: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+		questionSet.putAll(headers)
+		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.updateHierarchyQuestion.toString)
+		setRequestContext(questionSetRequest, version, objectType, schemaName)
+		questionSetRequest.getContext.put("identifier", identifier)
+		getResult(ApiId.UPDATE_HIERARCHY_QUESTION_SET, questionSetActor, questionSetRequest)
+	}
+
+	def readHierarchy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val questionSet = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+		questionSet.putAll(headers)
+		questionSet.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read")).asJava)
+		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.readHierarchyQuestion.toString)
+		setRequestContext(questionSetRequest, version, objectType, schemaName)
+		getResult(ApiId.READ_HIERARCHY_QUESTION_SET, questionSetActor, questionSetRequest)
+	}
+
+
 }
