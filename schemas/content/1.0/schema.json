@@ -1253,6 +1253,9 @@
             "items": {
                 "type": "string"
             }
+        },
+        "maxAttempts": {
+            "type": "number"
         }
     }
 }
