@@ -33,7 +33,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
-	val ORGANISATIONAL_FRAMEWORK_TERMS = List("organisationBoardIds", "organisationGradeLevelIds", "organisationSubjectIds", "organisationMediumIds", "organisationTopicsIds")
+	val ORGANISATIONAL_FRAMEWORK_TERMS = List("organisationFrameworkId", "organisationBoardIds", "organisationGradeLevelIds", "organisationSubjectIds", "organisationMediumIds", "organisationTopicsIds")
 	val TARGET_FRAMEWORK_TERMS = List("targetFrameworkIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds")
 
 	override def onReceive(request: Request): Future[Response] = {
@@ -240,12 +240,13 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(termIds.nonEmpty) {
 			val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
 			val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json")
-				.body(s"""{"request":{"filters":{"objectType":"Term", "identifier": ${termIds.mkString("[\"", "\", \"", "\"]")
+				.body(s"""{"request":{"filters":{"objectType":["Term", "Framework"], "status": [], "identifier": ${termIds.mkString("[\"", "\", \"", "\"]")
 				}},"fields":["name"]}}""").asString
 			if (200 != httpResponse.getStatus)
 				throw new ServerException("ERR_CONTENT_CREATE", "Error while fetching Framework Terms data.")
 			val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
 			val termList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault("Term", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+			termList.addAll(response.getResult.getOrDefault("Framework",  new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]])
 			if (termList.isEmpty)
 				throw new ClientException("ERR_CONTENT_CREATE", s"Term ids are not found for list: $termIds ")
 			val termMap = termList.asScala.map(entry => entry.getOrDefault("identifier", "").asInstanceOf[String] -> entry.getOrDefault("name", "")).toMap
