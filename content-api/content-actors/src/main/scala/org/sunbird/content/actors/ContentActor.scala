@@ -4,19 +4,21 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 
+import com.mashape.unirest.http.{HttpResponse, Unirest}
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
+import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, Platform, Slug}
+import org.sunbird.common.{ContentParams, JsonUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.mgr.ImportManager
-import org.sunbird.util.RequestUtil
+import org.sunbird.util.{ChannelConstants, RequestUtil}
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -24,11 +26,15 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
+
+	val ORGANISATIONAL_FRAMEWORK_TERMS = List("organisationBoardIds", "organisationGradeLevelIds", "organisationSubjectIds", "organisationMediumIds", "organisationTopicsIds")
+	val TARGET_FRAMEWORK_TERMS = List("targetFrameworkIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds")
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
@@ -144,6 +150,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def importContent(request: Request): Future[Response] = ImportManager.importContent(request)
 
 	def populateDefaultersForCreation(request: Request) = {
+		validateAndSetMultiFrameworks(request)
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
 	}
@@ -158,6 +165,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def populateDefaultersForUpdation(request: Request) = {
+		validateAndSetMultiFrameworks(request)
 		if (request.getRequest.containsKey(ContentParams.body.name)) request.put(ContentParams.artifactUrl.name, null)
 	}
 
@@ -197,4 +205,54 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		node
 	}
 
+	private def validateAndSetMultiFrameworks(request: Request): Unit = {
+		val orgTermIds: List[String] = request.getRequest.asScala
+			.filter(entry => ORGANISATIONAL_FRAMEWORK_TERMS.contains(entry._1))
+			.flatMap(entry => entry._2 match {
+				case e: String => List(e)
+				case e: util.List[String] => e.asScala
+			}).toList
+		val orgTermMap = getValidatedTerms(orgTermIds)
+		if (StringUtils.isNotBlank(request.get("organisationFrameworkId").asInstanceOf[String]))
+			request.getRequest.putIfAbsent("framework", request.get("organisationFrameworkId").asInstanceOf[String])
+		val boardIds = request.getRequest.getOrDefault("organisationBoardIds", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+		if (CollectionUtils.isNotEmpty(boardIds))
+			request.getRequest.putIfAbsent("board", orgTermMap(boardIds.get(0)).asInstanceOf[String])
+		val mediumIds = request.getRequest.getOrDefault("organisationMediumIds", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+		if (CollectionUtils.isNotEmpty(mediumIds))
+			request.getRequest.putIfAbsent("medium", mediumIds.asScala.map(id => orgTermMap(id)).toList.asJava)
+		val subjectIds = request.getRequest.getOrDefault("organisationSubjectIds", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+		if (CollectionUtils.isNotEmpty(subjectIds))
+			request.getRequest.putIfAbsent("subject", subjectIds.asScala.map(id => orgTermMap(id)).toList.asJava)
+		val gradeIds = request.getRequest.getOrDefault("organisationGradeLevelIds", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+		if (CollectionUtils.isNotEmpty(gradeIds))
+			request.getRequest.putIfAbsent("gradeLevel", gradeIds.asScala.map(id => orgTermMap(id)).toList.asJava)
+		val topicIds = request.getRequest.getOrDefault("organisationTopicsIds", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+		if (CollectionUtils.isNotEmpty(topicIds))
+			request.getRequest.putIfAbsent("topics", topicIds.asScala.map(id => orgTermMap(id)).toList.asJava)
+		val targetTermIds: List[String] = request.getRequest.asScala
+			.filter(entry => TARGET_FRAMEWORK_TERMS.contains(entry._1))
+			.flatMap(_._2.asInstanceOf[util.List[String]].asScala).toList
+		getValidatedTerms(targetTermIds)
+	}
+
+	private def getValidatedTerms(termIds: List[String]): Map[String, AnyRef] = {
+		if(termIds.nonEmpty) {
+			val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
+			val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json")
+				.body(s"""{"request":{"filters":{"objectType":"Term", "identifier": ${termIds.mkString("[\"", "\", \"", "\"]")
+				}},"fields":["name"]}}""").asString
+			if (200 != httpResponse.getStatus)
+				throw new ServerException("ERR_CONTENT_CREATE", "Error while fetching Framework Terms data.")
+			val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
+			val termList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault("Term", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+			if (termList.isEmpty)
+				throw new ClientException("ERR_CONTENT_CREATE", s"Term ids are not found for list: $termIds ")
+			val termMap = termList.asScala.map(entry => entry.getOrDefault("identifier", "").asInstanceOf[String] -> entry.getOrDefault("name", "")).toMap
+			val invalidTermIds = CollectionUtils.disjunction(termIds.asJava, termMap.keys.asJava)
+			if(CollectionUtils.isNotEmpty(invalidTermIds))
+				throw new ClientException("ERR_CONTENT_CREATE", s"Term ids are not found for list: $invalidTermIds ")
+			termMap
+		} else Map()
+	}
 }

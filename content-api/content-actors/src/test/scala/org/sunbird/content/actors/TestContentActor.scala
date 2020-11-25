@@ -31,7 +31,8 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
-        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource"))
+        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource",
+            "organisationFrameworkId" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}}))
         request.put("content", content)
         assert(true)
         val response = callActor(request, Props(new ContentActor()))
@@ -280,7 +281,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "updated description")))
+        request.putAll(mapAsJavaMap(Map("description" -> "updated description","organisationFrameworkId" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("updateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("failed".equals(response.getParams.getStatus))
