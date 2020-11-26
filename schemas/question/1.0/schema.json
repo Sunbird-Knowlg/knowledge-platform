@@ -1,0 +1,213 @@
+{
+  "$id": "question-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Question",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "contentType",
+    "mimeType"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "mimeType": {
+      "type": "string",
+      "enum": [
+        "application/vnd.ekstep.qml-archive"
+      ]
+    },
+    "contentType": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Live",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "prevState": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "pkgVersion": {
+      "type": "number"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "versionKey": {
+      "type": "string"
+    },
+    "language": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "English",
+          "Hindi",
+          "Assamese",
+          "Bengali",
+          "Gujarati",
+          "Kannada",
+          "Malayalam",
+          "Marathi",
+          "Nepali",
+          "Odia",
+          "Punjabi",
+          "Tamil",
+          "Telugu",
+          "Urdu",
+          "Sanskrit",
+          "Maithili",
+          "Other"
+        ]
+      },
+      "default": ["English"]
+    },
+    "channel": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "string"
+    },
+    "subject" : {
+      "type": "array"
+    },
+    "medium" : {
+      "type": "array"
+    },
+    "board" : {
+      "type": "string"
+    },
+    "gradeLevel" : {
+      "type": "array"
+    },
+    "topic" : {
+      "type": "array"
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "createdFor": {
+      "type": "array"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastSubmittedOn": {
+      "type": "string"
+    },
+    "lastSubmittedBy": {
+      "type": "string"
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "lastPublishedOn": {
+      "type": "string"
+    },
+    "lastPublishedBy": {
+      "type": "string"
+    },
+    "qType": {
+      "type": "string",
+      "enum": [
+        "MCQ",
+        "FTB"
+      ]
+    },
+    "body": {
+      "type": "string"
+    },
+    "feedback": {
+      "type": "object"
+    },
+    "solutions": {
+      "description": "review required",
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "responseDeclaration": {
+      "description": "review required. It could be part of body",
+      "type": "object"
+    },
+    "responseProcessing": {
+      "description": "review required. It could be part of body",
+      "type": "object"
+    },
+    "templateDeclaration": {
+      "description": "review required. It could be part of body",
+      "type": "object"
+    },
+    "interactions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["simple-choice", "multi-choice", "text", "single-select", "multi-select", "order", "match", "upload", "map"]
+      }
+    },
+    "scoringMode": {
+      "description": "review required. Is there any default value required?",
+      "type": "string",
+      "enum": [
+        "system",
+        "external",
+        "offline",
+        "none"
+      ]
+    },
+    "quMLVersion": {
+      "description": "review required. What is default value? as it is required?",
+      "type": "string"
+    },
+    "timeLimit": {
+      "type": "number"
+    },
+    "showTimer": {
+      "type": "boolean"
+    },
+    "bloomsLevel" : {
+      "description": "Cognitive processes involved to answer the question set.",
+      "type": "string",
+      "enum": [
+        "remember",
+        "understand",
+        "apply",
+        "analyse",
+        "evaluate",
+        "create"
+      ]
+    },
+      "parent": {
+          "type": "string"
+      },
+      "visibility": {
+          "type": "string"
+      }
+  }
+}

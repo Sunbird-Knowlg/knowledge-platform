@@ -1,0 +1,233 @@
+{
+  "$id": "questionset-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuestionSet",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "navigationMode",
+    "allowSkip",
+    "requiresSubmit",
+    "shuffle",
+    "showFeedback",
+    "showSolutions",
+    "showHints"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "mimeType": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Live",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "prevState": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "pkgVersion": {
+      "type": "number"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "versionKey": {
+      "type": "string"
+    },
+    "language": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "English",
+          "Hindi",
+          "Assamese",
+          "Bengali",
+          "Gujarati",
+          "Kannada",
+          "Malayalam",
+          "Marathi",
+          "Nepali",
+          "Odia",
+          "Punjabi",
+          "Tamil",
+          "Telugu",
+          "Urdu",
+          "Sanskrit",
+          "Maithili",
+          "Other"
+        ]
+      },
+      "default": ["English"]
+    },
+    "channel": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "string"
+    },
+    "subject" : {
+      "type": "array"
+    },
+    "medium" : {
+      "type": "array"
+    },
+    "board" : {
+      "type": "string"
+    },
+    "gradeLevel" : {
+      "type": "array"
+    },
+    "topic" : {
+      "type": "array"
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "createdFor": {
+      "type": "array"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastSubmittedOn": {
+      "type": "string"
+    },
+    "lastSubmittedBy": {
+      "type": "string"
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "lastPublishedOn": {
+      "type": "string"
+    },
+    "lastPublishedBy": {
+      "type": "string"
+    },
+    "containsUserData": {
+      "type": "boolean"
+    },
+    "setType": {
+      "type": "string",
+      "enum": [
+        "materialised",
+        "dynamic"
+      ],
+      "default": "materialised"
+    },
+    "setCriteria" : {
+      "type": "object"
+    },
+    "feedback": {
+      "type": "object"
+    },
+    "navigationMode" : {
+      "type": "string",
+      "enum" : [
+        "linear",
+        "non-linear"
+      ],
+      "default": "non-linear"
+    },
+    "allowSkip" : {
+      "type": "boolean",
+      "default": "true"
+    },
+    "requiresSubmit" : {
+      "type": "boolean",
+      "default": "false"
+    },
+    "summaryType": {
+      "type": "string",
+      "enum": [
+        "Complete",
+        "Score",
+        "Duration",
+        "Score & Duration"],
+      "default": "materialised"
+    },
+    "shuffle" : {
+      "type": "boolean",
+      "default": "true"
+    },
+    "totalQuestions": {
+      "description": "review required. What is default value? as it is required?",
+      "type": "number",
+      "default": 0
+    },
+    "maxQuestions": {
+      "description": "Number of questions in the question set that should be used in one session. |review required. What is default value? as it is required",
+      "type": "number",
+      "default": 0
+    },
+    "showFeedback" : {
+      "description": "If feedback should be shown or not while consuming the question set.",
+      "type": "boolean",
+      "default": "false"
+    },
+    "showSolutions" : {
+      "description": "",
+      "type": "boolean",
+      "default": "false"
+    },
+    "showHints" : {
+      "description": "",
+      "type": "boolean",
+      "default": "false"
+    },
+    "quMLVersion": {
+      "description": "review required. What is default value? as it is required?",
+      "type": "string"
+    },
+    "timeLimits": {
+      "description": "",
+      "type": "object"
+    },
+    "showTimer" : {
+      "description": "Show or hide timer when playing this question set.",
+      "type": "boolean"
+    },
+    "bloomsLevel" : {
+      "description": "Cognitive processes involved to answer the question set.",
+      "type": "string",
+      "enum": [
+        "remember",
+        "understand",
+        "apply",
+        "analyse",
+        "evaluate",
+        "create"
+      ]
+    },
+    "visibility": {
+      "type": "string"
+    }
+  }
+}

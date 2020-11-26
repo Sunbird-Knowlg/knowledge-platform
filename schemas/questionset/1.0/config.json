@@ -1,0 +1,28 @@
+{
+  "objectType": "QuestionSet",
+  "relations": {
+    "children": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": ["Question", "QuestionImage", "QuestionSet", "QuestionSetImage"]
+    },
+    "parent": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["QuestionSet", "QuestionSetImage"]
+    }
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": [],
+  "cacheEnabled": false,
+  "schema_restrict_api": true,
+  "restrictProps": {
+    "create" : [
+      "children"
+    ],
+    "update" : [
+      "children"
+    ]
+  }
+}
