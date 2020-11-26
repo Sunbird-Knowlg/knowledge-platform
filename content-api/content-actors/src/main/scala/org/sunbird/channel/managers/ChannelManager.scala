@@ -18,6 +18,14 @@ import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
 
+  val CONTENT_PRIMARY_CATERGORIES: util.List[String] = Platform.getStringList("channel.content.primarycategories", new util.ArrayList[String]())
+  val COLLECTION_PRIMARY_CATERGORIES: util.List[String] =  Platform.getStringList("channel.collection.primarycategories", new util.ArrayList[String]())
+  val ASSET_PRIMARY_CATERGORIES: util.List[String] =  Platform.getStringList("channel.asset.primarycategories", new util.ArrayList[String]())
+  val CONTENT_ADDITIONAL_CATERGORIES: util.List[String] =  Platform.getStringList("channel.content.additionalcategories", new util.ArrayList[String]())
+  val COLLECTION_ADDITIONAL_CATERGORIES: util.List[String] = Platform.getStringList("channel.collection.additionalcategories", new util.ArrayList[String]())
+  val ASSET_ADDITIONAL_CATERGORIES: util.List[String] =  Platform.getStringList("channel.asset.additionalcategories", new util.ArrayList[String]())
+
+
   def channelLicenseCache(request: Request, identifier: String): Unit = {
     if (request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
       RedisCache.set(ChannelConstants.CHANNEL_LICENSE_CACHE_PREFIX + identifier + ChannelConstants.CHANNEL_LICENSE_CACHE_SUFFIX, request.getRequest.get(ChannelConstants.DEFAULT_LICENSE).asInstanceOf[String], 0)
@@ -81,14 +89,23 @@ object ChannelManager {
     }
   }
 
+//  def setPrimaryAndAdditionCategories(metadata: util.Map[String, AnyRef]): Unit = {
+//    val masterCategories = seqAsJavaList(getMasterCategoryList())
+//    metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, masterCategories)
+//    metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, masterCategories)
+//    metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, masterCategories)
+//    metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, masterCategories)
+//    metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, masterCategories)
+//    metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, masterCategories)
+//  }
+
   def setPrimaryAndAdditionCategories(metadata: util.Map[String, AnyRef]): Unit = {
-    val masterCategories = seqAsJavaList(getMasterCategoryList())
-    metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, masterCategories)
-    metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, masterCategories)
-    metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, masterCategories)
-    metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, masterCategories)
-    metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, masterCategories)
-    metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, masterCategories)
+    metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, CONTENT_PRIMARY_CATERGORIES)
+    metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, COLLECTION_PRIMARY_CATERGORIES)
+    metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, ASSET_PRIMARY_CATERGORIES)
+    metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, CONTENT_ADDITIONAL_CATERGORIES)
+    metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATERGORIES)
+    metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATERGORIES)
   }
 
   def getMasterCategoryList(): List[String] = {
