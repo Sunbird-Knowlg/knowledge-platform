@@ -4,21 +4,19 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 
-import com.mashape.unirest.http.{HttpResponse, Unirest}
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, JsonUtils, Platform, Slug}
+import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ServerException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.mgr.ImportManager
-import org.sunbird.util.{ChannelConstants, RequestUtil}
+import org.sunbird.util. RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -26,7 +24,6 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 
 import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
