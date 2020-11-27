@@ -101,8 +101,8 @@ trait FrameworkValidator extends IDefinition {
     }
     if (ids.nonEmpty) {
       val mc: MetadataCriterion = MetadataCriterion.create(new util.ArrayList[Filter]() {{
-          if (ids.size == 1) add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_EQUAL, ids.head))
-          if (ids.size > 1) add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, ids))
+          if (ids.size == 1) add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_EQUAL, ids.asJava.get(0)))
+          if (ids.size > 1) add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, ids.asJava))
           new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")}})
 
       val searchCriteria = new SearchCriteria {{
