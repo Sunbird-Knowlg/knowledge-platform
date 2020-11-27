@@ -47,12 +47,12 @@ class TestContentActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 //        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
-            {
-                add(getBoardNode())
-                add(getFrameworkNode())
-            }
-        }))
+//        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
+//            {
+//                add(getBoardNode())
+//                add(getFrameworkNode())
+//            }
+//        }))
         val request = getContentRequest()
         request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
         request.setOperation("createContent")
@@ -68,12 +68,12 @@ class TestContentActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
-            {
-                add(getBoardNode())
-                add(getFrameworkNode())
-            }
-        }))
+//        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
+//            {
+//                add(getBoardNode())
+//                add(getFrameworkNode())
+//            }
+//        }))
         val request = getContentRequest()
         request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
         request.setOperation("createContent")
