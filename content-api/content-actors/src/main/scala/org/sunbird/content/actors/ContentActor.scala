@@ -15,7 +15,7 @@ import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager,
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, JsonUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ServerException}
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.mgr.ImportManager
 import org.sunbird.util.{ChannelConstants, RequestUtil}
@@ -237,22 +237,24 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	private def getValidatedTerms(termIds: List[String]): Map[String, AnyRef] = {
-		if(termIds.nonEmpty) {
+		if (termIds.nonEmpty) {
 			val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
 			val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json")
-				.body(s"""{"request":{"filters":{"objectType":["Term", "Framework"], "status": [], "identifier": ${termIds.mkString("[\"", "\", \"", "\"]")
-				}},"fields":["name"]}}""").asString
+				.body(
+					s"""{"request":{"filters":{"objectType":["Term", "Framework"], "status": [], "identifier": ${
+						termIds.mkString("[\"", "\", \"", "\"]")
+					}},"fields":["name"]}}""").asString
 			if (200 != httpResponse.getStatus)
-				throw new ServerException("ERR_CONTENT_CREATE", "Error while fetching Framework Terms data.")
+				throw new ServerException("ERR_FRAMEWORK_VALIDATION", "Error while fetching Framework Terms data.")
 			val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
 			val termList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault("Term", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
-			termList.addAll(response.getResult.getOrDefault("Framework",  new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]])
+			termList.addAll(response.getResult.getOrDefault("Framework", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]])
 			if (termList.isEmpty)
-				throw new ClientException("ERR_CONTENT_CREATE", s"Term ids are not found for list: $termIds ")
+				throw new ResourceNotFoundException("ERR_FRAMEWORK_VALIDATION", s"Resource not found for the following Ids: $termIds ")
 			val termMap = termList.asScala.map(entry => entry.getOrDefault("identifier", "").asInstanceOf[String] -> entry.getOrDefault("name", "")).toMap
 			val invalidTermIds = CollectionUtils.disjunction(termIds.asJava, termMap.keys.asJava)
-			if(CollectionUtils.isNotEmpty(invalidTermIds))
-				throw new ClientException("ERR_CONTENT_CREATE", s"Term ids are not found for list: $invalidTermIds ")
+			if (CollectionUtils.isNotEmpty(invalidTermIds))
+				throw new ResourceNotFoundException("ERR_FRAMEWORK_VALIDATION", s"Resource not found for the following Ids: $invalidTermIds ")
 			termMap
 		} else Map()
 	}
