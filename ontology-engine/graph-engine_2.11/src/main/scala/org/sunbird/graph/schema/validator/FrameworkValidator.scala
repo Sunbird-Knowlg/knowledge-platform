@@ -93,6 +93,7 @@ trait FrameworkValidator extends IDefinition {
           .flatMap(entry => entry._2 match {
             case e: String => List(e)
             case e: util.List[String] => e.asScala
+            case _ => List()
           }).toList
       case "Target" => node.getMetadata.asScala
           .filter(entry => TARGET_FRAMEWORK_TERMS.contains(entry._1))
