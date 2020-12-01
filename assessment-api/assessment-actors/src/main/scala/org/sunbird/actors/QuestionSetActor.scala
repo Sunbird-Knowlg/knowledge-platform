@@ -14,7 +14,7 @@ import org.sunbird.graph.dac.model.Relation
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.QuestionManager
-import org.sunbird.utils.RequestUtil
+import org.sunbird.utils.{RequestUtil}
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -45,11 +45,11 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		if (StringUtils.isBlank(visibility))
 			throw new ClientException("ERR_QUESTION_SET_CREATE", "Visibility is a mandatory parameter")
 		visibility match {
-			case "Parent" => if (!request.getRequest.containsKey("parent"))
-				throw new ClientException("ERR_QUESTION_SET_CREATE", "For visibility Parent, parent id is mandatory") else
-				request.getRequest.put("parent", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
+//			case "Parent" => if (!request.getRequest.containsKey("parent"))
+//				throw new ClientException("ERR_QUESTION_SET_CREATE", "For visibility Parent, parent id is mandatory") else
+//				request.getRequest.put("parent", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
 			case "Public" => if (request.getRequest.containsKey("parent")) throw new ClientException("ERR_QUESTION_SET_CREATE", "For visibility Public, question can't have parent id")
-			case _ => throw new ClientException("ERR_QUESTION_SET_CREATE", "Visibility should be one of [\"Parent\", \"Public\"]")
+			case _ => throw new ClientException("ERR_QUESTION_SET_CREATE", "Visibility should be one of [\"Public\"]")
 		}
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
@@ -73,14 +73,15 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		DataNode.read(request).flatMap(node => {
-			request.getRequest.getOrDefault("visibility", "") match {
-				case "Public" => request.put("parent", null)
-				case "Parent" => if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
-					throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
-				else request.getRequest.put("parent", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
-				case _ => request
-			}
+        //TODO: Remove commented when required
+        DataNode.read(request).flatMap(node => {
+//              request.getRequest.getOrDefault("visibility", "") match {
+//				case "Public" => request.put("parent", null)
+//				case "Parent" => if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
+//					throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
+//				else request.getRequest.put("parent", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
+//				case _ => request
+//			}
 			DataNode.update(request).map(node => {
 				val response: Response = ResponseHandler.OK
 				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
@@ -184,12 +185,21 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	}
 
 	def updateHierarchy(request: Request): Future[Response] = {
+
 		Future(ResponseHandler.OK())
 	}
 
 	def readHierarchy(request: Request): Future[Response] = {
 		Future(ResponseHandler.OK())
 	}
+
+//	def processUpdateHierarchyRequest(request: Request): (String, Map[String,AnyRef], Map[String, AnyRef]) =  {
+//		val nodesModified: Map[String, AnyRef] = request.getRequest.get("nodesModifier").asInstanceOf[util.Map[String, AnyRef]].asScala.toMap
+//		val hierarchy:Map[String, AnyRef]  = request.getRequest.get("hierarchy").asInstanceOf[util.Map[String, AnyRef]].asScala.toMap
+//		if (StringUtils.isEmpty(rootId) && StringUtils.isAllBlank(rootId) || StringUtils.contains(rootId, ".img"))
+//			throw new ClientException("ERR_INVALID_ROOT_ID", "Please Provide Valid Root Node Identifier")
+//		(rootId, nodesModified, hierarchy)
+//	}
 
 
 }

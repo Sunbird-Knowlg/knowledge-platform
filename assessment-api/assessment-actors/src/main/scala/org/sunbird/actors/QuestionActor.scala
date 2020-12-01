@@ -12,6 +12,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.QuestionManager
+import org.sunbird.utils.RequestUtil
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,11 +38,12 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
         if (StringUtils.isBlank(visibility))
             throw new ClientException("ERR_QUESTION_CREATE", "Visibility is a mandatory parameter")
         visibility match {
-            case "Parent" => if (!request.getRequest.containsKey("parent"))
-                throw new ClientException("ERR_QUESTION_CREATE", "For visibility Parent, parent id is mandatory") else
-                request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
+                //TODO: Enable support in future
+//            case "Parent" => if (!request.getRequest.containsKey("parent"))
+//                throw new ClientException("ERR_QUESTION_CREATE", "For visibility Parent, parent id is mandatory") else
+//                request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
             case "Public" => if (request.getRequest.containsKey("parent")) throw new ClientException("ERR_QUESTION_CREATE", "For visibility Public, question can't have parent id")
-            case _ => throw new ClientException("ERR_QUESTION_CREATE", "Visibility should be one of [\"Parent\", \"Public\"]")
+            case _ => throw new ClientException("ERR_QUESTION_CREATE", "Visibility should be one of [\"Public\"]")
         }
         DataNode.create(request).map(node => {
             val response = ResponseHandler.OK
@@ -63,16 +65,20 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     }
 
     def update(request: Request): Future[Response] = {
+        RequestUtil.restrictProperties(request)
         request.getRequest.put("identifier", request.getContext.get("identifier"))
         DataNode.read(request).flatMap(node => {
-            request.getRequest.getOrDefault("visibility", "") match {
-                case "Public" => request.put("parent", null)
-                case "Parent" => if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
-                    throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
-                    if(node.getMetadata.containsKey("questionSet")) throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, cannot pass questionSet metadata")
-                else request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)
-                case _ => request
-            }
+            //TODO: Remove commented when required
+//            request.getRequest.getOrDefault("visibility", "") match {
+//                case "Public" => request.put("parent", null)
+//                case "Parent" => {
+//                    if (!node.getMetadata.containsKey("parent") || !request.getRequest.containsKey("parent"))
+//                    throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, parent id is mandatory")
+//                    if(request.getRequest.containsKey("questionSet"))
+//                        throw new ClientException("ERR_QUESTION_CREATE_FAILED", "For visibility Parent, cannot pass questionSet metadata")
+//                    else request.getRequest.put("questionSet", List[java.util.Map[String, AnyRef]](Map("identifier" -> request.get("parent")).asJava).asJava)}
+//                case _ => request
+//            }
             DataNode.update(request).map(node => {
                 val response: Response = ResponseHandler.OK
                 response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)

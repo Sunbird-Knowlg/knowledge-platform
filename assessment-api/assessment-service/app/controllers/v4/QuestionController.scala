@@ -29,7 +29,7 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		val headers = commonHeaders()
 		val question = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
 		question.putAll(headers)
-		question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode).asJava)
+		question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read")).asJava)
 		val questionRequest = getRequest(question, headers, QuestionOperations.readQuestion.toString)
 		setRequestContext(questionRequest, version, objectType, schemaName)
 		getResult(ApiId.READ_QUESTION, questionActor, questionRequest)
