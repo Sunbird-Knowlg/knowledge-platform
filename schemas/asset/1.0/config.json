@@ -46,7 +46,7 @@
             "objects": ["ItemSet"]
         }
     },
-    "version": "enable",
+    "version": "disable",
     "versionCheckMode": "ON",
     "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
     "edge": {
