@@ -208,6 +208,12 @@
       },
       "visibility": {
           "type": "string"
-      }
+      },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "Practice Question Set"
+      ]
+    }
   }
 }

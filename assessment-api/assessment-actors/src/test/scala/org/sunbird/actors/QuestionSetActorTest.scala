@@ -58,7 +58,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showSolutions" -> true.asInstanceOf[Object],
 			"showHints" -> true.asInstanceOf[Object],
 			"summaryType" -> "Complete",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		request.setOperation("createQuestionSet")
 		val response = callActor(request, Props(new QuestionSetActor()))
 		assert("successful".equals(response.getParams.getStatus))
@@ -81,7 +82,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showSolutions" -> true.asInstanceOf[Object],
 			"showHints" -> true.asInstanceOf[Object],
 			"summaryType" -> "Complete",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
@@ -110,7 +112,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showHints" -> true.asInstanceOf[Object],
 			"summaryType" -> "Complete",
 			"versionKey" -> "1234",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
@@ -139,7 +142,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showSolutions" -> true.asInstanceOf[Object],
 			"showHints" -> true.asInstanceOf[Object],
 			"summaryType" -> "Complete",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]))
 		val request = getQuestionSetRequest()
@@ -168,7 +172,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showSolutions" -> true.asInstanceOf[Object],
 			"showHints" -> true.asInstanceOf[Object],
 			"summaryType" -> "Complete",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(kfClient.send(_:String, _:String)).expects(*,*).once()
 		val request = getQuestionSetRequest()
@@ -197,7 +202,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showHints" -> true.asInstanceOf[Object],
 			"summaryType" -> "Complete",
 			"versionKey" -> "1234",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		(graphDB.checkCyclicLoop(_: String, _: String, _: String, _: String)).expects(*, *, *, *).returns(new util.HashMap[String, AnyRef]() {{ put("loop", false.asInstanceOf[AnyRef])}}).anyNumberOfTimes()
@@ -230,7 +236,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"showHints" -> true.asInstanceOf[AnyRef],
 			"summaryType" -> "Complete",
 			"versionKey" -> "1234",
-			"mimeType" -> "application/vnd.ekstep.questionset")))
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
 		val relation1 = new Relation("do_1234", "hasSequenceMember", "do_749")
 		relation1.setEndNodeId("do_749")
 		relation1.setEndNodeMetadata(Map("visibility" -> "Public"))
@@ -280,7 +287,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			put("mimeType", "application/vnd.ekstep.qml-archive")
 			put("visibility", "Public")
 			put("status","Draft")
-			put("contentType", "Question")
+			put("primaryCategory", "Practice Question Set")
 		}})
 		node.setObjectType("Question")
 		node.setNodeType("DATA_NODE")
@@ -296,7 +303,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			put("visibility", "Public")
 			put("mimeType", "application/vnd.ekstep.qml-archive")
 			put("status","Draft")
-			put("contentType", "Question")
+			put("primaryCategory", "Practice Question Set")
 		}})
 		node.setObjectType("Question")
 		node.setNodeType("DATA_NODE")
