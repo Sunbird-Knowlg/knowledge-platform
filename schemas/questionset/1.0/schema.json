@@ -12,7 +12,9 @@
     "shuffle",
     "showFeedback",
     "showSolutions",
-    "showHints"
+    "showHints",
+    "mimeType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {
@@ -26,7 +28,10 @@
       "type": "string"
     },
     "mimeType": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "application/vnd.ekstep.questionset"
+      ]
     },
     "status": {
       "type": "string",
@@ -228,6 +233,12 @@
     },
     "visibility": {
       "type": "string"
+    },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "Practice Question Set"
+      ]
     }
   }
 }

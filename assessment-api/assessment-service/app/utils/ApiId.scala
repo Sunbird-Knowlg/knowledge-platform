@@ -29,4 +29,7 @@ object ApiId {
 	val RETIRE_QUESTION_SET = "api.questionset.retire"
 	val ADD_QUESTION_SET = "api.questionset.add"
 	val REMOVE_QUESTION_SET = "api.questionset.remove"
+	val UPDATE_HIERARCHY_QUESTION_SET = "api.questionset.update.hierarchy"
+	val READ_HIERARCHY_QUESTION_SET = "api.questionset.read.hierarchy"
+
 }

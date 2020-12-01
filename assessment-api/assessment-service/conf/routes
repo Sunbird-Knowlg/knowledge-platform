@@ -28,3 +28,5 @@ POST      /questionset/v4/publish/:identifier        controllers.v4.QuestionSetC
 DELETE    /questionset/v4/retire/:identifier         controllers.v4.QuestionSetController.retire(identifier:String)
 PATCH     /questionset/v4/add/:identifier            controllers.v4.QuestionSetController.add(identifier:String)
 DELETE    /questionset/v4/remove/:identifier         controllers.v4.QuestionSetController.remove(identifier:String)
+PATCH     /questionset/v4/hierarchy/update/:identifier         controllers.v4.QuestionSetController.updateHierarchy(identifier:String)
+GET       /questionset/v4/hierarchy/:identifier                controllers.v4.QuestionSetController.readHierarchy(identifier:String, mode:Option[String])
