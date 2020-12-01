@@ -13,7 +13,8 @@
     "showFeedback",
     "showSolutions",
     "showHints",
-    "mimeType"
+    "mimeType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {

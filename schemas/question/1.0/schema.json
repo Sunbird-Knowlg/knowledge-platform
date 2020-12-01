@@ -6,8 +6,8 @@
   "required": [
     "name",
     "code",
-    "contentType",
-    "mimeType"
+    "mimeType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {
