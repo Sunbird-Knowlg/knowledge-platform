@@ -11,7 +11,7 @@
     "create" : [
     ],
     "update" : [
-      "visibility"
+      "visibility", "code", "status"
     ]
   },
   "version": "enable",

@@ -104,33 +104,34 @@ object QuestionManager {
         request.put("mode", "edit")
         DataNode.read(request).map(node => {
             if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
-                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Questions with visibility Parent, can't be sent for review individually.")
+                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Question Set with visibility Parent, can't be sent for review individually.")
             if(!StringUtils.equalsAnyIgnoreCase(node.getMetadata.getOrDefault("status", "").asInstanceOf[String], "Draft"))
-                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Question with status other than Draft can't be sent for review.")
+                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Question Set with status other than Draft can't be sent for review.")
             node
         })
     }
 
-    //	private def validateQuestionSetHierarchy(request: Request): Unit = {
-    //		getQuestionHierarchy(request).map(hierarchyString => {
-    //			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
-    //				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
-    //			} else new java.util.HashMap[String, AnyRef]()
-    //			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-    //			validateChildrenRecursive(children)
-    //		})
-    //
-    //	}
+//    	private def validateQuestionSetHierarchy(request: Request): Unit = {
+//          //Get mode=edit if published //Put this validation in configuration by default = true
+//    		getQuestionHierarchy(request).map(hierarchyString => {
+//    			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+//    				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+//    			} else new java.util.HashMap[String, AnyRef]()
+//    			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+//    			validateChildrenRecursive(children)
+//    		})
+//
+//    	}
 
 
-    //	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
-    //		children.toList.foreach(content => {
-    //			if(!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
-    //				&& StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
-    //				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
-    //			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
-    //		})
-    //	}
+//    	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
+//    		children.toList.foreach(content => {
+//    			if(!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+//    				&& !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
+//    				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
+//    			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+//    		})
+//    	}
 
      def validateChildrenRecursive(outRelations: util.List[Relation]): Unit = {
         outRelations.toList.foreach(relation => {
