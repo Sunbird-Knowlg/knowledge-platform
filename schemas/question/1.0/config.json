@@ -11,7 +11,7 @@
     "create" : [
     ],
     "update" : [
-      "visibility", "code", "status"
+      "visibility", "code", "status", "mimeType"
     ]
   },
   "version": "enable",
