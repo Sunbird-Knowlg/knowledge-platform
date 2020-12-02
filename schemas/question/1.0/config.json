@@ -18,5 +18,17 @@
   "versionCheckMode": "ON",
   "frameworkCategories": [],
   "cacheEnabled": false,
-  "schema_restrict_api": true
+  "schema_restrict_api": true,
+  "external": {
+    "tableName": "question_data",
+    "properties": {
+      "body": {
+        "type": "blob"
+      },
+      "editorState": {
+        "type": "blob"
+      }
+    },
+    "primaryKey": ["identifier"]
+  }
 }
