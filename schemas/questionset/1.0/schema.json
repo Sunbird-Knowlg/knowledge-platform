@@ -162,12 +162,20 @@
       "default": "non-linear"
     },
     "allowSkip" : {
-      "type": "boolean",
-      "default": "true"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     },
     "requiresSubmit" : {
-      "type": "boolean",
-      "default": "false"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     },
     "summaryType": {
       "type": "string",
@@ -175,12 +183,15 @@
         "Complete",
         "Score",
         "Duration",
-        "Score & Duration"],
-      "default": "materialised"
+        "Score & Duration"]
     },
     "shuffle" : {
-      "type": "boolean",
-      "default": "true"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
     },
     "totalQuestions": {
       "description": "review required. What is default value? as it is required?",
@@ -194,18 +205,30 @@
     },
     "showFeedback" : {
       "description": "If feedback should be shown or not while consuming the question set.",
-      "type": "boolean",
-      "default": "false"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     },
     "showSolutions" : {
       "description": "",
-      "type": "boolean",
-      "default": "false"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     },
     "showHints" : {
       "description": "",
-      "type": "boolean",
-      "default": "false"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     },
     "quMLVersion": {
       "description": "review required. What is default value? as it is required?",

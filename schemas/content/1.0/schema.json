@@ -1184,6 +1184,75 @@
         },
         "displayScore": {
             "type": "boolean"
+        },
+        "organisationFrameworkId": {
+            "type": "string"
+        },
+        "organisationBoardIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "organisationGradeLevelIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "organisationSubjectIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "organisationMediumIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "organisationTopicsIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetFrameworkIds":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetBoardIds":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetGradeLevelIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetSubjectIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetMediumIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetTopicIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }

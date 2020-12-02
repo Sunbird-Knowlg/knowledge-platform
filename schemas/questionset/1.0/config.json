@@ -26,9 +26,9 @@
     ]
   },
   "external": {
-    "tableName": "question_set_data",
+    "tableName": "questionset_hierarchy",
     "properties": {
-      "children": {
+      "hierarchy": {
         "type": "string"
       }
     },

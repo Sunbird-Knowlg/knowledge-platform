@@ -15,6 +15,9 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.QuestionManager
 import org.sunbird.utils.{RequestUtil}
+import org.sunbird.managers.{HierarchyManager, QuestionManager, UpdateHierarchyManager}
+import org.sunbird.telemetry.logger.TelemetryManager
+import org.sunbird.utils.RequestUtil
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -34,8 +37,8 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		case "retireQuestionSet" => retire(request)
 		case "addQuestion" => add(request)
 		case "removeQuestion" => remove(request)
-		case "updateHierarchyQuestion" => updateHierarchy(request)
-		case "readHierarchyQuestion" => readHierarchy(request)
+		case "updateHierarchy" => UpdateHierarchyManager.updateHierarchy(request)
+		case "getHierarchy" => HierarchyManager.getHierarchy(request)
 		case _ => ERROR(request.getOperation)
 	}
 
