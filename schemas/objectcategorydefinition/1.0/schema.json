@@ -31,7 +31,9 @@
         "Content",
         "Collection",
         "Asset",
-        "ItemSet"
+        "ItemSet",
+        "Question",
+        "QuestionSet"
       ]
     },
     "channel": {

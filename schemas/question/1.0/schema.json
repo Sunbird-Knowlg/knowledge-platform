@@ -207,13 +207,20 @@
           "type": "string"
       },
       "visibility": {
-          "type": "string"
+          "type": "string",
+        "default": "Public",
+        "enum": [
+          "Public"
+        ]
       },
     "primaryCategory": {
       "type": "string",
       "enum": [
         "Practice Question Set"
       ]
+    },
+    "consumerId": {
+      "type": "string"
     }
   }
 }

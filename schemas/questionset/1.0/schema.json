@@ -262,6 +262,9 @@
       "enum": [
         "Practice Question Set"
       ]
+    },
+    "consumerId": {
+      "type": "string"
     }
   }
 }

@@ -22,7 +22,7 @@
       "children"
     ],
     "update" : [
-      "children", "visibility"
+      "children", "visibility", "code", "status", "mimeType"
     ]
   },
   "external": {
