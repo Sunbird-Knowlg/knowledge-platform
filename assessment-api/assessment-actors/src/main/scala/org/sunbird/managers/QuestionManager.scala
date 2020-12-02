@@ -3,13 +3,12 @@ package org.sunbird.managers
 import java.util
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
@@ -18,6 +17,8 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 object QuestionManager {
+
+    val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", false)
 
     def getQuestionNodeToReview(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         request.put("mode", "edit")
@@ -111,39 +112,26 @@ object QuestionManager {
         })
     }
 
-//    	private def validateQuestionSetHierarchy(request: Request): Unit = {
-//          //Get mode=edit if published //Put this validation in configuration by default = true
-//    		getQuestionHierarchy(request).map(hierarchyString => {
-//    			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
-//    				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
-//    			} else new java.util.HashMap[String, AnyRef]()
-//    			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-//    			validateChildrenRecursive(children)
-//    		})
-//
-//    	}
-
-
-//    	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
-//    		children.toList.foreach(content => {
-//    			if(!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
-//    				&& !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
-//    				throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
-//    			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
-//    		})
-//    	}
-
-     def validateChildrenRecursive(outRelations: util.List[Relation]): Unit = {
-        outRelations.toList.foreach(relation => {
-            if(!StringUtils.equalsAnyIgnoreCase(relation.getEndNodeMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
-                && !StringUtils.equalsIgnoreCase(relation.getEndNodeMetadata.getOrDefault("status", "").asInstanceOf[String], "Live"))
-                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + relation.getEndNodeId + "is not Live. Please Publish it.")
-        })
+    def validateQuestionSetHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Unit] = {
+        //Get mode=edit if published //Put this validation in configuration by default = true
+        if(!skipValidation) {
+            request.put("mode", "edit")
+            getQuestionSetHierarchy(request, rootNode ).map(hierarchyString => {
+                val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+                    JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+                } else new java.util.HashMap[String, AnyRef]()
+                val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+                validateChildrenRecursive(children)
+            })
+        } else Future()
     }
 
-     def getQuestionSetHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
+    def getQuestionSetHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
         oec.graphService.readExternalProps(request, List("hierarchy")).flatMap(response => {
             if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
+                if (StringUtils.equalsIgnoreCase("Live", rootNode.getMetadata.get("status").asInstanceOf[String]))
+                    throw new ServerException("ERR_QUESTION_SET_REVIEW", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
+                request.put("identifier", if (!rootNode.getIdentifier.endsWith(".img")) rootNode.getIdentifier + ".img" else rootNode.getIdentifier)
                 oec.graphService.readExternalProps(request, List("hierarchy")).map(resp => {
                     resp.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String]
                 }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get("identifier")) }
@@ -151,7 +139,25 @@ object QuestionManager {
         })
     }
 
-     def getQuestionSetNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+    private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
+        children.toList.foreach(content => {
+            if (!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+                && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
+                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
+            validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+        })
+    }
+
+ /*   def validateChildrenRecursive(outRelations: util.List[Relation]): Unit = {
+        outRelations.toList.foreach(relation => {
+            if (!StringUtils.equalsAnyIgnoreCase(relation.getEndNodeMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+                && !StringUtils.equalsIgnoreCase(relation.getEndNodeMetadata.getOrDefault("status", "").asInstanceOf[String], "Live"))
+                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + relation.getEndNodeId + "is not Live. Please Publish it.")
+        })
+    }*/
+
+
+    def getQuestionSetNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         DataNode.read(request).map(node => {
             if (StringUtils.equalsIgnoreCase("Retired", node.getMetadata.get("status").asInstanceOf[String]))
                 throw new ClientException("ERR_QUESTION_SET_RETIRE", "Question with Identifier " + node.getIdentifier + " is already Retired.")

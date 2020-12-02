@@ -75,22 +75,23 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 
 	def review(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		request.getRequest.put("mode", "edit")
 		QuestionManager.getQuestionSetNodeToReview(request).flatMap(node => {
-//			validateQuestionHierarchy(request)
-			QuestionManager.validateChildrenRecursive(if (node.getOutRelations != null) node.getOutRelations.asScala.toList else List[Relation]())
-			val updateRequest = new Request(request)
-			updateRequest.getContext.put("identifier", request.get("identifier"))
-			updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
-			updateRequest.put("prevState", "Draft")
-			updateRequest.put("status", "Review")
-			updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
-			updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
-			DataNode.update(updateRequest).map(node => {
-				val response: Response = ResponseHandler.OK
-				val identifier: String = node.getIdentifier.replace(".img", "")
-				response.put("identifier", identifier)
-				response.put("versionKey", node.getMetadata.get("versionKey"))
-				response
+			QuestionManager.validateQuestionSetHierarchy(request, node).flatMap(_ => {
+				val updateRequest = new Request(request)
+				updateRequest.getContext.put("identifier", request.get("identifier"))
+				updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
+				updateRequest.put("prevState", "Draft")
+				updateRequest.put("status", "Review")
+				updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+				updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
+				DataNode.update(updateRequest).map(node => {
+					val response: Response = ResponseHandler.OK
+					val identifier: String = node.getIdentifier.replace(".img", "")
+					response.put("identifier", identifier)
+					response.put("versionKey", node.getMetadata.get("versionKey"))
+					response
+				})
 			})
 		})
 	}
@@ -176,13 +177,6 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		Future(ResponseHandler.OK())
 	}
 
-//	def processUpdateHierarchyRequest(request: Request): (String, Map[String,AnyRef], Map[String, AnyRef]) =  {
-//		val nodesModified: Map[String, AnyRef] = request.getRequest.get("nodesModifier").asInstanceOf[util.Map[String, AnyRef]].asScala.toMap
-//		val hierarchy:Map[String, AnyRef]  = request.getRequest.get("hierarchy").asInstanceOf[util.Map[String, AnyRef]].asScala.toMap
-//		if (StringUtils.isEmpty(rootId) && StringUtils.isAllBlank(rootId) || StringUtils.contains(rootId, ".img"))
-//			throw new ClientException("ERR_INVALID_ROOT_ID", "Please Provide Valid Root Node Identifier")
-//		(rootId, nodesModified, hierarchy)
-//	}
 
 
 }
