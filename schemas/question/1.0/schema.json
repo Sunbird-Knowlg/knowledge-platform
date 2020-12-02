@@ -6,8 +6,8 @@
   "required": [
     "name",
     "code",
-    "contentType",
-    "mimeType"
+    "mimeType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {
@@ -208,6 +208,12 @@
       },
       "visibility": {
           "type": "string"
-      }
+      },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "Practice Question Set"
+      ]
+    }
   }
 }

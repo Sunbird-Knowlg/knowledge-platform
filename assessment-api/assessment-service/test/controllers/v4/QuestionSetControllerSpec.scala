@@ -46,4 +46,30 @@ class QuestionSetControllerSpec extends BaseSpec {
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
+
+	"update Hierarchy should update  hierarchy successfully for given valid identifier" in {
+		val result = controller.updateHierarchy("do_123")(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
+
+	"read Hierarchy should read Hierarchy successfully for given valid identifier" in {
+		val result = controller.readHierarchy("do_123", None)(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
+
+
+	"add question should update the questionSet status to Add question successfully for given valid identifier" in {
+		val result = controller.add("do_123")(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
+
+
+	"remove question should update the questionSet status to remove question successfully for given valid identifier" in {
+		val result = controller.remove("do_123")(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
 }

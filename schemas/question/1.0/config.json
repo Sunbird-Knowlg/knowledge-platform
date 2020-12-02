@@ -7,6 +7,13 @@
       "objects": ["QuestionSet", "QuestionSetImage"]
     }
   },
+  "restrictProps": {
+    "create" : [
+    ],
+    "update" : [
+      "visibility"
+    ]
+  },
   "version": "enable",
   "versionCheckMode": "ON",
   "frameworkCategories": [],

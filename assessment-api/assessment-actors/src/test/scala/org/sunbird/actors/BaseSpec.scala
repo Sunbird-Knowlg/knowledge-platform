@@ -36,6 +36,7 @@ class BaseSpec extends FlatSpec with Matchers {
       put("code", "sunbird-node")
       put("status", "Draft")
     }})
+    node.setNodeType("DATA_NODE")
     node.setMetadata(nodeMetadata)
     node.setObjectType(objectType)
     node.setIdentifier("test_id")
