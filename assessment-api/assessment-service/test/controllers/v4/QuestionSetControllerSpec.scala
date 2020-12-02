@@ -48,13 +48,13 @@ class QuestionSetControllerSpec extends BaseSpec {
 	}
 
 	"update Hierarchy should update  hierarchy successfully for given valid identifier" in {
-		val result = controller.updateHierarchy("do_123")(FakeRequest())
+		val result = controller.updateHierarchy()(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
 
 	"read Hierarchy should read Hierarchy successfully for given valid identifier" in {
-		val result = controller.readHierarchy("do_123", None)(FakeRequest())
+		val result = controller.getHierarchy("do_123", None)(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
