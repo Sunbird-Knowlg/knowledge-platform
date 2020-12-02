@@ -258,7 +258,7 @@
       "type": "string",
       "default": "Public",
       "enum": [
-        "Public"
+        "Public", "Parent"
       ]
     },
     "primaryCategory": {
