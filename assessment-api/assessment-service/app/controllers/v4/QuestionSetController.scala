@@ -97,4 +97,26 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		questionSetRequest.getContext.put("identifier", identifier)
 		getResult(ApiId.REMOVE_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
+
+	def updateHierarchy() = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val data = body.getOrDefault("data", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+		data.putAll(headers)
+		val questionSetRequest = getRequest(data, headers, "updateHierarchy")
+		setRequestContext(questionSetRequest, version, objectType, schemaName)
+		getResult(ApiId.UPDATE_HIERARCHY, questionSetActor, questionSetRequest)
+	}
+
+	def getHierarchy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val questionSet = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+		questionSet.putAll(headers)
+		questionSet.putAll(Map("rootId" -> identifier, "mode" -> mode.getOrElse("")).asJava)
+		val readRequest = getRequest(questionSet, headers, "getHierarchy")
+		//TODO: check if need to have separate schema
+		setRequestContext(readRequest, version, objectType, schemaName)
+		//TODO: compare with content getHierarchy
+		getResult(ApiId.GET_HIERARCHY, questionSetActor, readRequest)
+	}
 }
