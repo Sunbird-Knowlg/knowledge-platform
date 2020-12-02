@@ -6,7 +6,7 @@
       "direction": "out",
       "objects": ["Question", "QuestionImage", "QuestionSet", "QuestionSetImage"]
     },
-    "parent": {
+    "collection": {
       "type": "hasSequenceMember",
       "direction": "in",
       "objects": ["QuestionSet", "QuestionSetImage"]
