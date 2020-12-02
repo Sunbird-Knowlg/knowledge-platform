@@ -269,6 +269,15 @@
     },
     "consumerId": {
       "type": "string"
+    },
+    "childNodes": {
+      "type": "array"
+    },
+    "index": {
+      "type": "number"
+    },
+    "depth": {
+      "type": "number"
     }
   }
 }
