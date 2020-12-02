@@ -255,7 +255,11 @@
       ]
     },
     "visibility": {
-      "type": "string"
+      "type": "string",
+      "default": "Public",
+      "enum": [
+        "Public"
+      ]
     },
     "primaryCategory": {
       "type": "string",
