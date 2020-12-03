@@ -18,7 +18,7 @@ import scala.collection.JavaConverters._
 
 object QuestionManager {
 
-    val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", false)
+    val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", true)
 
     def getQuestionNodeToReview(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         request.put("mode", "edit")
