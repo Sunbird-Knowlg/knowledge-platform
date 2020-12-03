@@ -170,7 +170,8 @@
             "type": "string",
             "enum": [
                 "Default",
-                "Parent"
+                "Parent",
+                "Private"
             ],
             "default": "Default"
         },
@@ -1184,6 +1185,49 @@
         },
         "displayScore": {
             "type": "boolean"
-        }
+        },
+        "catalogPaths" : {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "competencies" : {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "sharedWith" : {
+              "type": "array" 
+          },
+          "isExternal": {
+              "type": "boolean"
+          },
+          "learningMode": {
+              "type": "string",
+              "enum": [
+                "Self Paced",
+                "Instructor Led",
+                "Classroom"
+            ]
+          },
+          "creatorLogo" : {
+              "type": "string",
+              "format": "url"
+          },
+          "subTitles" : {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+          },
+          "reviewStatus" : {
+              "type" : "string",
+              "enum": [
+                "InReview",
+                "Reviewed"
+            ]
+          }
     }
 }
