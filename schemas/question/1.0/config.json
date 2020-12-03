@@ -27,6 +27,9 @@
       },
       "editorState": {
         "type": "blob"
+      },
+      "answer": {
+        "type": "blob"
       }
     },
     "primaryKey": ["identifier"]

@@ -151,7 +151,7 @@ object HierarchyManager {
                     if (MapUtils.isEmpty(metadata)) {
                         ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
                     } else {
-                        ResponseHandler.OK.put("content", metadata)
+                        ResponseHandler.OK.put("question", metadata)
                     }
                 })
             }).flatMap(f => f)
@@ -173,7 +173,7 @@ object HierarchyManager {
                                     updateLatestLeafNodes(children, leafNodesMap)
                                     hierarchy.put("children", children)
                                 })
-                                ResponseHandler.OK.put("content", hierarchy)
+                                ResponseHandler.OK.put("question", hierarchy)
                             } else
                                 ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
                         })
@@ -403,7 +403,7 @@ object HierarchyManager {
                 if (StringUtils.isNotEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
                     //TODO: Remove mapping
                     //val hierarchyMap = mapPrimaryCategories(hierarchy)
-                    rootHierarchy.put("content", hierarchy)
+                    rootHierarchy.put("question", hierarchy)
                     RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchy))
                     Future(rootHierarchy)
                 } else {
@@ -422,7 +422,7 @@ object HierarchyManager {
                                         if (!bookmarkHierarchy.isEmpty) {
                                             //TODO: Remove mapping
                                             //val hierarchyMap = mapPrimaryCategories(bookmarkHierarchy)
-                                            rootHierarchy.put("content", hierarchy)
+                                            rootHierarchy.put("question", hierarchy)
                                             RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchy))
                                             rootHierarchy
                                         } else {
