@@ -7,6 +7,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria}
 import org.sunbird.graph.nodes.DataNode.getRelationMap
+import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
@@ -22,10 +23,37 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 		testUnknownOperation(Props(new QuestionSetActor()), getQuestionSetRequest())
 	}
 
+	it should "return success response for 'createQuestionSet'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val node = getNode("QuestionSet", None)
+		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+		val request = getQuestionSetRequest()
+		request.getContext.put("identifier", "do1234")
+		request.putAll(mapAsJavaMap(Map("name" -> "question_1",
+			"visibility" -> "Public",
+			"code" -> "finemanfine",
+			"navigationMode" -> "linear",
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
+			"summaryType" -> "Complete",
+			"mimeType" -> "application/vnd.ekstep.questionset",
+			"primaryCategory" -> "Practice Question Set")))
+		request.setOperation("createQuestionSet")
+		val response = callActor(request, Props(new QuestionSetActor()))
+		assert("successful".equals(response.getParams.getStatus))
+	}
+
 	it should "return success response for 'readQuestionSet'" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
-		(oec.graphService _).expects().returns(graphDB)
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = getNode("QuestionSet", Some(new util.HashMap[String, AnyRef] () {{
 			put("name", "QuestionSet")
 			put("description", "Updated question Set")
@@ -35,32 +63,6 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 		request.getContext.put("identifier", "do1234")
 		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
 		request.setOperation("readQuestionSet")
-		val response = callActor(request, Props(new QuestionSetActor()))
-		assert("successful".equals(response.getParams.getStatus))
-	}
-
-	it should "return success response for 'createQuestionSet'" in {
-		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
-		(oec.graphService _).expects().returns(graphDB)
-		val node = getNode("QuestionSet", None)
-		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
-		val request = getQuestionSetRequest()
-		request.getContext.put("identifier", "do1234")
-		request.putAll(mapAsJavaMap(Map("name" -> "question_1",
-			"visibility" -> "Public",
-			"code" -> "finemanfine",
-			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[Object],
-			"requiresSubmit" -> false.asInstanceOf[Object],
-			"shuffle" -> true.asInstanceOf[Object],
-			"showFeedback" -> true.asInstanceOf[Object],
-			"showSolutions" -> true.asInstanceOf[Object],
-			"showHints" -> true.asInstanceOf[Object],
-			"summaryType" -> "Complete",
-			"mimeType" -> "application/vnd.ekstep.questionset",
-			"primaryCategory" -> "Practice Question Set")))
-		request.setOperation("createQuestionSet")
 		val response = callActor(request, Props(new QuestionSetActor()))
 		assert("successful".equals(response.getParams.getStatus))
 	}
@@ -75,18 +77,18 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"code" -> "finemanfine",
 			"description" -> "Updated description",
 			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[Object],
-			"requiresSubmit" -> false.asInstanceOf[Object],
-			"shuffle" -> true.asInstanceOf[Object],
-			"showFeedback" -> true.asInstanceOf[Object],
-			"showSolutions" -> true.asInstanceOf[Object],
-			"showHints" -> true.asInstanceOf[Object],
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
 			"summaryType" -> "Complete",
 			"mimeType" -> "application/vnd.ekstep.questionset",
 			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
-		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+//		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
 		val request = getQuestionSetRequest()
 		request.getContext.put("identifier", "do1234")
 		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated desc")))
@@ -104,19 +106,19 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"visibility" -> "Public",
 			"code" -> "finemanfine",
 			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[Object],
-			"requiresSubmit" -> false.asInstanceOf[Object],
-			"shuffle" -> true.asInstanceOf[Object],
-			"showFeedback" -> true.asInstanceOf[Object],
-			"showSolutions" -> true.asInstanceOf[Object],
-			"showHints" -> true.asInstanceOf[Object],
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
 			"summaryType" -> "Complete",
 			"versionKey" -> "1234",
 			"mimeType" -> "application/vnd.ekstep.questionset",
 			"primaryCategory" -> "Practice Question Set")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
-		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+//		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
 		val request = getQuestionSetRequest()
 		request.getContext.put("identifier", "do1234")
 		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated desc")))
@@ -135,12 +137,12 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"visibility" -> "Public",
 			"code" -> "finemanfine",
 			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[Object],
-			"requiresSubmit" -> false.asInstanceOf[Object],
-			"shuffle" -> true.asInstanceOf[Object],
-			"showFeedback" -> true.asInstanceOf[Object],
-			"showSolutions" -> true.asInstanceOf[Object],
-			"showHints" -> true.asInstanceOf[Object],
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
 			"summaryType" -> "Complete",
 			"mimeType" -> "application/vnd.ekstep.questionset",
 			"primaryCategory" -> "Practice Question Set")))
@@ -165,12 +167,12 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"visibility" -> "Public",
 			"code" -> "finemanfine",
 			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[Object],
-			"requiresSubmit" -> false.asInstanceOf[Object],
-			"shuffle" -> true.asInstanceOf[Object],
-			"showFeedback" -> true.asInstanceOf[Object],
-			"showSolutions" -> true.asInstanceOf[Object],
-			"showHints" -> true.asInstanceOf[Object],
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
 			"summaryType" -> "Complete",
 			"mimeType" -> "application/vnd.ekstep.questionset",
 			"primaryCategory" -> "Practice Question Set")))
@@ -194,12 +196,12 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"visibility" -> "Public",
 			"code" -> "finemanfine",
 			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[Object],
-			"requiresSubmit" -> false.asInstanceOf[Object],
-			"shuffle" -> true.asInstanceOf[Object],
-			"showFeedback" -> true.asInstanceOf[Object],
-			"showSolutions" -> true.asInstanceOf[Object],
-			"showHints" -> true.asInstanceOf[Object],
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
 			"summaryType" -> "Complete",
 			"versionKey" -> "1234",
 			"mimeType" -> "application/vnd.ekstep.questionset",
@@ -208,7 +210,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		(graphDB.checkCyclicLoop(_: String, _: String, _: String, _: String)).expects(*, *, *, *).returns(new util.HashMap[String, AnyRef]() {{ put("loop", false.asInstanceOf[AnyRef])}}).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueIds(_:String, _: SearchCriteria)).expects(*,*).returns(Future(List(getRelationNode).asJava))
-		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+//		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
 		(graphDB.createRelation(_:String,_:util.List[util.Map[String,AnyRef]])).expects(*,*).returns(Future(new Response()))
 		val request = getQuestionSetRequest()
 		request.getContext.put("identifier", "do1234")
@@ -228,12 +230,12 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 			"visibility" -> "Public",
 			"code" -> "finemanfine",
 			"navigationMode" -> "linear",
-			"allowSkip" -> true.asInstanceOf[AnyRef],
-			"requiresSubmit" -> false.asInstanceOf[AnyRef],
-			"shuffle" -> true.asInstanceOf[AnyRef],
-			"showFeedback" -> true.asInstanceOf[AnyRef],
-			"showSolutions" -> true.asInstanceOf[AnyRef],
-			"showHints" -> true.asInstanceOf[AnyRef],
+			"allowSkip" -> "Yes",
+			"requiresSubmit" -> "No",
+			"shuffle" -> "Yes",
+			"showFeedback" -> "Yes",
+			"showSolutions" -> "Yes",
+			"showHints" -> "Yes",
 			"summaryType" -> "Complete",
 			"versionKey" -> "1234",
 			"mimeType" -> "application/vnd.ekstep.questionset",
@@ -252,7 +254,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).twice()
 		(graphDB.checkCyclicLoop(_: String, _: String, _: String, _: String)).expects(*, *, *, *).returns(new util.HashMap[String, AnyRef]() {{ put("loop", false.asInstanceOf[AnyRef])}}).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueIds(_:String, _: SearchCriteria)).expects(*,*).returns(Future(List(getRelationNode).asJava))
-		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+//		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
 		(graphDB.removeRelation(_:String,_:util.List[util.Map[String,AnyRef]])).expects(*,*).returns(Future(new Response()))
 		(graphDB.createRelation(_:String,_:util.List[util.Map[String,AnyRef]])).expects(*,*).returns(Future(new Response()))
 		val request = getQuestionSetRequest()
@@ -310,7 +312,15 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 		node
 	}
 
-
-
+	def getDefinitionNode(): Node = {
+		val node = new Node()
+		node.setIdentifier("obj-cat:practice-question-set_question-set_all")
+		node.setNodeType("DATA_NODE")
+		node.setObjectType("ObjectCategoryDefinition")
+		node.setGraphId("domain")
+		node.setMetadata(mapAsJavaMap(
+			ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:practice_question_set\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n            \"license\",\n            \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
+		node
+	}
 
 }
