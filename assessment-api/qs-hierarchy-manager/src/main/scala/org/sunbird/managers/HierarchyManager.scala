@@ -15,6 +15,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 import com.mashape.unirest.http.HttpResponse
@@ -50,11 +51,12 @@ object HierarchyManager {
         validateRequest(request)
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
-            val unitId = request.get("unitId").asInstanceOf[String]
+            val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
+            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode)
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             //validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
-                Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
+                Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
                 hierarchyFuture.map(hierarchy => {
@@ -67,11 +69,11 @@ object HierarchyManager {
                                 val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, node, request, "add")
                                 updateResponse.map(response => {
                                     if(!ResponseHandler.checkError(response)) {
-                                            ResponseHandler.OK
-                                                .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                                .put(unitId, request.get("children"))
+                                        ResponseHandler.OK
+                                            .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                            .put(unitId, request.get("children"))
                                     }else {
-                                        response 
+                                        response
                                     }
                                 })
                             }).flatMap(f => f)
@@ -80,6 +82,54 @@ object HierarchyManager {
                 }).flatMap(f => f)
             }
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+    }
+
+    def attachLeafToRootNode(request: Request, rootNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+        fetchHierarchy(request, rootNode.getIdentifier).map(hierarchy => {
+            if (hierarchy.isEmpty) {
+                Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty"))
+            } else {
+                fetchLeafNodes(request).map(leafNodes => {
+                    updateRootNode(rootNode, request, "add").map(node => {
+                        updateRootHierarchy(hierarchy, leafNodes, node, request, "add").map(response => {
+                            if (!ResponseHandler.checkError(response)) {
+                                ResponseHandler.OK
+                                    .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                    .put("children", request.get("children"))
+                            } else response
+                        })
+                    }).flatMap(f => f)
+                }).flatMap(f => f)
+            }
+        }).flatMap(f => f)
+    }
+
+
+    def updateRootHierarchy(hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+        val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
+        if("add".equalsIgnoreCase(operation)){
+            val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
+            hierarchy.get("children")
+                .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+                .addAll(leafNodesMap)
+        }
+        if("remove".equalsIgnoreCase(operation)) {
+            val filteredChildren = hierarchy.get("children")
+                .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]].asScala
+                .filter(child => !leafNodeIds.contains(child.get("identifier")))
+            filteredChildren.sortBy(_.get("index").asInstanceOf[Integer])
+                .zipWithIndex.foreach(zippedChild => zippedChild._1.put("index", zippedChild._2+1))
+            hierarchy.put("children", filteredChildren)
+
+        }
+        //        val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
+        //        val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
+        //        updatedHierarchy.put("identifier", rootId)
+        //        updatedHierarchy.put("children", children)
+        val req = new Request(request)
+        req.put("hierarchy", ScalaJsonUtils.serialize(hierarchy))
+        req.put("identifier", rootNode.getIdentifier)
+        ExternalPropsManager.saveProps(req)
     }
 
     //TODO: Controller mapping is not changed for this end point
@@ -156,32 +206,32 @@ object HierarchyManager {
                 })
             }).flatMap(f => f)
         }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
-                val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
-                searchResponse.map(rootHierarchy => {
-                    if(!rootHierarchy.isEmpty && StringUtils.isNotEmpty(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])){
-                        //TODO: Remove content Mapping for backward compatibility
-                        //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]])
-                        val unPublishedBookmarkHierarchy = getUnpublishedBookmarkHierarchy(request, rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])
-                        unPublishedBookmarkHierarchy.map(hierarchy => {
-                            if (!hierarchy.isEmpty) {
-                                val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-                                //TODO: Remove content Mapping for backward compatibility
-                                //updateContentMappingInChildren(children)
-                                val leafNodeIds = new util.ArrayList[String]()
-                                fetchAllLeafNodes(children, leafNodeIds)
-                                getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
-                                    updateLatestLeafNodes(children, leafNodesMap)
-                                    hierarchy.put("children", children)
-                                })
-                                ResponseHandler.OK.put("question", hierarchy)
-                            } else
-                                ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
-                        })
-                    } else {
-                        Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
-                    }
-                }).flatMap(f => f)
-            }
+            val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
+            searchResponse.map(rootHierarchy => {
+                if(!rootHierarchy.isEmpty && StringUtils.isNotEmpty(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])){
+                    //TODO: Remove content Mapping for backward compatibility
+                    //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]])
+                    val unPublishedBookmarkHierarchy = getUnpublishedBookmarkHierarchy(request, rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])
+                    unPublishedBookmarkHierarchy.map(hierarchy => {
+                        if (!hierarchy.isEmpty) {
+                            val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+                            //TODO: Remove content Mapping for backward compatibility
+                            //updateContentMappingInChildren(children)
+                            val leafNodeIds = new util.ArrayList[String]()
+                            fetchAllLeafNodes(children, leafNodeIds)
+                            getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
+                                updateLatestLeafNodes(children, leafNodesMap)
+                                hierarchy.put("children", children)
+                            })
+                            ResponseHandler.OK.put("question", hierarchy)
+                        } else
+                            ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
+                    })
+                } else {
+                    Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
+                }
+            }).flatMap(f => f)
+        }
         }
     }
 
@@ -340,9 +390,9 @@ object HierarchyManager {
         if(null != childList && !childList.isEmpty) {
             val childMap:Map[String, java.util.Map[String, AnyRef]] = childList.toList.map(f => f.get("identifier").asInstanceOf[String] -> f).toMap
             val existingLeafNodes = childMap.filter(p => leafNodeIds.contains(p._1))
-                existingLeafNodes.map(en => {
-                    leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
-                })
+            existingLeafNodes.map(en => {
+                leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
+            })
             filteredLeafNodes = bufferAsJavaList(childList.filter(existingLeafNode => {
                 !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
             }))
