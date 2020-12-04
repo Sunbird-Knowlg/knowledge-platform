@@ -26,7 +26,7 @@ PATCH     /questionset/v4/update/:identifier         controllers.v4.QuestionSetC
 POST      /questionset/v4/review/:identifier         controllers.v4.QuestionSetController.review(identifier:String)
 POST      /questionset/v4/publish/:identifier        controllers.v4.QuestionSetController.publish(identifier:String)
 DELETE    /questionset/v4/retire/:identifier         controllers.v4.QuestionSetController.retire(identifier:String)
-PATCH     /questionset/v4/add/:identifier            controllers.v4.QuestionSetController.add(identifier:String)
-DELETE    /questionset/v4/remove/:identifier         controllers.v4.QuestionSetController.remove(identifier:String)
+PATCH     /questionset/v4/add                        controllers.v4.QuestionSetController.add
+DELETE    /questionset/v4/remove                     controllers.v4.QuestionSetController.remove
 PATCH     /questionset/v4/hierarchy/update           controllers.v4.QuestionSetController.updateHierarchy
 GET       /questionset/v4/hierarchy/:identifier      controllers.v4.QuestionSetController.getHierarchy(identifier:String, mode:Option[String])

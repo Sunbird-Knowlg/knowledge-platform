@@ -52,7 +52,7 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
-            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode) else {
+            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode, "add") else {
                 val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
                 //validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
                 if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
@@ -85,58 +85,6 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
 
-    def attachLeafToRootNode(request: Request, rootNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-        fetchHierarchy(request, rootNode.getIdentifier).map(hierarchy => {
-            if (hierarchy.isEmpty) {
-                Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty"))
-            } else {
-                fetchLeafNodes(request).map(leafNodes => {
-                    updateRootNode(rootNode, request, "add").map(node => {
-                        updateRootHierarchy(hierarchy, leafNodes, node, request, "add").map(response => {
-                            if (!ResponseHandler.checkError(response)) {
-                                ResponseHandler.OK
-                                    .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                    .put("children", request.get("children"))
-                            } else response
-                        })
-                    }).flatMap(f => f)
-                }).flatMap(f => f)
-            }
-        }).flatMap(f => f)
-    }
-
-
-    def updateRootHierarchy(hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-        val leafNodeIds = request.get("children").asInstanceOf[util.List[String]]
-        leafNodeIds.removeAll(hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-                .map(child => child.get("identifier")))
-        if ("add".equalsIgnoreCase(operation)) {
-            val leafNodesMap: util.List[util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
-            val existingChildren = hierarchy.get("children")
-                .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-            existingChildren.asScala.sortBy(_.get("index").asInstanceOf[Integer])
-            existingChildren.addAll(leafNodesMap)
-                existingChildren
-                .zipWithIndex.foreach(zippedChild => {
-                zippedChild._1.putIfAbsent("index", (zippedChild._2.asInstanceOf[Integer] + 1).asInstanceOf[Object])
-                zippedChild._1.putIfAbsent("parent", rootNode.getIdentifier.replace(".img", ""))
-                zippedChild._1.putIfAbsent("depth", 1.asInstanceOf[Object])
-            })
-        }
-        if ("remove".equalsIgnoreCase(operation)) {
-            val filteredChildren = hierarchy.get("children")
-                .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]].asScala
-                .filter(child => !leafNodeIds.contains(child.get("identifier")))
-            filteredChildren.sortBy(_.get("index").asInstanceOf[Integer])
-                .zipWithIndex.foreach(zippedChild => zippedChild._1.put("index", (zippedChild._2.asInstanceOf[Integer] + 1).asInstanceOf[Object]))
-            hierarchy.put("children", filteredChildren)
-
-        }
-        val req = new Request(request)
-        req.put("hierarchy", ScalaJsonUtils.serialize(hierarchy))
-        req.put("identifier", rootNode.getIdentifier)
-        ExternalPropsManager.saveProps(req)
-    }
 
     //TODO: Controller mapping is not changed for this end point
     @throws[Exception]
@@ -145,7 +93,7 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
-            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode) else {
+            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode, "remove") else {
                 val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
                 //validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
                 if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
@@ -171,6 +119,48 @@ object HierarchyManager {
                 }
             }
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+    }
+
+    def attachLeafToRootNode(request: Request, rootNode: Node, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+        fetchHierarchy(request, rootNode.getIdentifier).map(hierarchy => {
+            if (hierarchy.isEmpty) {
+                Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty"))
+            } else {
+                fetchLeafNodes(request).map(leafNodes => {
+                    updateRootNode(rootNode, request, operation).map(node => {
+                        updateRootHierarchy(hierarchy, leafNodes, node, request, operation).map(response => {
+                            if (!ResponseHandler.checkError(response)) {
+                                ResponseHandler.OK
+                                    .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                    .put("children", request.get("children"))
+                            } else response
+                        })
+                    }).flatMap(f => f)
+                }).flatMap(f => f)
+            }
+        }).flatMap(f => f)
+    }
+
+    def updateRootHierarchy(hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+        val leafNodeIds = request.get("children").asInstanceOf[util.List[String]]
+        val req = new Request(request)
+        if ("add".equalsIgnoreCase(operation)) {
+            val updatedChildren = restructureUnit(hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]],
+                convertNodeToMap(leafNodes), leafNodeIds, 1, rootNode.getIdentifier.replace(".img", ""))
+            val updatedHierarchy = Map("children" -> updatedChildren, "identifier" -> rootNode.getIdentifier.replace(".img", "")).asJava
+            req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
+        }
+        if ("remove".equalsIgnoreCase(operation)) {
+            val filteredChildren = hierarchy.get("children")
+                .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]].asScala
+                .filter(child => !leafNodeIds.contains(child.get("identifier")))
+            filteredChildren.sortBy(_.get("index").asInstanceOf[Integer])
+                .zipWithIndex.foreach(zippedChild => zippedChild._1.put("index", (zippedChild._2.asInstanceOf[Integer] + 1).asInstanceOf[Object]))
+            val updatedHierarchy = Map("children" -> filteredChildren, "identifier" -> rootNode.getIdentifier.replace(".img", "")).asJava
+            req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
+        }
+        req.put("identifier", rootNode.getIdentifier)
+        ExternalPropsManager.saveProps(req)
     }
 
     @throws[Exception]
