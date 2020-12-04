@@ -107,26 +107,31 @@ object HierarchyManager {
 
 
     def updateRootHierarchy(hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-        val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
-        if("add".equalsIgnoreCase(operation)){
-            val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
-            hierarchy.get("children")
+        val leafNodeIds = request.get("children").asInstanceOf[util.List[String]]
+        leafNodeIds.removeAll(hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+                .map(child => child.get("identifier")))
+        if ("add".equalsIgnoreCase(operation)) {
+            val leafNodesMap: util.List[util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
+            val existingChildren = hierarchy.get("children")
                 .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-                .addAll(leafNodesMap)
+            existingChildren.asScala.sortBy(_.get("index").asInstanceOf[Integer])
+            existingChildren.addAll(leafNodesMap)
+                existingChildren
+                .zipWithIndex.foreach(zippedChild => {
+                zippedChild._1.putIfAbsent("index", (zippedChild._2.asInstanceOf[Integer] + 1).asInstanceOf[Object])
+                zippedChild._1.putIfAbsent("parent", rootNode.getIdentifier.replace(".img", ""))
+                zippedChild._1.putIfAbsent("depth", 1.asInstanceOf[Object])
+            })
         }
-        if("remove".equalsIgnoreCase(operation)) {
+        if ("remove".equalsIgnoreCase(operation)) {
             val filteredChildren = hierarchy.get("children")
                 .asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]].asScala
                 .filter(child => !leafNodeIds.contains(child.get("identifier")))
             filteredChildren.sortBy(_.get("index").asInstanceOf[Integer])
-                .zipWithIndex.foreach(zippedChild => zippedChild._1.put("index", zippedChild._2+1))
+                .zipWithIndex.foreach(zippedChild => zippedChild._1.put("index", (zippedChild._2.asInstanceOf[Integer] + 1).asInstanceOf[Object]))
             hierarchy.put("children", filteredChildren)
 
         }
-        //        val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
-        //        val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-        //        updatedHierarchy.put("identifier", rootId)
-        //        updatedHierarchy.put("children", children)
         val req = new Request(request)
         req.put("hierarchy", ScalaJsonUtils.serialize(hierarchy))
         req.put("identifier", rootNode.getIdentifier)
@@ -266,14 +271,9 @@ object HierarchyManager {
 
     def validateRequest(request: Request)(implicit ec: ExecutionContext) = {
         val rootId = request.get("rootId").asInstanceOf[String]
-        val unitId = request.get("unitId").asInstanceOf[String]
         val children = request.get("children").asInstanceOf[java.util.List[String]]
-
         if (StringUtils.isBlank(rootId)) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "rootId is mandatory")
-        }
-        if (StringUtils.isBlank(unitId)) {
-            throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "unitId is mandatory")
         }
         if (null == children || children.isEmpty) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "children are mandatory")
