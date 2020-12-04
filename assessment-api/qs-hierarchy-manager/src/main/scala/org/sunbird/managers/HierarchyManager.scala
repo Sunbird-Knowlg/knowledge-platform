@@ -52,34 +52,35 @@ object HierarchyManager {
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
-            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode)
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
-            //validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
-                Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
-            }else {
-                val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
-                hierarchyFuture.map(hierarchy => {
-                    if(hierarchy.isEmpty){
-                        Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
-                    } else {
-                        val leafNodesFuture = fetchLeafNodes(request)
-                        leafNodesFuture.map(leafNodes => {
-                            updateRootNode(rootNode, request, "add").map(node => {
-                                val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, node, request, "add")
-                                updateResponse.map(response => {
-                                    if(!ResponseHandler.checkError(response)) {
-                                        ResponseHandler.OK
-                                            .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                            .put(unitId, request.get("children"))
-                                    }else {
-                                        response
-                                    }
-                                })
+            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode) else {
+                val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
+                //validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
+                if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
+                    Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
+                }else {
+                    val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
+                    hierarchyFuture.map(hierarchy => {
+                        if(hierarchy.isEmpty){
+                            Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
+                        } else {
+                            val leafNodesFuture = fetchLeafNodes(request)
+                            leafNodesFuture.map(leafNodes => {
+                                updateRootNode(rootNode, request, "add").map(node => {
+                                    val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, node, request, "add")
+                                    updateResponse.map(response => {
+                                        if(!ResponseHandler.checkError(response)) {
+                                            ResponseHandler.OK
+                                                .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                                .put(unitId, request.get("children"))
+                                        }else {
+                                            response
+                                        }
+                                    })
+                                }).flatMap(f => f)
                             }).flatMap(f => f)
-                        }).flatMap(f => f)
-                    }
-                }).flatMap(f => f)
+                        }
+                    }).flatMap(f => f)
+                }
             }
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
@@ -138,29 +139,31 @@ object HierarchyManager {
         validateRequest(request)
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
-            val unitId = request.get("unitId").asInstanceOf[String]
-            val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
-            //validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
-                Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
-            }else {
-                val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
-                hierarchyFuture.map(hierarchy => {
-                    if(hierarchy.isEmpty){
-                        Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
-                    } else {
-                        updateRootNode(rootNode, request, "remove").map(node =>{
-                            val updateResponse = updateHierarchy(unitId, hierarchy, null, node, request, "remove")
-                            updateResponse.map(response => {
-                                if(!ResponseHandler.checkError(response)) {
-                                    ResponseHandler.OK.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                } else {
-                                    response
-                                }
-                            })
-                        }).flatMap(f => f)
-                    }
-                }).flatMap(f => f)
+            val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
+            if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode) else {
+                val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
+                //validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
+                if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
+                    Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
+                }else {
+                    val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
+                    hierarchyFuture.map(hierarchy => {
+                        if(hierarchy.isEmpty){
+                            Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
+                        } else {
+                            updateRootNode(rootNode, request, "remove").map(node =>{
+                                val updateResponse = updateHierarchy(unitId, hierarchy, null, node, request, "remove")
+                                updateResponse.map(response => {
+                                    if(!ResponseHandler.checkError(response)) {
+                                        ResponseHandler.OK.put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                    } else {
+                                        response
+                                    }
+                                })
+                            }).flatMap(f => f)
+                        }
+                    }).flatMap(f => f)
+                }
             }
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
