@@ -70,7 +70,7 @@ object HierarchyManager {
                                         if(!ResponseHandler.checkError(response)) {
                                             ResponseHandler.OK
                                                 .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                                .put(unitId, request.get("children"))
+                                                .put(unitId,  Map("children" -> request.get("children")).asJava)
                                         }else {
                                             response
                                         }
