@@ -10,7 +10,6 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 
@@ -160,7 +159,7 @@ object HierarchyManager {
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
         }
         req.put("identifier", rootNode.getIdentifier)
-        ExternalPropsManager.saveProps(req)
+        oec.graphService.saveExternalProps(req)
     }
 
     @throws[Exception]
@@ -234,7 +233,7 @@ object HierarchyManager {
     }
 
     @throws[Exception]
-    def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
         val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
             Future(mapAsJavaMap(Map("questionSet" -> JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]))))
@@ -342,7 +341,7 @@ object HierarchyManager {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         var childNodes = new java.util.ArrayList[String]()
-        childNodes.addAll(rootNode.getMetadata.get("childNodes").asInstanceOf[Array[String]].toList)
+        childNodes.addAll(rootNode.getMetadata.getOrDefault("childNodes", Array[String]()).asInstanceOf[Array[String]].toList)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
         if(operation.equalsIgnoreCase("remove"))
@@ -370,7 +369,7 @@ object HierarchyManager {
         val req = new Request(request)
         req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
         req.put("identifier", rootNode.getIdentifier)
-        ExternalPropsManager.saveProps(req)
+        oec.graphService.saveExternalProps(req)
     }
 
     def restructureUnit(childList: java.util.List[java.util.Map[String, AnyRef]], leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], depth: Integer, parent: String): java.util.List[java.util.Map[String, AnyRef]] = {
@@ -392,7 +391,7 @@ object HierarchyManager {
             maxIndex = childMap.values.toList.map(child => child.get("index").asInstanceOf[Integer]).toList.max.asInstanceOf[Integer]
         }
         leafNodeIds.foreach(id => {
-            var node = leafNodeMap.get(id)
+            var node = leafNodeMap.getOrDefault(id, new util.HashMap[String, AnyRef]())
             node.put("parent", parent)
             node.put("depth", depth)
             if( null == node.get("index")) {
@@ -405,10 +404,10 @@ object HierarchyManager {
         filteredLeafNodes
     }
 
-    def fetchHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
+    def fetchHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
         val req = new Request(request)
         req.put("identifier", identifier)
-        val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+        val responseFuture = oec.graphService.readExternalProps(req, List("hierarchy"))
         responseFuture.map(response => {
             if (!ResponseHandler.checkError(response)) {
                 val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
@@ -418,7 +417,7 @@ object HierarchyManager {
                     Future(Map[String, AnyRef]())
             } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404 && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
                 req.put("identifier", identifier.replaceAll(".img", "") + ".img")
-                val responseFuture = ExternalPropsManager.fetchProps(req, List("hierarchy"))
+                val responseFuture = oec.graphService.readExternalProps(req, List("hierarchy"))
                 responseFuture.map(response => {
                     if (!ResponseHandler.checkError(response)) {
                         val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
@@ -438,7 +437,7 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
-    def getCassandraHierarchy(request: Request)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
+    def getCassandraHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, AnyRef]] = {
         val rootHierarchy: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
         val hierarchy = fetchHierarchy(request, request.getRequest.get("rootId").asInstanceOf[String])
         hierarchy.map(hierarchy => {
@@ -541,7 +540,7 @@ object HierarchyManager {
         }
     }
 
-    def getUnpublishedBookmarkHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
+    def getUnpublishedBookmarkHierarchy(request: Request, identifier: String)(implicit ec: ExecutionContext, oec:OntologyEngineContext): Future[util.Map[String, AnyRef]] = {
         if (StringUtils.isNotEmpty(identifier)) {
             val parentHierarchy = fetchHierarchy(request, identifier + imgSuffix)
             parentHierarchy.map(hierarchy => {
