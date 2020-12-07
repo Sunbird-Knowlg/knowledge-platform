@@ -61,14 +61,14 @@ class QuestionSetControllerSpec extends BaseSpec {
 
 
 	"add question should update the questionSet status to Add question successfully for given valid identifier" in {
-		val result = controller.add("do_123")(FakeRequest())
+		val result = controller.add()(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
 
 
 	"remove question should update the questionSet status to remove question successfully for given valid identifier" in {
-		val result = controller.remove("do_123")(FakeRequest())
+		val result = controller.remove()(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}

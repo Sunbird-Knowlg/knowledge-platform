@@ -78,25 +78,23 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		getResult(ApiId.RETIRE_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
 
-	def add(identifier: String) = Action.async { implicit request =>
+	def add() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
 		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.addQuestion.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
-		questionSetRequest.getContext.put("identifier", identifier)
 		getResult(ApiId.ADD_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
 
-	def remove(identifier: String) = Action.async { implicit request =>
+	def remove() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
 		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.removeQuestion.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
-		questionSetRequest.getContext.put("identifier", identifier)
 		getResult(ApiId.REMOVE_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
 
