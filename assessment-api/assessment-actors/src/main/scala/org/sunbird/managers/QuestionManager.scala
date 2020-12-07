@@ -148,14 +148,6 @@ object QuestionManager {
         })
     }
 
- /*   def validateChildrenRecursive(outRelations: util.List[Relation]): Unit = {
-        outRelations.toList.foreach(relation => {
-            if (!StringUtils.equalsAnyIgnoreCase(relation.getEndNodeMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
-                && !StringUtils.equalsIgnoreCase(relation.getEndNodeMetadata.getOrDefault("status", "").asInstanceOf[String], "Live"))
-                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + relation.getEndNodeId + "is not Live. Please Publish it.")
-        })
-    }*/
-
 
     def getQuestionSetNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         DataNode.read(request).map(node => {
