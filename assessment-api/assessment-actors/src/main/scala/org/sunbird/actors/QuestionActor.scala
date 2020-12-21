@@ -59,11 +59,14 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     def update(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
         request.getRequest.put("identifier", request.getContext.get("identifier"))
-        DataNode.update(request).map(node => {
-            val response: Response = ResponseHandler.OK
-            response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-            response
+        QuestionManager.getQuestionNodeUpdate(request).flatMap(_ => {
+            DataNode.update(request).map(node => {
+                val response: Response = ResponseHandler.OK
+                response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+                response
+            })
         })
+
     }
 
     def review(request: Request): Future[Response] = {

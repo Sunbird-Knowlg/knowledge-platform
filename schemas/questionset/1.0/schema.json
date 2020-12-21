@@ -256,9 +256,9 @@
     },
     "visibility": {
       "type": "string",
-      "default": "Public",
+      "default": "Default",
       "enum": [
-        "Public", "Parent"
+        "Default", "Parent"
       ]
     },
     "primaryCategory": {
@@ -278,6 +278,21 @@
     },
     "depth": {
       "type": "number"
+    },
+    "author": {
+      "type": "string"
+    },
+    "attributions": {
+      "type": "array"
+    },
+    "copyright": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string"
+    },
+    "audience": {
+      "type": "array"
     }
   }
 }

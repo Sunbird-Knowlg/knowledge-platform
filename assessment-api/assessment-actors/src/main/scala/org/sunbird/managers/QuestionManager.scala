@@ -143,18 +143,10 @@ object QuestionManager {
         children.toList.foreach(content => {
             if (!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
                 && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
-                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
+                throw new ClientException("ERR_QUESTION_SET", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
             validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
         })
     }
-
- /*   def validateChildrenRecursive(outRelations: util.List[Relation]): Unit = {
-        outRelations.toList.foreach(relation => {
-            if (!StringUtils.equalsAnyIgnoreCase(relation.getEndNodeMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
-                && !StringUtils.equalsIgnoreCase(relation.getEndNodeMetadata.getOrDefault("status", "").asInstanceOf[String], "Live"))
-                throw new ClientException("ERR_QUESTION_SET_REVIEW", "Content with identifier: " + relation.getEndNodeId + "is not Live. Please Publish it.")
-        })
-    }*/
 
 
     def getQuestionSetNodeToRetire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -179,6 +171,23 @@ object QuestionManager {
         val visibilityIdMap: Map[String, List[String]] = outRelations
             .groupBy(_.getEndNodeMetadata.get("visibility").asInstanceOf[String])
             .mapValues(_.map(_.getEndNodeId).toList)
-        (visibilityIdMap.getOrDefault("Public", List()), visibilityIdMap.getOrDefault("Parent", List()))
+        (visibilityIdMap.getOrDefault("Default", List()), visibilityIdMap.getOrDefault("Parent", List()))
+    }
+
+
+    def getQuestionSetNodeUpdate(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+        DataNode.read(request).map(node => {
+            if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
+                throw new ClientException("ERR_QUESTION_SET_UPDATE", "Question Set with visibility Parent, can't be updated individually.")
+            node
+        })
+    }
+
+    def getQuestionNodeUpdate(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+        DataNode.read(request).map(node => {
+            if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
+                throw new ClientException("ERR_QUESTION_UPDATE", "Question with visibility Parent, can't be updated individually.")
+            node
+        })
     }
 }

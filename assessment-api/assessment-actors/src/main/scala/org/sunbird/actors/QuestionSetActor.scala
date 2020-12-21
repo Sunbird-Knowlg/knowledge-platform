@@ -10,18 +10,13 @@ import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Relation
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.managers.QuestionManager
-import org.sunbird.utils.{RequestUtil}
 import org.sunbird.managers.{HierarchyManager, QuestionManager, UpdateHierarchyManager}
-import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.RequestUtil
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
@@ -69,11 +64,14 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		DataNode.update(request).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-			response
+		QuestionManager.getQuestionSetNodeUpdate(request).flatMap(_ => {
+			DataNode.update(request).map(node => {
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
+			})
 		})
+
 	}
 
 	def review(request: Request): Future[Response] = {
@@ -102,11 +100,13 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 
 	def publish(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		QuestionManager.getQuestionNodeToPublish(request).map(node => {
-			QuestionManager.pushInstructionEvent(node.getIdentifier, node)
-			val response = ResponseHandler.OK()
-			response.putAll(Map[String,AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
-			response
+		QuestionManager.getQuestionNodeToPublish(request).flatMap(node => {
+			QuestionManager.validateQuestionSetHierarchy(request, node).map(_ => {
+				QuestionManager.pushInstructionEvent(node.getIdentifier, node)
+				val response = ResponseHandler.OK()
+				response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
+				response
+			})
 		})
 	}
 
@@ -124,62 +124,5 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 			})
 		})
 	}
-
-	def add(request: Request): Future[Response] = {
-		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		QuestionManager.getValidatedQuestionSet(request).flatMap(node => {
-			val requestChildrenIds = request.getRequest.getOrDefault("children", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
-			val nodeChildrenIds: List[String] = if (node.getOutRelations != null) (for (relation <- node.getOutRelations) yield relation.getEndNodeId).toList else List()
-			val childrenIds = CollectionUtils.union(requestChildrenIds, nodeChildrenIds)
-			val childrenMaps: List[util.Map[String, AnyRef]] = (for (child <- childrenIds) yield Map("identifier" -> child.asInstanceOf[AnyRef]).asJava).toList
-			if (childrenMaps.nonEmpty) request.put("children", childrenMaps.asJava)
-			request.getRequest.remove("mode")
-			DataNode.update(request).map(node => {
-				val response: Response = ResponseHandler.OK
-				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-				response
-			})
-		})
-	}
-
-	def remove(request: Request): Future[Response] = {
-		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		QuestionManager.getValidatedQuestionSet(request).flatMap(node => {
-			val requestChildIds = request.getRequest.getOrDefault("children", "").asInstanceOf[util.List[String]]
-			val (publicChildIds: List[String], parentChildIds: List[String]) = QuestionManager.getChildIdsFromRelation(node)
-			val updatedChildren = publicChildIds diff requestChildIds
-			val childrenMaps: List[util.Map[String, AnyRef]] = for (child <- updatedChildren) yield Map("identifier" -> child.asInstanceOf[AnyRef]).asJava
-			if (childrenMaps.nonEmpty) request.put("children", childrenMaps.asJava) else request.put("children", new util.ArrayList[String]())
-			request.getRequest.remove("mode")
-			DataNode.update(request).flatMap(node => {
-				if(parentChildIds.nonEmpty) {
-					val retireRequest = new Request(request)
-					retireRequest.put("identifiers", parentChildIds)
-					val retireMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
-					retireRequest.put("metadata", retireMetadata)
-					DataNode.bulkUpdate(request).map(_ => {
-						val response: Response = ResponseHandler.OK
-						response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-						response
-					})
-				} else {
-					val response: Response = ResponseHandler.OK
-					response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-					Future(response)
-				}
-			})
-		})
-	}
-
-	def updateHierarchy(request: Request): Future[Response] = {
-
-		Future(ResponseHandler.OK())
-	}
-
-	def readHierarchy(request: Request): Future[Response] = {
-		Future(ResponseHandler.OK())
-	}
-
-
 
 }

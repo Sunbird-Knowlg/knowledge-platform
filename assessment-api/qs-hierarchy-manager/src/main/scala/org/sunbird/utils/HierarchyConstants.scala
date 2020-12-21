@@ -35,7 +35,7 @@ object HierarchyConstants {
     val SCHEMA_VERSION: String = "1.0"
     val CONTENT_ID: String = "identifier"
     val IDENTIFIERS: String = "identifiers"
-    val PUBLIC: String = "Public"
+    val DEFAULT: String = "Default"
     val CHANNEL: String = "channel"
     val ROOT_ID: String = "rootId"
     val HIERARCHY_LIVE_STATUS: List[String] = List("Live", "Unlisted", "Flagged")
