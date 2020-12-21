@@ -35,7 +35,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
     def create(request: Request): Future[Response] = {
         val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
-        if (StringUtils.isNotBlank(visibility) && !StringUtils.equalsIgnoreCase(visibility, "Default"))
+        if (StringUtils.isNotBlank(visibility) && StringUtils.equalsIgnoreCase(visibility, "Parent"))
             throw new ClientException("ERR_QUESTION_CREATE", "Visibility cannot be Parent")
         DataNode.create(request).map(node => {
             val response = ResponseHandler.OK
