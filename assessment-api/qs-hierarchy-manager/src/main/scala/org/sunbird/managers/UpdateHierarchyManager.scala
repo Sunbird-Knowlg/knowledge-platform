@@ -102,7 +102,7 @@ object UpdateHierarchyManager {
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
             }
-            if(!StringUtils.equals(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String], HierarchyConstants.PUBLIC)) {
+            if(!StringUtils.equals(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String], HierarchyConstants.DEFAULT)) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Visibility found for Root node id: " + identifier)
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid Visibility found for Root Node Identifier  : " + identifier)
             }
@@ -161,7 +161,7 @@ object UpdateHierarchyManager {
             val futures = childrenMaps.map(child => {
 //                println("Executing for child : " + child.get("identifier"));
                 addNodeToList(child, request, nodes).map(modifiedList => {
-                    if (!StringUtils.equalsIgnoreCase(HierarchyConstants.PUBLIC, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
+                    if (!StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
 //                        println("Calling next level for child : " + child.get("identifier"));
                         println("addChildNodesInNodeList :::: point-2>>>")
                         addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]], request, modifiedList)
@@ -178,7 +178,7 @@ object UpdateHierarchyManager {
     private def addNodeToList(child: java.util.Map[String, AnyRef], request: Request, nodes: scala.collection.immutable.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[scala.collection.immutable.List[Node]] = {
         println("addNodeToList :::: child::::"+child + " nodes :::: "+nodes)
         if (StringUtils.isNotEmpty(child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]))
-            if (StringUtils.equalsIgnoreCase(HierarchyConstants.PUBLIC, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
+            if (StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
                 println("addNodeToList ::: if block")
                 getQuestionNode(child.getOrDefault(HierarchyConstants.IDENTIFIER, "").asInstanceOf[String], HierarchyConstants.TAXONOMY_ID).map(node => {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
@@ -403,7 +403,7 @@ object UpdateHierarchyManager {
 //                TelemetryManager.info("Get ContentNode as TempNode is null for ID: " + id)
                 getQuestionNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
-                    node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PUBLIC)
+                    node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
                     //TODO: Populate category mapping before updating for backward
                     //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
                     //HierarchyBackwardCompatibilityUtil.setNewObjectType(node)

@@ -31,7 +31,7 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
 		val request = getQuestionRequest()
 		request.getContext.put("identifier", "do1234")
-		request.putAll(mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.qml-archive", "primaryCategory" -> "Practice Question Set", "visibility" -> "Public")))
+		request.putAll(mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.qml-archive", "primaryCategory" -> "Practice Question Set", "visibility" -> "Default")))
 		request.setOperation("createQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))

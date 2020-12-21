@@ -18,7 +18,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 	def create() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.createQuestionSet.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
@@ -38,7 +38,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 	def update(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.updateQuestionSet.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
@@ -49,7 +49,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 	def review(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.reviewQuestionSet.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
@@ -60,7 +60,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 	def publish(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.publishQuestionSet.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
@@ -81,7 +81,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 	def add() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.addQuestion.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
@@ -91,7 +91,7 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 	def remove() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val questionSet = body.getOrDefault("questionSet", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
 		questionSet.putAll(headers)
 		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.removeQuestion.toString)
 		setRequestContext(questionSetRequest, version, objectType, schemaName)

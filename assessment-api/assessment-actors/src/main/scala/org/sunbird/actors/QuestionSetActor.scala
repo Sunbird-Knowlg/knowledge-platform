@@ -40,7 +40,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def create(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
-		if (StringUtils.isNotBlank(visibility) && StringUtils.equalsIgnoreCase(visibility, "Parent"))
+		if (StringUtils.isNotBlank(visibility) && !StringUtils.equalsIgnoreCase(visibility, "Default"))
 			throw new ClientException("ERR_QUESTION_CREATE", "Visibility cannot be Parent")
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
@@ -64,11 +64,14 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		DataNode.update(request).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-			response
+		QuestionManager.getQuestionSetNodeUpdate(request).flatMap(_ => {
+			DataNode.update(request).map(node => {
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
+			})
 		})
+
 	}
 
 	def review(request: Request): Future[Response] = {
@@ -97,11 +100,13 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 
 	def publish(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
-		QuestionManager.getQuestionNodeToPublish(request).map(node => {
-			QuestionManager.pushInstructionEvent(node.getIdentifier, node)
-			val response = ResponseHandler.OK()
-			response.putAll(Map[String,AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
-			response
+		QuestionManager.getQuestionNodeToPublish(request).flatMap(node => {
+			QuestionManager.validateQuestionSetHierarchy(request, node).map(_ => {
+				QuestionManager.pushInstructionEvent(node.getIdentifier, node)
+				val response = ResponseHandler.OK()
+				response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
+				response
+			})
 		})
 	}
 
