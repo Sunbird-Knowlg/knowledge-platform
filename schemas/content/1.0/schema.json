@@ -1185,40 +1185,37 @@
         "displayScore": {
             "type": "boolean"
         },
-        "organisationFrameworkId": {
-            "type": "string"
-        },
-        "organisationBoardIds": {
+        "boardIds": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "organisationGradeLevelIds": {
+        "gradeLevelIds": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "organisationSubjectIds": {
+        "subjectIds": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "organisationMediumIds": {
+        "mediumIds": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "organisationTopicsIds": {
+        "topicsIds": {
             "type": "array",
             "items": {
                 "type": "string"
             }
         },
-        "targetFrameworkIds":{
+        "targetFWIds":{
             "type": "array",
             "items": {
                 "type": "string"

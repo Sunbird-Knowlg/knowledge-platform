@@ -17,8 +17,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait FrameworkValidator extends IDefinition {
 
-  val ORGANISATIONAL_FRAMEWORK_TERMS = List("organisationFrameworkId", "organisationBoardIds", "organisationGradeLevelIds", "organisationSubjectIds", "organisationMediumIds", "organisationTopicsIds")
-  val TARGET_FRAMEWORK_TERMS = List("targetFrameworkIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds")
+  val ORGANISATIONAL_FRAMEWORK_TERMS = List("framework", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds")
+  val TARGET_FRAMEWORK_TERMS = List("targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds")
 
   @throws[Exception]
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -61,21 +61,21 @@ trait FrameworkValidator extends IDefinition {
 
   private def validateAndSetMultiFrameworks(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     getValidatedTerms(node, ORGANISATIONAL_FRAMEWORK_TERMS).map(orgTermMap => {
-      if (StringUtils.isNotBlank(node.getMetadata.get("organisationFrameworkId").asInstanceOf[String]))
-        node.getMetadata.putIfAbsent("framework", node.getMetadata.get("organisationFrameworkId").asInstanceOf[String])
-      val boardIds = getList("organisationBoardIds", node)
+//      if (StringUtils.isNotBlank(node.getMetadata.get("organisationFrameworkId").asInstanceOf[String]))
+//        node.getMetadata.putIfAbsent("framework", node.getMetadata.get("organisationFrameworkId").asInstanceOf[String])
+      val boardIds = getList("boardIds", node)
       if (CollectionUtils.isNotEmpty(boardIds))
         node.getMetadata.putIfAbsent("board", orgTermMap(boardIds.get(0)))
-      val mediumIds = getList("organisationMediumIds", node)
+      val mediumIds = getList("mediumIds", node)
       if (CollectionUtils.isNotEmpty(mediumIds))
         node.getMetadata.putIfAbsent("medium", mediumIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      val subjectIds = getList("organisationSubjectIds", node)
+      val subjectIds = getList("subjectIds", node)
       if (CollectionUtils.isNotEmpty(subjectIds))
         node.getMetadata.putIfAbsent("subject", subjectIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      val gradeIds = getList("organisationGradeLevelIds", node)
+      val gradeIds = getList("gradeLevelIds", node)
       if (CollectionUtils.isNotEmpty(gradeIds))
         node.getMetadata.putIfAbsent("gradeLevel", gradeIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      val topicIds = getList("organisationTopicsIds", node)
+      val topicIds = getList("topicsIds", node)
       if (CollectionUtils.isNotEmpty(topicIds))
         node.getMetadata.putIfAbsent("topics", topicIds.asScala.map(id => orgTermMap(id)).toList.asJava)
       getValidatedTerms(node, TARGET_FRAMEWORK_TERMS)
