@@ -6,7 +6,7 @@ import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ServerException}
-import org.sunbird.common.{DateUtils, JsonUtils}
+import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.Node
@@ -18,10 +18,12 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 object UpdateHierarchyManager {
+    val neo4jCreateTypes: java.util.List[String] = Platform.getStringList("neo4j_objecttypes_enabled", List("Question").asJava)
 
     @throws[Exception]
     def updateHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -233,7 +235,7 @@ object UpdateHierarchyManager {
                         else
                             createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                     } else {
-                        updateTempNode(nodeModified._1, nodeList, idMap, metadata)
+                        updateTempNode(request, nodeModified._1, nodeList, idMap, metadata)
                         Future(nodeList.distinct)
                     }
                 })
@@ -251,42 +253,73 @@ object UpdateHierarchyManager {
     }
 
     private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef], nodeList: List[Node], request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
-        val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
-        idMap += (nodeId -> identifier)
-        metadata.put(HierarchyConstants.IDENTIFIER, identifier)
-        metadata.put(HierarchyConstants.CODE, nodeId)
-        metadata.put(HierarchyConstants.VERSION_KEY, System.currentTimeMillis + "")
-        metadata.put(HierarchyConstants.CREATED_ON, DateUtils.formatCurrentDate)
-        metadata.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
-        val rootNode = getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
-        metadata.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
-        //metadata.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
-        val createRequest: Request = new Request(request)
-        //TODO: Remove the Populate category mapping before updating for backward
-        //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
-        createRequest.setRequest(metadata)
-        DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
-            node.setGraphId(HierarchyConstants.TAXONOMY_ID)
-            node.setNodeType(HierarchyConstants.DATA_NODE)
-            node.setObjectType(HierarchyConstants.QUESTIONSET_OBJECT_TYPE)
-            //Object type mapping
-            //HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
-            val updatedList = node :: nodeList
-            updatedList.distinct
-        })
+        val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
+        if(StringUtils.isBlank(objectType))
+            throw new ClientException("ERR_UPDATE_HIERARCHY", s"Object Type is mandatory for creation of node with id: $nodeId")
+        else {
+            val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
+            idMap += (nodeId -> identifier)
+            metadata.put(HierarchyConstants.IDENTIFIER, identifier)
+            metadata.put(HierarchyConstants.CODE, nodeId)
+            metadata.put(HierarchyConstants.VERSION_KEY, System.currentTimeMillis + "")
+            metadata.put(HierarchyConstants.CREATED_ON, DateUtils.formatCurrentDate)
+            metadata.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
+            val rootNode = getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
+            metadata.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
+            //metadata.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
+            val createRequest: Request = new Request(request)
+            //TODO: Remove the Populate category mapping before updating for backward
+            //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
+            createRequest.setRequest(metadata)
+            if (neo4jCreateTypes.contains(objectType)) {
+                createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, "question")
+                DataNode.create(createRequest).map(node => {
+                    node.setGraphId(HierarchyConstants.TAXONOMY_ID)
+                    node.setNodeType(HierarchyConstants.DATA_NODE)
+                    node.setObjectType(objectType)
+                    val updatedList = node :: nodeList
+                    updatedList.distinct
+                })
+
+            } else
+                DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
+                    node.setGraphId(HierarchyConstants.TAXONOMY_ID)
+                    node.setNodeType(HierarchyConstants.DATA_NODE)
+                    node.setObjectType(objectType)
+                    val updatedList = node :: nodeList
+                    updatedList.distinct
+                })
+        }
     }
 
-    private def updateTempNode(nodeId: String, nodeList: List[Node], idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef])(implicit ec: ExecutionContext): Unit = {
+    private def updateTempNode(request:Request, nodeId: String, nodeList: List[Node], idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {
         val tempNode: Node = getTempNode(nodeList, nodeId)
-        if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
-            metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
-            idMap += (nodeId -> tempNode.getIdentifier)
-            updateNodeList(nodeList, tempNode.getIdentifier, metadata)
-        } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
+        val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
+        metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
+        //metadata.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
+        val createRequest: Request = new Request(request)
+        createRequest.setRequest(metadata)
+        if (neo4jCreateTypes.contains(objectType)) {
+            createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, "question")
+            DataNode.update(createRequest).map(node => {
+                idMap += (nodeId -> node.getIdentifier)
+                updateNodeList(nodeList, node.getIdentifier, node.getMetadata)
+                nodeList
+            })
+        } else {
+            if (null != tempNode && StringUtils.isNotBlank(tempNode.getIdentifier)) {
+                metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
+                idMap += (nodeId -> tempNode.getIdentifier)
+                updateNodeList(nodeList, tempNode.getIdentifier, metadata)
+                Future(nodeList)
+            } else throw new ResourceNotFoundException(HierarchyErrorCodes.ERR_CONTENT_NOT_FOUND, "Content not found with identifier: " + nodeId)
+        }
     }
 
     private def validateNodes(nodeList: java.util.List[Node], rootId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
-        val nodesToValidate = nodeList.filter(node => StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]) || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
+        val nodesToValidate = nodeList.filter(node => (StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])
+            && !StringUtils.equalsIgnoreCase("Question", node.getObjectType))
+            || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
         DefinitionNode.updateJsonPropsInNodes(nodeList.toList, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.QUESTIONSET_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
         DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.QUESTIONSET_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
@@ -477,7 +510,7 @@ object UpdateHierarchyManager {
         nodeList.find(node => StringUtils.startsWith(node.getIdentifier, id)).orNull
     }
 
-    private def updateNodeList(nodeList: List[Node], id: String, metadata: java.util.HashMap[String, AnyRef]): Unit = {
+    private def updateNodeList(nodeList: List[Node], id: String, metadata: java.util.Map[String, AnyRef]): Unit = {
         nodeList.foreach(node => {
             if(node.getIdentifier.startsWith(id)){
                 node.getMetadata.putAll(metadata)
