@@ -57,6 +57,6 @@ object HierarchyConstants {
 //    val ASSET_CONTENT_TYPE: String = "Asset"
 //    val COLLECTION_OBJECT_TYPE: String = "Collection"
 //    val ASSET_OBJECT_TYPE: String = "Asset"
-    val QUESTIONSET_MIME_TYPE: String = "application/vnd.ekstep.questionset"
+    val QUESTIONSET_MIME_TYPE: String = "application/vnd.sunbird.questionset"
 	val QUESTIONSET_OBJECT_TYPE: String = "QuestionSet"
 }

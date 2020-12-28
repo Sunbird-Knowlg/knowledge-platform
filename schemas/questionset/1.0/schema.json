@@ -30,7 +30,7 @@
     "mimeType": {
       "type": "string",
       "enum": [
-        "application/vnd.ekstep.questionset"
+        "application/vnd.sunbird.questionset"
       ]
     },
     "status": {

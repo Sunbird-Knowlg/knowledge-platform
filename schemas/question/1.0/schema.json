@@ -23,7 +23,7 @@
     "mimeType": {
       "type": "string",
       "enum": [
-        "application/vnd.ekstep.qml-archive"
+        "application/vnd.sunbird.question"
       ]
     },
     "contentType": {
