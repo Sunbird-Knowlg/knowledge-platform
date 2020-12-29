@@ -10,6 +10,7 @@ import org.sunbird.graph.nodes.DataNode.getRelationMap
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
+import org.sunbird.utils.JavaJsonUtils
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -254,6 +255,31 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
+    it should "return error response for 'updateHierarchyQuestionSet'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+//        val node = getNode("QuestionSet", None)
+//        node.setIdentifier("do_1234")
+//        node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
+//            "visibility" -> "Default",
+//            "code" -> "finemanfine",
+//            "navigationMode" -> "linear",
+//            "allowSkip" -> "Yes",
+//            "requiresSubmit" -> "No",
+//            "shuffle" -> "Yes",
+//            "showFeedback" -> "Yes",
+//            "showSolutions" -> "Yes",
+//            "showHints" -> "Yes",
+//            "summaryType" -> "Complete",
+//            "versionKey" -> "1234",
+//            "mimeType" -> "application/vnd.sunbird.questionset",
+//            "primaryCategory" -> "Practice Question Set")))
+        val request = getInvalidUpdateHierarchyReq()
+        request.getContext.put("rootId", "do_123")
+        request.setOperation("updateHierarchy")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert("failed".equals(response.getParams.getStatus))
+    }
+
     private def getQuestionSetRequest(): Request = {
         val request = new Request()
         request.setContext(new java.util.HashMap[String, AnyRef]() {
@@ -320,6 +346,56 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         val hierarchyString: String = """{"children":[{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_Old","allowSkip":"No","description":"QS-2_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.948+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","lastUpdatedOn":"2020-12-04T15:31:45.947+0530","showSolutions":"No","identifier":"do_11316516745992601613","lastStatusChangedOn":"2020-12-04T15:31:45.948+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":1,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105948","showFeedback":"No","depth":1,"name":"QS_V_Parent_2","navigationMode":"non-linear","shuffle":"Yes","status":"Draft"},{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_New","allowSkip":"No","description":"QS-1_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.872+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","children":[{"parent":"do_11316516745922969611","identifier":"do_11316399038283776016","lastStatusChangedOn":"2020-12-02T23:36:59.783+0530","code":"question.code","visibility":"Default","index":1,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-12-02T23:36:59.783+0530","version":1,"objectType":"Question","versionKey":"1606932419783","depth":2,"primaryCategory":"Practice Question Set","name":"question_1","lastUpdatedOn":"2020-12-02T23:36:59.783+0530","status":"Draft"}],"lastUpdatedOn":"2020-12-04T15:31:45.861+0530","showSolutions":"No","identifier":"do_11316516745922969611","lastStatusChangedOn":"2020-12-04T15:31:45.876+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":2,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105872","showFeedback":"No","depth":1,"name":"QS_V_Parent_1","navigationMode":"non-linear","shuffle":"Yes","status":"Draft"},{"identifier":"do_11315445058114355211","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-19T12:08:13.854+0530","code":"finemanfine","visibility":"Default","index":4,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-19T12:08:13.854+0530","version":1,"objectType":"Question","versionKey":"1605767893854","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-19T12:08:13.854+0530","contentType":"Resource","status":"Draft"},{"identifier":"do_11315319237189632011","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-17T17:28:23.277+0530","code":"finemanfine","visibility":"Default","index":3,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-17T17:28:23.277+0530","version":1,"objectType":"Question","versionKey":"1605614303277","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-17T17:28:23.277+0530","contentType":"Resource","status":"Draft"}],"identifier":"do_113165166851596288123"}"""
         val response = new Response
         response.put("hierarchy", hierarchyString)
+    }
+
+    def getInvalidUpdateHierarchyReq() = {
+        val nodesModified = "{\n                \"do_1234\": {\n                    \"metadata\": {\n                        \"code\": \"updated_code_of_root\"\n                    },\n                    \"root\": true,\n                    \"isNew\": false\n                },\n                \"QS_V_Parent_New\": {\n                    \"metadata\": {\n                        \"code\": \"QS_V_Parent\",\n                        \"name\": \"QS_V_Parent_1\",\n                        \"description\": \"QS-1_parent\",\n                        \"mimeType\": \"application/vnd.sunbird.questionset\",\n                        \"visibility\": \"Parent\",\n                        \"primaryCategory\": \"Practice Question Set\"\n                    },\n                    \"root\": false,\n                    \"objectType\": \"QuestionSet\",\n                    \"isNew\": true\n                },\n                \"QS_V_Parent_Old\": {\n                    \"metadata\": {\n                        \"code\": \"QS_V_Parent\",\n                        \"name\": \"QS_V_Parent_2\",\n                        \"description\": \"QS-2_parent\",\n                        \"mimeType\": \"application/vnd.sunbird.questionset\",\n                        \"visibility\": \"Parent\",\n                        \"primaryCategory\": \"Practice Question Set\"\n                    },\n                    \"root\": false,\n                    \"objectType\": \"QuestionSet\",\n                    \"isNew\": true\n                },\n                \"do_113178560758022144113\": {\n                    \"metadata\": {\n                        \"code\": \"Q_NEW_PARENT\",\n                        \"name\": \"Q_NEW_PARENT\",\n                        \"description\": \"Q_NEW_PARENT\",\n                        \"mimeType\": \"application/vnd.sunbird.question\",\n                        \"visibility\": \"Parent\",\n                        \"primaryCategory\": \"Practice Question Set\"\n                    },\n                    \"root\": false,\n                    \"objectType\": \"Question\",\n                    \"isNew\": true\n                }\n            }"
+        val hierarchy = "{\n                \"do_1234\": {\n                    \"children\": [\n                        \"QS_V_Parent_Old\",\n                        \"QS_V_Parent_New\"\n                    ],\n                    \"root\": true\n                },\n                \"QS_V_Parent_Old\": {\n                    \"children\": [],\n                    \"root\": false\n                },\n                \"QS_V_Parent_New\": {\n                    \"children\": [\n                        \"do_113178560758022144113\"\n                    ],\n                    \"root\": false\n                },\n                \"do_113178560758022144113\": {\n\n                }\n            }"
+        val request = getQuestionSetRequest()
+        request.put("nodesModified", JavaJsonUtils.deserialize[java.util.Map[String, AnyRef]](nodesModified))
+        request.put("hierarchy", JavaJsonUtils.deserialize[java.util.Map[String, AnyRef]](hierarchy))
+        request
+    }
+
+    def getUpdateHierarchyReq() = {
+        val nodesModified = "{\n                \"do_1234\": {\n                    \"metadata\": {\n                        \"code\": \"updated_code_of_root\"\n                    },\n                    \"root\": true,\n                    \"isNew\": false\n                },\n                \"QS_V_Parent_New\": {\n                    \"metadata\": {\n                        \"code\": \"QS_V_Parent\",\n                        \"name\": \"QS_V_Parent_1\",\n                        \"description\": \"QS-1_parent\",\n                        \"mimeType\": \"application/vnd.sunbird.questionset\",\n                        \"visibility\": \"Parent\",\n                        \"primaryCategory\": \"Practice Question Set\"\n                    },\n                    \"root\": false,\n                    \"objectType\": \"QuestionSet\",\n                    \"isNew\": true\n                },\n                \"QS_V_Parent_Old\": {\n                    \"metadata\": {\n                        \"code\": \"QS_V_Parent\",\n                        \"name\": \"QS_V_Parent_2\",\n                        \"description\": \"QS-2_parent\",\n                        \"mimeType\": \"application/vnd.sunbird.questionset\",\n                        \"visibility\": \"Parent\",\n                        \"primaryCategory\": \"Practice Question Set\"\n                    },\n                    \"root\": false,\n                    \"objectType\": \"QuestionSet\",\n                    \"isNew\": true\n                },\n                \"do_113178560758022144113\": {\n                    \"metadata\": {\n                        \"code\": \"Q_NEW_PARENT\",\n                        \"name\": \"Q_NEW_PARENT\",\n                        \"description\": \"Q_NEW_PARENT\",\n                        \"mimeType\": \"application/vnd.sunbird.question\",\n                        \"visibility\": \"Parent\",\n                        \"primaryCategory\": \"Practice Question Set\"\n                    },\n                    \"root\": false,\n                    \"objectType\": \"Question\",\n                    \"isNew\": true\n                }\n            }"
+        val hierarchy = "{\n                \"do_1234\": {\n                    \"children\": [\n                        \"QS_V_Parent_Old\",\n                        \"QS_V_Parent_New\"\n                    ],\n                    \"root\": true\n                },\n                \"QS_V_Parent_Old\": {\n                    \"children\": [],\n                    \"root\": false\n                },\n                \"QS_V_Parent_New\": {\n                    \"children\": [\n                        \"do_113178560758022144113\"\n                    ],\n                    \"root\": false\n                }\n            }"
+        val request = getQuestionSetRequest()
+        request.put("nodesModified", JavaJsonUtils.deserialize[java.util.Map[String, AnyRef]](nodesModified))
+        request.put("hierarchy", JavaJsonUtils.deserialize[java.util.Map[String, AnyRef]](hierarchy))
+        request
+    }
+
+    def getRootNode(): Node = {
+        val node = getNode("QuestionSet", None)
+        node.setIdentifier("do_1234")
+        node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
+            "visibility" -> "Default",
+            "code" -> "finemanfine",
+            "navigationMode" -> "linear",
+            "allowSkip" -> "Yes",
+            "requiresSubmit" -> "No",
+            "shuffle" -> "Yes",
+            "showFeedback" -> "Yes",
+            "showSolutions" -> "Yes",
+            "showHints" -> "Yes",
+            "summaryType" -> "Complete",
+            "versionKey" -> "1234",
+            "mimeType" -> "application/vnd.sunbird.questionset",
+            "primaryCategory" -> "Practice Question Set")))
+        node
+    }
+
+    def getQuestionNode(identifier:String): Node = {
+        val node = getNode("Question", None)
+        node.setIdentifier(identifier)
+        node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
+            "visibility" -> "Default",
+            "code" -> "finemanfine",
+            "versionKey" -> "1234",
+            "mimeType" -> "application/vnd.sunbird.question",
+            "primaryCategory" -> "Practice Question Set")))
+        node
     }
 
 }
