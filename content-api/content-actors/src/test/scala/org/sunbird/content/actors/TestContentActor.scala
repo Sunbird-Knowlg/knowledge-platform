@@ -32,7 +32,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
         val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource",
-            "organisationFrameworkId" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}}))
+            "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}}))
         request.put("content", content)
         assert(true)
         val response = callActor(request, Props(new ContentActor()))
@@ -55,7 +55,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         }))
         val request = getContentRequest()
         request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep",
-        "organisationFrameworkId" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -77,7 +77,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         }))
         val request = getContentRequest()
         request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep",
-        "organisationFrameworkId" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -295,7 +295,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "updated description","organisationFrameworkId" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        request.putAll(mapAsJavaMap(Map("description" -> "updated description","framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("updateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("failed".equals(response.getParams.getStatus))
@@ -311,11 +311,17 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
+            {
+                add(getBoardNode())
+                add(getFrameworkNode())
+            }
+        }))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
-            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF",
             "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
         request.setOperation("copy")
         val response = callActor(request, Props(new ContentActor()))
@@ -369,7 +375,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
-            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF",
             "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
         request.put("file", new File(Resources.getResource("jpegImage.jpeg").toURI))
         request.setOperation("uploadContent")
