@@ -93,7 +93,7 @@ trait FrameworkValidator extends IDefinition {
   }
 
 
-  private def getValidatedTerms(node: Node,validationList: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+  private def getValidatedTerms(node: Node, validationList: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     val ids: List[String] = node.getMetadata.asScala
           .filter(entry => validationList.contains(entry._1))
           .flatMap(entry => entry._2 match {
