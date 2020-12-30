@@ -1085,6 +1085,36 @@
     "me_totalRatingsCount": {
       "type": "number"
     },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "targetFWIds":{
       "type": "array",
       "items": {
@@ -1124,7 +1154,7 @@
     "maxAttempts": {
       "type": "number"
     },
-    "se_frameworkIds":{
+    "se_FWIds":{
       "type": "array",
       "items": {
         "type": "string"

@@ -1116,8 +1116,35 @@
         "me_totalRatingsCount": {
             "type": "number"
         },
-        "organisationFrameworkId": {
-            "type": "string"
+        "boardIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "gradeLevelIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "subjectIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "mediumIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "topicsIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "targetFWIds":{
             "type": "array",
