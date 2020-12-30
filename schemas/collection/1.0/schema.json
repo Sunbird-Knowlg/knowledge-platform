@@ -1085,40 +1085,7 @@
     "me_totalRatingsCount": {
       "type": "number"
     },
-    "organisationFrameworkId": {
-      "type": "string"
-    },
-    "organisationBoardIds": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "organisationGradeLevelIds": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "organisationSubjectIds": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "organisationMediumIds": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "organisationTopicsIds": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "targetFrameworkIds":{
+    "targetFWIds":{
       "type": "array",
       "items": {
         "type": "string"
