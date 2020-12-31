@@ -31,6 +31,7 @@ object HierarchyManager {
     val imgSuffix: String = ".img"
     val hierarchyPrefix: String = "qs_hierarchy_"
     val statusList = List("Live", "Unlisted", "Flagged")
+    val ASSESSMENT_OBJECT_TYPES = List("Question", "QuestionSet")
 
     //TODO: check if it is required
     val keyTobeRemoved = {
@@ -281,14 +282,17 @@ object HierarchyManager {
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val req = new Request(request)
         req.put("identifiers", leafNodes)
-        val nodes = DataNode.list(req).map(nodes => {
+        DataNode.list(req).map(nodes => {
             if(nodes.size() != leafNodes.size()) {
                 val filteredList = leafNodes.toList.filter(id => !nodes.contains(id))
-                throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Children which are not available are: " + leafNodes)
+                throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Children which are not available are: " + filteredList)
+            } else {
+                val invalidNodes = nodes.filterNot(node => ASSESSMENT_OBJECT_TYPES.contains(node.getObjectType))
+                if (CollectionUtils.isNotEmpty(invalidNodes))
+                    throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Children must be of types $ASSESSMENT_OBJECT_TYPES for ids:  ${invalidNodes.map(_.getIdentifier)}")
+                else nodes.toList
             }
-            else nodes.toList
         })
-        nodes
     }
 
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
