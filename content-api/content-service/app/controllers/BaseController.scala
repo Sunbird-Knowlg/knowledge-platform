@@ -147,6 +147,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 }
             }
         }
+        if(StringUtils.isNotBlank(request.getContext.getOrDefault("channel", "").asInstanceOf[String]))
+            contextMap.put("channel", request.getContext.get("channel").asInstanceOf[String])
         request.setContext(contextMap)
     }
 
