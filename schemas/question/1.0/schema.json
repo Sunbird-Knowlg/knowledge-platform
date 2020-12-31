@@ -26,8 +26,96 @@
         "application/vnd.sunbird.question"
       ]
     },
-    "contentType": {
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "Multiple Choice Question",
+        "Subjective Question",
+        "FTB Question"
+      ]
+    },
+    "additionalCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "visibility": {
+      "type": "string",
+      "default": "Default",
+      "enum": [
+        "Default",
+        "Parent"
+      ]
+    },
+    "copyright": {
       "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "default": "CC BY 4.0"
+    },
+    "lockKey": {
+      "type": "string"
+    },
+    "assets": {
+      "type": "array"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Student",
+          "Teacher",
+          "Admin"
+        ],
+        "default": "Student"
+      }
+    },
+    "author": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "attributions": {
+      "type": "array"
+    },
+    "consumerId": {
+      "type": "string"
+    },
+    "contentEncoding": {
+      "type": "string",
+      "enum": [
+        "gzip",
+        "identity"
+      ],
+      "default": "gzip"
+    },
+    "contentDisposition": {
+      "type": "string",
+      "enum": [
+        "inline",
+        "online",
+        "attachment",
+        "online-only"
+      ],
+      "default": "inline"
+    },
+    "appIcon": {
+      "type": "string",
+      "format": "url"
+    },
+    "publishCheckList": {
+      "type": "array"
+    },
+    "publishComment": {
+      "type": "string"
+    },
+    "compatibilityLevel": {
+      "type": "number",
+      "default": 4
     },
     "status": {
       "type": "string",
@@ -44,6 +132,12 @@
     },
     "lastStatusChangedOn": {
       "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "pkgVersion": {
       "type": "number"
@@ -102,6 +196,72 @@
     "topic" : {
       "type": "array"
     },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetFWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetBoardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetGradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetSubjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetMediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "createdOn": {
       "type": "string"
     },
@@ -132,64 +292,115 @@
     "lastPublishedBy": {
       "type": "string"
     },
+    "publishError": {
+      "type": "string"
+    },
+    "reviewError": {
+      "type": "string"
+    },
+
+    "body": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "editorState": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "answer": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "solutions": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "instructions": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "hints": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "media": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "responseDeclaration": {
+      "type": "string",
+      "description": "External Property"
+    },
+    "interactions": {
+      "type": "string",
+      "description": "External Property"
+    },
+
+
     "qType": {
       "type": "string",
       "enum": [
         "MCQ",
-        "FTB"
+        "FTB",
+        "SA"
       ]
     },
-    "body": {
-      "type": "string"
-    },
-    "feedback": {
-      "type": "object"
-    },
-    "solutions": {
-      "description": "review required",
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "responseDeclaration": {
-      "description": "review required. It could be part of body",
-      "type": "object"
-    },
-    "responseProcessing": {
-      "description": "review required. It could be part of body",
-      "type": "object"
-    },
-    "templateDeclaration": {
-      "description": "review required. It could be part of body",
-      "type": "object"
-    },
-    "interactions": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["simple-choice", "multi-choice", "text", "single-select", "multi-select", "order", "match", "upload", "map"]
-      }
-    },
     "scoringMode": {
-      "description": "review required. Is there any default value required?",
       "type": "string",
       "enum": [
         "system",
-        "external",
-        "offline",
         "none"
       ]
     },
-    "quMLVersion": {
-      "description": "review required. What is default value? as it is required?",
+    "qumlVersion": {
       "type": "string"
     },
     "timeLimit": {
       "type": "number"
     },
+    "maxScore": {
+      "type": "number"
+    },
     "showTimer": {
-      "type": "boolean"
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "showFeedback": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "showSolutions": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "interactionTypes":{
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "choice",
+          "text",
+          "select",
+          "date",
+          "file-upload",
+          "canvas"
+        ]
+      }
+    },
+    "templateId":{
+      "type": "string"
     },
     "bloomsLevel" : {
       "description": "Cognitive processes involved to answer the question set.",
@@ -203,39 +414,48 @@
         "create"
       ]
     },
-      "parent": {
-          "type": "string"
-      },
-      "visibility": {
-          "type": "string",
-        "default": "Default",
-        "enum": [
-          "Default", "Parent"
-        ]
-      },
-    "primaryCategory": {
+    "feedback": {
+      "type": "object"
+    },
+    "responseProcessing": {
+      "type": "object"
+    },
+    "templateDeclaration": {
+      "type": "object"
+    },
+
+    "dailySummaryReportEnabled": {
       "type": "string",
       "enum": [
-        "Practice Question Set"
+        "Yes",
+        "No"
       ]
     },
-    "consumerId": {
+    "allowAnonymousAccess": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
+    },
+    "termsAndConditions": {
       "type": "string"
     },
-    "author": {
-      "type": "string"
+    "expectedDuration": {
+      "type": "number"
     },
-    "attributions": {
+    "completionCriteria": {
+      "type": "object"
+    },
+    "collaborators": {
       "type": "array"
     },
-    "copyright": {
+    "semanticVersion": {
       "type": "string"
     },
-    "license": {
+    "schemaVersion": {
       "type": "string"
-    },
-    "audience": {
-      "type": "array"
     }
   }
 }

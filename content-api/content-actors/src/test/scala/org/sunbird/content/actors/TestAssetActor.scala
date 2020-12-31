@@ -8,8 +8,9 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
+import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -29,6 +30,12 @@ class TestAssetActor extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
+      {
+        add(getBoardNode())
+        add(getFrameworkNode())
+      }
+    }))
     implicit val ss = mock[StorageService]
     val request = getContentRequest()
     request.getContext.put("identifier","do_1234")
@@ -95,6 +102,26 @@ class TestAssetActor extends BaseSpec with MockFactory {
     node.setIdentifier("do_1234")
     node.setNodeType("DATA_NODE")
     node.setObjectType("Content")
+    node
+  }
+
+  def getFrameworkNode(): Node = {
+    val node = new Node()
+    node.setIdentifier("NCF")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Framework")
+    node.setGraphId("domain")
+    node.setMetadata(mapAsJavaMap(Map("name"-> "NCF")))
+    node
+  }
+
+  def getBoardNode(): Node = {
+    val node = new Node()
+    node.setIdentifier("ncf_board_cbse")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Term")
+    node.setGraphId("domain")
+    node.setMetadata(mapAsJavaMap(Map("name"-> "CBSE")))
     node
   }
 }

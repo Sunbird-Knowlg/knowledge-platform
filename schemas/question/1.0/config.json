@@ -29,7 +29,25 @@
         "type": "blob"
       },
       "answer": {
-        "type": "blob"
+        "type": "string"
+      },
+      "solutions": {
+        "type": "string"
+      },
+      "instructions": {
+        "type": "string"
+      },
+      "hints": {
+        "type": "string"
+      },
+      "media": {
+        "type": "string"
+      },
+      "responseDeclaration": {
+        "type": "string"
+      },
+      "interactions": {
+        "type": "string"
       }
     },
     "primaryKey": ["identifier"]
