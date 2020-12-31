@@ -6,13 +6,6 @@
   "required": [
     "name",
     "code",
-    "navigationMode",
-    "allowSkip",
-    "requiresSubmit",
-    "shuffle",
-    "showFeedback",
-    "showSolutions",
-    "showHints",
     "mimeType",
     "primaryCategory"
   ],
@@ -33,6 +26,105 @@
         "application/vnd.sunbird.questionset"
       ]
     },
+    "primaryCategory": {
+      "type": "string",
+      "enum": [
+        "Practice Question Set"
+      ]
+    },
+    "additionalCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "visibility": {
+      "type": "string",
+      "default": "Default",
+      "enum": [
+        "Default",
+        "Parent"
+      ]
+    },
+    "copyright": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "default": "CC BY 4.0"
+    },
+    "lockKey": {
+      "type": "string"
+    },
+    "assets": {
+      "type": "array"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Student",
+          "Teacher",
+          "Admin"
+        ],
+        "default": "Student"
+      }
+    },
+    "author": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "attributions": {
+      "type": "array"
+    },
+    "consumerId": {
+      "type": "string"
+    },
+    "contentEncoding": {
+      "type": "string",
+      "enum": [
+        "gzip",
+        "identity"
+      ],
+      "default": "gzip"
+    },
+    "contentDisposition": {
+      "type": "string",
+      "enum": [
+        "inline",
+        "online",
+        "attachment",
+        "online-only"
+      ],
+      "default": "inline"
+    },
+    "appIcon": {
+      "type": "string",
+      "format": "url"
+    },
+    "publishCheckList": {
+      "type": "array"
+    },
+    "publishComment": {
+      "type": "string"
+    },
+    "compatibilityLevel": {
+      "type": "number",
+      "default": 4
+    },
+    "downloadUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "size": {
+      "type": "number"
+    },
+    "checksum": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -48,6 +140,12 @@
     },
     "lastStatusChangedOn": {
       "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "pkgVersion": {
       "type": "number"
@@ -106,6 +204,72 @@
     "topic" : {
       "type": "array"
     },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetFWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetBoardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetGradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetSubjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetMediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "createdOn": {
       "type": "string"
     },
@@ -136,8 +300,47 @@
     "lastPublishedBy": {
       "type": "string"
     },
-    "containsUserData": {
-      "type": "boolean"
+    "publishError": {
+      "type": "string"
+    },
+    "reviewError": {
+      "type": "string"
+    },
+    "dailySummaryReportEnabled": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "allowAnonymousAccess": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
+    },
+    "termsAndConditions": {
+      "type": "string"
+    },
+    "expectedDuration": {
+      "type": "number"
+    },
+    "completionCriteria": {
+      "type": "object"
+    },
+    "collaborators": {
+      "type": "array"
+    },
+    "semanticVersion": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "string"
+    },
+    "maxScore": {
+      "type": "number"
     },
     "setType": {
       "type": "string",
@@ -147,100 +350,51 @@
       ],
       "default": "materialised"
     },
-    "setCriteria" : {
+    "setCriteria": {
       "type": "object"
     },
     "feedback": {
       "type": "object"
     },
-    "navigationMode" : {
-      "type": "string",
-      "enum" : [
-        "linear",
-        "non-linear"
-      ],
-      "default": "non-linear"
-    },
-    "allowSkip" : {
+    "scoringMode": {
       "type": "string",
       "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No"
+        "system",
+        "none"
+      ]
     },
-    "requiresSubmit" : {
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No"
-    },
-    "summaryType": {
-      "type": "string",
-      "enum": [
-        "Complete",
-        "Score",
-        "Duration",
-        "Score & Duration"]
-    },
-    "shuffle" : {
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "Yes"
-    },
-    "totalQuestions": {
-      "description": "review required. What is default value? as it is required?",
-      "type": "number",
-      "default": 0
-    },
-    "maxQuestions": {
-      "description": "Number of questions in the question set that should be used in one session. |review required. What is default value? as it is required",
-      "type": "number",
-      "default": 0
-    },
-    "showFeedback" : {
-      "description": "If feedback should be shown or not while consuming the question set.",
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No"
-    },
-    "showSolutions" : {
-      "description": "",
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No"
-    },
-    "showHints" : {
-      "description": "",
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No"
-    },
-    "quMLVersion": {
-      "description": "review required. What is default value? as it is required?",
+    "qumlVersion": {
       "type": "string"
     },
     "timeLimits": {
-      "description": "",
       "type": "object"
     },
-    "showTimer" : {
-      "description": "Show or hide timer when playing this question set.",
-      "type": "boolean"
+    "maxScore": {
+      "type": "number"
+    },
+    "showTimer": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "showFeedback": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "showSolutions": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     },
     "bloomsLevel" : {
       "description": "Cognitive processes involved to answer the question set.",
@@ -254,45 +408,64 @@
         "create"
       ]
     },
-    "visibility": {
-      "type": "string",
-      "default": "Default",
-      "enum": [
-        "Default", "Parent"
-      ]
-    },
-    "primaryCategory": {
+    "navigationMode": {
       "type": "string",
       "enum": [
-        "Practice Question Set"
-      ]
+        "linear",
+        "non-linear"
+      ],
+      "default": "non-linear"
     },
-    "consumerId": {
-      "type": "string"
+    "allowSkip": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
     },
-    "childNodes": {
-      "type": "array"
+    "outcomeProcessing": {
+      "type": "object"
     },
-    "index": {
+    "requiresSubmit": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "summaryType": {
+      "type": "string",
+      "enum": [
+        "Complete",
+        "Score",
+        "Duration",
+        "Score & Duration"
+      ],
+      "default": "No"
+    },
+    "shuffle": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
+    },
+    "totalQuestions": {
       "type": "number"
     },
-    "depth": {
+    "maxQuestions": {
       "type": "number"
     },
-    "author": {
-      "type": "string"
-    },
-    "attributions": {
-      "type": "array"
-    },
-    "copyright": {
-      "type": "string"
-    },
-    "license": {
-      "type": "string"
-    },
-    "audience": {
-      "type": "array"
+    "containsUserData": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     }
   }
 }
