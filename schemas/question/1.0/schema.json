@@ -304,7 +304,7 @@
       "description": "External Property"
     },
     "editorState": {
-      "type": "string",
+      "type": "object",
       "description": "External Property"
     },
     "answer": {
@@ -312,27 +312,36 @@
       "description": "External Property"
     },
     "solutions": {
-      "type": "string",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
       "description": "External Property"
     },
     "instructions": {
-      "type": "string",
+      "type": "object",
       "description": "External Property"
     },
     "hints": {
-      "type": "string",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
       "description": "External Property"
     },
     "media": {
-      "type": "string",
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
       "description": "External Property"
     },
     "responseDeclaration": {
-      "type": "string",
+      "type": "object",
       "description": "External Property"
     },
     "interactions": {
-      "type": "string",
+      "type": "object",
       "description": "External Property"
     },
 
