@@ -232,8 +232,8 @@ object UpdateHierarchyManager {
                     if(StringUtils.isBlank(objectType))
                         throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Object Type is mandatory for creation of node with id: ${nodeModified._1}")
                     val metadata = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]]
-                    if(!StringUtils.equalsIgnoreCase(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String], "Parent"))
-                        throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Visibility can be only of type Parent: ${nodeModified._1}")
+                    if(!StringUtils.equalsIgnoreCase(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "Parent").asInstanceOf[String], "Parent"))
+                        throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Visibility can be only of type Parent for identifier: ${nodeModified._1}")
                     metadata.remove(HierarchyConstants.DIALCODES)
                     metadata.put(HierarchyConstants.STATUS, "Draft")
                     metadata.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
