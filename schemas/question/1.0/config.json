@@ -26,13 +26,16 @@
         "type": "blob"
       },
       "editorState": {
-        "type": "blob"
+        "type": "object"
       },
       "answer": {
         "type": "blob"
       },
       "solutions": {
-        "type": "blob"
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       },
       "instructions": {
         "type": "blob"
@@ -47,7 +50,7 @@
         "type": "blob"
       },
       "interactions": {
-        "type": "blob"
+        "type": "object"
       }
     },
     "primaryKey": ["identifier"]
