@@ -23,31 +23,31 @@
     "tableName": "question_data",
     "properties": {
       "body": {
-        "type": "string"
+        "type": "blob"
       },
       "editorState": {
-        "type": "string"
+        "type": "blob"
       },
       "answer": {
-        "type": "string"
+        "type": "blob"
       },
       "solutions": {
-        "type": "string"
+        "type": "blob"
       },
       "instructions": {
-        "type": "string"
+        "type": "blob"
       },
       "hints": {
-        "type": "string"
+        "type": "blob"
       },
       "media": {
-        "type": "string"
+        "type": "blob"
       },
       "responseDeclaration": {
-        "type": "string"
+        "type": "blob"
       },
       "interactions": {
-        "type": "string"
+        "type": "blob"
       }
     },
     "primaryKey": ["identifier"]
