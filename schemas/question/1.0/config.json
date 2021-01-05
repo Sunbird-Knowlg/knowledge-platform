@@ -23,7 +23,7 @@
     "tableName": "question_data",
     "properties": {
       "body": {
-        "type": "string"
+        "type": "blob"
       },
       "editorState": {
         "type": "string"
