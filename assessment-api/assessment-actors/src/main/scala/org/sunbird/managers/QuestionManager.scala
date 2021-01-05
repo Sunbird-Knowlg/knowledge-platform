@@ -62,9 +62,9 @@ object QuestionManager {
     }
 
     def generateInstructionEventMetadata(actor: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectData: util.Map[String, AnyRef], edata: util.Map[String, AnyRef], node: Node, identifier: String): Unit = {
-        val actorId: String = "Publish Samza Job"
+        val actorId: String = s"${node.getObjectType.toLowerCase()}-publish"
         val actorType: String = "System"
-        val pdataId: String = "org.ekstep.platform"
+        val pdataId: String = "org.sunbird.platform"
         val pdataVersion: String = "1.0"
         val action: String = "publish"
 
@@ -74,7 +74,7 @@ object QuestionManager {
         actor.put("id", actorId)
         actor.put("type", actorType)
 
-        context.put("channel", metadata.get("channel"))
+        context.put("channel", metadata.getOrDefault("channel", ""))
         val pdata = new util.HashMap[String, AnyRef]
         pdata.put("id", pdataId)
         pdata.put("ver", pdataVersion)
@@ -90,14 +90,14 @@ object QuestionManager {
         objectData.put("id", identifier)
         objectData.put("ver", metadata.get("versionKey"))
         val instructionEventMetadata = new util.HashMap[String, AnyRef]
-//        instructionEventMetadata.put("pkgVersion", metadata.get("pkgVersion"))
+        instructionEventMetadata.put("pkgVersion", metadata.getOrDefault("pkgVersion", "0.0"))
         instructionEventMetadata.put("mimeType", metadata.get("mimeType"))
         instructionEventMetadata.put("identifier", identifier)
-        //        instructionEventMetadata.put("lastPublishedBy", metadata.get("lastPublishedBy"))
+        instructionEventMetadata.put("lastPublishedBy", metadata.get("lastPublishedBy"))
+        instructionEventMetadata.put("objectType", node.getObjectType)
         edata.put("action", action)
         edata.put("metadata", instructionEventMetadata)
         edata.put("publish_type", publishType)
-//        edata.put("contentType", metadata.get("contentType"))
     }
 
 

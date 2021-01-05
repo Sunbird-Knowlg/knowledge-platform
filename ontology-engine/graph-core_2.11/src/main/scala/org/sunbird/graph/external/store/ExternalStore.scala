@@ -121,6 +121,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                 case "blob" => update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
                 case "object" => update.`with`(QueryBuilder.putAll(column, values(index).asInstanceOf[java.util.Map[String, AnyRef]]))
                 case "array" => update.`with`(QueryBuilder.appendAll(column, values(index).asInstanceOf[java.util.List[String]]))
+                case "string" => update.`with`(QueryBuilder.set(column, JsonUtils.serialize(values(index))))
                 case _ => update.`with`(QueryBuilder.set(column, values(index)))
             }
         }
