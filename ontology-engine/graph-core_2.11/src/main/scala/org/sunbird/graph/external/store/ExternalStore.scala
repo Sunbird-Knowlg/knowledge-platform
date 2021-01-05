@@ -8,6 +8,7 @@ import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import org.sunbird.cassandra.{CassandraConnector, CassandraStore}
+import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -28,6 +29,8 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         for ((key, value) <- request.asScala) {
             if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
                 insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+            else if("string".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
+                insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))
             else
                 insertQuery.value(key, value)
         }
