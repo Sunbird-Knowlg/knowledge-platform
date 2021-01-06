@@ -3,7 +3,7 @@ package org.sunbird.managers
 import java.util
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
@@ -112,18 +112,15 @@ object QuestionManager {
         })
     }
 
-    def validateQuestionSetHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Unit] = {
-        //Get mode=edit if published //Put this validation in configuration by default = true
-        if(!skipValidation) {
-            request.put("mode", "edit")
-            getQuestionSetHierarchy(request, rootNode ).map(hierarchyString => {
-                val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
-                    JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
-                } else new java.util.HashMap[String, AnyRef]()
-                val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-                validateChildrenRecursive(children)
-            })
-        } else Future()
+    def validateQuestionSetHierarchy(hierarchyString: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
+        if (!skipValidation) {
+            val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+                JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+            } else
+                new java.util.HashMap[String, AnyRef]()
+            val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+            validateChildrenRecursive(children)
+        }
     }
 
     def getQuestionSetHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
@@ -188,6 +185,27 @@ object QuestionManager {
             if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
                 throw new ClientException("ERR_QUESTION_UPDATE", "Question with visibility Parent, can't be updated individually.")
             node
+        })
+    }
+
+    def updateHierarchy(hierarchyString: String, status: String): (java.util.HashMap[String, AnyRef]) = {
+        val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+            JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+        } else
+            new java.util.HashMap[String, AnyRef]()
+        val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+        hierarchy.put("status", status)
+        updateChildrenRecursive(children, status)
+        hierarchy
+    }
+
+    private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status:String): Unit = {
+        children.toList.foreach(content => {
+            if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")){
+                content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+                content.put("status", status)
+            }
+            updateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], status)
         })
     }
 }

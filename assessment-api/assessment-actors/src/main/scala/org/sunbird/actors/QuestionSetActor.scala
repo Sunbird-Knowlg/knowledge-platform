@@ -12,6 +12,7 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.QuestionManager.getQuestionSetHierarchy
 import org.sunbird.managers.{HierarchyManager, QuestionManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
@@ -78,7 +79,9 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		request.getRequest.put("mode", "edit")
 		QuestionManager.getQuestionSetNodeToReview(request).flatMap(node => {
-			QuestionManager.validateQuestionSetHierarchy(request, node).flatMap(_ => {
+			QuestionManager.getQuestionSetHierarchy(request, node).flatMap(hierarchyString => {
+				QuestionManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
+				val updatedHierarchy = QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
 				val updateRequest = new Request(request)
 				updateRequest.getContext.put("identifier", request.get("identifier"))
 				updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
@@ -86,6 +89,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 				updateRequest.put("status", "Review")
 				updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 				updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
+				updateRequest.put("hierarchy", updatedHierarchy)
 				DataNode.update(updateRequest).map(node => {
 					val response: Response = ResponseHandler.OK
 					val identifier: String = node.getIdentifier.replace(".img", "")
@@ -101,7 +105,8 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 	def publish(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		QuestionManager.getQuestionNodeToPublish(request).flatMap(node => {
-			QuestionManager.validateQuestionSetHierarchy(request, node).map(_ => {
+			QuestionManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
+				QuestionManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				QuestionManager.pushInstructionEvent(node.getIdentifier, node)
 				val response = ResponseHandler.OK()
 				response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
