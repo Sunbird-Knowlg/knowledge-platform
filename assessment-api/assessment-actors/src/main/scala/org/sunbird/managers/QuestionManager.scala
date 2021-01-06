@@ -62,7 +62,7 @@ object QuestionManager {
     }
 
     def generateInstructionEventMetadata(actor: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectData: util.Map[String, AnyRef], edata: util.Map[String, AnyRef], node: Node, identifier: String): Unit = {
-        val actorId: String = s"${node.getObjectType.toLowerCase()}-publish"
+        val actorId: String = s"${node.getObjectType.toLowerCase().replace("image", "")}-publish"
         val actorType: String = "System"
         val pdataId: String = "org.sunbird.platform"
         val pdataVersion: String = "1.0"
@@ -87,14 +87,14 @@ object QuestionManager {
             val env: String = Platform.getString("cloud_storage.env", "dev")
             context.put("env", env)
         }
-        objectData.put("id", identifier)
+        objectData.put("id", identifier.replace(".img", ""))
         objectData.put("ver", metadata.get("versionKey"))
         val instructionEventMetadata = new util.HashMap[String, AnyRef]
         instructionEventMetadata.put("pkgVersion", metadata.getOrDefault("pkgVersion", 0.asInstanceOf[AnyRef]))
         instructionEventMetadata.put("mimeType", metadata.get("mimeType"))
         instructionEventMetadata.put("identifier", identifier)
         instructionEventMetadata.put("lastPublishedBy", metadata.get("lastPublishedBy"))
-        instructionEventMetadata.put("objectType", node.getObjectType)
+        instructionEventMetadata.put("objectType", node.getObjectType.replace("Image", ""))
         edata.put("action", action)
         edata.put("metadata", instructionEventMetadata)
         edata.put("publish_type", publishType)
