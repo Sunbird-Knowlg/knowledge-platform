@@ -90,7 +90,7 @@ object QuestionManager {
         objectData.put("id", identifier)
         objectData.put("ver", metadata.get("versionKey"))
         val instructionEventMetadata = new util.HashMap[String, AnyRef]
-        instructionEventMetadata.put("pkgVersion", metadata.getOrDefault("pkgVersion", "0.0"))
+        instructionEventMetadata.put("pkgVersion", metadata.getOrDefault("pkgVersion", 0))
         instructionEventMetadata.put("mimeType", metadata.get("mimeType"))
         instructionEventMetadata.put("identifier", identifier)
         instructionEventMetadata.put("lastPublishedBy", metadata.get("lastPublishedBy"))
