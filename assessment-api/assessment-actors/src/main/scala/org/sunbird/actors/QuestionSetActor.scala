@@ -81,21 +81,26 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		QuestionManager.getQuestionSetNodeToReview(request).flatMap(node => {
 			QuestionManager.getQuestionSetHierarchy(request, node).flatMap(hierarchyString => {
 				QuestionManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
-				val updatedHierarchy = QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
-				val updateRequest = new Request(request)
-				updateRequest.getContext.put("identifier", request.get("identifier"))
-				updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
-				updateRequest.put("prevState", "Draft")
-				updateRequest.put("status", "Review")
-				updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
-				updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
-				updateRequest.put("hierarchy", updatedHierarchy)
-				DataNode.update(updateRequest).map(node => {
-					val response: Response = ResponseHandler.OK
-					val identifier: String = node.getIdentifier.replace(".img", "")
-					response.put("identifier", identifier)
-					response.put("versionKey", node.getMetadata.get("versionKey"))
-					response
+				val (updatedHierarchy, nodeIds)= QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
+				val updateReq = new Request(request)
+				updateReq.put("identifiers", nodeIds)
+				updateReq.put("metadata", Map("status" -> "Review").asJava)
+				DataNode.bulkUpdate(updateReq).flatMap(_ => {
+					val updateRequest = new Request(request)
+					updateRequest.getContext.put("identifier", request.get("identifier"))
+					updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
+					updateRequest.put("prevState", "Draft")
+					updateRequest.put("status", "Review")
+					updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+					updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
+					updateRequest.put("hierarchy", updatedHierarchy)
+					DataNode.update(updateRequest).map(_ => {
+						val response: Response = ResponseHandler.OK
+						val identifier: String = node.getIdentifier.replace(".img", "")
+						response.put("identifier", identifier)
+						response.put("versionKey", node.getMetadata.get("versionKey"))
+						response
+					})
 				})
 			})
 		})
