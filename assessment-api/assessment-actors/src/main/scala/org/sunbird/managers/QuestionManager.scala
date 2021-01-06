@@ -201,9 +201,11 @@ object QuestionManager {
 
     private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status:String): Unit = {
         children.toList.foreach(content => {
-            if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")){
+            if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")) {
                 content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
                 content.put("status", status)
+                content.put("prevState", "Draft")
+                content.put("lastUpdatedOn", DateUtils.formatCurrentDate)
             }
             updateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], status)
         })
