@@ -188,12 +188,12 @@ object QuestionManager {
         })
     }
 
-    def updateHierarchy(hierarchyString: String, status: String): (java.util.HashMap[String, AnyRef]) = {
+    def updateHierarchy(hierarchyString: String, status: String): (java.util.Map[String, AnyRef]) = {
         val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
-            JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
+            JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
         } else
             new java.util.HashMap[String, AnyRef]()
-        val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+        val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
         hierarchy.put("status", status)
         updateChildrenRecursive(children, status)
         hierarchy
