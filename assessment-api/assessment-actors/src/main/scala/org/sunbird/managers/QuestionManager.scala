@@ -215,4 +215,15 @@ object QuestionManager {
         })
     }
 
+    def getQuestionSetNodeToReject(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+        request.put("mode", "edit")
+        DataNode.read(request).map(node => {
+            if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
+                throw new ClientException("ERR_QUESTION_SET_REJECT", "Question Set with visibility Parent, can't be sent for review individually.")
+            if (!StringUtils.equalsIgnoreCase("Review", node.getMetadata.get("status").asInstanceOf[String]))
+                throw new ClientException("ERR_QUESTION_SET_REJECT", "QuestionSet is not in 'Review' state for identifier: " + node.getIdentifier)
+            node
+        })
+    }
+
 }
