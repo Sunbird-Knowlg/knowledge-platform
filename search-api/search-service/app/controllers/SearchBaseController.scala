@@ -91,6 +91,10 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
                         e.printStackTrace()
                 }
                 val requestObj: AnyRef = requestMap.get("request")
+                if(requestObj.asInstanceOf[java.util.Map[String, AnyRef]].get("filter").asInstanceOf[java.util.Map[String, AnyRef]].get("visibility") == null){
+                    requestObj.asInstanceOf[java.util.Map[String, AnyRef]].put("visibility", "Default")
+                }
+
                 if (null != requestObj) try {
                     val strRequest: String = JsonUtils.serialize(requestObj)
                     val map: java.util.Map[String, AnyRef] =  JsonUtils.deserialize(strRequest, classOf[java.util.Map[String, Object]])
