@@ -136,9 +136,9 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		DataNode.bulkUpdate(request).flatMap(_ => {
 			val updateRequest = new Request(request)
 			val date = DateUtils.formatCurrentDate
-			val metadata: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
+			val fMeta: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
 			updateRequest.getContext.put("identifier", request.get("identifier"))
-			updateRequest.putAll(metadata.asJava)
+			updateRequest.putAll(fMeta.asJava)
 			DataNode.update(updateRequest).map(_ => {
 				val response: Response = ResponseHandler.OK
 				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
