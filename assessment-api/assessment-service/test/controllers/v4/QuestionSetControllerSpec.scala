@@ -72,4 +72,10 @@ class QuestionSetControllerSpec extends BaseSpec {
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
+
+	"review should update the questionSet status to Reject successfully for given valid identifier" in {
+		val result = controller.reject("do_123")(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
 }

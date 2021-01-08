@@ -30,3 +30,4 @@ PATCH     /questionset/v4/add                        controllers.v4.QuestionSetC
 DELETE    /questionset/v4/remove                     controllers.v4.QuestionSetController.remove
 PATCH     /questionset/v4/hierarchy/update           controllers.v4.QuestionSetController.updateHierarchy
 GET       /questionset/v4/hierarchy/:identifier      controllers.v4.QuestionSetController.getHierarchy(identifier:String, mode:Option[String])
+POST      /questionset/v4/reject/:identifier         controllers.v4.QuestionSetController.reject(identifier:String)

@@ -248,7 +248,6 @@ object UpdateHierarchyManager {
                             createNewNode(nodeModified._1, idMap, metadata, nodeList, request)
                     } else {
                         updateTempNode(request, nodeModified._1, nodeList, idMap, metadata)
-                        Future(nodeList.distinct)
                     }
                 })
         if (CollectionUtils.isNotEmpty(futures))
@@ -300,7 +299,7 @@ object UpdateHierarchyManager {
             })
     }
 
-    private def updateTempNode(request:Request, nodeId: String, nodeList: List[Node], idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[AnyRef] = {
+    private def updateTempNode(request:Request, nodeId: String, nodeList: List[Node], idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val tempNode: Node = getTempNode(nodeList, nodeId)
         if(null == tempNode)
             throw new ResourceNotFoundException("ERR_UPDATE_QS_HIERARCHY", s"No node found with id: $nodeId")
