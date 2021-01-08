@@ -45,17 +45,16 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-//        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+        // Uncomment below line if running individual file in local.
+        //(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
             {
                 add(getBoardNode())
-                add(getFrameworkNode())
             }
         }))
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep",
-        "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "targetBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -69,15 +68,8 @@ class TestContentActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
-            {
-                add(getBoardNode())
-                add(getFrameworkNode())
-            }
-        }))
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep",
-        "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "framework"-> "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -311,12 +303,6 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
-            {
-                add(getBoardNode())
-                add(getFrameworkNode())
-            }
-        }))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
