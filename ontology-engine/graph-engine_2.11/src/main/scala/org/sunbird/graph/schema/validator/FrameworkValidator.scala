@@ -17,13 +17,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait FrameworkValidator extends IDefinition {
 
-  val ORGANISATIONAL_FRAMEWORK_TERMS = List("framework", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds")
-  val TARGET_FRAMEWORK_TERMS = List("targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds")
-
   @throws[Exception]
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
       val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
-      validateAndSetMultiFrameworks(node).map(_ => {
+      val orgFwTerms: List[String] = schemaValidator.getConfig.getStringList("orgFrameworkTerms").asScala.toList
+      val targetFwTerms: List[String] = schemaValidator.getConfig.getStringList("targetFrameworkTerms").asScala.toList
+      validateAndSetMultiFrameworks(node, orgFwTerms, targetFwTerms).map(_ => {
         val framework: String = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
         if (null != fwCategories && fwCategories.nonEmpty && framework.nonEmpty) {
           //prepare data for validation
@@ -59,10 +58,8 @@ trait FrameworkValidator extends IDefinition {
       }).flatMap(f => f)
   }
 
-  private def validateAndSetMultiFrameworks(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-    getValidatedTerms(node, ORGANISATIONAL_FRAMEWORK_TERMS).map(orgTermMap => {
-//      if (StringUtils.isNotBlank(node.getMetadata.get("organisationFrameworkId").asInstanceOf[String]))
-//        node.getMetadata.putIfAbsent("framework", node.getMetadata.get("organisationFrameworkId").asInstanceOf[String])
+  private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+    getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
       val boardIds = getList("boardIds", node)
       if (CollectionUtils.isNotEmpty(boardIds))
         node.getMetadata.putIfAbsent("board", orgTermMap(boardIds.get(0)))
@@ -78,7 +75,7 @@ trait FrameworkValidator extends IDefinition {
       val topicIds = getList("topicsIds", node)
       if (CollectionUtils.isNotEmpty(topicIds))
         node.getMetadata.putIfAbsent("topics", topicIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      getValidatedTerms(node, TARGET_FRAMEWORK_TERMS)
+      getValidatedTerms(node, targetFwTerms)
     }).flatMap(f => f)
   }
 
