@@ -28,12 +28,14 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         import scala.collection.JavaConverters._
         for ((key, value) <- request.asScala) {
-            if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
-                insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
-            else if("string".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
-                insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))
-            else
-                insertQuery.value(key, value)
+            propsMapping.getOrElse(key, "") match {
+                case "blob" => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+                case "string" => request.getOrDefault(key, "") match {
+                    case value: String => insertQuery.value(key, value)
+                    case _ => insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))
+                }
+                case _ => insertQuery.value(key, value)
+            }
         }
         try {
             val session: Session = CassandraConnector.getSession

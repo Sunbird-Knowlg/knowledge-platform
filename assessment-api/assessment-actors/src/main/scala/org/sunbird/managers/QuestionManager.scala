@@ -188,26 +188,42 @@ object QuestionManager {
         })
     }
 
-    def updateHierarchy(hierarchyString: String, status: String): (java.util.Map[String, AnyRef]) = {
+
+    def updateHierarchy(hierarchyString: String, status: String): (java.util.Map[String, AnyRef], java.util.List[String]) = {
         val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
             JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
         } else
             new java.util.HashMap[String, AnyRef]()
         val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
         hierarchy.put("status", status)
-        updateChildrenRecursive(children, status)
-        hierarchy
+        val childrenToUpdate: List[String] = updateChildrenRecursive(children, status, List())
+        (hierarchy, childrenToUpdate.asJava)
     }
 
-    private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status:String): Unit = {
-        children.toList.foreach(content => {
-            if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")) {
-                content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
-                content.put("status", status)
-                content.put("prevState", "Draft")
-                content.put("lastUpdatedOn", DateUtils.formatCurrentDate)
-            }
-            updateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], status)
+    private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status:String, idList: List[String]): List[String] = {
+        children.toList.flatMap(content => {
+           val updatedIdList: List[String] =
+               if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")) {
+                   content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+                   content.put("status", status)
+                   content.put("prevState", "Draft")
+                   content.put("lastUpdatedOn", DateUtils.formatCurrentDate)
+                   content.get("identifier").asInstanceOf[String] :: idList
+               } else idList
+            val list = updateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], status, updatedIdList)
+            list ++ updatedIdList
         })
     }
+
+    def getQuestionSetNodeToReject(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+        request.put("mode", "edit")
+        DataNode.read(request).map(node => {
+            if(StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault("visibility", "").asInstanceOf[String], "Parent"))
+                throw new ClientException("ERR_QUESTION_SET_REJECT", "Question Set with visibility Parent, can't be sent for review individually.")
+            if (!StringUtils.equalsIgnoreCase("Review", node.getMetadata.get("status").asInstanceOf[String]))
+                throw new ClientException("ERR_QUESTION_SET_REJECT", "QuestionSet is not in 'Review' state for identifier: " + node.getIdentifier)
+            node
+        })
+    }
+
 }
