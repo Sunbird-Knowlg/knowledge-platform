@@ -3,7 +3,6 @@ package org.sunbird.actors
 import java.util
 
 import javax.inject.Inject
-import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.DateUtils
@@ -11,8 +10,8 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.managers.QuestionManager.getQuestionSetHierarchy
 import org.sunbird.managers.{HierarchyManager, QuestionManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
@@ -84,25 +83,8 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 				QuestionManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				val (updatedHierarchy, nodeIds)= QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
 				val updateReq = new Request(request)
-				updateReq.put("identifiers", nodeIds)
-				updateReq.put("metadata", Map("status" -> "Review").asJava)
-				DataNode.bulkUpdate(updateReq).flatMap(_ => {
-					val updateRequest = new Request(request)
-					updateRequest.getContext.put("identifier", request.get("identifier"))
-					updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
-					updateRequest.put("prevState", "Draft")
-					updateRequest.put("status", "Review")
-					updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
-					updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
-					updateRequest.put("hierarchy", updatedHierarchy)
-					DataNode.update(updateRequest).map(_ => {
-						val response: Response = ResponseHandler.OK
-						val identifier: String = node.getIdentifier.replace(".img", "")
-						response.put("identifier", identifier)
-						response.put("versionKey", node.getMetadata.get("versionKey"))
-						response
-					})
-				})
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review").asJava).asJava)
+				bulkUpdate(updateReq, node, Map("status" -> "Review", "hierarchy" -> updatedHierarchy))
 			})
 		})
 	}
@@ -144,25 +126,23 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 				QuestionManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				val (updatedHierarchy, nodeIds)= QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
 				val updateReq = new Request(request)
-				updateReq.put("identifiers", nodeIds)
-				updateReq.put("metadata", Map("status" -> "Draft").asJava)
-				DataNode.bulkUpdate(updateReq).flatMap(_ => {
-					val updateRequest = new Request(request)
-					updateRequest.getContext.put("identifier", request.get("identifier"))
-					updateRequest.put("versionKey", node.getMetadata.get("versionKey"))
-					updateRequest.put("prevState", node.getMetadata.get("status"))
-					updateRequest.put("status", "Draft")
-					updateRequest.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
-					updateRequest.put("lastUpdatedOn", DateUtils.formatCurrentDate)
-					updateRequest.put("hierarchy", updatedHierarchy)
-					DataNode.update(updateRequest).map(_ => {
-						val response: Response = ResponseHandler.OK
-						val identifier: String = node.getIdentifier.replace(".img", "")
-						response.put("identifier", identifier)
-						response.put("versionKey", node.getMetadata.get("versionKey"))
-						response
-					})
-				})
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft").asJava).asJava)
+				bulkUpdate(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy))
+			})
+		})
+	}
+
+	def bulkUpdate(request: Request, node: Node, metadata: Map[String, AnyRef]): Future[Response] = {
+		DataNode.bulkUpdate(request).flatMap(_ => {
+			val updateRequest = new Request(request)
+			val date = DateUtils.formatCurrentDate
+			val metadata = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
+			updateRequest.getContext.put("identifier", request.get("identifier"))
+			updateRequest.putAll(metadata.asJava)
+			DataNode.update(updateRequest).map(_ => {
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
 			})
 		})
 	}
