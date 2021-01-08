@@ -124,7 +124,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		QuestionManager.getQuestionSetNodeToReject(request).flatMap(node => {
 			QuestionManager.getQuestionSetHierarchy(request, node).flatMap(hierarchyString => {
 				QuestionManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
-				val (updatedHierarchy, nodeIds)= QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
+				val (updatedHierarchy, nodeIds)= QuestionManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Draft")
 				val updateReq = new Request(request)
 				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft").asJava).asJava)
 				bulkUpdate(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy))
@@ -136,7 +136,7 @@ class QuestionSetActor @Inject() (implicit oec: OntologyEngineContext) extends B
 		DataNode.bulkUpdate(request).flatMap(_ => {
 			val updateRequest = new Request(request)
 			val date = DateUtils.formatCurrentDate
-			val metadata = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
+			val metadata: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
 			updateRequest.getContext.put("identifier", request.get("identifier"))
 			updateRequest.putAll(metadata.asJava)
 			DataNode.update(updateRequest).map(_ => {
