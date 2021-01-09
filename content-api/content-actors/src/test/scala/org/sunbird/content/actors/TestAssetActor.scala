@@ -30,12 +30,6 @@ class TestAssetActor extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
-      {
-        add(getBoardNode())
-        add(getFrameworkNode())
-      }
-    }))
     implicit val ss = mock[StorageService]
     val request = getContentRequest()
     request.getContext.put("identifier","do_1234")

@@ -9,6 +9,8 @@
   },
   "objectType": "Channel",
   "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
   "relations": {
     "categories": {
       "type": "hasSequenceMember",
