@@ -181,20 +181,24 @@ object AssessmentManager {
 	@throws[Exception]
 	def pushInstructionEvent(identifier: String, node: Node)(implicit oec: OntologyEngineContext): Unit = {
 		val (actor, context, objData, eData) = generateInstructionEventMetadata(identifier.replace(".img", ""), node)
-		val beJobRequestEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor, context, objData, eData)
+		val beJobRequestEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor.asJava, context.asJava, objData.asJava, eData)
 		val topic: String = Platform.getString("kafka.topics.instruction", "sunbirddev.learning.job.request")
 		if (StringUtils.isBlank(beJobRequestEvent)) throw new ClientException("BE_JOB_REQUEST_EXCEPTION", "Event is not generated properly.")
 		oec.kafkaClient.send(beJobRequestEvent, topic)
 	}
 
-	def generateInstructionEventMetadata(identifier: String, node: Node): (util.Map[String, AnyRef], util.Map[String, AnyRef], util.Map[String, AnyRef], util.Map[String, AnyRef]) = {
+	def generateInstructionEventMetadata(identifier: String, node: Node): (Map[String, AnyRef], Map[String, AnyRef], Map[String, AnyRef], util.Map[String, AnyRef]) = {
 		val metadata: util.Map[String, AnyRef] = node.getMetadata
 		val publishType = if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("status", "").asInstanceOf[String], "Unlisted")) "unlisted" else "public"
 		val eventMetadata = Map("identifier" -> identifier, "mimeType" -> metadata.getOrDefault("mimeType", ""), "objectType" -> node.getObjectType.replace("Image", ""), "pkgVersion" -> metadata.getOrDefault("pkgVersion", 0.asInstanceOf[AnyRef]), "lastPublishedBy" -> metadata.getOrDefault("lastPublishedBy", ""))
 		val actor = Map("id" -> s"${node.getObjectType.toLowerCase().replace("image", "")}-publish", "type" -> "System".asInstanceOf[AnyRef])
 		val context = Map("channel" -> metadata.getOrDefault("channel", ""), "pdata" -> Map("id" -> "org.sunbird.platform", "ver" -> "1.0").asJava, "env" -> Platform.getString("cloud_storage.env", "dev"))
 		val objData = Map("id" -> identifier, "ver" -> metadata.getOrDefault("versionKey", ""))
-		val eData = Map("action" -> "publish", "publish_type" -> publishType, "metadata" -> eventMetadata.asJava)
-		(actor.asJava, context.asJava, objData.asJava, eData.asJava)
+		val eData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef] {{
+				put("action", "publish")
+				put("publish_type", publishType)
+				put("metadata", eventMetadata.asJava)
+			}}
+		(actor, context, objData, eData)
 	}
 }
