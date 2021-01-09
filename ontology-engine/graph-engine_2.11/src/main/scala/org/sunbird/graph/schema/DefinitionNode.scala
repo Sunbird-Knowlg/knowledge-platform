@@ -202,7 +202,10 @@ object DefinitionNode {
         if(!jsonPropList.isEmpty){
             node.getMetadata.entrySet().map(entry => {
                 if(jsonPropList.contains(entry.getKey)){
-                    entry.setValue(JsonUtils.deserialize(entry.getValue.asInstanceOf[String], classOf[Object]))
+                    entry.getValue match  {
+                        case value: String =>  entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
+                        case _ => entry
+                    }
                 }
             })
         }

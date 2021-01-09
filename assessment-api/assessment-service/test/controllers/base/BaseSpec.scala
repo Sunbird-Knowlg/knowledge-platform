@@ -13,7 +13,7 @@ import scala.concurrent.Future
 
 class BaseSpec extends Specification {
     implicit val app = new GuiceApplicationBuilder()
-      .disable(classOf[modules.ItemSetModule])
+      .disable(classOf[modules.AssessmentModule])
       .bindings(new TestModule)
       .build
     implicit val config = ConfigFactory.load()

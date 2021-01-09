@@ -8,6 +8,7 @@ import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import org.sunbird.cassandra.{CassandraConnector, CassandraStore}
+import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -26,10 +27,14 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         import scala.collection.JavaConverters._
         for ((key, value) <- request.asScala) {
-            if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
-                insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
-            else
-                insertQuery.value(key, value)
+            propsMapping.getOrElse(key, "") match {
+                case "blob" => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+                case "string" => request.getOrDefault(key, "") match {
+                    case value: String => insertQuery.value(key, value)
+                    case _ => insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))
+                }
+                case _ => insertQuery.value(key, value)
+            }
         }
         try {
             val session: Session = CassandraConnector.getSession
@@ -118,6 +123,10 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                 case "blob" => update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
                 case "object" => update.`with`(QueryBuilder.putAll(column, values(index).asInstanceOf[java.util.Map[String, AnyRef]]))
                 case "array" => update.`with`(QueryBuilder.appendAll(column, values(index).asInstanceOf[java.util.List[String]]))
+                case "string" => values(index) match  {
+                    case value: String =>  update.`with`(QueryBuilder.set(column, values(index)))
+                    case _ =>  update.`with`(QueryBuilder.set(column, JsonUtils.serialize(values(index))))
+                }
                 case _ => update.`with`(QueryBuilder.set(column, values(index)))
             }
         }

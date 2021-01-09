@@ -148,7 +148,7 @@ object DataNode {
         }).flatMap(f => f)
     }
 
-    private def updateRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext) : Future[Response] = {
+    private def updateRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext) : Future[Response] = {
         val request: Request = new Request
         request.setContext(context)
 
@@ -156,9 +156,9 @@ object DataNode {
             Future(new Response)
         } else {
             if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
-                GraphAsyncOperations.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
+                oec.graphService.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
             if (CollectionUtils.isNotEmpty(node.getAddedRelations))
-                GraphAsyncOperations.createRelation(graphId,getRelationMap(node.getAddedRelations))
+                oec.graphService.createRelation(graphId,getRelationMap(node.getAddedRelations))
             Future(new Response)
         }
     }
