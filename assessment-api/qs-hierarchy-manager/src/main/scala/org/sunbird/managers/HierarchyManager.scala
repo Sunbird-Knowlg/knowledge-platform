@@ -25,7 +25,6 @@ import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants
 
 object HierarchyManager {
 
-    //TODO: do we need a different schema?
     val schemaName: String = "questionset"
     val schemaVersion: String = "1.0"
     val imgSuffix: String = ".img"
@@ -41,11 +40,6 @@ object HierarchyManager {
             java.util.Arrays.asList("collections","children","usedByContent","item_sets","methods","libraries","editorState")
     }
 
-    //TODO: Remove below configurations
-    //val mapPrimaryCategoriesEnabled: Boolean = if (Platform.config.hasPath("collection.primarycategories.mapping.enabled")) Platform.config.getBoolean("collection.primarycategories.mapping.enabled") else true
-    //val objectTypeAsContentEnabled: Boolean = if (Platform.config.hasPath("objecttype.as.content.enabled")) Platform.config.getBoolean("objecttype.as.content.enabled") else true
-
-    //TODO: Controller mapping is not changed for this end point
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
@@ -54,7 +48,6 @@ object HierarchyManager {
             val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
             if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode, "add") else {
                 val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
-                //validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
                 if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                     Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
                 }else {
@@ -85,8 +78,6 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
     }
 
-
-    //TODO: Controller mapping is not changed for this end point
     @throws[Exception]
     def removeLeafNodesFromHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
@@ -95,7 +86,6 @@ object HierarchyManager {
             val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
             if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode, "remove") else {
                 val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
-                //validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
                 if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                     Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
                 }else {
@@ -182,12 +172,8 @@ object HierarchyManager {
             val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
             var metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
             val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
-            //TODO: Remove content Mapping for backward compatibility
-            //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
             hierarchy.map(hierarchy => {
                 val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-                //TODO: Remove content Mapping for backward compatibility
-                //updateContentMappingInChildren(children)
                 val leafNodeIds = new util.ArrayList[String]()
                 fetchAllLeafNodes(children, leafNodeIds)
                 getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
@@ -207,14 +193,10 @@ object HierarchyManager {
             val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
             searchResponse.map(rootHierarchy => {
                 if(!rootHierarchy.isEmpty && StringUtils.isNotEmpty(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])){
-                    //TODO: Remove content Mapping for backward compatibility
-                    //HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]])
                     val unPublishedBookmarkHierarchy = getUnpublishedBookmarkHierarchy(request, rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])
                     unPublishedBookmarkHierarchy.map(hierarchy => {
                         if (!hierarchy.isEmpty) {
                             val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-                            //TODO: Remove content Mapping for backward compatibility
-                            //updateContentMappingInChildren(children)
                             val leafNodeIds = new util.ArrayList[String]()
                             fetchAllLeafNodes(children, leafNodeIds)
                             getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
@@ -447,8 +429,6 @@ object HierarchyManager {
         hierarchy.map(hierarchy => {
             if (!hierarchy.isEmpty) {
                 if (StringUtils.isNotEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
-                    //TODO: Remove mapping
-                    //val hierarchyMap = mapPrimaryCategories(hierarchy)
                     rootHierarchy.put("questionSet", hierarchy)
                     RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchy))
                     Future(rootHierarchy)
@@ -466,8 +446,6 @@ object HierarchyManager {
                                     if (StringUtils.isNoneEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && CollectionUtils.isNotEmpty(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]])) {
                                         val bookmarkHierarchy = filterBookmarkHierarchy(mapAsJavaMap(hierarchy).get("children").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]], request.get("rootId").asInstanceOf[String])
                                         if (!bookmarkHierarchy.isEmpty) {
-                                            //TODO: Remove mapping
-                                            //val hierarchyMap = mapPrimaryCategories(bookmarkHierarchy)
                                             rootHierarchy.put("questionSet", hierarchy)
                                             RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchy))
                                             rootHierarchy
@@ -564,17 +542,6 @@ object HierarchyManager {
         }
     }
 
-    /*def validateShallowCopied(rootNodeMap: util.Map[String, AnyRef], operation: String, identifier: String) = {
-        val originData = rootNodeMap.getOrDefault("originData", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-        if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW)) {
-            operation match {
-                case "add"=> throw new ClientException(HierarchyErrorCodes.ERR_ADD_HIERARCHY_DENIED, "Add Hierarchy is not allowed for partially (shallow) copied content : " + identifier)
-                case "remove"=> throw new ClientException(HierarchyErrorCodes.ERR_REMOVE_HIERARCHY_DENIED, "Remove Hierarchy is not allowed for partially (shallow) copied content : " + identifier)
-            }
-
-        }
-    }*/
-
     def updateLatestLeafNodes(children: util.List[util.Map[String, AnyRef]], leafNodeMap: util.Map[String, AnyRef]): List[Any] = {
         children.toList.map(content => {
             if(StringUtils.equalsIgnoreCase("Default", content.getOrDefault("visibility", "").asInstanceOf[String])) {
@@ -582,7 +549,6 @@ object HierarchyManager {
                 if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.getOrDefault("status", HierarchyConstants.RETIRED_STATUS).asInstanceOf[String])){
                     children.remove(content)
                 } else {
-                    //HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(metadata)
                     content.putAll(metadata)
                 }
             } else {
@@ -616,7 +582,6 @@ object HierarchyManager {
                 val imageNodeIds: util.List[String] = JavaConverters.seqAsJavaListConverter(leafNodeIds.toList.map(id => id + HierarchyConstants.IMAGE_SUFFIX)).asJava
                 request.put("identifiers", imageNodeIds)
                 DataNode.list(request).map(imageNodes => {
-                    //val imageLeafNodeMap: Map[String, AnyRef] = imageNodes.toList.map(imageNode => (imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, ""), NodeUtil.serialize(imageNode, null, HierarchyConstants.CONTENT_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION, true).asInstanceOf[AnyRef])).toMap
                     val imageLeafNodeMap: Map[String, AnyRef] = imageNodes.toList.map(imageNode => {
                         val identifier = imageNode.getIdentifier.replaceAll(HierarchyConstants.IMAGE_SUFFIX, "")
                         val metadata = NodeUtil.serialize(imageNode, null, imageNode.getObjectType.toLowerCase.replace("image", ""), HierarchyConstants.SCHEMA_VERSION, true)
@@ -630,27 +595,6 @@ object HierarchyManager {
         } else {
             Future{new util.HashMap[String, AnyRef]()}
         }
-
     }
 
-    /*def updateContentMappingInChildren(children: util.List[util.Map[String, AnyRef]]): List[Any] = {
-        children.toList.map(content => {
-            if (mapPrimaryCategoriesEnabled)
-                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
-            if (objectTypeAsContentEnabled)
-                HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(content)
-            updateContentMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
-        })
-    }*/
-
-    /*private def mapPrimaryCategories(hierarchy: java.util.Map[String, AnyRef]):util.Map[String, AnyRef] = {
-        val updatedHierarchy = new util.HashMap[String, AnyRef](hierarchy)
-        if (mapPrimaryCategoriesEnabled)
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
-        if (objectTypeAsContentEnabled)
-            HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(updatedHierarchy)
-        val children = new util.HashMap[String, AnyRef](hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
-        updateContentMappingInChildren(children)
-        updatedHierarchy
-    }*/
 }
