@@ -59,4 +59,5 @@ object HierarchyConstants {
 //    val ASSET_OBJECT_TYPE: String = "Asset"
     val QUESTIONSET_MIME_TYPE: String = "application/vnd.sunbird.questionset"
 	val QUESTIONSET_OBJECT_TYPE: String = "QuestionSet"
+    val OPERATION_UPDATE_HIERARCHY: String = "updateHierarchy"
 }
