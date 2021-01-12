@@ -57,4 +57,6 @@ object HierarchyConstants {
     val ASSET_CONTENT_TYPE: String = "Asset"
     val COLLECTION_OBJECT_TYPE: String = "Collection"
     val ASSET_OBJECT_TYPE: String = "Asset"
+    val OPERATION_UPDATE_HIERARCHY: String = "updateHierarchy"
+
 }
