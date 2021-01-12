@@ -3,13 +3,14 @@ package org.sunbird.actors
 import java.util
 
 import javax.inject.Inject
+import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.managers.{HierarchyManager, AssessmentManager, UpdateHierarchyManager}
+import org.sunbird.managers.{AssessmentManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
 import scala.collection.JavaConverters._
@@ -48,8 +49,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
 				val updateReq = new Request(request)
-				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review").asJava).asJava)
-				bulkUpdate(updateReq, node, Map("status" -> "Review", "hierarchy" -> updatedHierarchy))
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft").asJava).asJava)
+				updateHierarchyNodes(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy), nodeIds)
 			})
 		})
 	}
@@ -91,23 +92,33 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Draft")
 				val updateReq = new Request(request)
 				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft").asJava).asJava)
-				bulkUpdate(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy))
+				updateHierarchyNodes(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy), nodeIds)
 			})
 		})
 	}
 
-	def bulkUpdate(request: Request, node: Node, metadata: Map[String, AnyRef]): Future[Response] = {
-		DataNode.bulkUpdate(request).flatMap(_ => {
-			val updateRequest = new Request(request)
-			val date = DateUtils.formatCurrentDate
-			val fMeta: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
-			updateRequest.getContext.put("identifier",  request.getContext.get("identifier"))
-			updateRequest.putAll(fMeta.asJava)
-			DataNode.update(updateRequest).map(_ => {
-				val response: Response = ResponseHandler.OK
-				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-				response
+	def updateHierarchyNodes(request: Request, node: Node, metadata: Map[String, AnyRef], nodeIds: util.List[String]): Future[Response] = {
+		if (CollectionUtils.isNotEmpty(nodeIds)) {
+			val updateReq = new Request(request)
+			updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review").asJava).asJava)
+			DataNode.bulkUpdate(request).flatMap(_ => {
+				updateNode(request, node, metadata)
 			})
+		} else {
+			updateNode(request, node, metadata)
+		}
+	}
+
+	def updateNode(request: Request, node: Node,  metadata: Map[String, AnyRef]): Future[Response] = {
+		val updateRequest = new Request(request)
+		val date = DateUtils.formatCurrentDate
+		val fMeta: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
+		updateRequest.getContext.put("identifier",  request.getContext.get("identifier"))
+		updateRequest.putAll(fMeta.asJava)
+		DataNode.update(updateRequest).map(_ => {
+			val response: Response = ResponseHandler.OK
+			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+			response
 		})
 	}
 
