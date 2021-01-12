@@ -369,10 +369,9 @@ public class SearchActor extends SearchBaseActor {
     private List<Map<String, Object>> getSearchFilterProperties(Map<String, Object> filters, Boolean traversal)
             throws Exception {
         List<Map<String, Object>> properties = new ArrayList<Map<String, Object>>();
-        boolean statusFilter = false;
-        boolean publishedStatus = false;
-        if (null != filters && !filters.isEmpty()) {
-            publishedStatus = checkPublishedStatus(filters);
+        if (null == filters) filters = new HashMap<String, Object>();
+        if (!filters.isEmpty()) {
+            boolean publishedStatus = checkPublishedStatus(filters);
             for (Map.Entry<String, Object> entry : filters.entrySet()) {
                 if ("identifier".equalsIgnoreCase(entry.getKey())) {
                     List ids = new ArrayList<>();
@@ -508,20 +507,26 @@ public class SearchActor extends SearchBaseActor {
                         properties.add(property);
                     }
                 }
-
-                if (StringUtils.equals("status", entry.getKey()))
-                    statusFilter = true;
             }
         }
 
-        if (!statusFilter && !traversal) {
-            Map<String, Object> property = new HashMap<String, Object>();
-            property.put(SearchConstants.operation, SearchConstants.SEARCH_OPERATION_EQUAL);
-            property.put(SearchConstants.propertyName, "status");
-            property.put(SearchConstants.values, Arrays.asList(new String[] { "Live" }));
+        if (!filters.containsKey("status") && !traversal) {
+            Map<String, Object> property = getFilterProperty("status", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Live" }));
+            properties.add(property);
+        }
+        if (!filters.containsKey("visibility")) {
+            Map<String, Object> property = getFilterProperty("visibility", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Default" }));
             properties.add(property);
         }
         return properties;
+    }
+
+    private Map<String, Object> getFilterProperty(String propName, String operation, Object value) {
+        return new HashMap<String, Object>() {{
+            put(SearchConstants.operation, operation);
+            put(SearchConstants.propertyName, propName);
+            put(SearchConstants.values, value);
+        }};
     }
 
     private boolean checkPublishedStatus(Map<String, Object> filters) {
