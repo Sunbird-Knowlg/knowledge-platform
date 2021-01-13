@@ -7,18 +7,16 @@ import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 
 object JavaJsonUtils {
 
-    @transient val mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//    mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-//    mapper.setSerializationInclusion(Include.NON_NULL);
+    @transient val mapper = new ObjectMapper()
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     @throws(classOf[Exception])
     def serialize(obj: AnyRef): String = {
-        mapper.writeValueAsString(obj);
+        mapper.writeValueAsString(obj)
     }
 
     @throws(classOf[Exception])
-    def deserialize[T: Manifest](value: String): T = mapper.readValue(value, typeReference[T]);
+    def deserialize[T: Manifest](value: String): T = mapper.readValue(value, typeReference[T])
 
     private[this] def typeReference[T: Manifest] = new TypeReference[T] {
         override def getType = typeFromManifest(manifest[T])

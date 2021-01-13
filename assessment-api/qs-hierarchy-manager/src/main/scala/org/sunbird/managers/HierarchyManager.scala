@@ -21,7 +21,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.{HierarchyConstants}
 
 object HierarchyManager {
 
@@ -32,7 +32,6 @@ object HierarchyManager {
     val statusList = List("Live", "Unlisted", "Flagged")
     val ASSESSMENT_OBJECT_TYPES = List("Question", "QuestionSet")
 
-    //TODO: check if it is required
     val keyTobeRemoved = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))
             Platform.config.getStringList("content.hierarchy.removed_props_for_leafNodes")
