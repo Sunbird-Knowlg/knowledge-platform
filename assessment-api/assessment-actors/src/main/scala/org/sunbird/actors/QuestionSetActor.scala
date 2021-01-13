@@ -49,8 +49,9 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
 				val updateReq = new Request(request)
-				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft").asJava).asJava)
-				updateHierarchyNodes(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy), nodeIds)
+				val date = DateUtils.formatCurrentDate
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review", "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
+				updateHierarchyNodes(updateReq, node, Map("status" -> "Review", "hierarchy" -> updatedHierarchy), nodeIds)
 			})
 		})
 	}
@@ -91,7 +92,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Draft")
 				val updateReq = new Request(request)
-				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft").asJava).asJava)
+				val date = DateUtils.formatCurrentDate
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft", "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
 				updateHierarchyNodes(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy), nodeIds)
 			})
 		})
@@ -99,8 +101,6 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 
 	def updateHierarchyNodes(request: Request, node: Node, metadata: Map[String, AnyRef], nodeIds: util.List[String]): Future[Response] = {
 		if (CollectionUtils.isNotEmpty(nodeIds)) {
-			val updateReq = new Request(request)
-			updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review").asJava).asJava)
 			DataNode.bulkUpdate(request).flatMap(_ => {
 				updateNode(request, node, metadata)
 			})

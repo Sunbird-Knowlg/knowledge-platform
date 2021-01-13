@@ -26,7 +26,6 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = getNode("Question", None)
-//		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
 		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
 		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
 		val request = getQuestionRequest()
