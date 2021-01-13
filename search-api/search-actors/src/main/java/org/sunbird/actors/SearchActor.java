@@ -523,7 +523,7 @@ public class SearchActor extends SearchBaseActor {
     }
 
     private List<String> getObjectTypesWithVisibility() {
-        List<String> objectTypes = Platform.getStringList("object.withVisibility", Arrays.asList("content", "collection", "question", "questionset"));
+        List<String> objectTypes = Platform.getStringList("object.withVisibility", Arrays.asList("content", "collection", "asset", "question", "questionset"));
         if (CollectionUtils.isEmpty(objectTypes)) {
             return new ArrayList<String>();
         } else {
