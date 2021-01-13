@@ -514,11 +514,33 @@ public class SearchActor extends SearchBaseActor {
             Map<String, Object> property = getFilterProperty("status", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Live" }));
             properties.add(property);
         }
-        if (!filters.containsKey("visibility")) {
+
+        if (setDefaultVisibility(filters)) {
             Map<String, Object> property = getFilterProperty("visibility", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Default" }));
             properties.add(property);
         }
         return properties;
+    }
+
+    private List<String> getObjectTypesWithVisibility() {
+        List<String> objectTypes = Platform.getStringList("object.withVisibility", Arrays.asList("content", "collection", "question", "questionset"));
+        if (CollectionUtils.isEmpty(objectTypes)) {
+            return new ArrayList<String>();
+        } else {
+            List<String> finalObjectTypes = new ArrayList<String>(objectTypes);
+            finalObjectTypes.addAll(objectTypes.stream().map(s -> s + "image").collect(Collectors.toList()));
+            return finalObjectTypes;
+        }
+    }
+
+    private boolean setDefaultVisibility(Map<String, Object> filters) {
+        boolean hasVisibility = filters.containsKey("visibility");
+        if (!hasVisibility) {
+            List<String> objectTypes = ((List<String>) filters.getOrDefault(SearchConstants.objectType, new ArrayList<String>()))
+                    .stream().map(s -> s.toLowerCase()).collect(Collectors.toList());
+            List<String> configObjectTypes = getObjectTypesWithVisibility();
+            return CollectionUtils.containsAny(configObjectTypes, objectTypes);
+        } else return false;
     }
 
     private Map<String, Object> getFilterProperty(String propName, String operation, Object value) {
