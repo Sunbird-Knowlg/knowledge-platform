@@ -7,44 +7,89 @@
         "type": "string"
       }
     },
-    "primaryKey": ["identifier"]
+    "primaryKey": [
+      "identifier"
+    ]
+  },
+  "restrictProps": {
+    "updateHierarchy": [
+      "variants",
+      "config",
+      "reservedDialcodes"
+    ]
   },
   "relations": {
     "concepts": {
       "type": "associatedTo",
       "direction": "out",
-      "objects": ["Concept"]
+      "objects": [
+        "Concept"
+      ]
     },
     "questions": {
       "type": "associatedTo",
       "direction": "out",
-      "objects": ["AssessmentItem"]
+      "objects": [
+        "AssessmentItem"
+      ]
     },
     "children": {
       "type": "hasSequenceMember",
       "direction": "out",
-      "objects": ["Content", "ContentImage"]
+      "objects": [
+        "Content",
+        "ContentImage"
+      ]
     },
     "collections": {
       "type": "hasSequenceMember",
       "direction": "in",
-      "objects": ["Content", "ContentImage"]
+      "objects": [
+        "Content",
+        "ContentImage"
+      ]
     },
     "usedByContent": {
       "type": "associatedTo",
       "direction": "in",
-      "objects": ["Content"]
+      "objects": [
+        "Content"
+      ]
     },
     "usesContent": {
       "type": "associatedTo",
       "direction": "out",
-      "objects": ["Content"]
+      "objects": [
+        "Content"
+      ]
     }
   },
   "version": "enable",
-  "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
-  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
-  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+  "frameworkCategories": [
+    "board",
+    "medium",
+    "subject",
+    "gradeLevel",
+    "difficultyLevel",
+    "topic",
+    "subDomains",
+    "subjectCodes"
+  ],
+  "orgFrameworkTerms": [
+    "boardIds",
+    "gradeLevelIds",
+    "subjectIds",
+    "mediumIds",
+    "topicsIds"
+  ],
+  "targetFrameworkTerms": [
+    "targetFWIds",
+    "targetBoardIds",
+    "targetGradeLevelIds",
+    "targetSubjectIds",
+    "targetMediumIds",
+    "targetTopicIds"
+  ],
   "edge": {
     "properties": {
       "license": "License"
@@ -56,8 +101,7 @@
         "TextBook": "Course",
         "TextBookUnit": "CourseUnit"
       },
-      "TextBookToLessonPlan": {
-      }
+      "TextBookToLessonPlan": {}
     }
   },
   "schema_restrict_api": false

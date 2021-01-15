@@ -322,3 +322,36 @@ curl --location --request POST '{{host}}/object/category/v4/create' \
         }
     }
 }'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Multiple Choice Question",
+            "description":"Multiple Choice Question"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Subjective Question",
+            "description":"Subjective Question"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "FTB Question",
+            "description":"FTB Question"
+        }
+    }
+}'
