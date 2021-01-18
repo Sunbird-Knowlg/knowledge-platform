@@ -59,14 +59,17 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
                     else {
                         val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
                         request.put("identifier", updatedId)
-                        Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+                        val channelCatResp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+                        if(StringUtils.equalsAnyIgnoreCase(channelCatResp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
+                          throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
+                        } else channelCatResp
                     }
                 } else throw new ServerException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
             } else resp
         }
         populateSchema(response, categoryId)
     }
-
+  
     def populateSchema(response: Response, identifier: String) : (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
         val jsonString = getFileToString("schema.json")
         val schemaMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(jsonString, classOf[java.util.Map[String, AnyRef]])

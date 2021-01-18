@@ -82,8 +82,8 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                     response.putAll(externalMetadataMap.asJava)
                     response
                 } else {
-                    TelemetryManager.error("Entry is not found in cassandra for content with identifier: " + identifier)
-                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code().toString, "Entry is not found in cassandra for content with identifier: " + identifier)
+                    TelemetryManager.error("Entry is not found in external-store for object with identifier: " + identifier)
+                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code().toString, "Entry is not found in external-store for object with identifier: " + identifier)
                 }
             })
         } catch {
