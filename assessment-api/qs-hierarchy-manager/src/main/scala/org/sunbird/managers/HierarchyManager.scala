@@ -428,8 +428,9 @@ object HierarchyManager {
         hierarchy.map(hierarchy => {
             if (!hierarchy.isEmpty) {
                 if (StringUtils.isNotEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
-                    rootHierarchy.put("questionSet", hierarchy)
-                    RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchy))
+                    val hierarchyMap = mapAsJavaMap(hierarchy)
+                    rootHierarchy.put("questionSet", hierarchyMap)
+                    RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchyMap))
                     Future(rootHierarchy)
                 } else {
                     Future(new util.HashMap[String, AnyRef]())
