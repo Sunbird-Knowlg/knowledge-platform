@@ -3,7 +3,7 @@ package org.sunbird.content.actors
 import java.io.File
 import java.util
 
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import akka.actor.Props
 import com.google.common.io.Resources
 import org.scalamock.scalatest.MockFactory
@@ -31,7 +31,8 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
-        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource"))
+        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource",
+            "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}}))
         request.put("content", content)
         assert(true)
         val response = callActor(request, Props(new ContentActor()))
@@ -44,10 +45,16 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-//        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+        // Uncomment below line if running individual file in local.
+        //(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
+            {
+                add(getBoardNode())
+            }
+        }))
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "targetBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -62,7 +69,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "framework"-> "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -280,7 +287,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "updated description")))
+        request.putAll(mapAsJavaMap(Map("description" -> "updated description","framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("updateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("failed".equals(response.getParams.getStatus))
@@ -300,7 +307,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
-            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF",
             "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
         request.setOperation("copy")
         val response = callActor(request, Props(new ContentActor()))
@@ -354,7 +361,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
-            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF2",
+            "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF",
             "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
         request.put("file", new File(Resources.getResource("jpegImage.jpeg").toURI))
         request.setOperation("uploadContent")
@@ -424,5 +431,25 @@ class TestContentActor extends BaseSpec with MockFactory {
     def getContentConfig(): util.Map[String, AnyRef]  = {
         val schema:String =  "{\n    \"restrictProps\": {\n        \"create\" : [\n            \"status\", \"dialcodes\"\n        ],\n        \"copy\" : [\n            \"status\"\n        ],\n        \"update\": []\n    },\n    \"objectType\": \"Content\",\n    \"external\": {\n        \"tableName\": \"content_data\",\n        \"properties\": {\n            \"body\": {\n                \"type\": \"blob\"\n            },\n            \"oldBody\": {\n                \"type\": \"blob\"\n            },\n            \"stageIcons\": {\n                \"type\": \"blob\"\n            },\n            \"screenshots\": {\n                \"type\": \"blob\"\n            },\n            \"last_updated_on\": {\n                \"type\": \"timestamp\"\n            },\n            \"externallink\": {\n                \"type\": \"text\"\n            }\n        },\n        \"primaryKey\": [\"content_id\"]\n    },\n    \"relations\": {\n        \"concepts\": {\n            \"type\": \"associatedTo\",\n            \"direction\": \"out\",\n            \"objects\": [\"Concept\"]\n        },\n        \"questions\": {\n            \"type\": \"associatedTo\",\n            \"direction\": \"out\",\n            \"objects\": [\"AssessmentItem\"]\n        },\n        \"children\": {\n            \"type\": \"hasSequenceMember\",\n            \"direction\": \"out\",\n            \"objects\": [\"Content\", \"ContentImage\"]\n        },\n        \"collections\": {\n            \"type\": \"hasSequenceMember\",\n            \"direction\": \"in\",\n            \"objects\": [\"Content\", \"ContentImage\"]\n        },\n        \"usedByContent\": {\n            \"type\": \"associatedTo\",\n            \"direction\": \"in\",\n            \"objects\": [\"Content\"]\n        },\n        \"usesContent\": {\n            \"type\": \"associatedTo\",\n            \"direction\": \"out\",\n            \"objects\": [\"Content\"]\n        },\n        \"itemSets\": {\n            \"type\": \"associatedTo\",\n            \"direction\": \"out\",\n            \"objects\": [\"ItemSet\"]\n        }\n    },\n    \"version\": \"enable\",\n    \"versionCheckMode\": \"ON\",\n    \"frameworkCategories\": [\"board\",\"medium\",\"subject\",\"gradeLevel\",\"difficultyLevel\",\"topic\", \"subDomains\", \"subjectCodes\"],\n    \"edge\": {\n        \"properties\": {\n            \"license\": \"License\"\n        }\n    },\n    \"copy\": {\n        \"scheme\": {\n            \"TextBookToCourse\": {\n                \"TextBook\": \"Course\",\n                \"TextBookUnit\": \"CourseUnit\"\n            },\n            \"TextBookToLessonPlan\": {\n            }\n        }\n    },\n    \"cacheEnabled\": true,\n    \"searchProps\": {\n        \"status\": [\"Live\"],\n        \"softConstraints\": {\n            \"medium\": 15,\n            \"subject\": 15,\n            \"ageGroup\": 1,\n            \"gradeLevel\": 7,\n            \"board\": 4,\n            \"relatedBoards\": 4\n        }\n    },\n    \"schema_restrict_api\": true\n}"
         JsonUtils.deserialize(schema, classOf[util.Map[String, AnyRef]])
+    }
+
+    def getFrameworkNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("NCF")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Framework")
+        node.setGraphId("domain")
+        node.setMetadata(mapAsJavaMap(Map("name"-> "NCF")))
+        node
+    }
+
+    def getBoardNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("ncf_board_cbse")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Term")
+        node.setGraphId("domain")
+        node.setMetadata(mapAsJavaMap(Map("name"-> "CBSE")))
+        node
     }
 }

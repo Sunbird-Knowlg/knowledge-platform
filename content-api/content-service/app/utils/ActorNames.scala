@@ -8,5 +8,6 @@ object ActorNames {
     final val COLLECTION_ACTOR = "collectionActor"
     final val CHANNEL_ACTOR = "channelActor"
     final val CATEGORY_ACTOR = "categoryActor"
+    final val ASSET_ACTOR = "assetActor"
 
 }

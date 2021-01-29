@@ -26,6 +26,9 @@
                 "Live"
             ],
             "default": "Live"
+        },
+        "consumerId": {
+            "type": "string"
         }
     },
     "additionalProperties": true
