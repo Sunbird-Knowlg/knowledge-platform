@@ -163,7 +163,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
                 case _ => (contentType, primaryCategory)
             }
-            input.put("contentType", updatedContentType)
+            
+            input.put("contentType", if (StringUtils.isBlank(updatedContentType)) "Resource" else updatedContentType)
             input.put("primaryCategory", updatedPrimaryCategory)
     }
 
