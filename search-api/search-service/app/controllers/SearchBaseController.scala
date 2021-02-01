@@ -20,7 +20,10 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
 
     val DEFAULT_CHANNEL_ID = Platform.config.getString("channel.default");
     val API_VERSION = "3.0"
-    
+    val VISIBILITY = "visibility"
+    val FILTERS = "filters"
+
+
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
         JsonUtils.deserialize(body, classOf[java.util.Map[String, Object]]).getOrDefault("request", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
@@ -91,13 +94,14 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
                         e.printStackTrace()
                 }
                 val requestObj: AnyRef = requestMap.get("request")
-                if(requestObj.asInstanceOf[java.util.Map[String, AnyRef]].get("filter").asInstanceOf[java.util.Map[String, AnyRef]].get("visibility") == null){
-                    requestObj.asInstanceOf[java.util.Map[String, AnyRef]].put("visibility", "Default")
-                }
-
                 if (null != requestObj) try {
                     val strRequest: String = JsonUtils.serialize(requestObj)
                     val map: java.util.Map[String, AnyRef] =  JsonUtils.deserialize(strRequest, classOf[java.util.Map[String, Object]])
+                    //Setting visibility as default, for request with no visibility
+                    if(map.get(FILTERS).asInstanceOf[java.util.Map[String, AnyRef]].get(VISIBILITY) == null){
+                        map.get(FILTERS).asInstanceOf[java.util.Map[String, AnyRef]].put(VISIBILITY, Platform.config.getStringList("search.visibilities"))
+                    }
+
                     if (null != map && !map.isEmpty) request.setRequest(map)
                 } catch {
                     case e: Exception =>
