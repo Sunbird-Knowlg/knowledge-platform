@@ -56,6 +56,9 @@ class GraphService {
         ExternalPropsManager.update(request)
     }
 
+    def deleteExternalProps(request: Request): Future[Response] = {
+        ExternalPropsManager.deleteProps(request)
+    }
     def checkCyclicLoop(graphId:String, endNodeId: String, startNodeId: String, relationType: String) = {
         Neo4JBoltSearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
     }
@@ -67,6 +70,5 @@ class GraphService {
     def createRelation(graphId: String, relationMap: util.List[util.Map[String, AnyRef]]) = {
         GraphAsyncOperations.createRelation(graphId, relationMap)
     }
-
 }
 

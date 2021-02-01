@@ -69,7 +69,7 @@ object RetireManager {
             val req = new Request(request)
             req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
             req.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
-            ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).flatMap(resp => {
+            oec.graphService.readExternalProps(req, List(HierarchyConstants.HIERARCHY)).flatMap(resp => {
                 val hierarchyString = resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
                 if (StringUtils.isNotBlank(hierarchyString)) {
                     val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
@@ -81,7 +81,7 @@ object RetireManager {
                     }
                     hierarchyMap.putAll(updateMetadataMap)
                     req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(hierarchyMap))
-                    ExternalPropsManager.saveProps(req)
+                    oec.graphService.saveExternalProps(req)
                 } else Future(ResponseHandler.OK())
             }) recover { case e: ResourceNotFoundException =>
                 TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + node.getIdentifier)
