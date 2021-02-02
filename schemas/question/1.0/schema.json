@@ -27,12 +27,7 @@
       ]
     },
     "primaryCategory": {
-      "type": "string",
-      "enum": [
-        "Multiple Choice Question",
-        "Subjective Question",
-        "FTB Question"
-      ]
+      "type": "string"
     },
     "additionalCategories": {
       "type": "array",
