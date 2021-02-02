@@ -27,10 +27,7 @@
       ]
     },
     "primaryCategory": {
-      "type": "string",
-      "enum": [
-        "Practice Question Set"
-      ]
+      "type": "string"
     },
     "additionalCategories": {
       "type": "array",

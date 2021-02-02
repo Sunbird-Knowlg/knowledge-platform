@@ -1073,12 +1073,7 @@
             "type": "string"
         },
         "primaryCategory": {
-            "type": "string",
-            "enum": [
-                "Asset",
-                "Certificate Template",
-                "CertAsset"
-            ]
+            "type": "string"
         },
         "additionalCategories": {
             "type": "array",
