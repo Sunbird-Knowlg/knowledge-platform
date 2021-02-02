@@ -125,6 +125,17 @@
       "type": "string",
       "format": "url"
     },
+    "previewUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "pdfUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "variants": {
+      "type": "object"
+    },
     "size": {
       "type": "number"
     },
