@@ -38,13 +38,7 @@ object HierarchyManager {
         else
             java.util.Arrays.asList("collections","children","usedByContent","item_sets","methods","libraries","editorState")
     }
-    val cacheEnabled = {
-        if(Platform.config.hasPath("questionset.cache.enable"))
-            Platform.config.getBoolean("questionset.cache.enable")
-        else
-            false
-    }
-
+    
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
@@ -222,7 +216,7 @@ object HierarchyManager {
 
     @throws[Exception]
     def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-        val redisHierarchy = if(cacheEnabled) RedisCache.get(hierarchyPrefix + request.get("rootId")) else ""
+        val redisHierarchy = if(Platform.getBoolean("questionset.cache.enable", false)) RedisCache.get(hierarchyPrefix + request.get("rootId")) else ""
 
         val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
             Future(mapAsJavaMap(Map("questionSet" -> JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]))))
