@@ -378,13 +378,10 @@
       ]
     },
     "qumlVersion": {
-      "type": "string"
+      "type": "number"
     },
     "timeLimits": {
       "type": "object"
-    },
-    "maxScore": {
-      "type": "number"
     },
     "showTimer": {
       "type": "string",
@@ -467,12 +464,8 @@
       ]
     },
     "shuffle": {
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "Yes"
+      "type": "boolean",
+      "default": true
     },
     "totalQuestions": {
       "type": "number"

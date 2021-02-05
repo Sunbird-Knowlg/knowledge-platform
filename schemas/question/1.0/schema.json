@@ -357,7 +357,7 @@
       ]
     },
     "qumlVersion": {
-      "type": "string"
+      "type": "number"
     },
     "timeLimit": {
       "type": "number"
