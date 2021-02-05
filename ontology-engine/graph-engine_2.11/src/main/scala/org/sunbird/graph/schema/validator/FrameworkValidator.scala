@@ -58,26 +58,21 @@ trait FrameworkValidator extends IDefinition {
       }).flatMap(f => f)
   }
 
-  private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-    getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
-      val boardIds = getList("boardIds", node)
-      if (CollectionUtils.isNotEmpty(boardIds))
-        node.getMetadata.putIfAbsent("board", orgTermMap(boardIds.get(0)))
-      val mediumIds = getList("mediumIds", node)
-      if (CollectionUtils.isNotEmpty(mediumIds))
-        node.getMetadata.putIfAbsent("medium", mediumIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      val subjectIds = getList("subjectIds", node)
-      if (CollectionUtils.isNotEmpty(subjectIds))
-        node.getMetadata.putIfAbsent("subject", subjectIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      val gradeIds = getList("gradeLevelIds", node)
-      if (CollectionUtils.isNotEmpty(gradeIds))
-        node.getMetadata.putIfAbsent("gradeLevel", gradeIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      val topicIds = getList("topicsIds", node)
-      if (CollectionUtils.isNotEmpty(topicIds))
-        node.getMetadata.putIfAbsent("topics", topicIds.asScala.map(id => orgTermMap(id)).toList.asJava)
-      getValidatedTerms(node, targetFwTerms)
-    }).flatMap(f => f)
-  }
+    private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+        getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
+            val boards = fetchValidatedList(getList("boardIds", node), orgTermMap)
+            if (CollectionUtils.isNotEmpty(boards)) node.getMetadata.putIfAbsent("board", boards.get(0))
+            val mediums = fetchValidatedList(getList("mediumIds", node), orgTermMap)
+            if (CollectionUtils.isNotEmpty(mediums)) node.getMetadata.putIfAbsent("medium", mediums)
+            val subjects = fetchValidatedList(getList("subjectIds", node), orgTermMap)
+            if (CollectionUtils.isNotEmpty(subjects)) node.getMetadata.putIfAbsent("subject", subjects)
+            val grades = fetchValidatedList(getList("gradeLevelIds", node), orgTermMap)
+            if (CollectionUtils.isNotEmpty(grades)) node.getMetadata.putIfAbsent("gradeLevel", grades)
+            val topics = fetchValidatedList(getList("topicsIds", node), orgTermMap)
+            if (CollectionUtils.isNotEmpty(topics)) node.getMetadata.putIfAbsent("topics", topics)
+            getValidatedTerms(node, targetFwTerms)
+        }).flatMap(f => f)
+    }
 
 
   private def getList(termName: String, node: Node): util.List[String] = {
@@ -135,5 +130,13 @@ trait FrameworkValidator extends IDefinition {
       case _ =>
     })
   }
+
+    def fetchValidatedList(itemList: util.List[String], orgTermMap: Map[String, AnyRef]): util.List[String] = {
+        if (CollectionUtils.isNotEmpty(itemList)) {
+            itemList.asScala.map(id => orgTermMap.getOrElse(id, "").asInstanceOf[String])
+                .filter(medium => medium.nonEmpty)
+                .toList.asJava
+        } else List().asJava
+    }
 
 }
