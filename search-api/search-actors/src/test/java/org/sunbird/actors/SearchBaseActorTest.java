@@ -200,6 +200,7 @@ public class SearchBaseActorTest {
         if (null != tagList && !tagList.isEmpty() && index % 7 != 0)
             map.put("keywords", tagList);
         map.put("downloads", index);
+        map.put("visibility", "Default");
         return map;
     }
 

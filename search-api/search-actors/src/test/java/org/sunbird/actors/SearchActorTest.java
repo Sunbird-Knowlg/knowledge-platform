@@ -780,6 +780,8 @@ public class SearchActorTest extends SearchBaseActorTest {
         Response resp = getSearchResponse(req);
         result = resp.getResult();
         Assert.assertNotNull(result.get("content"));
+        List<Object> contents = (List<Object>) result.getOrDefault("content", new ArrayList<Object>());
+        Assert.assertEquals(contents.size(), 35);
     }
 
     @Test
