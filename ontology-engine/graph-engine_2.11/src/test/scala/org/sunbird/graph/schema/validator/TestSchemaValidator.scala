@@ -34,6 +34,10 @@ class TestSchemaValidator extends BaseSpec {
       put("channel", "in.ekstep")
       put("contentCredits", a)
       put("primaryCategory", "Learning Resource")
+      put("boardIds", Array("ncf_board_cbse"))
+      put("mediumIds", Array("ncf_medium_english"))
+      put("subjectIds", Array("ncf_subject_cbse"))
+      put("gradeLevelIds", Array("ncf_gradelevel_grade1"))
     }}
 
 
@@ -42,8 +46,6 @@ class TestSchemaValidator extends BaseSpec {
     node.setMetadata(metaData)
 
     val future: Future[Node] = definition.validate(node, "create")
-    future map { node => {
-      assert(null != node)
-    }
-    }
-  }}
+    future map { node => assert(null != node) }
+  }
+}

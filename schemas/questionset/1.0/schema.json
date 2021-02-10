@@ -152,6 +152,9 @@
     "prevState": {
       "type": "string"
     },
+    "prevStatus": {
+      "type": "string"
+    },
     "lastStatusChangedOn": {
       "type": "string"
     },
