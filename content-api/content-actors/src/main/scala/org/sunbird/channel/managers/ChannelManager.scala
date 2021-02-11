@@ -2,7 +2,6 @@ package org.sunbird.channel.managers
 
 import java.util
 import java.util.Optional
-
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.util.ChannelConstants
 import org.sunbird.cache.impl.RedisCache
@@ -10,6 +9,8 @@ import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
+import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.JsonUtils
 
 import scala.collection.JavaConverters._
@@ -96,13 +97,30 @@ object ChannelManager {
     metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, CONTENT_ADDITIONAL_CATERGORIES)
     metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATERGORIES)
     metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATERGORIES)
-    val primaryCategories = getPrimaryCategories("abc")
+    val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
     metadata.put("primaryCategories", primaryCategories)
   }
 
-  private def getPrimaryCategories(channel: String): java.util.List[java.util.Map[String, AnyRef]] =  {
+  private def getChannelPrimaryCategories(channel: String): java.util.List[java.util.Map[String, AnyRef]] = {
+
+    val globalPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition"},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}"""
+    val globalPrimaryCategories = getPrimaryCategories(globalPCRequest)
+    val channelPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "channel": "$channel"},"fields":["name","identifier","targetObjectType"]}}"""
+    val channelPrimaryCategories = getPrimaryCategories(channelPCRequest)
+    if (CollectionUtils.isEmpty(channelPrimaryCategories))
+      globalPrimaryCategories
+    else {
+      val idsToIgnore = channelPrimaryCategories.map(cat => cat.get("identifier").asInstanceOf[String])
+        .map(id => id.replace("_"+channel, "_all"))
+      globalPrimaryCategories.filter(cat => {
+        !idsToIgnore.contains(cat.get("identifier").asInstanceOf[String])
+      }) ++ channelPrimaryCategories
+    }
+  }
+
+  private def getPrimaryCategories(body: String): java.util.List[java.util.Map[String, AnyRef]] =  {
     val url: String = Platform.getString("composite.search.url", "https://dev.sunbirded.org/action/composite/v3/search")
-    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body("""{"request":{"filters":{"objectType":"ObjectCategoryDefinition"},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}""").asString
+    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body(body).asString
     if (200 != httpResponse.getStatus) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY_DEFINITION", "Error while fetching primary categories.")
     val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
     val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.objectCategoryDefinitionKey, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
