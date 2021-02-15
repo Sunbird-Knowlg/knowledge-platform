@@ -108,7 +108,7 @@ object ChannelManager {
     val httpResponse = httpUtil.post(url, body)
     if (200 != httpResponse.status) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object categories for additional category list.")
     val response: Response = JsonUtils.deserialize(httpResponse.body, classOf[Response])
-    val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.objectCategoryDefinitionKey, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+    val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
     objectCategoryList.asScala.map(cat => cat.get("name").asInstanceOf[String]).asJava
 
   }
