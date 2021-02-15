@@ -3,14 +3,13 @@ package org.sunbird.channel.managers
 import java.util
 import java.util.Optional
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.util.ChannelConstants
+import org.sunbird.util.{ChannelConstants, HttpUtil}
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
-import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.JsonUtils
 
 import scala.collection.JavaConverters._
@@ -19,13 +18,13 @@ import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
 
-  val CONTENT_PRIMARY_CATERGORIES: util.List[String] = Platform.getStringList("channel.content.primarycategories", new util.ArrayList[String]())
-  val COLLECTION_PRIMARY_CATERGORIES: util.List[String] =  Platform.getStringList("channel.collection.primarycategories", new util.ArrayList[String]())
-  val ASSET_PRIMARY_CATERGORIES: util.List[String] =  Platform.getStringList("channel.asset.primarycategories", new util.ArrayList[String]())
-  val CONTENT_ADDITIONAL_CATERGORIES: util.List[String] =  Platform.getStringList("channel.content.additionalcategories", new util.ArrayList[String]())
-  val COLLECTION_ADDITIONAL_CATERGORIES: util.List[String] = Platform.getStringList("channel.collection.additionalcategories", new util.ArrayList[String]())
-  val ASSET_ADDITIONAL_CATERGORIES: util.List[String] =  Platform.getStringList("channel.asset.additionalcategories", new util.ArrayList[String]())
-
+  val CONTENT_PRIMARY_CATEGORIES: util.List[String] = Platform.getStringList("channel.content.primarycategories", new util.ArrayList[String]())
+  val COLLECTION_PRIMARY_CATEGORIES: util.List[String] =  Platform.getStringList("channel.collection.primarycategories", new util.ArrayList[String]())
+  val ASSET_PRIMARY_CATEGORIES: util.List[String] =  Platform.getStringList("channel.asset.primarycategories", new util.ArrayList[String]())
+  val CONTENT_ADDITIONAL_CATEGORIES: util.List[String] =  Platform.getStringList("channel.content.additionalcategories", new util.ArrayList[String]())
+  val COLLECTION_ADDITIONAL_CATEGORIES: util.List[String] = Platform.getStringList("channel.collection.additionalcategories", new util.ArrayList[String]())
+  val ASSET_ADDITIONAL_CATEGORIES: util.List[String] =  Platform.getStringList("channel.asset.additionalcategories", new util.ArrayList[String]())
+  implicit val httpUtil: HttpUtil = new HttpUtil
 
   def channelLicenseCache(request: Request, identifier: String): Unit = {
     if (request.getRequest.containsKey(ChannelConstants.DEFAULT_LICENSE))
@@ -91,18 +90,17 @@ object ChannelManager {
   }
 
   def setPrimaryAndAdditionCategories(metadata: util.Map[String, AnyRef]): Unit = {
-    metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, CONTENT_PRIMARY_CATERGORIES)
-    metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, COLLECTION_PRIMARY_CATERGORIES)
-    metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, ASSET_PRIMARY_CATERGORIES)
-    metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, CONTENT_ADDITIONAL_CATERGORIES)
-    metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATERGORIES)
-    metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATERGORIES)
+    metadata.putIfAbsent(ChannelConstants.CONTENT_PRIMARY_CATEGORIES, CONTENT_PRIMARY_CATEGORIES)
+    metadata.putIfAbsent(ChannelConstants.COLLECTION_PRIMARY_CATEGORIES, COLLECTION_PRIMARY_CATEGORIES)
+    metadata.putIfAbsent(ChannelConstants.ASSET_PRIMARY_CATEGORIES, ASSET_PRIMARY_CATEGORIES)
+    metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, CONTENT_ADDITIONAL_CATEGORIES)
+    metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATEGORIES)
+    metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
     val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
     metadata.put("primaryCategories", primaryCategories)
   }
 
-  private def getChannelPrimaryCategories(channel: String): java.util.List[java.util.Map[String, AnyRef]] = {
-
+  def getChannelPrimaryCategories(channel: String)(implicit httpUtil: HttpUtil): java.util.List[java.util.Map[String, AnyRef]] = {
     val globalPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition"},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}"""
     val globalPrimaryCategories = getPrimaryCategories(globalPCRequest)
     val channelPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "channel": "$channel"},"fields":["name","identifier","targetObjectType"]}}"""
@@ -118,11 +116,11 @@ object ChannelManager {
     }
   }
 
-  private def getPrimaryCategories(body: String): java.util.List[java.util.Map[String, AnyRef]] =  {
+  private def getPrimaryCategories(body: String)(implicit httpUtil: HttpUtil): java.util.List[java.util.Map[String, AnyRef]] =  {
     val url: String = Platform.getString("composite.search.url", "https://dev.sunbirded.org/action/composite/v3/search")
-    val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body(body).asString
-    if (200 != httpResponse.getStatus) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY_DEFINITION", "Error while fetching primary categories.")
-    val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
+    val httpResponse = httpUtil.post(url, body)
+    if (200 != httpResponse.status) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY_DEFINITION", "Error while fetching primary categories.")
+    val response: Response = JsonUtils.deserialize(httpResponse.body, classOf[Response])
     val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.objectCategoryDefinitionKey, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
     objectCategoryList.asScala.map(cat => (cat - "objectType").asJava).asJava
   }
