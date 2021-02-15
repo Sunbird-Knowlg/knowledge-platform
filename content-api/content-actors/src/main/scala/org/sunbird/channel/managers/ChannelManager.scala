@@ -98,6 +98,19 @@ object ChannelManager {
     metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
     val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
     metadata.put("primaryCategories", primaryCategories)
+    val additionalCategories = getAdditionalCategories()
+    metadata.put("additionalCategories", additionalCategories)
+  }
+
+  def getAdditionalCategories()(implicit httpUtil: HttpUtil): java.util.List[String] = {
+    val body = """{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name","identifier"]}}"""
+    val url: String = Platform.getString("composite.search.url", "https://dev.sunbirded.org/action/composite/v3/search")
+    val httpResponse = httpUtil.post(url, body)
+    if (200 != httpResponse.status) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object categories for additional category list.")
+    val response: Response = JsonUtils.deserialize(httpResponse.body, classOf[Response])
+    val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.objectCategoryDefinitionKey, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+    objectCategoryList.asScala.map(cat => cat.get("name").asInstanceOf[String]).asJava
+
   }
 
   def getChannelPrimaryCategories(channel: String)(implicit httpUtil: HttpUtil): java.util.List[java.util.Map[String, AnyRef]] = {
