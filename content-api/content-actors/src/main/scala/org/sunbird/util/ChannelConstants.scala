@@ -12,6 +12,7 @@ object ChannelConstants {
   val CONTENT: String = "content"
   val NAME: String = "name"
   val OBJECT_CATEGORY: String = "ObjectCategory"
+  val objectCategoryDefinitionKey = "ObjectCategoryDefinition"
   val ERR_VALIDATING_PRIMARY_CATEGORY: String = "ERR_VALIDATING_PRIMARY_CATEGORY"
   val CONTENT_ADDITIONAL_CATEGORIES: String = "contentAdditionalCategories"
   val COLLECTION_ADDITIONAL_CATEGORIES: String = "collectionAdditionalCategories"

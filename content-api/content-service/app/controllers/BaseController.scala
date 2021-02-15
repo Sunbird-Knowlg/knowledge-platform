@@ -163,7 +163,6 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 case (x, y: String) => (getContentType(y), y)
                 case _ => (contentType, primaryCategory)
             }
-            
             input.put("contentType", if (StringUtils.isBlank(updatedContentType)) "Resource" else updatedContentType)
             input.put("primaryCategory", updatedPrimaryCategory)
     }
