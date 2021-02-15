@@ -7,24 +7,21 @@ import java.util
 import org.apache.commons.collections.CollectionUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.channel.managers.ChannelManager
-import org.sunbird.common.exception.ClientException
 import org.sunbird.util.{ChannelConstants, HTTPResponse, HttpUtil}
 import org.sunbird.channel.managers.ChannelManager
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.common.exception.{ClientException}
 
 
 class TestChannelManager extends AsyncFlatSpec with Matchers with MockFactory {
 
   implicit val httpUtil: HttpUtil = mock[HttpUtil]
 
-    "get All framework list" should "return a list of frameworks from search service" in {
+    "ChannelManager" should "return a list of frameworks from search service" in {
         val frameworkList = ChannelManager.getAllFrameworkList()
         assert(CollectionUtils.isNotEmpty(frameworkList))
     }
 
-    "validate translation map" should "throw exception if map contains invalid language translation" in {
+    it should "throw exception if map contains invalid language translation" in {
         val exception = intercept[ClientException] {
             val request = new Request()
             request.setRequest(new util.HashMap[String, AnyRef]() {
@@ -46,7 +43,7 @@ class TestChannelManager extends AsyncFlatSpec with Matchers with MockFactory {
         request
     }
 
-    "store license in cache" should "store license in cache" in {
+    it should "store license in cache" in {
         val request = new Request()
         request.getRequest.put("defaultLicense","license1234")
         ChannelManager.channelLicenseCache(request, "channel_test")
