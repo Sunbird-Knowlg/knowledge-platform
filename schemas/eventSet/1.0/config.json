@@ -1,0 +1,33 @@
+{
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "update": []
+    },
+    "objectType": "EventSet",
+    "relations": {
+        "usesContent": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Content"]
+        },
+        "collections": {
+            "type": "hasSequenceMember",
+            "direction": "out",
+            "objects": ["Event"]
+        },
+        "usedByContent": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        }
+    },
+    "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+    "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+    "version": "disable",
+    "versionCheckMode": "OFF",
+    "cacheEnabled": false,
+    "schema_restrict_api": false
+}
