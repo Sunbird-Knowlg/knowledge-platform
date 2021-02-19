@@ -33,6 +33,11 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>storehaus-cache_${scala.maj.version}</artifactId>
+            <version>0.15.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.maj.version}</artifactId>
             <version>3.0.8</version>
