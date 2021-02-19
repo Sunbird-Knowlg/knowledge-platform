@@ -7,7 +7,7 @@ import javax.inject.{Inject, Named}
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, ItemSetOperations}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -20,7 +20,7 @@ class ItemSetController @Inject()(@Named(ActorNames.ITEM_SET_ACTOR) itemSetActor
 	def create() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val itemset = body.getOrElse("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+		val itemset = body.getOrDefault("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
 		itemset.putAll(headers)
 		val itemSetRequest = getRequest(itemset, headers, ItemSetOperations.createItemSet.toString)
 		setRequestContext(itemSetRequest, version, objectType, schemaName)
@@ -31,7 +31,7 @@ class ItemSetController @Inject()(@Named(ActorNames.ITEM_SET_ACTOR) itemSetActor
 		val headers = commonHeaders()
 		val itemset = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
 		itemset.putAll(headers)
-		itemset.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")).asInstanceOf[Map[String, Object]])
+		itemset.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")).asJava)
 		val itemSetRequest = getRequest(itemset, headers, ItemSetOperations.readItemSet.toString)
 		setRequestContext(itemSetRequest, version, objectType, schemaName)
 		getResult(ApiId.READ_ITEM_SET, itemSetActor, itemSetRequest)
@@ -40,7 +40,7 @@ class ItemSetController @Inject()(@Named(ActorNames.ITEM_SET_ACTOR) itemSetActor
 	def update(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val itemset = body.getOrElse("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		val itemset = body.getOrDefault("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
 		itemset.putAll(headers)
 		val itemSetRequest = getRequest(itemset, headers, ItemSetOperations.updateItemSet.toString)
 		setRequestContext(itemSetRequest, version, objectType, schemaName)
@@ -51,7 +51,7 @@ class ItemSetController @Inject()(@Named(ActorNames.ITEM_SET_ACTOR) itemSetActor
 	def review(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
-		val itemset = body.getOrElse("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		val itemset = body.getOrDefault("itemset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
 		itemset.putAll(headers)
 		val itemSetRequest = getRequest(itemset, headers, ItemSetOperations.reviewItemSet.toString)
 		setRequestContext(itemSetRequest, version, objectType, schemaName)

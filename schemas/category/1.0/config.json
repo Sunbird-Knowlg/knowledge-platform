@@ -1,0 +1,16 @@
+{
+  "objectType": "Category",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier", "name"
+    ]
+  }
+}

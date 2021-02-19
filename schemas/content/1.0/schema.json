@@ -12,7 +12,8 @@
         "code",
         "contentEncoding",
         "contentDisposition",
-        "mediaType"
+        "mediaType",
+        "primaryCategory"
     ],
     "properties": {
         "name": {
@@ -178,11 +179,12 @@
             "items": {
                 "type": "string",
                 "enum": [
-                    "Learner",
-                    "Instructor"
+                    "Student",
+                    "Teacher",
+                    "Administrator"
                 ]
             },
-            "default": ["Learner"]
+            "default": ["Student"]
         },
         "posterImage": {
             "type": "string",
@@ -457,7 +459,8 @@
                 "ExplanationReadingMaterial",
                 "LearningActivity",
                 "PreviousBoardExamPapers",
-                "LessonPlanResource"
+                "LessonPlanResource",
+                "TVLesson"
             ]
         },
         "resourceType": {
@@ -1017,6 +1020,288 @@
         },
         "board" : {
             "type": "string"
+        },
+        "licenseterms" : {
+            "type": "string"
+        },
+        "copyrightYear" : {
+            "type": "number"
+        },
+        "organisationId" : {
+            "type": "string"
+        },
+        "programId": {
+            "type": "string"
+        },
+        "itemSetPreviewUrl": {
+            "type": "string"
+        },
+        "textbook_name" : {
+            "type": "array"
+        },
+        "level1Name" : {
+            "type": "array"
+        },
+        "level1Concept" : {
+            "type": "array"
+        },
+        "level2Name" : {
+            "type": "array"
+        },
+        "level2Concept" : {
+            "type": "array"
+        },
+        "level3Name" : {
+            "type": "array"
+        },
+        "level3Concept" : {
+            "type": "array"
+        },
+        "sourceURL" : {
+            "type": "string"
+        },
+        "me_totalTimeSpentInSec": {
+            "type": "object"
+        },
+        "me_totalPlaySessionCount": {
+            "type": "object"
+        },
+        "me_totalRatingsCount": {
+            "type": "number"
+        },
+        "monitorable": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "progress-report",
+                    "score-report"
+                ]
+            }
+        },
+        "userConsent": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "trackable": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "No"
+                },
+                "autoBatch": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "No"
+                }
+            },
+            "default": {
+                "enabled": "No",
+                "autoBatch": "No"
+            },
+            "additionalProperties": false
+        },
+        "credentials": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "No"
+                }
+            },
+            "default": {
+                "enabled": "No"
+            },
+            "additionalProperties": false
+        },
+        "processId": {
+            "type": "string"
+        },
+        "primaryCategory": {
+            "type": "string"
+        },
+        "additionalCategories": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "prevStatus": {
+            "type": "string"
+        },
+        "cloudStorageKey": {
+            "type": "string"
+        },
+      "batches": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+        "year": {
+            "type": "string"
+        },
+        "plugins": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "showNotification": {
+            "type": "boolean"
+        },
+        "collectionId" : {
+            "type": "string"
+        },
+        "learningOutcome": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "displayScore": {
+            "type": "boolean"
+        },
+        "boardIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "gradeLevelIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "subjectIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "mediumIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "topicsIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetFWIds":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetBoardIds":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetGradeLevelIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetSubjectIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetMediumIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "targetTopicIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "maxAttempts": {
+            "type": "number"
+        },
+        "se_frameworkIds":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_boardIds":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_subjectIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_mediumIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_topicIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_gradeLevelIds": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_boards":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_subjects":{
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_mediums": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_topics": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "se_gradeLevels": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }

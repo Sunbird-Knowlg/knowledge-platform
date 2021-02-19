@@ -31,7 +31,7 @@ object FlagManager {
       val flaggedBy: String = request.get("flaggedBy").asInstanceOf[String]
       val flags: util.List[String] = request.get("flags").asInstanceOf[util.ArrayList[String]]
       
-      val metadata: util.Map[String, Object] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])//node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
+      val metadata: util.Map[String, Object] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])//node.getMetadata.asInstanceOf[util.HashMap[String, Object]]
       val status: String = metadata.get("status").asInstanceOf[String]
       val versionKey = node.getMetadata.get("versionKey").asInstanceOf[String]
       request.put("identifier", node.getIdentifier)
@@ -49,7 +49,7 @@ object FlagManager {
       if (CollectionUtils.isNotEmpty(flagReasons))
         request.put("flagReasons", addDataIntoList(flagReasons, metadata, "flagReasons"))
       request.getContext.put("versioning", "disable")
-      request.put("versionkey", versionKey)
+      request.put("versionKey", versionKey)
       updateContentFlag(node, request).map(flaggedNode => {
         val response = ResponseHandler.OK
         val identifier: String = flaggedNode.getIdentifier
@@ -79,8 +79,8 @@ object FlagManager {
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
-  private def fetchHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Any] = {
-    ExternalPropsManager.fetchProps(request, List(HierarchyConstants.HIERARCHY)).map(resp => {
+  private def fetchHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
+    oec.graphService.readExternalProps(request, List(HierarchyConstants.HIERARCHY)).map(resp => {
       resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get(HierarchyConstants.IDENTIFIER)) }
   }

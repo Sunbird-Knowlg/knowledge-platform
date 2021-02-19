@@ -71,6 +71,27 @@
         "Disabled"
       ],
       "default": "Enabled"
+    },
+    "publisher": {
+      "type": "array"
+    },
+    "contentPrimaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "collectionPrimaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assetPrimaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

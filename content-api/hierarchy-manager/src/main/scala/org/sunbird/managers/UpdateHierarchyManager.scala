@@ -15,7 +15,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -106,11 +106,14 @@ object UpdateHierarchyManager {
             if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW))
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "Hierarchy update is not allowed for partially (shallow) copied content : " + identifier)
             rootNode.getMetadata.put(HierarchyConstants.VERSION, HierarchyConstants.LATEST_CONTENT_VERSION)
+            //TODO: Remove the Populate category mapping before updating for backward
+            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(rootNode.getMetadata)
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(rootNode)
             rootNode
         })
     }
 
-    private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[java.util.HashMap[String, AnyRef]] = {
+    private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.util.HashMap[String, AnyRef]] = {
         fetchHierarchy(request, rootNode).map(hierarchyString => {
             if (!hierarchyString.asInstanceOf[String].isEmpty) {
                 JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
@@ -118,10 +121,10 @@ object UpdateHierarchyManager {
         })
     }
 
-    private def fetchHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext): Future[Any] = {
+    private def fetchHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
         val req = new Request(request)
         req.put(HierarchyConstants.IDENTIFIER, rootNode.getIdentifier)
-        ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(response => {
+        oec.graphService.readExternalProps(req, List(HierarchyConstants.HIERARCHY)).map(response => {
             if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
                 if (CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, rootNode.getMetadata.get("status").asInstanceOf[String]))
                     throw new ServerException(HierarchyErrorCodes.ERR_HIERARCHY_NOT_FOUND, "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
@@ -133,7 +136,7 @@ object UpdateHierarchyManager {
                         request.getContext.put("shouldImageDelete", shouldImageBeDeleted(rootNode).asInstanceOf[AnyRef])
                         req.put(HierarchyConstants.IDENTIFIER, if (!rootNode.getIdentifier.endsWith(HierarchyConstants.IMAGE_SUFFIX)) rootNode.getIdentifier + HierarchyConstants.IMAGE_SUFFIX else rootNode.getIdentifier)
                     }
-                    ExternalPropsManager.fetchProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
+                    oec.graphService.readExternalProps(req, List(HierarchyConstants.HIERARCHY)).map(resp => {
                         resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
                     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier) }
                 }
@@ -166,6 +169,9 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
                     node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
+                    //TODO: Remove the Populate category mapping before updating for backward
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val updatedNodes = node :: nodes
                     updatedNodes
                 }) recoverWith { case e: CompletionException => throw e.getCause }
@@ -174,8 +180,13 @@ object UpdateHierarchyManager {
                 childData.putAll(child)
                 childData.remove(HierarchyConstants.CHILDREN)
                 childData.put(HierarchyConstants.STATUS, "Draft")
-                childData.put(HierarchyConstants.CHANNEL, getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
+                //TODO: Remove the Populate category mapping before updating for backward
+                val rootNode = getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
+                childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
+                childData.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
+                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(childData)
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
+                HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)
             }
@@ -192,7 +203,6 @@ object UpdateHierarchyManager {
                 .map(nodeModified => {
                     val metadata = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]]
                     metadata.remove(HierarchyConstants.DIALCODES)
-                    metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.CONTENT_OBJECT_TYPE)
                     metadata.put(HierarchyConstants.STATUS, "Draft")
                     metadata.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
                     if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.IS_NEW)
@@ -229,13 +239,18 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.VERSION_KEY, System.currentTimeMillis + "")
         metadata.put(HierarchyConstants.CREATED_ON, DateUtils.formatCurrentDate)
         metadata.put(HierarchyConstants.LAST_STATUS_CHANGED_ON, DateUtils.formatCurrentDate)
-        metadata.put(HierarchyConstants.CHANNEL, getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]).getMetadata.get(HierarchyConstants.CHANNEL))
+        val rootNode = getTempNode(nodeList, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
+        metadata.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
+        metadata.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
         val createRequest: Request = new Request(request)
+        //TODO: Remove the Populate category mapping before updating for backward
+        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
         createRequest.setRequest(metadata)
         DefinitionNode.validate(createRequest, setDefaultValue).map(node => {
             node.setGraphId(HierarchyConstants.TAXONOMY_ID)
-            node.setObjectType(HierarchyConstants.CONTENT_OBJECT_TYPE)
             node.setNodeType(HierarchyConstants.DATA_NODE)
+            //Object type mapping
+            HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
             val updatedList = node :: nodeList
             updatedList.distinct
         })
@@ -368,6 +383,10 @@ object UpdateHierarchyManager {
 //                TelemetryManager.info("Get ContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
+                    node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
+                    //TODO: Populate category mapping before updating for backward
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val nxtEnrichedNodeList = node :: enrichedNodeList
                     if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {
                         updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, nxtEnrichedNodeList)
@@ -416,9 +435,9 @@ object UpdateHierarchyManager {
         DataNode.update(req)
     }
 
-    private def cleanUpRootData(node: Node): java.util.Map[String, AnyRef] = {
-        DefinitionNode.fetchJsonProps(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.CONTENT_SCHEMA_NAME)
-                .foreach(key => node.getMetadata.remove(key))
+    private def cleanUpRootData(node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.Map[String, AnyRef] = {
+        DefinitionNode.getRestrictedProperties(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.OPERATION_UPDATE_HIERARCHY, HierarchyConstants.COLLECTION_SCHEMA_NAME)
+          .foreach(key => node.getMetadata.remove(key))
         node.getMetadata.remove(HierarchyConstants.STATUS)
         node.getMetadata.remove(HierarchyConstants.LAST_UPDATED_ON)
         node.getMetadata.remove(HierarchyConstants.LAST_STATUS_CHANGED_ON)
@@ -473,10 +492,11 @@ object UpdateHierarchyManager {
     }
 
 
-    def deleteHierarchy(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    def deleteHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         val req = new Request(request)
         val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
-        ExternalPropsManager.deleteProps(req)
+        oec.graphService.deleteExternalProps(req)
     }
+
 }

@@ -14,7 +14,7 @@ import org.sunbird.graph.schema.IDefinition
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class BaseDefinitionNode(graphId: String, schemaName: String, version: String = "1.0") extends IDefinition(graphId, schemaName, version) {
+class BaseDefinitionNode(graphId: String, schemaName: String, version: String = "1.0", categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends IDefinition(graphId, schemaName, version, categoryId)(ec, oec) {
 
     val inRelationsSchema: Map[String, AnyRef] = relationsSchema("in")
     val outRelationsSchema: Map[String, AnyRef] = relationsSchema("out")

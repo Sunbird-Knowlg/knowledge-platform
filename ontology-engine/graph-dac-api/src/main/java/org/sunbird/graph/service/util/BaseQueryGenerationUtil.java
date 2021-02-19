@@ -490,17 +490,19 @@ public class BaseQueryGenerationUtil {
 				query.append(GraphDACParams.SET.name()).append(CypherQueryConfigurationConstants.BLANK_SPACE);
 
 			// Adding Metadata
-			for (Entry<String, Object> entry : node.getMetadata().entrySet()) {
-				if (!StringUtils.equalsIgnoreCase(entry.getKey(), GraphDACParams.versionKey.name())) {
-					query.append(objectVariableName + CypherQueryConfigurationConstants.DOT + entry.getKey()
-							+ " =  { MD_"
-						+ entry.getKey() + " }, ");
+			if (null != node.getMetadata()) {
+				for (Entry<String, Object> entry : node.getMetadata().entrySet()) {
+					if (!StringUtils.equalsIgnoreCase(entry.getKey(), GraphDACParams.versionKey.name())) {
+						query.append(objectVariableName + CypherQueryConfigurationConstants.DOT + entry.getKey()
+								+ " =  { MD_"
+								+ entry.getKey() + " }, ");
 
-				TelemetryManager.log("Adding Entry: " + entry.getKey() + "Value: "+ entry.getValue());
+						TelemetryManager.log("Adding Entry: " + entry.getKey() + "Value: " + entry.getValue());
 
-				// Populating Param Map
-				paramValuesMap.put("MD_" + entry.getKey(), entry.getValue());
-				TelemetryManager.log("Populating ParamMap:", paramValuesMap);
+						// Populating Param Map
+						paramValuesMap.put("MD_" + entry.getKey(), entry.getValue());
+						TelemetryManager.log("Populating ParamMap:", paramValuesMap);
+					}
 				}
 			}
 
@@ -514,7 +516,7 @@ public class BaseQueryGenerationUtil {
 				paramValuesMap.put("AP_" + AuditProperties.lastUpdatedOn.name(), date);
 			}
 
-			if (StringUtils.isBlank((String) node.getMetadata().get(GraphDACParams.versionKey.name()))) {
+			if (null != node.getMetadata() && StringUtils.isBlank((String) node.getMetadata().get(GraphDACParams.versionKey.name()))) {
 				String versionKey = Long.toString(DateUtils.parse(date).getTime());
 				query.append(objectVariableName).append(CypherQueryConfigurationConstants.DOT)
 						.append(GraphDACParams.versionKey.name()).append(CypherQueryConfigurationConstants.EQUALS)

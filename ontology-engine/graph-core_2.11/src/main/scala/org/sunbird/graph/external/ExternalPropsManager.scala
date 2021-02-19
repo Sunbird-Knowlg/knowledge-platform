@@ -7,8 +7,8 @@ import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.external.store.ExternalStoreFactory
 import org.sunbird.schema.SchemaValidatorFactory
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
 
 object ExternalPropsManager {
     def saveProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
@@ -34,6 +34,15 @@ object ExternalPropsManager {
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
         store.delete(request.get("identifiers").asInstanceOf[List[String]])
+    }
+
+    def update(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
+        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
+        store.update(request.get("identifier").asInstanceOf[String], request.get("fields").asInstanceOf[List[String]],
+            request.get("values").asInstanceOf[List[java.util.Map[String, AnyRef]]], getPropsDataType(schemaName, version))
     }
 
     def getPropsDataType(schemaName: String, version: String) = {

@@ -20,7 +20,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
-        basePath = basePath + name.toLowerCase() + "/" + version + "/";
+        basePath = basePath + File.separator + name.toLowerCase() + File.separator + version + File.separator;
         loadSchema();
         loadConfig();
     }

@@ -16,3 +16,15 @@ POST      /framework/v3/publish/:identifier               controllers.v3.Framewo
 
 
 # Term API's
+
+
+# Object Category API's
+POST      /object/category/v4/create                           controllers.v4.ObjectCategoryController.create
+PATCH     /object/category/v4/update/:identifier               controllers.v4.ObjectCategoryController.update(identifier:String)
+GET       /object/category/v4/read/:identifier                 controllers.v4.ObjectCategoryController.read(identifier:String, fields:Option[String])
+
+# ObjectCategoryDefinition API's
+POST      /object/category/definition/v4/create                controllers.v4.ObjectCategoryDefinitionController.create
+GET       /object/category/definition/v4/read/:identifier      controllers.v4.ObjectCategoryDefinitionController.read(identifier:String, fields:Option[String])
+PATCH     /object/category/definition/v4/update/:identifier    controllers.v4.ObjectCategoryDefinitionController.update(identifier:String)
+POST       /object/category/definition/v4/read                 controllers.v4.ObjectCategoryDefinitionController.readCategoryDefinition(fields:Option[String])

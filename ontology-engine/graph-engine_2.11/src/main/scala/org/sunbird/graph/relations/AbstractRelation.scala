@@ -3,11 +3,14 @@ package org.sunbird.graph.relations
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{MiddlewareException, ServerException}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.schema.DefinitionFactory
 import org.sunbird.graph.service.operation.{Neo4JBoltGraphOperations, Neo4JBoltSearchOperations}
+
+import scala.concurrent.ExecutionContext
 
 abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node, metadata: java.util.Map[String, AnyRef]) extends IRelation {
 
@@ -31,7 +34,7 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         else null
     }
 
-    def validateObjectTypes(startNodeObjectType: String, endNodeObjectType: String, schemaName: String, schemaVersion: String): String = {
+    def validateObjectTypes(startNodeObjectType: String, endNodeObjectType: String, schemaName: String, schemaVersion: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): String = {
         if(StringUtils.isNotBlank(startNodeObjectType) && StringUtils.isNotBlank(endNodeObjectType)) {
             val objectTypes = DefinitionFactory.getDefinition("domain", schemaName, schemaVersion).getOutRelationObjectTypes
             if(!objectTypes.contains(getRelationType + ":" + endNodeObjectType)) getRelationType + " is not allowed between " + startNodeObjectType + " and " + endNodeObjectType
@@ -40,12 +43,12 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         else null
     }
 
-    def checkCycle(req: Request): String = try {
+    def checkCycle(req: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): String = try {
         val request = new Request(req)
         request.put(GraphDACParams.start_node_id.name, this.endNode.getIdentifier)
         request.put(GraphDACParams.relation_type.name, getRelationType)
         request.put(GraphDACParams.end_node_id.name, this.startNode.getIdentifier)
-        val result = Neo4JBoltSearchOperations.checkCyclicLoop(graphId, this.endNode.getIdentifier, getRelationType(),this.startNode.getIdentifier);
+        val result = oec.graphService.checkCyclicLoop(graphId, this.endNode.getIdentifier, getRelationType(),this.startNode.getIdentifier)
         val loop = result.get(GraphDACParams.loop.name).asInstanceOf[Boolean]
         if (BooleanUtils.isTrue(loop)) {
             result.get(GraphDACParams.message.name).asInstanceOf[String]

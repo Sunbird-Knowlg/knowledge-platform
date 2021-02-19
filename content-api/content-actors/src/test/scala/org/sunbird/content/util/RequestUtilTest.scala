@@ -2,15 +2,19 @@ package org.sunbird.content.util
 
 import java.util
 
+import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.util.RequestUtil
 
 
-class RequestUtilTest extends FlatSpec with Matchers {
+class RequestUtilTest extends FlatSpec with Matchers with AsyncMockFactory {
+    
     
     it should "throw clientException for invalid request" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
        val exception = intercept[ClientException] {
             val context = new util.HashMap[String, AnyRef](){{
                 put("graphId", "domain")

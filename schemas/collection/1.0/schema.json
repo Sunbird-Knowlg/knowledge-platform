@@ -12,7 +12,8 @@
     "code",
     "contentEncoding",
     "contentDisposition",
-    "mediaType"
+    "mediaType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {
@@ -52,40 +53,7 @@
     "mimeType": {
       "type": "string",
       "enum": [
-        "application/vnd.ekstep.ecml-archive",
-        "application/vnd.ekstep.html-archive",
-        "application/vnd.android.package-archive",
-        "application/vnd.ekstep.content-archive",
-        "application/vnd.ekstep.content-collection",
-        "application/vnd.ekstep.plugin-archive",
-        "application/vnd.ekstep.h5p-archive",
-        "application/epub",
-        "text/x-url",
-        "video/x-youtube",
-        "application/octet-stream",
-        "application/msword",
-        "application/pdf",
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/tiff",
-        "image/bmp",
-        "image/gif",
-        "image/svg+xml",
-        "video/avi",
-        "video/mpeg",
-        "video/quicktime",
-        "video/3gpp",
-        "video/mp4",
-        "video/ogg",
-        "video/webm",
-        "audio/mp3",
-        "audio/mp4",
-        "audio/mpeg",
-        "audio/ogg",
-        "audio/webm",
-        "audio/x-wav",
-        "audio/wav"
+        "application/vnd.ekstep.content-collection"
       ]
     },
     "osId": {
@@ -175,11 +143,12 @@
       "items": {
         "type": "string",
         "enum": [
-          "Learner",
-          "Instructor"
+          "Student",
+          "Teacher",
+          "Administrator"
         ]
       },
-      "default": ["Learner"]
+      "default": ["Student"]
     },
     "posterImage": {
       "type": "string",
@@ -445,7 +414,8 @@
         "ExplanationReadingMaterial",
         "LearningActivity",
         "PreviousBoardExamPapers",
-        "LessonPlanResource"
+        "LessonPlanResource",
+        "TVLesson"
       ]
     },
     "resourceType": {
@@ -947,7 +917,8 @@
       "type": "array"
     },
     "version": {
-      "type": "number"
+      "type": "number",
+      "default": 2
     },
     "qrCodeProcessId": {
       "type": "string"
@@ -1000,6 +971,237 @@
     },
     "board" : {
       "type": "string"
+    },
+    "licenseterms" : {
+      "type": "string"
+    },
+    "copyrightYear" : {
+      "type": "number"
+    },
+    "monitorable": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "progress-report",
+          "score-report"
+        ]
+      }
+    },
+    "userConsent": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "trackable": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        },
+        "autoBatch": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        }
+      },
+      "default": {
+        "enabled": "No",
+        "autoBatch": "No"
+      },
+      "additionalProperties": false
+    },
+    "credentials": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        }
+      },
+      "default": {
+        "enabled": "No"
+      },
+      "additionalProperties": false
+    },
+    "primaryCategory": {
+      "type": "string"
+    },
+    "additionalCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prevStatus": {
+      "type": "string"
+    },
+    "batches": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "year": {
+      "type": "string"
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "showNotification": {
+      "type": "boolean"
+    },
+    "collectionId" : {
+      "type": "string"
+    },
+    "courseId": {
+      "type": "string"
+    },
+    "me_totalRatingsCount": {
+      "type": "number"
+    },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetFWIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetBoardIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetGradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetSubjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetMediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "maxAttempts": {
+      "type": "number"
+    },
+    "se_FWIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boardIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boards":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjects":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediums": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

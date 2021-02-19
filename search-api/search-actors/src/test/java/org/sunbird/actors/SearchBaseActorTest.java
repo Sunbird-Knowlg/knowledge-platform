@@ -23,6 +23,7 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -129,6 +130,8 @@ public class SearchBaseActorTest {
         Map<String, Object> content = getContentTestRecord("do_10000031", 31, null);
         content.put("name", "31 check name match");
         content.put("description", "हिन्दी description");
+        content.put("subject", Arrays.asList("English", "Hindi"));
+        content.put("medium", Arrays.asList("English", "Hindi"));
         addToIndex("do_10000031", content);
 
         content = getContentTestRecord("do_10000032", 32, null);
@@ -143,6 +146,8 @@ public class SearchBaseActorTest {
         content.put("name", "Textbook-10000034");
         content.put("description", "Textbook for other tenant");
         content.put("status","Live");
+        content.put("subject", Arrays.asList("Maths", "Science"));
+        content.put("medium", Arrays.asList("English", "Hindi"));
         content.put("relatedBoards", new ArrayList<String>(){{
             add("test-board1");
             add("test-board2");
@@ -195,6 +200,7 @@ public class SearchBaseActorTest {
         if (null != tagList && !tagList.isEmpty() && index % 7 != 0)
             map.put("keywords", tagList);
         map.put("downloads", index);
+        map.put("visibility", "Default");
         return map;
     }
 

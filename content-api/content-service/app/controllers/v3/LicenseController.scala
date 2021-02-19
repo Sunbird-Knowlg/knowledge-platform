@@ -8,7 +8,7 @@ import org.sunbird.content.util.LicenseConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -21,7 +21,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val license = body.getOrDefault("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers, LicenseConstants.CREATE_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)
@@ -32,7 +32,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
         val headers = commonHeaders()
         val license = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
-        license.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")))
+        license.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse("")).asJava)
         val licenseRequest = getRequest(license, headers,  LicenseConstants.READ_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)
         getResult(ApiId.READ_LICENSE, licenseActor, licenseRequest)
@@ -41,7 +41,7 @@ class LicenseController @Inject()(@Named(ActorNames.LICENSE_ACTOR) licenseActor:
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val license = body.getOrElse("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val license = body.getOrDefault("license", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         license.putAll(headers)
         val licenseRequest = getRequest(license, headers,  LicenseConstants.UPDATE_LICENSE)
         setRequestContext(licenseRequest, version, objectType, schemaName)

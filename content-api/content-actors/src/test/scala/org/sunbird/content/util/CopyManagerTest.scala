@@ -5,25 +5,26 @@ import java.util
 import org.apache.commons.collections.MapUtils
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.sunbird.cloud.storage.util.JSONUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.collection.JavaConversions.mapAsJavaMap
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-
-
+import scala.concurrent.Future
 
 class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 
     "CopyManager" should "return copied node identifier when content is copied" ignore {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).repeated(5)
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode_channel()))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode_channel()))
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCopiedNode()))
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getCopiedNode()))
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getCopiedNode()))
@@ -89,14 +90,17 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
     private def getNode(): Node = {
         val node = new Node()
+        node.setGraphId("domain")
         node.setIdentifier("do_1234")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_1234")
                 put("mimeType", "application/pdf")
                 put("status", "Draft")
                 put("contentType", "Resource")
+                put("primaryCategory", "Learning Resource")
                 put("name", "Copy content")
                 put("artifactUrl", "https://ntpstagingall.blob.core.windows.net/ntp-content-staging/content/assets/do_212959046431154176151/hindi3.pdf")
                 put("channel", "in.ekstep")
@@ -111,12 +115,15 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
         val node = new Node()
         node.setIdentifier("do_1234_copy")
         node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
+        node.setGraphId("domain")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_1234_copy")
                 put("mimeType", "application/pdf")
                 put("status", "Draft")
                 put("contentType", "Resource")
+                put("primaryCategory", "Learning Resource")
                 put("name", "Copy content")
                 put("artifactUrl", "https://ntpstagingall.blob.core.windows.net/ntp-content-staging/content/assets/do_212959046431154176151/hindi3.pdf")
                 put("channel", "in.ekstep")
@@ -280,5 +287,27 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
             }
         })
         request
+    }
+
+    def getDefinitionNode_channel(): Node = {
+        val node = new Node()
+        node.setIdentifier("obj-cat:learning-resource_content_in.ekstep")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
+        node.setGraphId("domain")
+        node.setMetadata(mapAsJavaMap(
+            ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:learning-resource\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n        \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
+        node
+    }
+
+    def getDefinitionNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("obj-cat:learning-resource_content_all")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
+        node.setGraphId("domain")
+        node.setMetadata(mapAsJavaMap(
+            ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:learning-resource\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n         \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
+        node
     }
 }

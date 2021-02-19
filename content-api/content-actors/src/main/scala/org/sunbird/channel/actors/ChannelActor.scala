@@ -38,6 +38,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
             throw new ClientException("ERR_CODE_IS_REQUIRED", "Code is required for creating a channel")
         request.getRequest.put("identifier", request.getRequest.get("code").asInstanceOf[String])
         ChannelManager.validateTranslationMap(request)
+        ChannelManager.validateObjectCategory(request)
         DataNode.create(request).map(node => {
             val response = ResponseHandler.OK
             response.put("identifier", node.getIdentifier)
@@ -54,6 +55,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
                 val frameworkList = ChannelManager.getAllFrameworkList()
                 if (!frameworkList.isEmpty) metadata.put("suggested_frameworks", frameworkList)
             }
+            ChannelManager.setPrimaryAndAdditionCategories(metadata)
             val response = ResponseHandler.OK
             response.put("channel", metadata)
             response
@@ -63,6 +65,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
     def update(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
         ChannelManager.validateTranslationMap(request)
+        ChannelManager.validateObjectCategory(request)
         request.getRequest.put("status", "Live")
         DataNode.update(request).map(node => {
             val response: Response = ResponseHandler.OK

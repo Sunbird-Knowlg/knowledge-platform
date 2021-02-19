@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM sunbird/openjdk-java11-alpine:latest
 RUN apk update \
     && apk add  unzip \
     && apk add curl \

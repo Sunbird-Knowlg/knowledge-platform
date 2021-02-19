@@ -15,9 +15,11 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
-import org.sunbird.util.RequestUtil
+import org.sunbird.content.mgr.ImportManager
+import org.sunbird.util. RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 
@@ -41,6 +43,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
+			case "importContent" => importContent(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -48,7 +51,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
-		DataNode.create(request).map(node => {
+		DataNode.create(request, dataModifier).map(node => {
 			val response = ResponseHandler.OK
 			response.put("identifier", node.getIdentifier)
 			response.put("node_id", node.getIdentifier)
@@ -61,7 +64,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
-			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 			response.put("content", metadata)
@@ -73,7 +76,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		populateDefaultersForUpdation(request)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
 		RequestUtil.restrictProperties(request)
-		DataNode.update(request).map(node => {
+		DataNode.update(request, dataModifier).map(node => {
 			val response: Response = ResponseHandler.OK
 			val identifier: String = node.getIdentifier.replace(".img", "")
 			response.put("node_id", identifier)
@@ -89,6 +92,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put("identifier", identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
 		}).flatMap(f => f)
 	}
@@ -97,6 +102,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		RequestUtil.restrictProperties(request)
 		CopyManager.copy(request)
 	}
+
 	def uploadPreSignedUrl(request: Request): Future[Response] = {
 		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
 		val fileName: String = request.get("fileName").asInstanceOf[String]
@@ -134,6 +140,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
+
+	def importContent(request: Request): Future[Response] = ImportManager.importContent(request)
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
@@ -179,5 +187,13 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
-
+	
+	def dataModifier(node: Node): Node = {
+		if(node.getMetadata.containsKey("trackable") && 
+				node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
+		"Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
+			node.getMetadata.put("contentType", "Course")
+		}
+		node
+	}
 }

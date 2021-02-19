@@ -48,4 +48,15 @@ object HierarchyConstants {
     val FIELDS: String = "fields"
     val MIME_TYPE: String = "mimeType"
     val COPY_TYPE_SHALLOW: String = "shallow"
+    val RETIRED_STATUS: String = "Retired"
+    val AUDIENCE: String = "audience"
+    val ASSET_SCHEMA_NAME: String = "asset"
+    val CONTENT_VERSION: String = "1.0"
+    val COLLECTION_VERSION: String = "1.0"
+    val ASSET_VERSION: String = "1.0"
+    val ASSET_CONTENT_TYPE: String = "Asset"
+    val COLLECTION_OBJECT_TYPE: String = "Collection"
+    val ASSET_OBJECT_TYPE: String = "Asset"
+    val OPERATION_UPDATE_HIERARCHY: String = "updateHierarchy"
+
 }

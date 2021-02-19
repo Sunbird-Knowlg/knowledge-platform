@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang.StringUtils
+import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -127,7 +128,7 @@ object CopyManager {
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Cannot Copy content which is in " + node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String].toLowerCase + " status")
     }
 
-    def validateRequest(request: Request): Unit = {
+    def validateRequest(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
         val keysNotPresent = ContentConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
         if (keysNotPresent.nonEmpty)
             throw new ClientException(ContentConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
@@ -146,12 +147,12 @@ object CopyManager {
     }
 
     def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
-        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), ContentConstants.CONTENT_SCHEMA_NAME, ContentConstants.SCHEMA_VERSION)
+        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), node.getObjectType.toLowerCase.replace("image", ""), ContentConstants.SCHEMA_VERSION)
         val requestMap = request.getRequest
         requestMap.remove(ContentConstants.MODE)
         requestMap.remove(ContentConstants.COPY_SCHEME).asInstanceOf[String]
         val copyType = requestMap.remove(ContentConstants.COPY_TYPE).asInstanceOf[String]
-        val originData: util.Map[String, AnyRef] = getOriginData(metadata, copyType)
+        val originData: java.util.Map[String, AnyRef] = getOriginData(metadata, copyType)
         cleanUpCopiedData(metadata, copyType)
         metadata.putAll(requestMap)
         metadata.put(ContentConstants.STATUS, "Draft")
@@ -159,6 +160,7 @@ object CopyManager {
         metadata.put(ContentConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
         if (MapUtils.isNotEmpty(originData))
             metadata.put(ContentConstants.ORIGIN_DATA, originData)
+        request.getContext().put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
         updateToCopySchemeContentType(request, metadata.get(ContentConstants.CONTENT_TYPE).asInstanceOf[String], metadata)
         val req = new Request(request)
         req.setRequest(metadata)
@@ -175,7 +177,7 @@ object CopyManager {
         } else Future {req}
     }
 
-    def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): util.Map[String, AnyRef] = {
+    def getOriginData(metadata: util.Map[String, AnyRef], copyType:String): java.util.Map[String, AnyRef] = {
         new java.util.HashMap[String, AnyRef](){{
             putAll(originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava)
             put(ContentConstants.COPY_TYPE, copyType)
@@ -280,8 +282,8 @@ object CopyManager {
                 if (mimeTypeManager.isInstanceOf[H5PMimeTypeMgrImpl])
                     mimeTypeManager.asInstanceOf[H5PMimeTypeMgrImpl].copyH5P(file, copiedNode)
                 else
-                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None)
-            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None)
+                    mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, file, None, UploadParams())
+            } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None, UploadParams())
             uploadFuture.map(uploadData => {
                 DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]))
             }).flatMap(f => f)
