@@ -104,9 +104,9 @@ DELETE    /event/v4/retire/:identifier           controllers.v4.EventController.
 # EventSet v4 Api's
 
 POST     /eventset/v4/create                     controllers.v4.EventSetController.create
-PATCH    /eventset/v4/update/:identifier         controllers.v4.EventSetController.update(identifier:String)
+PATCH    /private/eventset/v4/update/:identifier         controllers.v4.EventSetController.update(identifier:String)
 GET      /eventset/v4/hierarchy/:identifier      controllers.v4.EventSetController.getHierarchy(identifier:String, mode:Option[String])
 
 GET      /eventset/v4/read/:identifier           controllers.v4.CollectionController.read(identifier:String, mode:Option[String], fields:Option[String])
-DELETE   /eventset/v4/discard/:identifier        controllers.v4.CollectionController.discard(identifier:String)
+DELETE   /private/eventset/v4/discard/:identifier        controllers.v4.CollectionController.discard(identifier:String)
 DELETE   /eventset/v4/retire/:identifier         controllers.v4.CollectionController.retire(identifier:String)
