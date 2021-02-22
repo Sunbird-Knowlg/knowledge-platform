@@ -77,8 +77,9 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
   def getHierarchy(request: Request): Future[Response] = {
     DataNode.read(request).map(node => {
-      val childNodes = node.getOutRelations.asScala.map(relation => relation.getEndNodeId).toList
-      val children = node.getOutRelations.asScala.map(relation => relation.getEndNodeMetadata).map(metadata => {
+      val outRelations = if (node.getOutRelations == null) List[Relation]() else node.getOutRelations.asScala
+      val childNodes = outRelations.map(relation => relation.getEndNodeId).toList
+      val children = outRelations.map(relation => relation.getEndNodeMetadata).map(metadata => {
         SystemProperties.values().foreach(value => metadata.remove(value.name()))
         metadata
       }).toList

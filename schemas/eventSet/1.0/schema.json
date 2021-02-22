@@ -45,7 +45,7 @@
             "type": "string"
         },
         "schedule": {
-            "type": "array"
+            "type": "object"
         },
         "registrationStartDate": {
             "type": "string"
