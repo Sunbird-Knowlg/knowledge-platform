@@ -115,7 +115,8 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
   }
 
   private def formChildEvents(contentRequest: Request): List[collection.mutable.Map[String, AnyRef]] = {
-    val schedules = contentRequest.getRequest.getOrDefault("schedule", new util.ArrayList[util.Map[String, String]]()).asInstanceOf[util.List[util.Map[String, String]]].asScala
+    val scheduleObject = contentRequest.getRequest.getOrDefault("schedule", new util.HashMap[String, Object]()).asInstanceOf[util.Map[String, Object]]
+    val schedules = scheduleObject.getOrDefault("value", new util.ArrayList[util.Map[String, String]]()).asInstanceOf[util.List[util.Map[String, String]]].asScala
     schedules.map(schedule => {
       var event = collection.mutable.Map[String, AnyRef]() ++ contentRequest.getRequest.asScala
       event ++= schedule.asScala

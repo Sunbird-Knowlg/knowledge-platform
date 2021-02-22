@@ -13,6 +13,7 @@ import scala.concurrent.{ExecutionContext}
 class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, @Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {
     val objectType = "Collection"
     val schemaName: String = "collection"
+    val contentPath: String = "collection"
     val version = "1.0"
     val apiVersion = "4.0"
 
@@ -26,7 +27,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
     def create() = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(contentPath, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         if(!validatePrimaryCategory(content))
             getErrorResponse(ApiId.CREATE_COLLECTION, apiVersion, "VALIDATION_ERROR", "primaryCategory is a mandatory parameter")
@@ -63,7 +64,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(contentPath, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "updateContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
@@ -155,7 +156,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
     def retire(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(contentPath, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.put("identifier", identifier)
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "retireContent")
@@ -177,7 +178,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault(contentPath, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse(""), "copyType" -> copyType).asJava)
         val contentRequest = getRequest(content, headers, "copy")

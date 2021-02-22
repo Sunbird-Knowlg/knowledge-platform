@@ -17,7 +17,7 @@ class EventSetController @Inject()(@Named(ActorNames.EVENT_SET_ACTOR) eventSetAc
   override def create() = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
-    val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    val content = body.getOrDefault(contentPath, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     content.putAll(headers)
     if(validateContentType(content))
       getErrorResponse(ApiId.CREATE_EVENT_SET, apiVersion, "VALIDATION_ERROR", "contentType cannot be set from request.")

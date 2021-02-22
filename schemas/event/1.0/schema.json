@@ -66,10 +66,9 @@
             ]
         },
         "onlineProvider": {"type":  "string"},
-        "onlineProviderConfig": {"type":  "object"},
+        "onlineProviderData": {"type":  "object"},
         "registrationLink": {"type":  "string", "format":  "url"},
         "venue": {"type":  "object"},
-        "recordedMediaInfo": {"type":  "object"},
         "visibility": {
             "type": "string",
             "enum": [
@@ -94,12 +93,9 @@
             "type": "string",
             "format": "url"
         },
-        "thumbnail": {
+        "appIcon": {
             "type": "string",
             "format": "url"
-        },
-        "organization": {
-            "type": "array"
         },
         "createdFor": {
             "type": "array"
@@ -227,7 +223,8 @@
             "type": "array"
         },
         "leafNodesCount": {
-            "type": "number"
+            "type": "number",
+            "default": 1
         },
         "depth": {
             "type": "number"
