@@ -6,6 +6,7 @@ import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, Constants}
 
 import javax.inject.{Inject, Named}
+import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -28,9 +29,9 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) contentActor: Act
         }
     }
 
-    def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+    override def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
-        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        val content = new java.util.HashMap[String, Object]()
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
