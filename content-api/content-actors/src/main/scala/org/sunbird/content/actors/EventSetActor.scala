@@ -1,7 +1,7 @@
 package org.sunbird.content.actors
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.actor.core.BaseActor
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
@@ -15,11 +15,9 @@ import org.sunbird.utils.HierarchyConstants
 import java.util
 import javax.inject.Inject
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class EventSetActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
-
-  implicit val ec: ExecutionContext = getContext().dispatcher
+class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends ContentActor {
 
   override def onReceive(request: Request): Future[Response] = {
     request.getContext.put(HierarchyConstants.SCHEMA_NAME, HierarchyConstants.EVENT_SET_SCHEMA_NAME)
@@ -27,11 +25,14 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
       case "createContent" => create(request)
       case "updateContent" => update(request)
       case "getHierarchy" => getHierarchy(request)
+      case "readContent" => read(request)
+      case "retireContent" => retire(request)
+      case "discardContent" => discard(request)
       case _ => ERROR(request.getOperation)
     }
   }
 
-  def create(request: Request): Future[Response] = {
+  override def create(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
     val originalRequestContent = request.getRequest
     addChildEvents(request)
@@ -50,7 +51,7 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     }
   }
 
-  def update(request: Request): Future[Response] = {
+  override def update(request: Request): Future[Response] = {
     if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
     RequestUtil.restrictProperties(request)
     val originalRequestContent = request.getRequest
