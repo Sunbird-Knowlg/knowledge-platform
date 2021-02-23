@@ -124,7 +124,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
 
     def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
-        val content = requestFormData()
+        val content = requestFormData(identifier)
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "uploadContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
