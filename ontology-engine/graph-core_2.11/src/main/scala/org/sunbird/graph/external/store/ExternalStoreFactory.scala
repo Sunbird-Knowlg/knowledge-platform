@@ -1,7 +1,6 @@
 package org.sunbird.graph.external.store
 
 import java.util
-import java.util.{Arrays, List}
 
 object ExternalStoreFactory {
 

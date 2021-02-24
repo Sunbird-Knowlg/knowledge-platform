@@ -8,6 +8,7 @@ import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import org.sunbird.cassandra.{CassandraConnector, CassandraStore}
+import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.{ErrorCodes, ResponseCode, ServerException}
@@ -27,10 +28,14 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         import scala.collection.JavaConverters._
         for ((key, value) <- request.asScala) {
-            if("blob".equalsIgnoreCase(propsMapping.getOrElse(key, "")))
-                insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
-            else
-                insertQuery.value(key, value)
+            propsMapping.getOrElse(key, "") match {
+                case "blob" => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+                case "string" => request.getOrDefault(key, "") match {
+                    case value: String => insertQuery.value(key, value)
+                    case _ => insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))
+                }
+                case _ => insertQuery.value(key, value)
+            }
         }
         try {
             val session: Session = CassandraConnector.getSession
@@ -103,6 +108,38 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             case e: Exception =>
                 TelemetryManager.error("Exception Occurred While Deleting The Record. | Exception is : " + e.getMessage, e)
                 throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
+        }
+    }
+
+    def update(identifier: String, columns: List[String], values: List[AnyRef], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
+        val update = QueryBuilder.update(keySpace, table)
+        val clause: Clause = QueryBuilder.eq(primaryKey.get(0), identifier)
+        update.where.and(clause)
+        //        if(propsMapping.keySet.contains("last_updated_on"))
+        //            update.`with`(QueryBuilder.add("last_updated_on", new Timestamp(new Date().getTime)))
+        for ((column, index) <- columns.view.zipWithIndex)  {
+            propsMapping.getOrElse(column, "").toLowerCase match {
+                case "blob" => update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
+                case "object" => update.`with`(QueryBuilder.putAll(column, values(index).asInstanceOf[java.util.Map[String, AnyRef]]))
+                case "array" => update.`with`(QueryBuilder.appendAll(column, values(index).asInstanceOf[java.util.List[String]]))
+                case "string" => values(index) match  {
+                        case value: String =>  update.`with`(QueryBuilder.set(column, values(index)))
+                        case _ =>  update.`with`(QueryBuilder.set(column, JsonUtils.serialize(values(index))))
+                    }
+                case _ => update.`with`(QueryBuilder.set(column, values(index)))
+            }
+        }
+        print("Query for update map record", update)
+        try {
+            val session: Session = CassandraConnector.getSession
+            session.executeAsync(update).asScala.map( resultset => {
+                ResponseHandler.OK()
+            })
+        } catch {
+            case e: Exception =>
+                e.printStackTrace()
+                TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
         }
     }
 

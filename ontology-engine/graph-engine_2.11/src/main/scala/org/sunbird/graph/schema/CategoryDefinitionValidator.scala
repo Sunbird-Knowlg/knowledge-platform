@@ -6,13 +6,16 @@ import java.util
 import java.util.concurrent.CompletionException
 
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.commons.lang3.StringUtils
 import org.leadpony.justify.api.JsonSchema
-import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.ResourceNotFoundException
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.schema.impl.BaseSchemaValidator
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
@@ -32,46 +35,53 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
             this.config = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("config", null).asInstanceOf[Config]
         } 
         else {
-            prepareSchema(categoryId)
+            val (schemaMap, configMap) = prepareSchema(categoryId)
+            this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
+            this.config = ConfigFactory.parseMap(configMap)
+            ObjectCategoryDefinitionMap.put(categoryId, Map("schema" -> schema, "config" -> config))
         }
         this
     }
 
-    def prepareSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    def prepareSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
+        val request: Request = new Request()
+        val context = new util.HashMap[String, AnyRef]()
+        context.put("schemaName", "objectcategorydefinition")
+        context.put("version", "1.0")
+        request.setContext(context)
+        request.put("identifier", categoryId)
+        val response: Response = {
+            val resp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+            if (ResponseHandler.checkError(resp)) {
+                if(StringUtils.equalsAnyIgnoreCase(resp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
+                    if ("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
+                        throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
+                    else {
+                        val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
+                        request.put("identifier", updatedId)
+                        val channelCatResp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
+                        if(StringUtils.equalsAnyIgnoreCase(channelCatResp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
+                          throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
+                        } else channelCatResp
+                    }
+                } else throw new ServerException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
+            } else resp
+        }
+        populateSchema(response, categoryId)
+    }
+  
+    def populateSchema(response: Response, identifier: String) : (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
         val jsonString = getFileToString("schema.json")
         val schemaMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(jsonString, classOf[java.util.Map[String, AnyRef]])
         val configMap: java.util.Map[String, AnyRef] = JsonUtils.deserialize(getFileToString("config.json"), classOf[java.util.Map[String, AnyRef]])
-        val request: Request = new Request()
-        val resultNode: Node = try{
-            Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId, false, request), Duration.apply("30 seconds"))
-        } catch {
-            case e: CompletionException => {
-                if( e.getCause.isInstanceOf[ResourceNotFoundException]){
-                    if("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
-                        throw e.getCause
-                    else {
-                        try {
-                            Await.result(oec.graphService.getNodeByUniqueId("domain", categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all"), false, request), Duration.apply("30 seconds"))
-                        } catch {
-                            case e: CompletionException => {
-                                throw e.getCause
-                            }
-                        }
-                    }
-                }
-                else throw e.getCause   
-            }
-        }
-        val objectMetadata = JsonUtils.deserialize(resultNode.getMetadata.getOrDefault("objectMetadata", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
-        val nodeSchema = objectMetadata.getOrDefault("schema", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]]
+        val objectMetadata = response.getResult.getOrDefault("objectMetadata", new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+        val nodeSchema = JsonUtils.deserialize(objectMetadata.getOrDefault("schema", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
         schemaMap.getOrDefault("properties", new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]].putAll(nodeSchema.getOrDefault("properties", new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]])
         schemaMap.getOrDefault("required", new java.util.ArrayList[String]()).asInstanceOf[java.util.List[String]].addAll(nodeSchema.getOrDefault("required", new java.util.ArrayList[String]()).asInstanceOf[java.util.List[String]])
-        configMap.putAll(objectMetadata.getOrDefault("config", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]])
-        this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
-        this.config = ConfigFactory.parseMap(configMap)
-        ObjectCategoryDefinitionMap.put(resultNode.getIdentifier, Map("schema" -> schema, "config" -> config))
+        configMap.putAll(JsonUtils.deserialize(objectMetadata.getOrDefault("config", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]]))
+        (schemaMap, configMap)
     }
-    
+
     def getFileToString(fileName: String): String = {
         if(basePath startsWith "http") Source.fromURL(basePath + fileName).mkString
         else Source.fromFile(basePath + fileName).mkString

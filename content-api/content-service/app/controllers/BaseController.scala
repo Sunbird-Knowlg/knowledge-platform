@@ -149,6 +149,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 }
             }
         }
+        if(StringUtils.isNotBlank(request.getContext.getOrDefault("channel", "").asInstanceOf[String]))
+            contextMap.put("channel", request.getContext.get("channel").asInstanceOf[String])
         request.setContext(contextMap)
     }
 
@@ -159,12 +161,29 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 case (x: String, y: String) => (x, y)
                 case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
                     input.getOrDefault("resourceType", "").asInstanceOf[String]))
-                case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
-                case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
+                case (x: String, y) => (x, getPrimeryCategory(x))
+                case (x, y: String) => (getContentType(y), y)
                 case _ => (contentType, primaryCategory)
             }
-            input.put("contentType", updatedContentType)
+            input.put("contentType", if (StringUtils.isBlank(updatedContentType)) "Resource" else updatedContentType)
             input.put("primaryCategory", updatedPrimaryCategory)
+    }
+
+    private def getPrimeryCategory(contentType: String): String ={
+        val primaryCategory = categoryMap.get(contentType)
+        if(primaryCategory.isInstanceOf[String])
+            primaryCategory.asInstanceOf[String]
+        else
+            primaryCategory.asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource")
+
+    }
+
+    private def getContentType(primaryCategory: String): String ={
+        categoryMap.asScala.filter(entry => (entry._2 match{
+            case xs: util.List[_] => xs.asInstanceOf[util.List[String]].contains(primaryCategory)
+            case _ => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], primaryCategory)
+
+        })).keys.headOption.getOrElse("Resource")
     }
 
     private def getCategoryForResource(mimeType: String, resourceType: String): String = (mimeType, resourceType) match {

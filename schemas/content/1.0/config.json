@@ -73,6 +73,8 @@
     "version": "enable",
     "versionCheckMode": "ON",
     "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+    "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
     "edge": {
         "properties": {
             "license": "License"
@@ -100,5 +102,5 @@
             "relatedBoards": 4
         }
     },
-    "schema_restrict_api": true
+    "schema_restrict_api": false
 }

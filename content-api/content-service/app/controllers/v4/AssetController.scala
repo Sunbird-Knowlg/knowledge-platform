@@ -11,7 +11,7 @@ import utils.{ActorNames, ApiId}
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext}
 @Singleton
-class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {
+class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, @Named(ActorNames.ASSET_ACTOR) assetActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {
     val objectType = "Asset"
     val schemaName: String = "asset"
     val version = "1.0"
@@ -93,7 +93,6 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         getResult(ApiId.UPLOAD_PRE_SIGNED_ASSET, contentActor, contentRequest)
     }
 
-
     def retire(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
@@ -103,6 +102,17 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val contentRequest = getRequest(content, headers, "retireContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.RETIRE_ASSET, contentActor, contentRequest)
+    }
+
+    def copy(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier).asJava)
+        val contentRequest = getRequest(content, headers, "copy")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.COPY_ASSET, assetActor, contentRequest, version = apiVersion)
     }
 
 }

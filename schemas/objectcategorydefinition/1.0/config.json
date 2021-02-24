@@ -3,7 +3,21 @@
   "version": "disable",
   "versionCheckMode": "OFF",
   "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
   "schema_restrict_api": true,
+  "external": {
+    "tableName": "category_definition_data",
+    "properties": {
+      "objectMetadata": {
+        "type": "object"
+      },
+      "forms": {
+        "type": "object"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
   "restrictProps": {
     "create": [
       "identifier",
