@@ -255,6 +255,9 @@
       "type": "string",
       "format": "url"
     },
+    "printable: {
+      "type": "boolean"
+    },
     "objects": {
       "type": "array"
     },
