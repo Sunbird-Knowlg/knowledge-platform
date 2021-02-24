@@ -255,7 +255,7 @@
       "type": "string",
       "format": "url"
     },
-    "printable: {
+    "printable": {
       "type": "boolean"
     },
     "objects": {
