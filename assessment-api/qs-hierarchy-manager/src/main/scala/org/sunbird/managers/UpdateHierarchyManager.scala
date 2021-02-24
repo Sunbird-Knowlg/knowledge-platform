@@ -226,6 +226,7 @@ object UpdateHierarchyManager {
 
     private def createNewNode(nodeId: String, idMap: mutable.Map[String, String], metadata: java.util.HashMap[String, AnyRef], nodeList: List[Node], request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
+        metadata.remove("objectType")
         val identifier: String = Identifier.getIdentifier(HierarchyConstants.TAXONOMY_ID, Identifier.getUniqueIdFromTimestamp)
         idMap += (nodeId -> identifier)
         metadata.put(HierarchyConstants.IDENTIFIER, identifier)
@@ -269,6 +270,7 @@ object UpdateHierarchyManager {
             if (neo4jCreateTypes.contains(objectType)) {
                 createRequest.getContext.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
                 createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, "question")
+                createRequest.getContext.put(HierarchyConstants.OBJECT_TYPE, objectType)
                 DataNode.update(createRequest).map(node => {
                     idMap += (nodeId -> node.getIdentifier)
                     updateNodeList(nodeList, node.getIdentifier, node.getMetadata)
@@ -400,7 +402,8 @@ object UpdateHierarchyManager {
             } else {
                 getQuestionNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     populateHierarchyRelatedData(node, depth, index, parent)
-                    node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
+                    //node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
+                    node.setObjectType(HierarchyConstants.QUESTION_OBJECT_TYPE)
                     node.getMetadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.QUESTION_OBJECT_TYPE)
                     val nxtEnrichedNodeList = node :: enrichedNodeList
                     if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {

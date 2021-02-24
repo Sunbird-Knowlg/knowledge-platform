@@ -38,7 +38,7 @@ object HierarchyManager {
         else
             java.util.Arrays.asList("collections","children","usedByContent","item_sets","methods","libraries","editorState")
     }
-
+    
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
@@ -216,7 +216,8 @@ object HierarchyManager {
 
     @throws[Exception]
     def getPublishedHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-        val redisHierarchy = RedisCache.get(hierarchyPrefix + request.get("rootId"))
+        val redisHierarchy = if(Platform.getBoolean("questionset.cache.enable", false)) RedisCache.get(hierarchyPrefix + request.get("rootId")) else ""
+
         val hierarchyFuture = if (StringUtils.isNotEmpty(redisHierarchy)) {
             Future(mapAsJavaMap(Map("questionSet" -> JsonUtils.deserialize(redisHierarchy, classOf[java.util.Map[String, AnyRef]]))))
         } else getCassandraHierarchy(request)
@@ -428,8 +429,9 @@ object HierarchyManager {
         hierarchy.map(hierarchy => {
             if (!hierarchy.isEmpty) {
                 if (StringUtils.isNotEmpty(hierarchy.getOrDefault("status", "").asInstanceOf[String]) && statusList.contains(hierarchy.getOrDefault("status", "").asInstanceOf[String])) {
-                    rootHierarchy.put("questionSet", hierarchy)
-                    RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchy))
+                    val hierarchyMap = mapAsJavaMap(hierarchy)
+                    rootHierarchy.put("questionSet", hierarchyMap)
+                    RedisCache.set(hierarchyPrefix + request.get("rootId"), JsonUtils.serialize(hierarchyMap))
                     Future(rootHierarchy)
                 } else {
                     Future(new util.HashMap[String, AnyRef]())

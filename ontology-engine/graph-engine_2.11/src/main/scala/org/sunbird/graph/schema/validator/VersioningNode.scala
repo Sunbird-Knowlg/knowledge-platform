@@ -113,7 +113,7 @@ trait VersioningNode extends IDefinition {
             put("graph_id", graphId)
         }})
         request.put("identifier", identifier)
-        ExternalPropsManager.fetchProps(request, getExternalPropsList(graphId, schemaName, getSchemaVersion()))
+        oec.graphService.readExternalProps(request, getExternalPropsList(graphId, schemaName, getSchemaVersion()))
     }
 
     private def getExternalPropsList(graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] ={

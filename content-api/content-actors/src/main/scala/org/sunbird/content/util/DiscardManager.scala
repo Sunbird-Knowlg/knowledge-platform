@@ -60,7 +60,7 @@ object DiscardManager {
     private def discardForCollection(node: Node, request: Request)(implicit executionContext: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
         request.put(ContentConstants.IDENTIFIERS, if (node.getMetadata.containsKey(ContentConstants.PACKAGE_VERSION)) List(node.getIdentifier) else List(node.getIdentifier, node.getIdentifier + ContentConstants.IMAGE_SUFFIX))
         request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
-        ExternalPropsManager.deleteProps(request).map(resp => DataNode.deleteNode(request)).flatMap(f => f)
+        oec.graphService.deleteExternalProps(request).map(resp => DataNode.deleteNode(request)).flatMap(f => f)
     }
 
 
