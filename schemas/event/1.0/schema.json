@@ -40,22 +40,28 @@
             "default": "Live"
         },
         "startDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "endDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "startTime": {
-            "type": "string"
+            "type": "string",
+            "format": "time"
         },
         "endTime": {
-            "type": "string"
+            "type": "string",
+            "format": "time"
         },
         "registrationStartDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "registrationEndDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "eventType": {
             "type": "string",
@@ -66,7 +72,12 @@
             ]
         },
         "onlineProvider": {"type":  "string"},
-        "onlineProviderData": {"type":  "object"},
+        "onlineProviderData": {"type":  "object", "properties": {
+            "meetingLink" : {
+                "type": "string",
+                "format": "url"
+            }
+        }},
         "registrationLink": {"type":  "string", "format":  "url"},
         "venue": {"type":  "object"},
         "visibility": {

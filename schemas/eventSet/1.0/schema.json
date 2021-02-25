@@ -39,19 +39,38 @@
             "default": "Live"
         },
         "startDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "endDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "schedule": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "enum": ["NON_RECURRING"]},
+                "values": {"type":  "array", "items": {
+                    "type": "object",
+                    "properties": {
+                        "startDate": {"type": "string", "format": "date"},
+                        "endDate": {"type": "string", "format": "date"},
+                        "startTime": {"type": "string", "format": "time"},
+                        "endTime": {"type": "string", "format": "time"},
+                        "registrationStartDate": {"type": "string", "format": "date"},
+                        "registrationEndDate": {"type": "string", "format": "date"}
+                    }
+
+                }}
+            }
         },
         "registrationStartDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "registrationEndDate": {
-            "type": "string"
+            "type": "string",
+            "format": "date"
         },
         "eventType": {
             "type": "string",
@@ -62,7 +81,12 @@
             ]
         },
         "onlineProvider": {"type":  "string"},
-        "onlineProviderData": {"type":  "object"},
+        "onlineProviderData": {"type":  "object", "properties": {
+            "meetingLink" : {
+                "type": "string",
+                "format": "url"
+            }
+        }},
         "registrationLink": {"type":  "string", "format":  "url"},
         "venue": {"type":  "object"},
         "visibility": {

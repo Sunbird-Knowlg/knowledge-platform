@@ -90,7 +90,7 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
       metadata.put("childNodes", childNodes.asJava)
       metadata.put("children", children.asJava)
       val response: Response = ResponseHandler.OK
-      response.put("content", metadata)
+      response.put("eventSet", metadata)
       response
     })
   }
