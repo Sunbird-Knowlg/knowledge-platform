@@ -94,3 +94,17 @@ POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentControl
 DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
 DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
 
+# Event APIs
+POST      /event/v4/create                       controllers.v4.EventController.create
+PATCH     /event/v4/update/:identifier           controllers.v4.EventController.update(identifier:String)
+GET       /event/v4/read/:identifier             controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String])
+DELETE    /private/event/v4/discard/:identifier  controllers.v4.EventController.discard(identifier:String)
+DELETE    /event/v4/retire/:identifier           controllers.v4.EventController.retire(identifier:String)
+
+# EventSet v4 Api's
+POST    /eventset/v4/create                      controllers.v4.EventSetController.create
+PATCH   /private/eventset/v4/update/:identifier  controllers.v4.EventSetController.update(identifier:String)
+GET     /eventset/v4/hierarchy/:identifier       controllers.v4.EventSetController.getHierarchy(identifier:String, mode:Option[String])
+GET     /eventset/v4/read/:identifier            controllers.v4.EventSetController.read(identifier:String, mode:Option[String], fields:Option[String])
+DELETE  /private/eventset/v4/discard/:identifier controllers.v4.EventSetController.discard(identifier:String)
+DELETE  /eventset/v4/retire/:identifier          controllers.v4.EventSetController.retire(identifier:String)
