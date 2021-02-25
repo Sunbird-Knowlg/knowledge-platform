@@ -67,12 +67,10 @@ object ApiId {
 	val UPDATE_HIERARCHY_V4 = "api.collection.hierarchy.update"
 	val GET_HIERARCHY_V4 = "api.collection.hierarchy.get"
 
-  //App APIs
-  val REGISTER_APP = "api.app.register"
-  val READ_APP = "api.app.read"
-  val UPDATE_APP = "api.app.update"
-  val APPROVE_APP = "api.app.approve"
-  val REJECT_APP = "api.app.reject"
-  val RETIRE_APP = "api.app.retire"
+  val CREATE_EVENT = "api.event.create"
+  val UPDATE_EVENT = "api.event.update"
+
+  val CREATE_EVENT_SET = "api.eventSet.create"
+  val UPDATE_EVENT_SET = "api.eventSet.update"
 
 }
