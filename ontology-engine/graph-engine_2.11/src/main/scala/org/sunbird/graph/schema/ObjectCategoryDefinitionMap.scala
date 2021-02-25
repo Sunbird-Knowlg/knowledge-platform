@@ -1,30 +1,29 @@
 package org.sunbird.graph.schema
 
-import org.sunbird.common.Slug
+import com.twitter.storehaus.cache.Cache
+import com.twitter.util.Duration
+import org.sunbird.common.{Platform, Slug}
 
 object ObjectCategoryDefinitionMap {
-    
-    var categoryDefinitionMap: Map[String, Map[String, AnyRef]] = Map[String, Map[String, AnyRef]]()
-    
-    def get(id: String):Map[String, AnyRef] = {
-        categoryDefinitionMap.getOrElse(id, null)
-    }
-    
-    def put(id: String, data: Map[String, AnyRef]) = {
-        categoryDefinitionMap += (id -> data)
-    }
-    
-    def containsKey(id: String): Boolean = {
-        categoryDefinitionMap.contains(id)
-    }
 
-    def remove(id: String) = {
-        categoryDefinitionMap -= id
-    }
+  val ttlMS = Platform.getLong("object.categoryDefinition.cache.ttl", 600000l)
+  val cache =  Cache.ttl[String, Map[String, AnyRef]](Duration.fromMilliseconds(ttlMS))
     
-    def prepareCategoryId(categoryName: String, objectType: String, channel: String = "all") = {
-        if(!categoryName.isBlank)
-            "obj-cat"+ ":" + Slug.makeSlug(categoryName + "_" + objectType + "_" + channel, true)
-        else ""
-    }
+  def get(id: String):Map[String, AnyRef] = {
+    cache.getNonExpired(id).getOrElse(null)
+  }
+
+  def put(id: String, data: Map[String, AnyRef]): Unit = {
+    cache.putClocked(id, data)
+  }
+
+  def containsKey(id: String): Boolean = {
+    cache.contains(id)
+  }
+
+  def prepareCategoryId(categoryName: String, objectType: String, channel: String = "all") = {
+      if(!categoryName.isBlank)
+          "obj-cat"+ ":" + Slug.makeSlug(categoryName + "_" + objectType + "_" + channel, true)
+      else ""
+  }
 }

@@ -21,10 +21,8 @@ object HierarchyBackwardCompatibilityUtil {
 
     def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
         val contentType = input.get("contentType").asInstanceOf[String]
-        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :::: identifier " + input.get("identifier") )
-        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :::: contentType " + contentType )
+
         val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
-        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: primaryCategory " + primaryCategory )
         val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
             case (x: String, y: String) => (x, y)
             case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
@@ -33,8 +31,7 @@ object HierarchyBackwardCompatibilityUtil {
             case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
             case _ => (contentType, primaryCategory)
         }
-        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: updated CT " + updatedContentType )
-        println("HierarchyBackwardCompatibilityUtil :: setContentAndCategoryTypes :: updated PC " + updatedPrimaryCategory )
+
         input.put("contentType", updatedContentType)
         input.put("primaryCategory", updatedPrimaryCategory)
     }
@@ -55,7 +52,7 @@ object HierarchyBackwardCompatibilityUtil {
         val contentType = metadata.getOrDefault("contentType", "").asInstanceOf[String]
         val objectType = metadata.getOrDefault("objectType", "").asInstanceOf[String]
         val primaryCategory = metadata.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        println("HierarchyBackwardCompatibility::setNewObjectType:: mimeType :: " + mimeType + " primaryCategory " + primaryCategory + " contentType " + contentType + " objectType " + objectType)
+
         if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, HierarchyConstants.COLLECTION_MIME_TYPE)) {
             metadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.COLLECTION_OBJECT_TYPE)
             node.setObjectType(HierarchyConstants.COLLECTION_OBJECT_TYPE)
