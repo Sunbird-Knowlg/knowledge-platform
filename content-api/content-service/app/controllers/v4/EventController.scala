@@ -10,7 +10,7 @@ import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends ContentController(contentActor, cc, actorSystem) {
+class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends ContentController(eventActor, cc, actorSystem) {
 
     override val objectType = "Event"
     override val schemaName: String = "event"
@@ -25,7 +25,7 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) contentActor: Act
         else {
             val contentRequest = getRequest(content, headers, "createContent", false)
             setRequestContext(contentRequest, version, objectType, schemaName)
-            getResult(ApiId.CREATE_EVENT, contentActor, contentRequest, version = apiVersion)
+            getResult(ApiId.CREATE_EVENT, eventActor, contentRequest, version = apiVersion)
         }
     }
 
@@ -37,7 +37,7 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) contentActor: Act
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
         readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
-        getResult(ApiId.READ_CONTENT, contentActor, readRequest, version = apiVersion)
+        getResult(ApiId.READ_CONTENT, eventActor, readRequest, version = apiVersion)
     }
 
 }
