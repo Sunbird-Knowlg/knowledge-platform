@@ -61,7 +61,7 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
                         request.put("identifier", updatedId)
                         val channelCatResp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
                         if(StringUtils.equalsAnyIgnoreCase(channelCatResp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
-                          throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
+                          throw new ResourceNotFoundException(channelCatResp.getParams.getErr, channelCatResp.getParams.getErrmsg + " " + channelCatResp.getResult)
                         } else channelCatResp
                     }
                 } else throw new ServerException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
