@@ -32,7 +32,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         JavaJsonUtils.deserialize[java.util.Map[String, Object]](body).getOrDefault("request", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     }
 
-    def requestFormData()(implicit request: Request[AnyContent]) = {
+    def requestFormData(identifier: String)(implicit request: Request[AnyContent]) = {
         val reqMap = new util.HashMap[String, AnyRef]()
         if(!request.body.asMultipartFormData.isEmpty) {
             val multipartData = request.body.asMultipartFormData.get
@@ -49,9 +49,9 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 }
             }
             if (null != multipartData.files && !multipartData.files.isEmpty) {
-                val file: File = new File("/tmp" + File.separator + request.body.asMultipartFormData.get.files.head.filename)
-                multipartData.files.head.ref.copyTo(file, false)
-                reqMap.put("file", file)
+                val file: File = new File("/tmp" + File.separator + identifier + "_" + System.currentTimeMillis + "_"+ request.body.asMultipartFormData.get.files.head.filename)
+                val copiedFile: File = multipartData.files.head.ref.copyTo(file, false).toFile
+                reqMap.put("file", copiedFile)
             }
         }
         if(StringUtils.isNotBlank(reqMap.getOrDefault("fileUrl", "").asInstanceOf[String]) || null != reqMap.get("file").asInstanceOf[File]){
