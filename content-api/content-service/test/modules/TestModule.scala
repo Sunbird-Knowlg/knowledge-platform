@@ -20,6 +20,7 @@ class TestModule extends AbstractModule with AkkaGuiceSupport {
         bindActor(classOf[TestActor], ActorNames.ASSET_ACTOR)
 
         bindActor(classOf[TestActor], ActorNames.EVENT_SET_ACTOR)
+        bindActor(classOf[TestActor], ActorNames.EVENT_ACTOR)
         println("Test Module is initialized...")
     }
 }
