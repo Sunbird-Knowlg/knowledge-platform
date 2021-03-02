@@ -77,6 +77,8 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
   }
 
   def getHierarchy(request: Request): Future[Response] = {
+    val fields: util.List[String] = seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       val outRelations = if (node.getOutRelations == null) List[Relation]() else node.getOutRelations.asScala
       val childNodes = outRelations.map(relation => relation.getEndNodeId).toList
