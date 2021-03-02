@@ -9,7 +9,7 @@ object HierarchyConstants {
     val SET_DEFAULT_VALUE: String = "setDefaultValue"
     val COLLECTION_MIME_TYPE: String = "application/vnd.ekstep.content-collection"
     val COLLECTION_SCHEMA_NAME: String = "collection"
-    val EVENT_SET_SCHEMA_NAME: String = "eventSet"
+    val EVENT_SET_SCHEMA_NAME: String = "eventset"
     val LATEST_CONTENT_VERSION: Integer = 2
     val VERSION: String = "version"
     val IDENTIFIER: String = "identifier"

@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class EventSetController @Inject()(@Named(ActorNames.EVENT_SET_ACTOR) eventSetActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends CollectionController(eventSetActor, eventSetActor, cc, actorSystem) {
   override val objectType = "EventSet"
-  override val schemaName: String = "eventSet"
+  override val schemaName: String = "eventset"
 
   override def create() = Action.async { implicit request =>
     val headers = commonHeaders()

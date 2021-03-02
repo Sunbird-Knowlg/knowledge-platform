@@ -72,7 +72,7 @@ object ApiId {
   val CREATE_EVENT = "api.event.create"
   val UPDATE_EVENT = "api.event.update"
 
-  val CREATE_EVENT_SET = "api.eventSet.create"
-  val UPDATE_EVENT_SET = "api.eventSet.update"
+  val CREATE_EVENT_SET = "api.eventset.create"
+  val UPDATE_EVENT_SET = "api.eventset.update"
 
 }

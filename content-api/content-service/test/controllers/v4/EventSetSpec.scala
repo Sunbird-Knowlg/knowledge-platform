@@ -13,7 +13,7 @@ class EventSetSpec extends BaseSpec {
     "EventSet Controller " should {
         "return success response for create API" in {
             val controller = app.injector.instanceOf[controllers.v4.EventSetController]
-            val json: JsValue = Json.parse("""{"request": {"eventSet": {"name": "EventSet","primaryCategory": "Event Set"}}}""")
+            val json: JsValue = Json.parse("""{"request": {"eventset": {"name": "EventSet","primaryCategory": "Event Set"}}}""")
             val fakeRequest = FakeRequest("POST", "/eventset/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
             isOK(result)
