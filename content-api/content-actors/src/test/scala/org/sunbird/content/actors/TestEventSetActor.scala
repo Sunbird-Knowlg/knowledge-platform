@@ -206,7 +206,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
                 put("graph_id", "domain")
                 put("version", "1.0")
                 put("objectType", "EventSet")
-                put("schemaName", "eventSet")
+                put("schemaName", "eventset")
                 put("X-Channel-Id", "in.ekstep")
             }
         })

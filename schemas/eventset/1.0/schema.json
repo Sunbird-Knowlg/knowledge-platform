@@ -33,10 +33,11 @@
         "status": {
             "type": "string",
             "enum": [
+                "Draft",
                 "Live",
                 "Retired"
             ],
-            "default": "Live"
+            "default": "Draft"
         },
         "startDate": {
             "type": "string",
