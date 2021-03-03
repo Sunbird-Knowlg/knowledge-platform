@@ -28,66 +28,57 @@ class EventSetSpec extends BaseSpec {
         }
 
         "return success response for read API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
             val result = controller.read("do_123", None, None)(FakeRequest("POST", "/eventset/v4/read "))
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for hierarchy get API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
             val result = controller.getHierarchy("do_123", None)(FakeRequest("POST", "/eventset/v4/hierarchy "))
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for discard API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
             val result = controller.discard("0123")(FakeRequest("POST", "/eventset/v4/discard "))
             isOK(result)
             status(result) must equalTo(OK)
         }
         "return success response for retire API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
             val result = controller.retire("0123")(FakeRequest("POST", "/eventset/v4/retire "))
             isOK(result)
             status(result) must equalTo(OK)
         }
 
-        "return success response for collectionLinkDialCode API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
-            val result = controller.collectionLinkDialCode("do_123")(FakeRequest("POST", "/eventset/v4/dialcode/link "))
+        "return success response for hierarchy update API" in {
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
+            val json: JsValue = Json.parse("""{"request": {"data": {"mimeType": "application/vnd.ekstep.content-collection"}}}""")
+            val fakeRequest = FakeRequest("POST", "/eventset/v4/hierarchy/update").withJsonBody(json)
+            val result = controller.updateHierarchy()(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
         }
-    }
 
-    "return success response for hierarchy update API" in {
-        val controller = app.injector.instanceOf[controllers.v4.CollectionController]
-        val json: JsValue = Json.parse("""{"request": {"data": {"mimeType": "application/vnd.ekstep.content-collection"}}}""")
-        val fakeRequest = FakeRequest("POST", "/collection/v4/hierarchy/update").withJsonBody(json)
-        val result = controller.updateHierarchy()(fakeRequest)
-        isOK(result)
-        status(result) must equalTo(OK)
-    }
-
-    "Collection Controller with invalid request " should {
-        "return client error response for create API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
-            val json: JsValue = Json.parse("""{"request": {"collection": { "contentType": "TextBook"}}}""")
-            val fakeRequest = FakeRequest("POST", "/collection/v4/create ").withJsonBody(json)
-            val result = controller.create()(fakeRequest)
+        "return error response when updating status using update API" in {
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
+            val json: JsValue = Json.parse("""{"request": {"eventset": {"status": "Live"}}}""")
+            val fakeRequest = FakeRequest("POST", "/eventset/v4/update ").withJsonBody(json)
+            val result = controller.update("do_123")(fakeRequest)
             status(result) must equalTo(BAD_REQUEST)
         }
+
+        "return success response for publish API" in {
+            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
+            val result = controller.publish("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
     }
 
-    "Collection Controller with invalid request " should {
-        "return client error response for create API" in {
-            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
-            val json: JsValue = Json.parse("""{"request": {"collection": { "name": "Textbook"}}}""")
-            val fakeRequest = FakeRequest("POST", "/collection/v4/create ").withJsonBody(json)
-            val result = controller.create()(fakeRequest)
-            status(result) must equalTo(BAD_REQUEST)
-        }
-    }
+
 }

@@ -2,7 +2,7 @@ package controllers.v4
 
 import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import utils.{ActorNames, ApiId, Constants}
 
 import javax.inject.{Inject, Named}
@@ -38,6 +38,32 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         setRequestContext(readRequest, version, objectType, schemaName)
         readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
         getResult(ApiId.READ_CONTENT, eventActor, readRequest, version = apiVersion)
+    }
+
+    override def update(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        if (content.containsKey("status")) {
+            getErrorResponse(ApiId.UPDATE_EVENT, apiVersion, "VALIDATION_ERROR", "status update is restricted, use status APIs.")
+        } else {
+            content.putAll(headers)
+            val contentRequest = getRequest(content, headers, "updateContent")
+            setRequestContext(contentRequest, version, objectType, schemaName)
+            contentRequest.getContext.put("identifier", identifier);
+            getResult(ApiId.UPDATE_EVENT, eventActor, contentRequest, version = apiVersion)
+        }
+    }
+
+    def publish(identifier: String): Action[AnyContent] = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap[String, Object]()
+        content.put("status", "Live")
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "updateContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.UPDATE_EVENT, eventActor, contentRequest, version = apiVersion)
     }
 
 }
