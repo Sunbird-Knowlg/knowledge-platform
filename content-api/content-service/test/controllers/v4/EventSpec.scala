@@ -27,6 +27,28 @@ class EventSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
 
+        "return success response for update API" in {
+            val controller = app.injector.instanceOf[controllers.v4.EventController]
+            val result = controller.update("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
+        "return error response when updating status using update API" in {
+            val controller = app.injector.instanceOf[controllers.v4.EventController]
+            val json: JsValue = Json.parse("""{"request": {"event": {"status": "Live"}}}""")
+            val fakeRequest = FakeRequest("POST", "/event/v4/update ").withJsonBody(json)
+            val result = controller.update("do_123")(fakeRequest)
+            status(result) must equalTo(BAD_REQUEST)
+        }
+
+        "return success response for publish API" in {
+            val controller = app.injector.instanceOf[controllers.v4.EventController]
+            val result = controller.publish("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
     }
 
 }
