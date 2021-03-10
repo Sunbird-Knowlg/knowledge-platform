@@ -614,6 +614,6 @@ object HierarchyManager {
         val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), categoryId)
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).orNull.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrElse("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
-            throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType for : "+childNode.get("identifier") + " | Please provide one of objectType from "+ configObjTypes.asJava)
+            throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType "+childNode.get("objectType")+" found for : "+childNode.get("identifier") + "| Please provide children having one of the objectType from "+ configObjTypes.asJava)
     }
 }
