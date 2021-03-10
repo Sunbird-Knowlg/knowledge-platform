@@ -8,19 +8,20 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode, ServerException}
-import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.{JsonUtils, Platform, Slug}
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters.asJavaIterableConverter
 import scala.concurrent.{ExecutionContext, Future}
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
@@ -40,6 +41,7 @@ object HierarchyManager {
 
     val mapPrimaryCategoriesEnabled: Boolean = if (Platform.config.hasPath("collection.primarycategories.mapping.enabled")) Platform.config.getBoolean("collection.primarycategories.mapping.enabled") else true
     val objectTypeAsContentEnabled: Boolean = if (Platform.config.hasPath("objecttype.as.content.enabled")) Platform.config.getBoolean("objecttype.as.content.enabled") else true
+    val objectTypes = List("Content", "Collection")
 
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -252,10 +254,11 @@ object HierarchyManager {
         })
     }
 
-    def addChildrenToUnit(children: java.util.List[java.util.Map[String,AnyRef]], unitId:String, leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String]): Unit = {
+    def addChildrenToUnit(children: java.util.List[java.util.Map[String,AnyRef]], unitId:String, leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
         val childNodes = children.filter(child => ("Parent".equalsIgnoreCase(child.get("visibility").asInstanceOf[String]) && unitId.equalsIgnoreCase(child.get("identifier").asInstanceOf[String]))).toList
         if(null != childNodes && !childNodes.isEmpty){
             val child = childNodes.get(0)
+            leafNodes.toList.map(leafNode => validateLeafNodes(child, leafNode))
             val childList = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]]
             val restructuredChildren: java.util.List[java.util.Map[String,AnyRef]] = restructureUnit(childList, leafNodes, leafNodeIds, (child.get("depth").asInstanceOf[Integer] + 1), unitId)
             child.put("children", restructuredChildren)
@@ -531,7 +534,8 @@ object HierarchyManager {
                 if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.getOrDefault("status", HierarchyConstants.RETIRED_STATUS).asInstanceOf[String])){
                     children.remove(content)
                 } else {
-                    HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(metadata)
+                    if (objectTypes.contains(metadata.get("objectType").asInstanceOf[String]) && objectTypeAsContentEnabled)
+                        HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(metadata)
                     content.putAll(metadata)
                 }
             } else {
@@ -586,7 +590,7 @@ object HierarchyManager {
         children.toList.map(content => {
             if (mapPrimaryCategoriesEnabled)
                 HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
-            if (objectTypeAsContentEnabled)
+            if (objectTypes.contains(content.get("objectType").asInstanceOf[String]) && objectTypeAsContentEnabled)
                 HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(content)
             updateContentMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
         })
@@ -596,10 +600,20 @@ object HierarchyManager {
         val updatedHierarchy = new util.HashMap[String, AnyRef](hierarchy)
         if (mapPrimaryCategoriesEnabled)
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
-        if (objectTypeAsContentEnabled)
+        if (objectTypes.contains(updatedHierarchy.get("objectType").asInstanceOf[String]) && objectTypeAsContentEnabled)
             HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(updatedHierarchy)
         val children = new util.HashMap[String, AnyRef](hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
         updateContentMappingInChildren(children)
         updatedHierarchy
+    }
+
+    def validateLeafNodes(parentNode: java.util.Map[String, AnyRef], childNode: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+        //TODO: Handle Channel Specific Category Definition
+        val primaryCategory = parentNode.getOrDefault("primaryCategory", "").asInstanceOf[String]
+        val categoryId = if (StringUtils.isBlank(primaryCategory)) "" else "obj-cat:"+Slug.makeSlug(primaryCategory + "_" + parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase() + "_all")
+        val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), categoryId)
+        val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).orNull.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrElse("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
+        if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
+            throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType for : "+childNode.get("identifier") + " | Please provide one of objectType from "+ configObjTypes.asJava)
     }
 }
