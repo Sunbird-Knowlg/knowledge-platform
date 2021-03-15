@@ -7,7 +7,7 @@ import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.common.enums.GraphDACParams
-import org.sunbird.graph.dac.model.{Node, SearchCriteria}
+import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 import java.util
@@ -84,11 +84,13 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "update an eventset and store it in neo4j" in {
         val eventNode = getEventNode()
-        val eventSetNode = getEventSetNode()
+        val eventSetNode = getEventSetCollectionNode()
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
+        (graphDB.removeRelation(_: String, _: util.List[util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response))
         (graphDB.addNode _).expects(where { (g: String, n:Node) => {
             n.getObjectType.equals("Event")
         }}).returns(Future(eventNode))
@@ -127,7 +129,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNodeToDiscard())).twice()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidDraftNode())).twice()
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
@@ -140,11 +142,28 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     }
 
+    it should "publish node in draft state should return success" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val eventSetNode = getEventSetCollectionNode()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
+        (graphDB.upsertNode _).expects(*, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new EventSetActor()))
+        assert(response.getResponseCode == ResponseCode.OK)
+        assert(response.get("identifier") == "do_12345")
+    }
+
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard())).twice()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getLiveEventSetCollectionNode())).anyNumberOfTimes()
+        (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node])).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
@@ -157,9 +176,9 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNode("EventSet", None)
+        val node = getEventSetCollectionNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-        (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]))
+        (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node])).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
@@ -214,7 +233,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         request
     }
 
-    private def getValidNodeToDiscard(): Node = {
+    private def getValidDraftNode(): Node = {
         val node = new Node()
         node.setIdentifier("do_12346")
         node.setNodeType("DATA_NODE")
@@ -285,6 +304,85 @@ class TestEventSetActor extends BaseSpec with MockFactory {
                 put("endDate", "2021-02-02")
                 put("registrationEndDate", "2021-01-02")
                 put("eventType", "Online")
+                put("schedule",
+                  mapAsJavaMap(Map("type" -> "NON_RECURRING",
+                      "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03",
+                          "endDate" -> "2021-01-03",
+                          "startTime" -> "11:00:00Z",
+                          "endTime" -> "13:00:00Z"))).asJava)))
+
+            }
+        })
+        node
+    }
+
+    private def getEventSetCollectionNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_12345")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("EventSet")
+        val rel: Relation = new Relation()
+        rel.setEndNodeObjectType("Event")
+        rel.setEndNodeId("do_12345.1")
+        rel.setStartNodeId("do_12345")
+        rel.setRelationType("hasSequenceMember")
+        node.setOutRelations(new util.ArrayList[Relation](){
+            add(rel)
+        })
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_12345")
+                put("status", "Draft")
+                put("name", "EventSet_1")
+                put("code", "eventset1")
+                put("versionKey", "1878141")
+                put("startDate", "2021-02-02")
+                put("endDate", "2021-02-02")
+                put("registrationEndDate", "2021-01-02")
+                put("eventType", "Online")
+                put("schedule",
+                  mapAsJavaMap(Map("type" -> "NON_RECURRING",
+                      "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03",
+                          "endDate" -> "2021-01-03",
+                          "startTime" -> "11:00:00Z",
+                          "endTime" -> "13:00:00Z",
+                      "status" -> "Draft"))).asJava)))
+
+            }
+        })
+        node
+    }
+
+    private def getLiveEventSetCollectionNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_12345")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("EventSet")
+        val rel: Relation = new Relation()
+        rel.setEndNodeObjectType("Event")
+        rel.setEndNodeId("do_12345.1")
+        node.setOutRelations(new util.ArrayList[Relation](){
+            add(rel)
+        })
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_12345")
+                put("status", "Live")
+                put("name", "EventSet_1")
+                put("code", "eventset1")
+                put("versionKey", "1878141")
+                put("startDate", "2021-02-02")
+                put("endDate", "2021-02-02")
+                put("registrationEndDate", "2021-01-02")
+                put("eventType", "Online")
+                put("schedule",
+                  mapAsJavaMap(Map("type" -> "NON_RECURRING",
+                      "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03",
+                          "endDate" -> "2021-01-03",
+                          "startTime" -> "11:00:00Z",
+                          "endTime" -> "13:00:00Z",
+                      "status" -> "Live"))).asJava)))
+
             }
         })
         node

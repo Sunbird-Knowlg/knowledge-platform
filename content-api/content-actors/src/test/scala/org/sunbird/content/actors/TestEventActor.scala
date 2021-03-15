@@ -32,6 +32,23 @@ class TestEventActor extends BaseSpec with MockFactory {
 
     }
 
+    it should "publish node in draft state should return success" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDraftNode())).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getDraftNode()))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_1234")
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new EventActor()))
+        assert(response.getResponseCode == ResponseCode.OK)
+        assert(response.get("identifier") == "do_1234")
+
+    }
+
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
