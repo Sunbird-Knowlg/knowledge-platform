@@ -195,20 +195,15 @@
                     "enum": ["Yes","No"],
                     "default": "Yes"
                 },
-                "fixedBatch": {
+                "autoBatch": {
                     "type": "string",
                     "enum": ["Yes","No"],
                     "default": "Yes"
-                },
-                "fixedBatchId": {
-                    "type": "string",
-                    "default": "event_batch_id"
                 }
             },
             "default": {
                 "enabled": "Yes",
-                "fixedBatch": "Yes",
-                "fixedBatchId": "event_batch_id"
+                "autoBatch": "Yes"
             },
             "additionalProperties": false
         },

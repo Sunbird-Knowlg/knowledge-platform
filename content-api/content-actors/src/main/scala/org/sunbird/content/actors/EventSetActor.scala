@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.content.util.{ContentConstants, DiscardManager, RetireManager}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
@@ -24,6 +25,7 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
     request.getOperation match {
       case "createContent" => create(request)
       case "updateContent" => update(request)
+      case "publishContent" => publish(request)
       case "getHierarchy" => getHierarchy(request)
       case "readContent" => read(request)
       case "retireContent" => retire(request)
@@ -56,6 +58,9 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
     RequestUtil.restrictProperties(request)
     val originalRequestContent = request.getRequest
     DataNode.read(request).flatMap(node => {
+      if (!"Draft".equalsIgnoreCase(node.getMetadata.getOrDefault("status", "").toString)) {
+        throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "Update not allowed! EventSet status isn't draft")
+      }
       deleteExistingEvents(node.getOutRelations, request).flatMap(_ => {
         addChildEvents(request).map(nodes => {
           updateRequestWithChildRelations(request, originalRequestContent, nodes)
@@ -71,6 +76,51 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
         )
       })
     }).recoverWith {
+      case e: Exception =>
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
+    }
+  }
+
+  def publish(request: Request): Future[Response] = {
+    DataNode.read(request).flatMap(node => {
+      if (!"Draft".equalsIgnoreCase(node.getMetadata.getOrDefault("status", "").toString)) {
+        throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "Publish not allowed! EventSet status isn't draft")
+      }
+      publishChildEvents(node.getOutRelations, request).flatMap(_ => {
+        val existingVersionKey = node.getMetadata.getOrDefault("versionKey", "").asInstanceOf[String]
+        request.put("versionKey", existingVersionKey)
+        request.getContext.put("identifier", node.getIdentifier)
+        request.put("status", "Live")
+        DataNode.update(request).map(updateNode => {
+          val response: Response = ResponseHandler.OK
+          val identifier: String = updateNode.getIdentifier.replace(".img", "")
+          response.put("node_id", identifier)
+          response.put("identifier", identifier)
+          response.put("versionKey", updateNode.getMetadata.get("versionKey"))
+          response
+        })
+      }
+      )
+    }).recoverWith {
+      case e: Exception =>
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
+    }
+  }
+
+  override def retire(request: Request): Future[Response] = {
+    DataNode.read(request).flatMap(node => {
+      retireChildEvents(node.getOutRelations, request)
+        .flatMap(_ => RetireManager.retire(request))
+    }).recoverWith {
+      case e: Exception =>
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
+    }
+  }
+
+  override def discard(request: Request): Future[Response] = {
+    DataNode.read(request).flatMap(node => discardChildEvents(node.getOutRelations, request)
+      .flatMap(_ => DiscardManager.discard(request)))
+      .recoverWith {
       case e: Exception =>
         Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
     }
@@ -139,6 +189,66 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
         delMap.put("identifier", relation.getEndNodeId)
         deleteReq.setRequest(delMap)
         DataNode.deleteNode(deleteReq)
+      }))
+    else
+      Future(List())
+  }
+
+  private def publishChildEvents(relations: util.List[Relation], request: Request) = {
+    if (relations != null)
+      Future.sequence(relations.asScala.filter(rel => "Event".equalsIgnoreCase(rel.getEndNodeObjectType)).map(relation => {
+        val updateReq = new Request()
+        val context = new util.HashMap[String, Object]()
+        context.putAll(request.getContext)
+        updateReq.setContext(context)
+        updateReq.getContext.put("schemaName", "event")
+        updateReq.getContext.put("objectType", "Event")
+        updateReq.getContext.put("identifier", relation.getEndNodeId)
+        val updateMap = new util.HashMap[String, AnyRef]()
+        updateMap.put("identifier", relation.getEndNodeId)
+        updateMap.put("status", "Live")
+        updateReq.setRequest(updateMap)
+        DataNode.update(updateReq)
+      }))
+    else
+      Future(List())
+  }
+
+  private def retireChildEvents(relations: util.List[Relation], request: Request) = {
+    if (relations != null)
+      Future.sequence(relations.asScala.filter(rel => "Event".equalsIgnoreCase(rel.getEndNodeObjectType)).map(relation => {
+        val retireReq = new Request()
+        val context = new util.HashMap[String, Object]()
+        context.putAll(request.getContext)
+        retireReq.setContext(context)
+        retireReq.getContext.put("schemaName", "event")
+        retireReq.getContext.put("objectType", "Event")
+        retireReq.getContext.put("identifier", relation.getEndNodeId)
+        val updateMap = new util.HashMap[String, AnyRef]()
+        updateMap.put("identifier", relation.getEndNodeId)
+        retireReq.setRequest(updateMap)
+        RetireManager.retire(retireReq)
+
+      }))
+    else
+      Future(List())
+  }
+
+  private def discardChildEvents(relations: util.List[Relation], request: Request) = {
+    if (relations != null)
+      Future.sequence(relations.asScala.filter(rel => "Event".equalsIgnoreCase(rel.getEndNodeObjectType)).map(relation => {
+        val discardReq = new Request()
+        val context = new util.HashMap[String, Object]()
+        context.putAll(request.getContext)
+        discardReq.setContext(context)
+        discardReq.getContext.put("schemaName", "event")
+        discardReq.getContext.put("objectType", "Event")
+        discardReq.getContext.put("identifier", relation.getEndNodeId)
+        val updateMap = new util.HashMap[String, AnyRef]()
+        updateMap.put("identifier", relation.getEndNodeId)
+        discardReq.setRequest(updateMap)
+        RetireManager.retire(discardReq)
+
       }))
     else
       Future(List())
