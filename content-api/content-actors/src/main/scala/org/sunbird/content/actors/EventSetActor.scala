@@ -48,6 +48,8 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
           response
         })
       }).recoverWith {
+      case clientException: ClientException =>
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
       case e: Exception =>
         Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
     }
@@ -76,6 +78,8 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
         )
       })
     }).recoverWith {
+      case clientException: ClientException =>
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
       case e: Exception =>
         Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
     }
@@ -102,6 +106,8 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
       }
       )
     }).recoverWith {
+      case clientException: ClientException =>
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
       case e: Exception =>
         Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
     }
@@ -112,6 +118,8 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
       retireChildEvents(node.getOutRelations, request)
         .flatMap(_ => RetireManager.retire(request))
     }).recoverWith {
+      case clientException: ClientException =>
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
       case e: Exception =>
         Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
     }
@@ -121,8 +129,10 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
     DataNode.read(request).flatMap(node => discardChildEvents(node.getOutRelations, request)
       .flatMap(_ => DiscardManager.discard(request)))
       .recoverWith {
-      case e: Exception =>
-        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
+        case clientException: ClientException =>
+          Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
+        case e: Exception =>
+          Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
     }
   }
 
