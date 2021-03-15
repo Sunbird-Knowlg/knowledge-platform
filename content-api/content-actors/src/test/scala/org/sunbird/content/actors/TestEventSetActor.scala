@@ -126,8 +126,8 @@ class TestEventSetActor extends BaseSpec with MockFactory {
     it should "discard node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).repeated(2)
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNodeToDiscard()))
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNodeToDiscard())).twice()
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
@@ -143,8 +143,8 @@ class TestEventSetActor extends BaseSpec with MockFactory {
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).repeated(1)
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard()))
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard())).twice()
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
@@ -156,7 +156,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
     it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).repeated(2)
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNode("EventSet", None)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]))
@@ -218,15 +218,13 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         val node = new Node()
         node.setIdentifier("do_12346")
         node.setNodeType("DATA_NODE")
-        node.setObjectType("Content")
+        node.setObjectType("EventSet")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_12346")
-                put("mimeType", "application/pdf")
                 put("status", "Draft")
-                put("contentType", "Resource")
+                put("contentType", "EventSet")
                 put("name", "Node To discard")
-                put("primaryCategory", "Learning Resource")
             }
         })
         node
@@ -236,15 +234,13 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         val node = new Node()
         node.setIdentifier("do_12346")
         node.setNodeType("DATA_NODE")
-        node.setObjectType("Content")
+        node.setObjectType("EventSet")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_12346")
-                put("mimeType", "application/pdf")
                 put("status", "Live")
-                put("contentType", "Resource")
+                put("contentType", "EventSet")
                 put("name", "Node To discard")
-                put("primaryCategory", "Learning Resource")
             }
         })
         node
@@ -281,7 +277,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_12345")
-                put("status", "Live")
+                put("status", "Draft")
                 put("name", "EventSet_1")
                 put("code", "eventset1")
                 put("versionKey", "1878141")

@@ -80,7 +80,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNode()
+        val node = getDraftNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
         val request = getContentRequest()
@@ -155,6 +155,29 @@ class TestEventActor extends BaseSpec with MockFactory {
             {
                 put("identifier", "do_1234")
                 put("status", "Live")
+                put("name", "Resource_1")
+                put("versionKey", "test_321")
+                put("channel", "in.ekstep")
+                put("code", "Resource_1")
+                put("startDate", "2021-02-02")
+                put("endDate", "2021-02-02")
+                put("startTime", "11:00:00Z")
+                put("endTime", "12:00:00Z")
+                put("registrationEndDate", "2021-01-02")
+                put("eventType", "Online")
+            }
+        })
+        node
+    }
+    private def getDraftNode(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_1234")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Event")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_1234")
+                put("status", "Draft")
                 put("name", "Resource_1")
                 put("versionKey", "test_321")
                 put("channel", "in.ekstep")
