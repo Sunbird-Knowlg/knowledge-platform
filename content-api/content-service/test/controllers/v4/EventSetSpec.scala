@@ -36,7 +36,7 @@ class EventSetSpec extends BaseSpec {
 
         "return success response for hierarchy get API" in {
             val controller = app.injector.instanceOf[controllers.v4.EventSetController]
-            val result = controller.getHierarchy("do_123", None)(FakeRequest("POST", "/eventset/v4/hierarchy "))
+            val result = controller.getHierarchy("do_123", None, None)(FakeRequest("POST", "/eventset/v4/hierarchy "))
             isOK(result)
             status(result) must equalTo(OK)
         }
@@ -50,15 +50,6 @@ class EventSetSpec extends BaseSpec {
         "return success response for retire API" in {
             val controller = app.injector.instanceOf[controllers.v4.EventSetController]
             val result = controller.retire("0123")(FakeRequest("POST", "/eventset/v4/retire "))
-            isOK(result)
-            status(result) must equalTo(OK)
-        }
-
-        "return success response for hierarchy update API" in {
-            val controller = app.injector.instanceOf[controllers.v4.EventSetController]
-            val json: JsValue = Json.parse("""{"request": {"data": {"mimeType": "application/vnd.ekstep.content-collection"}}}""")
-            val fakeRequest = FakeRequest("POST", "/eventset/v4/hierarchy/update").withJsonBody(json)
-            val result = controller.updateHierarchy()(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
         }
