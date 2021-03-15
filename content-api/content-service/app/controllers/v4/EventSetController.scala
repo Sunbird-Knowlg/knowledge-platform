@@ -39,11 +39,11 @@ class EventSetController @Inject()(@Named(ActorNames.EVENT_SET_ACTOR) eventSetAc
     getResult(ApiId.READ_COLLECTION, eventSetActor, readRequest, version = apiVersion)
   }
 
-  override def getHierarchy(identifier: String, mode: Option[String]) = Action.async { implicit request =>
+  def getHierarchy(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
     val headers = commonHeaders()
     val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
     content.putAll(headers)
-    content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read")).asJava)
+    content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
     val readRequest = getRequest(content, headers, "getHierarchy")
     setRequestContext(readRequest, version, objectType, schemaName)
     getResult(ApiId.READ_COLLECTION, eventSetActor, readRequest, version = apiVersion)
@@ -67,12 +67,11 @@ class EventSetController @Inject()(@Named(ActorNames.EVENT_SET_ACTOR) eventSetAc
   def publish(identifier: String): Action[AnyContent] = Action.async { implicit request =>
     val headers = commonHeaders()
     val content = new java.util.HashMap[String, Object]()
-    content.put("status", "Live")
+    content.put("identifier", identifier)
     content.putAll(headers)
-    val contentRequest = getRequest(content, headers, "updateContent")
+    val contentRequest = getRequest(content, headers, "publishContent")
     setRequestContext(contentRequest, version, objectType, schemaName)
-    contentRequest.getContext.put("identifier", identifier)
-    getResult(ApiId.UPDATE_EVENT_SET, eventSetActor, contentRequest, version = apiVersion)
+    getResult(ApiId.PUBLISH_EVENT_SET, eventSetActor, contentRequest, version = apiVersion)
   }
 
 

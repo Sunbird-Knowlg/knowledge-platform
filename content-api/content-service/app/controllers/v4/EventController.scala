@@ -59,11 +59,12 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         val headers = commonHeaders()
         val content = new java.util.HashMap[String, Object]()
         content.put("status", "Live")
+        content.put("identifier", identifier)
         content.putAll(headers)
-        val contentRequest = getRequest(content, headers, "updateContent")
+        val contentRequest = getRequest(content, headers, "publishContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
-        getResult(ApiId.UPDATE_EVENT, eventActor, contentRequest, version = apiVersion)
+        getResult(ApiId.PUBLISH_EVENT, eventActor, contentRequest, version = apiVersion)
     }
 
 }

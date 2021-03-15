@@ -74,5 +74,7 @@ object ApiId {
 
   val CREATE_EVENT_SET = "api.eventset.create"
   val UPDATE_EVENT_SET = "api.eventset.update"
+  val PUBLISH_EVENT_SET = "api.eventset.publish"
+  val PUBLISH_EVENT = "api.event.publish"
 
 }
