@@ -41,8 +41,6 @@
         "ContentImage",
         "Collection",
         "CollectionImage",
-        "Question",
-        "QuestionImage",
         "QuestionSet",
         "QuestionSetImage"
       ]

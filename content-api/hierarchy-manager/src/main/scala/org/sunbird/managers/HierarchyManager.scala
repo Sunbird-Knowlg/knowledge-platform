@@ -608,9 +608,9 @@ object HierarchyManager {
     }
 
     def validateLeafNodes(parentNode: java.util.Map[String, AnyRef], childNode: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-        //TODO: Handle Channel Specific Category Definition
         val primaryCategory = parentNode.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        val categoryId = if (StringUtils.isBlank(primaryCategory)) "" else "obj-cat:"+Slug.makeSlug(primaryCategory + "_" + parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase() + "_all")
+        val channel = parentNode.getOrDefault("channel", "_all")
+        val categoryId = if (StringUtils.isBlank(primaryCategory)) "" else "obj-cat:" + Slug.makeSlug(primaryCategory + "_" + parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase() + "_" + channel)
         val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), categoryId)
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).orNull.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrElse("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
