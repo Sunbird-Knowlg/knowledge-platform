@@ -1,34 +1,41 @@
 {
-    "$id": "category-schema.json",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Category",
-    "type": "object",
-    "required": [
-        "name"
-    ],
-    "properties": {
-        "name": {
-            "type": "string",
-            "minLength": 5
-        },
-        "status": {
-            "type": "string",
-            "enum": [
-                "Live",
-                "Retired"
-            ],
-            "default": "Live"
-        },
-        "description": {
-            "type": "string"
-        },
-        "identifier": {
-            "type": "string"
-        },
-        "trackable": {
-            "type": "boolean",
-            "default": false
-        }
+  "$id": "category-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Category",
+  "type": "object",
+  "required": [
+    "name",
+    "code"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
     },
-    "additionalProperties": true
+    "code": {
+      "type": "string"
+    },
+    "translations": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Live",
+        "Retired"
+      ],
+      "default": "Live"
+    },
+    "description": {
+      "type": "string"
+    },
+    "identifier": {
+      "type": "string"
+    },
+    "trackable": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": true
 }

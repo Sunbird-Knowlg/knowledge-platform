@@ -1,0 +1,33 @@
+{
+  "objectType": "AssessmentItem",
+  "external": {
+    "tableName": "",
+    "properties": {
+      "question": {
+        "type": "blob"
+      },
+      "editorState": {
+        "type": "blob"
+      },
+      "solutions": {
+        "type": "blob"
+      },
+      "body": {
+        "type": "blob"
+      }
+    },
+    "primaryKey": [
+      "identifier"
+    ]
+  },
+  "relations": {
+    "concepts": {
+      "type": "associatedTo",
+      "direction": "out",
+      "objects": [
+        "Concept"
+      ]
+    }
+  },
+  "schema_restrict_api": false
+}

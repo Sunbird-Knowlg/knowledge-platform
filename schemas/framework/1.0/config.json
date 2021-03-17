@@ -1,0 +1,21 @@
+{
+  "objectType": "Framework",
+  "external": {},
+  "relations": {
+    "channels": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Channel"
+      ]
+    },
+    "categories": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "CategoryInstance"
+      ]
+    }
+  },
+  "schema_restrict_api": false
+}
