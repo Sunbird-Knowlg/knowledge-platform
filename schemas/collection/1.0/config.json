@@ -38,7 +38,11 @@
       "direction": "out",
       "objects": [
         "Content",
-        "ContentImage"
+        "ContentImage",
+        "Collection",
+        "CollectionImage",
+        "QuestionSet",
+        "QuestionSetImage"
       ]
     },
     "collections": {
