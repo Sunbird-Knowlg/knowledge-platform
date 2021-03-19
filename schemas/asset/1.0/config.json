@@ -78,5 +78,28 @@
             "relatedBoards": 4
         }
     },
+    "variants": {
+        "high": {
+            "dimensions": [
+                1024,
+                1024
+            ],
+            "dpi": 240
+        },
+        "medium": {
+            "dimensions": [
+                512,
+                512
+            ],
+            "dpi": 240
+        },
+        "low": {
+            "dimensions": [
+                128,
+                128
+            ],
+            "dpi": 240
+        }
+    },
     "schema_restrict_api": false
 }

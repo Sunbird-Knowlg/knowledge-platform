@@ -35,10 +35,7 @@
       "default": "Live"
     },
     "translations": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "type": "object"
     },
     "createdBy": {
       "type": "string"

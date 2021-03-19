@@ -1,5 +1,5 @@
 {
-  "objectType": "Category",
+  "objectType": "Framework",
   "version": "disable",
   "versionCheckMode": "OFF",
   "frameworkCategories": [],
@@ -10,16 +10,23 @@
       "status"
     ],
     "update": [
-      "identifier", "name"
+      "identifier"
     ]
   },
   "external": {},
   "relations": {
-    "terms": {
+    "channels": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Channel"
+      ]
+    },
+    "categories": {
       "type": "hasSequenceMember",
       "direction": "out",
       "objects": [
-        "Term"
+        "CategoryInstance"
       ]
     }
   },
