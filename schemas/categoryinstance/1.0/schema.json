@@ -18,16 +18,10 @@
          "type": "string"
        },
        "translations": {
-         "type": "array",
-         "items": {
-           "type": "string"
-         }
+         "type": "object"
        },
          "defaultTerm": {
-           "type": "array",
-           "items": {
-             "type": "string"
-           }
+           "type": "object"
          },
          "status": {
            "type": "string",
@@ -63,7 +57,7 @@
            "type": "string"
          },
          "index": {
-           "type": "string"
+           "type": "number"
          }
        }
      }

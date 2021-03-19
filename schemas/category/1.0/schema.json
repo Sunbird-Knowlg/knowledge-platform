@@ -11,6 +11,9 @@
             "type": "string",
             "minLength": 5
         },
+        "code": {
+            "type": "string"
+        },
         "status": {
             "type": "string",
             "enum": [
