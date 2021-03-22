@@ -483,6 +483,9 @@
         "No"
       ],
       "default": "No"
+    },
+    "maxAttempts": {
+      "type": "number"
     }
   }
 }
