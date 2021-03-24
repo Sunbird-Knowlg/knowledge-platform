@@ -42,9 +42,14 @@ public class CustomProblemHandler implements ProblemHandler {
                         + " should be one of: "
                         + problem.parametersAsMap().get("expected")).replace("\"", "");
             case "required":
+                String param;
+                if (StringUtils.isNotBlank(problem.getPointer())) {
+                    param = problem.getPointer().replaceAll("/", "") + "." + problem.parametersAsMap().get(problem.getKeyword());
+                } else {
+                    param = problem.parametersAsMap().get(problem.getKeyword()).toString();
+                }
                 return "Required Metadata "
-                        + problem.parametersAsMap().get(problem.getKeyword())
-                        .toString().replace("\"", "")
+                        + param.replace("\"", "")
                         + " not set";
             case "type": {
                 return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))

@@ -1,0 +1,105 @@
+{
+  "$id": "app-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "App",
+  "type": "object",
+  "required": [
+    "name",
+    "provider",
+    "osType",
+    "osMetadata",
+    "appTarget"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Live",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "description": {
+      "type": "string"
+    },
+    "identifier": {
+      "type": "string"
+    },
+    "logo": {
+      "type": "string",
+      "format": ""
+    },
+    "provider": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "copyright": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "osType": {
+      "type": "string",
+      "enum": [
+        "android",
+        "ios"
+      ]
+    },
+    "osMetadata": {
+      "type": "object",
+      "properties": {
+        "packageId": {
+          "type": "string"
+        },
+        "appVersion": {
+          "type": "string"
+        },
+        "compatibilityVer": {
+          "type": "string"
+        },
+        "urlScheme": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "packageId",
+        "appVersion",
+        "compatibilityVer"
+      ],
+      "additionalProperties": false
+    },
+    "appTarget": {
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "primaryCategory": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}
