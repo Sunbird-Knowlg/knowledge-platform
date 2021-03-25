@@ -95,5 +95,6 @@ DELETE    /content/v4/discard/:identifier          controllers.v4.ContentControl
 DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
 
 # App v4 APIs
-POST      /app/v4/register                       controllers.v4.AppController.register
-PATCH     /app/v4/update/:identifier           controllers.v4.AppController.update(identifier:String)
+POST      /app/v4/register                          controllers.v4.AppController.register
+PATCH     /app/v4/update/:identifier                controllers.v4.AppController.update(identifier:String)
+GET       /app/v4/read/:identifier                  controllers.v4.AppController.read(identifier:String, fields:Option[String])
