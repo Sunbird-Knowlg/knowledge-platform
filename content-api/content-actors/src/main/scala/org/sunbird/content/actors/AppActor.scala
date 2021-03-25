@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /***
  * TODO: rewrite this Actor after merging the Event and EventSet code.
  */
-class AppActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
+class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
 
   implicit val ec: ExecutionContext = getContext().dispatcher
 
