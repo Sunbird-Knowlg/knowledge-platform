@@ -36,9 +36,10 @@ jobs:
 
 workflows:
   version: 2.1
-  workflow:
-    jobs:
-      - build
-      - test:
-        requires:
-          - build
+  build-then-test:
+    workflow:
+      jobs:
+        - build
+        - test:
+          requires:
+            - build
