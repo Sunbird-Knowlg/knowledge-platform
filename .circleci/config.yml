@@ -37,7 +37,6 @@ jobs:
 workflows:
   version: 2.1
   build-then-test:
-    workflow:
       jobs:
         - build
         - test:
