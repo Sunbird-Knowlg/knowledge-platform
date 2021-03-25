@@ -1,24 +1,44 @@
 version: 2.1
 executorType: machine
 jobs:
-  kp-build:
+  build:
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
-      - image: circleci/redis:latest
-    parallelism: 2
     steps:
       - checkout
       - restore_cache:
-          key: kp-dependency-cache-{{ checksum "pom.xml" }}
+          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
+      - run:
+          name: Run build
+          command: |
+            mvn clean install -DskipTests
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
+
+  test:
+    docker:
+      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+      - image: circleci/redis:latest
+    parallelism: 1
+    steps:
+      - checkout
+      - restore_cache:
+          key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
       - run:
           name: Setup environment
           command: bash vmsetup.sh
-      - run:
-          name: Run Test cases
-          command: bash run-testcases.sh
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
 workflows:
   version: 2.1
   workflow:
     jobs:
-      - kp-build
+      - build
+      - test:
+        requires:
+          - build
