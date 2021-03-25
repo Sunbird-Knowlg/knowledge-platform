@@ -14,7 +14,7 @@ jobs:
           command: bash vmsetup.sh
       - run:
           name: Run Test cases
-          command bash run-testcases.sh
+          command: bash run-testcases.sh
 
 workflows:
   version: 2.1
