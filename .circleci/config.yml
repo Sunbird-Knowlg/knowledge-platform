@@ -32,7 +32,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
+          key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
 
 workflows:
   version: 2.1
