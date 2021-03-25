@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
-    parallelism: 4
+    parallelism: 2
     steps:
       - checkout
       - restore_cache:
