@@ -10,8 +10,11 @@ jobs:
       - restore_cache:
           key: kp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
-          name: Setup VM and Build
+          name: Setup environment
           command: bash vmsetup.sh
+      - run:
+          name: Run Test cases
+          command bash run-testcases.sh
 
 workflows:
   version: 2.1
