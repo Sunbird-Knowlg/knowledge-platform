@@ -63,7 +63,7 @@
         "enum": [
           "Student",
           "Teacher",
-          "Admin"
+          "Administrator"
         ],
         "default": "Student"
       }
