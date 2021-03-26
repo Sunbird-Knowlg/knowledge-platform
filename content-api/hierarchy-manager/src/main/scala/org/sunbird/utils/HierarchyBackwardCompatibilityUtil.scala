@@ -18,22 +18,24 @@ object HierarchyBackwardCompatibilityUtil {
         new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
     val mimeTypesToCheck = List("application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive", "application/vnd.android.package-archive",
         "video/webm", "video/x-youtube", "video/mp4")
+    val objectTypes = List("Content", "Collection")
 
-    def setContentAndCategoryTypes(input: java.util.Map[String, AnyRef]): Unit = {
-        val contentType = input.get("contentType").asInstanceOf[String]
+    def setContentAndCategoryTypes(input: util.Map[String, AnyRef], objType: String = ""): Unit = {
+        if(StringUtils.isBlank(objType) || objectTypes.contains(objType)) {
+            val contentType = input.get("contentType").asInstanceOf[String]
+            val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
+            val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
+                case (x: String, y: String) => (x, y)
+                case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
+                    input.getOrDefault("resourceType", "").asInstanceOf[String]))
+                case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
+                case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
+                case _ => (contentType, primaryCategory)
+            }
 
-        val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
-        val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
-            case (x: String, y: String) => (x, y)
-            case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
-                input.getOrDefault("resourceType", "").asInstanceOf[String]))
-            case (x: String, y) => (x, categoryMap.get(x).asInstanceOf[String])
-            case (x, y: String) => (categoryMap.asScala.filter(entry => StringUtils.equalsIgnoreCase(entry._2.asInstanceOf[String], y)).keys.headOption.getOrElse(""), y)
-            case _ => (contentType, primaryCategory)
+            input.put("contentType", updatedContentType)
+            input.put("primaryCategory", updatedPrimaryCategory)
         }
-
-        input.put("contentType", updatedContentType)
-        input.put("primaryCategory", updatedPrimaryCategory)
     }
 
     private def getCategoryForResource(mimeType: String, resourceType: String): String = (mimeType, resourceType) match {
@@ -42,8 +44,9 @@ object HierarchyBackwardCompatibilityUtil {
         case (x: String, y: String) => if (mimeTypesToCheck.contains(x)) categoryMapForMimeType.get(x).asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource") else categoryMapForResourceType.getOrDefault(y, "Learning Resource").asInstanceOf[String]
         case _ => "Learning Resource"
     }
-    def setObjectTypeForRead(result: java.util.Map[String, AnyRef]): Unit = {
-        result.put("objectType", "Content")
+    def setObjectTypeForRead(result: java.util.Map[String, AnyRef], objectType: String = ""): Unit = {
+        if(objectTypes.contains(objectType))
+            result.put("objectType", "Content")
     }
 
     def setNewObjectType(node: Node) = {
