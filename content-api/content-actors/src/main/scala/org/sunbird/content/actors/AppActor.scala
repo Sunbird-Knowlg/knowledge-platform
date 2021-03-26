@@ -27,6 +27,7 @@ class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor
     request.getOperation match {
       case "create" => create(request)
       case "read" => read(request)
+      case "update" => update(request)
       case _ => ERROR(request.getOperation)
     }
   }
