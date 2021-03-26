@@ -1180,7 +1180,7 @@
         "maxAttempts": {
             "type": "number"
         },
-        "se_frameworkIds":{
+        "se_FWIds":{
             "type": "array",
             "items": {
                 "type": "string"
