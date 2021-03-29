@@ -1,44 +1,29 @@
 version: 2.1
 executorType: machine
 jobs:
-  build:
-    docker:
-      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
-    steps:
-      - checkout
-      - restore_cache:
-          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
-      - run:
-          name: Run build
-          command: |
-            mvn clean install -DskipTests
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
-
-  unit-tests:
+  kp-build:
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
-    parallelism: 1
     steps:
       - checkout
       - restore_cache:
-          key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+          key: kp-dependency-cache-{{ checksum "pom.xml" }}
       - run:
-          name: Setup environment and run tests
+          name: Setup VM and Build
           command: bash vmsetup.sh
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
-
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
 workflows:
   version: 2.1
-  build-then-test:
-      jobs:
-        - build
-        - unit-tests:
-            requires:
-              - build
+  workflow:
+    jobs:
+      - kp-build

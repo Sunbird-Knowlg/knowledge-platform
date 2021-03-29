@@ -10,6 +10,7 @@ object ContentConstants {
     val MIME_TYPE: String = "mimeType"
     val CONTENT_SCHEMA_NAME: String = "content"
     val SCHEMA_NAME: String = "schemaName"
+    val RESPONSE_SCHEMA_NAME: String = "responseSchemaName"
     val SCHEMA_VERSION: String = "1.0"
     val ARTIFACT_URL: String = "artifactUrl"
     val IDENTIFIER: String = "identifier"

@@ -2,6 +2,7 @@ package utils
 
 object Constants {
     val SCHEMA_NAME: String = "schemaName"
+    val RESPONSE_SCHEMA_NAME: String = "responseSchemaName"
     val VERSION: String = "version"
     val CONTENT_SCHEMA_NAME: String = "content"
     val COLLECTION_SCHEMA_NAME: String = "collection"
