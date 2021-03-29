@@ -3,20 +3,20 @@ package org.sunbird.content.actors
 import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
-import org.apache.commons.io.FilenameUtils
 
+import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
+import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.mgr.ImportManager
-import org.sunbird.util.RequestUtil
+import org.sunbird.util. RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -61,19 +61,13 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def read(request: Request): Future[Response] = {
-		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
-      if (responseSchemaName.isEmpty) {
-        response.put("content", metadata)
-      }
-      else {
-        response.put(responseSchemaName, metadata)
-      }
+			response.put("content", metadata)
 			response
 		})
 	}
@@ -193,9 +187,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
 	}
-
+	
 	def dataModifier(node: Node): Node = {
-		if(node.getMetadata.containsKey("trackable") &&
+		if(node.getMetadata.containsKey("trackable") && 
 				node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
 		"Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
 			node.getMetadata.put("contentType", "Course")
