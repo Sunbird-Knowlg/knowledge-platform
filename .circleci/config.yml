@@ -17,7 +17,7 @@ jobs:
             - ~/.m2
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
-  tests:
+  unit-tests:
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
@@ -39,6 +39,6 @@ workflows:
   build-then-test:
       jobs:
         - build
-        - tests:
+        - unit-tests:
             requires:
               - build
