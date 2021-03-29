@@ -43,10 +43,9 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
       * Mode in which the content can be viewed (default read or edit)
       * Fields are metadata that should be returned to visualize
       *
-      * @param identifier
-      * @param mode
-      * @param fields
-      * @return
+      * @param identifier Identifier of the content
+      * @param mode Mode to read the data edit or published
+      * @param fields List of fields to return in the response
       */
     def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()

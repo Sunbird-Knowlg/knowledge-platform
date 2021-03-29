@@ -53,8 +53,6 @@ object ApiId {
 	val UPLOAD_PRE_SIGNED_ASSET= "api.asset.upload.url"
 	val COPY_ASSET = "api.asset.copy"
 
-
-
 	//Collection V4 apis
 	val CREATE_COLLECTION = "api.collection.create"
 	val READ_COLLECTION = "api.collection.read"
@@ -68,5 +66,13 @@ object ApiId {
 	val REMOVE_HIERARCHY_V4 = "api.collection.hierarchy.remove"
 	val UPDATE_HIERARCHY_V4 = "api.collection.hierarchy.update"
 	val GET_HIERARCHY_V4 = "api.collection.hierarchy.get"
+
+  //App APIs
+  val REGISTER_APP = "api.app.register"
+  val READ_APP = "api.app.read"
+  val UPDATE_APP = "api.app.update"
+  val APPROVE_APP = "api.app.approve"
+  val REJECT_APP = "api.app.reject"
+  val RETIRE_APP = "api.app.retire"
 
 }

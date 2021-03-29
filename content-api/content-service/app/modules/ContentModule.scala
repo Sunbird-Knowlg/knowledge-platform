@@ -2,7 +2,7 @@ package modules
 
 import com.google.inject.AbstractModule
 import org.sunbird.channel.actors.ChannelActor
-import org.sunbird.content.actors.{AssetActor, CategoryActor, CollectionActor, ContentActor, HealthActor, LicenseActor}
+import org.sunbird.content.actors.{AppActor, AssetActor, CategoryActor, CollectionActor, ContentActor, HealthActor, LicenseActor}
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 
@@ -18,6 +18,7 @@ class ContentModule extends AbstractModule with AkkaGuiceSupport {
         bindActor(classOf[ChannelActor], ActorNames.CHANNEL_ACTOR)
         bindActor(classOf[CategoryActor], ActorNames.CATEGORY_ACTOR)
         bindActor(classOf[AssetActor], ActorNames.ASSET_ACTOR)
+        bindActor(classOf[AppActor], ActorNames.APP_ACTOR)
         println("Initialized application actors...")
         // $COVERAGE-ON
     }
