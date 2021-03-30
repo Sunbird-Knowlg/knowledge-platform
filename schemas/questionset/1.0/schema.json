@@ -110,7 +110,7 @@
     },
     "compatibilityLevel": {
       "type": "number",
-      "default": 4
+      "default": 5
     },
     "childNodes": {
       "type": "array"
