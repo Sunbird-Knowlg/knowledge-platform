@@ -287,6 +287,72 @@
         "type": "string"
       }
     },
+    "se_FWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediums": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "createdOn": {
       "type": "string"
     },

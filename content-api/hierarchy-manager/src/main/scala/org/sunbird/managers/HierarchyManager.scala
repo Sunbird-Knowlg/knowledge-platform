@@ -41,7 +41,6 @@ object HierarchyManager {
 
     val mapPrimaryCategoriesEnabled: Boolean = if (Platform.config.hasPath("collection.primarycategories.mapping.enabled")) Platform.config.getBoolean("collection.primarycategories.mapping.enabled") else true
     val objectTypeAsContentEnabled: Boolean = if (Platform.config.hasPath("objecttype.as.content.enabled")) Platform.config.getBoolean("objecttype.as.content.enabled") else true
-    val objectTypes = List("Content", "Collection")
 
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -534,8 +533,8 @@ object HierarchyManager {
                 if(HierarchyConstants.RETIRED_STATUS.equalsIgnoreCase(metadata.getOrDefault("status", HierarchyConstants.RETIRED_STATUS).asInstanceOf[String])){
                     children.remove(content)
                 } else {
-                    if (objectTypes.contains(metadata.get("objectType").asInstanceOf[String]) && objectTypeAsContentEnabled)
-                        HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(metadata)
+                    if (objectTypeAsContentEnabled)
+                        HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(metadata, metadata.get("objectType").asInstanceOf[String])
                     content.putAll(metadata)
                 }
             } else {
@@ -589,9 +588,9 @@ object HierarchyManager {
     def updateContentMappingInChildren(children: util.List[util.Map[String, AnyRef]]): List[Any] = {
         children.toList.map(content => {
             if (mapPrimaryCategoriesEnabled)
-                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content)
-            if (objectTypes.contains(content.get("objectType").asInstanceOf[String]) && objectTypeAsContentEnabled)
-                HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(content)
+                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(content, content.get("objectType").asInstanceOf[String])
+            if (objectTypeAsContentEnabled)
+                HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(content, content.get("objectType").asInstanceOf[String])
             updateContentMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
         })
     }
@@ -600,8 +599,8 @@ object HierarchyManager {
         val updatedHierarchy = new util.HashMap[String, AnyRef](hierarchy)
         if (mapPrimaryCategoriesEnabled)
             HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(updatedHierarchy)
-        if (objectTypes.contains(updatedHierarchy.get("objectType").asInstanceOf[String]) && objectTypeAsContentEnabled)
-            HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(updatedHierarchy)
+        if (objectTypeAsContentEnabled)
+            HierarchyBackwardCompatibilityUtil.setObjectTypeForRead(updatedHierarchy, updatedHierarchy.get("objectType").asInstanceOf[String])
         val children = new util.HashMap[String, AnyRef](hierarchy).getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
         updateContentMappingInChildren(children)
         updatedHierarchy

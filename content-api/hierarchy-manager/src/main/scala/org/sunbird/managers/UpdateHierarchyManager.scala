@@ -170,7 +170,7 @@ object UpdateHierarchyManager {
                     node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
                     //TODO: Remove the Populate category mapping before updating for backward
-                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata, node.getObjectType)
                     HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val updatedNodes = node :: nodes
                     updatedNodes
@@ -390,7 +390,7 @@ object UpdateHierarchyManager {
                     populateHierarchyRelatedData(node, depth, index, parent)
                     node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
                     //TODO: Populate category mapping before updating for backward
-                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata)
+                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata, node.getObjectType)
                     HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
                     val nxtEnrichedNodeList = node :: enrichedNodeList
                     if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {
