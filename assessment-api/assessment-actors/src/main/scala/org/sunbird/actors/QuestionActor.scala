@@ -3,8 +3,9 @@ package org.sunbird.actors
 import java.util
 
 import javax.inject.Inject
+import org.sunbird.`object`.importer.ImportManager
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.DateUtils
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
@@ -25,6 +26,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "reviewQuestion" => review(request)
 		case "publishQuestion" => publish(request)
 		case "retireQuestion" => retire(request)
+		case "importQuestion" => importQuestion(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -67,6 +69,16 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 				response
 			})
 		})
+	}
+
+	def importQuestion(request: Request): Future[Response] = {
+		val configMap = new util.HashMap[String, AnyRef]() {{
+			put("REQUIRED_PROPS", Platform.getStringList("import.required_props.question", java.util.Arrays.asList("name", "code", "mimeType", "framework")))
+			put("VALID_OBJECT_STAGE", Platform.getStringList("import.valid_stages.question", java.util.Arrays.asList("create", "upload", "review", "publish")))
+			put("PROPS_TO_REMOVE", Platform.getStringList("import.remove_props.question", new util.ArrayList[String]()))
+		}}
+		request.getContext.putAll(configMap)
+		ImportManager.importObject(request)
 	}
 
 }

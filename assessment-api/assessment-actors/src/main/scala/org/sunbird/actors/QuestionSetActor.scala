@@ -4,8 +4,9 @@ import java.util
 
 import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.`object`.importer.ImportManager
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.DateUtils
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
@@ -32,6 +33,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		case "updateHierarchy" => UpdateHierarchyManager.updateHierarchy(request)
 		case "getHierarchy" => HierarchyManager.getHierarchy(request)
 		case "rejectQuestionSet" => reject(request)
+		case "importQuestionSet" => importQuestionSet(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -120,6 +122,16 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			response
 		})
+	}
+
+	def importQuestionSet(request: Request): Future[Response] = {
+		val configMap = new util.HashMap[String, AnyRef]() {{
+			put("REQUIRED_PROPS", Platform.getStringList("import.required_props.questionset", java.util.Arrays.asList("name", "code", "mimeType", "framework")))
+			put("VALID_OBJECT_STAGE", Platform.getStringList("import.valid_stages.questionset", java.util.Arrays.asList("create", "upload", "review", "publish")))
+			put("PROPS_TO_REMOVE", Platform.getStringList("import.remove_props.questionset", new util.ArrayList[String]()))
+		}}
+		request.getContext.putAll(configMap)
+		ImportManager.importObject(request)
 	}
 
 }

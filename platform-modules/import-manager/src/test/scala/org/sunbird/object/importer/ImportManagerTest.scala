@@ -1,22 +1,27 @@
-package org.sunbird.content.mgr
+package org.sunbird.`object`.importer
 
 import java.util
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
+import org.scalatest.AsyncFlatSpec
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.AsyncMockFactory
-import org.scalatest.AsyncFlatSpec
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.kafka.client.KafkaClient
 
-
 class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 
 	implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+	val REQUEST_LIMIT = 300
+	val AUTO_CREATE_TOPIC_NAME = "test.import.request"
+	val REQUIRED_PROPS = java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework")
+	val VALID_OBJECT_STAGE = java.util.Arrays.asList("create", "upload", "review", "publish")
+	val PROPS_TO_REMOVE = java.util.Arrays.asList("downloadUrl","variants","previewUrl","streamingUrl","itemSets")
+
 
 	"getRequest with list input" should "return request data as list with java types" in {
 		val reqMap : java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){{
@@ -51,6 +56,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 			}})
 		}}
 		val request = new Request()
+		request.setObjectType("Content")
 		request.putAll(reqMap)
 		val result: util.List[util.Map[String, AnyRef]] = ImportManager.getRequest(request)
 		assert(CollectionUtils.isNotEmpty(result))
@@ -78,6 +84,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		}}
 		val request = new Request()
 		request.putAll(reqMap)
+		request.setObjectType("Content")
 		val result: util.List[util.Map[String, AnyRef]] = ImportManager.getRequest(request)
 		assert(CollectionUtils.isNotEmpty(result))
 		assert(result.isInstanceOf[util.List[AnyRef]])
@@ -87,7 +94,9 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 
 	"getRequestData with invalid input" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			ImportManager.getRequest(new Request())
+			val req = new Request()
+			req.setObjectType("Content")
+			ImportManager.getRequest(req)
 		}
 		assert(exception.getMessage ==  "Invalid Request! Please Provide Valid Request.")
 	}
@@ -157,7 +166,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		assert(MapUtils.isEmpty(edata.get("originData").asInstanceOf[util.Map[String, AnyRef]]))
 	}
 
-	"importContent with valid input" should "return the response having processId" in {
+	"importObject with valid input" should "return the response having processId" in {
 		val request = getRequest()
 		request.putAll(new util.HashMap[String, AnyRef](){{
 			put("content", new util.HashMap[String, AnyRef](){{
@@ -195,7 +204,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		(hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
 		(oec.kafkaClient _).expects().returns(kfClient)
 		(kfClient.send(_: String, _: String)).expects(*, *).returns(None)
-		val resFuture = ImportManager.importContent(request)
+		val resFuture = ImportManager.importObject(request)
 		resFuture.map(result => {
 			assert(null != result)
 			assert(result.getResponseCode.toString=="OK")
@@ -203,25 +212,25 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		})
 	}
 
-	"importContent with invalid input" should "throw client exception" in {
+	"importObject with invalid input" should "throw client exception" in {
 		val request = getRequest()
 		request.putAll(new util.HashMap[String, AnyRef](){{
 			put("content", new util.ArrayList[String]())
 		}})
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val exception = intercept[ClientException] {
-			ImportManager.importContent(request)
+			ImportManager.importObject(request)
 		}
 		assert(exception.getMessage ==  "Invalid Request! Please Provide Valid Request.")
 	}
 
 	"validateStage with invalid input" should "return false" in {
-		val result = ImportManager.validateStage("Flagged")
+		val result = ImportManager.validateStage("Flagged", VALID_OBJECT_STAGE)
 		assert(BooleanUtils.isFalse(result))
 	}
 
 	"validateStage with valid input" should "return true" in {
-		val result = ImportManager.validateStage("review")
+		val result = ImportManager.validateStage("review", VALID_OBJECT_STAGE)
 		assert(BooleanUtils.isTrue(result))
 	}
 
@@ -234,6 +243,9 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 				put("objectType", "Content")
 				put("schemaName", "content")
 				put("X-Channel-Id", "in.ekstep")
+				put("REQUIRED_PROPS", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework"))
+				put("VALID_OBJECT_STAGE", java.util.Arrays.asList("create", "upload", "review", "publish"))
+				put("PROPS_TO_REMOVE", java.util.Arrays.asList("downloadUrl","variants","previewUrl","streamingUrl","itemSets"))
 			}
 		})
 		request.setObjectType("Content")

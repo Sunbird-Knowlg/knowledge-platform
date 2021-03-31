@@ -1,8 +1,7 @@
-package org.sunbird.content.constant
+package org.sunbird.`object`.importer.constant
 
 object ImportConstants {
 
-	val CONTENT: String = "content"
 	val SOURCE: String = "source"
 	val METADATA: String = "metadata"
 	val COLLECTION: String = "collection"
@@ -15,5 +14,4 @@ object ImportConstants {
 	val REPOSITORY: String = "repository"
 	val STAGE: String = "stage"
 	val ORIGIN_DATA = "originData"
-
 }

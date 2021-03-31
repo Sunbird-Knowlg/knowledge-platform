@@ -7,6 +7,7 @@ import java.io.File
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.`object`.importer.ImportManager
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager, FlagManager, RetireManager}
@@ -15,8 +16,7 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
-import org.sunbird.content.mgr.ImportManager
-import org.sunbird.util. RequestUtil
+import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -141,7 +141,15 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
-	def importContent(request: Request): Future[Response] = ImportManager.importContent(request)
+	def importContent(request: Request): Future[Response] = {
+		val configMap = new util.HashMap[String, AnyRef](){{
+			put("REQUIRED_PROPS", Platform.getStringList("import.required_props", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework")))
+			put("VALID_OBJECT_STAGE", Platform.getStringList("import.valid_stages", java.util.Arrays.asList("create", "upload", "review", "publish")))
+			put("PROPS_TO_REMOVE", Platform.getStringList("import.remove_props", java.util.Arrays.asList("downloadUrl","variants","previewUrl","streamingUrl","itemSets")))
+		}}
+		request.getContext.putAll(configMap)
+		ImportManager.importObject(request)
+	}
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)

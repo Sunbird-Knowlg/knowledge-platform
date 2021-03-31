@@ -78,4 +78,10 @@ class QuestionSetControllerSpec extends BaseSpec {
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
+
+	"import should create an questionSet successfully for given valid request" in {
+		val result = controller.importQuestionSet()(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
 }

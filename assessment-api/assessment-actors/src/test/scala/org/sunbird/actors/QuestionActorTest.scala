@@ -3,7 +3,8 @@ import java.util
 
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
-import org.sunbird.common.dto.{Property, Request, Response}
+import org.sunbird.common.HttpUtil
+import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
@@ -116,6 +117,36 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setOperation("publishQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))
+	}
+
+	it should "send events to kafka topic" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val kfClient = mock[KafkaClient]
+		val hUtil = mock[HttpUtil]
+		(oec.httpUtil _).expects().returns(hUtil)
+		val resp :Response = ResponseHandler.OK()
+		resp.put("question", new util.HashMap[String, AnyRef](){{
+			put("framework", "NCF")
+			put("channel", "test")
+		}})
+		(hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
+		(oec.kafkaClient _).expects().returns(kfClient)
+		(kfClient.send(_: String, _: String)).expects(*, *).returns(None)
+		val request = getQuestionRequest()
+		request.getRequest.put("question", new util.HashMap[String, AnyRef](){{
+			put("source", "https://dock.sunbirded.org/api/question/v1/read/do_11307822356267827219477")
+			put("metadata", new util.HashMap[String, AnyRef](){{
+				put("name", "Test Question")
+				put("description", "Test Question")
+				put("mimeType", "application/vnd.sunbird.question")
+				put("code", "test.ques.1")
+				put("primaryCategory", "Learning Resource")
+			}})
+		}})
+		request.setOperation("importQuestion")
+		request.setObjectType("Question")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.get("processId") != null)
 	}
 
 	private def getQuestionRequest(): Request = {
