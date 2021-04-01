@@ -13,16 +13,6 @@
         <scala.major.version>2.11</scala.major.version>
         <play2.version>2.7.2</play2.version>
     </properties>
-    <repositories>
-        <repository>
-            <id>cloud-store-sdk_1.3.0</id>
-            <name>cloud-store-sdk_1.3.0</name>
-            <url>https://oss.sonatype.org/content/repositories/orgsunbird-1094</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.sunbird</groupId>
