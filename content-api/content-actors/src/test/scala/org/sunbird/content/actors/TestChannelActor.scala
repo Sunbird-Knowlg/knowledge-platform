@@ -60,7 +60,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     assert("failed".equals(response.getParams.getStatus))
   }
 
-  ignore it should "return success response for 'readChannel' operation" in {
+  ignore should "return success response for 'readChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
