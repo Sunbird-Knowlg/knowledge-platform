@@ -1030,6 +1030,23 @@
       },
       "additionalProperties": false
     },
+    "discussionForum":{
+      "type": "object",
+      "properties":
+      {
+          "enabled":
+          {
+              "type": "string",
+              "enum": ["Yes", "No"],
+              "default": "Yes"
+          }
+      },
+      "default":
+      {
+          "enabled": "Yes"
+      },
+      "additionalProperties": false
+    },
     "primaryCategory": {
       "type": "string"
     },
