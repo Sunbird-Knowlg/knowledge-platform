@@ -14,8 +14,9 @@ Please describe the tests that you ran to verify your changes in the below check
  Ran Test B
 Test Configuration:
 
-Software versions:
-Hardware versions:
+* Software versions: Java-11, play2-2.7.2
+* Hardware versions: 2 CPU/ 4GB RAM
+
 Checklist:
  My code follows the style guidelines of this project
  I have performed a self-review of my own code
