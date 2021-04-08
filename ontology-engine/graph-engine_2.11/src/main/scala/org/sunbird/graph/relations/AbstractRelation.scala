@@ -59,8 +59,10 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         }
     } catch {
         case ex: MiddlewareException =>
+            ex.printStackTrace()
             throw ex;
         case e: Exception =>
+            e.printStackTrace()
             throw new ServerException(GraphErrorCodes.ERR_RELATION_VALIDATE.toString, "Error occurred while validating the relation", e)
     }
 }
