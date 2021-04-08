@@ -145,7 +145,8 @@
         "enum": [
           "Student",
           "Teacher",
-          "Administrator"
+          "Administrator",
+          "Parent"
         ]
       },
       "default": ["Student"]
@@ -1026,6 +1027,23 @@
       },
       "default": {
         "enabled": "No"
+      },
+      "additionalProperties": false
+    },
+    "discussionForum":{
+      "type": "object",
+      "properties":
+      {
+          "enabled":
+          {
+              "type": "string",
+              "enum": ["Yes", "No"],
+              "default": "Yes"
+          }
+      },
+      "default":
+      {
+          "enabled": "Yes"
       },
       "additionalProperties": false
     },

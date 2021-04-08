@@ -53,6 +53,8 @@ object ApiId {
 	val UPLOAD_PRE_SIGNED_ASSET= "api.asset.upload.url"
 	val COPY_ASSET = "api.asset.copy"
 
+
+
 	//Collection V4 apis
 	val CREATE_COLLECTION = "api.collection.create"
 	val READ_COLLECTION = "api.collection.read"
@@ -74,5 +76,13 @@ object ApiId {
   val APPROVE_APP = "api.app.approve"
   val REJECT_APP = "api.app.reject"
   val RETIRE_APP = "api.app.retire"
+
+  val CREATE_EVENT = "api.event.create"
+  val UPDATE_EVENT = "api.event.update"
+
+  val CREATE_EVENT_SET = "api.eventset.create"
+  val UPDATE_EVENT_SET = "api.eventset.update"
+  val PUBLISH_EVENT_SET = "api.eventset.publish"
+  val PUBLISH_EVENT = "api.event.publish"
 
 }

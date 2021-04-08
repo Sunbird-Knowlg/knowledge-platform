@@ -1,0 +1,240 @@
+{
+    "$id": "event-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Event",
+    "type": "object",
+    "required": [
+        "name",
+        "status",
+        "code",
+        "startDate",
+        "endDate",
+        "startTime",
+        "endTime",
+        "registrationEndDate",
+        "eventType"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 5
+        },
+        "code": {
+            "type": "string"
+        },
+        "primaryCategory": {
+            "type": "string"
+        },
+        "contentType": {
+            "type": "string",
+            "enum": [
+                "Event"
+            ]
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Draft",
+                "Live",
+                "Retired"
+            ],
+            "default": "Draft"
+        },
+        "startDate": {
+            "type": "string",
+            "format": "date"
+        },
+        "endDate": {
+            "type": "string",
+            "format": "date"
+        },
+        "startTime": {
+            "type": "string",
+            "format": "time"
+        },
+        "endTime": {
+            "type": "string",
+            "format": "time"
+        },
+        "registrationStartDate": {
+            "type": "string",
+            "format": "date"
+        },
+        "registrationEndDate": {
+            "type": "string",
+            "format": "date"
+        },
+        "eventType": {
+            "type": "string",
+            "enum": [
+                "Online",
+                "Offline",
+                "OnlineAndOffline"
+            ]
+        },
+        "onlineProvider": {"type":  "string"},
+        "onlineProviderData": {"type":  "object", "properties": {
+            "meetingLink" : {
+                "type": "string",
+                "format": "url"
+            }
+        }},
+        "registrationLink": {"type":  "string", "format":  "url"},
+        "venue": {"type":  "object"},
+        "visibility": {
+            "type": "string",
+            "enum": [
+                "Default",
+                "Parent"
+            ],
+            "default": "Default"
+        },
+        "audience": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "Student",
+                    "Teacher",
+                    "Administrator"
+                ]
+            },
+            "default": ["Student"]
+        },
+        "posterImage": {
+            "type": "string",
+            "format": "url"
+        },
+        "appIcon": {
+            "type": "string",
+            "format": "url"
+        },
+        "createdFor": {
+            "type": "array"
+        },
+        "source": {
+            "type": "string"
+        },
+        "owner": {
+            "type": "string"
+        },
+        "collaborators": {
+            "type": "array"
+        },
+        "language": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "English",
+                    "Hindi",
+                    "Assamese",
+                    "Bengali",
+                    "Gujarati",
+                    "Kannada",
+                    "Malayalam",
+                    "Marathi",
+                    "Nepali",
+                    "Odia",
+                    "Punjabi",
+                    "Tamil",
+                    "Telugu",
+                    "Urdu",
+                    "Sanskrit",
+                    "Maithili",
+                    "Munda",
+                    "Santali",
+                    "Juang",
+                    "Ho",
+                    "Other"
+                ]
+            },
+            "default": ["English"]
+        },
+        "ageGroup": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "<5",
+                    "5-6",
+                    "6-7",
+                    "7-8",
+                    "8-10",
+                    ">10",
+                    "Other"
+                ]
+            }
+        },
+        "keywords": {
+            "type": "array"
+        },
+        "domain": {
+            "type": "array"
+        },
+        "dialcodes": {
+            "type": "array"
+        },
+        "description": {
+            "type": "string"
+        },
+        "trackable": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "Yes"
+                },
+                "autoBatch": {
+                    "type": "string",
+                    "enum": ["Yes","No"],
+                    "default": "Yes"
+                }
+            },
+            "default": {
+                "enabled": "Yes",
+                "autoBatch": "Yes"
+            },
+            "additionalProperties": false
+        },
+        "createdOn": {
+            "type": "string"
+        },
+        "createdBy": {
+            "type": "string"
+        },
+        "lastUpdatedBy": {
+            "type": "string"
+        },
+        "lastUpdatedOn": {
+            "type": "string"
+        },
+        "versionDate": {
+            "type": "string"
+        },
+        "origin": {
+            "type": "string"
+        },
+        "originData": {
+            "type": "object"
+        },
+        "versionCreatedBy": {
+            "type": "string"
+        },
+        "version": {
+            "type": "number",
+            "default": 2
+        },
+        "childNodes": {
+            "type": "array"
+        },
+        "leafNodesCount": {
+            "type": "number",
+            "default": 1
+        },
+        "depth": {
+            "type": "number"
+        }
+    }
+}
