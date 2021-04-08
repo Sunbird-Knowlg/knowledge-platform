@@ -60,7 +60,7 @@ class GraphService {
         ExternalPropsManager.deleteProps(request)
     }
     def checkCyclicLoop(graphId:String, endNodeId: String, startNodeId: String, relationType: String) = {
-        Neo4JBoltSearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
+        Neo4JBoltSearchOperations.checkCyclicLoop(graphId, startNodeId, relationType, endNodeId)
     }
 
     def removeRelation(graphId: String, relationMap: util.List[util.Map[String, AnyRef]]) = {
