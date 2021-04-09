@@ -27,16 +27,15 @@ class TestAppActor extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain", "DATA_NODE", "App")
-    node.setIdentifier("android:org.test.sunbird.integration")
+    node.setIdentifier("android-org.test.sunbird.integration")
     node.setObjectType("App")
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("name", "Test Integration App")
     request.getRequest.put("description", "Description of Test Integration App")
     request.getRequest.put("provider", Map("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
-    request.getRequest.put("osType", "android")
+    request.getRequest.put("osType", "Android")
     request.getRequest.put("osMetadata", Map("packageId" -> "org.test.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
-    request.getRequest.put("appTarget", Map("mimeType" -> util.Arrays.asList()).asJava)
     request.setOperation("create")
     val response = callActor(request, Props(new AppActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -63,7 +62,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     request.setOperation("update")
     val response = callActor(request, Props(new AppActor()))
     assert("successful".equals(response.getParams.getStatus))
-    assert(response.get("identifier").equals("android:org.test.sunbird.integration"))
+    assert(response.get("identifier").equals("android-org.test.sunbird.integration"))
   }
 
   it should "return success response for read app" in {
@@ -77,7 +76,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     request.setOperation("read")
     val response = callActor(request, Props(new AppActor()))
     assert("successful".equals(response.getParams.getStatus))
-    assert(StringUtils.equalsIgnoreCase(response.get("app").asInstanceOf[util.Map[String, AnyRef]].get("identifier").asInstanceOf[String], "android:org.test.sunbird.integration"))
+    assert(StringUtils.equalsIgnoreCase(response.get("app").asInstanceOf[util.Map[String, AnyRef]].get("identifier").asInstanceOf[String], "android-org.test.sunbird.integration"))
     assert(StringUtils.equalsIgnoreCase(response.get("app").asInstanceOf[util.Map[String, AnyRef]].get("status").asInstanceOf[String], "Draft"))
   }
 
@@ -98,12 +97,12 @@ class TestAppActor extends BaseSpec with MockFactory {
 
   private def getValidNode(): Node = {
     val node = new Node()
-    node.setIdentifier("android:org.test.sunbird.integration")
+    node.setIdentifier("android-org.test.sunbird.integration")
     node.setNodeType("DATA_NODE")
     node.setObjectType("App")
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
-        put("identifier", "android:org.test.sunbird.integration")
+        put("identifier", "android-org.test.sunbird.integration")
         put("status", "Draft")
         put("name", "Test Integration App")
         put("description", "Description of Test Integration App")

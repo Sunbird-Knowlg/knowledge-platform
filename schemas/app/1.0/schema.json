@@ -5,10 +5,10 @@
   "type": "object",
   "required": [
     "name",
+    "logo",
     "provider",
     "osType",
-    "osMetadata",
-    "appTarget"
+    "osMetadata"
   ],
   "properties": {
     "name": {
@@ -55,8 +55,8 @@
     "osType": {
       "type": "string",
       "enum": [
-        "android",
-        "ios"
+        "Android",
+        "iOS"
       ]
     },
     "osMetadata": {
@@ -82,23 +82,43 @@
       ],
       "additionalProperties": false
     },
-    "appTarget": {
-      "type": "object",
-      "properties": {
-        "mimeType": {
-          "type": "array",
-          "items": {
+    "actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["IN", "OUT"]
+          },
+          "id": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "ctx_id": {
+            "type": "string"
+          },
+          "ctx_type": {
+            "type": "string"
+          },
+          "subctx_id": {
+            "type": "string"
+          },
+          "subctx_type": {
+            "type": "string"
+          },
+          "extra": {
             "type": "string"
           }
         },
-        "primaryCategory": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false
+        "required": [
+          "type",
+          "id"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": true
