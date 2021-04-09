@@ -32,6 +32,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     val request = getRequest()
     request.getRequest.put("name", "Test Integration App")
+    request.getRequest.put("logo", "logo url")
     request.getRequest.put("description", "Description of Test Integration App")
     request.getRequest.put("provider", Map("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
     request.getRequest.put("osType", "Android")
@@ -105,11 +106,11 @@ class TestAppActor extends BaseSpec with MockFactory {
         put("identifier", "android-org.test.sunbird.integration")
         put("status", "Draft")
         put("name", "Test Integration App")
+        put("logo", "logo url")
         put("description", "Description of Test Integration App")
         put("provider", Map("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
-        put("osType", "android")
-        put("osMetadata", Map("packageId" -> "org.test.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
-        put("appTarget", Map("mimeType" -> util.Arrays.asList()).asJava)
+        put("osType", "Android")
+        put("osMetadata", Map("packageId" -> "org.test.sunbird.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
       }
     })
     node
