@@ -3,6 +3,7 @@ package org.sunbird.content.actors
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.OntologyEngineContext
@@ -70,7 +71,7 @@ class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor
     val packageId = request.getRequest.getOrDefault("osMetadata", new util.HashMap[String, AnyRef]())
       .asInstanceOf[java.util.Map[String, AnyRef]]
       .getOrDefault("packageId", "").asInstanceOf[String]
-    val identifier = if (StringUtils.isNotBlank(osType) && StringUtils.isNotBlank(packageId)) s"$osType:$packageId" else ""
+    val identifier = if (StringUtils.isNotBlank(osType) && StringUtils.isNotBlank(packageId)) Slug.makeSlug(s"$osType-$packageId", true) else ""
     request.getRequest.put("identifier", identifier)
   }
 
