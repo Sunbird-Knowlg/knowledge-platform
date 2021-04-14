@@ -68,6 +68,9 @@
     "properties": {
       "hierarchy": {
         "type": "string"
+      },
+      "instructions": {
+        "type": "string"
       }
     },
     "primaryKey": [
