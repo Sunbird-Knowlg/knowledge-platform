@@ -127,10 +127,10 @@ object DataNode {
         } else Future(new Response)
     }
     
-    private def createRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext) : Future[Response] = {
+    private def createRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext) : Future[Response] = {
         val relations: util.List[Relation] = node.getAddedRelations
         if (CollectionUtils.isNotEmpty(relations)) {
-            GraphAsyncOperations.createRelation(graphId,getRelationMap(relations))
+            oec.graphService.createRelation(graphId,getRelationMap(relations))
         } else {
             Future(new Response)
         }

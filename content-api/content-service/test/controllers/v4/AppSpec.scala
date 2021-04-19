@@ -24,14 +24,14 @@ class AppSpec extends BaseSpec {
 
     "return success response for update API" in {
       val controller = app.injector.instanceOf[controllers.v4.AppController]
-      val result = controller.update("android:org.test.integration")(FakeRequest())
+      val result = controller.update("android-org.test.integration")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for read API" in {
       val controller = app.injector.instanceOf[controllers.v4.AppController]
-      val result = controller.read("android:org.test.integration", None)(FakeRequest())
+      val result = controller.read("android-org.test.integration", None)(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }

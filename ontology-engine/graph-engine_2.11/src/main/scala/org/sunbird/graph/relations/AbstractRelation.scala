@@ -48,7 +48,7 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         request.put(GraphDACParams.start_node_id.name, this.endNode.getIdentifier)
         request.put(GraphDACParams.relation_type.name, getRelationType)
         request.put(GraphDACParams.end_node_id.name, this.startNode.getIdentifier)
-        val result = oec.graphService.checkCyclicLoop(graphId, this.endNode.getIdentifier, getRelationType(),this.startNode.getIdentifier)
+        val result = oec.graphService.checkCyclicLoop(graphId, this.endNode.getIdentifier,this.startNode.getIdentifier, getRelationType())
         val loop = result.get(GraphDACParams.loop.name).asInstanceOf[Boolean]
         if (BooleanUtils.isTrue(loop)) {
             result.get(GraphDACParams.message.name).asInstanceOf[String]
@@ -59,8 +59,10 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         }
     } catch {
         case ex: MiddlewareException =>
+            ex.printStackTrace()
             throw ex;
         case e: Exception =>
+            e.printStackTrace()
             throw new ServerException(GraphErrorCodes.ERR_RELATION_VALIDATE.toString, "Error occurred while validating the relation", e)
     }
 }

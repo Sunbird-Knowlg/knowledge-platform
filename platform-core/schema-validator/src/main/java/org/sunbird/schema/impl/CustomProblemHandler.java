@@ -66,6 +66,13 @@ public class CustomProblemHandler implements ProblemHandler {
                         + " cannot have new property with name "
                         + ((String) problem.parametersAsMap().get("name")).replace("\"", ""));
             }
+            case "format": {
+                return ("Incorrect format for " + Arrays.stream(problem.getPointer().split("/"))
+                        .filter(StringUtils::isNotBlank)
+                        .findFirst().orElse("")
+                        + " : "
+                        + problem.getMessage());
+            }
             default:
                 return "";
         }
