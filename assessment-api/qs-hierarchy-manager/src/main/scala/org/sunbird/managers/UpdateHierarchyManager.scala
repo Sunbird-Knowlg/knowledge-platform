@@ -112,7 +112,7 @@ object UpdateHierarchyManager {
 
     private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.util.HashMap[String, AnyRef]] = {
         fetchHierarchy(request, rootNode).map(hierarchyString => {
-            if (!hierarchyString.asInstanceOf[String].isEmpty) {
+            if (null != hierarchyString && !hierarchyString.asInstanceOf[String].isEmpty) {
                 JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
             } else new java.util.HashMap[String, AnyRef]()
         })
