@@ -4,16 +4,14 @@ import java.util
 import java.util.Optional
 import java.util.concurrent.CompletionException
 
-import org.apache.commons.collections4.{CollectionUtils, ListUtils, MapUtils}
+import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.dto.{Request, Response}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
-import org.sunbird.graph.external.ExternalPropsManager
-import org.sunbird.graph.schema.DefinitionNode
-import org.sunbird.graph.service.operation.{GraphAsyncOperations, NodeAsyncOperations, SearchAsyncOperations}
+import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
 import org.sunbird.parseq.Task
 
 import scala.collection.JavaConversions._
@@ -22,6 +20,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object DataNode {
+
+  private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
+
     @throws[Exception]
     def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
@@ -184,4 +185,96 @@ object DataNode {
     private def defaultDataModifier(node: Node) = {
         node
     }
+
+  @throws[Exception]
+  def systemUpdate(request: Request, nodeList: util.List[Node], hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+    val data: util.Map[String, AnyRef] = request.getRequest
+
+    // get definition for the object and filter relations
+    val definition = getDefinition(request)
+    val metadata = filterRelations(definition, data)
+    // get status
+    val status = getStatus(request, nodeList)
+    // Generate request for new metadata
+    val newRequest = new Request(request)
+    newRequest.putAll(metadata)
+    newRequest.getContext.put("versioning", "disabled")
+    // Enrich Hierarchy and Update the nodes
+    nodeList.map(node => {
+      enrichHierarchyAndUpdate(newRequest, node.getIdentifier, status, hierarchyKey, hierarchyFunc)
+    }).head.map(node => getResponseForSystemUpdate(node))
+  }
+
+  @throws[Exception]
+  private def enrichHierarchyAndUpdate(request: Request, identifier: String, status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+    val metadata: util.Map[String, AnyRef] = request.getRequest
+
+    // Image node cannot be made Live or Unlisted using system call
+    if (identifier.endsWith(".img") &&
+      SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.contains(status)) metadata.remove("status")
+    if (metadata.isEmpty) throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Invalid Request. Cannot update status of Image Node to $status.")
+
+    // Generate new request object for Each request
+    val newRequest = new Request(request)
+    newRequest.putAll(request.getRequest)
+    newRequest.getContext.put("identifier", identifier)
+    // Enrich Hierarchy and Update with the new request
+    enrichHierarchy(newRequest, metadata, status, hierarchyKey: String, hierarchyFunc)
+      .flatMap(req => update(req)) recoverWith { case e: CompletionException => throw e.getCause}
+  }
+
+  private def enrichHierarchy(request: Request, metadata: util.Map[String, AnyRef], status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
+    val identifier = request.getContext.get("identifier").asInstanceOf[String]
+    // Check if hierarchy could be enriched
+    if (!identifier.endsWith(".img") && SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.contains(status)) {
+      hierarchyFunc match {
+        case Some(hierarchyFunc) => {
+          // Get current Hierarchy
+          val hierarchyRequest = new Request(request)
+          hierarchyRequest.put("rootId", identifier)
+          hierarchyFunc(hierarchyRequest).map(response => {
+            // Add metadata to the hierarchy
+            val hierarchy = response.get(hierarchyKey).asInstanceOf[util.Map[String, AnyRef]]
+            val hierarchyMetadata = new util.HashMap[String, AnyRef]()
+            hierarchyMetadata.putAll(hierarchy)
+            hierarchyMetadata.putAll(metadata)
+            // add hierarchy to the request object
+            request.put("hierarchy", hierarchyMetadata)
+            request
+          }) recoverWith { case e: CompletionException => throw e.getCause}
+        }
+        case _ => Future(request)
+      }
+    } else Future(request)
+  }
+
+  private def getStatus(request: Request, nodeList: util.List[Node]): String = {
+    val originalNode = if (nodeList.size() == 1)  nodeList.get(0) else {
+      if (nodeList.get(0).getIdentifier.endsWith(".img")) nodeList.get(1) else nodeList.get(0)
+    }
+    val status = if (request.get("status") == null) originalNode.getMetadata.get("status").asInstanceOf[String] else request.get("status").asInstanceOf[String]
+    status
+  }
+
+  private def getDefinition(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): DefinitionDTO = {
+    val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+    val graphId = request.getContext.get("graph_id").asInstanceOf[String]
+    val version = request.getContext.get("version").asInstanceOf[String]
+    DefinitionFactory.getDefinition(graphId, schemaName, version)
+  }
+
+  private def filterRelations(definition: DefinitionDTO, data: util.Map[String, AnyRef]): util.Map[String, AnyRef] = {
+    val relations = definition.getRelationsMap().keySet()
+    data.filter(item => {
+      !relations.contains(item._1)
+    })
+  }
+
+  private def getResponseForSystemUpdate(node: Node): Response = {
+    val response: Response = ResponseHandler.OK
+    response.put("identifier", node.getIdentifier)
+    response.put("status", "success")
+    response
+  }
+
 }

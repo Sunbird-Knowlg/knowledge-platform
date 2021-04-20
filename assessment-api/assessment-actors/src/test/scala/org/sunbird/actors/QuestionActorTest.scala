@@ -5,7 +5,8 @@ import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.HttpUtil
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.common.dto.{Property, Request, Response}
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
@@ -147,6 +148,25 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setObjectType("Question")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert(response.get("processId") != null)
+	}
+
+	it should "return success response for 'systemUpdateQuestion'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val node = getNode("Question", None)
+		node.getMetadata.putAll(Map("versionKey" -> "1234", "primaryCategory" -> "Multiple Choice Question", "name" -> "Updated New Content", "code" -> "1234", "mimeType" -> "application/vnd.sunbird.question").asJava)
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node))).once()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
+		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		val request = getQuestionRequest()
+		request.getContext.put("identifier", "do1234")
+		request.putAll(mapAsJavaMap(Map("versionKey" -> "1234", "description" -> "updated desc")))
+		request.setOperation("systemUpdateQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert("successful".equals(response.getParams.getStatus))
 	}
 
 	private def getQuestionRequest(): Request = {

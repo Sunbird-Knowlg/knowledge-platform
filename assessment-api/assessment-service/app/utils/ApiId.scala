@@ -20,6 +20,7 @@ object ApiId {
 	val PUBLISH_QUESTION = "api.question.publish"
 	val RETIRE_QUESTION = "api.question.retire"
 	val IMPORT_QUESTION = "api.question.import"
+	val SYSTEM_UPDATE_QUESTION = "api.question.system.update"
 
 	//QuestionSet APIs
 	val CREATE_QUESTION_SET = "api.questionset.create"
@@ -34,5 +35,6 @@ object ApiId {
 	val GET_HIERARCHY = "api.questionset.hierarchy.get"
 	val REJECT_QUESTION_SET = "api.questionset.reject"
 	val IMPORT_QUESTION_SET = "api.questionset.import"
+	val SYSTEM_UPDATE_QUESTION_SET = "api.questionset.system.update"
 
 }
