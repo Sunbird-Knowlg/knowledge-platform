@@ -40,11 +40,6 @@
             <version>4.4.0</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.sunbird</groupId>-->
-<!--            <artifactId>kafka-client</artifactId>-->
-<!--            <version>1.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
     </dependencies>
 
     <build>

@@ -12,6 +12,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
+import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -20,26 +21,24 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 
-object ImportManager {
+case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String])
 
-	val REQUEST_LIMIT = Platform.getInteger("import.request_size_limit", 200)
-	val AUTO_CREATE_TOPIC_NAME = Platform.config.getString("import.output_topic_name")
+class ImportManager(config: ImportConfig) {
 
 	def importObject(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
-		val requiredProps = request.getContext.get("REQUIRED_PROPS").asInstanceOf[java.util.List[String]]
 		val reqList: util.List[util.Map[String, AnyRef]] = getRequest(request)
 		if (CollectionUtils.isEmpty(reqList))
 			throw new ClientException(ImportErrors.ERR_INVALID_IMPORT_REQUEST, ImportErrors.ERR_INVALID_IMPORT_REQUEST_MSG)
-		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > REQUEST_LIMIT)
-			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + REQUEST_LIMIT)
+		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > config.requestLimit)
+			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + config.requestLimit)
 		val processId: String = UUID.randomUUID().toString
 		val invalidCodes: util.List[String] = new util.ArrayList[String]()
 		val invalidStage: util.List[String] = new util.ArrayList[String]()
 		validateAndGetRequest(reqList, processId, invalidCodes, invalidStage, request).map(objects => {
 			if (CollectionUtils.isNotEmpty(invalidCodes)) {
 				val msg = if (invalidCodes.asScala.filter(c => StringUtils.isNotBlank(c)).toList.size > 0) " | Required Property's Missing For " + invalidCodes else ""
-				throw new ClientException(ImportErrors.ERR_REQUIRED_PROPS_VALIDATION, ImportErrors.ERR_REQUIRED_PROPS_VALIDATION_MSG + requiredProps + msg)
+				throw new ClientException(ImportErrors.ERR_REQUIRED_PROPS_VALIDATION, ImportErrors.ERR_REQUIRED_PROPS_VALIDATION_MSG + ScalaJsonUtils.serialize(config.requiredProps) + msg)
 			} else if (CollectionUtils.isNotEmpty(invalidStage)) throw new ClientException(ImportErrors.ERR_OBJECT_STAGE_VALIDATION, ImportErrors.ERR_OBJECT_STAGE_VALIDATION_MSG + request.getContext.get("VALID_OBJECT_STAGE").asInstanceOf[java.util.List[String]])
 			else {
 				objects.asScala.map(obj => pushInstructionEvent(graphId, obj))
@@ -53,9 +52,6 @@ object ImportManager {
 
 	def validateAndGetRequest(objects: util.List[util.Map[String, AnyRef]], processId: String, invalidCodes: util.List[String], invalidStages: util.List[String], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
 		Future {
-			val requiredProps = request.getContext.get("REQUIRED_PROPS").asInstanceOf[java.util.List[String]]
-			val validObjectStage = request.getContext.get("VALID_OBJECT_STAGE").asInstanceOf[java.util.List[String]]
-			val propsToRemove = request.getContext.get("PROPS_TO_REMOVE").asInstanceOf[java.util.List[String]]
 			objects.asScala.map(obj => {
 				val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
 				val stage: String = obj.getOrDefault(ImportConstants.STAGE, "").toString
@@ -67,11 +63,11 @@ object ImportManager {
 					sourceMetadata
 				} else reqMetadata
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-				finalMetadata.keySet().removeAll(propsToRemove)
+				finalMetadata.keySet().removeAll(config.propsToRemove.asJava)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
-				if (!validateMetadata(finalMetadata, requiredProps))
+				if (!validateMetadata(finalMetadata, config.requiredProps.asJava))
 					invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
-				if(!validateStage(stage, validObjectStage)) invalidStages.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
+				if(!validateStage(stage, config.validContentStage.asJava)) invalidStages.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
 				obj.put(ImportConstants.METADATA, finalMetadata)
 				obj.put(ImportConstants.ORIGIN_DATA, originData)
 				obj
@@ -129,6 +125,6 @@ object ImportManager {
 		val collection = obj.getOrDefault(ImportConstants.COLLECTION, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
 		val originData = obj.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 		val event = getInstructionEvent(identifier, source, metadata, collection, stage, originData)
-		oec.kafkaClient.send(event, AUTO_CREATE_TOPIC_NAME)
+		oec.kafkaClient.send(event, config.topicName)
 	}
 }

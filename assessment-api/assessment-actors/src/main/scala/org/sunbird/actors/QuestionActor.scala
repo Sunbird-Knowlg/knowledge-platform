@@ -3,7 +3,7 @@ package org.sunbird.actors
 import java.util
 
 import javax.inject.Inject
-import org.sunbird.`object`.importer.ImportManager
+import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -18,6 +18,9 @@ import scala.collection.JavaConverters._
 class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
+
+	private lazy val importConfig = getImportConfig()
+	private lazy val importMgr = new ImportManager(importConfig)
 
 	override def onReceive(request: Request): Future[Response] = request.getOperation match {
 		case "createQuestion" => AssessmentManager.create(request, "ERR_QUESTION_CREATE")
@@ -71,14 +74,15 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		})
 	}
 
-	def importQuestion(request: Request): Future[Response] = {
-		val configMap = new util.HashMap[String, AnyRef]() {{
-			put("REQUIRED_PROPS", Platform.getStringList("import.required_props.question", java.util.Arrays.asList("name", "code", "mimeType", "framework")))
-			put("VALID_OBJECT_STAGE", Platform.getStringList("import.valid_stages.question", java.util.Arrays.asList("create", "upload", "review", "publish")))
-			put("PROPS_TO_REMOVE", Platform.getStringList("import.remove_props.question", new util.ArrayList[String]()))
-		}}
-		request.getContext.putAll(configMap)
-		ImportManager.importObject(request)
+	def importQuestion(request: Request): Future[Response] = importMgr.importObject(request)
+
+	def getImportConfig(): ImportConfig = {
+		val requiredProps = Platform.getStringList("import.required_props.question", java.util.Arrays.asList("name", "code", "mimeType", "framework")).asScala.toList
+		val validStages = Platform.getStringList("import.valid_stages.question", java.util.Arrays.asList("create", "upload", "review", "publish")).asScala.toList
+		val propsToRemove = Platform.getStringList("import.remove_props.question", java.util.Arrays.asList()).asScala.toList
+		val topicName = Platform.config.getString("import.output_topic_name")
+		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
+		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
 
 }
