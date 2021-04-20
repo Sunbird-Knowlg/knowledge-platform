@@ -128,4 +128,13 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		questionSetRequest.getContext.put("identifier", identifier)
 		getResult(ApiId.REJECT_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
+
+	def importQuestionSet() = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		body.putAll(headers)
+		val questionSetRequest = getRequest(body, headers, QuestionSetOperations.importQuestionSet.toString)
+		setRequestContext(questionSetRequest, version, objectType, schemaName)
+		getResult(ApiId.IMPORT_QUESTION_SET, questionSetActor, questionSetRequest)
+	}
 }

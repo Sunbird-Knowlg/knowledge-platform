@@ -3,8 +3,9 @@ package org.sunbird.actors
 import java.util
 
 import javax.inject.Inject
+import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.DateUtils
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
@@ -18,6 +19,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
 
+	private lazy val importConfig = getImportConfig()
+	private lazy val importMgr = new ImportManager(importConfig)
+
 	override def onReceive(request: Request): Future[Response] = request.getOperation match {
 		case "createQuestion" => AssessmentManager.create(request, "ERR_QUESTION_CREATE")
 		case "readQuestion" => AssessmentManager.read(request, "question")
@@ -25,6 +29,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "reviewQuestion" => review(request)
 		case "publishQuestion" => publish(request)
 		case "retireQuestion" => retire(request)
+		case "importQuestion" => importQuestion(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -67,6 +72,17 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 				response
 			})
 		})
+	}
+
+	def importQuestion(request: Request): Future[Response] = importMgr.importObject(request)
+
+	def getImportConfig(): ImportConfig = {
+		val requiredProps = Platform.getStringList("import.required_props.question", java.util.Arrays.asList("name", "code", "mimeType", "framework")).asScala.toList
+		val validStages = Platform.getStringList("import.valid_stages.question", java.util.Arrays.asList("create", "upload", "review", "publish")).asScala.toList
+		val propsToRemove = Platform.getStringList("import.remove_props.question", java.util.Arrays.asList()).asScala.toList
+		val topicName = Platform.config.getString("import.output_topic_name")
+		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
+		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
 
 }

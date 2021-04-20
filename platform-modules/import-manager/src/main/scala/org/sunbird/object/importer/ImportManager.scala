@@ -1,18 +1,18 @@
-package org.sunbird.content.mgr
+package org.sunbird.`object`.importer
 
 import java.util
 import java.util.UUID
 
-import org.apache.commons.collections.CollectionUtils
-import org.apache.commons.collections4.MapUtils
+import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.`object`.importer.constant.ImportConstants
+import org.sunbird.`object`.importer.error.ImportErrors
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
-import org.sunbird.content.constant.ImportConstants
-import org.sunbird.content.error.ImportErrors
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
+import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -21,31 +21,27 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 
-object ImportManager {
+case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String])
 
-	val REQUEST_LIMIT = Platform.getInteger("content.import.request_size_limit", 200)
-	val AUTO_CREATE_TOPIC_NAME = Platform.config.getString("content.import.topic_name")
-	val REQUIRED_PROPS = Platform.getStringList("content.import.required_props", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework"))
-	val VALID_CONTENT_STAGE = Platform.getStringList("content.import.valid_stages", java.util.Arrays.asList("create", "upload", "review", "publish"))
-	val PROPS_TO_REMOVE = Platform.getStringList("content.import.remove_props", java.util.Arrays.asList("downloadUrl","variants","previewUrl","streamingUrl","itemSets"))
+class ImportManager(config: ImportConfig) {
 
-	def importContent(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+	def importObject(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
 		val reqList: util.List[util.Map[String, AnyRef]] = getRequest(request)
 		if (CollectionUtils.isEmpty(reqList))
 			throw new ClientException(ImportErrors.ERR_INVALID_IMPORT_REQUEST, ImportErrors.ERR_INVALID_IMPORT_REQUEST_MSG)
-		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > REQUEST_LIMIT)
-			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + REQUEST_LIMIT)
+		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > config.requestLimit)
+			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + config.requestLimit)
 		val processId: String = UUID.randomUUID().toString
 		val invalidCodes: util.List[String] = new util.ArrayList[String]()
 		val invalidStage: util.List[String] = new util.ArrayList[String]()
-		validateAndGetRequest(reqList, processId, invalidCodes, invalidStage).map(contents => {
+		validateAndGetRequest(reqList, processId, invalidCodes, invalidStage, request).map(objects => {
 			if (CollectionUtils.isNotEmpty(invalidCodes)) {
 				val msg = if (invalidCodes.asScala.filter(c => StringUtils.isNotBlank(c)).toList.size > 0) " | Required Property's Missing For " + invalidCodes else ""
-				throw new ClientException(ImportErrors.ERR_REQUIRED_PROPS_VALIDATION, ImportErrors.ERR_REQUIRED_PROPS_VALIDATION_MSG + REQUIRED_PROPS + msg)
-			} else if (CollectionUtils.isNotEmpty(invalidStage)) throw new ClientException(ImportErrors.ERR_CONTENT_STAGE_VALIDATION, ImportErrors.ERR_CONTENT_STAGE_VALIDATION_MSG + VALID_CONTENT_STAGE)
+				throw new ClientException(ImportErrors.ERR_REQUIRED_PROPS_VALIDATION, ImportErrors.ERR_REQUIRED_PROPS_VALIDATION_MSG + ScalaJsonUtils.serialize(config.requiredProps) + msg)
+			} else if (CollectionUtils.isNotEmpty(invalidStage)) throw new ClientException(ImportErrors.ERR_OBJECT_STAGE_VALIDATION, ImportErrors.ERR_OBJECT_STAGE_VALIDATION_MSG + request.getContext.get("VALID_OBJECT_STAGE").asInstanceOf[java.util.List[String]])
 			else {
-				contents.asScala.map(content => pushInstructionEvent(graphId, content))
+				objects.asScala.map(obj => pushInstructionEvent(graphId, obj))
 				val response = ResponseHandler.OK()
 				response.put(ImportConstants.PROCESS_ID, processId)
 				response
@@ -54,33 +50,33 @@ object ImportManager {
 
 	}
 
-	def validateAndGetRequest(contents: util.List[util.Map[String, AnyRef]], processId: String, invalidCodes: util.List[String], invalidStages: util.List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
+	def validateAndGetRequest(objects: util.List[util.Map[String, AnyRef]], processId: String, invalidCodes: util.List[String], invalidStages: util.List[String], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
 		Future {
-			contents.asScala.map(content => {
-				val source: String = content.getOrDefault(ImportConstants.SOURCE, "").toString
-				val stage: String = content.getOrDefault(ImportConstants.STAGE, "").toString
-				val reqMetadata: util.Map[String, AnyRef] = content.getOrDefault(ImportConstants.METADATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-				val sourceMetadata: util.Map[String, AnyRef] = getMetadata(source)
+			objects.asScala.map(obj => {
+				val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
+				val stage: String = obj.getOrDefault(ImportConstants.STAGE, "").toString
+				val reqMetadata: util.Map[String, AnyRef] = obj.getOrDefault(ImportConstants.METADATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+				val sourceMetadata: util.Map[String, AnyRef] = getMetadata(source, request.getContext.get("objectType").asInstanceOf[String].toLowerCase())
 				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
 					sourceMetadata.putAll(reqMetadata)
 					sourceMetadata.put(ImportConstants.SOURCE, source)
 					sourceMetadata
 				} else reqMetadata
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-				finalMetadata.keySet().removeAll(PROPS_TO_REMOVE)
+				finalMetadata.keySet().removeAll(config.propsToRemove.asJava)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
-				if (!validateMetadata(finalMetadata))
+				if (!validateMetadata(finalMetadata, config.requiredProps.asJava))
 					invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
-				if(!validateStage(stage)) invalidStages.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
-				content.put(ImportConstants.METADATA, finalMetadata)
-				content.put(ImportConstants.ORIGIN_DATA, originData)
-				content
+				if(!validateStage(stage, config.validContentStage.asJava)) invalidStages.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
+				obj.put(ImportConstants.METADATA, finalMetadata)
+				obj.put(ImportConstants.ORIGIN_DATA, originData)
+				obj
 			}).asJava
 		}
 	}
 
 	def getRequest(request: Request): util.List[util.Map[String, AnyRef]] = {
-		val req = request.getRequest.get(ImportConstants.CONTENT)
+		val req = request.getRequest.get(request.getObjectType.toLowerCase())
 		req match {
 			case req: util.List[util.Map[String, AnyRef]] => req
 			case req: util.Map[String, AnyRef] => new util.ArrayList[util.Map[String, AnyRef]]() {
@@ -92,27 +88,27 @@ object ImportManager {
 		}
 	}
 
-	def getMetadata(source: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+	def getMetadata(source: String, key: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
 		if (StringUtils.isNotBlank(source)) {
 			val response: Response = oec.httpUtil.get(source, "", new util.HashMap[String, String]())
 			if (null != response && response.getResponseCode.code() == 200)
-				response.getResult.getOrDefault(ImportConstants.CONTENT, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+				response.getResult.getOrDefault(key, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 			else throw new ClientException(ImportErrors.ERR_READ_SOURCE, ImportErrors.ERR_READ_SOURCE_MSG + response.getResponseCode)
 		} else new util.HashMap[String, AnyRef]()
 	}
 
-	def validateMetadata(metadata: util.Map[String, AnyRef]): Boolean = {
-		val reqFields = REQUIRED_PROPS.asScala.filter(x => null == metadata.get(x)).toList
+	def validateMetadata(metadata: util.Map[String, AnyRef], requiredProps: util.List[String]): Boolean = {
+		val reqFields = requiredProps.asScala.filter(x => null == metadata.get(x)).toList
 		reqFields.isEmpty
 	}
 
-	def validateStage(stage: String): Boolean = if(StringUtils.isNotBlank(stage)) VALID_CONTENT_STAGE.contains(stage) else true
+	def validateStage(stage: String, validObjectStage: util.List[String]): Boolean = if(StringUtils.isNotBlank(stage)) validObjectStage.contains(stage) else true
 
 	def getInstructionEvent(identifier: String, source: String, metadata: util.Map[String, AnyRef], collection: util.List[util.Map[String, AnyRef]], stage: String, originData: util.Map[String, AnyRef]): String = {
 		val actor = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("id" -> "Auto Creator", "type" -> "System"))
 		val context = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("pdata" -> mapAsJavaMap(Map[String, AnyRef]("id" -> "org.sunbird.platform", "ver" -> "1.0", "env" -> Platform.getString("cloud_storage.env", "dev"))), ImportConstants.CHANNEL -> metadata.getOrDefault(ImportConstants.CHANNEL, "")))
 		val objectData = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("id" -> identifier, "ver" -> metadata.get(ImportConstants.VERSION_KEY)))
-		val edata = mutable.Map[String, AnyRef]("action" -> "auto-create", "iteration" -> 1.asInstanceOf[AnyRef], ImportConstants.OBJECT_TYPE -> metadata.getOrDefault(ImportConstants.OBJECT_TYPE, "Content").asInstanceOf[String],
+		val edata = mutable.Map[String, AnyRef]("action" -> "auto-create", "iteration" -> 1.asInstanceOf[AnyRef], ImportConstants.OBJECT_TYPE -> metadata.getOrDefault(ImportConstants.OBJECT_TYPE, "").asInstanceOf[String],
 			if (StringUtils.isNotBlank(source)) ImportConstants.REPOSITORY -> source else ImportConstants.IDENTIFIER -> identifier, ImportConstants.METADATA -> metadata, if (CollectionUtils.isNotEmpty(collection)) ImportConstants.COLLECTION -> collection else ImportConstants.COLLECTION -> List().asJava,
 			ImportConstants.STAGE -> stage, if(StringUtils.isNotBlank(source) && MapUtils.isNotEmpty(originData)) ImportConstants.ORIGIN_DATA -> originData else ImportConstants.ORIGIN_DATA -> new util.HashMap[String, AnyRef]()).asJava
 		val kafkaEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor, context, objectData, edata)
@@ -120,15 +116,15 @@ object ImportManager {
 		kafkaEvent
 	}
 
-	def pushInstructionEvent(graphId: String, content: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext): Unit = {
-		val stage = content.getOrDefault(ImportConstants.STAGE, "").toString
-		val source: String = content.getOrDefault(ImportConstants.SOURCE, "").toString
+	def pushInstructionEvent(graphId: String, obj: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext): Unit = {
+		val stage = obj.getOrDefault(ImportConstants.STAGE, "").toString
+		val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
 		//TODO: Enhance identifier extraction logic for handling any query param, if present in source
 		val identifier = if (StringUtils.isNotBlank(source)) source.substring(source.lastIndexOf('/') + 1) else Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)
-		val metadata = content.getOrDefault(ImportConstants.METADATA, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]]
-		val collection = content.getOrDefault(ImportConstants.COLLECTION, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
-		val originData = content.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		val metadata = obj.getOrDefault(ImportConstants.METADATA, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]]
+		val collection = obj.getOrDefault(ImportConstants.COLLECTION, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+		val originData = obj.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 		val event = getInstructionEvent(identifier, source, metadata, collection, stage, originData)
-		oec.kafkaClient.send(event, AUTO_CREATE_TOPIC_NAME)
+		oec.kafkaClient.send(event, config.topicName)
 	}
 }
