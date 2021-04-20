@@ -90,7 +90,6 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 	def systemUpdate(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
 		RequestUtil.validateRequest(request)
-		RedisCache.delete(identifier)
 		val readReq = new Request(request)
 		val identifiers = new util.ArrayList[String](){{
 			add(identifier)

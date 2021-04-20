@@ -264,7 +264,9 @@ object DataNode {
   }
 
   private def getStatus(request: Request, nodeList: util.List[Node]): String = {
-    val node = if (nodeList.get(0).getIdentifier.equals(request.getContext.get("identifier").asInstanceOf[String])) nodeList.get(0) else nodeList.get(1)
+    val node = if (nodeList.size() == 1) nodeList.get(0) else {
+      if (nodeList.get(0).getIdentifier.endsWith(".img")) nodeList.get(1) else nodeList.get(0)
+    }
     val status = if (request.get("status") == null) node.getMetadata.get("status").asInstanceOf[String] else request.get("status").asInstanceOf[String]
     status
   }
