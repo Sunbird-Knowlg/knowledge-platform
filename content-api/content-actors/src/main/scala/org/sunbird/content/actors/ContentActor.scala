@@ -3,10 +3,11 @@ package org.sunbird.content.actors
 import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
-import org.apache.commons.io.FilenameUtils
 
+import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
@@ -15,7 +16,6 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
-import org.sunbird.content.mgr.ImportManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
@@ -24,11 +24,14 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
+	private lazy val importConfig = getImportConfig()
+	private lazy val importMgr = new ImportManager(importConfig)
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
@@ -147,7 +150,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
-	def importContent(request: Request): Future[Response] = ImportManager.importContent(request)
+	def importContent(request: Request): Future[Response] = importMgr.importObject(request)
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
@@ -201,5 +204,14 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			node.getMetadata.put("contentType", "Course")
 		}
 		node
+	}
+
+	def getImportConfig(): ImportConfig = {
+		val requiredProps = Platform.getStringList("import.required_props", java.util.Arrays.asList("name", "code", "mimeType", "contentType", "artifactUrl", "framework")).asScala.toList
+		val validStages = Platform.getStringList("import.valid_stages", java.util.Arrays.asList("create", "upload", "review", "publish")).asScala.toList
+		val propsToRemove = Platform.getStringList("import.remove_props", java.util.Arrays.asList("downloadUrl", "variants", "previewUrl", "streamingUrl", "itemSets")).asScala.toList
+		val topicName = Platform.config.getString("import.output_topic_name")
+		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
+		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
 }

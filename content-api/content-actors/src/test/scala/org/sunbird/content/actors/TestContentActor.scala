@@ -344,6 +344,7 @@ class TestContentActor extends BaseSpec with MockFactory {
             }})
         }})
         request.setOperation("importContent")
+        request.setObjectType("Content")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("processId") != null)
     }

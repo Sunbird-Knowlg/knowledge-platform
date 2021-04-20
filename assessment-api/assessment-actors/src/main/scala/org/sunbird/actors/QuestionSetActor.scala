@@ -4,8 +4,9 @@ import java.util
 
 import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
+import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.DateUtils
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
@@ -19,6 +20,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
+	private lazy val importConfig = getImportConfig()
+	private lazy val importMgr = new ImportManager(importConfig)
 
 	override def onReceive(request: Request): Future[Response] = request.getOperation match {
 		case "createQuestionSet" => AssessmentManager.create(request, "ERR_QUESTION_SET_CREATE")
@@ -32,6 +35,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		case "updateHierarchy" => UpdateHierarchyManager.updateHierarchy(request)
 		case "getHierarchy" => HierarchyManager.getHierarchy(request)
 		case "rejectQuestionSet" => reject(request)
+		case "importQuestionSet" => importQuestionSet(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -120,6 +124,17 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			response
 		})
+	}
+
+	def importQuestionSet(request: Request): Future[Response] = importMgr.importObject(request)
+
+	def getImportConfig(): ImportConfig = {
+		val requiredProps = Platform.getStringList("import.required_props.questionset", java.util.Arrays.asList("name", "code", "mimeType", "framework")).asScala.toList
+		val validStages = Platform.getStringList("import.valid_stages.questionset", java.util.Arrays.asList("create", "upload", "review", "publish")).asScala.toList
+		val propsToRemove = Platform.getStringList("import.remove_props.questionset", java.util.Arrays.asList()).asScala.toList
+		val topicName = Platform.config.getString("import.output_topic_name")
+		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
+		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
 
 }
