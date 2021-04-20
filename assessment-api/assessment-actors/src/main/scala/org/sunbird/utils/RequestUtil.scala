@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 
 object RequestUtil {
 
-	private val SYSTEM_UPDATE_RESTRICTED_PROPERTIES = List("screenshots")
+	private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
 
 	def restrictProperties(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
 		val graphId = request.getContext.getOrDefault("graph_id","").asInstanceOf[String]
@@ -23,20 +23,12 @@ object RequestUtil {
 		if (restrictedProps.exists(prop => request.getRequest.containsKey(prop))) throw new ClientException("ERROR_RESTRICTED_PROP", "Properties in list " + restrictedProps.mkString("[", ", ", "]") + " are not allowed in request")
 	}
 
-	def validateNode(nodes: java.util.List[Node], objectType: String, identifier: String): Unit = {
-		if(nodes.isEmpty)
-		throw new ClientException(ResponseCode.RESOURCE_NOT_FOUND.name(), s"Error! Node(s) doesn't Exists with identifier : $identifier.")
-
-		nodes.foreach(node => {
-			if (node.getMetadata == null && !objectType.equalsIgnoreCase(node.getObjectType) && node.getMetadata.get("status").asInstanceOf[String].equalsIgnoreCase("failed"))
-				throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Cannot update content with FAILED status for id : ${node.getIdentifier}.")
-		})
-	}
-
 	def validateRequest(request: Request): Unit = {
-		SYSTEM_UPDATE_RESTRICTED_PROPERTIES.foreach(prop => {
-			ResponseCode.CLIENT_ERROR
-			if (request.get(prop) != null) throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Properties in list ${SYSTEM_UPDATE_RESTRICTED_PROPERTIES.mkString("[", ", ", "]")} are not allowed in request.")
-		})
+		if (request.getRequest.isEmpty)
+			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Request Body cannot be Empty.")
+
+		if (request.get("status") != null && SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.contains(request.get("status").asInstanceOf[String]))
+			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Cannot update content status to : ${SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.mkString("[", ", ", "]")}.")
+
 	}
 }

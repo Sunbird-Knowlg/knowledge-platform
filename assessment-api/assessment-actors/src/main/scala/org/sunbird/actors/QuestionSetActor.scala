@@ -1,17 +1,18 @@
 package org.sunbird.actors
 
 import java.util
-import java.util.concurrent.CompletionException
 
 import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.managers.HierarchyManager.hierarchyPrefix
 import org.sunbird.managers.{AssessmentManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
@@ -141,23 +142,25 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 
 	def systemUpdate(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
-		val objectType = request.getContext.get("objectType").asInstanceOf[String]
 		RequestUtil.validateRequest(request)
+		if(Platform.getBoolean("questionset.cache.enable", false))
+			RedisCache.delete(hierarchyPrefix + identifier)
+
 		val readReq = new Request(request)
-		val identifiers = new util.ArrayList[String]() {
-			{
-				add(identifier)
-				if (!identifier.endsWith(".img"))
-					add(identifier.concat(".img"))
-			}
-		}
+		val identifiers = new util.ArrayList[String](){{
+			add(identifier)
+			if (!identifier.endsWith(".img"))
+				add(identifier.concat(".img"))
+		}}
 		readReq.put("identifiers", identifiers)
 		DataNode.list(readReq).flatMap(response => {
-			RequestUtil.validateNode(response, objectType, identifier)
-			DataNode.systemUpdate(request, response, "questionSet", Some(HierarchyManager.getHierarchy))
-		}) recoverWith {
-			case e: CompletionException => throw e.getCause
-		}
+			DataNode.systemUpdate(request, response,"", None)
+		}).map(node => {
+			val response: Response = ResponseHandler.OK
+			response.put("identifier", identifier)
+			response.put("status", "success")
+			response
+		})
 	}
 
 }

@@ -6,8 +6,8 @@ import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ErrorCodes}
+import org.sunbird.common.dto.{Request, Response}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
@@ -187,8 +187,10 @@ object DataNode {
     }
 
   @throws[Exception]
-  def systemUpdate(request: Request, nodeList: util.List[Node], hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  def systemUpdate(request: Request, nodeList: util.List[Node], hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val data: util.Map[String, AnyRef] = request.getRequest
+    // validate nodes
+    validateNode(nodeList, request)
 
     // get definition for the object and filter relations
     val definition = getDefinition(request)
@@ -202,7 +204,7 @@ object DataNode {
     // Enrich Hierarchy and Update the nodes
     nodeList.map(node => {
       enrichHierarchyAndUpdate(newRequest, node.getIdentifier, status, hierarchyKey, hierarchyFunc)
-    }).head.map(node => getResponseForSystemUpdate(node))
+    }).head
   }
 
   @throws[Exception]
@@ -216,7 +218,7 @@ object DataNode {
 
     // Generate new request object for Each request
     val newRequest = new Request(request)
-    newRequest.putAll(request.getRequest)
+    newRequest.putAll(metadata)
     newRequest.getContext.put("identifier", identifier)
     // Enrich Hierarchy and Update with the new request
     enrichHierarchy(newRequest, metadata, status, hierarchyKey: String, hierarchyFunc)
@@ -234,25 +236,36 @@ object DataNode {
           hierarchyRequest.put("rootId", identifier)
           hierarchyFunc(hierarchyRequest).map(response => {
             // Add metadata to the hierarchy
-            val hierarchy = response.get(hierarchyKey).asInstanceOf[util.Map[String, AnyRef]]
-            val hierarchyMetadata = new util.HashMap[String, AnyRef]()
-            hierarchyMetadata.putAll(hierarchy)
-            hierarchyMetadata.putAll(metadata)
-            // add hierarchy to the request object
-            request.put("hierarchy", hierarchyMetadata)
-            request
-          }) recoverWith { case e: CompletionException => throw e.getCause}
+            if (response.get(hierarchyKey) != null) {
+              val hierarchy = response.get(hierarchyKey).asInstanceOf[util.Map[String, AnyRef]]
+              val hierarchyMetadata = new util.HashMap[String, AnyRef]()
+              hierarchyMetadata.putAll(hierarchy)
+              hierarchyMetadata.putAll(metadata)
+              // add hierarchy to the request object
+              request.put("hierarchy", hierarchyMetadata)
+              request
+            } else request
+          })
         }
         case _ => Future(request)
       }
     } else Future(request)
   }
 
+  def validateNode(nodes: java.util.List[Node], request: Request): Unit = {
+    if (nodes.isEmpty)
+      throw new ClientException(ResponseCode.RESOURCE_NOT_FOUND.name(), s"Error! Node(s) doesn't Exists with identifier : ${request.getContext.get("identifier")}.")
+
+    val objectType = request.getContext.get("objectType").asInstanceOf[String]
+    nodes.foreach(node => {
+      if (node.getMetadata == null && !objectType.equalsIgnoreCase(node.getObjectType) && node.getMetadata.get("status").asInstanceOf[String].equalsIgnoreCase("failed"))
+        throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Cannot update content with FAILED status for id : ${node.getIdentifier}.")
+    })
+  }
+
   private def getStatus(request: Request, nodeList: util.List[Node]): String = {
-    val originalNode = if (nodeList.size() == 1)  nodeList.get(0) else {
-      if (nodeList.get(0).getIdentifier.endsWith(".img")) nodeList.get(1) else nodeList.get(0)
-    }
-    val status = if (request.get("status") == null) originalNode.getMetadata.get("status").asInstanceOf[String] else request.get("status").asInstanceOf[String]
+    val node = if (nodeList.get(0).getIdentifier.equals(request.getContext.get("identifier").asInstanceOf[String])) nodeList.get(0) else nodeList.get(1)
+    val status = if (request.get("status") == null) node.getMetadata.get("status").asInstanceOf[String] else request.get("status").asInstanceOf[String]
     status
   }
 
@@ -268,13 +281,6 @@ object DataNode {
     data.filter(item => {
       !relations.contains(item._1)
     })
-  }
-
-  private def getResponseForSystemUpdate(node: Node): Response = {
-    val response: Response = ResponseHandler.OK
-    response.put("identifier", node.getIdentifier)
-    response.put("status", "success")
-    response
   }
 
 }

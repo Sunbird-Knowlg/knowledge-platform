@@ -1,11 +1,11 @@
 package org.sunbird.actors
 
 import java.util
-import java.util.concurrent.CompletionException
 
 import javax.inject.Inject
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
@@ -89,8 +89,8 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
 	def systemUpdate(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
-		val objectType = request.getContext.get("objectType").asInstanceOf[String]
 		RequestUtil.validateRequest(request)
+		RedisCache.delete(identifier)
 		val readReq = new Request(request)
 		val identifiers = new util.ArrayList[String](){{
 			add(identifier)
@@ -99,10 +99,12 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		}}
 		readReq.put("identifiers", identifiers)
 		DataNode.list(readReq).flatMap(response => {
-			RequestUtil.validateNode(response, objectType, identifier)
 			DataNode.systemUpdate(request, response,"", None)
-		}) recoverWith {
-			case e: CompletionException => throw e.getCause
-		}
+		}).map(node => {
+			val response: Response = ResponseHandler.OK
+			response.put("identifier", identifier)
+			response.put("status", "success")
+			response
+		})
 	}
 }
