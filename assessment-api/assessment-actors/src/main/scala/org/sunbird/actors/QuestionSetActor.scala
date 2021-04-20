@@ -1,6 +1,7 @@
 package org.sunbird.actors
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
@@ -32,6 +33,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		case "updateHierarchy" => UpdateHierarchyManager.updateHierarchy(request)
 		case "getHierarchy" => HierarchyManager.getHierarchy(request)
 		case "rejectQuestionSet" => reject(request)
+		case "systemUpdateQuestionSet" => systemUpdate(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -120,6 +122,28 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			response
 		})
+	}
+
+	def systemUpdate(request: Request): Future[Response] = {
+		val identifier = request.getContext.get("identifier").asInstanceOf[String]
+		val objectType = request.getContext.get("objectType").asInstanceOf[String]
+		// Clear redis cache
+		// RedisCache.delete(identifier)
+
+		RequestUtil.validateRequest(request)
+		val readReq = new Request(request)
+		val identifiers = new util.ArrayList[String](){{
+			add(identifier)
+			if (!identifier.endsWith(".img"))
+				add(identifier.concat(".img"))
+		}}
+		readReq.put("identifiers", identifiers)
+		DataNode.list(readReq).flatMap(response => {
+			RequestUtil.validateNode(response, objectType, identifier)
+			DataNode.systemUpdate(request, response, "questionSet", Some(HierarchyManager.getHierarchy))
+		}) recoverWith {
+			case e: CompletionException => throw e.getCause
+		}
 	}
 
 }

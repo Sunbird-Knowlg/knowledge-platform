@@ -184,4 +184,15 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY_COLLECTION, contentActor, contentRequest)
     }
+//
+//    def systemUpdate(identifier: String) = Action.async { implicit request =>
+//        val headers = commonHeaders()
+//        val body = requestBody()
+//        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+//        content.putAll(headers)
+//        val contentRequest = getRequest(content, headers, "systemUpdateContent")
+//        setRequestContext(contentRequest, version, objectType, schemaName)
+//        contentRequest.getContext.put("identifier", identifier);
+//        getResult(ApiId.SYSTEM_UPDATE_COLLECTION, contentActor, contentRequest)
+//    }
 }

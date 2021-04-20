@@ -4,7 +4,8 @@ import java.util
 
 import org.neo4j.graphdb.Result
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.dto.Request
+import org.sunbird.common.JsonUtils
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.{BaseSpec, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
@@ -641,6 +642,52 @@ class TestDataNode extends BaseSpec {
             }
         }
         } flatMap(f => f)
+    }
+
+    "systemUpdate content with valid data" should "update node metadata" in {
+        val request = new Request()
+        request.setObjectType("question")
+        val context = new util.HashMap[String, AnyRef]() {
+            {
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("objectType", "Question")
+                put("schemaName", "question")
+            }
+        }
+        request.setContext(context)
+        request.put("code", "finemanfine")
+        request.put("showFeedback", "Yes")
+        request.put("showSolutions", "Yes")
+        request.put("mimeType", "application/vnd.sunbird.question")
+        request.put("primaryCategory", "Practice Question")
+        request.put("name", "Test Question")
+        request.put("visibility", "Default")
+        request.put("description", "hey")
+
+        val future: Future[Node] = DataNode.create(request)
+        future map { node => {
+            assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("Test Question"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            req.put("name", "updated name")
+            req.put("description", "Updated Description")
+            val updateFuture = DataNode.systemUpdate(req, util.Arrays.asList(node), "", Option(getHierarchy))
+            updateFuture map { response => {
+                assert(response.get("identifier").asInstanceOf[String].equals(node.getIdentifier))
+                assert(response.get("status").asInstanceOf[String].equals("success"))
+            }
+            }
+        }
+        } flatMap (f => f)
+    }
+
+    def getHierarchy(request: Request) : Future[Response] = {
+        val hierarchyString: String = "'{\"identifier\": \"do_11283193441064550414\"}'"
+        val rootHierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
+        Future(ResponseHandler.OK.put("questionSet", rootHierarchy))
     }
 
     def dataModifier(node: Node): Node = {

@@ -1,6 +1,7 @@
 package org.sunbird.actors
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import javax.inject.Inject
 import org.sunbird.actor.core.BaseActor
@@ -25,6 +26,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "reviewQuestion" => review(request)
 		case "publishQuestion" => publish(request)
 		case "retireQuestion" => retire(request)
+		case "systemUpdateQuestion" => systemUpdate(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -69,4 +71,25 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		})
 	}
 
+	def systemUpdate(request: Request): Future[Response] = {
+		val identifier = request.getContext.get("identifier").asInstanceOf[String]
+		val objectType = request.getContext.get("objectType").asInstanceOf[String]
+		// Clear redis cache
+		// RedisCache.delete(identifier)
+
+		RequestUtil.validateRequest(request)
+		val readReq = new Request(request)
+		val identifiers = new util.ArrayList[String](){{
+			add(identifier)
+			if (!identifier.endsWith(".img"))
+				add(identifier.concat(".img"))
+		}}
+		readReq.put("identifiers", identifiers)
+		DataNode.list(readReq).flatMap(response => {
+			RequestUtil.validateNode(response, objectType, identifier)
+			DataNode.systemUpdate(request, response,"", None)
+		}) recoverWith {
+			case e: CompletionException => throw e.getCause
+		}
+	}
 }

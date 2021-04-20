@@ -13,15 +13,17 @@ import org.sunbird.content.util.{AcceptFlagManager, CopyManager, DiscardManager,
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.mgr.ImportManager
-import org.sunbird.util. RequestUtil
+import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
 
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,6 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
 	implicit val ec: ExecutionContext = getContext().dispatcher
+	val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
@@ -44,6 +47,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "acceptFlag" => acceptFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
+//			case "systemUpdateContent" => systemUpdate(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -189,7 +193,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 	
 	def dataModifier(node: Node): Node = {
-		if(node.getMetadata.containsKey("trackable") && 
+		if(node.getMetadata.containsKey("trackable") &&
 				node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
 		"Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
 			node.getMetadata.put("contentType", "Course")

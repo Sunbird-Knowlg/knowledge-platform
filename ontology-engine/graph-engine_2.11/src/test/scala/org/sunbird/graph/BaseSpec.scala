@@ -31,6 +31,7 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
     private val script_10 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_collection_all', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
     private val script_11 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_content_in.ekstep', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
     private val script_12 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_collection_in.ekstep', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
+    private val script_13 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:practice-question_question_all', {'config': '{}', 'schema': '{}'});"
 
 
     def setUpEmbeddedNeo4j(): Unit = {
@@ -94,7 +95,7 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
             ",{code:\"english\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"English\",IL_UNIQUE_ID:\"ncf_subject_cbse\",status:\"Live\"}" +
             ",{code:\"grade1\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"Class 1\",IL_UNIQUE_ID:\"ncf_gradelevel_grade1\",status:\"Live\"}" +
             ",{owner:\"in.ekstep\",code:\"tpd\",IL_SYS_NODE_TYPE:\"DATA_NODE\",apoc_json:\"{\\\"batch\\\": true}\",consumerId:\"9393568c-3a56-47dd-a9a3-34da3c821638\",channel:\"in.ekstep\",description:\"NCF \",type:\"K-12\",createdOn:\"2018-01-23T09:53:50.189+0000\",versionKey:\"1545195552163\",apoc_text:\"APOC\",appId:\"dev.sunbird.portal\",IL_FUNC_OBJECT_TYPE:\"Framework\",name:\"State (Uttar Pradesh)\",lastUpdatedOn:\"2018-12-19T04:59:12.163+0000\",IL_UNIQUE_ID:\"tpd\",status:\"Live\",apoc_num:1}]  as row CREATE (n:domain) SET n += row;")
-        executeCassandraQuery(script_1, script_2, script_3, script_4, script_5, script_6, script_7, script_8, script_9, script_10, script_11, script_12)
+        executeCassandraQuery(script_1, script_2, script_3, script_4, script_5, script_6, script_7, script_8, script_9, script_10, script_11, script_12, script_13)
     }
 
     override def afterAll(): Unit = {
