@@ -553,6 +553,10 @@
     },
     "maxAttempts": {
       "type": "number"
+    },
+    "instructions": {
+      "type": "object",
+      "description": "External Property"
     }
   }
 }
