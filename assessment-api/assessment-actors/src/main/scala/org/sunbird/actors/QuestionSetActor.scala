@@ -154,7 +154,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		}}
 		readReq.put("identifiers", identifiers)
 		DataNode.list(readReq).flatMap(response => {
-			DataNode.systemUpdate(request, response,"", None)
+			DataNode.systemUpdate(request, response,"questionSet", Some(HierarchyManager.getHierarchy))
 		}).map(node => {
 			val response: Response = ResponseHandler.OK
 			response.put("identifier", identifier)
