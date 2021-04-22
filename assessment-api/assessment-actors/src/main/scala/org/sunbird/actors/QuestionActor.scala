@@ -99,11 +99,6 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		readReq.put("identifiers", identifiers)
 		DataNode.list(readReq).flatMap(response => {
 			DataNode.systemUpdate(request, response,"", None)
-		}).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.put("identifier", identifier)
-			response.put("status", "success")
-			response
-		})
+		}).map(node => ResponseHandler.OK.put("identifier", identifier).put("status", "success"))
 	}
 }
