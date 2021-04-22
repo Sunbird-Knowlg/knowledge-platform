@@ -137,4 +137,15 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		setRequestContext(questionSetRequest, version, objectType, schemaName)
 		getResult(ApiId.IMPORT_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
+
+	def systemUpdate(identifier: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		questionSet.putAll(headers)
+		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.systemUpdateQuestionSet.toString)
+		setRequestContext(questionSetRequest, version, objectType, schemaName)
+		questionSetRequest.getContext.put("identifier", identifier);
+		getResult(ApiId.SYSTEM_UPDATE_QUESTION_SET, questionSetActor, questionSetRequest)
+	}
 }

@@ -5,6 +5,7 @@ import java.util
 import javax.inject.Inject
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
@@ -30,6 +31,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "publishQuestion" => publish(request)
 		case "retireQuestion" => retire(request)
 		case "importQuestion" => importQuestion(request)
+		case "systemUpdateQuestion" => systemUpdate(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -85,4 +87,18 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
 
+	def systemUpdate(request: Request): Future[Response] = {
+		val identifier = request.getContext.get("identifier").asInstanceOf[String]
+		RequestUtil.validateRequest(request)
+		val readReq = new Request(request)
+		val identifiers = new util.ArrayList[String](){{
+			add(identifier)
+			if (!identifier.endsWith(".img"))
+				add(identifier.concat(".img"))
+		}}
+		readReq.put("identifiers", identifiers)
+		DataNode.list(readReq).flatMap(response => {
+			DataNode.systemUpdate(request, response,"", None)
+		}).map(node => ResponseHandler.OK.put("identifier", identifier).put("status", "success"))
+	}
 }

@@ -52,4 +52,10 @@ class QuestionControllerSpec extends BaseSpec {
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
+
+	"systemUpdate should update an question successfully for given valid request" in {
+		val result = controller.systemUpdate("do_123")(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
 }

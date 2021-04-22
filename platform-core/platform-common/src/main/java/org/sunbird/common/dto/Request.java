@@ -81,6 +81,10 @@ public class Request implements Serializable {
         return request.get(key);
     }
 
+    public Object getOrDefault(String key, Object defaultValue) {
+        Object value = request.getOrDefault(key, defaultValue);
+        if (value == null) return defaultValue; else return value;
+    }
 
 	public void put(String key, Object vo) {
         request.put(key, vo);
