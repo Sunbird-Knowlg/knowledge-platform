@@ -1,20 +1,17 @@
 package org.sunbird.actors
 
-import java.util
-
-import javax.inject.Inject
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.managers.AssessmentManager
 import org.sunbird.utils.RequestUtil
-
-import scala.concurrent.{ExecutionContext, Future}
+import java.util
+import javax.inject.Inject
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
 
 class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -55,9 +52,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_PUBLISH").map(node => {
 			AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
-			val response = ResponseHandler.OK()
-			response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
-			response
+			ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
 		})
 	}
 
@@ -69,9 +64,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 			val updateMetadata: util.Map[String, AnyRef] = Map[String, AnyRef]("status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate).asJava
 			updateRequest.put("metadata", updateMetadata)
 			DataNode.bulkUpdate(updateRequest).map(_ => {
-				val response: Response = ResponseHandler.OK
-				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-				response
+				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			})
 		})
 	}

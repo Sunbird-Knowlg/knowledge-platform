@@ -40,11 +40,8 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
         ChannelManager.validateTranslationMap(request)
         ChannelManager.validateObjectCategory(request)
         DataNode.create(request).map(node => {
-            val response = ResponseHandler.OK
-            response.put("identifier", node.getIdentifier)
-            response.put("node_id", node.getIdentifier)
             ChannelManager.channelLicenseCache(request, node.getIdentifier)
-            response
+            ResponseHandler.OK.put("identifier", node.getIdentifier).put("node_id", node.getIdentifier)
         })
     }
 
@@ -56,9 +53,7 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
                 if (!frameworkList.isEmpty) metadata.put("suggested_frameworks", frameworkList)
             }
             ChannelManager.setPrimaryAndAdditionCategories(metadata)
-            val response = ResponseHandler.OK
-            response.put("channel", metadata)
-            response
+            ResponseHandler.OK.put("channel", metadata)
         })
     }
 
@@ -68,23 +63,17 @@ class ChannelActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
         ChannelManager.validateObjectCategory(request)
         request.getRequest.put("status", "Live")
         DataNode.update(request).map(node => {
-            val response: Response = ResponseHandler.OK
             val identifier: String = node.getIdentifier
-            response.put("node_id", identifier)
-            response.put("identifier", identifier)
             ChannelManager.channelLicenseCache(request, identifier)
-            response
+            ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
         })
     }
 
     def retire(request: Request): Future[Response] = {
         request.getRequest.put("status", "Retired")
         DataNode.update(request).map(node => {
-            val response: Response = ResponseHandler.OK
             val identifier: String = node.getIdentifier
-            response.put("node_id", identifier)
-            response.put("identifier", identifier)
-            response
+            ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
         })
     }
 

@@ -37,10 +37,7 @@ class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
         if (request.getRequest.containsKey("identifier")) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
         if (request.getRequest.containsKey("name")) request.getRequest.put("identifier", Slug.makeSlug(request.getRequest.get("name").asInstanceOf[String]))
         DataNode.create(request).map(node => {
-            val response = ResponseHandler.OK
-            response.put("identifier", node.getIdentifier)
-            response.put("node_id", node.getIdentifier)
-            response
+            ResponseHandler.OK.put("identifier", node.getIdentifier).put("node_id", node.getIdentifier)
         })
     }
 
@@ -51,9 +48,7 @@ class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
         DataNode.read(request).map(node => {
             if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "License not found with identifier: " + node.getIdentifier)
             val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-            val response: Response = ResponseHandler.OK
-            response.put("license", metadata)
-            response
+            ResponseHandler.OK.put("license", metadata)
         })
     }
 
@@ -62,10 +57,7 @@ class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
         RequestUtil.restrictProperties(request)
         request.getRequest.put("status", "Live")
         DataNode.update(request).map(node => {
-            val response: Response = ResponseHandler.OK
-            response.put("node_id", node.getIdentifier)
-            response.put("identifier", node.getIdentifier)
-            response
+            ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
         })
     }
 
@@ -73,10 +65,7 @@ class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
     private def retire(request: Request): Future[Response] = {
         request.getRequest.put("status", "Retired")
         DataNode.update(request).map(node => {
-            val response: Response = ResponseHandler.OK
-            response.put("node_id", node.getIdentifier)
-            response.put("identifier", node.getIdentifier)
-            response
+            ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
         })
     }
 
