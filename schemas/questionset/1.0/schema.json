@@ -557,6 +557,9 @@
     "instructions": {
       "type": "object",
       "description": "External Property"
+    },
+    "requestChanges": {
+      "type": "string"
     }
   }
 }
