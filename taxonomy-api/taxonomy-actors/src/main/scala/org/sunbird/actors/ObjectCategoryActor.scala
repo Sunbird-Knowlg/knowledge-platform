@@ -36,9 +36,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
         if (!request.getRequest.containsKey(Constants.NAME)) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
         request.getRequest.put(Constants.IDENTIFIER, Constants.CATEGORY_PREFIX + Slug.makeSlug(request.getRequest.get(Constants.NAME).asInstanceOf[String]))
         DataNode.create(request).map(node => {
-            val response = ResponseHandler.OK
-            response.put(Constants.IDENTIFIER, node.getIdentifier)
-            response
+            ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }
 
@@ -48,9 +46,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
         request.getRequest.put(Constants.FIELDS, fields)
         DataNode.read(request).map(node => {
             val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
-            val response: Response = ResponseHandler.OK
-            response.put(Constants.OBJECT_CATEGORY, metadata)
-            response
+            ResponseHandler.OK.put(Constants.OBJECT_CATEGORY, metadata)
         })
     }
 
@@ -58,9 +54,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
     private def update(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
         DataNode.update(request).map(node => {
-            val response: Response = ResponseHandler.OK
-            response.put(Constants.IDENTIFIER, node.getIdentifier)
-            response
+            ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }
 

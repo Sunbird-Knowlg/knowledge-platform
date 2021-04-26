@@ -32,9 +32,7 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 
 
 	def create(request: Request): Future[Response] = DataNode.create(request).map(node => {
-		val response = ResponseHandler.OK
-		response.put("identifier", node.getIdentifier)
-		response
+		ResponseHandler.OK.put("identifier", node.getIdentifier)
 	})
 
 	def read(request: Request): Future[Response] = {
@@ -44,16 +42,12 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 		DataNode.read(request).map(node => {
 			val metadata = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
 			metadata.remove("versionKey")
-			val response = ResponseHandler.OK
-			response.put("itemset", metadata)
-			response
+			ResponseHandler.OK.put("itemset", metadata)
 		})
 	}
 
 	def update(request: Request): Future[Response] = DataNode.update(request).map(node => {
-		val response: Response = ResponseHandler.OK
-		response.put("identifier", node.getIdentifier)
-		response
+		ResponseHandler.OK.put("identifier", node.getIdentifier)
 	})
 
 	def review(request: Request): Future[Response] = {
@@ -87,9 +81,7 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 			}
 			val futureList = Task.parallel[Response](func,
 				DataNode.update(request).map(node => {
-					val response: Response = ResponseHandler.OK
-					response.put("identifier", node.getIdentifier)
-					response
+					ResponseHandler.OK.put("identifier", node.getIdentifier)
 				}))
 			futureList
 		}).flatMap(f => f).map(f => f.get(1))
@@ -98,9 +90,7 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 	def retire(request: Request): Future[Response] = {
 		request.put("status", "Retired")
 		DataNode.update(request).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.put("identifier", node.getIdentifier)
-			response
+			ResponseHandler.OK.put("identifier", node.getIdentifier)
 		})
 	}
 
