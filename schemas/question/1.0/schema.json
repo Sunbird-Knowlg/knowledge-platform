@@ -534,5 +534,6 @@
     "requestChanges": {
       "type": "string"
     }
-  }
+  },
+  "additionalProperties": false
 }
