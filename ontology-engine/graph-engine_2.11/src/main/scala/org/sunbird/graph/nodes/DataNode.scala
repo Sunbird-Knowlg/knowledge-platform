@@ -6,6 +6,7 @@ import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
@@ -203,19 +204,24 @@ object DataNode {
     newRequest.getContext.put("versioning", "disabled")
     // Enrich Hierarchy and Update the nodes
     nodeList.map(node => {
-      enrichHierarchyAndUpdate(newRequest, node.getIdentifier, status, hierarchyKey, hierarchyFunc)
+      enrichHierarchyAndUpdate(newRequest, node, status, hierarchyKey, hierarchyFunc)
     }).head
   }
 
   @throws[Exception]
-  private def enrichHierarchyAndUpdate(request: Request, identifier: String, status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+  private def enrichHierarchyAndUpdate(request: Request, node: Node, status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val metadata: util.Map[String, AnyRef] = request.getRequest
-
+    val identifier = node.getIdentifier
     // Image node cannot be made Live or Unlisted using system call
     if (identifier.endsWith(".img") &&
       SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.contains(status)) metadata.remove("status")
     if (metadata.isEmpty) throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Invalid Request. Cannot update status of Image Node to $status.")
 
+    // Update previous status and status update Timestamp
+    if (metadata.containsKey("status")) {
+      metadata.put("prevStatus", node.getMetadata.get("status"))
+      metadata.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+    }
     // Generate new request object for Each request
     val newRequest = new Request(request)
     newRequest.putAll(metadata)
