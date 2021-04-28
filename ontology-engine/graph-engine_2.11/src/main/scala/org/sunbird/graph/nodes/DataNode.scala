@@ -197,7 +197,7 @@ object DataNode {
     val definition = getDefinition(request)
     val metadata = filterRelations(definition, data)
     // get status
-    val status = getStatus(request, nodeList, metadata)
+    val status = getStatus(request, nodeList)
     // Generate request for new metadata
     val newRequest = new Request(request)
     newRequest.putAll(metadata)
@@ -269,7 +269,7 @@ object DataNode {
     })
   }
 
-  private def getStatus(request: Request, nodeList: util.List[Node], metadata: util.Map[String, AnyRef]): String = {
+  private def getStatus(request: Request, nodeList: util.List[Node]): String = {
     val node = nodeList.filter(node => !node.getIdentifier.endsWith(".img")).headOption.getOrElse(nodeList.head)
     request.getOrDefault("status", node.getMetadata.get("status")).asInstanceOf[String]
   }
