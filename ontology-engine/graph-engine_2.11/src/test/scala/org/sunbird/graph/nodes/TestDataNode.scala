@@ -675,8 +675,9 @@ class TestDataNode extends BaseSpec {
             req.put("name", "updated name")
             req.put("description", "Updated Description")
             val updateFuture = DataNode.systemUpdate(req, util.Arrays.asList(node), "", Option(getHierarchy))
-            updateFuture map { node => {
-                assert(node.getIdentifier.equals(node.getIdentifier))
+            updateFuture map { resNode => {
+                assert(resNode.getIdentifier.equals(node.getIdentifier))
+                assert(resNode.getMetadata.get("description").equals("Updated Description"))
             }
             }
         }

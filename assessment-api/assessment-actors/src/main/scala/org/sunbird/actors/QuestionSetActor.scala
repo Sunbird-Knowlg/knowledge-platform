@@ -69,9 +69,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			AssessmentManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
-				val response = ResponseHandler.OK()
-				response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
-				response
+				ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
 			})
 		})
 	}
@@ -84,9 +82,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			val updateMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
 			updateRequest.put("metadata", updateMetadata)
 			DataNode.bulkUpdate(updateRequest).map(_ => {
-				val response: Response = ResponseHandler.OK
-				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-				response
+				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			})
 		})
 	}
@@ -123,9 +119,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		updateRequest.getContext.put("identifier",  request.getContext.get("identifier"))
 		updateRequest.putAll(fMeta.asJava)
 		DataNode.update(updateRequest).map(_ => {
-			val response: Response = ResponseHandler.OK
-			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-			response
+			ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 		})
 	}
 
@@ -154,13 +148,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		}}
 		readReq.put("identifiers", identifiers)
 		DataNode.list(readReq).flatMap(response => {
-			DataNode.systemUpdate(request, response,"", None)
-		}).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.put("identifier", identifier)
-			response.put("status", "success")
-			response
-		})
+			DataNode.systemUpdate(request, response,"questionSet", Some(HierarchyManager.getHierarchy))
+		}).map(node => ResponseHandler.OK.put("identifier", identifier).put("status", "success"))
 	}
 
 }

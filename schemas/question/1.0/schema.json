@@ -530,6 +530,12 @@
     },
     "schemaVersion": {
       "type": "string"
+    },
+    "requestChanges": {
+      "type": "string"
+    },
+    "variants": {
+      "type": "object"
     }
   }
 }
