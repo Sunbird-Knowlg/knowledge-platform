@@ -388,6 +388,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
         assert("do_1234".equals(response.get("identifier")))
+        assert("success".equals(response.get("status")))
     }
 
     private def getAssetNodeToUpload(): Node = {

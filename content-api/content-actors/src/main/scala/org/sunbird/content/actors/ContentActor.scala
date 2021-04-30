@@ -221,7 +221,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def systemUpdate(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
 		RequestUtil.validateRequest(request)
-		RedisCache.delete(hierarchyPrefix + identifier)
+		RedisCache.delete(hierarchyPrefix + request.get("rootId"))
 
 		val readReq = new Request(request)
 		val identifiers = new util.ArrayList[String](){{
@@ -232,10 +232,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put("identifiers", identifiers)
 		DataNode.list(readReq).flatMap(response => {
 			val objectType = request.getContext.get("objectType").asInstanceOf[String]
-			if (objectType.toLowerCase.equals("content"))
-				DataNode.systemUpdate(request, response,"", None)
-			else
+			if (objectType.toLowerCase.equals("collection"))
 				DataNode.systemUpdate(request, response, "content", Option(HierarchyManager.getHierarchy))
+			else
+				DataNode.systemUpdate(request, response,"", None)
 		}).map(node => {
 			val response: Response = ResponseHandler.OK
 			response.put("identifier", identifier)
