@@ -134,7 +134,9 @@
       "type": "string",
       "enum": [
         "Default",
-        "Parent"
+        "Parent",
+        "Private",
+        "Protected"
       ],
       "default": "Default"
     },
