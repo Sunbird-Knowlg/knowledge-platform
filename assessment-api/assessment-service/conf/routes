@@ -19,6 +19,7 @@ POST      /question/v4/review/:identifier         controllers.v4.QuestionControl
 POST      /question/v4/publish/:identifier        controllers.v4.QuestionController.publish(identifier:String)
 DELETE    /question/v4/retire/:identifier         controllers.v4.QuestionController.retire(identifier:String)
 POST     /question/v4/import                      controllers.v4.QuestionController.importQuestion()
+PATCH     /question/v4/system/update/:identifier  controllers.v4.QuestionController.systemUpdate(identifier:String)
 
 # QuestionSet API's
 POST      /questionset/v4/create                     controllers.v4.QuestionSetController.create
@@ -33,3 +34,4 @@ PATCH     /questionset/v4/hierarchy/update           controllers.v4.QuestionSetC
 GET       /questionset/v4/hierarchy/:identifier      controllers.v4.QuestionSetController.getHierarchy(identifier:String, mode:Option[String])
 POST      /questionset/v4/reject/:identifier         controllers.v4.QuestionSetController.reject(identifier:String)
 POST     /questionset/v4/import                      controllers.v4.QuestionSetController.importQuestionSet()
+PATCH     /questionset/v4/system/update/:identifier  controllers.v4.QuestionSetController.systemUpdate(identifier:String)
