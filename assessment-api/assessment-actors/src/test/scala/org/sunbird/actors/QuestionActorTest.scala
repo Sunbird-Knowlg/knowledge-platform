@@ -169,6 +169,21 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		assert("successful".equals(response.getParams.getStatus))
 	}
 
+	it should "return success response for 'listQuestion'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val node = getNode("Question", None)
+		node.getMetadata.putAll(Map("versionKey" -> "1234", "primaryCategory" -> "Multiple Choice Question", "name" -> "Updated New Content", "code" -> "1234", "mimeType" -> "application/vnd.sunbird.question").asJava)
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node))).once()
+		val request = getQuestionRequest()
+		request.put("identifiers", util.Arrays.asList( "test_id"))
+		request.setOperation("listQuestions")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert("successful".equals(response.getParams.getStatus))
+	}
+
 	private def getQuestionRequest(): Request = {
 		val request = new Request()
 		request.setContext(new java.util.HashMap[String, AnyRef]() {

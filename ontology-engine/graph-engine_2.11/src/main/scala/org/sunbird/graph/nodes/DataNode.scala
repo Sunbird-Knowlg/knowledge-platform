@@ -72,7 +72,7 @@ object DataNode {
 
 
     @throws[Exception]
-    def list(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
+    def list(request: Request, objectType: String = null)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
         val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
 
         if(null == identifiers || identifiers.isEmpty) {
@@ -89,6 +89,8 @@ object DataNode {
             val searchCriteria =  new SearchCriteria {{
                 addMetadata(mc)
                 setCountQuery(false)
+              if (objectType != null)
+                setObjectType(objectType)
             }}
             oec.graphService.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
         }
