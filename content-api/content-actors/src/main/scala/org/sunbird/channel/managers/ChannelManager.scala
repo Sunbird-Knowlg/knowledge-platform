@@ -10,6 +10,7 @@ import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.JsonUtils
 
 import scala.collection.JavaConverters._
@@ -97,8 +98,9 @@ object ChannelManager {
     metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATEGORIES)
     metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
     val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
+      .filter(cat => StringUtils.endsWithIgnoreCase(cat.getOrDefault("name", "").asInstanceOf[String], " Unit"))
     metadata.put("primaryCategories", primaryCategories)
-    val additionalCategories = getAdditionalCategories()
+    val additionalCategories = getAdditionalCategories().filter(name => !StringUtils.endsWithIgnoreCase(name, " Unit"))
     metadata.put("additionalCategories", additionalCategories)
   }
 
