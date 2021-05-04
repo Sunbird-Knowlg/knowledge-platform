@@ -40,7 +40,9 @@
       "default": "Default",
       "enum": [
         "Default",
-        "Parent"
+        "Parent",
+        "Private",
+        "Protected"
       ]
     },
     "copyright": {
