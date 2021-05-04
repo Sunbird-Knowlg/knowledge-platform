@@ -87,8 +87,7 @@
                 "audio/webm",
                 "audio/x-wav",
                 "audio/wav",
-                "application/json",
-                "application/quiz"
+                "application/json"
             ]
         },
         "osId": {
