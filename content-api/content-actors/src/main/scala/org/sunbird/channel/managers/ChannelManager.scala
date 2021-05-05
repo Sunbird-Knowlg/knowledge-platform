@@ -98,9 +98,9 @@ object ChannelManager {
     metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATEGORIES)
     metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
     val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
-      .filter(cat => StringUtils.endsWithIgnoreCase(cat.getOrDefault("name", "").asInstanceOf[String], " Unit"))
+      .filter(cat => !StringUtils.endsWithIgnoreCase(cat.getOrDefault("name", "").asInstanceOf[String], " Unit")).asJava
     metadata.put("primaryCategories", primaryCategories)
-    val additionalCategories = getAdditionalCategories().filter(name => !StringUtils.endsWithIgnoreCase(name, " Unit"))
+    val additionalCategories = getAdditionalCategories().filter(name => !StringUtils.endsWithIgnoreCase(name, " Unit")).asJava
     metadata.put("additionalCategories", additionalCategories)
   }
 
