@@ -179,6 +179,7 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node))).once()
 		val request = getQuestionRequest()
 		request.put("identifiers", util.Arrays.asList( "test_id"))
+		request.put("identifier", util.Arrays.asList( "test_id"))
 		request.setOperation("listQuestions")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))

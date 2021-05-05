@@ -31,4 +31,12 @@ object RequestUtil {
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Cannot update content status to : ${SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.mkString("[", ", ", "]")}.")
 
 	}
+
+	def validateListRequest(request: Request): Unit = {
+		if (request.get("identifiers") == null || request.get("identifiers").asInstanceOf[java.util.List[String]].isEmpty)
+			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Required field identifier is missing or empty.")
+
+		if (request.get("identifiers").asInstanceOf[java.util.List[String]].length > 20)
+			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Request contains more than the permissible limit of identifier: 20.")
+	}
 }

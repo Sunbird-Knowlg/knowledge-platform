@@ -100,9 +100,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 	}
 
 	def listQuestions(request: Request): Future[Response] = {
-		DataNode.list(request, request.getObjectType).map(nodeList => {
-			val questionList = nodeList.asScala.toList.filter(node => node.getObjectType.toLowerCase.equals("question"))
-				.map(node => {
+		RequestUtil.validateListRequest(request)
+		DataNode.search(request).map(nodeList => {
+			val questionList = nodeList.map(node => {
 					NodeUtil.serialize(node, new util.ArrayList[String](), node.getObjectType.toLowerCase.replace("Image", ""), request.getContext.get("version").asInstanceOf[String])
 			}).asJava
 			ResponseHandler.OK.put("questions", questionList).put("count", questionList.size)

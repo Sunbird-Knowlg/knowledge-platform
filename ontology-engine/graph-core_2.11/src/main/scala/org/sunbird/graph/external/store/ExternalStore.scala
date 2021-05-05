@@ -94,6 +94,47 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
     }
 
+    def read(identifiers: List[String], extProps: List[String], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
+        val select = QueryBuilder.select()
+        select.column(primaryKey.get(0)).as(primaryKey.get(0))
+        if (null != extProps && !extProps.isEmpty) {
+            extProps.foreach(prop => {
+                if ("blob".equalsIgnoreCase(propsMapping.getOrElse(prop, "")))
+                    select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop)
+                else
+                    select.column(prop).as(prop)
+            })
+        }
+        val selectQuery = select.from(keySpace, table)
+        import scala.collection.JavaConversions._
+        val clause: Clause = QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers))
+        selectQuery.where.and(clause)
+        try {
+            val session: Session = CassandraConnector.getSession
+            val futureResult = session.executeAsync(selectQuery)
+            futureResult.asScala.map(resultSet => {
+                print(resultSet)
+                if (resultSet.iterator().hasNext) {
+                    val response = ResponseHandler.OK()
+                    resultSet.iterator().toStream.map(row => {
+                        import scala.collection.JavaConverters._
+                        val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap.asJava
+                        response.put(row.getString(primaryKey.get(0)), externalMetadataMap)
+                    }).toList
+                    response
+                } else {
+                    TelemetryManager.error("Entry is not found in external-store for object with identifiers: " + identifiers)
+                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code().toString, "Entry is not found in external-store for object with identifiers: " + identifiers)
+                }
+            })
+        } catch {
+            case e: Exception =>
+                e.printStackTrace()
+                TelemetryManager.error("Exception Occurred While Reading The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
+        }
+    }
+
     def delete(identifiers: List[String])(implicit ec: ExecutionContext): Future[Response] = {
         val delete = QueryBuilder.delete()
         import scala.collection.JavaConversions._

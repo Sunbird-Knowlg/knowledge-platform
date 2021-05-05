@@ -271,6 +271,37 @@ object DataNode {
     })
   }
 
+  @throws[Exception]
+  def search(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
+    list(request, request.getObjectType).map(nodeList => {
+      validateNodeList(request, nodeList)
+      val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
+      populateExternalProperties(nodeList.asScala.toList, request, extPropNameList)
+    }).flatMap(f => f) recoverWith {
+      case e: CompletionException => throw e.getCause
+    }
+  }
+
+  private def populateExternalProperties(nodes: List[Node], request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
+    request.put("identifiers", nodes.map(node => node.getIdentifier))
+    val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps)
+    externalPropsResponse.map(response => {
+      nodes.foreach(node => {
+        if (response.get(node.getIdentifier)!=null) node.getMetadata.putAll(response.get(node.getIdentifier).asInstanceOf[util.Map[String, AnyRef]])
+      })
+      nodes
+    })
+  }
+
+  private def validateNodeList(request: Request, nodeList: util.List[Node]): Unit = {
+    val requestIdentifiers = request.get("identifier").asInstanceOf[util.List[String]]
+    if (requestIdentifiers.length != nodeList.length) {
+      val nodeIdentifiers = nodeList.map(node => node.getIdentifier)
+      val missingIds = requestIdentifiers.filter(identifier => !nodeIdentifiers.contains(identifier))
+      throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Request contains invalid identifiers : ${missingIds.mkString("[", ", ", "]")}.")
+    }
+  }
+
   private def getStatus(request: Request, nodeList: util.List[Node]): String = {
     val node = nodeList.filter(node => !node.getIdentifier.endsWith(".img")).headOption.getOrElse(nodeList.head)
     request.getOrDefault("status", node.getMetadata.get("status")).asInstanceOf[String]
