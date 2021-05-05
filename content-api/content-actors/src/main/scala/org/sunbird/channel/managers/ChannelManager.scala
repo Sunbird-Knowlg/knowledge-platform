@@ -98,14 +98,13 @@ object ChannelManager {
     metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATEGORIES)
     metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
     val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
-      .filter(cat => !StringUtils.endsWithIgnoreCase(cat.getOrDefault("name", "").asInstanceOf[String], " Unit")).asJava
     metadata.put("primaryCategories", primaryCategories)
-    val additionalCategories = getAdditionalCategories().filter(name => !StringUtils.endsWithIgnoreCase(name, " Unit")).asJava
+    val additionalCategories = getAdditionalCategories()
     metadata.put("additionalCategories", additionalCategories)
   }
 
   def getAdditionalCategories()(implicit httpUtil: HttpUtil): java.util.List[String] = {
-    val body = """{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name","identifier"]}}"""
+    val body = """{"request":{"filters":{"objectType":"ObjectCategory","visibility":["Default"]},"fields":["name","identifier"]}}"""
     val url: String = Platform.getString("composite.search.url", "https://dev.sunbirded.org/action/composite/v3/search")
     val httpResponse = httpUtil.post(url, body)
     if (200 != httpResponse.status) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object categories for additional category list.")
@@ -116,9 +115,9 @@ object ChannelManager {
   }
 
   def getChannelPrimaryCategories(channel: String)(implicit httpUtil: HttpUtil): java.util.List[java.util.Map[String, AnyRef]] = {
-    val globalPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition"},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}"""
+    val globalPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "visibility":["Default"]},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}"""
     val globalPrimaryCategories = getPrimaryCategories(globalPCRequest)
-    val channelPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "channel": "$channel"},"fields":["name","identifier","targetObjectType"]}}"""
+    val channelPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "visibility":["Default"], "channel": "$channel"},"fields":["name","identifier","targetObjectType"]}}"""
     val channelPrimaryCategories = getPrimaryCategories(channelPCRequest)
     if (CollectionUtils.isEmpty(channelPrimaryCategories))
       globalPrimaryCategories
