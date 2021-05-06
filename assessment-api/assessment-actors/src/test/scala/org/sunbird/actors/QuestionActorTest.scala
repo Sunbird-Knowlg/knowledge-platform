@@ -6,6 +6,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.HttpUtil
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.dto.{Property, Request, Response}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
@@ -183,6 +184,24 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setOperation("listQuestions")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))
+	}
+
+	it should "throw exception for 'listQuestion'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val request = getQuestionRequest()
+		request.put("identifier", null)
+		request.setOperation("listQuestions")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode.code == 400)
+	}
+
+	it should "throw client exception for 'listQuestion'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val request = getQuestionRequest()
+		request.put("identifiers",  util.Arrays.asList( "test_id_1","test_id_2","test_id_3","test_id_4","test_id_5","test_id_6","test_id_7","test_id_8","test_id_9","test_id_10","test_id_11","test_id_12","test_id_13","test_id_14","test_id_15","test_id_16","test_id_17","test_id_18","test_id_19","test_id_20","test_id_21"))
+		request.setOperation("listQuestions")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode.code == 400)
 	}
 
 	private def getQuestionRequest(): Request = {

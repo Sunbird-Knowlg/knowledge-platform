@@ -699,6 +699,16 @@ class TestDataNode extends BaseSpec {
         } flatMap (f => f)
     }
 
+    "search" should "throw Exception for invalid identifier" in {
+        executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'do_12345',IL_FUNC_OBJECT_TYPE:'Content',status:'Live',ownershipType:[\"createdBy\"],copyright:\"Sunbird\",previewUrl:\"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/ecml/do_1129067102240194561252-latest\"});")
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+        request.put("identifiers", util.Arrays.asList("do_12345", "do_1357"))
+        request.put("identifier", util.Arrays.asList("do_12345", "do_1357"))
+        recoverToSucceededIf[ClientException](DataNode.search(request))
+    }
+
     def getHierarchy(request: Request) : Future[Response] = {
         val hierarchyString: String = "'{\"identifier\": \"do_11283193441064550414\"}'"
         val rootHierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
