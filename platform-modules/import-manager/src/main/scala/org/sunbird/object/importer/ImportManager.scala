@@ -32,7 +32,8 @@ class ImportManager(config: ImportConfig) {
 			throw new ClientException(ImportErrors.ERR_INVALID_IMPORT_REQUEST, ImportErrors.ERR_INVALID_IMPORT_REQUEST_MSG)
 		else if (CollectionUtils.isNotEmpty(reqList) && reqList.size > config.requestLimit)
 			throw new ClientException(ImportErrors.ERR_REQUEST_LIMIT_EXCEED, ImportErrors.ERR_REQUEST_LIMIT_EXCEED_MSG + config.requestLimit)
-		val processId: String = UUID.randomUUID().toString
+		val reqPid = request.getRequest.getOrDefault(ImportConstants.PROCESS_ID, "").asInstanceOf[String]
+		val processId: String = if(StringUtils.isNotBlank(reqPid)) reqPid else  UUID.randomUUID().toString
 		val invalidCodes: util.List[String] = new util.ArrayList[String]()
 		val invalidStage: util.List[String] = new util.ArrayList[String]()
 		validateAndGetRequest(reqList, processId, invalidCodes, invalidStage, request).map(objects => {
@@ -68,6 +69,8 @@ class ImportManager(config: ImportConfig) {
 				if (!validateMetadata(finalMetadata, config.requiredProps.asJava))
 					invalidCodes.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
 				if(!validateStage(stage, config.validContentStage.asJava)) invalidStages.add(finalMetadata.getOrDefault(ImportConstants.CODE, "").asInstanceOf[String])
+				if(StringUtils.isBlank(finalMetadata.getOrDefault(ImportConstants.OBJECT_TYPE, "").asInstanceOf[String]))
+					finalMetadata.put(ImportConstants.OBJECT_TYPE, request.getObjectType)
 				obj.put(ImportConstants.METADATA, finalMetadata)
 				obj.put(ImportConstants.ORIGIN_DATA, originData)
 				obj
