@@ -562,6 +562,14 @@
     },
     "requestChanges": {
       "type": "string"
+    },
+    "generateDialcodes": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     }
   }
 }
