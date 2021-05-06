@@ -36,11 +36,4 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
     })
   }
 
-  @throws[Exception]
-  private def retire(request: Request): Future[Response] = {
-    request.getRequest.put("status", "Retired")
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
-    })
-  }
 }
