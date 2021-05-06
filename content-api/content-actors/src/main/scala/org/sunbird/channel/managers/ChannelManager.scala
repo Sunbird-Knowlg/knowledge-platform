@@ -10,6 +10,7 @@ import org.sunbird.common.Platform
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.JsonUtils
 
 import scala.collection.JavaConverters._
@@ -103,7 +104,7 @@ object ChannelManager {
   }
 
   def getAdditionalCategories()(implicit httpUtil: HttpUtil): java.util.List[String] = {
-    val body = """{"request":{"filters":{"objectType":"ObjectCategory"},"fields":["name","identifier"]}}"""
+    val body = """{"request":{"filters":{"objectType":"ObjectCategory","visibility":["Default"]},"fields":["name","identifier"]}}"""
     val url: String = Platform.getString("composite.search.url", "https://dev.sunbirded.org/action/composite/v3/search")
     val httpResponse = httpUtil.post(url, body)
     if (200 != httpResponse.status) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY", "Error while fetching object categories for additional category list.")
@@ -114,9 +115,9 @@ object ChannelManager {
   }
 
   def getChannelPrimaryCategories(channel: String)(implicit httpUtil: HttpUtil): java.util.List[java.util.Map[String, AnyRef]] = {
-    val globalPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition"},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}"""
+    val globalPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "visibility":["Default"]},"not_exists": "channel","fields":["name","identifier","targetObjectType"]}}"""
     val globalPrimaryCategories = getPrimaryCategories(globalPCRequest)
-    val channelPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "channel": "$channel"},"fields":["name","identifier","targetObjectType"]}}"""
+    val channelPCRequest = s"""{"request":{"filters":{"objectType":"ObjectCategoryDefinition", "visibility":["Default"], "channel": "$channel"},"fields":["name","identifier","targetObjectType"]}}"""
     val channelPrimaryCategories = getPrimaryCategories(channelPCRequest)
     if (CollectionUtils.isEmpty(channelPrimaryCategories))
       globalPrimaryCategories
