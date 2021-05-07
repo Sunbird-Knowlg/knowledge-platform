@@ -12,7 +12,7 @@ import scala.collection.JavaConversions._
 object RequestUtil {
 
 	private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
-	val suggestFrameworks = if (Platform.config.hasPath("question_list_limit")) Platform.config.getInt("question_list_limit") else 20
+	val questionListLimit = if (Platform.config.hasPath("question.list.limit")) Platform.config.getInt("question.list.limit") else 20
 
 	def restrictProperties(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
 		val graphId = request.getContext.getOrDefault("graph_id","").asInstanceOf[String]
@@ -37,7 +37,7 @@ object RequestUtil {
 		if (request.get("identifiers") == null || request.get("identifiers").asInstanceOf[java.util.List[String]].isEmpty)
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Required field identifier is missing or empty.")
 
-		if (request.get("identifiers").asInstanceOf[java.util.List[String]].length > 20)
+		if (requesquestion_list_limit=20t.get("identifiers").asInstanceOf[java.util.List[String]].length > questionListLimit)
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Request contains more than the permissible limit of identifier: 20.")
 	}
 }
