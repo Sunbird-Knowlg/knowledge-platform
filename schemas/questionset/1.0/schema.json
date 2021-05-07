@@ -563,7 +563,7 @@
     "requestChanges": {
       "type": "string"
     },
-    "generateDialcodes": {
+    "generateDIALCodes": {
       "type": "string",
       "enum": [
         "Yes",
