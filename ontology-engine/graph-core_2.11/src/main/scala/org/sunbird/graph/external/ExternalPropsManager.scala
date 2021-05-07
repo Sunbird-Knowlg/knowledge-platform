@@ -25,7 +25,8 @@ object ExternalPropsManager {
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
-        store.read(request.get("identifier").asInstanceOf[String], fields, getPropsDataType(schemaName, version))
+        if (request.get("identifiers") != null) store.read(request.get("identifiers").asInstanceOf[List[String]], fields, getPropsDataType(schemaName, version))
+        else store.read(request.get("identifier").asInstanceOf[String], fields, getPropsDataType(schemaName, version))
     }
 
     def deleteProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
