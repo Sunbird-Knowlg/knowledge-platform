@@ -20,7 +20,6 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
       case "readObject" => read(request)
-      case _ => ERROR(request.getOperation)
     }
   }
 
@@ -29,7 +28,6 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
     val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
-      node.getObjectType
       if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "Object not found with identifier: " + node.getIdentifier)
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields,null, request.getContext.get("version").asInstanceOf[String])
       ResponseHandler.OK.put("Object-Data", metadata)
