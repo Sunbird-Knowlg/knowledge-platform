@@ -72,7 +72,7 @@ object DataNode {
 
 
     @throws[Exception]
-    def list(request: Request, objectType: String = null)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
+    def list(request: Request, objectType: Option[String] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
         val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
 
         if(null == identifiers || identifiers.isEmpty) {
@@ -89,8 +89,8 @@ object DataNode {
             val searchCriteria =  new SearchCriteria {{
                 addMetadata(mc)
                 setCountQuery(false)
-              if (objectType != null)
-                setObjectType(objectType)
+              if (objectType.nonEmpty)
+                setObjectType(objectType.get)
             }}
             oec.graphService.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
         }
@@ -273,7 +273,7 @@ object DataNode {
 
   @throws[Exception]
   def search(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
-    list(request, request.getObjectType).map(nodeList => {
+    list(request, Some(request.getObjectType)).map(nodeList => {
       validateNodeList(request, nodeList)
       val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
       populateExternalProperties(nodeList.asScala.toList, request, extPropNameList)
@@ -287,7 +287,8 @@ object DataNode {
     val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps)
     externalPropsResponse.map(response => {
       nodes.foreach(node => {
-        if (response.get(node.getIdentifier)!=null) node.getMetadata.putAll(response.get(node.getIdentifier).asInstanceOf[util.Map[String, AnyRef]])
+        val externalData = Optional.ofNullable(response.get(node.getIdentifier).asInstanceOf[util.Map[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
+        node.getMetadata.putAll(externalData)
       })
       nodes
     })

@@ -1,9 +1,9 @@
 package org.sunbird.utils
 
+import org.sunbird.common.Platform
 import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
+import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.DefinitionNode
 
 import scala.concurrent.ExecutionContext
@@ -12,6 +12,7 @@ import scala.collection.JavaConversions._
 object RequestUtil {
 
 	private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
+	val suggestFrameworks = if (Platform.config.hasPath("question_list_limit")) Platform.config.getInt("question_list_limit") else 20
 
 	def restrictProperties(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
 		val graphId = request.getContext.getOrDefault("graph_id","").asInstanceOf[String]

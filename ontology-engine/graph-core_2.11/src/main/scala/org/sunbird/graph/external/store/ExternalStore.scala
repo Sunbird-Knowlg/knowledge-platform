@@ -73,7 +73,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             val session: Session = CassandraConnector.getSession
             val futureResult = session.executeAsync(selectQuery)
             futureResult.asScala.map(resultSet => {
-                print(resultSet)
                 if (resultSet.iterator().hasNext) {
                     val row = resultSet.one()
                     val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap
@@ -113,7 +112,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             val session: Session = CassandraConnector.getSession
             val futureResult = session.executeAsync(selectQuery)
             futureResult.asScala.map(resultSet => {
-                print(resultSet)
                 if (resultSet.iterator().hasNext) {
                     val response = ResponseHandler.OK()
                     resultSet.iterator().toStream.map(row => {
@@ -171,7 +169,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                 case _ => update.`with`(QueryBuilder.set(column, values(index)))
             }
         }
-        print("Query for update map record", update)
         try {
             val session: Session = CassandraConnector.getSession
             session.executeAsync(update).asScala.map( resultset => {
