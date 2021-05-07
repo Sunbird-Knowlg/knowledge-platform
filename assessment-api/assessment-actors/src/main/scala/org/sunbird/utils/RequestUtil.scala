@@ -37,7 +37,7 @@ object RequestUtil {
 		if (request.get("identifiers") == null || request.get("identifiers").asInstanceOf[java.util.List[String]].isEmpty)
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Required field identifier is missing or empty.")
 
-		if (requesquestion_list_limit=20t.get("identifiers").asInstanceOf[java.util.List[String]].length > questionListLimit)
+		if (request.get("identifiers").asInstanceOf[java.util.List[String]].length > questionListLimit)
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Request contains more than the permissible limit of identifier: 20.")
 	}
 }
