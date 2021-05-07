@@ -1222,6 +1222,14 @@
       "items": {
         "type": "string"
       }
+    },
+    "generateDIALCodes": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     }
   }
 }
