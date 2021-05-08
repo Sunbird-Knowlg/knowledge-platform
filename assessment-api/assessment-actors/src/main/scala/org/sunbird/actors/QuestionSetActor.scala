@@ -6,11 +6,13 @@ import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.managers.HierarchyManager.hierarchyPrefix
 import org.sunbird.managers.{AssessmentManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
@@ -36,6 +38,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		case "getHierarchy" => HierarchyManager.getHierarchy(request)
 		case "rejectQuestionSet" => reject(request)
 		case "importQuestionSet" => importQuestionSet(request)
+		case "systemUpdateQuestionSet" => systemUpdate(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -66,9 +69,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			AssessmentManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
 				AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
-				val response = ResponseHandler.OK()
-				response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
-				response
+				ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
 			})
 		})
 	}
@@ -81,9 +82,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 			val updateMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
 			updateRequest.put("metadata", updateMetadata)
 			DataNode.bulkUpdate(updateRequest).map(_ => {
-				val response: Response = ResponseHandler.OK
-				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-				response
+				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			})
 		})
 	}
@@ -120,9 +119,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		updateRequest.getContext.put("identifier",  request.getContext.get("identifier"))
 		updateRequest.putAll(fMeta.asJava)
 		DataNode.update(updateRequest).map(_ => {
-			val response: Response = ResponseHandler.OK
-			response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
-			response
+			ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 		})
 	}
 
@@ -135,6 +132,24 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		val topicName = Platform.config.getString("import.output_topic_name")
 		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
 		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
+	}
+
+	def systemUpdate(request: Request): Future[Response] = {
+		val identifier = request.getContext.get("identifier").asInstanceOf[String]
+		RequestUtil.validateRequest(request)
+		if(Platform.getBoolean("questionset.cache.enable", false))
+			RedisCache.delete(hierarchyPrefix + identifier)
+
+		val readReq = new Request(request)
+		val identifiers = new util.ArrayList[String](){{
+			add(identifier)
+			if (!identifier.endsWith(".img"))
+				add(identifier.concat(".img"))
+		}}
+		readReq.put("identifiers", identifiers)
+		DataNode.list(readReq).flatMap(response => {
+			DataNode.systemUpdate(request, response,"questionSet", Some(HierarchyManager.getHierarchy))
+		}).map(node => ResponseHandler.OK.put("identifier", identifier).put("status", "success"))
 	}
 
 }

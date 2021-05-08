@@ -3,7 +3,6 @@ package org.sunbird.actors
 import java.util
 
 import akka.actor.Props
-import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.HttpUtil
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
@@ -349,6 +348,90 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
+    it should "return success response for 'systemUpdateQuestionSet'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNode("QuestionSet", None)
+        node.setIdentifier("test_id")
+        node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
+            "visibility" -> "Default",
+            "code" -> "finemanfine",
+            "description" -> "Updated description",
+            "navigationMode" -> "linear",
+            "allowSkip" -> "Yes",
+            "requiresSubmit" -> "No",
+            "shuffle" -> true.asInstanceOf[AnyRef],
+            "showFeedback" -> "Yes",
+            "status" -> "Draft",
+            "showSolutions" -> "Yes",
+            "showHints" -> "Yes",
+            "summaryType" -> "Complete",
+            "mimeType" -> "application/vnd.sunbird.questionset",
+            "primaryCategory" -> "Practice Question Set")))
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node))).once()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
+        val request = getQuestionSetRequest()
+        request.getContext.put("identifier", "test_id")
+        request.putAll(mapAsJavaMap(Map("versionKey" -> "1234", "description" -> "updated desc")))
+        request.setOperation("systemUpdateQuestionSet")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for 'systemUpdateQuestionSet' with image Node" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNode("QuestionSet", None)
+        val imageNode = getNode("QuestionSet", None)
+        node.setIdentifier("test_id")
+        imageNode.setIdentifier("test_id.img")
+        node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
+            "visibility" -> "Default",
+            "code" -> "finemanfine",
+            "description" -> "Updated description",
+            "navigationMode" -> "linear",
+            "allowSkip" -> "Yes",
+            "requiresSubmit" -> "No",
+            "shuffle" -> true.asInstanceOf[AnyRef],
+            "showFeedback" -> "Yes",
+            "status" -> "Live",
+            "showSolutions" -> "Yes",
+            "showHints" -> "Yes",
+            "summaryType" -> "Complete",
+            "mimeType" -> "application/vnd.sunbird.questionset",
+            "primaryCategory" -> "Practice Question Set")))
+        imageNode.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
+            "visibility" -> "Default",
+            "code" -> "finemanfine",
+            "description" -> "Updated description",
+            "navigationMode" -> "linear",
+            "allowSkip" -> "Yes",
+            "requiresSubmit" -> "No",
+            "shuffle" -> true.asInstanceOf[AnyRef],
+            "showFeedback" -> "Yes",
+            "showSolutions" -> "Yes",
+            "showHints" -> "Yes",
+            "summaryType" -> "Complete",
+            "status" -> "Draft",
+            "mimeType" -> "application/vnd.sunbird.questionset",
+            "primaryCategory" -> "Practice Question Set")))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node, imageNode))).once()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
+        (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(new Response())).anyNumberOfTimes
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getQuestionSetRequest()
+        request.getContext.put("identifier", "test_id")
+        request.putAll(mapAsJavaMap(Map("versionKey" -> "1234", "description" -> "updated desc")))
+        request.setOperation("systemUpdateQuestionSet")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
     private def getQuestionSetRequest(): Request = {
         val request = new Request()
         request.setContext(new java.util.HashMap[String, AnyRef]() {
@@ -412,7 +495,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
     }
 
     def getCassandraHierarchy(): Response = {
-        val hierarchyString: String = """{"children":[{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_Old","allowSkip":"No","description":"QS-2_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.948+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","lastUpdatedOn":"2020-12-04T15:31:45.947+0530","showSolutions":"No","identifier":"do_11316516745992601613","lastStatusChangedOn":"2020-12-04T15:31:45.948+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":1,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105948","showFeedback":"No","depth":1,"name":"QS_V_Parent_2","navigationMode":"non-linear","shuffle":true,"status":"Draft"},{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_New","allowSkip":"No","description":"QS-1_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.872+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","children":[{"parent":"do_11316516745922969611","identifier":"do_11316399038283776016","lastStatusChangedOn":"2020-12-02T23:36:59.783+0530","code":"question.code","visibility":"Default","index":1,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-12-02T23:36:59.783+0530","version":1,"objectType":"Question","versionKey":"1606932419783","depth":2,"primaryCategory":"Practice Question Set","name":"question_1","lastUpdatedOn":"2020-12-02T23:36:59.783+0530","status":"Draft"}],"lastUpdatedOn":"2020-12-04T15:31:45.861+0530","showSolutions":"No","identifier":"do_11316516745922969611","lastStatusChangedOn":"2020-12-04T15:31:45.876+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":2,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105872","showFeedback":"No","depth":1,"name":"QS_V_Parent_1","navigationMode":"non-linear","shuffle":true,"status":"Draft"},{"identifier":"do_11315445058114355211","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-19T12:08:13.854+0530","code":"finemanfine","visibility":"Default","index":4,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-19T12:08:13.854+0530","version":1,"objectType":"Question","versionKey":"1605767893854","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-19T12:08:13.854+0530","contentType":"Resource","status":"Draft"},{"identifier":"do_11315319237189632011","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-17T17:28:23.277+0530","code":"finemanfine","visibility":"Default","index":3,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-17T17:28:23.277+0530","version":1,"objectType":"Question","versionKey":"1605614303277","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-17T17:28:23.277+0530","contentType":"Resource","status":"Draft"}],"identifier":"do_113165166851596288123"}"""
+        val hierarchyString: String = """{"status":"Live","children":[{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_Old","allowSkip":"No","description":"QS-2_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.948+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","lastUpdatedOn":"2020-12-04T15:31:45.947+0530","showSolutions":"No","identifier":"do_11316516745992601613","lastStatusChangedOn":"2020-12-04T15:31:45.948+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":1,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105948","showFeedback":"No","depth":1,"name":"QS_V_Parent_2","navigationMode":"non-linear","shuffle":true,"status":"Draft"},{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_New","allowSkip":"No","description":"QS-1_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.872+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","children":[{"parent":"do_11316516745922969611","identifier":"do_11316399038283776016","lastStatusChangedOn":"2020-12-02T23:36:59.783+0530","code":"question.code","visibility":"Default","index":1,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-12-02T23:36:59.783+0530","version":1,"objectType":"Question","versionKey":"1606932419783","depth":2,"primaryCategory":"Practice Question Set","name":"question_1","lastUpdatedOn":"2020-12-02T23:36:59.783+0530","status":"Draft"}],"lastUpdatedOn":"2020-12-04T15:31:45.861+0530","showSolutions":"No","identifier":"do_11316516745922969611","lastStatusChangedOn":"2020-12-04T15:31:45.876+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":2,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105872","showFeedback":"No","depth":1,"name":"QS_V_Parent_1","navigationMode":"non-linear","shuffle":true,"status":"Draft"},{"identifier":"do_11315445058114355211","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-19T12:08:13.854+0530","code":"finemanfine","visibility":"Default","index":4,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-19T12:08:13.854+0530","version":1,"objectType":"Question","versionKey":"1605767893854","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-19T12:08:13.854+0530","contentType":"Resource","status":"Draft"},{"identifier":"do_11315319237189632011","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-17T17:28:23.277+0530","code":"finemanfine","visibility":"Default","index":3,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-17T17:28:23.277+0530","version":1,"objectType":"Question","versionKey":"1605614303277","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-17T17:28:23.277+0530","contentType":"Resource","status":"Draft"}],"identifier":"do_113165166851596288123"}"""
         val response = new Response
         response.put("hierarchy", hierarchyString)
     }
