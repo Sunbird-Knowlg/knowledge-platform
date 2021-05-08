@@ -98,11 +98,12 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		getResult(ApiId.SYSTEM_UPDATE_QUESTION, questionActor, questionRequest)
 	}
 
-	def list() = Action.async { implicit request =>
+	def list(fields: Option[String]) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
 		val question = body.getOrDefault("search", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
 		question.putAll(headers)
+		question.put("fields", fields.getOrElse(""))
 		val questionRequest = getRequest(question, headers, QuestionOperations.listQuestions.toString)
 		questionRequest.put("identifiers", questionRequest.get("identifier"))
 		setRequestContext(questionRequest, version, objectType, schemaName)

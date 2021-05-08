@@ -691,6 +691,7 @@ class TestDataNode extends BaseSpec {
         request.setContext(getContextMap())
         request.put("identifiers", util.Arrays.asList("do_12345"))
         request.put("identifier", util.Arrays.asList("do_12345"))
+        request.put("fields", util.Arrays.asList())
         val future: Future[List[Node]] = DataNode.search(request)
         future map { nodeList => {
             assert(nodeList.length == 1)
@@ -706,6 +707,7 @@ class TestDataNode extends BaseSpec {
         request.setContext(getContextMap())
         request.put("identifiers", util.Arrays.asList("do_62146325", "do_123579"))
         request.put("identifier", util.Arrays.asList("do_62146325", "do_123579"))
+        request.put("fields", util.Arrays.asList())
         recoverToSucceededIf[ClientException](DataNode.search(request))
     }
 

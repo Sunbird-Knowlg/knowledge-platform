@@ -275,16 +275,22 @@ object DataNode {
   def search(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
     list(request, Some(request.getObjectType)).map(nodeList => {
       validateNodeList(request, nodeList)
+      val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
       val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
-      populateExternalProperties(nodeList.asScala.toList, request, extPropNameList)
+      if (CollectionUtils.isEmpty(fields) && CollectionUtils.isNotEmpty(extPropNameList))
+        populateExternalProperties(nodeList.asScala.toList, extPropNameList, request, extPropNameList)
+      else if (CollectionUtils.isNotEmpty(extPropNameList) && fields.exists(field => extPropNameList.contains(field)))
+        populateExternalProperties(nodeList.asScala.toList, fields, request, extPropNameList)
+      else
+        Future(nodeList.asScala.toList)
     }).flatMap(f => f) recoverWith {
       case e: CompletionException => throw e.getCause
     }
   }
 
-  private def populateExternalProperties(nodes: List[Node], request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
+  private def populateExternalProperties(nodes: List[Node], fields: List[String], request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
     request.put("identifiers", nodes.map(node => node.getIdentifier))
-    val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps)
+    val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps.filter(prop => fields.contains(prop)))
     externalPropsResponse.map(response => {
       nodes.foreach(node => {
         val externalData = Optional.ofNullable(response.get(node.getIdentifier).asInstanceOf[util.Map[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
