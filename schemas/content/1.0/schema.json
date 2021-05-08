@@ -172,9 +172,7 @@
             "type": "string",
             "enum": [
                 "Default",
-                "Parent",
-                "Private",
-                "Protected"
+                "Parent"
             ],
             "default": "Default"
         },

@@ -55,8 +55,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
 		DataNode.create(request, dataModifier).map(node => {
-			ResponseHandler.OK.put("identifier", node.getIdentifier).put("node_id", node.getIdentifier)
-				.put("versionKey", node.getMetadata.get("versionKey"))
+			val response = ResponseHandler.OK
+			response.put("identifier", node.getIdentifier)
+			response.put("node_id", node.getIdentifier)
+			response.put("versionKey", node.getMetadata.get("versionKey"))
+			response
 		})
 	}
 
@@ -83,9 +86,12 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
 		RequestUtil.restrictProperties(request)
 		DataNode.update(request, dataModifier).map(node => {
+			val response: Response = ResponseHandler.OK
 			val identifier: String = node.getIdentifier.replace(".img", "")
-			ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
-				.put("versionKey", node.getMetadata.get("versionKey"))
+			response.put("node_id", identifier)
+			response.put("identifier", identifier)
+			response.put("versionKey", node.getMetadata.get("versionKey"))
+			response
 		})
 	}
 
@@ -114,12 +120,15 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val identifier: String = request.get("identifier").asInstanceOf[String]
 		validatePreSignedUrlRequest(`type`, fileName, filePath)
 		DataNode.read(request).map(node => {
+			val response = ResponseHandler.OK()
 			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 				else filePath + File.separator + "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
-			ResponseHandler.OK().put("identifier", identifier).put("pre_signed_url", preSignedURL)
-				.put("url_expiry", expiry)
+			response.put("identifier", identifier)
+			response.put("pre_signed_url", preSignedURL)
+			response.put("url_expiry", expiry)
+			response
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
 

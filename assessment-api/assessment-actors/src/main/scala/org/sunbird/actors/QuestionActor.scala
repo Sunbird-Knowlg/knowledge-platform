@@ -1,17 +1,19 @@
 package org.sunbird.actors
 
+import java.util
+
+import javax.inject.Inject
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.{DateUtils, Platform}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.managers.AssessmentManager
 import org.sunbird.utils.RequestUtil
-import java.util
-import javax.inject.Inject
-import scala.collection.JavaConverters._
+
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -28,7 +30,6 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "publishQuestion" => publish(request)
 		case "retireQuestion" => retire(request)
 		case "importQuestion" => importQuestion(request)
-		case "systemUpdateQuestion" => systemUpdate(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -52,7 +53,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_PUBLISH").map(node => {
 			AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
-			ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
+			val response = ResponseHandler.OK()
+			response.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
+			response
 		})
 	}
 
@@ -64,7 +67,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 			val updateMetadata: util.Map[String, AnyRef] = Map[String, AnyRef]("status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate).asJava
 			updateRequest.put("metadata", updateMetadata)
 			DataNode.bulkUpdate(updateRequest).map(_ => {
-				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				val response: Response = ResponseHandler.OK
+				response.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
+				response
 			})
 		})
 	}
@@ -80,18 +85,4 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
 
-	def systemUpdate(request: Request): Future[Response] = {
-		val identifier = request.getContext.get("identifier").asInstanceOf[String]
-		RequestUtil.validateRequest(request)
-		val readReq = new Request(request)
-		val identifiers = new util.ArrayList[String](){{
-			add(identifier)
-			if (!identifier.endsWith(".img"))
-				add(identifier.concat(".img"))
-		}}
-		readReq.put("identifiers", identifiers)
-		DataNode.list(readReq).flatMap(response => {
-			DataNode.systemUpdate(request, response,"", None)
-		}).map(node => ResponseHandler.OK.put("identifier", identifier).put("status", "success"))
-	}
 }

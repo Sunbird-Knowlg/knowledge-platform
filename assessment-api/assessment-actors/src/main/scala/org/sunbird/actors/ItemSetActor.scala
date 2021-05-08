@@ -32,7 +32,9 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 
 
 	def create(request: Request): Future[Response] = DataNode.create(request).map(node => {
-		ResponseHandler.OK.put("identifier", node.getIdentifier)
+		val response = ResponseHandler.OK
+		response.put("identifier", node.getIdentifier)
+		response
 	})
 
 	def read(request: Request): Future[Response] = {
@@ -42,12 +44,16 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 		DataNode.read(request).map(node => {
 			val metadata = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
 			metadata.remove("versionKey")
-			ResponseHandler.OK.put("itemset", metadata)
+			val response = ResponseHandler.OK
+			response.put("itemset", metadata)
+			response
 		})
 	}
 
 	def update(request: Request): Future[Response] = DataNode.update(request).map(node => {
-		ResponseHandler.OK.put("identifier", node.getIdentifier)
+		val response: Response = ResponseHandler.OK
+		response.put("identifier", node.getIdentifier)
+		response
 	})
 
 	def review(request: Request): Future[Response] = {
@@ -81,7 +87,9 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 			}
 			val futureList = Task.parallel[Response](func,
 				DataNode.update(request).map(node => {
-					ResponseHandler.OK.put("identifier", node.getIdentifier)
+					val response: Response = ResponseHandler.OK
+					response.put("identifier", node.getIdentifier)
+					response
 				}))
 			futureList
 		}).flatMap(f => f).map(f => f.get(1))
@@ -90,7 +98,9 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 	def retire(request: Request): Future[Response] = {
 		request.put("status", "Retired")
 		DataNode.update(request).map(node => {
-			ResponseHandler.OK.put("identifier", node.getIdentifier)
+			val response: Response = ResponseHandler.OK
+			response.put("identifier", node.getIdentifier)
+			response
 		})
 	}
 

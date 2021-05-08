@@ -135,8 +135,7 @@
       "enum": [
         "Default",
         "Parent",
-        "Private",
-        "Protected"
+        "Private"
       ],
       "default": "Default"
     },

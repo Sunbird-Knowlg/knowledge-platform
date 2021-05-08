@@ -40,9 +40,7 @@
       "default": "Default",
       "enum": [
         "Default",
-        "Parent",
-        "Private",
-        "Protected"
+        "Parent"
       ]
     },
     "copyright": {
@@ -559,9 +557,6 @@
     "instructions": {
       "type": "object",
       "description": "External Property"
-    },
-    "requestChanges": {
-      "type": "string"
     }
   }
 }

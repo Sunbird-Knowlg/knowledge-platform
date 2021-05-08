@@ -2,6 +2,7 @@ package org.sunbird.content.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
@@ -36,7 +37,9 @@ class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor
     RequestUtil.restrictProperties(request)
     setIdentifier(request)
     DataNode.create(request, (node: Node) => node).map(node => {
-      ResponseHandler.OK.put("identifier", node.getIdentifier)
+      val response = ResponseHandler.OK
+      response.put("identifier", node.getIdentifier)
+      response
     })
   }
 
@@ -47,7 +50,9 @@ class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor
     DataNode.read(request).map(node => {
       if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "App not found with identifier: " + node.getIdentifier)
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-      ResponseHandler.OK.put("app", metadata)
+      val response: Response = ResponseHandler.OK
+      response.put("app", metadata)
+      response
     })
   }
 
@@ -55,7 +60,9 @@ class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor
   private def update(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
     DataNode.update(request).map(node => {
-      ResponseHandler.OK.put("identifier", node.getIdentifier)
+      val response: Response = ResponseHandler.OK
+      response.put("identifier", node.getIdentifier)
+      response
     })
   }
 

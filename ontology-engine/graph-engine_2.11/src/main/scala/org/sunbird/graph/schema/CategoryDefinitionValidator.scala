@@ -30,7 +30,7 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
     }
 
     def loadSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): CategoryDefinitionValidator = {
-        if(ObjectCategoryDefinitionMap.containsKey(categoryId) && null != ObjectCategoryDefinitionMap.get(categoryId)){
+        if(ObjectCategoryDefinitionMap.containsKey(categoryId)){
             this.schema = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("schema", null).asInstanceOf[JsonSchema]
             this.config = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("config", null).asInstanceOf[Config]
         } 

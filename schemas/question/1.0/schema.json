@@ -40,9 +40,7 @@
       "default": "Default",
       "enum": [
         "Default",
-        "Parent",
-        "Private",
-        "Protected"
+        "Parent"
       ]
     },
     "copyright": {
@@ -532,12 +530,6 @@
     },
     "schemaVersion": {
       "type": "string"
-    },
-    "requestChanges": {
-      "type": "string"
-    },
-    "variants": {
-      "type": "object"
     }
   }
 }

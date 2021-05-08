@@ -55,7 +55,9 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 					request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
 					convertExternalProperties(request, request.getRequest)
 					DataNode.create(request).map(node => {
-						ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+						val response = ResponseHandler.OK
+						response.put(Constants.IDENTIFIER, node.getIdentifier)
+						response
 					})
 				} else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category identifier")
 			}).flatMap(f => f)
@@ -89,7 +91,9 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		} map (node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
 			convertExternalProperties(request, metadata)
-			ResponseHandler.OK.put(Constants.OBJECT_CATEGORY_DEFINITION, metadata)
+			val response: Response = ResponseHandler.OK
+			response.put(Constants.OBJECT_CATEGORY_DEFINITION, metadata)
+			response
 		})
 	}
 
@@ -97,7 +101,9 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		RequestUtil.restrictProperties(request)
 		convertExternalProperties(request, request.getRequest)
 		DataNode.update(request).map(node => {
-			ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+			val response: Response = ResponseHandler.OK
+			response.put(Constants.IDENTIFIER, node.getIdentifier)
+			response
 		})
 	}
 

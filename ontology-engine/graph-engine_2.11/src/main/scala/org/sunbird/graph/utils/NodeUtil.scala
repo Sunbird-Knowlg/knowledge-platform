@@ -14,7 +14,6 @@ import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinitionMap}
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
 object NodeUtil {
@@ -152,27 +151,25 @@ object NodeUtil {
         else entry.getValue
     }
 
-    // TODO: we should get the list from configuration.
-    private def relationObjectAttributes(objectType: String): List[String] = {
-      if (StringUtils.equalsAnyIgnoreCase("framework", objectType)) List("description", "status", "type") else List("description", "status")
-    }
-
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {
-        if("out".equalsIgnoreCase(direction)) {
-          val objectType = rel.getEndNodeObjectType.replace("Image", "")
-          val relData = Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
-            "name" -> rel.getEndNodeName,
-            "objectType" -> objectType,
-            "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
-          mapAsJavaMap(relData)
-        } else {
-          val objectType = rel.getStartNodeObjectType.replace("Image", "")
-          val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
-            "name" -> rel.getStartNodeName,
-            "objectType" -> objectType,
-            "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
-          mapAsJavaMap(relData)
-        }
+        if("out".equalsIgnoreCase(direction))
+            new util.HashMap[String, Object]() {{
+                put("identifier", rel.getEndNodeId.replace(".img", ""))
+                put("name", rel.getEndNodeName)
+                put("objectType", rel.getEndNodeObjectType.replace("Image", ""))
+                put("relation", rel.getRelationType)
+                put("description", rel.getEndNodeMetadata.get("description"))
+                put("status", rel.getEndNodeMetadata.get("status"))
+            }}
+        else
+            new util.HashMap[String, Object]() {{
+                put("identifier", rel.getStartNodeId.replace(".img", ""))
+                put("name", rel.getStartNodeName)
+                put("objectType", rel.getStartNodeObjectType.replace("Image", ""))
+                put("relation", rel.getRelationType)
+                put("description", rel.getStartNodeMetadata.get("description"))
+                put("status", rel.getStartNodeMetadata.get("status"))
+            }}
     }
 
     def getLanguageCodes(node: Node): util.List[String] = {

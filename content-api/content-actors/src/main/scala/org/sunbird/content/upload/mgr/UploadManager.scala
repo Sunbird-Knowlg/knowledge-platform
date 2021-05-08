@@ -73,10 +73,15 @@ object UploadManager {
 	}
 
 	def getUploadResponse(node: Node)(implicit ec: ExecutionContext): Response = {
+		val response: Response = ResponseHandler.OK
 		val id = node.getIdentifier.replace(".img", "")
 		val url = node.getMetadata.get("artifactUrl").asInstanceOf[String]
-		ResponseHandler.OK.put("node_id", id).put("identifier", id).put("artifactUrl", url)
-			.put("content_url", url).put("versionKey", node.getMetadata.get("versionKey"))
+		response.put("node_id", id)
+		response.put("identifier", id)
+		response.put("artifactUrl", url)
+		response.put("content_url", url)
+		response.put("versionKey", node.getMetadata.get("versionKey"))
+		response
 	}
 
 	@throws[Exception]

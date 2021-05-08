@@ -63,14 +63,6 @@
     },
     "owner": {
       "type": "string"
-    },
-    "systemDefault": {
-      "type": "string",
-      "enum": [
-        "Yes",
-        "No"
-      ],
-      "default": "No"
     }
   }
 }
