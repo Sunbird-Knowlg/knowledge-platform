@@ -20,7 +20,7 @@ object DefinitionNode {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-      val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.get("primaryCategory").asInstanceOf[String],
+      val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
         schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
       definition.validateRequest(request)
@@ -86,7 +86,8 @@ object DefinitionNode {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getNode(identifier, "update", null, versioning).map(dbNode => {
             val schema = dbNode.getObjectType.toLowerCase.replace("image", "")
-            val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(dbNode.getMetadata.get("primaryCategory").asInstanceOf[String], schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+            val primaryCategory: String = if(null != dbNode.getMetadata) dbNode.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+            val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
             val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, objectCategoryDefinition)
             categoryDefinition.validateRequest(request)
             resetJsonProperties(dbNode, graphId, version, schema, objectCategoryDefinition)
@@ -116,7 +117,8 @@ object DefinitionNode {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
 		val version: String = request.getContext.get("version").asInstanceOf[String]
 		val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(node.getMetadata.get("primaryCategory").asInstanceOf[String], schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+    val primaryCategory: String = if(null!=node.getMetadata) node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
     val categoryDefinition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
 		val edgeKey = categoryDefinition.getEdgeKey()
 		if (null != edgeKey && !edgeKey.isEmpty) {
