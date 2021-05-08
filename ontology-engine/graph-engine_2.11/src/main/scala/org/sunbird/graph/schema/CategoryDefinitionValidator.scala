@@ -28,8 +28,8 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
     override def resolveSchema(id: URI): JsonSchema = {
         null
     }
-
-    def loadSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): CategoryDefinitionValidator = {
+//ocd: ObjectCategoryDefinition
+    /*def loadSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): CategoryDefinitionValidator = {
         if(ObjectCategoryDefinitionMap.containsKey(categoryId) && null != ObjectCategoryDefinitionMap.get(categoryId)){
             this.schema = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("schema", null).asInstanceOf[JsonSchema]
             this.config = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("config", null).asInstanceOf[Config]
@@ -41,9 +41,24 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
             ObjectCategoryDefinitionMap.put(categoryId, Map("schema" -> schema, "config" -> config))
         }
         this
+    }*/
+    def loadSchema(ocd: ObjectCategoryDefinition)(implicit oec: OntologyEngineContext, ec: ExecutionContext): CategoryDefinitionValidator = {
+        val categoryId: String = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, ocd.channel)
+        if(ObjectCategoryDefinitionMap.containsKey(categoryId) && null != ObjectCategoryDefinitionMap.get(categoryId)){
+            this.schema = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("schema", null).asInstanceOf[JsonSchema]
+            this.config = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("config", null).asInstanceOf[Config]
+        }
+        else {
+            val (schemaMap, configMap) = prepareSchema(ocd)
+            this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
+            this.config = ConfigFactory.parseMap(configMap)
+            ObjectCategoryDefinitionMap.put(categoryId, Map("schema" -> schema, "config" -> config))
+        }
+        this
     }
 
-    def prepareSchema(categoryId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
+    def prepareSchema(ocd: ObjectCategoryDefinition)(implicit oec: OntologyEngineContext, ec: ExecutionContext): (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
+        val categoryId: String = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, ocd.channel)
         val request: Request = new Request()
         val context = new util.HashMap[String, AnyRef]()
         context.put("schemaName", "objectcategorydefinition")
@@ -54,10 +69,11 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
             val resp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
             if (ResponseHandler.checkError(resp)) {
                 if(StringUtils.equalsAnyIgnoreCase(resp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
-                    if ("all".equalsIgnoreCase(categoryId.substring(categoryId.lastIndexOf("_") + 1)))
+                    if ("all".equalsIgnoreCase(ocd.channel))//categoryId.substring(categoryId.lastIndexOf("_") + 1)))
                         throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
                     else {
-                        val updatedId = categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
+                        val updatedId = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, "all")
+                            //categoryId.replace(categoryId.substring(categoryId.lastIndexOf("_") + 1), "all")
                         request.put("identifier", updatedId)
                         val channelCatResp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
                         if(StringUtils.equalsAnyIgnoreCase(channelCatResp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {

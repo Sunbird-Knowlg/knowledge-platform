@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode, ServerException}
-import org.sunbird.common.{JsonUtils, Platform, Slug}
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
@@ -21,7 +21,7 @@ import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.schema.DefinitionNode
+import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
@@ -608,9 +608,10 @@ object HierarchyManager {
 
     def validateLeafNodes(parentNode: java.util.Map[String, AnyRef], childNode: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val primaryCategory = parentNode.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        val channel = parentNode.getOrDefault("channel", "_all")
-        val categoryId = if (StringUtils.isBlank(primaryCategory)) "" else "obj-cat:" + Slug.makeSlug(primaryCategory + "_" + parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase() + "_" + channel)
-        val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), categoryId)
+        val channel: String = parentNode.getOrDefault("channel", "_all").asInstanceOf[String]
+        //val categoryId = if (StringUtils.isBlank(primaryCategory)) "" else "obj-cat:" + Slug.makeSlug(primaryCategory + "_" + parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase() + "_" + channel)
+        val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(primaryCategory, parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase(), channel)
+        val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), objectCategoryDefinition)
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).orNull.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrElse("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
             throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType "+childNode.get("objectType")+" found for : "+childNode.get("identifier") + "| Please provide children having one of the objectType from "+ configObjTypes.asJava)
