@@ -608,7 +608,7 @@ object HierarchyManager {
 
     def validateLeafNodes(parentNode: java.util.Map[String, AnyRef], childNode: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val primaryCategory = parentNode.getOrDefault("primaryCategory", "").asInstanceOf[String]
-        val channel: String = parentNode.getOrDefault("channel", "_all").asInstanceOf[String]
+        val channel: String = parentNode.getOrDefault("channel", "all").asInstanceOf[String]
         val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(primaryCategory, parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase(), channel)
         val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), objectCategoryDefinition)
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).orNull.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrElse("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
