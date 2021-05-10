@@ -46,6 +46,16 @@
       ],
       "default": "Live"
     },
+    "visibility": {
+        "type": "string",
+        "enum": [
+            "Default",
+            "Parent",
+            "Private",
+            "Protected"
+        ],
+        "default": "Default"
+    },
     "objectMetadata": {
       "type": "object",
       "required": [
