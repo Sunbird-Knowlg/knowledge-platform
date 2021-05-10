@@ -20,49 +20,50 @@ object DefinitionNode {
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-      val categoryId: String = getPrimaryCategory(request.getRequest, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
-      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+      val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
+        schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
       definition.validateRequest(request)
       val inputNode = definition.getNode(request.getRequest)
 	  updateRelationMetadata(inputNode)
       definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause}
   }
 
-    def getExternalProps(graphId: String, version: String, schemaName: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    def getExternalProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.getExternalProps()
     }
 
-    def fetchJsonProps(graphId: String, version: String, schemaName: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    def fetchJsonProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.fetchJsonProps()
     }
 
-    def getInRelations(graphId: String, version: String, schemaName: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Map[String, AnyRef]] = {
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    def getInRelations(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Map[String, AnyRef]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.getInRelations()
     }
 
-    def getOutRelations(graphId: String, version: String, schemaName: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Map[String, AnyRef]] = {
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    def getOutRelations(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Map[String, AnyRef]] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.getOutRelations()
     }
 
-    def getRelationDefinitionMap(graphId: String, version: String, schemaName: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): Map[String, AnyRef] = {
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    def getRelationDefinitionMap(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Map[String, AnyRef] = {
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.getRelationDefinitionMap()
     }
 
-    def getRelationsMap(request: Request, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): java.util.HashMap[String, AnyRef] = {
+    def getRelationsMap(request: Request, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): java.util.HashMap[String, AnyRef] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.getRelationsMap()
     }
 
-    def getRestrictedProperties(graphId: String, version: String, operation: String, schemaName: String, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
-      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    def getRestrictedProperties(graphId: String, version: String, operation: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
       definition.getRestrictPropsConfig(operation)
     }
 
@@ -85,12 +86,13 @@ object DefinitionNode {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         definition.getNode(identifier, "update", null, versioning).map(dbNode => {
             val schema = dbNode.getObjectType.toLowerCase.replace("image", "")
-            val categoryId: String = getPrimaryCategory(dbNode.getMetadata, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
-            val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, categoryId)
+            val primaryCategory: String = if(null != dbNode.getMetadata) dbNode.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+            val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+            val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, objectCategoryDefinition)
             categoryDefinition.validateRequest(request)
-            resetJsonProperties(dbNode, graphId, version, schema, categoryId)
+            resetJsonProperties(dbNode, graphId, version, schema, objectCategoryDefinition)
             val inputNode: Node = categoryDefinition.getNode(dbNode.getIdentifier, request.getRequest, dbNode.getNodeType)
-            val dbRels = getDBRelations(graphId, schema, version, req, dbNode, categoryId)
+            val dbRels = getDBRelations(graphId, schema, version, req, dbNode, objectCategoryDefinition)
             setRelationship(dbNode, inputNode, dbRels)
             if (dbNode.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbNode.getMetadata.getOrDefault("isImageNodeCreated", "").asInstanceOf[String])) {
                 inputNode.getMetadata.put("versionKey", dbNode.getMetadata.getOrDefault("versionKey", ""))
@@ -115,8 +117,9 @@ object DefinitionNode {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
 		val version: String = request.getContext.get("version").asInstanceOf[String]
 		val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-        val categoryId: String = getPrimaryCategory(node.getMetadata, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
-        val categoryDefinition = DefinitionFactory.getDefinition(graphId, schemaName, version, categoryId)
+    val primaryCategory: String = if(null!=node.getMetadata) node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+    val categoryDefinition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
 		val edgeKey = categoryDefinition.getEdgeKey()
 		if (null != edgeKey && !edgeKey.isEmpty) {
 			val metadata = node.getMetadata
@@ -197,8 +200,8 @@ object DefinitionNode {
 		node.setAddedRelations(rels)
 	}
 
-    def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String, categoryId: String= "")(implicit ec: ExecutionContext, oec: OntologyEngineContext):Node = {
-        val jsonPropList = fetchJsonProps(graphId, version, schemaName, categoryId)
+    def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext):Node = {
+        val jsonPropList = fetchJsonProps(graphId, version, schemaName, ocd)
         if(!jsonPropList.isEmpty){
             node.getMetadata.entrySet().map(entry => {
                 if(jsonPropList.contains(entry.getKey)){
@@ -212,10 +215,10 @@ object DefinitionNode {
         node
     }
 
-	def getDBRelations(graphId:String, schemaName:String, version:String, request: util.Map[String, AnyRef], dbNode: Node, categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext):util.Map[String, util.List[Relation]] = {
+	def getDBRelations(graphId:String, schemaName:String, version:String, request: util.Map[String, AnyRef], dbNode: Node, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext):util.Map[String, util.List[Relation]] = {
 		val inRelations = new util.ArrayList[Relation]()
 		val outRelations = new util.ArrayList[Relation]()
-		val relDefMap = getRelationDefinitionMap(graphId, version, schemaName, categoryId);
+		val relDefMap = getRelationDefinitionMap(graphId, version, schemaName, ocd);
 		if (null != dbNode) {
 			if (CollectionUtils.isNotEmpty(dbNode.getInRelations)) {
 				for (inRel <- dbNode.getInRelations()) {
@@ -292,6 +295,12 @@ object DefinitionNode {
             val categoryName = request.get("primaryCategory").asInstanceOf[String]
             ObjectCategoryDefinitionMap.prepareCategoryId(categoryName, schemaName, channel)
         } else ""
+    }
+
+    def getObjectCategoryDefinition(primaryCategory: String, objectType: String, channel: String = "all"): ObjectCategoryDefinition = {
+      if(StringUtils.isNotBlank(primaryCategory))
+        ObjectCategoryDefinition(primaryCategory, objectType, channel)
+      else ObjectCategoryDefinition()
     }
 }
 
