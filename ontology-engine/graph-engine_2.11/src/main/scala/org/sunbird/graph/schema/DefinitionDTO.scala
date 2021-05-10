@@ -4,14 +4,18 @@ import java.util
 
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.validator._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
-class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0") extends BaseDefinitionNode(graphId , schemaName, version) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
+class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0", categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends BaseDefinitionNode(graphId, schemaName, version, categoryId) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
 
     def getOutRelationObjectTypes: List[String] = outRelationObjectTypes
 
@@ -46,9 +50,9 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getInRelations(): List[Map[String, AnyRef]] = {
         if (schemaValidator.getConfig.hasPath("relations"))
             schemaValidator.getConfig
-              .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, Object]].asScala
-              .filter(e => StringUtils.equals(e._2.asInstanceOf[java.util.HashMap[String, Object]].get("direction").asInstanceOf[String], "in"))
-              .map(e => Map(e._1 -> e._2)).toList
+                .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, Object]].asScala
+                .filter(e => StringUtils.equals(e._2.asInstanceOf[java.util.HashMap[String, Object]].get("direction").asInstanceOf[String], "in"))
+                .map(e => Map(e._1 -> e._2)).toList
         else
             List()
     }
@@ -75,7 +79,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getRestrictPropsConfig(operation: String): List[String] = {
         if (schemaValidator.getConfig.hasPath("restrictProps")) {
             val restrictProps = schemaValidator.getConfig.getAnyRef("restrictProps")
-                                    .asInstanceOf[java.util.HashMap[String, Object]].get(operation).asInstanceOf[java.util.ArrayList[String]]
+                                    .asInstanceOf[java.util.HashMap[String, Object]].getOrDefault(operation, new util.ArrayList[String]()).asInstanceOf[java.util.ArrayList[String]]
             restrictProps.asScala.toList
         } else
             List()
@@ -88,10 +92,39 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         }
     }
 
+    def getRelationsMap(): java.util.HashMap[String, AnyRef] = {
+        schemaValidator.getConfig
+            .getAnyRef("relations").asInstanceOf[java.util.HashMap[String, AnyRef]]
+    }
+
+    def getAllCopySchemes(): List[String] = schemaValidator.getConfig.hasPath("copy.scheme") match {
+        case true => val copySchemeSet = Set.empty ++ schemaValidator.getConfig.getObject("copy.scheme").keySet().asScala
+            (for (prop <- copySchemeSet) yield prop) (collection.breakOut)
+        case false => List()
+    }
+
+    def getCopySchemeMap(request: Request): java.util.HashMap[String, Object] =
+        (StringUtils.isNotEmpty(request.getContext.getOrDefault("copyScheme", "").asInstanceOf[String])
+            && schemaValidator.getConfig.hasPath("copy.scheme" + "." + request.getContext.get("copyScheme"))) match {
+            case true => schemaValidator.getConfig.getAnyRef("copy.scheme" + "." + request.getContext.get("copyScheme")).asInstanceOf[java.util.HashMap[String, Object]]
+            case false => new java.util.HashMap[String, Object]()
+        }
 
     private def generateRelationKey(relation: (String, Object)): Map[String, AnyRef] = {
         val relationMetadata = relation._2.asInstanceOf[java.util.HashMap[String, Object]]
         val objects = relationMetadata.get("objects").asInstanceOf[java.util.List[String]].asScala
         objects.flatMap(objectType => Map((relationMetadata.get("type").asInstanceOf[String] + "_" + relationMetadata.get("direction") + "_" + objectType) -> relation._1)).toMap
     }
+    
+    def validateRequest(request: Request) = {
+        if(schemaValidator.getConfig.hasPath("schema_restrict_api") && schemaValidator.getConfig.getBoolean("schema_restrict_api")){
+            val propsList: List[String] = schemaValidator.getAllProps.asScala.toList
+            //Todo:: Remove this after v4 apis
+            val invalidProps: List[String] = request.getRequest.keySet().asScala.toList.filterNot(key => propsList.contains(key) || StringUtils.endsWith(key, "batch_count"))
+
+            if(null != invalidProps && !invalidProps.isEmpty)
+                throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid request", java.util.Arrays.asList("Invalid Props are : " + invalidProps.asJavaCollection))
+        }
+    }
+
 }

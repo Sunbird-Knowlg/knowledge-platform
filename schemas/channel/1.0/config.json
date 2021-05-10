@@ -1,0 +1,37 @@
+{
+  "restrictProps": {
+    "create" : [
+      "channel", "status"
+    ],
+    "update": [
+      "channel", "code", "identifier"
+    ]
+  },
+  "objectType": "Channel",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "relations": {
+    "categories": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "CategoryInstance"
+      ]
+    },
+    "frameworks": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "Framework"
+      ]
+    }
+  },
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "edge": {
+    "properties": {
+      "defaultLicense": "License"
+    }
+  }
+}

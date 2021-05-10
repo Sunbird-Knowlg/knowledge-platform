@@ -18,7 +18,7 @@ Please describe the tests that you ran to verify your changes in the below check
 
 **Test Configuration**:
 * Software versions: Java 11, scala-2.11, play-2.7.2
-* Hardware versions:
+* Hardware versions: 2 CPU/ 4GB RAM
 
 ### Checklist:
 
@@ -30,3 +30,4 @@ Please describe the tests that you ran to verify your changes in the below check
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published in downstream modules
+

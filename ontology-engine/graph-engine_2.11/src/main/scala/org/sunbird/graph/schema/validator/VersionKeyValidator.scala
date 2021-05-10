@@ -5,6 +5,7 @@ import java.util.Date
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.common.{DateUtils, Platform}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
@@ -19,7 +20,7 @@ trait VersionKeyValidator extends IDefinition {
     private val graphPassportKey = Platform.config.getString(DACConfigurationConstants.PASSPORT_KEY_BASE_PROPERTY)
 
     @throws[Exception]
-    abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         if(!(operation.equalsIgnoreCase("create"))){
             isValidVersionkey(node).map(isValid => {
                 if(!isValid)throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid version Key")
@@ -30,7 +31,7 @@ trait VersionKeyValidator extends IDefinition {
         }
     }
 
-    def isValidVersionkey(node: Node)(implicit ec: ExecutionContext): Future[Boolean] =  {
+    def isValidVersionkey(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Boolean] =  {
         val versionCheckMode = {
             if(schemaValidator.getConfig.hasPath("versionCheckMode")) schemaValidator.getConfig.getString("versionCheckMode")
             else NodeUpdateMode.OFF.name
@@ -48,7 +49,7 @@ trait VersionKeyValidator extends IDefinition {
         }
     }
 
-    def validateUpdateOperation(getGraphId: String, node: Node, storedVersionKey: String)(implicit ec: ExecutionContext): Future[Boolean] = {
+    def validateUpdateOperation(getGraphId: String, node: Node, storedVersionKey: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Boolean] = {
         val versionKey: String = node.getMetadata.get(GraphDACParams.versionKey.name).asInstanceOf[String]
         if(StringUtils.isBlank(versionKey))
             throw new ClientException("BLANK_VERSION", "Error! Version Key cannot be Blank. | [Node Id: " + node.getIdentifier + "]")
@@ -72,8 +73,8 @@ trait VersionKeyValidator extends IDefinition {
     }
 
 
-    def getVersionKeyFromDB(identifier: String, graphId: String)(implicit ec: ExecutionContext): Future[String] = {
-        SearchAsyncOperations.getNodeProperty(graphId, identifier, "versionKey").map(property => {
+    def getVersionKeyFromDB(identifier: String, graphId: String)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[String] = {
+        oec.graphService.getNodeProperty(graphId, identifier, "versionKey").map(property => {
             val versionKey: String =  property.getPropertyValue.asInstanceOf[org.neo4j.driver.internal.value.StringValue].asString()
             if(StringUtils.isNotBlank(versionKey))
                 versionKey

@@ -5,16 +5,16 @@ import java.util
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.schema.IDefinition
-import org.sunbird.graph.service.operation.SearchAsyncOperations
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class BaseDefinitionNode(graphId: String, schemaName: String, version: String = "1.0") extends IDefinition(graphId, schemaName, version) {
+class BaseDefinitionNode(graphId: String, schemaName: String, version: String = "1.0", categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends IDefinition(graphId, schemaName, version, categoryId)(ec, oec) {
 
     val inRelationsSchema: Map[String, AnyRef] = relationsSchema("in")
     val outRelationsSchema: Map[String, AnyRef] = relationsSchema("out")
@@ -54,13 +54,13 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
     }
 
     @throws[Exception]
-    override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
+    override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         Future{node}
     }
 
-    override def getNode(identifier: String, operation: String, mode: String)(implicit ec: ExecutionContext): Future[Node] = {
+    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
-        val node: Future[Node] = SearchAsyncOperations.getNodeByUniqueId(graphId, identifier, false, request)
+        val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
         node
     }
 
