@@ -11,8 +11,10 @@ import org.sunbird.utils.RequestUtil
 import java.util
 
 import javax.inject.Inject
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.graph.utils.NodeUtil
 
+import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -101,9 +103,11 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
 	def listQuestions(request: Request): Future[Response] = {
 		RequestUtil.validateListRequest(request)
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		request.getRequest.put("fields", fields)
 		DataNode.search(request).map(nodeList => {
 			val questionList = nodeList.map(node => {
-					NodeUtil.serialize(node, new util.ArrayList[String](), node.getObjectType.toLowerCase.replace("Image", ""), request.getContext.get("version").asInstanceOf[String])
+					NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("Image", ""), request.getContext.get("version").asInstanceOf[String])
 			}).asJava
 			ResponseHandler.OK.put("questions", questionList).put("count", questionList.size)
 		})
