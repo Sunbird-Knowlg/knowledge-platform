@@ -1,18 +1,20 @@
 package org.sunbird.graph.nodes
 
+import java.util
+import java.util.Optional
+import java.util.concurrent.CompletionException
+
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
-import org.sunbird.graph.dac.model._
+import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
 import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
 import org.sunbird.parseq.Task
-import java.util
-import java.util.Optional
-import java.util.concurrent.CompletionException
+
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -56,10 +58,7 @@ object DataNode {
     def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
-            if (!(request.getObjectType.equalsIgnoreCase(schema)))
-              throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
-            else
-              request.getContext.put("schemaName",schema)
+            request.getContext().put("schemaName", schema)
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
