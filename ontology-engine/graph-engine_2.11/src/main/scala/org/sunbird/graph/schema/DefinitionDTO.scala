@@ -15,7 +15,7 @@ import org.sunbird.graph.schema.validator._
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0", categoryId: String = "")(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends BaseDefinitionNode(graphId, schemaName, version, categoryId) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
+class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0", ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends BaseDefinitionNode(graphId, schemaName, version, ocd) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
 
     def getOutRelationObjectTypes: List[String] = outRelationObjectTypes
 
