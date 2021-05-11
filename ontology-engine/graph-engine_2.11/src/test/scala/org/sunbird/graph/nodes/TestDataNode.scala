@@ -1,16 +1,15 @@
 package org.sunbird.graph.nodes
 
-import java.util
-
 import org.neo4j.graphdb.Result
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
-import org.sunbird.graph.{BaseSpec, OntologyEngineContext}
+import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 
+import java.util
 import scala.concurrent.Future
 
 
@@ -99,6 +98,7 @@ class TestDataNode extends BaseSpec {
             val req = new Request(request)
             req.put("identifier", node.getIdentifier)
             req.put("fields", util.Arrays.asList("body"))
+            req.setObjectType("Content")
             val readFuture = DataNode.read(req)
             readFuture map { node => {
                 assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
@@ -191,6 +191,7 @@ class TestDataNode extends BaseSpec {
             updateFuture.map(node => {
                 val readRequest = new Request(request)
                 readRequest.put("identifier", node.getIdentifier)
+                readRequest.setObjectType("Content")
                 DataNode.read(readRequest).map(node => {
                     assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
                     assert(node.getOutRelations.size() == 2)
@@ -494,6 +495,7 @@ class TestDataNode extends BaseSpec {
             updateFuture.map(node => {
                 val readRequest = new Request(request)
                 readRequest.put("identifier", node.getIdentifier)
+                readRequest.setObjectType("Content")
                 DataNode.read(readRequest).map(node => {
                     assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
                     assert(node.getOutRelations.size() == 2)
@@ -546,6 +548,7 @@ class TestDataNode extends BaseSpec {
             updateFuture.map(node => {
                 val readRequest = new Request(request)
                 readRequest.put("identifier", node.getIdentifier)
+                readRequest.setObjectType("Content")
                 DataNode.read(readRequest).map(node => {
                     assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
                     assert(node.getInRelations.size() == 4)
