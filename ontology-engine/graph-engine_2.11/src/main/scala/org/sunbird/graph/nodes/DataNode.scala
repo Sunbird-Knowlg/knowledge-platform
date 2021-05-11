@@ -57,8 +57,8 @@ object DataNode {
     def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
-            val reqschema : String = request.getContext.get("schemaName").asInstanceOf[String]
-            if (!reqschema.equalsIgnoreCase(schema))
+            val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
+            if (!objectType.equalsIgnoreCase(schema))
               throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
             else
               request.getContext().put("schemaName", schema)
