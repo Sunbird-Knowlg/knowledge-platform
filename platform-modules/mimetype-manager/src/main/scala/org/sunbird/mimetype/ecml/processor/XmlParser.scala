@@ -1,6 +1,6 @@
 package org.sunbird.mimetype.ecml.processor
 
-import org.apache.commons.lang.{StringEscapeUtils, StringUtils}
+import org.apache.commons.lang3.{StringEscapeUtils, StringUtils}
 import org.sunbird.common.exception.ClientException
 
 import scala.collection.mutable.ListBuffer
