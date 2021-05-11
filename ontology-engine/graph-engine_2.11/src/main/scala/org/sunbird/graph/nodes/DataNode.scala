@@ -58,6 +58,8 @@ object DataNode {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
             val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
+            println("Node objType: " + schema)
+            println("Request objType: " + objectType)
             if (!objectType.equalsIgnoreCase(schema))
               throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
             else
