@@ -57,7 +57,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
 				val updateReq = new Request(request)
 				val date = DateUtils.formatCurrentDate
-				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review", "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
 				updateHierarchyNodes(updateReq, node, Map("status" -> "Review", "hierarchy" -> updatedHierarchy), nodeIds)
 			})
 		})
@@ -79,7 +79,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		AssessmentManager.getValidatedNodeForRetire(request, "ERR_QUESTION_SET_RETIRE").flatMap(node => {
 			val updateRequest = new Request(request)
 			updateRequest.put("identifiers", java.util.Arrays.asList(request.get("identifier").asInstanceOf[String], request.get("identifier").asInstanceOf[String] + ".img"))
-			val updateMetadata: util.Map[String, AnyRef] = Map("prevState" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
+			val updateMetadata: util.Map[String, AnyRef] = Map("prevStatus" -> node.getMetadata.get("status"), "status" -> "Retired", "lastStatusChangedOn" -> DateUtils.formatCurrentDate, "lastUpdatedOn" -> DateUtils.formatCurrentDate).asJava
 			updateRequest.put("metadata", updateMetadata)
 			DataNode.bulkUpdate(updateRequest).map(_ => {
 				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
@@ -96,7 +96,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Draft")
 				val updateReq = new Request(request)
 				val date = DateUtils.formatCurrentDate
-				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft", "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
+				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
 				updateHierarchyNodes(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy), nodeIds)
 			})
 		})
@@ -115,7 +115,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 	def updateNode(request: Request, node: Node,  metadata: Map[String, AnyRef]): Future[Response] = {
 		val updateRequest = new Request(request)
 		val date = DateUtils.formatCurrentDate
-		val fMeta: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
+		val fMeta: Map[String, AnyRef] = Map("versionKey" -> node.getMetadata.get("versionKey"), "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date) ++ metadata
 		updateRequest.getContext.put("identifier",  request.getContext.get("identifier"))
 		updateRequest.putAll(fMeta.asJava)
 		DataNode.update(updateRequest).map(_ => {

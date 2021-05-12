@@ -165,7 +165,7 @@ object AssessmentManager {
 				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")) {
 					content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 					content.put("status", status)
-					content.put("prevState", "Draft")
+					content.put("prevStatus", "Draft")
 					content.put("lastUpdatedOn", DateUtils.formatCurrentDate)
 					content.get("identifier").asInstanceOf[String] :: idList
 				} else idList
