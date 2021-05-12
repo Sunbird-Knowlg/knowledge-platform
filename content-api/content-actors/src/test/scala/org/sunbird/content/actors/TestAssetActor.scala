@@ -50,7 +50,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     request.setOperation("copy")
     val response = callActor(request, Props(new AssetActor()))
     assert(response.getResponseCode == ResponseCode.RESOURCE_NOT_FOUND)
-    assert(response.getParams.getErrmsg == "Only asset can be copied")
+    assert(response.getParams.getErrmsg == "Error! Node(s) doesn't Exists.")
   }
 
   private def getNode(): Node = {

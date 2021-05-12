@@ -177,6 +177,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getEventSetCollectionNode()
+        node.setOutRelations(null)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node])).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
@@ -358,12 +359,6 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         node.setIdentifier("do_12345")
         node.setNodeType("DATA_NODE")
         node.setObjectType("EventSet")
-        val rel: Relation = new Relation()
-        rel.setEndNodeObjectType("Event")
-        rel.setEndNodeId("do_12345.1")
-        node.setOutRelations(new util.ArrayList[Relation](){
-            add(rel)
-        })
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
                 put("identifier", "do_12345")
