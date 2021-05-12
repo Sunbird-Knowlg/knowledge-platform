@@ -162,7 +162,9 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getLiveEventSetCollectionNode())).anyNumberOfTimes()
+        val node = getLiveEventSetCollectionNode()
+        node.setOutRelations(null)
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node])).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
@@ -177,6 +179,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getEventSetCollectionNode()
+        node.setOutRelations(null)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node])).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
