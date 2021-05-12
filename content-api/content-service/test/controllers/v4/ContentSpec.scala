@@ -151,4 +151,15 @@ class ContentSpec extends BaseSpec {
             status(result) must equalTo(BAD_REQUEST)
         }
     }
+
+    "Content Controller with valid request " should {
+        "return success response for systemUpdate API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/content/v4/system/update/do_123").withJsonBody(json)
+            val result = controller.systemUpdate("do_123")(fakeRequest)
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+    }
 }

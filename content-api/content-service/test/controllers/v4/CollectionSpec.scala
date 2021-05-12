@@ -135,4 +135,15 @@ class CollectionSpec extends BaseSpec {
             status(result) must equalTo(BAD_REQUEST)
         }
     }
+
+    "Collection Controller with valid request " should {
+        "return success response for systemUpdate API" in {
+            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val json: JsValue = Json.parse("""{"request": {"collection": {"primaryCategory": "Asset"}}}""")
+            val fakeRequest = FakeRequest("POST", "/collection/v4/system/update/do_123").withJsonBody(json)
+            val result = controller.systemUpdate("do_123")(fakeRequest)
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+    }
 }
