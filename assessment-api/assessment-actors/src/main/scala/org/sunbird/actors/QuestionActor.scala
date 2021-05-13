@@ -43,7 +43,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		AssessmentManager.getValidatedNodeForReview(request, "ERR_QUESTION_REVIEW").flatMap(node => {
 			val updateRequest = new Request(request)
 			updateRequest.getContext.put("identifier", request.get("identifier"))
-			updateRequest.putAll(Map("versionKey" -> node.getMetadata.get("versionKey"), "prevState" -> "Draft", "status" -> "Review", "lastStatusChangedOn" -> DateUtils.formatCurrentDate).asJava)
+			updateRequest.putAll(Map("versionKey" -> node.getMetadata.get("versionKey"), "prevStatus" -> "Draft", "status" -> "Review", "lastStatusChangedOn" -> DateUtils.formatCurrentDate).asJava)
 			AssessmentManager.updateNode(updateRequest)
 		})
 	}
