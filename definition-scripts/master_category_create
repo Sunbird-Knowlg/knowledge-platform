@@ -9,7 +9,27 @@ curl --location --request POST '{{host}}/object/category/v4/create' \
     }
 }'
 
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Playlist",
+            "description":"Playlist for Users"
+        }
+    }
+}'
 
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Goals",
+            "description":"Goals for Users"
+        }
+    }
+}'
 
 curl --location --request POST '{{host}}/object/category/v4/create' \
 --header 'Content-Type: application/json' \
