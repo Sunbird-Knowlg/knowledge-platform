@@ -104,7 +104,6 @@ class TestChannelActor extends BaseSpec with MockFactory {
     request.getRequest.put("identifier", "channel_test")
     request.setOperation("retireChannel")
     val response = callActor(request, Props(new ChannelActor()))
-    println("Response: retire: " + response)
     assert("successful".equals(response.getParams.getStatus))
   }
 
