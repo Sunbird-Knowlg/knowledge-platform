@@ -117,3 +117,6 @@ GET     /eventset/v4/hierarchy/:identifier       controllers.v4.EventSetControll
 GET     /eventset/v4/read/:identifier            controllers.v4.EventSetController.read(identifier:String, mode:Option[String], fields:Option[String])
 DELETE  /eventset/v4/discard/:identifier         controllers.v4.EventSetController.discard(identifier:String)
 DELETE  /private/eventset/v4/retire/:identifier  controllers.v4.EventSetController.retire(identifier:String)
+
+# Object v4 Api's
+GET     /object/v4/read/:identifier              controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
