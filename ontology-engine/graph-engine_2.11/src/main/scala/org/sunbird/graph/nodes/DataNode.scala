@@ -75,7 +75,7 @@ object DataNode {
 
 
     @throws[Exception]
-    def list(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
+    def list(request: Request, objectType: Option[String] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
         val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
 
         if(null == identifiers || identifiers.isEmpty) {
@@ -92,6 +92,8 @@ object DataNode {
             val searchCriteria =  new SearchCriteria {{
                 addMetadata(mc)
                 setCountQuery(false)
+              if (objectType.nonEmpty)
+                setObjectType(objectType.get)
             }}
             oec.graphService.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
         }
@@ -270,6 +272,44 @@ object DataNode {
       if (node.getMetadata == null && !objectType.equalsIgnoreCase(node.getObjectType) && node.getMetadata.get("status").asInstanceOf[String].equalsIgnoreCase("failed"))
         throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Cannot update content with FAILED status for id : ${node.getIdentifier}.")
     })
+  }
+
+  @throws[Exception]
+  def search(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
+    list(request, Some(request.getObjectType)).map(nodeList => {
+      validateNodeList(request, nodeList)
+      val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
+      val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
+      if (CollectionUtils.isEmpty(fields) && CollectionUtils.isNotEmpty(extPropNameList))
+        populateExternalProperties(nodeList.asScala.toList, extPropNameList, request, extPropNameList)
+      else if (CollectionUtils.isNotEmpty(extPropNameList) && fields.exists(field => extPropNameList.contains(field)))
+        populateExternalProperties(nodeList.asScala.toList, fields, request, extPropNameList)
+      else
+        Future(nodeList.asScala.toList)
+    }).flatMap(f => f) recoverWith {
+      case e: CompletionException => throw e.getCause
+    }
+  }
+
+  private def populateExternalProperties(nodes: List[Node], fields: List[String], request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
+    request.put("identifiers", nodes.map(node => node.getIdentifier))
+    val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps.filter(prop => fields.contains(prop)))
+    externalPropsResponse.map(response => {
+      nodes.foreach(node => {
+        val externalData = Optional.ofNullable(response.get(node.getIdentifier).asInstanceOf[util.Map[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
+        node.getMetadata.putAll(externalData)
+      })
+      nodes
+    })
+  }
+
+  private def validateNodeList(request: Request, nodeList: util.List[Node]): Unit = {
+    val requestIdentifiers = request.get("identifier").asInstanceOf[util.List[String]]
+    if (requestIdentifiers.length != nodeList.length) {
+      val nodeIdentifiers = nodeList.map(node => node.getIdentifier)
+      val missingIds = requestIdentifiers.filter(identifier => !nodeIdentifiers.contains(identifier))
+      throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Request contains invalid identifiers : ${missingIds.mkString("[", ", ", "]")}.")
+    }
   }
 
   private def getStatus(request: Request, nodeList: util.List[Node]): String = {

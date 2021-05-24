@@ -78,6 +78,7 @@ GET      /collection/v4/hierarchy/:identifier      controllers.v4.CollectionCont
 GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.CollectionController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
 POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
 POST     /collection/v4/copy/:identifier                     controllers.v4.CollectionController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
+PATCH    /collection/v4/system/update/:identifier            controllers.v4.CollectionController.systemUpdate(identifier:String)
 
 
 # Content v4 APIs
@@ -93,6 +94,7 @@ POST      /content/v4/flag/:identifier             controllers.v4.ContentControl
 POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentController.acceptFlag(identifier:String)
 DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
 DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
+PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentController.systemUpdate(identifier:String)
 
 # App v4 APIs
 POST      /app/v4/register                          controllers.v4.AppController.register

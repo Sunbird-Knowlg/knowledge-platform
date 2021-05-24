@@ -1088,6 +1088,49 @@
     "me_totalRatingsCount": {
       "type": "number"
     },
+    "catalogPaths" : {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "competencies" : {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "sharedWith" : {
+      "type": "array"
+    },
+    "isExternal": {
+      "type": "boolean"
+    },
+    "learningMode": {
+      "type": "string",
+      "enum": [
+        "Self Paced",
+        "Instructor Led",
+        "Classroom"
+      ]
+    },
+    "creatorLogo" : {
+      "type": "string",
+      "format": "url"
+    },
+    "subTitles" : {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "reviewStatus" : {
+      "type" : "string",
+      "enum": [
+        "InReview",
+        "Reviewed"
+      ]
+    },
     "boardIds": {
       "type": "array",
       "items": {
@@ -1222,6 +1265,14 @@
       "items": {
         "type": "string"
       }
+    },
+    "generateDIALCodes": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     }
   }
 }

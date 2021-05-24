@@ -73,7 +73,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             val session: Session = CassandraConnector.getSession
             val futureResult = session.executeAsync(selectQuery)
             futureResult.asScala.map(resultSet => {
-                print(resultSet)
                 if (resultSet.iterator().hasNext) {
                     val row = resultSet.one()
                     val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap
@@ -84,6 +83,46 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                 } else {
                     TelemetryManager.error("Entry is not found in external-store for object with identifier: " + identifier)
                     ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code().toString, "Entry is not found in external-store for object with identifier: " + identifier)
+                }
+            })
+        } catch {
+            case e: Exception =>
+                e.printStackTrace()
+                TelemetryManager.error("Exception Occurred While Reading The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
+        }
+    }
+
+    def read(identifiers: List[String], extProps: List[String], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
+        val select = QueryBuilder.select()
+        select.column(primaryKey.get(0)).as(primaryKey.get(0))
+        if (null != extProps && !extProps.isEmpty) {
+            extProps.foreach(prop => {
+                if ("blob".equalsIgnoreCase(propsMapping.getOrElse(prop, "")))
+                    select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop)
+                else
+                    select.column(prop).as(prop)
+            })
+        }
+        val selectQuery = select.from(keySpace, table)
+        import scala.collection.JavaConversions._
+        val clause: Clause = QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers))
+        selectQuery.where.and(clause)
+        try {
+            val session: Session = CassandraConnector.getSession
+            val futureResult = session.executeAsync(selectQuery)
+            futureResult.asScala.map(resultSet => {
+                if (resultSet.iterator().hasNext) {
+                    val response = ResponseHandler.OK()
+                    resultSet.iterator().toStream.map(row => {
+                        import scala.collection.JavaConverters._
+                        val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap.asJava
+                        response.put(row.getString(primaryKey.get(0)), externalMetadataMap)
+                    }).toList
+                    response
+                } else {
+                    TelemetryManager.error("Entry is not found in external-store for object with identifiers: " + identifiers)
+                    ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.code().toString, "Entry is not found in external-store for object with identifiers: " + identifiers)
                 }
             })
         } catch {
@@ -130,7 +169,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                 case _ => update.`with`(QueryBuilder.set(column, values(index)))
             }
         }
-        print("Query for update map record", update)
         try {
             val session: Session = CassandraConnector.getSession
             session.executeAsync(update).asScala.map( resultset => {
