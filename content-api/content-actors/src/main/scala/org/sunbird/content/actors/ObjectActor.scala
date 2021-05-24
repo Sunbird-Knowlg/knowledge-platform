@@ -30,7 +30,7 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
     DataNode.read(request).map(node => {
       if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "Object not found with identifier: " + node.getIdentifier)
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields,null, request.getContext.get("version").asInstanceOf[String])
-      ResponseHandler.OK.put("Object-Data", metadata)
+      ResponseHandler.OK.put("object", metadata)
     })
   }
 
