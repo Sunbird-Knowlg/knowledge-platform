@@ -3,7 +3,7 @@ package org.sunbird.mimetype.mgr.impl
 import java.io.File
 import java.util.concurrent.CompletionException
 
-import org.apache.hadoop.util.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Slug

@@ -18,6 +18,7 @@ object ApiId {
 	val ACCEPT_FLAG = "api.content.flag.accept"
 	val LINK_DIAL_CONTENT = "api.content.dialcode.link"
 	val IMPORT_CONTENT = "api.content.import"
+	val SYSTEM_UPDATE_CONTENT = "api.content.system.update"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
@@ -68,6 +69,7 @@ object ApiId {
 	val REMOVE_HIERARCHY_V4 = "api.collection.hierarchy.remove"
 	val UPDATE_HIERARCHY_V4 = "api.collection.hierarchy.update"
 	val GET_HIERARCHY_V4 = "api.collection.hierarchy.get"
+	val SYSTEM_UPDATE_COLLECTION = "api.collection.system.update"
 
   //App APIs
   val REGISTER_APP = "api.app.register"
