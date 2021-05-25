@@ -26,7 +26,8 @@ trait FrameworkValidator extends IDefinition {
     val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
     //val orgFwTerms: List[String] = schemaValidator.getConfig.getStringList("orgFrameworkTerms").asScala.toList
     //val targetFwTerms: List[String] = schemaValidator.getConfig.getStringList("targetFrameworkTerms").asScala.toList
-    val orgAndTargetFWData: Future[(List[String], List[String])] = getOrgAndTargetFWData(node.getGraphId, "Category")
+    val graphId: String = if(StringUtils.isNotBlank(node.getGraphId)) node.getGraphId else "domain"
+    val orgAndTargetFWData: Future[(List[String], List[String])] = getOrgAndTargetFWData(graphId, "Category")
 
     orgAndTargetFWData.map(orgAndTargetTouple => {
       val orgFwTerms = orgAndTargetTouple._1
