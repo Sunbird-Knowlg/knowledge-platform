@@ -1,16 +1,20 @@
 package org.sunbird.graph.schema.validator
 
 import java.util
+import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
+import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model._
 import org.sunbird.graph.schema.IDefinition
+import org.sunbird.graph.utils.ScalaJsonUtils
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,9 +23,15 @@ trait FrameworkValidator extends IDefinition {
 
   @throws[Exception]
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
-      val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
-      val orgFwTerms: List[String] = schemaValidator.getConfig.getStringList("orgFrameworkTerms").asScala.toList
-      val targetFwTerms: List[String] = schemaValidator.getConfig.getStringList("targetFrameworkTerms").asScala.toList
+    val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
+    //val orgFwTerms: List[String] = schemaValidator.getConfig.getStringList("orgFrameworkTerms").asScala.toList
+    //val targetFwTerms: List[String] = schemaValidator.getConfig.getStringList("targetFrameworkTerms").asScala.toList
+    val orgAndTargetFWData: Future[(List[String], List[String])] = getOrgAndTargetFWData(node.getGraphId, "Category")
+
+    orgAndTargetFWData.map(orgAndTargetTouple => {
+      val orgFwTerms = orgAndTargetTouple._1
+      val targetFwTerms = orgAndTargetTouple._2
+
       validateAndSetMultiFrameworks(node, orgFwTerms, targetFwTerms).map(_ => {
         val framework: String = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
         if (null != fwCategories && fwCategories.nonEmpty && framework.nonEmpty) {
@@ -56,6 +66,7 @@ trait FrameworkValidator extends IDefinition {
         }
         super.validate(node, operation)
       }).flatMap(f => f)
+    }).flatMap(f => f)
   }
 
   private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
@@ -84,6 +95,70 @@ trait FrameworkValidator extends IDefinition {
     }
   }
 
+  private def getOrgAndTargetFWData(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext):Future[(List[String], List[String])] = {
+    val masterCategoryData: String = if(Platform.getBoolean("master.category.cache.read", false)) RedisCache.get("masterCategories") else ""
+
+    if (StringUtils.isNotEmpty(masterCategoryData)){
+      val masterCategories : List[Map[String, AnyRef]] =  ScalaJsonUtils.deserialize[List[Map[String, AnyRef]]](masterCategoryData)
+      Future(masterCategories.map(x => x.getOrDefault("orgIdFieldName", "").asInstanceOf[String]),
+        masterCategories.map(x => x.getOrDefault("targetIdFieldName", "").asInstanceOf[String]))
+    }else{
+      val masterCategories: Future[List[Map[String, AnyRef]]] = getMasterCategory(graphId, objectType)
+      masterCategories.map(result => {
+        (result.map(cat => cat.getOrDefault("orgIdFieldName", "").asInstanceOf[String]),
+          result.map(cat => cat.getOrDefault("targetIdFieldName", "").asInstanceOf[String]))
+      })
+    }
+  }
+
+  private def getMasterCategory(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Map[String, AnyRef]]] = {
+    val nodes = getMasterCategoryNodes(graphId, objectType)
+
+    try{
+      nodes.map(dataNodes => {
+        if(dataNodes.isEmpty)
+          throw new ServerException("ERR_MASTER_CATEGORY_NOT_FOUND", s"Data not found for objectType: $objectType ")
+        else {
+          val masterCategoryData: List[Map[String, AnyRef]] = dataNodes.map(node => Map[String, AnyRef]("code" -> node.getMetadata.getOrDefault("code", "").asInstanceOf[String],
+            "orgIdFieldName" -> node.getMetadata.getOrDefault("orgIdFieldName", "").asInstanceOf[String],
+            "targetIdFieldName" -> node.getMetadata.getOrDefault("targetIdFieldName", "").asInstanceOf[String],
+            "searchIdFieldName" -> node.getMetadata.getOrDefault("searchIdFieldName", "").asInstanceOf[String],
+            "searchLabelFieldName" -> node.getMetadata.getOrDefault("searchLabelFieldName", "").asInstanceOf[String])).toList
+          if(Platform.getBoolean("master.category.cache.read", false))
+            RedisCache.set("masterCategories", ScalaJsonUtils.serialize(masterCategoryData), Platform.getInteger("master.category.cache.ttl", 86400))
+          masterCategoryData
+        }
+      }) recoverWith {
+        case e: CompletionException => throw e.getCause
+      }
+    } catch {
+      case e: Exception =>
+        throw new ServerException("ERR_GRAPH_PROCESSING_ERROR", "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
+    }
+
+  }
+
+  private def getMasterCategoryNodes(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext):Future[util.List[Node]]={
+    val mc: MetadataCriterion = MetadataCriterion.create(new util.ArrayList[Filter]() {
+      {
+        add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_EQUAL, objectType))
+        add(new Filter(SystemProperties.IL_SYS_NODE_TYPE.name(), SearchConditions.OP_EQUAL, "DATA_NODE"))
+        add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
+      }
+    })
+    val searchCriteria = new SearchCriteria {
+      {
+        addMetadata(mc)
+        setCountQuery(false)
+      }
+    }
+    try {
+      oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
+    } catch {
+      case e: Exception =>
+        throw new ServerException("ERR_GRAPH_PROCESSING_ERROR", "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
+    }
+  }
 
   private def getValidatedTerms(node: Node, validationList: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     val ids: List[String] = node.getMetadata.asScala
@@ -138,5 +213,4 @@ trait FrameworkValidator extends IDefinition {
         .toList.asJava
     } else List().asJava
   }
-
 }
