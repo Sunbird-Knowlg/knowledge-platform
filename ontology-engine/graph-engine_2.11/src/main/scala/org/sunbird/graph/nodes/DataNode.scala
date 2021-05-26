@@ -3,7 +3,7 @@ package org.sunbird.graph.nodes
 import java.util
 import java.util.Optional
 import java.util.concurrent.CompletionException
-import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.collections4.{CollectionUtils, ListUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
@@ -58,10 +58,13 @@ object DataNode {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
             val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
-            if (!StringUtils.equalsIgnoreCase(objectType,schema))
-              throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
-            else
+            //TODO: Variable contentObjectTypes and condition based on this variable should be removed, once content, collection and asset (v4) apis are consumed
+            val contentObjectTypes: List[String] = List("content", "collection", "asset")
+            if (StringUtils.equalsIgnoreCase(objectType,schema) ||
+              (StringUtils.equalsIgnoreCase(objectType, "Content") && contentObjectTypes.contains(schema))) {
               request.getContext.put("schemaName", schema)
+            } else throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
+
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
