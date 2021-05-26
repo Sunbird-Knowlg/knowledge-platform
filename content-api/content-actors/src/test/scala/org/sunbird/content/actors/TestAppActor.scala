@@ -5,11 +5,12 @@ import org.apache.hadoop.util.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util
+
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.Future
@@ -25,11 +26,15 @@ class TestAppActor extends BaseSpec with MockFactory {
   it should "return success response for 'create' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "App")
     node.setIdentifier("android-org.test.sunbird.integration")
     node.setObjectType("App")
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getRequest()
     request.getRequest.put("name", "Test Integration App")
     request.getRequest.put("logo", "logo url")
@@ -47,6 +52,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     val request = getRequest()
     request.getRequest.put("name", "Test Integration App")
     request.setOperation("create")
+
     val response = callActor(request, Props(new AppActor()))
     assert("failed".equals(response.getParams.getStatus))
   }
@@ -54,10 +60,14 @@ class TestAppActor extends BaseSpec with MockFactory {
   it should "return success response for update" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).repeated(2)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()//.repeated(2)
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getRequest()
     request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
     request.setOperation("update")
@@ -114,6 +124,23 @@ class TestAppActor extends BaseSpec with MockFactory {
       }
     })
     node
+  }
+  private def getCategoryNode(): util.List[Node] = {
+    val node = new Node()
+    node.setIdentifier("board")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Category")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("code", "board")
+        put("orgIdFieldName", "boardIds")
+        put("targetIdFieldName", "targetBoardIds")
+        put("searchIdFieldName", "se_boardIds")
+        put("searchLabelFieldName", "se_boards")
+        put("status", "Live")
+      }
+    })
+    util.Arrays.asList(node)
   }
 
 }

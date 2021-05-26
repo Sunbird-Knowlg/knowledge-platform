@@ -5,10 +5,10 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-
 import java.util
+
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -103,6 +103,10 @@ class TestEventActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getDraftNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
@@ -212,5 +216,23 @@ class TestEventActor extends BaseSpec with MockFactory {
             }
         })
         node
+    }
+
+    private def getCategoryNode(): util.List[Node] = {
+        val node = new Node()
+        node.setIdentifier("board")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Category")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("code", "board")
+                put("orgIdFieldName", "boardIds")
+                put("targetIdFieldName", "targetBoardIds")
+                put("searchIdFieldName", "se_boardIds")
+                put("searchLabelFieldName", "se_boards")
+                put("status", "Live")
+            }
+        })
+        util.Arrays.asList(node)
     }
 }
