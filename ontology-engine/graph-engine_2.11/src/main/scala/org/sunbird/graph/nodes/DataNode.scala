@@ -58,7 +58,10 @@ object DataNode {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
             val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
-            if (!StringUtils.equalsIgnoreCase(objectType,schema))
+            //TODO: Variable contentObjectTypes and condition based on this variable should be removed, once content, collection and asset (v4) apis are consumed
+            val contentObjectTypes: List[String] = List("Content", "Collection", "Asset")
+            if (!StringUtils.equalsIgnoreCase(objectType,schema) &&
+              !(StringUtils.equalsAnyIgnoreCase(objectType, "Content") && contentObjectTypes.contains(schema)))
               throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
             else
               request.getContext.put("schemaName", schema)
