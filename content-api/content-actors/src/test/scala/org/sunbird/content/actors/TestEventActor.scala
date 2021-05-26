@@ -24,6 +24,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getContext.put("objectType","Content")
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -57,6 +58,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getContext.put("objectType","Content")
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -68,6 +70,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234.img")
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234.img")))
+        request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -87,6 +90,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
         val response = callActor(request, Props(new EventActor()))
         assert("successful".equals(response.getParams.getStatus))

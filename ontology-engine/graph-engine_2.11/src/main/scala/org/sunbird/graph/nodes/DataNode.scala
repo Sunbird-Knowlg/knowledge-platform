@@ -3,11 +3,11 @@ package org.sunbird.graph.nodes
 import java.util
 import java.util.Optional
 import java.util.concurrent.CompletionException
-
-import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.collections4.{CollectionUtils, ListUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
@@ -57,7 +57,14 @@ object DataNode {
     def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
-            request.getContext().put("schemaName", schema)
+            val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
+            //TODO: Variable contentObjectTypes and condition based on this variable should be removed, once content, collection and asset (v4) apis are consumed
+            val contentObjectTypes: List[String] = List("content", "collection", "asset")
+            if (StringUtils.equalsIgnoreCase(objectType,schema) ||
+              (StringUtils.equalsIgnoreCase(objectType, "Content") && contentObjectTypes.contains(schema))) {
+              request.getContext.put("schemaName", schema)
+            } else throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
+
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
@@ -71,7 +78,7 @@ object DataNode {
 
 
     @throws[Exception]
-    def list(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
+    def list(request: Request, objectType: Option[String] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
         val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
 
         if(null == identifiers || identifiers.isEmpty) {
@@ -88,6 +95,8 @@ object DataNode {
             val searchCriteria =  new SearchCriteria {{
                 addMetadata(mc)
                 setCountQuery(false)
+              if (objectType.nonEmpty)
+                setObjectType(objectType.get)
             }}
             oec.graphService.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
         }
@@ -203,19 +212,24 @@ object DataNode {
     newRequest.getContext.put("versioning", "disabled")
     // Enrich Hierarchy and Update the nodes
     nodeList.map(node => {
-      enrichHierarchyAndUpdate(newRequest, node.getIdentifier, status, hierarchyKey, hierarchyFunc)
+      enrichHierarchyAndUpdate(newRequest, node, status, hierarchyKey, hierarchyFunc)
     }).head
   }
 
   @throws[Exception]
-  private def enrichHierarchyAndUpdate(request: Request, identifier: String, status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+  private def enrichHierarchyAndUpdate(request: Request, node: Node, status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val metadata: util.Map[String, AnyRef] = request.getRequest
-
+    val identifier = node.getIdentifier
     // Image node cannot be made Live or Unlisted using system call
     if (identifier.endsWith(".img") &&
       SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS.contains(status)) metadata.remove("status")
     if (metadata.isEmpty) throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Invalid Request. Cannot update status of Image Node to $status.")
 
+    // Update previous status and status update Timestamp
+    if (metadata.containsKey("status")) {
+      metadata.put("prevStatus", node.getMetadata.get("status"))
+      metadata.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+    }
     // Generate new request object for Each request
     val newRequest = new Request(request)
     newRequest.putAll(metadata)
@@ -261,6 +275,44 @@ object DataNode {
       if (node.getMetadata == null && !objectType.equalsIgnoreCase(node.getObjectType) && node.getMetadata.get("status").asInstanceOf[String].equalsIgnoreCase("failed"))
         throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Cannot update content with FAILED status for id : ${node.getIdentifier}.")
     })
+  }
+
+  @throws[Exception]
+  def search(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
+    list(request, Some(request.getObjectType)).map(nodeList => {
+      validateNodeList(request, nodeList)
+      val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
+      val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
+      if (CollectionUtils.isEmpty(fields) && CollectionUtils.isNotEmpty(extPropNameList))
+        populateExternalProperties(nodeList.asScala.toList, extPropNameList, request, extPropNameList)
+      else if (CollectionUtils.isNotEmpty(extPropNameList) && fields.exists(field => extPropNameList.contains(field)))
+        populateExternalProperties(nodeList.asScala.toList, fields, request, extPropNameList)
+      else
+        Future(nodeList.asScala.toList)
+    }).flatMap(f => f) recoverWith {
+      case e: CompletionException => throw e.getCause
+    }
+  }
+
+  private def populateExternalProperties(nodes: List[Node], fields: List[String], request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
+    request.put("identifiers", nodes.map(node => node.getIdentifier))
+    val externalPropsResponse = oec.graphService.readExternalProps(request, externalProps.filter(prop => fields.contains(prop)))
+    externalPropsResponse.map(response => {
+      nodes.foreach(node => {
+        val externalData = Optional.ofNullable(response.get(node.getIdentifier).asInstanceOf[util.Map[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
+        node.getMetadata.putAll(externalData)
+      })
+      nodes
+    })
+  }
+
+  private def validateNodeList(request: Request, nodeList: util.List[Node]): Unit = {
+    val requestIdentifiers = request.get("identifier").asInstanceOf[util.List[String]]
+    if (requestIdentifiers.length != nodeList.length) {
+      val nodeIdentifiers = nodeList.map(node => node.getIdentifier)
+      val missingIds = requestIdentifiers.filter(identifier => !nodeIdentifiers.contains(identifier))
+      throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), s"Request contains invalid identifiers : ${missingIds.mkString("[", ", ", "]")}.")
+    }
   }
 
   private def getStatus(request: Request, nodeList: util.List[Node]): String = {

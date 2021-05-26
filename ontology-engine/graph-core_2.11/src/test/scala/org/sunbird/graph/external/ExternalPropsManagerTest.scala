@@ -69,6 +69,27 @@ class ExternalPropsManagerTest extends BaseSpec {
         }
     }
 
+    "fetchProps" should "read list cassandra record successfully" in {
+        val request = new Request()
+        request.setObjectType("ObjectCategoryDefinition")
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("objectType", "ObjectCategoryDefinition")
+                put("schemaName", "objectcategorydefinition")
+            }
+        })
+        request.put("identifiers", List("obj-cat:course_collection_all"))
+        val future: Future[Response] = ExternalPropsManager.fetchProps(request, List("objectMetadata"))
+        future map { response => {
+            assert(null != response)
+            assert(response.getResponseCode == ResponseCode.OK)
+            assert(StringUtils.isNotBlank(response.getResult.get("obj-cat:course_collection_all").asInstanceOf[util.Map[String, AnyRef]].get("objectMetadata").asInstanceOf[util.Map[String, AnyRef]].get("config").asInstanceOf[String]))
+        }
+        }
+    }
+
     "deleteProps" should "delete a cassandra record successfully" in {
         val request = new Request()
         request.setObjectType("ObjectCategoryDefinition")

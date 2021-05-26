@@ -10,10 +10,11 @@ import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
-import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinitionMap}
+import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition, ObjectCategoryDefinitionMap}
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
 object NodeUtil {
@@ -22,10 +23,10 @@ object NodeUtil {
 
     def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
-        val categoryDefinitionId = ObjectCategoryDefinitionMap.prepareCategoryId(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType.toLowerCase().replace("image", ""), node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
-        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), categoryDefinitionId)
+        val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType.toLowerCase().replace("image", ""), node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
+        val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
-        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), categoryDefinitionId).asJava
+        val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition).asJava
         val finalMetadata = new util.HashMap[String, AnyRef]()
         finalMetadata.put("objectType",node.getObjectType)
         finalMetadata.putAll(updatedMetadataMap)
@@ -151,25 +152,27 @@ object NodeUtil {
         else entry.getValue
     }
 
+    // TODO: we should get the list from configuration.
+    private def relationObjectAttributes(objectType: String): List[String] = {
+      if (StringUtils.equalsAnyIgnoreCase("framework", objectType)) List("description", "status", "type") else List("description", "status")
+    }
+
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {
-        if("out".equalsIgnoreCase(direction))
-            new util.HashMap[String, Object]() {{
-                put("identifier", rel.getEndNodeId.replace(".img", ""))
-                put("name", rel.getEndNodeName)
-                put("objectType", rel.getEndNodeObjectType.replace("Image", ""))
-                put("relation", rel.getRelationType)
-                put("description", rel.getEndNodeMetadata.get("description"))
-                put("status", rel.getEndNodeMetadata.get("status"))
-            }}
-        else
-            new util.HashMap[String, Object]() {{
-                put("identifier", rel.getStartNodeId.replace(".img", ""))
-                put("name", rel.getStartNodeName)
-                put("objectType", rel.getStartNodeObjectType.replace("Image", ""))
-                put("relation", rel.getRelationType)
-                put("description", rel.getStartNodeMetadata.get("description"))
-                put("status", rel.getStartNodeMetadata.get("status"))
-            }}
+        if("out".equalsIgnoreCase(direction)) {
+          val objectType = rel.getEndNodeObjectType.replace("Image", "")
+          val relData = Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
+            "name" -> rel.getEndNodeName,
+            "objectType" -> objectType,
+            "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
+          mapAsJavaMap(relData)
+        } else {
+          val objectType = rel.getStartNodeObjectType.replace("Image", "")
+          val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
+            "name" -> rel.getStartNodeName,
+            "objectType" -> objectType,
+            "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
+          mapAsJavaMap(relData)
+        }
     }
 
     def getLanguageCodes(node: Node): util.List[String] = {
