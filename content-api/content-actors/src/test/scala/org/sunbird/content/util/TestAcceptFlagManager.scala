@@ -8,7 +8,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.content.actors.{BaseSpec, ContentActor}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -37,6 +37,9 @@ class TestAcceptFlagManager extends BaseSpec with MockFactory {
     (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234")))).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getRequest()
     request.getContext.put("identifier","domain")
     request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "domain")))
@@ -56,5 +59,23 @@ class TestAcceptFlagManager extends BaseSpec with MockFactory {
       }
     })
     request
+  }
+
+  private def getCategoryNode(): util.List[Node] = {
+    val node = new Node()
+    node.setIdentifier("board")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Category")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("code", "board")
+        put("orgIdFieldName", "boardIds")
+        put("targetIdFieldName", "targetBoardIds")
+        put("searchIdFieldName", "se_boardIds")
+        put("searchLabelFieldName", "se_boards")
+        put("status", "Live")
+      }
+    })
+    util.Arrays.asList(node)
   }
 }

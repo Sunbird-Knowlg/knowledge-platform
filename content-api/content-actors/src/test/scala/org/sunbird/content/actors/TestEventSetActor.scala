@@ -58,11 +58,14 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
         (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
         (graphDB.addNode _).expects(where { (g: String, n:Node) => n.getObjectType.equals("EventSet")}).returns(Future(eventSetNode)).once()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanTwice()
+
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
             {
                 add(eventNode)
             }
-        }))
+        })).anyNumberOfTimes()
         (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
         val request = getContentRequest()
         val eventSet = mapAsJavaMap(Map(
@@ -98,13 +101,18 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
         (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
         (graphDB.upsertNode _).expects(*, *, *).returns(Future(eventSetNode))
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanTwice()
+
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
             {
                 add(eventNode)
             }
-        }))
+        })).noMoreThanOnce()
         (graphDB.getNodeByUniqueId _).expects(*, *, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
         (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
+
+
         val request = getContentRequest()
         val eventSet = mapAsJavaMap(Map(
             "name" -> "New Content", "code" -> "1234",
@@ -149,6 +157,9 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         val eventSetNode = getEventSetCollectionNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
         (graphDB.upsertNode _).expects(*, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
@@ -389,6 +400,24 @@ class TestEventSetActor extends BaseSpec with MockFactory {
             }
         })
         node
+    }
+
+    private def getCategoryNode(): util.List[Node] = {
+        val node = new Node()
+        node.setIdentifier("board")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Category")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("code", "board")
+                put("orgIdFieldName", "boardIds")
+                put("targetIdFieldName", "targetBoardIds")
+                put("searchIdFieldName", "se_boardIds")
+                put("searchLabelFieldName", "se_boards")
+                put("status", "Live")
+            }
+        })
+        util.Arrays.asList(node)
     }
 
 
