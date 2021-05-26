@@ -73,6 +73,6 @@
       "default": "No"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }
 

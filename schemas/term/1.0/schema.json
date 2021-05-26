@@ -68,5 +68,5 @@
       "dataType": "string"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }
