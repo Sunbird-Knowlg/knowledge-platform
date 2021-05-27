@@ -5,7 +5,7 @@ import java.util
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -22,8 +22,11 @@ class TestItemSetActor extends BaseSpec with MockFactory {
   it should "create a itemSetNode and store it in neo4j" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getItemSetRequest()
     request.setRequest(mapAsJavaMap(Map("name" -> "test-itemset", "code" -> "1234")))
     request.setOperation("createItemSet")
@@ -35,10 +38,13 @@ class TestItemSetActor extends BaseSpec with MockFactory {
   it should "return success response for updateItemSet" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).repeated(2)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getItemSetRequest()
     request.getContext.put("identifier", "1234")
     request.put("name", "test")
@@ -69,10 +75,13 @@ class TestItemSetActor extends BaseSpec with MockFactory {
   it should "return success response for reviewItemSet" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).repeated(3)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getItemSetRequest()
     request.getContext.put("identifier","do_1234")
     request.put("name", "test")
@@ -86,10 +95,13 @@ class TestItemSetActor extends BaseSpec with MockFactory {
   it should "return success response for retireItemSet" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).repeated(2)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getItemSetRequest()
     request.getContext.put("identifier","do_1234")
     request.put("name", "test")
@@ -127,6 +139,24 @@ class TestItemSetActor extends BaseSpec with MockFactory {
     })
     node.setObjectType("ItemSet")
     node
+  }
+
+  private def getCategoryNode(): util.List[Node] = {
+    val node = new Node()
+    node.setIdentifier("board")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Category")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("code", "board")
+        put("orgIdFieldName", "boardIds")
+        put("targetIdFieldName", "targetBoardIds")
+        put("searchIdFieldName", "se_boardIds")
+        put("searchLabelFieldName", "se_boards")
+        put("status", "Live")
+      }
+    })
+    util.Arrays.asList(node)
   }
 
 }
