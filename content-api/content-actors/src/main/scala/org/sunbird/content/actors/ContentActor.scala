@@ -156,7 +156,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val cacheKey = "channel_" + request.getRequest.getOrDefault("channel", "").asInstanceOf[String] + "_license"
 			val defaultLicense = RedisCache.get(cacheKey, null, 0)
 			if (StringUtils.isNotEmpty(defaultLicense)) request.getRequest.put("license", defaultLicense)
-			else System.out.println("Default License is not available for channel: " + request.getRequest.getOrDefault("channel", "").asInstanceOf[String])
+			else println("Default License is not available for channel: " + request.getRequest.getOrDefault("channel", "").asInstanceOf[String])
 		}
 	}
 

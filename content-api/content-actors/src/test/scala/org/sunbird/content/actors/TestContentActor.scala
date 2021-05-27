@@ -35,8 +35,6 @@ class TestContentActor extends BaseSpec with MockFactory {
         request.put("content", content)
         assert(true)
         val response = callActor(request, Props(new ContentActor()))
-        println("Response: " + JsonUtils.serialize(response))
-
     }
 
     it should "create a node and store it in neo4j" in {
