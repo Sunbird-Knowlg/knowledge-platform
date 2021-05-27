@@ -242,22 +242,4 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 			ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:practice_question_set\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n            \"license\",\n            \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
 		node
 	}
-
-	private def getCategoryNode(): util.List[Node] = {
-		val node = new Node()
-		node.setIdentifier("board")
-		node.setNodeType("DATA_NODE")
-		node.setObjectType("Category")
-		node.setMetadata(new util.HashMap[String, AnyRef]() {
-			{
-				put("code", "board")
-				put("orgIdFieldName", "boardIds")
-				put("targetIdFieldName", "targetBoardIds")
-				put("searchIdFieldName", "se_boardIds")
-				put("searchLabelFieldName", "se_boards")
-				put("status", "Live")
-			}
-		})
-		util.Arrays.asList(node)
-	}
 }

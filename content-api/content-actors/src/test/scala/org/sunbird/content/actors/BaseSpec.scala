@@ -42,4 +42,22 @@ class BaseSpec extends FlatSpec with Matchers {
         node.setIdentifier("test_id")
         node
     }
+
+    def getCategoryNode(): util.List[Node] = {
+        val node = new Node()
+        node.setIdentifier("board")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Category")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("code", "board")
+                put("orgIdFieldName", "boardIds")
+                put("targetIdFieldName", "targetBoardIds")
+                put("searchIdFieldName", "se_boardIds")
+                put("searchLabelFieldName", "se_boards")
+                put("status", "Live")
+            }
+        })
+        util.Arrays.asList(node)
+    }
 }
