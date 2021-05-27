@@ -402,8 +402,46 @@ class TestContentActor extends BaseSpec with MockFactory {
         request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
         request.setOperation("rejectContent")
         val response = callActor(request, Props(new ContentActor()))
-        println("Response_message" + response)
         assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return client exception for 'rejectContent' without status" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val node =  getValidNodeToReject()
+        node.getMetadata.put("status","")
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123")))).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.setOperation("rejectContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("ERR_METADATA_ISSUE".equals(response.getParams.getErr))
+        assert("Content metadata error, status is blank for identifier:do_1234".equals(response.getParams.getErrmsg))
+    }
+
+    it should "return client exception for 'rejectContent' with invalid rejectReasons format" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val node =  getValidNodeToReject()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123")))).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123","rejectReasons" -> "Incorrect Content")))
+        request.setOperation("rejectContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("ERR_INVALID_REQUEST_FORMAT".equals(response.getParams.getErr))
+        assert("rejectReasons should be a Array".equals(response.getParams.getErrmsg))
     }
 
     private def getAssetNodeToUpload(): Node = {
