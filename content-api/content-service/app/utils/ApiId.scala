@@ -51,8 +51,8 @@ object ApiId {
 	val UPDATE_ASSET = "api.asset.update"
 	val UPLOAD_ASSET = "api.asset.upload"
 	val UPLOAD_PRE_SIGNED_ASSET= "api.asset.upload.url"
+	val RETIRE_ASSET = "api.asset.retire"
 	val COPY_ASSET = "api.asset.copy"
-
 
 
 	//Collection V4 apis

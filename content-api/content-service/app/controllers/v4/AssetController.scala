@@ -93,6 +93,17 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         getResult(ApiId.UPLOAD_PRE_SIGNED_ASSET, contentActor, contentRequest)
     }
 
+    def retire(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.put("identifier", identifier)
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "retireContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.RETIRE_ASSET, contentActor, contentRequest)
+    }
+
     def copy(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
@@ -103,4 +114,5 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY_ASSET, assetActor, contentRequest, version = apiVersion)
     }
+
 }

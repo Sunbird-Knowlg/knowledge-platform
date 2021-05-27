@@ -82,6 +82,13 @@ class AssetSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
 
+        "return success response for retire API" in {
+            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val result = controller.retire("01234")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
         "return success response for copy API" in {
             val controller = app.injector.instanceOf[controllers.v4.AssetController]
             val json: JsValue = Json.parse("""{"request": {"asset": { "name": "Asset-Test"}}}""")

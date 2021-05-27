@@ -7,6 +7,7 @@ import java.util.UUID
 
 import akka.actor.ActorRef
 import akka.pattern.Patterns
+import org.apache.commons.collections.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Response, ResponseHandler}
@@ -95,6 +96,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 val objectType = result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault("objectType", "Content").asInstanceOf[String]
                 setObjectTypeForRead(objectType, result.getResult.getOrDefault("content", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]])
             }
+            if(StringUtils.equalsIgnoreCase("4.0", version)) updateV4Response(result)
             val response: String = JavaJsonUtils.serialize(result);
             result.getResponseCode match {
                 case ResponseCode.OK => Ok(response).as("application/json")
@@ -206,6 +208,13 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         result.setVer(version)
         setResponseEnvelope(result)
         Future(BadRequest(JavaJsonUtils.serialize(result)).as("application/json"))
+    }
+    //TODO: Update Response structure for V4 API'S
+    def updateV4Response(result: Response): Unit = {
+        result.getResult.remove("node_id")
+        val temp = result.getResult.getOrDefault("content", new java.util.HashMap[String, AnyRef] ()).asInstanceOf[java.util.Map[String, AnyRef]]
+        if(MapUtils.isNotEmpty(temp))
+            result.put(temp.get("objectType").asInstanceOf[String].toLowerCase.replace("image", ""), temp)
     }
 
 }
