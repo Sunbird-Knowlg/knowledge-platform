@@ -164,7 +164,6 @@ class TestUpdateHierarchy extends BaseSpec {
 
     "updateHierarchy on already existing hierarchy" should "recompose the hierarchy structure and store in in cassandra and also update neo4j" in {
         UpdateHierarchyManager.getContentNode("do_31250856200414822416938", HierarchyConstants.TAXONOMY_ID).map(node => {
-            println("Node data from neo4j ----- id: " + node.getIdentifier + "node type:  " + node.getNodeType + " node metadata : " + node.getMetadata)
             val request = new Request()
             val context = getContext()
             context.put(HierarchyConstants.SCHEMA_NAME, "collection")
