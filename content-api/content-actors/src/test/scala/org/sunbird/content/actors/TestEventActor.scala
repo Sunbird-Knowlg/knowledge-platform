@@ -42,7 +42,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getRequest.putAll(mapAsJavaMap(Map()))
         request.setOperation("publishContent")
         val response = callActor(request, Props(new EventActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -197,11 +197,11 @@ class TestEventActor extends BaseSpec with MockFactory {
         node.setObjectType("Event")
         node.setMetadata(new util.HashMap[String, AnyRef]() {
             {
-                put("identifier", "do_1234")
+                //put("identifier", "do_1234")
                 put("status", "Draft")
                 put("name", "Resource_1")
                 put("versionKey", "test_321")
-                put("channel", "in.ekstep")
+                //put("channel", "in.ekstep")
                 put("code", "Resource_1")
                 put("startDate", "2021-02-02")
                 put("endDate", "2021-02-02")
