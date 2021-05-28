@@ -63,7 +63,7 @@ object DataNode {
             if (StringUtils.equalsIgnoreCase(objectType,schema) ||
               (StringUtils.equalsIgnoreCase(objectType, "Content") && contentObjectTypes.contains(schema))) {
               request.getContext.put("schemaName", schema)
-            } else throw new ResourceNotFoundException("NOT_FOUND", "Error! Node(s) doesn't Exists.")
+            } else throw new ResourceNotFoundException("INVALID_OBJECT_ACCESS", s"There is no $objectType with identifier: ${node.getIdentifier}")
 
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
