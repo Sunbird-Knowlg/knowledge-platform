@@ -40,7 +40,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     assert("test_321".equals(response.get("versionKey")))
   }
 
-  it should "copy asset with invalid objectType, should through resource not found exception" in {
+  it should "copy asset with invalid objectType, should through client exception" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
@@ -49,8 +49,8 @@ class TestAssetActor extends BaseSpec with MockFactory {
     val request = getContentRequest()
     request.setOperation("copy")
     val response = callActor(request, Props(new AssetActor()))
-    assert(response.getResponseCode == ResponseCode.RESOURCE_NOT_FOUND)
-    assert(response.getParams.getErrmsg == "Error! Node(s) doesn't Exists.")
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErrmsg == "Only asset can be copied")
   }
 
   private def getNode(): Node = {
