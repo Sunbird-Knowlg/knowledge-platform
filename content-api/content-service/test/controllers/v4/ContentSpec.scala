@@ -55,6 +55,13 @@ class ContentSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
 
+        "return success response for rejectFlag API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val result = controller.rejectFlag("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
         "return success response for discard API" in {
             val controller = app.injector.instanceOf[controllers.v4.ContentController]
             val result = controller.discard("0123")(FakeRequest())

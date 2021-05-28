@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
+import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RejectFlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -46,6 +46,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "discardContent" => discard(request)
 			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
+			case "rejectFlag"	=> rejectFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
@@ -140,6 +141,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def acceptFlag(request: Request): Future[Response] = {
 		AcceptFlagManager.acceptFlag(request)
+	}
+
+	def rejectFlag(request: Request): Future[Response] = {
+		RejectFlagManager.rejectFlag(request)
 	}
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
