@@ -47,6 +47,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
     it should "create an eventset and store it in neo4j" in {
         val eventNode = getEventNode()
         val eventSetNode = getEventSetNode()
+        enrichFrameworkMasterCategoryMap()
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -58,9 +59,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
         (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
         (graphDB.addNode _).expects(where { (g: String, n:Node) => n.getObjectType.equals("EventSet")}).returns(Future(eventSetNode)).once()
-        val nodes: util.List[Node] = getCategoryNode()
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanTwice()
-
+        
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
             {
                 add(eventNode)
@@ -88,6 +87,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
     it should "update an eventset and store it in neo4j" in {
         val eventNode = getEventNode()
         val eventSetNode = getEventSetCollectionNode()
+        enrichFrameworkMasterCategoryMap()
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -101,8 +101,6 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
         (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
         (graphDB.upsertNode _).expects(*, *, *).returns(Future(eventSetNode))
-        val nodes: util.List[Node] = getCategoryNode()
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanTwice()
 
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {
             {

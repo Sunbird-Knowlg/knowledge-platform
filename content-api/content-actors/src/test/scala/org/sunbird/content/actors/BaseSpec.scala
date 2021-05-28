@@ -9,6 +9,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.schema.FrameworkMasterCategoryMap
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -59,5 +60,31 @@ class BaseSpec extends FlatSpec with Matchers {
             }
         })
         util.Arrays.asList(node)
+    }
+
+    def enrichFrameworkMasterCategoryMap() = {
+        val node = new Node()
+        node.setIdentifier("board")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Category")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("code", "board")
+                put("orgIdFieldName", "boardIds")
+                put("targetIdFieldName", "targetBoardIds")
+                put("searchIdFieldName", "se_boardIds")
+                put("searchLabelFieldName", "se_boards")
+                put("status", "Live")
+            }
+        })
+        val masterCategories: scala.collection.immutable.Map[String, AnyRef] = Map(
+            node.getMetadata.getOrDefault("code", "").asInstanceOf[String] ->
+              Map[String, AnyRef]("code" -> node.getMetadata.getOrDefault("code", "").asInstanceOf[String],
+                  "orgIdFieldName" -> node.getMetadata.getOrDefault("orgIdFieldName", "").asInstanceOf[String],
+                  "targetIdFieldName" -> node.getMetadata.getOrDefault("targetIdFieldName", "").asInstanceOf[String],
+                  "searchIdFieldName" -> node.getMetadata.getOrDefault("searchIdFieldName", "").asInstanceOf[String],
+                  "searchLabelFieldName" -> node.getMetadata.getOrDefault("searchLabelFieldName", "").asInstanceOf[String])
+        )
+        FrameworkMasterCategoryMap.put("masterCategories", masterCategories)
     }
 }
