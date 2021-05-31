@@ -393,7 +393,7 @@ object CollectionCSVManager {
       val csvURL = ss.uploadFile(folder, csvFile)
       println("CollectionCSVManager:createCSVAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
 
-      try if (null != csvFile && csvFile.exists) deleteQuietly(csvFile)
+      try if (null != csvFile && csvFile.exists) csvFile.delete()
       catch {
         case e: SecurityException =>
           println("Error! While deleting the local csv file: " + csvFile.getAbsolutePath + e)
