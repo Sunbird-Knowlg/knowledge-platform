@@ -39,7 +39,6 @@ public class BaseTest {
 			public void run() {
 				try {
 					tearEmbeddedNeo4JSetup();
-					System.out.println("cleanup Done!!");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

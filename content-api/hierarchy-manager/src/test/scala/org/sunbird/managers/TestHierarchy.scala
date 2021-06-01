@@ -181,7 +181,6 @@ class TestHierarchy extends BaseSpec {
         request.put("mode","edit")
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
-            println("result ::::=="+response.getResult)
             assert(response.getResponseCode.code() == 200)
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_26543193441064550414.img'")
               .one().getString("hierarchy")
@@ -349,7 +348,7 @@ class TestHierarchy extends BaseSpec {
         executeCassandraQuery(script_3)
         request.setContext(new util.HashMap[String, AnyRef]() {
             {
-                put("objectType", "Content")
+                put("objectType", "Collection")
                 put("graph_id", "domain")
                 put("version", "1.0")
                 put("schemaName", "collection")
@@ -372,7 +371,7 @@ class TestHierarchy extends BaseSpec {
         graphDb.execute("UNWIND [{ownershipType:[\"createdBy\"],copyright:\"Kerala State\",previewUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_11307457137049600011786/eng-presentation_1597086905822.pdf\",keywords:[\"By the Hands of the Nature\"],subject:[\"Geography\"],channel:\"0126202691023585280\",downloadUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/ecar_files/do_11307457137049600011786/by-the-hands-of-the-nature_1597087677810_do_11307457137049600011786_1.0.ecar\",organisation:[\"Kerala State\"],textbook_name:[\"Contemporary India - I\"],showNotification:true,language:[\"English\"],source:\"Kl 4\",mimeType:\"application/pdf\",IL_FUNC_OBJECT_TYPE:\"Content\",sourceURL:\"https://diksha.gov.in/play/content/do_312783564254150656111171\",gradeLevel:[\"Class 9\"],me_totalRatingsCount:36,appIcon:\"https://ntpproductionall.blob.core.windows.net/ntp-content-production/content/do_312783564254150656111171/artifact/screenshot-from-2019-06-14-11-59-39_1560493827569.thumb.png\",level2Name:[\"Physical Features of India\"],appId:\"prod.diksha.portal\",contentEncoding:\"identity\",artifactUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_11307457137049600011786/eng-presentation_1597086905822.pdf\",sYS_INTERNAL_LAST_UPDATED_ON:\"2020-08-10T19:27:58.911+0000\",contentType:\"Resource\",IL_UNIQUE_ID:\"do_11307457137049600011786\",audience:[\"Student\"],visibility:\"Default\",author:\"Kerala State\",consumerId:\"89490534-126f-4f0b-82ac-3ff3e49f3468\",mediaType:\"content\",osId:\"org.ekstep.quiz.app\",languageCode:[\"en\"],lastPublishedBy:\"ee2a003a-10a9-4152-8907-a905b9e1f943\",version:2,pragma:[\"external\"],license:\"CC BY 4.0\",prevState:\"Draft\",size:10005190,lastPublishedOn:\"2020-08-10T19:27:57.797+0000\",name:\"By the Hands of the Nature\",status:\"Live\",code:\"6633b233-bc5a-4936-a7a0-da37ebd33868\",prevStatus:\"Processing\",origin:\"do_312783564254150656111171\",streamingUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_11307457137049600011786/eng-presentation_1597086905822.pdf\",medium:[\"English\"],posterImage:\"https://ntpproductionall.blob.core.windows.net/ntp-content-production/content/do_312783565429334016112815/artifact/screenshot-from-2019-06-14-11-59-39_1560493827569.png\",idealScreenSize:\"normal\",createdOn:\"2020-07-29T10:03:33.003+0000\",copyrightYear:2019,contentDisposition:\"inline\",lastUpdatedOn:\"2020-08-10T19:27:57.376+0000\",level1Concept:[\"Physical Features of India\"],dialcodeRequired:\"No\",owner:\"Kerala SCERT\",lastStatusChangedOn:\"2020-08-10T19:27:58.907+0000\",createdFor:[\"0126202691023585280\"],creator:\"SAJEEV THOMAS\",os:[\"All\"],level1Name:[\"Contemporary India - I\"],pkgVersion:1,versionKey:\"1597087677376\",idealScreenDensity:\"hdpi\",framework:\"kl_k-12\",s3Key:\"ecar_files/do_11307457137049600011786/by-the-hands-of-the-nature_1597087677810_do_11307457137049600011786_1.0.ecar\",me_averageRating:3,createdBy:\"f20a4bbf-df17-425b-8e43-bd3dd57bde83\",compatibilityLevel:4,ownedBy:\"0126202691023585280\",board:\"CBSE\",resourceType:\"Learn\"},{code:\"finemanfine\",previewUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/questionset/do_113212597854404608111/do_113212597854404608111_html_1612875515166.html\",allowSkip:\"Yes\",containsUserData:\"No\",downloadUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/questionset/do_113212597854404608111/test-question-set_1612875514981_do_113212597854404608111_5_SPINE.ecar\",description:\"Updated QS Description\",language:[\"English\"],mimeType:\"application/vnd.sunbird.questionset\",showHints:\"No\",createdOn:\"2021-02-09T10:19:09.026+0000\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",pdfUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/questionset/do_113212597854404608111/do_113212597854404608111_pdf_1612875515932.pdf\",contentDisposition:\"inline\",lastUpdatedOn:\"2021-02-09T12:58:36.155+0000\",contentEncoding:\"gzip\",showSolutions:\"Yes\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113212597854404608111\",lastStatusChangedOn:\"2021-02-09T12:58:36.155+0000\",requiresSubmit:\"Yes\",visibility:\"Default\",showTimer:\"No\",summaryType:\"Complete\",consumerId:\"fa13b438-8a3d-41b1-8278-33b0c50210e4\",childNodes:[\"do_113212598840246272112\",\"do_113212599692050432114\",\"do_113212600505057280116\"],setType:\"materialised\",languageCode:[\"en\"],version:1,pkgVersion:5,versionKey:\"1612875494848\",showFeedback:\"Yes\",license:\"CC BY 4.0\",depth:0,lastPublishedOn:\"2021-02-09T12:58:34.976+0000\",compatibilityLevel:5,name:\"Test Question Set\",navigationMode:\"linear\",shuffle:true,status:\"Live\"}] as row CREATE (n:domain) SET n += row")
         request.setContext(new util.HashMap[String, AnyRef]() {
             {
-                put("objectType", "Content")
+                put("objectType", "Collection")
                 put("graph_id", "domain")
                 put("version", "1.0")
                 put("schemaName", "collection")
@@ -384,8 +383,6 @@ class TestHierarchy extends BaseSpec {
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
             assert(null != response.getResult.get("content"))
-            println("hierarchy ::::: "+response.getResult.get("content"))
-            //assert(null != response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children"))
             val children = response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
             assert(null!=children && !children.isEmpty)
         })

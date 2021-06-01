@@ -5,10 +5,10 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-
 import java.util
+
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -24,6 +24,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getContext.put("objectType","Content")
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -38,6 +39,10 @@ class TestEventActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDraftNode())).anyNumberOfTimes()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getDraftNode()))
+
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
@@ -57,6 +62,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getContext.put("objectType","Content")
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -68,6 +74,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234.img")
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234.img")))
+        request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -87,6 +94,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
         val response = callActor(request, Props(new EventActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -99,6 +107,10 @@ class TestEventActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getDraftNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")

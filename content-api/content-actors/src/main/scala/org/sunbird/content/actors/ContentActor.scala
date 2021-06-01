@@ -22,6 +22,8 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.HierarchyManager
+import org.sunbird.managers.HierarchyManager.hierarchyPrefix
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -47,6 +49,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "acceptFlag" => acceptFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
+			case "systemUpdate" => systemUpdate(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -153,7 +156,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val cacheKey = "channel_" + request.getRequest.getOrDefault("channel", "").asInstanceOf[String] + "_license"
 			val defaultLicense = RedisCache.get(cacheKey, null, 0)
 			if (StringUtils.isNotEmpty(defaultLicense)) request.getRequest.put("license", defaultLicense)
-			else System.out.println("Default License is not available for channel: " + request.getRequest.getOrDefault("channel", "").asInstanceOf[String])
+			else println("Default License is not available for channel: " + request.getRequest.getOrDefault("channel", "").asInstanceOf[String])
 		}
 	}
 
@@ -205,4 +208,31 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
 		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
 	}
+
+	def systemUpdate(request: Request): Future[Response] = {
+		val identifier = request.getContext.get("identifier").asInstanceOf[String]
+		RequestUtil.validateRequest(request)
+		RedisCache.delete(hierarchyPrefix + request.get("rootId"))
+
+		val readReq = new Request(request)
+		val identifiers = new util.ArrayList[String](){{
+			add(identifier)
+			if (!identifier.endsWith(".img"))
+				add(identifier.concat(".img"))
+		}}
+		readReq.put("identifiers", identifiers)
+		DataNode.list(readReq).flatMap(response => {
+			val objectType = request.getContext.get("objectType").asInstanceOf[String]
+			if (objectType.toLowerCase.equals("collection"))
+				DataNode.systemUpdate(request, response, "content", Option(HierarchyManager.getHierarchy))
+			else
+				DataNode.systemUpdate(request, response,"", None)
+		}).map(node => {
+			val response: Response = ResponseHandler.OK
+			response.put("identifier", identifier)
+			response.put("status", "success")
+			response
+		})
+	}
+
 }
