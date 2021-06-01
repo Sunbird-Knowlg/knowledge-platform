@@ -22,7 +22,6 @@ class DefaultMimeTypeImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         val resFuture = new DefaultMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("sample.pdf").toURI), None, UploadParams())
         resFuture.map(result => {
-            println("Response: " + result)
             result
         })
 
@@ -35,7 +34,6 @@ class DefaultMimeTypeImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         val resFuture = new DefaultMimeTypeMgrImpl().upload(identifier, node, "https://ekstep-public-prod.s3-ap-south-1.amazonaws.com/content/do_30083930/artifact/aser-6.0.0.17_215_1505458979_1505459188679.apk", None, UploadParams())
         resFuture.map(result => {
-            println("Response: " + result)
             result
         })
 
@@ -64,7 +62,6 @@ class DefaultMimeTypeImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         val resFuture = new DefaultMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("sample.pdf").toURI), None,  UploadParams(Some(""), Some(false)))
         resFuture.map(result => {
-            println("Response: " + result)
             assert(result != null)
         })
     }
