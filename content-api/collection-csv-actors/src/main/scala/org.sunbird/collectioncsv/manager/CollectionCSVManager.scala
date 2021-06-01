@@ -6,9 +6,9 @@ import org.apache.commons.io.ByteOrderMark
 import org.apache.commons.io.FileUtils.{deleteQuietly, touch}
 import org.apache.commons.io.input.BOMInputStream
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.collectioncsv.util.CollectionTOCConstants
+import org.sunbird.collectioncsv.util.{CollectionTOCConstants, CollectionTOCUtil}
 import org.sunbird.collectioncsv.util.CollectionTOCConstants.{COLLECTION_TOC_ALLOWED_MIMETYPE, CONTENT_TYPE}
-import org.sunbird.collectioncsv.util.CollectionTOCUtil.linkDIALCode
+import org.sunbird.collectioncsv.validator.CollectionCSVValidator
 import org.sunbird.collectioncsv.validator.CollectionCSVValidator.{allowedContentTypes, collectionNodeIdentifierHeader, collectionOutputTocHeaders, contentTypeToUnitTypeMapping, createCSVMandatoryHeaderCols, folderHierarchyHdrColumnsList, linkedContentHdrColumnsList, mappedTopicsHeader, maxFolderLevels}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.Slug.makeSlug
@@ -27,19 +27,21 @@ import scala.collection.immutable.{ListMap, Map}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters.{asJavaIterableConverter, mapAsScalaMapConverter}
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
-object CollectionCSVManager {
+class CollectionCSVManager {
 
   private val CONTENT_FOLDER = "cloud_storage.content.folder"
+
+  val collectionTOCUtil: CollectionTOCUtil = CollectionCSVValidator.collectionTOCUtil
 
   implicit val ss: StorageService = new StorageService
 
   def readInputCSV(request: Request): CSVParser = {
-    println("CollectionCSVManager --> readInputCSV method")
+    TelemetryManager.log("CollectionCSVManager --> readInputCSV method")
     val file = request.getRequest.get("file").asInstanceOf[File]
     val inputStream: InputStream = new FileInputStream(file)
-    println("CollectionCSVManager --> readInputCSV --> file: " + file.getAbsolutePath)
+    TelemetryManager.log("CollectionCSVManager --> readInputCSV --> file: " + file.getAbsolutePath)
     // Reading input CSV File - START
     val csvFileFormat = CSVFormat.DEFAULT.withHeader()
     val bomInputStream = new BOMInputStream(inputStream, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE)
@@ -275,7 +277,7 @@ object CollectionCSVManager {
     updateHierarchyRequest.setContext(requestContext)
 
     val updateHierarchyResponse = UpdateHierarchyManager.updateHierarchy(updateHierarchyRequest)
-    println("CollectionCSVManager:updateCollection --> after invoking updateHierarchyManager: " + updateHierarchyResponse)
+    TelemetryManager.log("CollectionCSVManager:updateCollection --> after invoking updateHierarchyManager: " + updateHierarchyResponse)
       if(mode.equals(CollectionTOCConstants.UPDATE)) {
       //invoke DIAL code Linking
       val linkDIALCodeReqMap = folderInfoMap.map(record => {
@@ -285,7 +287,7 @@ object CollectionCSVManager {
         else  Map.empty
       }).filter(record => record.nonEmpty).toList.asInstanceOf[List[Map[String,String]]]
 
-      if(linkDIALCodeReqMap.nonEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
+      if(linkDIALCodeReqMap.nonEmpty) collectionTOCUtil.linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
     }
 
     updateHierarchyResponse
@@ -298,9 +300,9 @@ object CollectionCSVManager {
     val collectionNameSlug = makeSlug(collectionHierarchy(CollectionTOCConstants.NAME).asInstanceOf[String], true)
     val collectionTocFileName = collectionId + "_" + collectionNameSlug + "_" + contentVersionKey
     val prefix = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc/" + collectionTocFileName + fileExtension
-    println("CollectionCSVManager --> getCloudPath --> invoke getUri using prefix: " + prefix)
+    TelemetryManager.log("CollectionCSVManager --> getCloudPath --> invoke getUri using prefix: " + prefix)
     val path = ss.getUri(prefix)
-    println("CollectionCSVManager --> getCloudPath --> path: " + path)
+    TelemetryManager.log("CollectionCSVManager --> getCloudPath --> path: " + path)
     if (path == null || path.isEmpty || path.isBlank) {
       createCSVAndStore(collectionHierarchy, collectionTocFileName+CollectionTOCConstants.COLLECTION_CSV_FILE_EXTENSION)
     }
@@ -326,14 +328,14 @@ object CollectionCSVManager {
     var csvPrinter: CSVPrinter = null
     try{
       deleteQuietly(csvFile)
-      println("CollectionCSVManager:createCSVAndStore -> Creating file for CSV at Location: " + csvFile.getAbsolutePath)
+      TelemetryManager.log("CollectionCSVManager:createCSVAndStore -> Creating file for CSV at Location: " + csvFile.getAbsolutePath)
       touch(csvFile)
 
       out = new OutputStreamWriter(new FileOutputStream(csvFile), StandardCharsets.UTF_8)
       out.write(ByteOrderMark.UTF_BOM)
 
       val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader().withRecordSeparator(System.lineSeparator()).withQuoteMode(QuoteMode.NON_NUMERIC)
-      println("CollectionCSVManager:createCSVAndStore -> Writing Headers to Output Stream for Collection | Id " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
+      TelemetryManager.log("CollectionCSVManager:createCSVAndStore -> Writing Headers to Output Stream for Collection | Id " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
       csvPrinter = new CSVPrinter(out, csvFormat)
       csvPrinter.printRecord(collectionOutputTocHeaders.asJava)
       nodesMap.foreach(record => {
@@ -389,23 +391,23 @@ object CollectionCSVManager {
       csvPrinter.flush()
 
       val folder = Platform.config.getString(CONTENT_FOLDER) + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc"
-      println("CollectionCSVManager:createCSVAndStore -> Writing CSV to Cloud Folder: " + folder)
+      TelemetryManager.log("CollectionCSVManager:createCSVAndStore -> Writing CSV to Cloud Folder: " + folder)
       val csvURL = ss.uploadFile(folder, csvFile)
-      println("CollectionCSVManager:createCSVAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
+      TelemetryManager.log("CollectionCSVManager:createCSVAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
 
       try if (null != csvFile && csvFile.exists) csvFile.delete()
       catch {
         case e: SecurityException =>
-          println("Error! While deleting the local csv file: " + csvFile.getAbsolutePath + e)
+          TelemetryManager.log("Error! While deleting the local csv file: " + csvFile.getAbsolutePath + e)
         case e: Exception =>
-          println("Error! Something Went wrong while deleting csv file: " + csvFile.getAbsolutePath + e)
+          TelemetryManager.log("Error! Something Went wrong while deleting csv file: " + csvFile.getAbsolutePath + e)
       }
 
       csvURL(1)
     }
     catch {
       case e: Exception =>
-        println("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString + " - Version Key: "
+        TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString + " - Version Key: "
           + collectionHierarchy(CollectionTOCConstants.VERSION_KEY).toString + e)
         throw new ServerException("ERROR_PROCESSING_REQUEST", "Something went wrong while Processing Request")
     } finally {
@@ -414,7 +416,7 @@ object CollectionCSVManager {
         if (out != null) out.close()
       } catch {
         case e: IOException =>
-          println("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER) + " - Version Key: "
+          TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER) + " - Version Key: "
             + collectionHierarchy(CollectionTOCConstants.VERSION_KEY) + e)
       }
     }

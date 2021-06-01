@@ -1,8 +1,7 @@
 package org.sunbird.collectioncsv.validator
 
 import org.apache.commons.csv.CSVRecord
-import org.sunbird.collectioncsv.util.CollectionTOCUtil.{getRelatedFrameworkById, searchLinkedContents, validateDialCodes}
-import org.sunbird.collectioncsv.util.CollectionTOCConstants
+import org.sunbird.collectioncsv.util.{CollectionTOCConstants, CollectionTOCUtil}
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -14,6 +13,8 @@ import scala.collection.JavaConverters.mapAsScalaMapConverter
 import scala.collection.immutable.{ListMap, Map}
 
 object CollectionCSVValidator {
+
+  val collectionTOCUtil = new CollectionTOCUtil
 
   val allowedContentTypes: List[String] = Platform.config.getStringList(CollectionTOCConstants.COLLECTION_TOC_ALLOWED_CONTENT_TYPES).toList
   val allowedNumberOfRecord: Integer = Platform.config.getInt(CollectionTOCConstants.COLLECTION_TOC_MAX_CSV_ROWS)
@@ -228,7 +229,7 @@ object CollectionCSVValidator {
     if (invalidCollectionNameErrorMessage.trim.nonEmpty)
       throw new ClientException("CSV_INVALID_COLLECTION_NAME", "Following rows have invalid Collection Name: " + invalidCollectionNameErrorMessage)
     // validate collection name column in CSV - END
-    println("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating collection name column in CSV")
+    TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating collection name column in CSV")
 
     // validate Folder Identifier column in CSV - START
     val collectionChildNodes = collectionHierarchy(CollectionTOCConstants.CHILD_NODES).asInstanceOf[List[String]]
@@ -244,7 +245,7 @@ object CollectionCSVValidator {
     if (invalidCollectionNameErrorMessage.trim.nonEmpty)
       throw new ClientException("CSV_INVALID_COLLECTION_NODE_ID", "Following rows have invalid folder identifier: " + invalidCollectionNodeIDErrorMessage)
     // validate Folder Identifier column in CSV - END
-    println("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")
+    TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")
 
     // Validate QR Codes with reserved DIAL codes - START
     val csvQRCodesList: List[String] = csvRecords.map(csvRecord => {
@@ -252,7 +253,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).toList
 
     if(csvQRCodesList.nonEmpty) {
-      val returnDIALCodes = validateDialCodes(collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, csvQRCodesList)
+      val returnDIALCodes = collectionTOCUtil.validateDialCodes(collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, csvQRCodesList)
 
       val invalidQRCodeErrorMessage = csvRecords.flatMap(csvRecord => {
         csvRecord.toMap.asScala.toMap.map(colData => {
@@ -266,7 +267,7 @@ object CollectionCSVValidator {
         throw new ClientException("CSV_INVALID_DIAL_CODES", "Following rows have invalid DIAL codes: " + invalidQRCodeErrorMessage)
     }
     // Validate QR Codes with reserved DIAL codes - END
-    println("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating QR Codes with reserved DIAL codes")
+    TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating QR Codes with reserved DIAL codes")
 
     // Validate Mapped Topics with Collection Framework data - START
     val mappedTopicsList = csvRecords.flatMap(csvRecord => {
@@ -277,7 +278,7 @@ object CollectionCSVValidator {
 
     if(mappedTopicsList.nonEmpty) {
       val frameworkId = collectionHierarchy(CollectionTOCConstants.FRAMEWORK).toString
-      val frameworkGetResponse = getRelatedFrameworkById(frameworkId)
+      val frameworkGetResponse = collectionTOCUtil.getRelatedFrameworkById(frameworkId)
       val frameworkGetResult = frameworkGetResponse.getResult.getOrDefault(CollectionTOCConstants.FRAMEWORK, new util.HashMap[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]]
       val frameworkCategories = frameworkGetResult.getOrDefault(CollectionTOCConstants.CATEGORIES, List.empty).asInstanceOf[List[Map[String, AnyRef]]]
 
@@ -306,7 +307,7 @@ object CollectionCSVValidator {
         throw new ClientException("CSV_INVALID_MAPPED_TOPICS", "Following rows have invalid Mapped Topics: " + invalidTopicsErrorMessage)
     }
     // Validate Mapped Topics with Collection Framework data - END
-    println("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Mapped Topics with Collection Framework data")
+    TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Mapped Topics with Collection Framework data")
 
     // Validate Linked Contents authenticity - START
 
@@ -317,7 +318,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).toList
 
     if (csvLinkedContentsList.nonEmpty) {
-      val returnedLinkedContentsResult: List[Map[String, AnyRef]] = searchLinkedContents(csvLinkedContentsList)
+      val returnedLinkedContentsResult: List[Map[String, AnyRef]] = collectionTOCUtil.searchLinkedContents(csvLinkedContentsList)
       val returnedLinkedContentsIdentifierList = returnedLinkedContentsResult.map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
 
       val invalidLinkedContentsErrorMessage = csvRecords.flatMap(csvRecord => {
@@ -344,7 +345,7 @@ object CollectionCSVValidator {
           throw new ClientException("CSV_INVALID_LINKED_CONTENTS_CONTENT_TYPE", "Following contents are not allowed due to invalid content types: "
             + invalidContentTypeLinkedContentsList)
       }
-      println("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Linked Contents")
+      TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Linked Contents")
       returnedLinkedContentsResult
     }
     else List.empty[Map[String, AnyRef]]

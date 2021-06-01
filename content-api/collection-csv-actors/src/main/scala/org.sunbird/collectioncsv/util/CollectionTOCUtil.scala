@@ -5,8 +5,9 @@ import org.sunbird.common.exception.{ClientException, ResponseCode, ServerExcept
 import org.apache.http.HttpHeaders.AUTHORIZATION
 import org.sunbird.collectioncsv.util.CollectionTOCConstants.BEARER
 import org.sunbird.common.Platform
-import org.sunbird.common.dto.{Response}
+import org.sunbird.common.dto.Response
 import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 import scala.collection.JavaConverters._
@@ -14,7 +15,8 @@ import java.text.MessageFormat
 import scala.collection.immutable.{HashMap, Map}
 import scala.collection.JavaConversions.mapAsJavaMap
 
-object CollectionTOCUtil {
+
+class CollectionTOCUtil {
 
   private def requestParams(params: Map[String, String]): String = {
     if (null != params) {
@@ -44,19 +46,19 @@ object CollectionTOCUtil {
 
       val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.FRAMEWORK_READ_API_URL) + "/" + frameworkId + requestParams(reqParams)
 
-      println("CollectionTOCUtil --> handleReadRequest --> requestUrl: " + requestUrl)
-      println("CollectionTOCUtil --> handleReadRequest --> headers: " + headers)
+      TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> requestUrl: " + requestUrl)
+      TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> headers: " + headers)
       val httpResponse = Unirest.get(requestUrl).headers(headers).asString
       
-      println("CollectionTOCUtil --> handleReadRequest --> httpResponse.getStatus: " + httpResponse.getStatus)
-      if ( null== httpResponse || httpResponse.getStatus != ResponseCode.OK.code()) {
+      TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> httpResponse.getStatus: " + httpResponse.getStatus)
+      if ( null== httpResponse || httpResponse.getStatus != ResponseCode.OK.code())
         throw new ServerException("SERVER_ERROR", "Error while fetching content data.")
-      }
+
       ScalaJsonUtils.deserialize[Response](httpResponse.getBody)
 
     } catch {
       case e: Exception =>
-        println("CollectionTOCUtil --> handleReadRequest --> Exception: " + e.getMessage)
+        TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> Exception: " + e.getMessage)
         throw e
     }
   }
@@ -74,9 +76,8 @@ object CollectionTOCUtil {
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CS_BASE_URL) + Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
     val searchResponse = Unirest.post(requestUrl).headers(headerParam).body(ScalaJsonUtils.serialize(reqMap)).asString
 
-    if (null == searchResponse || searchResponse.getStatus != ResponseCode.OK.code()) {
+    if (null == searchResponse || searchResponse.getStatus != ResponseCode.OK.code())
       throw new ServerException("SERVER_ERROR", "Error while fetching DIAL Codes List.")
-    }
 
     val response = ScalaJsonUtils.deserialize[Response](searchResponse.getBody)
 
