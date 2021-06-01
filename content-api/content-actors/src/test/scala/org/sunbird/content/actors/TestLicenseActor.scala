@@ -9,7 +9,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.Future
@@ -26,8 +26,12 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB)
-    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode())).anyNumberOfTimes()
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getLicenseRequest()
     request.put("name", "do_1234")
     request.setOperation("createLicense")
@@ -60,10 +64,15 @@ class TestLicenseActor extends BaseSpec with MockFactory {
   it should "return success response for updateLicense" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).repeated(2)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
+
     implicit val ss = mock[StorageService]
     val request = getLicenseRequest()
     request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
@@ -92,10 +101,15 @@ class TestLicenseActor extends BaseSpec with MockFactory {
   it should "return success response for retireLicense" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).repeated(2)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()//.repeated(2)
+
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     implicit val ss = mock[StorageService]
     val request = getLicenseRequest()
     request.setOperation("retireLicense")

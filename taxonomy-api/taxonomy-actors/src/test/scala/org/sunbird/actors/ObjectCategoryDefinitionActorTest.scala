@@ -8,7 +8,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -39,6 +39,9 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
 		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryDefinitionNode()))
 		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(new Response()))
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		val request = getCategoryDefintionRequest()
 		val objectMetadata = new util.HashMap[String, AnyRef](){{
 			put("schema", new util.HashMap())
@@ -141,6 +144,9 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		})
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getCategoryDefinitionNode()))
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		val request = getCategoryDefintionRequest()
 		request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234_content_all")
 		request.putAll(mapAsJavaMap(Map("description" -> "test desc")))

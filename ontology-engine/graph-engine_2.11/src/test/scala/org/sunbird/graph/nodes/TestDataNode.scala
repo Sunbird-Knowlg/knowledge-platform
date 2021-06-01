@@ -7,7 +7,7 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
-import org.sunbird.graph.{BaseSpec, OntologyEngineContext}
+import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 
@@ -24,7 +24,29 @@ class TestDataNode extends BaseSpec {
             put("schemaName", "content")
         }}
     }
-    "createNode" should "create a node successfully" in {
+    "createNode with fetching FrameworkMasterCategoryMap from DB" should "create a node successfully" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "Learning Resource")
+        val future: Future[Node] = DataNode.create(request,dataModifier)
+        future map {node => {assert(null != node)
+            print("Create Node - Fetch Category from DB: " + node)
+
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            assert(node.getMetadata.get("trackable").asInstanceOf[String].contains("{\"enabled\":\"No\",\"autoBatch\":\"No\"}"))
+            assert(node.getMetadata.get("contentType").asInstanceOf[String].equalsIgnoreCase("Resource"))}}
+    }
+
+    "createNode with enriching FrameworkMasterCategoryMap" should "create a node successfully" in {
+        enrichFrameworkMasterCategoryMap()
         val request = new Request()
         request.setObjectType("Content")
         request.setContext(getContextMap())
@@ -44,7 +66,6 @@ class TestDataNode extends BaseSpec {
             assert(node.getMetadata.get("trackable").asInstanceOf[String].contains("{\"enabled\":\"No\",\"autoBatch\":\"No\"}"))
             assert(node.getMetadata.get("contentType").asInstanceOf[String].equalsIgnoreCase("Resource"))}}
     }
-
 
     "createNode with relation" should "create a node successfully" in {
         createRelationData()

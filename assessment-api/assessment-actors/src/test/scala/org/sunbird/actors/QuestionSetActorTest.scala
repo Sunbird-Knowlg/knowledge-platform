@@ -32,6 +32,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         val node = getNode("QuestionSet", None)
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val request = getQuestionSetRequest()
         request.getContext.put("identifier", "do1234")
         request.putAll(mapAsJavaMap(Map("name" -> "question_1",
@@ -75,6 +78,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val node = getNode("QuestionSet", None)
         node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
             "visibility" -> "Default",
@@ -104,6 +110,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val node = getNode("QuestionSet", None)
         node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
             "visibility" -> "Default",
@@ -277,6 +286,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(rootNode)).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes
         (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(new Response())).anyNumberOfTimes
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val request = getUpdateHierarchyReq()
         request.getContext.put("rootId", "do_1234")
         request.setOperation("updateHierarchy")
@@ -310,6 +322,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
         (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(new Response())).anyNumberOfTimes
         (graphDB.updateNodes(_:String, _:util.List[String], _: util.Map[String, AnyRef])).expects(*, *, *).returns(Future(Map[String, Node]().asJava)).anyNumberOfTimes
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val request = getQuestionSetRequest()
         request.getContext.put("identifier", "do1234")
         request.putAll(mapAsJavaMap(Map("versionKey" -> "1234", "description" -> "updated desc")))
@@ -372,6 +387,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node))).once()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanOnce()
+
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
         val request = getQuestionSetRequest()
         request.getContext.put("identifier", "test_id")
@@ -421,6 +439,9 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
             "primaryCategory" -> "Practice Question Set")))
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node, imageNode))).once()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
         (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(new Response())).anyNumberOfTimes
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
