@@ -49,9 +49,11 @@ Using Docker on Windows will also need a couple of additional configurations bec
 
 By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
 
-3. After running the above command, neo4j instance will be created and container starts running, we can verify the same by accessing neo4j browser(http://localhost:7474/browser).
+3. Load seed data to neo4j using the instructions provided in the [link](https://github.com/project-sunbird/knowledge-platform/tree/master-data/master-data/loading-seed-data.md)
 
-4. To SSH to neo4j docker container, run the below command.
+4. Verify whether neo4j is running or not by accessing neo4j browser(http://localhost:7474/browser).
+
+5. To SSH to neo4j docker container, run the below command.
 ```shell
 docker exec -it sunbird_neo4j bash
 ```
@@ -79,6 +81,7 @@ docker pull cassandra:3.11.8
 docker run --name sunbird_cassandra -d -p 9042:9042 \
 -v $sunbird_dbs_path/cassandra/data:/var/lib/cassandra \
 -v $sunbird_dbs_path/cassandra/logs:/opt/cassandra/logs \
+-v $sunbird_dbs_path/cassandra/backups:/mnt/backups \
 --network bridge cassandra:3.11.8 
 ```
 For network, we can use the existing network or create a new network using the following command and use it.
@@ -93,6 +96,8 @@ docker exec -it sunbird_cassandra cqlsh
 ```shell
 docker exec -it sunbird_cassandra /bin/bash
 ```
+5. Load seed data to cassandra using the instructions provided in the [link](https://github.com/project-sunbird/knowledge-platform/tree/master-data/master-data/loading-seed-data.md)
+
 ### Running content-service:
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
@@ -105,19 +110,4 @@ mvn play2:run
 3. Using the below command we can verify whether the databases(neoj,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
 ```shell
 curl http://localhost:9000/health
-```
-4. Run the following queries in neo4j DB to create unique constraint and indexes.
-```cql
-CREATE CONSTRAINT ON (domain:domain) ASSERT domain.IL_UNIQUE_ID IS UNIQUE;
-CREATE INDEX ON :domain(IL_FUNC_OBJECT_TYPE);
-CREATE INDEX ON :domain(IL_SYS_NODE_TYPE);
-```
-5. Run the following queries in cassandra DB to create keyspace and table.
-```cql
-CREATE KEYSPACE IF NOT EXISTS category_store WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} AND durable_writes = true;
-CREATE TABLE IF NOT EXISTS category_store.category_definition_data (
-    identifier text PRIMARY KEY,
-    forms map<text, text>,
-    objectmetadata map<text, text>
-);
 ```
