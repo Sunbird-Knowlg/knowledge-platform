@@ -383,6 +383,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         val node = createNode()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
         (graphDB.updateExternalProps(_:Request)).expects(*).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
