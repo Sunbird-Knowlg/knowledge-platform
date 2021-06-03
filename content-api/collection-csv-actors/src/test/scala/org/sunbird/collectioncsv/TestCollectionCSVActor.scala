@@ -70,7 +70,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
 
     "uploadTOC" should "return client error on input of blank csv" in {
         val collectionID = "do_1132828073514926081518"
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "Blank.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "Blank.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -85,7 +85,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "CreateTOC.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "CreateTOC.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -101,7 +101,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidHeadersFound.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidHeadersFound.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -117,7 +117,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "RequiredHeaderMissing.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "RequiredHeaderMissing.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -133,7 +133,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "AdditionalHeaderFound.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "AdditionalHeaderFound.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -149,7 +149,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "NoRecords.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "NoRecords.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -165,7 +165,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "CSVMaxRows.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "CSVMaxRows.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -181,7 +181,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "MandatoryColMissingData.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "MandatoryColMissingData.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -197,7 +197,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "DuplicateRecords.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "DuplicateRecords.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -213,7 +213,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "QRCodeYesNo.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "QRCodeYesNo.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -229,7 +229,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "DuplicateQRCode.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "DuplicateQRCode.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -245,7 +245,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "LinkedContentsDataMissing.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "LinkedContentsDataMissing.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -261,7 +261,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidCollectionName.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidCollectionName.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -277,7 +277,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidNodeIds.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidNodeIds.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -295,7 +295,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (oec.httpUtil _).expects().returns(httpUtil)
         (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse()).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidQRCodes.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidQRCodes.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -313,7 +313,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (oec.httpUtil _).expects().returns(httpUtil)
         (httpUtil.get(_: String, _: String, _:java.util.Map[String, String])).expects(*, *, *).returns(getFrameworkResponse()).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidMappedTopics.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidMappedTopics.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -331,7 +331,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (oec.httpUtil _).expects().returns(httpUtil)
         (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(searchLinkedContentsResponse()).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidLinkedContents.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidLinkedContents.csv")
 
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
@@ -350,7 +350,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (oec.httpUtil _).expects().returns(httpUtil)
         (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(linkedContentsInvalidContentTypeResponse()).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "InvalidLinkedContentContentType.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "InvalidLinkedContentContentType.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -373,7 +373,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (oec.httpUtil _).expects().returns(httpUtil)
         (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("" + "/collection/v3/dialcode/link" + "/" + collectionID, *, *).returns(linkDIALCodesResponse()).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "UpdateTOC.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "UpdateTOC.csv")
         assert(response != null)
         println("uploadTOC should return success response on input of validate update TOC csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode != ResponseCode.OK)
@@ -389,7 +389,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
 
 
         val collectionID = "do_113293355858984960134"
-        val response = uploadFileToActor(collectionID, "./content-api/collection-csv-actors/src/test/resources/" + "CreateTOC.csv")
+        val response = uploadFileToActor(collectionID, "/src/test/resources/" + "CreateTOC.csv")
         assert(response != null)
         println("uploadTOC should return client error on input of blank csv --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.OK)
