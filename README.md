@@ -49,7 +49,7 @@ Using Docker on Windows will also need a couple of additional configurations bec
 
 By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
 
-3. Load seed data to neo4j using the instructions provided in the [link]((../knowledge-platform/master-data/neo4j-graph.db.zip))
+3. Load seed data to neo4j using the instructions provided in the [link]((../master-data/neo4j-graph.db.zip))
 
 4. Verify whether neo4j is running or not by accessing neo4j browser(http://localhost:7474/browser).
 
