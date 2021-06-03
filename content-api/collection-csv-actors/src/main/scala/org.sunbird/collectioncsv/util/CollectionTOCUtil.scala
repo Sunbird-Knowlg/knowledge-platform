@@ -20,7 +20,6 @@ import scala.concurrent.ExecutionContext
 object CollectionTOCUtil {
 
    def getFrameworkTopics(frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
-
     try {
       val headers = new util.HashMap[String, String]() {
         put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON)
@@ -113,7 +112,6 @@ object CollectionTOCUtil {
 
     val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, AUTHORIZATION -> (BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
     val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
-
 
     val linkResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
