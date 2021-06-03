@@ -453,7 +453,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
     }
 
     private def updateNode(): Node = {
-        val childNodes = new util.ArrayList[String]()
+        val childNodes = new java.util.ArrayList[String]()
         childNodes.add("do_1132339274094346241120")
         childNodes.add("do_1132833371215872001720")
         childNodes.add("do_1132833371215134721712")
