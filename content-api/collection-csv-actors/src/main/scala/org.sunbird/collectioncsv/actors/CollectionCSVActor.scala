@@ -3,7 +3,7 @@ package org.sunbird.collectioncsv.actors
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.collectioncsv.manager.CollectionCSVManager.{getCloudPath, readInputCSV, updateCollection, validateCollection}
-import org.sunbird.collectioncsv.util.{CollectionTOCConstants, CollectionTOCUtil}
+import org.sunbird.collectioncsv.util.CollectionTOCConstants
 import org.sunbird.collectioncsv.validator.CollectionCSVValidator.{collectionNodeIdentifierHeader, validateCSVHeadersFormat, validateCSVRecordsDataAuthenticity, validateCSVRecordsDataFormat}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
