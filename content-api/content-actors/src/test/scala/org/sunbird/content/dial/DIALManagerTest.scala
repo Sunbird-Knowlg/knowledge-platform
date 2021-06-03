@@ -174,9 +174,13 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 	"link DIAL with valid request for content" should "update the contents successfully" in {
 		(oec.httpUtil _).expects().returns(httpUtil)
-		(oec.graphService _).expects().returns(graphDB).repeated(4)
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
-		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes()))
+
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes())).noMoreThanOnce()
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanOnce()
+
 		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
@@ -359,6 +363,24 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 			}
 		})
 		node
+	}
+
+	private def getCategoryNode(): util.List[Node] = {
+		val node = new Node()
+		node.setIdentifier("board")
+		node.setNodeType("DATA_NODE")
+		node.setObjectType("Category")
+		node.setMetadata(new util.HashMap[String, AnyRef]() {
+			{
+				put("code", "board")
+				put("orgIdFieldName", "boardIds")
+				put("targetIdFieldName", "targetBoardIds")
+				put("searchIdFieldName", "se_boardIds")
+				put("searchLabelFieldName", "se_boards")
+				put("status", "Live")
+			}
+		})
+		util.Arrays.asList(node)
 	}
 
 }

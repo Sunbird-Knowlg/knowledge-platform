@@ -6,7 +6,7 @@ import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.common.dto.Request
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 import scala.collection.JavaConversions._
@@ -23,11 +23,15 @@ class TestChannelActor extends BaseSpec with MockFactory {
   it should "return success response for 'createChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB)
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getRequest()
     request.getRequest.put("name", "channel_test")
     request.getRequest.put("code", "channel_test")
@@ -83,6 +87,10 @@ class TestChannelActor extends BaseSpec with MockFactory {
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getRequest()
     request.getContext.put("identifier", "channel_test");
     request.getRequest.put("name", "channel_test")
@@ -99,12 +107,15 @@ class TestChannelActor extends BaseSpec with MockFactory {
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     (graphDB.upsertNode(_:String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     val request = getRequest()
     request.getContext.put("identifier", "channel_test");
     request.getRequest.put("identifier", "channel_test")
     request.setOperation("retireChannel")
     val response = callActor(request, Props(new ChannelActor()))
-    println("Response: retire: " + response)
     assert("successful".equals(response.getParams.getStatus))
   }
 

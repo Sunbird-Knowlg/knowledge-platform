@@ -5,10 +5,10 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-
 import java.util
+
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -29,6 +29,10 @@ class TestAssetActor extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
     implicit val ss = mock[StorageService]
     val request = getContentRequest()
     request.getContext.put("identifier","do_1234")
@@ -40,7 +44,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     assert("test_321".equals(response.get("versionKey")))
   }
 
-  it should "copy asset with invalid objectType, should through resource not found exception" in {
+  it should "copy asset with invalid objectType, should through client exception" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
@@ -49,8 +53,8 @@ class TestAssetActor extends BaseSpec with MockFactory {
     val request = getContentRequest()
     request.setOperation("copy")
     val response = callActor(request, Props(new AssetActor()))
-    assert(response.getResponseCode == ResponseCode.RESOURCE_NOT_FOUND)
-    assert(response.getParams.getErrmsg == "Error! Node(s) doesn't Exists.")
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErrmsg == "Only asset can be copied")
   }
 
   private def getNode(): Node = {

@@ -934,7 +934,6 @@ public class SearchActorTest extends SearchBaseActorTest {
         Response response = getSearchResponse(request);
         Map<String, Object> result = response.getResult();
         List<Object> list = (List<Object>) result.get("results");
-        System.out.println("list of result : " + list);
         Assert.assertNotNull(list);
         Assert.assertTrue(list.size() == 2);
         boolean found = false;

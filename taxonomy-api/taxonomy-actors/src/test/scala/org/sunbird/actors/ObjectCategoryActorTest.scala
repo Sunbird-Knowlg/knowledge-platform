@@ -8,7 +8,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -25,8 +25,11 @@ class ObjectCategoryActorTest  extends BaseSpec with MockFactory {
     it should "create a categoryNode and store it in neo4j" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB)
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val request = getCategoryRequest()
         request.putAll(mapAsJavaMap(Map("name" -> "1234")))
         request.setOperation(Constants.CREATE_OBJECT_CATEGORY)
@@ -48,10 +51,13 @@ class ObjectCategoryActorTest  extends BaseSpec with MockFactory {
     it should "return success response for updateCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).repeated(2)
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getValidNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
         val request = getCategoryRequest()
         request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234")
         request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
