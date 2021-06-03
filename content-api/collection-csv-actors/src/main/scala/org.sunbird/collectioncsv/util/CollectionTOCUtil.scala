@@ -1,12 +1,12 @@
 package org.sunbird.collectioncsv.util
 
-import com.mashape.unirest.http.Unirest
+
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
 import org.apache.http.HttpHeaders.AUTHORIZATION
 import org.sunbird.collectioncsv.util.CollectionTOCConstants.BEARER
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.Response
-import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
@@ -14,9 +14,10 @@ import scala.collection.JavaConverters._
 import java.text.MessageFormat
 import scala.collection.immutable.{HashMap, Map}
 import scala.collection.JavaConversions.mapAsJavaMap
+import scala.concurrent.ExecutionContext
 
 
-class CollectionTOCUtil {
+object CollectionTOCUtil {
 
   private def requestParams(params: Map[String, String]): String = {
     if (null != params) {
@@ -35,8 +36,7 @@ class CollectionTOCUtil {
     }
   }
 
-  def getRelatedFrameworkById(frameworkId: String): Response = {
-    val reqParams: Map[String, String] = HashMap[String, String]("categories" -> "topic")
+  def getFrameworkTopics(frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
 
     try {
       val headers = new util.HashMap[String, String]() {
@@ -44,18 +44,17 @@ class CollectionTOCUtil {
         put(AUTHORIZATION, CollectionTOCConstants.BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION))
       }
 
-      val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.FRAMEWORK_READ_API_URL) + "/" + frameworkId + requestParams(reqParams)
+      val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.FRAMEWORK_READ_API_URL) + "/" + frameworkId
 
-      TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> requestUrl: " + requestUrl)
-      TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> headers: " + headers)
-      val httpResponse = Unirest.get(requestUrl).headers(headers).asString
+      TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> requestUrl: " + requestUrl)
+      TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> headers: " + headers)
+      val httpResponse = oec.httpUtil.get(requestUrl,"categories=topic",headers)
       
-      TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> httpResponse.getStatus: " + httpResponse.getStatus)
-      if ( null== httpResponse || httpResponse.getStatus != ResponseCode.OK.code())
+      TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> httpResponse.getResponseCode: " + httpResponse.getResponseCode)
+      if ( null== httpResponse || httpResponse.getResponseCode.code() != ResponseCode.OK.code())
         throw new ServerException("SERVER_ERROR", "Error while fetching content data.")
 
-      ScalaJsonUtils.deserialize[Response](httpResponse.getBody)
-
+      httpResponse
     } catch {
       case e: Exception =>
         TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> Exception: " + e.getMessage)
@@ -63,7 +62,7 @@ class CollectionTOCUtil {
     }
   }
 
-  def validateDialCodes(channelId: String, dialcodes: List[String]): List[String] = {
+  def validateDialCodes(channelId: String, dialcodes: List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[String] = {
     val reqMap = new util.HashMap[String, AnyRef]() {
         put(CollectionTOCConstants.REQUEST, new util.HashMap[String, AnyRef]() {
             put(CollectionTOCConstants.SEARCH, new util.HashMap[String, AnyRef]() {
@@ -74,24 +73,22 @@ class CollectionTOCUtil {
 
     val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, AUTHORIZATION -> (CollectionTOCConstants.BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CS_BASE_URL) + Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
-    val searchResponse = Unirest.post(requestUrl).headers(headerParam).body(ScalaJsonUtils.serialize(reqMap)).asString
+    val searchResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
-    if (null == searchResponse || searchResponse.getStatus != ResponseCode.OK.code())
+    if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
       throw new ServerException("SERVER_ERROR", "Error while fetching DIAL Codes List.")
 
-    val response = ScalaJsonUtils.deserialize[Response](searchResponse.getBody)
-
     try {
-      response.getResult.getOrDefault(CollectionTOCConstants.DIAL_CODES, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[List[Map[String, AnyRef]]].map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
+      val returnDIALCodes = searchResponse.getResult.getOrDefault(CollectionTOCConstants.DIAL_CODES, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
+      returnDIALCodes.asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef]).map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
     }
     catch {
-      case _:Exception =>
+      case e:Exception => println("CollectionTOCUtil: validateDIALCodes --> exception: " + e.getMessage)
         List.empty
     }
   }
 
-  def searchLinkedContents(linkedContents: List[String]): List[Map[String, AnyRef]] = {
-
+  def searchLinkedContents(linkedContents: List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
     val reqMap = new util.HashMap[String, AnyRef]() {
         put(CollectionTOCConstants.REQUEST, new util.HashMap[String, AnyRef]() {
             put(CollectionTOCConstants.FILTERS, new util.HashMap[String, AnyRef]() {
@@ -110,15 +107,13 @@ class CollectionTOCUtil {
     val headerParam = HashMap[String, String](AUTHORIZATION -> (BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CS_BASE_URL) + Platform.config.getString(CollectionTOCConstants.SUNBIRD_CONTENT_SEARCH_URL)
 
-    val searchResponse = Unirest.post(requestUrl).headers(headerParam).body(ScalaJsonUtils.serialize(reqMap)).asString
+    val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
-    if (null == searchResponse || searchResponse.getStatus != ResponseCode.OK.code())
+    if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
       throw new ServerException("SERVER_ERROR", "Error while fetching Linked Contents List.")
 
-
-    val response = ScalaJsonUtils.deserialize[Response](searchResponse.getBody)
     try {
-      response.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[List[Map[String, AnyRef]]]
+      searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
     }
     catch {
       case _:Exception =>
@@ -126,8 +121,7 @@ class CollectionTOCUtil {
     }
   }
 
-  def linkDIALCode(channelId: String, collectionID: String, linkDIALCodesMap: List[Map[String,String]]): Response = {
-
+  def linkDIALCode(channelId: String, collectionID: String, linkDIALCodesMap: List[Map[String,String]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
     val reqMap = new util.HashMap[String, AnyRef]() {
         put(CollectionTOCConstants.REQUEST, new util.HashMap[String, AnyRef]() {
             put(CollectionTOCConstants.CONTENT, linkDIALCodesMap.asJava)
@@ -136,17 +130,16 @@ class CollectionTOCUtil {
 
     val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, AUTHORIZATION -> (BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
     val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
-    val linkResponse = Unirest.post(requestUrl).headers(headerParam).body(ScalaJsonUtils.serialize(reqMap)).asString
 
-    val response = ScalaJsonUtils.deserialize[Response](linkResponse.getBody)
 
-    if (null == linkResponse || linkResponse.getStatus != ResponseCode.OK.code())
-      if(linkResponse.getStatus == 400) {
-        val msgsResult = response.getResult.getOrDefault(CollectionTOCConstants.MESSAGES, new util.ArrayList[String])
+    val linkResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
+
+    if (null == linkResponse || linkResponse.getResponseCode.code() != ResponseCode.OK.code())
+      if(linkResponse.getResponseCode.code() == 400) {
+        val msgsResult = linkResponse.getResult.getOrDefault(CollectionTOCConstants.MESSAGES, new util.ArrayList[String])
         throw new ClientException("DIAL_CODE_LINK_ERROR", MessageFormat.format("{0}",msgsResult))
       } else throw new ServerException("SERVER_ERROR", "Error while updating collection hierarchy.")
 
-    response
+    linkResponse
   }
-
 }

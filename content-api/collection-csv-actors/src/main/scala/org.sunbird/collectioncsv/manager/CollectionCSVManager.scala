@@ -6,9 +6,9 @@ import org.apache.commons.io.ByteOrderMark
 import org.apache.commons.io.FileUtils.{deleteQuietly, touch}
 import org.apache.commons.io.input.BOMInputStream
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.collectioncsv.util.{CollectionTOCConstants, CollectionTOCUtil}
+import org.sunbird.collectioncsv.util.CollectionTOCConstants
 import org.sunbird.collectioncsv.util.CollectionTOCConstants.{COLLECTION_TOC_ALLOWED_MIMETYPE, CONTENT_TYPE}
-import org.sunbird.collectioncsv.validator.CollectionCSVValidator
+import org.sunbird.collectioncsv.util.CollectionTOCUtil.linkDIALCode
 import org.sunbird.collectioncsv.validator.CollectionCSVValidator.{allowedContentTypes, collectionNodeIdentifierHeader, collectionOutputTocHeaders, contentTypeToUnitTypeMapping, createCSVMandatoryHeaderCols, folderHierarchyHdrColumnsList, linkedContentHdrColumnsList, mappedTopicsHeader, maxFolderLevels}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.Slug.makeSlug
@@ -29,13 +29,9 @@ import scala.collection.JavaConverters.{asJavaIterableConverter, mapAsScalaMapCo
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-class CollectionCSVManager {
+object CollectionCSVManager {
 
   private val CONTENT_FOLDER = "cloud_storage.content.folder"
-
-  val collectionTOCUtil: CollectionTOCUtil = CollectionCSVValidator.collectionTOCUtil
-
-  implicit val ss: StorageService = new StorageService
 
   def readInputCSV(request: Request): CSVParser = {
     TelemetryManager.log("CollectionCSVManager --> readInputCSV method")
@@ -50,7 +46,7 @@ class CollectionCSVManager {
      csvFileFormat.parse(new InputStreamReader(bomInputStream, character))
     }
     catch {
-      case e: Exception =>  throw new ClientException("INVALID_CSV_FILE", "Please provide valid csv file.")
+      case e: Exception =>  throw new ClientException("INVALID_CSV_FILE", "Please provide valid csv file. Please check for data columns without headers.")
     }
   }
 
@@ -68,7 +64,7 @@ class CollectionCSVManager {
     val folderInfoMap = scala.collection.mutable.Map.empty[String, AnyRef]
 
     csvRecords.map(csvRecord => {
-      val csvRecordFolderHierarchyMap = csvRecord.toMap.asScala.toMap.filter(colData => {
+      val csvRecordFolderHierarchyMap: Map[String, String] = csvRecord.toMap.asScala.toMap.filter(colData => {
         folderHierarchyHdrColumnsList.contains(colData._1) && colData._2.nonEmpty
       })
 
@@ -287,13 +283,13 @@ class CollectionCSVManager {
         else  Map.empty
       }).filter(record => record.nonEmpty).toList.asInstanceOf[List[Map[String,String]]]
 
-      if(linkDIALCodeReqMap.nonEmpty) collectionTOCUtil.linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
+      if(linkDIALCodeReqMap.nonEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
     }
 
     updateHierarchyResponse
   }
 
-  def getCloudPath(collectionHierarchy: Map[String, AnyRef]): String = {
+  def getCloudPath(collectionHierarchy: Map[String, AnyRef])(implicit ss: StorageService): String = {
     val collectionId = collectionHierarchy(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
     val fileExtension = CollectionTOCConstants.COLLECTION_CSV_FILE_EXTENSION
     val contentVersionKey = collectionHierarchy(CollectionTOCConstants.VERSION_KEY).asInstanceOf[String]
@@ -311,7 +307,7 @@ class CollectionCSVManager {
 
   }
 
-  def createCSVAndStore(collectionHierarchy: Map[String, AnyRef], collectionTocFileName: String): String = {
+  def createCSVAndStore(collectionHierarchy: Map[String, AnyRef], collectionTocFileName: String)(implicit ss: StorageService): String = {
     val collectionName = collectionHierarchy(CollectionTOCConstants.NAME).toString
     val collectionType = collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString
     val collectionUnitType = contentTypeToUnitTypeMapping(collectionType)

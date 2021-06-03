@@ -1,8 +1,9 @@
 package org.sunbird.collectioncsv.actors
 
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.collectioncsv.manager.CollectionCSVManager
-import org.sunbird.collectioncsv.util.CollectionTOCConstants
+import org.sunbird.cloudstore.StorageService
+import org.sunbird.collectioncsv.manager.CollectionCSVManager.{getCloudPath, readInputCSV, updateCollection, validateCollection}
+import org.sunbird.collectioncsv.util.{CollectionTOCConstants, CollectionTOCUtil}
 import org.sunbird.collectioncsv.validator.CollectionCSVValidator.{collectionNodeIdentifierHeader, validateCSVHeadersFormat, validateCSVRecordsDataAuthenticity, validateCSVRecordsDataFormat}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
@@ -19,12 +20,10 @@ import scala.collection.JavaConverters.{mapAsJavaMapConverter, mapAsScalaMapConv
 import scala.collection.immutable.{HashMap, Map}
 import scala.concurrent.{ExecutionContext, Future}
 
-class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
+class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
 
   implicit val ec: ExecutionContext = getContext().dispatcher
-
-  val collectionCSVManager = new CollectionCSVManager
-
+  
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
       case CollectionTOCConstants.COLLECTION_CSV_TOC_UPLOAD => uploadTOC(request)
@@ -35,7 +34,7 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext) extends
 
   private def uploadTOC(request:Request): Future[Response] = {
     try {
-      val csvFileParser = collectionCSVManager.readInputCSV(request)
+      val csvFileParser = readInputCSV(request)
       try {
         val csvHeaders: Map[String, Integer] =  if (!csvFileParser.getHeaderMap.isEmpty) csvFileParser.getHeaderMap.asScala.toMap else HashMap.empty
         // Reading input CSV File - END
@@ -57,7 +56,7 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext) extends
         HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
           val collectionHierarchyDeSer = ScalaJsonUtils.deserialize[Map[String, AnyRef]](JsonUtils.serialize(getHierarchyResponse))
           val collectionHierarchy = collectionHierarchyDeSer(CollectionTOCConstants.RESULT).asInstanceOf[Map[String, AnyRef]](CollectionTOCConstants.CONTENT).asInstanceOf[Map[String, AnyRef]]
-          TelemetryManager.log("CollectionCSVActor --> uploadTOC --> after fetching collection Hierarchy: " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER))
+          TelemetryManager.log("CollectionCSVActor --> uploadTOC --> after fetching collection Hierarchy: " + collectionHierarchy)
 
           // Validate if the mode is CREATE and children already exist in collection
           val children = collectionHierarchy(CollectionTOCConstants.CHILDREN).asInstanceOf[List[AnyRef]]
@@ -84,14 +83,14 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext) extends
           TelemetryManager.log("CollectionCSVActor --> uploadTOC --> after validating the data authenticity of the input CSV records' - Mapped Topics, QR Codes, Linked Contents: ")
 
           // update the collection hierarchy
-          collectionCSVManager.updateCollection(collectionHierarchy, csvRecords, mode, linkedContentsDetails)
+          updateCollection(collectionHierarchy, csvRecords, mode, linkedContentsDetails)
         })
       } catch {
         case e: IllegalArgumentException =>
           TelemetryManager.log("CollectionCSVActor --> IllegalArgumentException: " + e.getMessage)
           throw new ClientException("CLIENT_ERROR", e.getMessage)
         case e: ClientException =>
-          TelemetryManager.log("CollectionCSVActor --> ClientException: " + e.getMessage)
+          TelemetryManager.log("CollectionCSVActor --> ClientException: " + e.getErrCode + " || " + e.getMessage)
           throw e
         case e: Exception =>
           TelemetryManager.log("CollectionCSVActor --> Exception: " + e.getMessage)
@@ -103,16 +102,18 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext) extends
           case e: IOException =>
             TelemetryManager.log("CollectionCSVActor:readAndValidateCSV : Exception occurred while closing stream" + e)
         }
-
       }
     } catch {
+      case e: ClientException =>
+        TelemetryManager.log("CollectionCSVActor --> ClientException: " + e.getErrCode + " || " + e.getMessage)
+        throw e
       case e: Exception =>
         throw new ClientException("CLIENT_ERROR", e.getMessage)
     }
   }
 
    private def getTOCUrl(request: Request): Future[Response] = {
-     
+
      val collectionId = request.get("identifier").asInstanceOf[String]
      if (collectionId.isBlank) {
        TelemetryManager.log("CollectionCSVActor:getTOCUrl -> Invalid Collection Id Provided")
@@ -124,11 +125,12 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext) extends
      request.put("fields", new java.util.ArrayList[String]())
 
      HierarchyManager.getHierarchy(request).map(getHierarchyResponse => {
-       val collectionHierarchyDeSer = ScalaJsonUtils.deserialize[Map[String, AnyRef]] (JsonUtils.serialize (getHierarchyResponse) )
+       val collectionHierarchyDeSer = ScalaJsonUtils.deserialize[Map[String, AnyRef]] (JsonUtils.serialize (getHierarchyResponse))
        val collectionHierarchy = collectionHierarchyDeSer (CollectionTOCConstants.RESULT).asInstanceOf[Map[String, AnyRef]] (CollectionTOCConstants.CONTENT).asInstanceOf[Map[String, AnyRef]]
-       collectionCSVManager.validateCollection (collectionHierarchy)
+       TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> collectionHierarchy: " + collectionHierarchy)
+       validateCollection (collectionHierarchy)
 
-       val cloudPath = collectionCSVManager.getCloudPath (collectionHierarchy)
+       val cloudPath = getCloudPath (collectionHierarchy)
        TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> cloudPath: " + cloudPath)
        TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> Sending Response for Toc Download API for Collection | Id: " + collectionId)
        val collectionCSV = HashMap[String, AnyRef] (CollectionTOCConstants.TOC_URL -> cloudPath, CollectionTOCConstants.TTL -> Platform.config.getString ("cloud_storage.upload.url.ttl") )

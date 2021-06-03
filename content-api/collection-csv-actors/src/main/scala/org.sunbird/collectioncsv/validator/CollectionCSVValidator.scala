@@ -1,20 +1,21 @@
 package org.sunbird.collectioncsv.validator
 
 import org.apache.commons.csv.CSVRecord
-import org.sunbird.collectioncsv.util.{CollectionTOCConstants, CollectionTOCUtil}
+import org.sunbird.collectioncsv.util.CollectionTOCConstants
+import org.sunbird.collectioncsv.util.CollectionTOCUtil.{getFrameworkTopics, searchLinkedContents, validateDialCodes}
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.text.MessageFormat
 import java.util
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.collection.JavaConverters.{asScalaBufferConverter, mapAsScalaMapConverter}
 import scala.collection.immutable.{ListMap, Map}
+import scala.concurrent.ExecutionContext
 
 object CollectionCSVValidator {
-
-  val collectionTOCUtil = new CollectionTOCUtil
 
   val allowedContentTypes: List[String] = Platform.config.getStringList(CollectionTOCConstants.COLLECTION_TOC_ALLOWED_CONTENT_TYPES).toList
   val allowedNumberOfRecord: Integer = Platform.config.getInt(CollectionTOCConstants.COLLECTION_TOC_MAX_CSV_ROWS)
@@ -85,25 +86,12 @@ object CollectionCSVValidator {
     if (csvRecords.nonEmpty && csvRecords.size > allowedNumberOfRecord)
       throw new ClientException("CSV_ROWS_EXCEEDS", "Number of rows in csv file is more than " + allowedNumberOfRecord)
 
-    // check if record length is greater than max length - START
-    val recordLengthErrorMessage = csvRecords.flatMap(csvRecord => {
-      csvRecord.toMap.asScala.toMap.map(colData => {
-        if(colData._1.isEmpty && colData._2.nonEmpty)
-          MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString)
-        else ""
-      })
-    }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
-
-    if(recordLengthErrorMessage.nonEmpty && recordLengthErrorMessage.trim.nonEmpty)
-      throw new ClientException("CSV_RECORD_EXCEEDS_MAX_LENGTH", "Following rows have data exceeding maximum columns allowed: " + recordLengthErrorMessage)
-    // check if record length is greater than max length - END
-
     // Check if data exists in mandatory columns - START
     val mandatoryDataHdrCols =  if(mode.equals(CollectionTOCConstants.CREATE)) createCSVMandatoryHeaderCols else updateCSVMandatoryHeaderCols
 
     val mandatoryMissingDataList = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
-        if(mandatoryDataHdrCols.contains(colData._1) && colData._2.isEmpty)
+        if(mandatoryDataHdrCols.contains(colData._1) && colData._2.trim.isEmpty)
           MessageFormat.format("Row {0} - column: {1}", (csvRecord.getRecordNumber+1).toString,colData._1)
         else ""
       })
@@ -115,10 +103,10 @@ object CollectionCSVValidator {
 
     val missingDataList = csvRecords.flatMap(csvRecord => {
       val csvRecordFolderHierarchyData = csvRecord.toMap.asScala.toMap.filter(colData => {
-        folderHierarchyHdrColumnsList.contains(colData._1) && colData._2.nonEmpty
+        folderHierarchyHdrColumnsList.contains(colData._1) && colData._2.trim.nonEmpty
       })
       csvRecord.toMap.asScala.toMap.map(colData => {
-        if(folderHierarchyHdrColumnsList.contains(colData._1) && colData._2.isEmpty &&
+        if(folderHierarchyHdrColumnsList.contains(colData._1) && colData._2.trim.isEmpty &&
           (csvRecordFolderHierarchyData.nonEmpty && hierarchyHeaders(colData._1) < hierarchyHeaders(csvRecordFolderHierarchyData.max._1)))
           MessageFormat.format("Row {0} - column: {1}", (csvRecord.getRecordNumber+1).toString,colData._1)
         else ""
@@ -202,7 +190,7 @@ object CollectionCSVValidator {
         })
 
         csvRecord.toMap.asScala.toMap.map(colData => {
-          if(linkedContentHdrColumnsList.contains(colData._1) && colData._2.isEmpty &&
+          if(linkedContentHdrColumnsList.contains(colData._1) && colData._2.trim.isEmpty &&
             (csvRecordLinkedContentsData.nonEmpty && linkedContentColumnHeadersSeq(colData._1) < linkedContentColumnHeadersSeq(csvRecordLinkedContentsData.max._1)))
             MessageFormat.format("Row {0} - column: {1}", (csvRecord.getRecordNumber+1).toString,colData._1)
           else ""
@@ -216,11 +204,11 @@ object CollectionCSVValidator {
 
   }
 
-  def validateCSVRecordsDataAuthenticity(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef]): List[Map[String, AnyRef]] = {
+  def validateCSVRecordsDataAuthenticity(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
     // validate collection name column in CSV - START
     val invalidCollectionNameErrorMessage = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
-        if (collectionNameHeader.contains(colData._1) && (colData._2.isEmpty || !colData._2.equalsIgnoreCase(collectionHierarchy(CollectionTOCConstants.NAME).toString)))
+        if (collectionNameHeader.contains(colData._1) && (colData._2.trim.isEmpty || !colData._2.trim.equalsIgnoreCase(collectionHierarchy(CollectionTOCConstants.NAME).toString)))
           MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString + " - " + colData._2)
         else ""
       })
@@ -236,13 +224,13 @@ object CollectionCSVValidator {
 
     val invalidCollectionNodeIDErrorMessage = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
-        if (collectionNodeIdentifierHeader.contains(colData._1) && (colData._2.isEmpty || !collectionChildNodes.contains(colData._2)))
+        if (collectionNodeIdentifierHeader.contains(colData._1) && (colData._2.isEmpty || !collectionChildNodes.contains(colData._2.trim)))
           MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString + " - " + colData._2)
         else ""
       })
     }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
-    if (invalidCollectionNameErrorMessage.trim.nonEmpty)
+    if (invalidCollectionNodeIDErrorMessage.trim.nonEmpty)
       throw new ClientException("CSV_INVALID_COLLECTION_NODE_ID", "Following rows have invalid folder identifier: " + invalidCollectionNodeIDErrorMessage)
     // validate Folder Identifier column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")
@@ -253,11 +241,11 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).toList
 
     if(csvQRCodesList.nonEmpty) {
-      val returnDIALCodes = collectionTOCUtil.validateDialCodes(collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, csvQRCodesList)
+      val returnDIALCodes = validateDialCodes(collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, csvQRCodesList)
 
       val invalidQRCodeErrorMessage = csvRecords.flatMap(csvRecord => {
         csvRecord.toMap.asScala.toMap.map(colData => {
-          if (qrCodeHdrColsList.contains(colData._1) && (csvQRCodesList diff returnDIALCodes).contains(colData._2))
+          if (qrCodeHdrColsList.contains(colData._1) && (csvQRCodesList diff returnDIALCodes).contains(colData._2.trim))
             MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString + " - " + colData._2)
           else ""
         })
@@ -278,22 +266,22 @@ object CollectionCSVValidator {
 
     if(mappedTopicsList.nonEmpty) {
       val frameworkId = collectionHierarchy(CollectionTOCConstants.FRAMEWORK).toString
-      val frameworkGetResponse = collectionTOCUtil.getRelatedFrameworkById(frameworkId)
-      val frameworkGetResult = frameworkGetResponse.getResult.getOrDefault(CollectionTOCConstants.FRAMEWORK, new util.HashMap[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]]
-      val frameworkCategories = frameworkGetResult.getOrDefault(CollectionTOCConstants.CATEGORIES, List.empty).asInstanceOf[List[Map[String, AnyRef]]]
+      val frameworkGetResponse = getFrameworkTopics(frameworkId)
+      val frameworkGetResult = frameworkGetResponse.getResult.getOrDefault(CollectionTOCConstants.FRAMEWORK, new util.HashMap[String, AnyRef]()).asInstanceOf[util.HashMap[String, AnyRef]].asScala.toMap[String, AnyRef]
+      val frameworkCategories = frameworkGetResult.getOrDefault(CollectionTOCConstants.CATEGORIES, new util.ArrayList[util.Map[String,AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
 
       val frameworkTopicList = frameworkCategories.flatMap(categoryData => {
         categoryData.map(colData => {
           if (categoryData(CollectionTOCConstants.CODE).equals(CollectionTOCConstants.TOPIC) && colData._1.equalsIgnoreCase(CollectionTOCConstants.TERMS))
-            colData._2.asInstanceOf[List[Map[String, AnyRef]]].map(_.getOrElse(CollectionTOCConstants.NAME, "")).asInstanceOf[List[String]]
+            colData._2.asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef]).map(_.getOrElse(CollectionTOCConstants.NAME, "")).asInstanceOf[List[String]]
           else  List.empty
         })
       }).filter(topic => topic.nonEmpty).flatten
 
       val invalidTopicsErrorMessage = csvRecords.flatMap(csvRecord => {
         csvRecord.toMap.asScala.toMap.map(colData => {
-          if (mappedTopicsHeader.contains(colData._1) && colData._2.nonEmpty) {
-            val topicsDataList: List[String] = colData._2.split(",").toList
+          if (mappedTopicsHeader.contains(colData._1) && colData._2.trim.nonEmpty) {
+            val topicsDataList: List[String] = colData._2.trim.split(",").toList
             topicsDataList.map(topic => {
               if(!frameworkTopicList.contains(topic.trim))
                 MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString + " - " + topic)
@@ -310,15 +298,14 @@ object CollectionCSVValidator {
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Mapped Topics with Collection Framework data")
 
     // Validate Linked Contents authenticity - START
-
     val csvLinkedContentsList: List[String] = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
-        if (linkedContentHdrColumnsList.contains(colData._1) && colData._2.nonEmpty) colData._2.trim  else ""
+        if (linkedContentHdrColumnsList.contains(colData._1) && colData._2.trim.nonEmpty) colData._2.trim  else ""
       })
     }).filter(msg => msg.nonEmpty).toList
 
     if (csvLinkedContentsList.nonEmpty) {
-      val returnedLinkedContentsResult: List[Map[String, AnyRef]] = collectionTOCUtil.searchLinkedContents(csvLinkedContentsList)
+      val returnedLinkedContentsResult: List[Map[String, AnyRef]] = searchLinkedContents(csvLinkedContentsList)
       val returnedLinkedContentsIdentifierList = returnedLinkedContentsResult.map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
 
       val invalidLinkedContentsErrorMessage = csvRecords.flatMap(csvRecord => {
