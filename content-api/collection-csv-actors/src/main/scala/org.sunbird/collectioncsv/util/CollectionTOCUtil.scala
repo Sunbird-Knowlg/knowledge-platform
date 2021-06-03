@@ -19,24 +19,7 @@ import scala.concurrent.ExecutionContext
 
 object CollectionTOCUtil {
 
-  private def requestParams(params: Map[String, String]): String = {
-    if (null != params) {
-      val sb: StringBuilder = new StringBuilder()
-      sb.append("?")
-      var i: Int = 0
-      for ((key, value) <- params) {
-        if ({ i += 1; i - 1 } > 1) {
-          sb.append("&")
-        }
-        sb.append(key).append("=").append(value)
-      }
-      sb.toString
-    } else {
-      ""
-    }
-  }
-
-  def getFrameworkTopics(frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
+   def getFrameworkTopics(frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
 
     try {
       val headers = new util.HashMap[String, String]() {
