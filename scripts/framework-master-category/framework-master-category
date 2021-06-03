@@ -62,3 +62,55 @@ curl --location --request PATCH 'http://localhost:8080/learning-service/framewor
         }
     }
 }'
+
+curl --location --request PATCH 'http://localhost:8080/learning-service/framework/v3/category/master/update/learningOutcome' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "category": {
+            "targetIdFieldName": "targetLearningOutcomeIds",
+            "searchLabelFieldName": "se_learningOutcomes",
+            "searchIdFieldName": "se_learningOutcomeIds",
+            "orgIdFieldName": "learningOutcomeIds"
+        }
+    }
+}'
+
+curl --location --request PATCH 'http://localhost:8080/learning-service/framework/v3/category/master/update/purpose' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "category": {
+            "targetIdFieldName": "targetPurposeIds",
+            "searchLabelFieldName": "se_purposes",
+            "searchIdFieldName": "se_purposeIds",
+            "orgIdFieldName": "purposeIds"
+        }
+    }
+}'
+
+curl --location --request PATCH 'http://localhost:8080/learning-service/framework/v3/category/master/update/subtopic' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "category": {
+            "targetIdFieldName": "targetSubtopicIds",
+            "searchLabelFieldName": "se_subtopics",
+            "searchIdFieldName": "se_subtopicIds",
+            "orgIdFieldName": "subtopicIds"
+        }
+    }
+}'
+
+curl --location --request PATCH 'http://localhost:8080/learning-service/framework/v3/category/master/update/LP_FT_010' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "category": {
+            "targetIdFieldName": "targetLP_FT_010Ids",
+            "searchLabelFieldName": "se_LP_FT_010s",
+            "searchIdFieldName": "se_LP_FT_010Ids",
+            "orgIdFieldName": "LP_FT_010Ids"
+        }
+    }
+}'
