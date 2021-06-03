@@ -49,7 +49,7 @@ Using Docker on Windows will also need a couple of additional configurations bec
 
 By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
 
-3. Load seed data to neo4j using the instructions provided in the [link](../master-data/neo4j-graph.db.zip)
+3. Load seed data to neo4j using the instructions provided in the [link](../master-data/master-data/loading-seed-data.md)
 
 4. Verify whether neo4j is running or not by accessing neo4j browser(http://localhost:7474/browser).
 
@@ -96,7 +96,7 @@ docker exec -it sunbird_cassandra cqlsh
 ```shell
 docker exec -it sunbird_cassandra /bin/bash
 ```
-5. Load seed data to cassandra using the instructions provided in the [link](https://github.com/project-sunbird/knowledge-platform/tree/master-data/master-data/loading-seed-data.md)
+5. Load seed data to cassandra using the instructions provided in the [link](../master-data/master-data/loading-seed-data.md)
 
 ### Running content-service:
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
