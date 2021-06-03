@@ -147,10 +147,8 @@ object UpdateHierarchyManager {
     private def addChildNodesInNodeList(childrenMaps: java.util.List[java.util.Map[String, AnyRef]], request: Request, nodes: scala.collection.immutable.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[scala.collection.immutable.List[Node]] = {
         if (CollectionUtils.isNotEmpty(childrenMaps)) {
             val futures = childrenMaps.map(child => {
-//                println("Executing for child : " + child.get("identifier"));
                 addNodeToList(child, request, nodes).map(modifiedList => {
                     if (!StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-//                        println("Calling next level for child : " + child.get("identifier"));
                         addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]], request, modifiedList)
                     } else
                         Future(modifiedList)
@@ -191,7 +189,6 @@ object UpdateHierarchyManager {
                 Future(updatedNodes)
             }
         else {
-            //println("Visibility is empty for child :" + child)
             Future(nodes)
         }
     }

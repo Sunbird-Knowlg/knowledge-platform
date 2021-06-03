@@ -24,7 +24,6 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
     (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
     val resFuture = new AssetMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("filesToZip/human_vs_robot-.jpg").toURI), None,  UploadParams())
     resFuture.map(result => {
-      println("Response: " + result)
       result
     })
     assert(true)
