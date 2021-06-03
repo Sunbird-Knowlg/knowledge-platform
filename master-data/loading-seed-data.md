@@ -1,5 +1,5 @@
 ## Loading seed data to neo4j database
-1. Download [neo4j graph.db file](https://github.com/project-sunbird/knowledge-platform/raw/4fe568af553ec4a9a26e39509bb0b70d726c3615/master-data/neo4j-graph.db.zip) and extract it.
+1. Download [neo4j graph.db file](../master-data/master-data/neo4j-graph.db.zip) and extract it.
 2. Before loading seed data, stop neo4j container.
 ```shell
 docker stop [container_name]
@@ -11,7 +11,7 @@ docker start [container_name]
 ```  
 
 ## Loading seed data to cassandra database
-1. Download [cassandra backup file](https://github.com/project-sunbird/knowledge-platform/blob/master-data/master-data/cassandra_backup.tar.gz) and extract it.
+1. Download [cassandra backup file](../master-data/master-data/cassandra_backup.tar.gz) and extract it.
 2. stop cassandra container.
 ```shell
 docker stop [container_name]
