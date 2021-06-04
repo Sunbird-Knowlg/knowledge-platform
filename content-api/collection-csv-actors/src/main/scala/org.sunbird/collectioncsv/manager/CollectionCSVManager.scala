@@ -386,7 +386,7 @@ object CollectionCSVManager {
 
       csvPrinter.flush()
 
-      val folder = Platform.config.getString(CONTENT_FOLDER) + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc"
+      val folder = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc"
       TelemetryManager.log("CollectionCSVManager:createCSVAndStore -> Writing CSV to Cloud Folder: " + folder)
       val csvURL = ss.uploadFile(folder, csvFile)
       TelemetryManager.log("CollectionCSVManager:createCSVAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))

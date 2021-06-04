@@ -133,7 +133,7 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext, ss: Sto
        val cloudPath = getCloudPath (collectionHierarchy)
        TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> cloudPath: " + cloudPath)
        TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> Sending Response for Toc Download API for Collection | Id: " + collectionId)
-       val collectionCSV = HashMap[String, AnyRef] (CollectionTOCConstants.TOC_URL -> cloudPath, CollectionTOCConstants.TTL -> Platform.config.getString ("cloud_storage.upload.url.ttl") )
+       val collectionCSV = HashMap[String, AnyRef] (CollectionTOCConstants.TOC_URL -> cloudPath, CollectionTOCConstants.TTL -> Platform.getString("cloud_storage.upload.url.ttl", "86400") )
 
        val response = new Response
        val resParams = new ResponseParams
