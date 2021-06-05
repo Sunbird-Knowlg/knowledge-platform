@@ -326,7 +326,7 @@ object CollectionCSVValidator {
       {
         val invalidContentTypeLinkedContentsList = returnedLinkedContentsResult.map(content => {
           if(!allowedContentTypes.contains(content(CollectionTOCConstants.CONTENT_TYPE).toString)) content(CollectionTOCConstants.IDENTIFIER).toString  else ""
-        }).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
+        }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
         if(invalidContentTypeLinkedContentsList.trim.nonEmpty)
           throw new ClientException("CSV_INVALID_LINKED_CONTENTS_CONTENT_TYPE", "Following contents are not allowed due to invalid content types: "
