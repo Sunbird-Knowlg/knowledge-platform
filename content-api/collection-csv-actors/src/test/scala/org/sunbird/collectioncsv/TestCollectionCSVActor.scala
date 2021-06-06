@@ -28,7 +28,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
     implicit val oec: OntologyEngineContext  = mock[OntologyEngineContext]
     val graphDB: GraphService = mock[GraphService]
     val currentDirectory: String = new java.io.File(".").getCanonicalPath
-    val resourceDirectory: String = if(currentDirectory.contains("collection-csv-actors")) currentDirectory+"/src/test/resources/" else "/content-api/collection-csv-actors/src/test/resources/"
+    val resourceDirectory: String = if(currentDirectory.contains("collection-csv-actors")) currentDirectory+"/src/test/resources/" else currentDirectory+"/content-api/collection-csv-actors/src/test/resources/"
 
     "CollectionCSVActor" should "return failed response for 'unknown' operation" in {
         testUnknownOperation( Props(new CollectionCSVActor()), getCollectionRequest())
@@ -399,7 +399,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
     }
 
     def uploadFileToActor(collectionID: String, uploadFilePath: String): Response = {
-        val uploadTOCFile = new File(currentDirectory+uploadFilePath)
+        val uploadTOCFile = new File(uploadFilePath)
         val request = getCollectionRequest()
         request.put(CollectionTOCConstants.IDENTIFIER, collectionID)
         request.setOperation(CollectionTOCConstants.COLLECTION_CSV_TOC_UPLOAD)
