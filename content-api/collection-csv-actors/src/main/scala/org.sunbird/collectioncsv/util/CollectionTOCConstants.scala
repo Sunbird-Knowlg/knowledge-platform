@@ -2,8 +2,8 @@ package org.sunbird.collectioncsv.util
 
 object CollectionTOCConstants {
 
-  val COLLECTION_CSV_TOC_UPLOAD = "collectionTOCUpload"
-  val COLLECTION_CSV_TOC_DOWNLOAD = "collectionTOCUrl"
+  val COLLECTION_IMPORT = "importCollection"
+  val COLLECTION_EXPORT = "exportCollection"
   val COLLECTION = "collection"
   val COLLECTION_TOC_ALLOWED_MIMETYPE = "application/vnd.ekstep.content-collection"
   val COLLECTION_TOC_ALLOWED_CONTENT_TYPES = "collection_toc_allowed_content_types"

@@ -402,7 +402,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         val uploadTOCFile = new File(uploadFilePath)
         val request = getCollectionRequest()
         request.put(CollectionTOCConstants.IDENTIFIER, collectionID)
-        request.setOperation(CollectionTOCConstants.COLLECTION_CSV_TOC_UPLOAD)
+        request.setOperation(CollectionTOCConstants.COLLECTION_IMPORT)
         request.getRequest.put("file",uploadTOCFile)
 
         callActorUpload(request)
@@ -420,7 +420,8 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         val actorRef = system.actorOf(Props(new CollectionCSVActor()))
         val request = getCollectionRequest()
         request.put(CollectionTOCConstants.IDENTIFIER, collectionID)
-        request.setOperation(CollectionTOCConstants.COLLECTION_CSV_TOC_DOWNLOAD)
+        request.put("fileType", "csv")
+        request.setOperation(CollectionTOCConstants.COLLECTION_EXPORT)
         actorRef.tell(request, probe.testActor)
         probe.expectMsgType[Response](FiniteDuration.apply(100, TimeUnit.SECONDS))
     }

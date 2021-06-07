@@ -1,18 +1,23 @@
 package org.sunbird.collectioncsv.validator
 
-import org.apache.commons.csv.CSVRecord
-import org.sunbird.collectioncsv.util.CollectionTOCConstants
+import org.apache.commons.csv.{CSVFormat, CSVRecord}
+import org.apache.commons.io.ByteOrderMark
+import org.apache.commons.io.input.BOMInputStream
 import org.sunbird.collectioncsv.util.CollectionTOCUtil.{getFrameworkTopics, searchLinkedContents, validateDialCodes}
+import org.sunbird.collectioncsv.util.CollectionTOCConstants
 import org.sunbird.common.Platform
+import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.telemetry.logger.TelemetryManager
 
+import java.io.{File, FileInputStream, IOException, InputStream, InputStreamReader}
+import java.nio.charset.StandardCharsets
 import java.text.MessageFormat
 import java.util
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters.{asScalaBufferConverter, mapAsJavaMapConverter, mapAsScalaMapConverter}
-import scala.collection.immutable.{ListMap, Map}
+import scala.collection.immutable.{HashMap, ListMap, Map}
 import scala.concurrent.ExecutionContext
 
 object CollectionCSVValidator {
@@ -33,6 +38,53 @@ object CollectionCSVValidator {
   val contentTypeToUnitTypeMapping: Map[String, String] = Platform.getAnyRef(CollectionTOCConstants.COLLECTION_TYPE_TO_UNIT_TYPE, Map[String, String]("TextBook"-> "TextBookUnit", "Course"-> "CourseUnit", "Collection"->"CollectionUnit").asJava).asInstanceOf[util.Map[String, String]].asScala.toMap
   val collectionOutputTocHeaders: List[String] = Platform.getStringList(CollectionTOCConstants.COLLECTION_OUTPUT_TOC_HEADERS, java.util.Arrays.asList("Collection Name","Folder Identifier","Level 1 Folder","Level 2 Folder","Level 3 Folder","Level 4 Folder","Description","Mapped Topics","Keywords","QR Code Required?","QR Code","Linked Content 1","Linked Content 2","Linked Content 3","Linked Content 4","Linked Content 5","Linked Content 6","Linked Content 7","Linked Content 8","Linked Content 9","Linked Content 10","Linked Content 11","Linked Content 12","Linked Content 13","Linked Content 14","Linked Content 15","Linked Content 16","Linked Content 17","Linked Content 18","Linked Content 19","Linked Content 20","Linked Content 21","Linked Content 22","Linked Content 23","Linked Content 24","Linked Content 25","Linked Content 26","Linked Content 27","Linked Content 28","Linked Content 29","Linked Content 30")).toList
   val maxFolderLevels: Int = folderHierarchyHdrColumnsList.size
+
+  def readInputCSV(request: Request): (String, util.List[CSVRecord], String) = {
+    TelemetryManager.log("CollectionCSVManager --> readInputCSV method")
+    val file = request.getRequest.get("file").asInstanceOf[File]
+    val extension = "."+file.getAbsolutePath.split("\\.").last.toLowerCase
+    val inputStream: InputStream = new FileInputStream(file)
+    TelemetryManager.log("CollectionCSVManager --> readInputCSV --> file: " + file.getAbsolutePath)
+    // Reading input CSV File - START
+    val csvFileFormat = CSVFormat.DEFAULT.withHeader()
+    val bomInputStream = new BOMInputStream(inputStream, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE)
+    val character =  if (bomInputStream.hasBOM)  bomInputStream.getBOMCharsetName else StandardCharsets.UTF_8.name
+    try {
+      val csvFileParser = csvFileFormat.parse(new InputStreamReader(bomInputStream, character))
+
+      try {
+        val csvHeaders: Map[String, Integer] =  if (!csvFileParser.getHeaderMap.isEmpty) csvFileParser.getHeaderMap.asScala.toMap else HashMap.empty
+        // Reading input CSV File - END
+        val csvRecords = csvFileParser.getRecords
+
+        //Check if CSV Headers are empty
+        if (null == csvHeaders || csvHeaders.isEmpty) throw new ClientException("BLANK_CSV_DATA", "Did not find any Table of Contents data. Please check and upload again.")
+
+        //Check if the input CSV is 'CREATE' TOC file format or 'UPDATE' TOC file format
+        val mode = if (csvHeaders.containsKey(collectionNodeIdentifierHeader.head)) CollectionTOCConstants.UPDATE else CollectionTOCConstants.CREATE
+        TelemetryManager.log("CollectionCSVActor --> uploadTOC --> mode identified: " + mode)
+
+        //Validate the headers format of the input CSV
+        validateCSVHeadersFormat(csvHeaders, mode)
+        TelemetryManager.log("CollectionCSVActor --> uploadTOC --> after validating CSV Headers format: ")
+
+        (extension, csvRecords, mode)
+      } catch {
+        case ce: ClientException =>     throw ce
+        case ex: Exception =>     throw new ClientException("CLIENT_ERROR", ex.getMessage)
+      } finally {
+        try if (null != csvFileParser) csvFileParser.close()
+        catch {
+          case e: IOException =>
+            TelemetryManager.log("CollectionCSVActor:readAndValidateCSV : Exception occurred while closing stream" + e)
+        }
+      }
+    }
+    catch {
+      case e: ClientException => throw e
+      case ex: Exception =>  throw new ClientException("INVALID_CSV_FILE", "Please provide valid csv file. Please check for data columns without headers.")
+    }
+  }
 
   def validateCSVHeadersFormat(csvHeader: Map[String, Integer], mode:String) {
 

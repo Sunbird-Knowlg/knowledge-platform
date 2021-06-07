@@ -91,7 +91,7 @@ object ApiId {
 	val READ_OBJECT = "api.object.read"
 
 	//Collection CSV APIs
-	val UPLOAD_TOC = "api.collection.toc.upload"
-	val DOWNLOAD_TOC = "api.collection.toc.download"
+	val IMPORT_CSV = "api.collection.import"
+	val EXPORT_CSV = "api.collection.export"
 
 }

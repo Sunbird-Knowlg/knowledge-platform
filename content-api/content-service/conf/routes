@@ -123,5 +123,5 @@ GET     /object/v4/read/:identifier              controllers.v4.ObjectController
 
 
 # Collection TOC CSV APIs
-POST    /v4/collection/toc/upload/:collectionId           controllers.v4.CollectionCSVController.uploadTOC(collectionId:String)
-GET    /v4/collection/toc/download/:collectionId          controllers.v4.CollectionCSVController.getTOCUrl(collectionId:String)
+POST    /v4/collection/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
+GET    /v4/collection/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])
