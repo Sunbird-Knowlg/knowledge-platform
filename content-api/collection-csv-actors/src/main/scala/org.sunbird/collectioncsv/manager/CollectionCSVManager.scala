@@ -2,7 +2,7 @@ package org.sunbird.collectioncsv.manager
 
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, CSVRecord, QuoteMode}
-import org.apache.commons.io.{ByteOrderMark, FileUtils}
+import org.apache.commons.io.ByteOrderMark
 import org.apache.commons.io.FileUtils.{deleteQuietly, touch}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.collectioncsv.util.CollectionTOCConstants
@@ -351,16 +351,6 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       val csvURL = ss.uploadFile(folder, csvFile)
       TelemetryManager.log("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
 
-      try {
-        if (null != csvFile && csvFile.exists) FileUtils.deleteQuietly(csvFile)
-      }
-      catch {
-        case e: SecurityException =>
-          TelemetryManager.log("Error! While deleting the local csv file: " + csvFile.getAbsolutePath + e)
-        case e: Exception =>
-          TelemetryManager.log("Error! Something Went wrong while deleting csv file: " + csvFile.getAbsolutePath + e)
-      }
-
       csvURL(1)
     }
     catch {
@@ -372,6 +362,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       try {
         if (csvPrinter != null) {csvPrinter.close()}
         if (out != null) out.close()
+        if (null != csvFile && csvFile.exists) deleteQuietly(csvFile.getCanonicalFile)
       } catch {
         case e: IOException =>
           TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER) + " - Version Key: "
