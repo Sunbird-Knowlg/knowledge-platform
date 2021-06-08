@@ -354,13 +354,14 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       csvURL(1)
     }
     catch {
+      case ce: ClientException => throw ce
       case e: Exception =>
         TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString + " - Version Key: "
           + collectionHierarchy(CollectionTOCConstants.VERSION_KEY).toString + e)
         throw new ServerException("ERROR_PROCESSING_REQUEST", "Something went wrong while Processing Request")
     } finally {
       try {
-        if (csvPrinter != null) {csvPrinter.close()}
+        if (csvPrinter != null) csvPrinter.close()
         if (out != null) out.close()
         if (null != csvFile && csvFile.exists) deleteQuietly(csvFile.getCanonicalFile)
       } catch {
