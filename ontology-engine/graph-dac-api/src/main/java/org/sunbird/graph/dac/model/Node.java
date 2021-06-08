@@ -1,6 +1,7 @@
 package org.sunbird.graph.dac.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.graph.common.enums.SystemProperties;
 
@@ -131,7 +132,9 @@ public class Node implements Serializable {
 	}
 
 	public void setAddedRelations(List<Relation> addedRelations) {
-		this.addedRelations.addAll(addedRelations);
+        if(CollectionUtils.isEmpty(this.addedRelations))
+		    this.addedRelations = new ArrayList<>();
+        this.addedRelations.addAll(addedRelations);
 	}
 
 	public List<Relation> getDeletedRelations() {

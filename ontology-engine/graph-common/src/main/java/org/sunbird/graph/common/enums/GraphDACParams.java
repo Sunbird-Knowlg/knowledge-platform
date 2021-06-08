@@ -8,5 +8,5 @@ public enum GraphDACParams {
     MERGE, nodes, RETURN, keys,  rootNode, nodeId, WHERE, startNodeId, endNodeId, relationType,
     startNodeIds, endNodeIds, collectionId, collection, indexProperty, taskId, input, getTags,
     searchCriteria, paramMap, cypherQuery, paramValueMap, queryStatementMap, SYS_INTERNAL_LAST_UPDATED_ON,
-    CONSUMER_ID, consumerId, CHANNEL_ID, channel, APP_ID, appId;
+    CONSUMER_ID, consumerId, CHANNEL_ID, channel, APP_ID, appId, Nodes_Count, Relations_Count;
 }

@@ -3,6 +3,8 @@
   "version": "disable",
   "versionCheckMode": "OFF",
   "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
   "edge": {
     "key": "name"
   },

@@ -8,6 +8,7 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.relations.{IRelation, RelationHandler}
@@ -20,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 trait RelationValidator extends IDefinition {
 
     @throws[Exception]
-    abstract override def validate(node: Node, operation: String)(implicit ec: ExecutionContext): Future[Node] = {
+    abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec:OntologyEngineContext): Future[Node] = {
         val relations: java.util.List[Relation] = node.getAddedRelations
         if (CollectionUtils.isNotEmpty(relations)) {
             val ids = relations.asScala.map(r => List(r.getStartNodeId, r.getEndNodeId)).flatten
@@ -37,6 +38,7 @@ trait RelationValidator extends IDefinition {
                     val req = new Request()
                     req.setContext(new util.HashMap[String, AnyRef]() {{
                         put("schemaName", getSchemaName())
+                        put("version", getSchemaVersion())
                     }})
                     val errList = iRel.validate(req)
                     if (null != errList && !errList.isEmpty) {
