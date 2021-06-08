@@ -491,7 +491,7 @@ public class NodeQueryGenerationUtil extends BaseQueryGenerationUtil {
 								+ " | [Remove Property Values Query Generation Failed.]");
 
 			query.append("MATCH (a:" + graphId + " {" + SystemProperties.IL_UNIQUE_ID.name() + ": '" + nodeId
-					+ "'}) DETACH DELETE a");
+					+ "'}) DETACH DELETE a RETURN a");
 		}
 
 		TelemetryManager.log("Returning Create Node Cypher Query: " + query);
@@ -526,6 +526,26 @@ public class NodeQueryGenerationUtil extends BaseQueryGenerationUtil {
 					.append(CypherQueryConfigurationConstants.BLANK_SPACE)
 					.append(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT);
 		}
+		return query.toString();
+	}
+
+	public static String generateUpdateNodesQuery(String graphId, List<String> identifiers, Map<String, Object> metadata, Map<String, Object> params) {
+		params.put("identifiers", identifiers);
+		StringBuilder query = new StringBuilder();
+		query.append("MATCH(n:" + graphId + ") ");
+		query.append("WHERE n." + SystemProperties.IL_UNIQUE_ID.name() + " IN {identifiers} SET");
+		int i = 0;
+		int index = 1;
+		for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+			query.append(" ").append("n").append(".").append(entry.getKey()).append(" = {").append(index).append("} ");
+			params.put("" + index, entry.getValue());
+			index += 1;
+			if (i < metadata.size() - 1) {
+				query.append(", ");
+				i++;
+			}
+		}
+		query.append(" RETURN n AS ee ;");
 		return query.toString();
 	}
 }

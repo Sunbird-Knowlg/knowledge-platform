@@ -1,0 +1,381 @@
+{
+  "$id": "assessmentItem-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AssessmentItem",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "type",
+    "qlevel",
+    "itemType",
+    "category"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "language": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "English",
+          "Hindi",
+          "Assamese",
+          "Bengali",
+          "Gujarati",
+          "Kannada",
+          "Malayalam",
+          "Marathi",
+          "Nepali",
+          "Odia",
+          "Punjabi",
+          "Tamil",
+          "Telugu",
+          "Urdu",
+          "Sanskrit",
+          "Maithili",
+          "Munda",
+          "Santali",
+          "Juang",
+          "Ho",
+          "Other"
+        ]
+      },
+      "default": [
+        "English"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "template": {
+      "type": "string"
+    },
+    "template_id": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "embedded",
+        "mcq",
+        "ftb",
+        "mtf",
+        "recognition",
+        "vsa",
+        "sa",
+        "la",
+        "reference",
+        "other"
+      ],
+      "default": ""
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Live",
+        "Retired",
+        "Mock",
+        "Reject"
+      ],
+      "default": "Live"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "portalOwner": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "question_audio": {
+      "type": "string"
+    },
+    "question_image": {
+      "type": "string"
+    },
+    "media": {
+      "type": "object"
+    },
+    "model": {
+      "type": "object"
+    },
+    "options": {
+      "type": "object"
+    },
+    "lhs_options": {
+      "type": "object"
+    },
+    "rhs_options": {
+      "type": "object"
+    },
+    "responses": {
+      "type": "object"
+    },
+    "num_answers": {
+      "dataType": "number"
+    },
+    "answer": {
+      "dataType": "object"
+    },
+    "hints": {
+      "dataType": "object"
+    },
+    "qlevel": {
+      "dataType": "string",
+      "enum": [
+        "EASY",
+        "MEDIUM",
+        "DIFFICULT",
+        "RARE"
+      ],
+      "default": "MEDIUM"
+    },
+    "purpose": {
+      "dataType": "string",
+      "enum": [
+        "Knowledge",
+        "Conceptual",
+        "Application",
+        "Problem Solving"
+      ],
+      "default": ""
+    },
+    "depth_of_knowledge": {
+      "dataType": "string",
+      "enum": [
+        "Recall",
+        "Skill",
+        "Strategic Thinking",
+        "Extended Thinking"
+      ],
+      "default": ""
+    },
+    "used_for": {
+      "dataType": "string",
+      "enum": [
+        "assessment",
+        "worksheet"
+      ],
+      "default": ""
+    },
+    "max_score": {
+      "dataType": "number"
+    },
+    "partial_scoring": {
+      "dataType": "boolean"
+    },
+    "feedback": {
+      "dataType": "string"
+    },
+    "max_time": {
+      "dataType": "number"
+    },
+    "gradeLevel": {
+      "dataType": "array"
+    },
+    "topic": {
+      "dataType": "array"
+    },
+    "board": {
+      "dataType": "string"
+    },
+    "subject": {
+      "dataType": "string"
+    },
+    "medium": {
+      "dataType": "string"
+    },
+    "source": {
+      "dataType": "string"
+    },
+    "rendering_metadata": {
+      "dataType": "object"
+    },
+    "description": {
+      "dataType": "string"
+    },
+    "learningObjective": {
+      "dataType": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "example": {
+      "dataType": "string"
+    },
+    "validators": {
+      "dataType": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "references": {
+      "dataType": "string"
+    },
+    "createdBy": {
+      "dataType": "string"
+    },
+    "createdOn": {
+      "dataType": "string"
+    },
+    "lastUpdatedBy": {
+      "dataType": "string"
+    },
+    "lastUpdatedOn": {
+      "dataType": "string"
+    },
+    "version": {
+      "dataType": "number"
+    },
+    "versionDate": {
+      "dataType": "string"
+    },
+    "versionCreatedBy": {
+      "dataType": "string"
+    },
+    "itemType": {
+      "dataType": "string",
+      "enum": [
+        "UNIT",
+        "SET",
+        "DYNAMIC"
+      ],
+      "default": "UNIT"
+    },
+    "category": {
+      "dataType": "string",
+      "enum": [
+        "MCQ",
+        "FTB",
+        "MTF",
+        "VSA",
+        "SA",
+        "LA",
+        "REFERENCE",
+        "CuriosityQuestion"
+      ],
+      "default": "MCQ"
+    },
+    "channel": {
+      "dataType": "string"
+    },
+    "framework": {
+      "dataType": "string"
+    },
+    "isShuffleOption": {
+      "dataType": "boolean"
+    },
+    "evalUnordered": {
+      "dataType": "boolean"
+    },
+    "isPartialScore": {
+      "dataType": "boolean"
+    },
+    "templateType": {
+      "dataType": "string"
+    },
+    "topicData": {
+      "dataType": "string"
+    },
+    "questionTitle": {
+      "dataType": "string"
+    },
+    "appId": {
+      "dataType": "string"
+    },
+    "lastStatusChangedOn": {
+      "dataType": "string"
+    },
+    "consumerId": {
+      "dataType": "string"
+    },
+    "solutions": {
+      "dataType": "string"
+    },
+    "learningOutcome": {
+      "dataType": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "bloomsLevel": {
+      "dataType": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "qumlConfig": {
+      "dataType": "object"
+    },
+    "responseDeclaration": {
+      "dataType": "object"
+    },
+    "templateId": {
+      "dataType": "string"
+    },
+    "maxScore": {
+      "dataType": "number"
+    },
+    "programId": {
+      "dataType": "string"
+    },
+    "program": {
+      "dataType": "string"
+    },
+    "qumlVersion": {
+      "dataType": "number"
+    },
+    "editorState": {
+      "dataType": "string"
+    },
+    "creator": {
+      "dataType": "string"
+    },
+    "createdFor": {
+      "dataType": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rejectComment": {
+      "dataType": "string"
+    },
+    "organisation": {
+      "dataType": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "body": {
+      "dataType": "string"
+    },
+    "data": {
+      "dataType": "string"
+    },
+    "author": {
+      "dataType": "string"
+    },
+    "questionType": {
+      "dataType": "string",
+      "enum": [
+        "Registration"
+      ],
+      "default": ""
+    }
+  }
+}

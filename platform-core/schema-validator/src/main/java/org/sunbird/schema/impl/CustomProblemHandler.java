@@ -3,7 +3,6 @@ package org.sunbird.schema.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.Problem;
 import org.leadpony.justify.api.ProblemHandler;
-import scala.collection.immutable.StringOps;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +33,8 @@ public class CustomProblemHandler implements ProblemHandler {
     }
 
     private String processMessage(Problem problem) {
-        switch (problem.getKeyword()) {
+        String keyword = StringUtils.isNotBlank(problem.getKeyword()) ? problem.getKeyword() : "additionalProp";
+        switch (keyword) {
             case "enum":
                 return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
                         .filter(StringUtils::isNotBlank)
@@ -42,9 +42,14 @@ public class CustomProblemHandler implements ProblemHandler {
                         + " should be one of: "
                         + problem.parametersAsMap().get("expected")).replace("\"", "");
             case "required":
+                String param;
+                if (StringUtils.isNotBlank(problem.getPointer())) {
+                    param = problem.getPointer().replaceAll("/", "") + "." + problem.parametersAsMap().get(problem.getKeyword());
+                } else {
+                    param = problem.parametersAsMap().get(problem.getKeyword()).toString();
+                }
                 return "Required Metadata "
-                        + problem.parametersAsMap().get(problem.getKeyword())
-                        .toString().replace("\"", "")
+                        + param.replace("\"", "")
                         + " not set";
             case "type": {
                 return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
@@ -53,6 +58,20 @@ public class CustomProblemHandler implements ProblemHandler {
                         + " should be a/an "
                         + StringUtils.capitalize(((Enum) problem.parametersAsMap().get("expected")).name().toLowerCase())).replace("\"", "")
                         + " value";
+            }
+            case "additionalProp": {
+                return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
+                        .filter(StringUtils::isNotBlank)
+                        .findFirst().get()
+                        + " cannot have new property with name "
+                        + ((String) problem.parametersAsMap().get("name")).replace("\"", ""));
+            }
+            case "format": {
+                return ("Incorrect format for " + Arrays.stream(problem.getPointer().split("/"))
+                        .filter(StringUtils::isNotBlank)
+                        .findFirst().orElse("")
+                        + " : "
+                        + problem.getMessage());
             }
             default:
                 return "";
