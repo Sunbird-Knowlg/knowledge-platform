@@ -6,6 +6,7 @@ import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
+import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
@@ -23,7 +24,7 @@ trait FrameworkValidator extends IDefinition {
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
     val graphId: String = if(StringUtils.isNotBlank(node.getGraphId)) node.getGraphId else "domain"
-    val orgAndTargetFWData: Future[(List[String], List[String])] = getOrgAndTargetFWData(graphId, "Category")
+    val orgAndTargetFWData: Future[(List[String], List[String])] = if(Platform.getBoolean("master.category.validation.enabled",true)) getOrgAndTargetFWData(graphId, "Category") else Future(List(), List())
 
     orgAndTargetFWData.map(orgAndTargetTouple => {
       val orgFwTerms = orgAndTargetTouple._1
