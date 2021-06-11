@@ -11,7 +11,7 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.telemetry.logger.TelemetryManager
 
-import java.io.{File, FileInputStream, IOException, InputStream, InputStreamReader}
+import java.io.{File, FileInputStream, IOException, InputStreamReader}
 import java.nio.charset.StandardCharsets
 import java.text.MessageFormat
 import java.util
@@ -40,17 +40,15 @@ object CollectionCSVValidator {
   val maxFolderLevels: Int = folderHierarchyHdrColumnsList.size
 
   def readInputCSV(request: Request): (String, util.List[CSVRecord], String) = {
-    TelemetryManager.log("CollectionCSVManager --> readInputCSV method")
     val file = request.getRequest.get("file").asInstanceOf[File]
     val extension = "."+file.getAbsolutePath.split("\\.").last.toLowerCase
-    val inputStream: InputStream = new FileInputStream(file)
     TelemetryManager.log("CollectionCSVManager --> readInputCSV --> file: " + file.getAbsolutePath)
+
     // Reading input CSV File - START
-    val csvFileFormat = CSVFormat.DEFAULT.withHeader()
-    val bomInputStream = new BOMInputStream(inputStream, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE)
+    val bomInputStream = new BOMInputStream(new FileInputStream(file), ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE)
     val character =  if (bomInputStream.hasBOM)  bomInputStream.getBOMCharsetName else StandardCharsets.UTF_8.name
     try {
-      val csvFileParser = csvFileFormat.parse(new InputStreamReader(bomInputStream, character))
+      val csvFileParser = CSVFormat.DEFAULT.withHeader().parse(new InputStreamReader(bomInputStream, character))
 
       try {
         val csvHeaders: Map[String, Integer] =  if (!csvFileParser.getHeaderMap.isEmpty) csvFileParser.getHeaderMap.asScala.toMap else HashMap.empty
@@ -70,63 +68,31 @@ object CollectionCSVValidator {
 
         (extension, csvRecords, mode)
       } catch {
-        case ce: ClientException =>     throw ce
-        case ex: Exception =>     throw new ClientException("CLIENT_ERROR", ex.getMessage)
+        case ce: ClientException => throw ce
+        case ex: Exception => throw new ClientException("CLIENT_ERROR", ex.getMessage)
       } finally {
         try if (null != csvFileParser) csvFileParser.close()
         catch {
-          case e: IOException =>
-            TelemetryManager.log("CollectionCSVActor:readAndValidateCSV : Exception occurred while closing stream" + e)
+          case e: IOException => TelemetryManager.log("CollectionCSVActor:readAndValidateCSV : Exception occurred while closing stream" + e)
         }
       }
     }
     catch {
-      case e: ClientException => throw e
+      case ce: ClientException => throw ce
       case ex: Exception =>  throw new ClientException("INVALID_CSV_FILE", "Please provide valid csv file. Please check for data columns without headers.")
     }
   }
 
   def validateCSVHeadersFormat(csvHeader: Map[String, Integer], mode:String) {
-
     val configHeaders: Map[String, Integer]  =  if(mode.equals(CollectionTOCConstants.CREATE)) createCSVHeaders else updateCSVHeaders
 
     if(!csvHeader.equals(configHeaders))
     {
       //Check if Column Order is different
-      if((csvHeader.keySet -- configHeaders.keySet).isEmpty)
-      {
-        val colSeqString = ListMap(configHeaders.toSeq.sortBy(_._2):_*).keySet mkString ","
-        val errorMessage = MessageFormat.format("Found invalid sequence of columns. Please follow the order: "+colSeqString)
-        throw new ClientException("INVALID_HEADER_SEQUENCE", errorMessage)
-      }
-
+      validateHeaderOrder(csvHeader, configHeaders)
       //Check if Some columns are missing and any additional columns found
-      if((configHeaders.toSet diff csvHeader.toSet).toMap.keySet.nonEmpty && (configHeaders.toSet diff csvHeader.toSet).toMap.keySet.toList.head.nonEmpty &&
-        (((csvHeader.toSet diff configHeaders.toSet).toMap.keySet.nonEmpty && (csvHeader.toSet diff configHeaders.toSet).toMap.keySet.toList.head.nonEmpty) ||
-          (csvHeader.keySet -- configHeaders.keySet).toList.head.nonEmpty))
-      {
-        val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
-        val missingCols = (configHeaders.toSet diff csvHeader.toSet).toMap.keySet mkString ","
-        val errorMessage = MessageFormat.format("Following Columns are not found in the file: "+missingCols+" AND "
-          + "Following additional Columns are found in the file: "+additionalCols)
-        throw new ClientException("INVALID_HEADERS_FOUND", errorMessage)
-      }
-      //Check if Some columns are missing
-      else if((configHeaders.toSet diff csvHeader.toSet).toMap.keySet.nonEmpty && (configHeaders.toSet diff csvHeader.toSet).toMap.keySet.toList.head.nonEmpty)
-      {
-        val missingCols = (configHeaders.toSet diff csvHeader.toSet).toMap.keySet mkString ","
-        val errorMessage = MessageFormat.format("Following Columns are not found in the file: "+missingCols)
-        throw new ClientException("REQUIRED_HEADER_MISSING", errorMessage)
-      }
-      //Check if any additional columns found
-      else if((csvHeader.toSet diff configHeaders.toSet).toMap.keySet.nonEmpty && (csvHeader.toSet diff configHeaders.toSet).toMap.keySet.toList.head.nonEmpty)
-      {
-        val additionalCols:String = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
-        val errorMessage = MessageFormat.format("Following additional Columns are found in the file: "+additionalCols)
-        throw new ClientException("ADDITIONAL_HEADER_FOUND", errorMessage)
-      }
+      validateDifferentialHeaders(csvHeader, configHeaders)
     }
-
   }
 
   def validateCSVRecordsDataFormat(csvRecords: util.List[CSVRecord], mode: String) {
@@ -138,6 +104,64 @@ object CollectionCSVValidator {
     if (csvRecords.nonEmpty && csvRecords.size > allowedNumberOfRecord)
       throw new ClientException("CSV_ROWS_EXCEEDS", "Number of rows in csv file is more than " + allowedNumberOfRecord)
 
+    validateMandatoryHeaderCols(csvRecords, mode)
+    validateDuplicateRows(csvRecords)
+
+    if(mode.equals(CollectionTOCConstants.UPDATE)) {
+      // QRCode data format validations
+        validateQRCodeColumns(csvRecords)
+
+      // validate linked contents missing entries
+        validateLinkedContentsColumns(csvRecords)
+    }
+  }
+
+  def validateCSVRecordsDataAuthenticity(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
+    validateCollectionName(csvRecords, collectionHierarchy)
+
+    validateUnitIdentifiers(csvRecords, collectionHierarchy)
+
+    validateQRCodes(csvRecords, collectionHierarchy)
+
+    validateMappedTopics(csvRecords, collectionHierarchy)
+
+    validateLinkedContents(csvRecords, collectionHierarchy)
+  }
+
+  private def validateHeaderOrder(csvHeader: Map[String, Integer], configHeaders: Map[String, Integer]): Unit = {
+    if((csvHeader.keySet -- configHeaders.keySet).isEmpty)
+    {
+      val colSeqString = ListMap(configHeaders.toSeq.sortBy(_._2):_*).keySet mkString ","
+      val errorMessage = MessageFormat.format("Found invalid sequence of columns. Please follow the order: "+colSeqString)
+      throw new ClientException("INVALID_HEADER_SEQUENCE", errorMessage)
+    }
+  }
+
+  private def validateDifferentialHeaders(csvHeader: Map[String, Integer], configHeaders: Map[String, Integer]): Unit = {
+    if((configHeaders.toSet diff csvHeader.toSet).toMap.keySet.nonEmpty && (configHeaders.toSet diff csvHeader.toSet).toMap.keySet.toList.head.nonEmpty &&
+      (((csvHeader.toSet diff configHeaders.toSet).toMap.keySet.nonEmpty && (csvHeader.toSet diff configHeaders.toSet).toMap.keySet.toList.head.nonEmpty) ||
+        (csvHeader.keySet -- configHeaders.keySet).toList.head.nonEmpty))
+    {
+      val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
+      val missingCols = (configHeaders.toSet diff csvHeader.toSet).toMap.keySet mkString ","
+      throw new ClientException("INVALID_HEADERS_FOUND", MessageFormat.format("Following Columns are not found in the file: "+missingCols+" AND "
+        + "Following additional Columns are found in the file: "+additionalCols))
+    }
+    //Check if Some columns are missing
+    else if((configHeaders.toSet diff csvHeader.toSet).toMap.keySet.nonEmpty && (configHeaders.toSet diff csvHeader.toSet).toMap.keySet.toList.head.nonEmpty)
+    {
+      val missingCols = (configHeaders.toSet diff csvHeader.toSet).toMap.keySet mkString ","
+      throw new ClientException("REQUIRED_HEADER_MISSING", MessageFormat.format("Following Columns are not found in the file: "+missingCols))
+    }
+    //Check if any additional columns found
+    else if((csvHeader.toSet diff configHeaders.toSet).toMap.keySet.nonEmpty && (csvHeader.toSet diff configHeaders.toSet).toMap.keySet.toList.head.nonEmpty)
+    {
+      val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
+      throw new ClientException("ADDITIONAL_HEADER_FOUND", MessageFormat.format("Following additional Columns are found in the file: "+additionalCols))
+    }
+  }
+
+  private def validateMandatoryHeaderCols(csvRecords: util.List[CSVRecord], mode: String): Unit = {
     // Check if data exists in mandatory columns - START
     val mandatoryDataHdrCols =  if(mode.equals(CollectionTOCConstants.CREATE)) createCSVMandatoryHeaderCols else updateCSVMandatoryHeaderCols
 
@@ -179,7 +203,9 @@ object CollectionCSVValidator {
       throw new ClientException("REQUIRED_FIELD_MISSING", "Following Rows have missing values: "
         + missingDataErrorMessage.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
     // Add column data validation messages from mandatory columns and hierarchy folder - END
+  }
 
+  private def validateDuplicateRows(csvRecords: util.List[CSVRecord]): Unit = {
     // Verify if there are any duplicate hierarchy folder structure - START
     val dupRecordsList = csvRecords.filter(csvRecord => {
       csvRecords.exists(record => {
@@ -200,63 +226,61 @@ object CollectionCSVValidator {
     if(dupRecordsList.trim.nonEmpty)
       throw new ClientException("DUPLICATE_ROWS", "Following Rows are duplicate: " + dupRecordsList)
     // Verify if there are any duplicate hierarchy folder structure - END
-
-
-    if(mode.equals(CollectionTOCConstants.UPDATE)) {
-      // QRCode data format validations - START
-      // Verify if there are any QR Codes data entry issues - START
-      val qrDataErrorMessage = csvRecords.map(csvRecord => {
-        val csvRecordMap = csvRecord.toMap.asScala.toMap
-        if(csvRecordMap(qrCodeHdrColsList.head).equalsIgnoreCase(CollectionTOCConstants.YES) && csvRecordMap(qrCodeHdrColsList(1)).isEmpty)
-          MessageFormat.format("Row {0} has column 'QR Code Required?' as 'Yes' but 'QR Code' is Blank", (csvRecord.getRecordNumber+1).toString)
-        else if((csvRecordMap(qrCodeHdrColsList.head).equalsIgnoreCase(CollectionTOCConstants.NO) || csvRecordMap(qrCodeHdrColsList.head).isEmpty) &&
-          csvRecordMap(qrCodeHdrColsList(1)).nonEmpty)
-          MessageFormat.format("Row {0} has column 'QR Code Required?' as 'No'/Blank but 'QR Code' is Filled", (csvRecord.getRecordNumber+1).toString)
-        else
-          ""
-      }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
-
-      if(qrDataErrorMessage.trim.nonEmpty)
-        throw new ClientException("ERROR_QR_CODE_ENTRY", "Following rows have issues for QR Code entries: " + qrDataErrorMessage)
-      // Verify if there are any QR Codes data entry issues - END
-
-      // Verify if there are any duplicate QR Codes - START
-      val dupQRListMsg = csvRecords.filter(csvRecord => {
-        csvRecords.exists(record => {
-          record.get(CollectionTOCConstants.QR_CODE).nonEmpty && csvRecord.get(CollectionTOCConstants.QR_CODE).nonEmpty && record.get(CollectionTOCConstants.QR_CODE).equals(csvRecord.get(CollectionTOCConstants.QR_CODE)) &&
-            !csvRecord.getRecordNumber.equals(record.getRecordNumber)
-        })
-      }).map(dupQRRecord => {
-        MessageFormat.format("Row {0} - {1}", (dupQRRecord.getRecordNumber+1).toString, dupQRRecord.get(CollectionTOCConstants.QR_CODE))
-      }).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
-
-      if(dupQRListMsg.trim.nonEmpty)
-        throw new ClientException("DUPLICATE_QR_CODE_ENTRY", "Following rows have duplicate QR Code entries: " + dupQRListMsg)
-      // Verify if there are any duplicate QR Codes - END
-      // QRCode data format validations - END
-
-      // Check if data exists in Linked content columns - START
-      val missingLinkedContentDataList = csvRecords.flatMap(csvRecord => {
-        val csvRecordLinkedContentsData = csvRecord.toMap.asScala.toMap.filter(colData => {
-          linkedContentHdrColumnsList.contains(colData._1) && colData._2.nonEmpty
-        })
-
-        csvRecord.toMap.asScala.toMap.map(colData => {
-          if(linkedContentHdrColumnsList.contains(colData._1) && colData._2.trim.isEmpty &&
-            (csvRecordLinkedContentsData.nonEmpty && linkedContentColumnHeadersSeq(colData._1) < linkedContentColumnHeadersSeq(csvRecordLinkedContentsData.max._1)))
-            MessageFormat.format("Row {0} - column: {1}", (csvRecord.getRecordNumber+1).toString,colData._1)
-          else ""
-        })
-      }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
-
-      if(missingLinkedContentDataList.trim.nonEmpty)
-        throw new ClientException("LINKED_CONTENTS_DATA_MISSING", "Following rows have linked contents data missing: " + missingLinkedContentDataList)
-      // Check if data exists in hierarchy folder columns - END
-    }
-
   }
 
-  def validateCSVRecordsDataAuthenticity(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
+  private def validateQRCodeColumns(csvRecords: util.List[CSVRecord]): Unit = {
+    // Verify if there are any QR Codes data entry issues - START
+    val qrDataErrorMessage = csvRecords.map(csvRecord => {
+      val csvRecordMap = csvRecord.toMap.asScala.toMap
+      if(csvRecordMap(qrCodeHdrColsList.head).equalsIgnoreCase(CollectionTOCConstants.YES) && csvRecordMap(qrCodeHdrColsList(1)).isEmpty)
+        MessageFormat.format("Row {0} has column 'QR Code Required?' as 'Yes' but 'QR Code' is Blank", (csvRecord.getRecordNumber+1).toString)
+      else if((csvRecordMap(qrCodeHdrColsList.head).equalsIgnoreCase(CollectionTOCConstants.NO) || csvRecordMap(qrCodeHdrColsList.head).isEmpty) &&
+        csvRecordMap(qrCodeHdrColsList(1)).nonEmpty)
+        MessageFormat.format("Row {0} has column 'QR Code Required?' as 'No'/Blank but 'QR Code' is Filled", (csvRecord.getRecordNumber+1).toString)
+      else
+        ""
+    }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
+
+    if(qrDataErrorMessage.trim.nonEmpty)
+      throw new ClientException("ERROR_QR_CODE_ENTRY", "Following rows have issues for QR Code entries: " + qrDataErrorMessage)
+    // Verify if there are any QR Codes data entry issues - END
+
+    // Verify if there are any duplicate QR Codes - START
+    val dupQRListMsg = csvRecords.filter(csvRecord => {
+      csvRecords.exists(record => {
+        record.get(CollectionTOCConstants.QR_CODE).nonEmpty && csvRecord.get(CollectionTOCConstants.QR_CODE).nonEmpty && record.get(CollectionTOCConstants.QR_CODE).equals(csvRecord.get(CollectionTOCConstants.QR_CODE)) &&
+          !csvRecord.getRecordNumber.equals(record.getRecordNumber)
+      })
+    }).map(dupQRRecord => {
+      MessageFormat.format("Row {0} - {1}", (dupQRRecord.getRecordNumber+1).toString, dupQRRecord.get(CollectionTOCConstants.QR_CODE))
+    }).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
+
+    if(dupQRListMsg.trim.nonEmpty)
+      throw new ClientException("DUPLICATE_QR_CODE_ENTRY", "Following rows have duplicate QR Code entries: " + dupQRListMsg)
+    // Verify if there are any duplicate QR Codes - END
+  }
+
+  private def validateLinkedContentsColumns(csvRecords: util.List[CSVRecord]): Unit = {
+    // Check if data exists in Linked content columns - START
+    val missingLinkedContentDataList = csvRecords.flatMap(csvRecord => {
+      val csvRecordLinkedContentsData = csvRecord.toMap.asScala.toMap.filter(colData => {
+        linkedContentHdrColumnsList.contains(colData._1) && colData._2.nonEmpty
+      })
+
+      csvRecord.toMap.asScala.toMap.map(colData => {
+        if(linkedContentHdrColumnsList.contains(colData._1) && colData._2.trim.isEmpty &&
+          (csvRecordLinkedContentsData.nonEmpty && linkedContentColumnHeadersSeq(colData._1) < linkedContentColumnHeadersSeq(csvRecordLinkedContentsData.max._1)))
+          MessageFormat.format("Row {0} - column: {1}", (csvRecord.getRecordNumber+1).toString,colData._1)
+        else ""
+      })
+    }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
+
+    if(missingLinkedContentDataList.trim.nonEmpty)
+      throw new ClientException("LINKED_CONTENTS_DATA_MISSING", "Following rows have linked contents data missing: " + missingLinkedContentDataList)
+    // Check if data exists in Linked content columns - END
+  }
+
+  private def validateCollectionName(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef]): Unit = {
     // validate collection name column in CSV - START
     val invalidCollectionNameErrorMessage = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
@@ -270,7 +294,9 @@ object CollectionCSVValidator {
       throw new ClientException("CSV_INVALID_COLLECTION_NAME", "Following rows have invalid Collection Name: " + invalidCollectionNameErrorMessage)
     // validate collection name column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating collection name column in CSV")
+  }
 
+  private def validateUnitIdentifiers(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef]): Unit = {
     // validate Folder Identifier column in CSV - START
     val collectionChildNodes = collectionHierarchy(CollectionTOCConstants.CHILD_NODES).asInstanceOf[List[String]]
 
@@ -286,7 +312,9 @@ object CollectionCSVValidator {
       throw new ClientException("CSV_INVALID_COLLECTION_NODE_ID", "Following rows have invalid folder identifier: " + invalidCollectionNodeIDErrorMessage)
     // validate Folder Identifier column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")
+  }
 
+  private def validateQRCodes(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
     // Validate QR Codes with reserved DIAL codes - START
     val csvQRCodesList: List[String] = csvRecords.map(csvRecord => {
       csvRecord.toMap.asScala.toMap.get(qrCodeHdrColsList(1)).get.trim
@@ -308,7 +336,9 @@ object CollectionCSVValidator {
     }
     // Validate QR Codes with reserved DIAL codes - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating QR Codes with reserved DIAL codes")
+  }
 
+  private def validateMappedTopics(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
     // Validate Mapped Topics with Collection Framework data - START
     val mappedTopicsList = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
@@ -335,9 +365,7 @@ object CollectionCSVValidator {
           if (mappedTopicsHeader.contains(colData._1) && colData._2.trim.nonEmpty) {
             val topicsDataList: List[String] = colData._2.trim.split(",").toList
             topicsDataList.map(topic => {
-              if(!frameworkTopicList.contains(topic.trim))
-                MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString + " - " + topic)
-              else ""
+              if(!frameworkTopicList.contains(topic.trim)) MessageFormat.format("Row {0}", (csvRecord.getRecordNumber + 1).toString + " - " + topic) else ""
             }).filter(errmsg => errmsg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
           } else ""
         })
@@ -348,7 +376,9 @@ object CollectionCSVValidator {
     }
     // Validate Mapped Topics with Collection Framework data - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Mapped Topics with Collection Framework data")
+  }
 
+  private def validateLinkedContents(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
     // Validate Linked Contents authenticity - START
     val csvLinkedContentsList: List[String] = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
@@ -389,7 +419,5 @@ object CollectionCSVValidator {
     }
     else List.empty[Map[String, AnyRef]]
     // Validate Linked Contents authenticity - END
-
   }
-
 }
