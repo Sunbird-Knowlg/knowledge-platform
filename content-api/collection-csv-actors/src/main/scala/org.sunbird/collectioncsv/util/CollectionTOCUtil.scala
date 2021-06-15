@@ -23,15 +23,14 @@ object CollectionTOCUtil {
     try {
       val headers = new util.HashMap[String, String]() {
         put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON)
-        put(AUTHORIZATION, CollectionTOCConstants.BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION))
       }
 
-      val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.FRAMEWORK_READ_API_URL) + "/" + frameworkId
+      val requestUrl = Platform.config.getString(CollectionTOCConstants.FRAMEWORK_READ_API_URL) + "/" + frameworkId
 
       TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> requestUrl: " + requestUrl)
       TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> headers: " + headers)
       val httpResponse = oec.httpUtil.get(requestUrl,"categories=topic",headers)
-      
+
       TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> httpResponse.getResponseCode: " + httpResponse.getResponseCode)
       if ( null== httpResponse || httpResponse.getResponseCode.code() != ResponseCode.OK.code())
         throw new ServerException("SERVER_ERROR", "Error while fetching content data.")
@@ -53,8 +52,8 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, AUTHORIZATION -> (CollectionTOCConstants.BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
-    val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CS_BASE_URL) + Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
+    val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, "Content-Type" -> "application/json")
+    val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
     val searchResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
     if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
@@ -86,8 +85,8 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = HashMap[String, String](AUTHORIZATION -> (BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
-    val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CS_BASE_URL) + Platform.config.getString(CollectionTOCConstants.SUNBIRD_CONTENT_SEARCH_URL)
+    val headerParam = HashMap[String, String]("Content-Type" -> "application/json")
+    val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CONTENT_SEARCH_URL)
 
     val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
@@ -110,8 +109,8 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, AUTHORIZATION -> (BEARER + Platform.config.getString(CollectionTOCConstants.SUNBIRD_AUTHORIZATION)), "Content-Type" -> "application/json")
-    val requestUrl = Platform.config.getString(CollectionTOCConstants.LEARNING_SERVICE_BASE_URL) + Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
+    val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, "Content-Type" -> "application/json")
+    val requestUrl = Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
 
     val linkResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
 

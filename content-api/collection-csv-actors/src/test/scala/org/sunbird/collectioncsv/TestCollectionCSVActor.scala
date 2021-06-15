@@ -369,11 +369,11 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 
         (oec.httpUtil _).expects().returns(httpUtil)
-        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("https://dev.sunbirded.org/api" + "/dialcode/v1/list", *, *).returns(getDIALSearchResponse()).anyNumberOfTimes()
+        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("https://dev.sunbirded.org/api/dialcode/v1/list", *, *).returns(getDIALSearchResponse()).anyNumberOfTimes()
         (oec.httpUtil _).expects().returns(httpUtil)
-        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("https://dev.sunbirded.org/api" + "/content/v1/search", *, *).returns(searchLinkedContentsResponse()).anyNumberOfTimes()
+        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("https://dev.sunbirded.org/action/composite/v3/search", *, *).returns(searchLinkedContentsResponse()).anyNumberOfTimes()
         (oec.httpUtil _).expects().returns(httpUtil)
-        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("" + "/collection/v3/dialcode/link" + "/" + collectionID, *, *).returns(linkDIALCodesResponse()).anyNumberOfTimes()
+        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects("https://dev.sunbirded.org/api/collection/v3/dialcode/link" + "/" + collectionID, *, *).returns(linkDIALCodesResponse()).anyNumberOfTimes()
 
         val response = uploadFileToActor(collectionID, resourceDirectory + "UpdateTOC.csv")
         assert(response != null)
@@ -389,7 +389,6 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
         (graphDB.updateExternalProps(_:Request)).expects(*).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
-
 
         val collectionID = "do_113293355858984960134"
         val response = uploadFileToActor(collectionID, resourceDirectory + "CreateTOC.csv")
