@@ -20,6 +20,7 @@
         <module>content-service</module>
         <module>hierarchy-manager</module>
         <module>content-actors</module>
+        <module>collection-csv-actors</module>
     </modules>
     <dependencies>
     </dependencies>
