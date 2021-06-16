@@ -42,7 +42,7 @@ object CollectionTOCUtil {
             })
         })
     }
-    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put("Content-Type", "application/json");}
+    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON);}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
     TelemetryManager.log("CollectionTOCUtil --> validateDialCodes --> requestUrl: " + requestUrl)
     TelemetryManager.log("CollectionTOCUtil --> validateDialCodes --> reqMap: " + reqMap)
@@ -77,7 +77,7 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = new util.HashMap[String, String]{put("Content-Type", "application/json")}
+    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON)}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CONTENT_SEARCH_URL)
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> requestUrl: " + requestUrl)
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> reqMap: " + reqMap)
@@ -101,7 +101,7 @@ object CollectionTOCUtil {
             put(CollectionTOCConstants.CONTENT, linkDIALCodesMap.asJava)
         })
     }
-    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put("Content-Type", "application/json");}
+    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON);}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
     TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> requestUrl: " + requestUrl)
     TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> reqMap: " + reqMap)
