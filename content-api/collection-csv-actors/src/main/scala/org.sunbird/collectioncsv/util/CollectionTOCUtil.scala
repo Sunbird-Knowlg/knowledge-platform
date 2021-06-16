@@ -20,7 +20,7 @@ object CollectionTOCUtil {
     try {
       val headers = new util.HashMap[String, String]() {put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON)}
       val requestUrl = Platform.config.getString(CollectionTOCConstants.FRAMEWORK_READ_API_URL) + "/" + frameworkId
-      TelemetryManager.info("CollectionTOCUtil --> getRelatedFrameworkById --> requestUrl: " + requestUrl)
+      TelemetryManager.log("CollectionTOCUtil --> getRelatedFrameworkById --> requestUrl: " + requestUrl)
       val httpResponse = oec.httpUtil.get(requestUrl,"categories=topic",headers)
 
       if ( null== httpResponse || httpResponse.getResponseCode.code() != ResponseCode.OK.code())
@@ -29,7 +29,7 @@ object CollectionTOCUtil {
       httpResponse
     } catch {
       case e: Exception =>
-        TelemetryManager.info("CollectionTOCUtil --> handleReadRequest --> Exception: " + e.getMessage)
+        TelemetryManager.log("CollectionTOCUtil --> handleReadRequest --> Exception: " + e.getMessage)
         throw e
     }
   }
@@ -44,8 +44,8 @@ object CollectionTOCUtil {
     }
     val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON);}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
-    TelemetryManager.info("CollectionTOCUtil --> validateDialCodes --> requestUrl: " + requestUrl)
-    TelemetryManager.info("CollectionTOCUtil --> validateDialCodes --> reqMap: " + JsonUtils.serialize(reqMap))
+    TelemetryManager.log("CollectionTOCUtil --> validateDialCodes --> requestUrl: " + requestUrl)
+    TelemetryManager.log("CollectionTOCUtil --> validateDialCodes --> reqMap: " + JsonUtils.serialize(reqMap))
     val searchResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
     if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
@@ -79,8 +79,8 @@ object CollectionTOCUtil {
 
     val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON)}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CONTENT_SEARCH_URL)
-    TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> requestUrl: " + requestUrl)
-    TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> reqMap: " + JsonUtils.serialize(reqMap))
+    TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> requestUrl: " + requestUrl)
+    TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> reqMap: " + JsonUtils.serialize(reqMap))
     val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
     if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
@@ -103,10 +103,10 @@ object CollectionTOCUtil {
     }
     val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put(CollectionTOCConstants.CONTENT_TYPE_HEADER, CollectionTOCConstants.APPLICATION_JSON);}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
-    TelemetryManager.info("CollectionTOCUtil --> linkDIALCode --> requestUrl: " + requestUrl)
-    TelemetryManager.info("CollectionTOCUtil --> linkDIALCode --> reqMap: " + JsonUtils.serialize(reqMap))
+    TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> requestUrl: " + requestUrl)
+    TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> reqMap: " + JsonUtils.serialize(reqMap))
     val linkResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
-    TelemetryManager.info("CollectionTOCUtil --> linkDIALCode --> linkResponse: " + linkResponse)
+    TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> linkResponse: " + linkResponse)
     if (null == linkResponse || linkResponse.getResponseCode.code() != ResponseCode.OK.code())
       if(linkResponse.getResponseCode.code() == 400) {
         val msgsResult = linkResponse.getResult.getOrDefault(CollectionTOCConstants.MESSAGES, new util.ArrayList[String])
