@@ -95,7 +95,7 @@ object CollectionTOCUtil {
     }
   }
 
-  def linkDIALCode(channelId: String, collectionID: String, linkDIALCodesMap: List[Map[String,String]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
+  def linkDIALCode(channelId: String, collectionID: String, linkDIALCodesMap: List[util.HashMap[String,String]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Response = {
     val reqMap = new util.HashMap[String, AnyRef]() {
         put(CollectionTOCConstants.REQUEST, new util.HashMap[String, AnyRef]() {
             put(CollectionTOCConstants.CONTENT, linkDIALCodesMap.asJava)
