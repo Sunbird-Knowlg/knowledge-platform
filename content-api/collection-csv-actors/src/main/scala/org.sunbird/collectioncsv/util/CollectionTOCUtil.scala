@@ -2,8 +2,6 @@ package org.sunbird.collectioncsv.util
 
 
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
-import org.apache.http.HttpHeaders.AUTHORIZATION
-import org.sunbird.collectioncsv.util.CollectionTOCConstants.BEARER
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.Response
 import org.sunbird.graph.OntologyEngineContext
@@ -12,8 +10,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import java.util
 import scala.collection.JavaConverters._
 import java.text.MessageFormat
-import scala.collection.immutable.{HashMap, Map}
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.collection.immutable.Map
 import scala.concurrent.ExecutionContext
 
 
@@ -52,7 +49,7 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, "Content-Type" -> "application/json")
+    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put("Content-Type", "application/json");}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_DIALCODE_SEARCH_API)
     val searchResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
 
@@ -85,7 +82,7 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = HashMap[String, String]("Content-Type" -> "application/json")
+    val headerParam = new util.HashMap[String, String]{put("Content-Type", "application/json")}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.SUNBIRD_CONTENT_SEARCH_URL)
 
     val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
@@ -109,7 +106,7 @@ object CollectionTOCUtil {
         })
     }
 
-    val headerParam = HashMap[String, String](CollectionTOCConstants.X_CHANNEL_ID -> channelId, "Content-Type" -> "application/json")
+    val headerParam = new util.HashMap[String, String]{put(CollectionTOCConstants.X_CHANNEL_ID, channelId); put("Content-Type", "application/json");}
     val requestUrl = Platform.config.getString(CollectionTOCConstants.LINK_DIAL_CODE_API) + "/" + collectionID
 
     val linkResponse = oec.httpUtil.post(requestUrl, reqMap, headerParam)
