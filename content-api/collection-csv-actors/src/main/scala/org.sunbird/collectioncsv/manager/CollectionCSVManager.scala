@@ -424,9 +424,9 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     val linkDIALCodeReqMap = folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
       if(nodeInfo(CollectionTOCConstants.DIAL_CODES) != null && nodeInfo(CollectionTOCConstants.DIAL_CODES).toString.nonEmpty)
-        Map(CollectionTOCConstants.IDENTIFIER -> nodeInfo(CollectionTOCConstants.IDENTIFIER).toString, CollectionTOCConstants.DIALCODE -> nodeInfo(CollectionTOCConstants.DIAL_CODES).toString)
-      else  Map.empty
-    }).filter(record => record.nonEmpty).toList.asInstanceOf[List[Map[String,String]]]
+        new util.HashMap[String, String]{put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString); put(CollectionTOCConstants.DIALCODE, nodeInfo(CollectionTOCConstants.DIAL_CODES).toString)}
+      else  new util.HashMap[String, String]()
+    }).filter(record => record.nonEmpty).toList
 
     if(linkDIALCodeReqMap.nonEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
   }
