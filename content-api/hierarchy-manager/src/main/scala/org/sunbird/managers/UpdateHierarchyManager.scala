@@ -381,15 +381,21 @@ object UpdateHierarchyManager {
 //                TelemetryManager.info("Get ContentNode as TempNode is null for ID: " + id)
                 getContentNode(id, HierarchyConstants.TAXONOMY_ID).map(node => {
                     val parentNode: Node = nodeList.find(p => p.getIdentifier.equals(parent)).orNull
-                    val parentMetadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(parentNode, new java.util.ArrayList[String](), parentNode.getObjectType.toLowerCase, "1.0")
-                    val childMetadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, new java.util.ArrayList[String](), node.getObjectType.toLowerCase, "1.0")
-                    HierarchyManager.validateLeafNodes(parentMetadata, childMetadata)
-                    populateHierarchyRelatedData(node, depth, index, parent)
-                    node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
-                    //TODO: Populate category mapping before updating for backward
-                    HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata, node.getObjectType)
-                    HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
-                    val nxtEnrichedNodeList = node :: enrichedNodeList
+                    val nxtEnrichedNodeList = if (null != parentNode) {
+                        TelemetryManager.info(s"ObjectType for $parent is ${parentNode.getObjectType}...")
+                        val parentMetadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(parentNode, new java.util.ArrayList[String](), parentNode.getObjectType.toLowerCase, "1.0")
+                        val childMetadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, new java.util.ArrayList[String](), node.getObjectType.toLowerCase, "1.0")
+                        HierarchyManager.validateLeafNodes(parentMetadata, childMetadata)
+                        populateHierarchyRelatedData(node, depth, index, parent)
+                        node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
+                        //TODO: Populate category mapping before updating for backward
+                        HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata, node.getObjectType)
+                        HierarchyBackwardCompatibilityUtil.setNewObjectType(node)
+                        node :: enrichedNodeList
+                    } else {
+                        TelemetryManager.info("There is no parent node for identifier:" + parent)
+                        enrichedNodeList
+                    }
                     if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(id, Map[String, Int]()))) {
                         updateHierarchyRelatedData(hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, nxtEnrichedNodeList)
                     } else
