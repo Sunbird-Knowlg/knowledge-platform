@@ -595,6 +595,12 @@
                 ]
             }
         },
+        "interceptionPoints": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
         "feedback": {
             "type": "array",
             "items": {
