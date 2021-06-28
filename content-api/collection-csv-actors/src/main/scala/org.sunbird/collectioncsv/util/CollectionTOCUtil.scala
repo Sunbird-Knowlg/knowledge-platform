@@ -1,6 +1,5 @@
 package org.sunbird.collectioncsv.util
 
-
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.Response
