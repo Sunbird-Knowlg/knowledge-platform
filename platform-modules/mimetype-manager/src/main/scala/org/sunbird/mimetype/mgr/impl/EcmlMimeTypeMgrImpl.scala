@@ -2,15 +2,20 @@ package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
 
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.mimetype.ecml.ECMLExtractor
+import org.sunbird.mimetype.ecml.{ECMLExtractor, ECMLProcessor}
 import org.sunbird.mimetype.ecml.processor.{JsonParser, Plugin, XmlParser}
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
+import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
@@ -90,4 +95,30 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 		}
 	}
 
+	override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		validate(node)
+		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+	}
+
+	def validate(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
+		val artifactUrl = node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String]
+		val req = new Request()
+		req.setContext(Map[String, AnyRef]("schemaName" -> node.getObjectType.toLowerCase.replaceAll("image", ""), "version"->"1.0").asJava)
+		req.put("identifier", node.getIdentifier)
+		val responseFuture = oec.graphService.readExternalProps(req, List("body"))
+		responseFuture.map(response => {
+			if (!ResponseHandler.checkError(response)) {
+				val body = response.getResult.toMap.getOrDefault("body", "").asInstanceOf[String]
+				if(StringUtils.isBlank(artifactUrl) && StringUtils.isBlank(body))
+					throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either 'body' or 'artifactUrl' are required for processing of ECML content!")
+				if(StringUtils.isNotBlank(body)) {
+					val ecrf: Plugin = getEcrfObject("ecml", body)
+					val processedEcrf: Plugin = new ECMLProcessor(getBasePath(node.getIdentifier), node.getIdentifier).process(ecrf)
+				}
+			} else if (ResponseHandler.checkError(response) && StringUtils.isBlank(artifactUrl)) {
+				throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either 'body' or 'artifactUrl' are required for processing of ECML content!")
+			}
+		})
+
+	}
 }
