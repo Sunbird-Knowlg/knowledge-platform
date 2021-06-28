@@ -18,7 +18,6 @@ object ReviewManager {
 		val mgr = MimeTypeManagerFactory.getManager(node.getObjectType, mimeType)
 		val reviewFuture: Future[Map[String, AnyRef]] = mgr.review(identifier, node)
 		reviewFuture.map(result => {
-			println("result ::: " + result)
 			val updateReq = new Request()
 			updateReq.setContext(request.getContext)
 			updateReq.putAll(result.asJava)
