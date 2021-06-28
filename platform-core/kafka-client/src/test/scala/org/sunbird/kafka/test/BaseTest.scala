@@ -10,7 +10,6 @@ class BaseTest extends FlatSpec with Matchers with BeforeAndAfterAll with Embedd
 	override def beforeAll(): Unit = {
 		try {
 			EmbeddedKafka.start()
-			System.out.println("Embedded Kafka Started!")
 		} catch {
 			case e: Exception => e.printStackTrace()
 		}
@@ -19,7 +18,6 @@ class BaseTest extends FlatSpec with Matchers with BeforeAndAfterAll with Embedd
 	override def afterAll(): Unit = {
 		try {
 			EmbeddedKafka.stop()
-			System.out.println("Embedded Kafka Shutdown Successfully!")
 		} catch {
 			case e: Exception => e.printStackTrace()
 		}

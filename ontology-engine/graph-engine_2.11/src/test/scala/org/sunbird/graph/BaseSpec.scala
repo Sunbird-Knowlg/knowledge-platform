@@ -1,6 +1,7 @@
 package org.sunbird.graph
 
-import java.io.{File, IOException}
+import java.io.File
+import java.util
 
 import com.datastax.driver.core.Session
 import org.apache.commons.io.FileUtils
@@ -12,6 +13,8 @@ import org.neo4j.kernel.configuration.BoltConnector
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.Platform
+import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.schema.FrameworkMasterCategoryMap
 
 class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -37,7 +40,6 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
     def setUpEmbeddedNeo4j(): Unit = {
         if(null == graphDb) {
             val bolt: BoltConnector = new BoltConnector("0")
-            println("GraphDB : " + Platform.config.getString("graph.dir"))
             graphDb = new GraphDatabaseFactory()
                             .newEmbeddedDatabaseBuilder(new File(Platform.config.getString("graph.dir")))
                             .setConfig(bolt.`type`, ConnectorType.BOLT.name())
@@ -51,7 +53,6 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
             override def run(): Unit = {
                 try {
                     tearEmbeddedNeo4JSetup
-                    System.out.println("cleanup Done!!")
                 } catch {
                     case e: Exception =>
                         e.printStackTrace()
@@ -88,7 +89,8 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         tearEmbeddedNeo4JSetup()
         setUpEmbeddedNeo4j()
         setUpEmbeddedCassandra()
-        executeNeo4jQuery("UNWIND [{identifier:\"obj-cat:course_collection_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:course\",targetObjectType:\"Collection\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:course_collection_all\"},{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Content\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_content_all\"},{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Collection\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_collection_all\"}" +
+        executeNeo4jQuery("UNWIND [{IL_UNIQUE_ID: \"board\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"board\",orgIdFieldName: \"boardIds\",targetIdFieldName: \"targetBoardIds\",searchIdFieldName: \"se_boardIds\",searchLabelFieldName: \"se_boards\",status: \"Live\"},{IL_UNIQUE_ID: \"subject\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"subject\",orgIdFieldName: \"subjectIds\",targetIdFieldName: \"targetSubjectIds\",searchIdFieldName: \"se_subjectIds\",searchLabelFieldName: \"se_subjects\",status: \"Live\"},{IL_UNIQUE_ID: \"gradeLevel\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"gradeLevel\",orgIdFieldName: \"gradeLevelIds\",targetIdFieldName: \"targetGradeLevelIds\",searchIdFieldName: \"se_gradeLevelIds\",searchLabelFieldName: \"se_gradeLevels\",status: \"Live\"},{IL_UNIQUE_ID: \"medium\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"medium\",orgIdFieldName: \"mediumIds\",targetIdFieldName: \"targetMediumIds\",searchIdFieldName: \"se_mediumIds\",searchLabelFieldName: \"se_mediums\",status: \"Live\"}" +
+            ",{identifier:\"obj-cat:course_collection_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:course\",targetObjectType:\"Collection\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:course_collection_all\"},{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Content\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_content_all\"},{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Collection\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_collection_all\"}" +
             ",{owner:\"in.ekstep\",code:\"NCF\",IL_SYS_NODE_TYPE:\"DATA_NODE\",apoc_json:\"{\\\"batch\\\": true}\",consumerId:\"9393568c-3a56-47dd-a9a3-34da3c821638\",channel:\"in.ekstep\",description:\"NCF \",type:\"K-12\",createdOn:\"2018-01-23T09:53:50.189+0000\",versionKey:\"1545195552163\",apoc_text:\"APOC\",appId:\"dev.sunbird.portal\",IL_FUNC_OBJECT_TYPE:\"Framework\",name:\"State (Uttar Pradesh)\",lastUpdatedOn:\"2018-12-19T04:59:12.163+0000\",IL_UNIQUE_ID:\"NCF\",status:\"Live\",apoc_num:1}" +
             ",{code:\"cbse\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"CBSE\",IL_UNIQUE_ID:\"ncf_board_cbse\",status:\"Live\"}" +
             ",{code:\"english\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"English\",IL_UNIQUE_ID:\"ncf_medium_english\",status:\"Live\"}" +
@@ -125,5 +127,31 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
     def executeNeo4jQuery(query: String): Unit = {
         graphDb.execute(query)
+    }
+
+    def enrichFrameworkMasterCategoryMap() = {
+        val node = new Node()
+        node.setIdentifier("board")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Category")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("code", "board")
+                put("orgIdFieldName", "boardIds")
+                put("targetIdFieldName", "targetBoardIds")
+                put("searchIdFieldName", "se_boardIds")
+                put("searchLabelFieldName", "se_boards")
+                put("status", "Live")
+            }
+        })
+        val masterCategories: scala.collection.immutable.Map[String, AnyRef] = Map(
+            node.getMetadata.getOrDefault("code", "").asInstanceOf[String] ->
+            Map[String, AnyRef]("code" -> node.getMetadata.getOrDefault("code", "").asInstanceOf[String],
+                "orgIdFieldName" -> node.getMetadata.getOrDefault("orgIdFieldName", "").asInstanceOf[String],
+                "targetIdFieldName" -> node.getMetadata.getOrDefault("targetIdFieldName", "").asInstanceOf[String],
+                "searchIdFieldName" -> node.getMetadata.getOrDefault("searchIdFieldName", "").asInstanceOf[String],
+                "searchLabelFieldName" -> node.getMetadata.getOrDefault("searchLabelFieldName", "").asInstanceOf[String])
+        )
+        FrameworkMasterCategoryMap.put("masterCategories", masterCategories)
     }
 }

@@ -3,7 +3,6 @@ package org.sunbird.graph.nodes
 import java.util
 import java.util.Optional
 import java.util.concurrent.CompletionException
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.DateUtils
@@ -26,13 +25,12 @@ object DataNode {
 
     @throws[Exception]
     def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         DefinitionNode.validate(request).map(node => {
-            val response = oec.graphService.addNode(graphId, dataModifier(node))
+            val response = oec.graphService.addNode(request.graphId, dataModifier(node))
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
-                    createRelations(graphId, node, request.getContext))
+                    createRelations(request.graphId, node, request.getContext))
                 futureList.map(list => result)
             }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
         }).flatMap(f => f)
@@ -40,15 +38,14 @@ object DataNode {
 
     @throws[Exception]
     def update(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
             request.getContext().put("schemaName", node.getObjectType.toLowerCase.replace("image", ""))
-            val response = oec.graphService.upsertNode(graphId, dataModifier(node), request)
+            val response = oec.graphService.upsertNode(request.graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     updateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
-                    updateRelations(graphId, node, request.getContext))
+                    updateRelations(request.graphId, node, request.getContext))
                 futureList.map(list => result)
             }).flatMap(f => f)  recoverWith { case e: CompletionException => throw e.getCause}
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
@@ -58,7 +55,8 @@ object DataNode {
     def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.getNode(request).map(node => {
             val schema = node.getObjectType.toLowerCase.replace("image", "")
-            request.getContext().put("schemaName", schema)
+            val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
+            request.getContext.put("schemaName", schema)
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
@@ -92,23 +90,21 @@ object DataNode {
               if (objectType.nonEmpty)
                 setObjectType(objectType.get)
             }}
-            oec.graphService.getNodeByUniqueIds(request.getContext.get("graph_id").asInstanceOf[String], searchCriteria)
+            oec.graphService.getNodeByUniqueIds(request.graphId, searchCriteria)
         }
     }
 
     @throws[Exception]
     def bulkUpdate(request: Request)(implicit ec: ExecutionContext,oec: OntologyEngineContext): Future[util.Map[String, Node]] = {
-        val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val identifiers: util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
         val metadata: util.Map[String, AnyRef] = request.get("metadata").asInstanceOf[util.Map[String, AnyRef]]
-        oec.graphService.updateNodes(graphId, identifiers, metadata)
+        oec.graphService.updateNodes(request.graphId, identifiers, metadata)
     }
 
     @throws[Exception]
     def deleteNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
-        val graphId: String = request.getContext.getOrDefault("graph_id", "").asInstanceOf[String]
         val identifier: String = request.getRequest.getOrDefault("identifier", "").asInstanceOf[String]
-        oec.graphService.deleteNode(graphId, identifier, request)
+        oec.graphService.deleteNode(request.graphId, identifier, request)
     }
 
     private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
@@ -276,7 +272,7 @@ object DataNode {
     list(request, Some(request.getObjectType)).map(nodeList => {
       validateNodeList(request, nodeList)
       val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
-      val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
+      val extPropNameList = DefinitionNode.getExternalProps(request.graphId, request.getContext.get("version").asInstanceOf[String], request.getContext().get("schemaName").asInstanceOf[String])
       if (CollectionUtils.isEmpty(fields) && CollectionUtils.isNotEmpty(extPropNameList))
         populateExternalProperties(nodeList.asScala.toList, extPropNameList, request, extPropNameList)
       else if (CollectionUtils.isNotEmpty(extPropNameList) && fields.exists(field => extPropNameList.contains(field)))
@@ -316,9 +312,8 @@ object DataNode {
 
   private def getDefinition(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): DefinitionDTO = {
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-    val graphId = request.getContext.get("graph_id").asInstanceOf[String]
     val version = request.getContext.get("version").asInstanceOf[String]
-    DefinitionFactory.getDefinition(graphId, schemaName, version)
+    DefinitionFactory.getDefinition(request.graphId, schemaName, version)
   }
 
   private def filterRelations(definition: DefinitionDTO, data: util.Map[String, AnyRef]): util.Map[String, AnyRef] = {

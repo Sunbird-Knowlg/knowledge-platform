@@ -21,7 +21,6 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
         (ss.uploadDirectory(_: String, _: File, _: Option[Boolean])).expects(*, *, *)
         val resFuture = new PluginMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("plugin.zip").toURI), None, UploadParams())
         resFuture.map(result => {
-            println("Response: " + result)
             result
         })
 
@@ -36,7 +35,6 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
         (ss.uploadDirectory(_: String, _: File, _: Option[Boolean])).expects(*, *, *)
         val resFuture = new PluginMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/org.ekstep.summary/artifact/org.ekstep.summary-1.0_1576230748183.zip", None, UploadParams())
         resFuture.map(result => {
-            println("Response: " + result)
             result
         })
 

@@ -116,7 +116,6 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 		(ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
 		val resFuture = new DocumentMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("sample.pdf").toURI), None, UploadParams())
 		resFuture.map(result => {
-			println("Response: " + result)
 			result
 		})
 
@@ -133,7 +132,6 @@ class DocumentMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with Async
 		(ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
 		val resFuture = new DocumentMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("igp-twss.epub").toURI), None, UploadParams())
 		resFuture.map(result => {
-			println("Response: " + result)
 			result
 		})
 
