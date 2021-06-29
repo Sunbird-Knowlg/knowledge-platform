@@ -1044,12 +1044,12 @@
           {
               "type": "string",
               "enum": ["Yes", "No"],
-              "default": "Yes"
+              "default": "No"
           }
       },
       "default":
       {
-          "enabled": "Yes"
+          "enabled": "No"
       },
       "additionalProperties": false
     },
