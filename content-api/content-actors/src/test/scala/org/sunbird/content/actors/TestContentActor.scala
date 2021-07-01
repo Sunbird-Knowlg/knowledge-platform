@@ -428,6 +428,24 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
+    it should "through client exception for review operation if node is under processing" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("status", "Processing")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.setOperation("reviewContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    }
+
     private def getNodeForReview(id: String, mimeType: String, primaryCategory: String, objType: String,  artifactUrl: String): Node = {
         val node = new Node()
         node.setIdentifier(id)
