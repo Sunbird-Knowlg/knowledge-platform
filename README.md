@@ -33,25 +33,27 @@ docker run --name sunbird_neo4j -p7474:7474 -p7687:7687 -d \
 --env NEO4J_AUTH=none \
 neo4j:3.3.0
 ```
---name -  Name your container (avoids generic id)
+> --name -  Name your container (avoids generic id)
+> 
+> -p - Specify container ports to expose
+> 
+> Using the -p option with ports 7474 and 7687 allows us to expose and listen for traffic on both the HTTP and Bolt ports. Having the HTTP port means we can connect to our database with Neo4j Browser, and the Bolt port means efficient and type-safe communication requests between other layers and the database.
+> 
+> -d - This detaches the container to run in the background, meaning we can access the container separately and see into all of its processes.
+> 
+> -v - The next several lines start with the -v option. These lines define volumes we want to bind in our local directory structure so we can access certain files locally.
+> 
+> --env - Set config as environment variables for Neo4j database
+>
+> Using Docker on Windows will also need a couple of additional configurations because the default 0.0.0.0 address that is resolved with the above command does not translate to localhost in Windows. We need to add environment variables to our command above to set the advertised addresses.
+> 
+> By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
 
--p - Specify container ports to expose
+3. Load seed data to neo4j using the instructions provided in the [link](master-data/loading-seed-data.md#loading-seed-data-to-neo4j-database)
 
-Using the -p option with ports 7474 and 7687 allows us to expose and listen for traffic on both the HTTP and Bolt ports. Having the HTTP port means we can connect to our database with Neo4j Browser, and the Bolt port means efficient and type-safe communication requests between other layers and the database.
+4. Verify whether neo4j is running or not by accessing neo4j browser(http://localhost:7474/browser).
 
--d - This detaches the container to run in the background, meaning we can access the container separately and see into all of its processes.
-
--v - The next several lines start with the -v option. These lines define volumes we want to bind in our local directory structure so we can access certain files locally.
-
---env - Set config as environment variables for Neo4j database
-
-Using Docker on Windows will also need a couple of additional configurations because the default 0.0.0.0 address that is resolved with the above command does not translate to localhost in Windows. We need to add environment variables to our command above to set the advertised addresses.
-
-By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
-
-3. After running the above command, neo4j instance will be created and container starts running, we can verify the same by accessing neo4j browser(http://localhost:7474/browser).
-
-4. To SSH to neo4j docker container, run the below command.
+5. To SSH to neo4j docker container, run the below command.
 ```shell
 docker exec -it sunbird_neo4j bash
 ```
@@ -79,6 +81,7 @@ docker pull cassandra:3.11.8
 docker run --name sunbird_cassandra -d -p 9042:9042 \
 -v $sunbird_dbs_path/cassandra/data:/var/lib/cassandra \
 -v $sunbird_dbs_path/cassandra/logs:/opt/cassandra/logs \
+-v $sunbird_dbs_path/cassandra/backups:/mnt/backups \
 --network bridge cassandra:3.11.8 
 ```
 For network, we can use the existing network or create a new network using the following command and use it.
@@ -93,6 +96,50 @@ docker exec -it sunbird_cassandra cqlsh
 ```shell
 docker exec -it sunbird_cassandra /bin/bash
 ```
+5. Load seed data to cassandra using the instructions provided in the [link](master-data/loading-seed-data.md#loading-seed-data-to-cassandra-database)
+
+### Running kafka using docker:
+1. Kafka stores information about the cluster and consumers into Zookeeper. ZooKeeper acts as a coordinator between them. we need to run two services(zookeeper & kafka), Prepare your docker-compose.yml file using the following reference.
+```shell
+version: '3'
+
+services:
+  zookeeper:
+    image: 'wurstmeister/zookeeper:latest'
+    container_name: zookeeper
+    ports:
+      - "2181:2181"    
+    environment:
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:2181     
+    
+  kafka:
+    image: 'wurstmeister/kafka:2.11-1.0.1'
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181      
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper  
+```
+2. Go to the path where docker-compose.yml placed and run the below command to create and run the containers (zookeeper & kafka).
+```shell
+docker-compose -f docker-compose.yml up -d
+```
+3. To start kafka docker container shell, run the below command.
+```shell
+docker exec -it kafka sh
+```
+Go to path /opt/kafka/bin, where we will have executable files to perform operations(creating topics, running producers and consumers, etc).
+Example:
+```shell
+kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic test_topic 
+```
+
 ### Running content-service:
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
@@ -105,19 +152,4 @@ mvn play2:run
 3. Using the below command we can verify whether the databases(neoj,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
 ```shell
 curl http://localhost:9000/health
-```
-4. Run the following queries in neo4j DB to create unique constraint and indexes.
-```cql
-CREATE CONSTRAINT ON (domain:domain) ASSERT domain.IL_UNIQUE_ID IS UNIQUE;
-CREATE INDEX ON :domain(IL_FUNC_OBJECT_TYPE);
-CREATE INDEX ON :domain(IL_SYS_NODE_TYPE);
-```
-5. Run the following queries in cassandra DB to create keyspace and table.
-```cql
-CREATE KEYSPACE IF NOT EXISTS category_store WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} AND durable_writes = true;
-CREATE TABLE IF NOT EXISTS category_store.category_definition_data (
-    identifier text PRIMARY KEY,
-    forms map<text, text>,
-    objectmetadata map<text, text>
-);
 ```
