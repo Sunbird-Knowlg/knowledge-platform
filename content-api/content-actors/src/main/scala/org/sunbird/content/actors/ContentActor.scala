@@ -239,15 +239,13 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		RequestUtil.validateRequest(request)
 		DataNode.read(request).map(node => {
 			val status = node.getMetadata.get("status").asInstanceOf[String]
-			//val reviewStatus = List("InReview", "Reviewed")
 			if (StringUtils.isBlank(status))
 				throw new ClientException("ERR_METADATA_ISSUE", "Content metadata error, status is blank for identifier:" + node.getIdentifier)
-			//if (!reviewStatus.contains(status))
-			//	throw new ClientException("ERR_CONTENT_NOT_IN_REVIEW", "Content is not in review state for identifier: " + node.getIdentifier)
-			if (StringUtils.equalsIgnoreCase(status,"FlagReview"))
-				request.getRequest.put("status", "FlagDraft")
-			else
-				request.getRequest.put("status","Draft")
+      if (StringUtils.equals("Review", status)) {
+        request.getRequest.put("status", "Draft")
+      } else if (StringUtils.equals("FlagReview", status))
+        request.getRequest.put("status", "FlagDraft")
+      else new ClientException("ERR_INVALID_REQUEST", "Content not in Review status.")
 			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
 			if (null != request.getRequest.get("rejectReasons") && !request.getRequest.get("rejectReasons").isInstanceOf[Array[_]])
 				throw new ClientException("ERR_INVALID_REQUEST_FORMAT","rejectReasons should be a Array")
