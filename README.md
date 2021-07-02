@@ -33,23 +33,23 @@ docker run --name sunbird_neo4j -p7474:7474 -p7687:7687 -d \
 --env NEO4J_AUTH=none \
 neo4j:3.3.0
 ```
---name -  Name your container (avoids generic id)
+> --name -  Name your container (avoids generic id)
+> 
+> -p - Specify container ports to expose
 
--p - Specify container ports to expose
+> Using the -p option with ports 7474 and 7687 allows us to expose and listen for traffic on both the HTTP and Bolt ports. Having the HTTP port means we can connect to our database with Neo4j Browser, and the Bolt port means efficient and type-safe communication requests between other layers and the database.
+> 
+> -d - This detaches the container to run in the background, meaning we can access the container separately and see into all of its processes.
+> 
+> -v - The next several lines start with the -v option. These lines define volumes we want to bind in our local directory structure so we can access certain files locally.
+> 
+> --env - Set config as environment variables for Neo4j database
+>
+> Using Docker on Windows will also need a couple of additional configurations because the default 0.0.0.0 address that is resolved with the above command does not translate to localhost in Windows. We need to add environment variables to our command above to set the advertised addresses.
+> 
+> By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
 
-Using the -p option with ports 7474 and 7687 allows us to expose and listen for traffic on both the HTTP and Bolt ports. Having the HTTP port means we can connect to our database with Neo4j Browser, and the Bolt port means efficient and type-safe communication requests between other layers and the database.
-
--d - This detaches the container to run in the background, meaning we can access the container separately and see into all of its processes.
-
--v - The next several lines start with the -v option. These lines define volumes we want to bind in our local directory structure so we can access certain files locally.
-
---env - Set config as environment variables for Neo4j database
-
-Using Docker on Windows will also need a couple of additional configurations because the default 0.0.0.0 address that is resolved with the above command does not translate to localhost in Windows. We need to add environment variables to our command above to set the advertised addresses.
-
-By default, Neo4j requires authentication and requires us to first login with neo4j/neo4j and set a new password. We will skip this password reset by initializing the authentication none when we create the Docker container using the --env NEO4J_AUTH=none.
-
-3. Load seed data to neo4j using the instructions provided in the [link](../master-data/master-data/loading-seed-data.md)
+3. Load seed data to neo4j using the instructions provided in the [link](master-data/loading-seed-data.md#loading-seed-data-to-neo4j-database)
 
 4. Verify whether neo4j is running or not by accessing neo4j browser(http://localhost:7474/browser).
 
@@ -96,7 +96,7 @@ docker exec -it sunbird_cassandra cqlsh
 ```shell
 docker exec -it sunbird_cassandra /bin/bash
 ```
-5. Load seed data to cassandra using the instructions provided in the [link](../master-data/master-data/loading-seed-data.md)
+5. Load seed data to cassandra using the instructions provided in the [link](master-data/loading-seed-data.md#loading-seed-data-to-cassandra-database)
 
 ### Running content-service:
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
