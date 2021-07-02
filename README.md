@@ -36,7 +36,7 @@ neo4j:3.3.0
 > --name -  Name your container (avoids generic id)
 > 
 > -p - Specify container ports to expose
-
+> 
 > Using the -p option with ports 7474 and 7687 allows us to expose and listen for traffic on both the HTTP and Bolt ports. Having the HTTP port means we can connect to our database with Neo4j Browser, and the Bolt port means efficient and type-safe communication requests between other layers and the database.
 > 
 > -d - This detaches the container to run in the background, meaning we can access the container separately and see into all of its processes.
@@ -98,19 +98,6 @@ docker exec -it sunbird_cassandra /bin/bash
 ```
 5. Load seed data to cassandra using the instructions provided in the [link](master-data/loading-seed-data.md#loading-seed-data-to-cassandra-database)
 
-### Running content-service:
-1. Go to the path: /knowledge-platform and run the below maven command to build the application.
-```shell
-mvn clean install -DskipTests
-```
-2. Go to the path: /knowledge-platform/content-api/content-service and run the below maven command to run the netty server.
-```shell
-mvn play2:run
-```
-3. Using the below command we can verify whether the databases(neoj,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
-```shell
-curl http://localhost:9000/health
-```
 ### Running kafka using docker:
 1. Kafka stores information about the cluster and consumers into Zookeeper. ZooKeeper acts as a coordinator between them. we need to run two services(zookeeper & kafka), Prepare your docker-compose.yml file using the following reference.
 ```shell
@@ -151,4 +138,18 @@ Go to path /opt/kafka/bin, where we will have executable files to perform operat
 Example:
 ```shell
 kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic test_topic 
+```
+
+### Running content-service:
+1. Go to the path: /knowledge-platform and run the below maven command to build the application.
+```shell
+mvn clean install -DskipTests
+```
+2. Go to the path: /knowledge-platform/content-api/content-service and run the below maven command to run the netty server.
+```shell
+mvn play2:run
+```
+3. Using the below command we can verify whether the databases(neoj,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
+```shell
+curl http://localhost:9000/health
 ```
