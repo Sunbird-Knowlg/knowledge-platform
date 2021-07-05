@@ -18,7 +18,7 @@ class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
 		val nodeMimeType = node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
 		if (!isValidMimeType(uploadFile, nodeMimeType)) {
 			TelemetryManager.log("Uploaded File MimeType is not same as Asset MimeType. [Asset MimeType: " + nodeMimeType + "]")
-			if(mimeTypesToValidate.contains(nodeMimeType))
+			if(mimeTypesToValidate.contains(nodeMimeType) || mimeTypesToValidate.contains(getFileMimeType(uploadFile)))
 				throw new ClientException("VALIDATION_ERROR", "Uploaded File MimeType is not same as Asset MimeType.")
 		}
 		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
