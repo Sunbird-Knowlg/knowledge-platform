@@ -47,11 +47,13 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     if (mode.equals(CollectionTOCConstants.UPDATE)) validateRecordsDataAuthenticity(inputFileExtension, csvRecords, collectionHierarchy) else List.empty[Map[String, AnyRef]]
   }
 
-  def validateCollection(collection: Map[String, AnyRef]) {
+  def validateCollection(collection: Map[String, AnyRef], mode: String) {
     if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).toString) || !allowedContentTypes.contains(collection(CONTENT_TYPE).toString))
       throw new ClientException("INVALID_COLLECTION", "Invalid Collection. Please Provide Valid Collection Identifier.")
-    val children = collection(CollectionTOCConstants.CHILDREN).asInstanceOf[List[AnyRef]]
-    if (children.isEmpty) throw new ClientException("COLLECTION_CHILDREN_NOT_EXISTS", "No Children Exists for given Collection.")
+    if(mode.equalsIgnoreCase("export")) {
+      val children = collection(CollectionTOCConstants.CHILDREN).asInstanceOf[List[AnyRef]]
+      if (children.isEmpty) throw new ClientException("COLLECTION_CHILDREN_NOT_EXISTS", "No Children Exists for given Collection.")
+    }
   }
 
   def updateCollection(collectionHierarchy: Map[String, AnyRef], csvRecords: util.List[CSVRecord], mode: String, linkedContentsDetails: List[Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
