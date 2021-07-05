@@ -78,7 +78,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
 
   "upload with invalid mimeType" should "throw client exception" in {
     val node = getNode()
-    node.getMetadata.put("mimeType", "application/pdf")
+    node.getMetadata.put("mimeType", "image/svg+xml")
     val exception = intercept[ClientException] {
       new AssetMimeTypeMgrImpl().upload("do_123", node, new File(Resources.getResource("filesToZip/human_vs_robot-.jpg").toURI), None, UploadParams())
     }
