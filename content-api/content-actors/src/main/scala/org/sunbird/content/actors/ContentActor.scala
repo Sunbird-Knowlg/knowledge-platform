@@ -228,10 +228,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			else
 				DataNode.systemUpdate(request, response,"", None)
 		}).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.put("identifier", identifier)
-			response.put("status", "success")
-			response
+			ResponseHandler.OK.put("identifier", identifier).put("status", "success")
 		})
 	}
 
@@ -249,8 +246,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
 			if (null != request.getRequest.get("rejectReasons") && !request.getRequest.get("rejectReasons").isInstanceOf[Array[_]])
 				throw new ClientException("ERR_INVALID_REQUEST_FORMAT","rejectReasons should be a Array")
-			request.getRequest.put("publishChecklist", null)
-			request.getRequest.put("publishComment", null)
+			request.putIn("publishChecklist", null).putIn("publishComment", null)
       //updating node after changing the status
 			RequestUtil.restrictProperties(request)
 			DataNode.update(request).map(node => {
