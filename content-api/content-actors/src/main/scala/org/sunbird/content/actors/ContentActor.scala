@@ -252,7 +252,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			request.getRequest.put("publishChecklist", null)
 			request.getRequest.put("publishComment", null)
       //updating node after changing the status
-			populateDefaultersForUpdation(request)
 			RequestUtil.restrictProperties(request)
 			DataNode.update(request).map(node => {
 				val identifier: String = node.getIdentifier.replace(".img", "")
