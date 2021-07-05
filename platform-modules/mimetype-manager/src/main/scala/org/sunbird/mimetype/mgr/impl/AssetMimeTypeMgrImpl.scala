@@ -16,9 +16,10 @@ class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
 	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateUploadRequest(objectId, node, uploadFile)
 		val nodeMimeType = node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
-		if (mimeTypesToValidate.contains(nodeMimeType) && !isValidMimeType(uploadFile, nodeMimeType)) {
+		if (!isValidMimeType(uploadFile, nodeMimeType)) {
 			TelemetryManager.log("Uploaded File MimeType is not same as Asset MimeType. [Asset MimeType: " + nodeMimeType + "]")
-			throw new ClientException("VALIDATION_ERROR", "Uploaded File MimeType is not same as Asset MimeType.")
+			if(mimeTypesToValidate.contains(nodeMimeType))
+				throw new ClientException("VALIDATION_ERROR", "Uploaded File MimeType is not same as Asset MimeType.")
 		}
 		val result: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
 		//TODO: depreciate s3Key. use cloudStorageKey instead
