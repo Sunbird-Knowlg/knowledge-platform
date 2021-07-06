@@ -48,7 +48,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   def validateCollection(collection: Map[String, AnyRef], mode: String) {
-    if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).toString) || !allowedContentTypes.contains(collection(CONTENT_TYPE).toString))
+    if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).toString))
       throw new ClientException("INVALID_COLLECTION", "Invalid Collection. Please Provide Valid Collection Identifier.")
     if(mode.equalsIgnoreCase("export")) {
       val children = collection(CollectionTOCConstants.CHILDREN).asInstanceOf[List[AnyRef]]

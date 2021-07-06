@@ -346,6 +346,9 @@ object CollectionCSVValidator {
       })
     }).filter(msg => msg.nonEmpty).toList
 
+    if(collectionHierarchy(CollectionTOCConstants.FRAMEWORK) == null || collectionHierarchy(CollectionTOCConstants.FRAMEWORK).toString.isEmpty)
+      throw new ClientException("FRAMEWORK_MISSING", "Please set a framework for the content.")
+
     if(mappedTopicsList.nonEmpty) {
       val frameworkId = collectionHierarchy(CollectionTOCConstants.FRAMEWORK).toString
       val frameworkGetResponse = getFrameworkTopics(frameworkId)
