@@ -70,15 +70,15 @@ trait FrameworkValidator extends IDefinition {
   private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
       val boards = fetchValidatedList(getList("boardIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(boards)) node.getMetadata.putIfAbsent("board", boards.get(0))
+      if (CollectionUtils.isNotEmpty(boards)) node.getMetadata.put("board", boards.get(0))
       val mediums = fetchValidatedList(getList("mediumIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(mediums)) node.getMetadata.putIfAbsent("medium", mediums)
+      if (CollectionUtils.isNotEmpty(mediums)) node.getMetadata.put("medium", mediums)
       val subjects = fetchValidatedList(getList("subjectIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(subjects)) node.getMetadata.putIfAbsent("subject", subjects)
+      if (CollectionUtils.isNotEmpty(subjects)) node.getMetadata.put("subject", subjects)
       val grades = fetchValidatedList(getList("gradeLevelIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(grades)) node.getMetadata.putIfAbsent("gradeLevel", grades)
+      if (CollectionUtils.isNotEmpty(grades)) node.getMetadata.put("gradeLevel", grades)
       val topics = fetchValidatedList(getList("topicsIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(topics)) node.getMetadata.putIfAbsent("topics", topics)
+      if (CollectionUtils.isNotEmpty(topics)) node.getMetadata.put("topic", topics)
       getValidatedTerms(node, targetFwTerms)
     }).flatMap(f => f)
   }
