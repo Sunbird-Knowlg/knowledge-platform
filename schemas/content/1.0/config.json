@@ -3,6 +3,9 @@
         "create" : [
             "status", "dialcodes"
         ],
+        "copy" : [
+            "status"
+        ],
         "update": []
     },
     "objectType": "Content",
@@ -23,6 +26,9 @@
             },
             "last_updated_on": {
                 "type": "timestamp"
+            },
+            "externallink": {
+                "type": "text"
             }
         },
         "primaryKey": ["content_id"]
@@ -57,15 +63,44 @@
             "type": "associatedTo",
             "direction": "out",
             "objects": ["Content"]
+        },
+        "itemSets": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["ItemSet"]
         }
     },
     "version": "enable",
     "versionCheckMode": "ON",
     "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+    "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
     "edge": {
         "properties": {
             "license": "License"
         }
     },
-    "cacheEnabled": true
+    "copy": {
+        "scheme": {
+            "TextBookToCourse": {
+                "TextBook": "Course",
+                "TextBookUnit": "CourseUnit"
+            },
+            "TextBookToLessonPlan": {
+            }
+        }
+    },
+    "cacheEnabled": true,
+    "searchProps": {
+        "status": ["Live"],
+        "softConstraints": {
+            "medium": 15,
+            "subject": 15,
+            "ageGroup": 1,
+            "gradeLevel": 7,
+            "board": 4,
+            "relatedBoards": 4
+        }
+    },
+    "schema_restrict_api": false
 }

@@ -156,6 +156,12 @@ public class ResponseHandler {
         return response;
     }
 
+    public static Boolean isResponseNotFoundError(Response response) {
+        ResponseParams params = response.getParams();
+         return (null != params && StringUtils.equals(ResponseParams.StatusType.failed.name(), params.getStatus())
+                    && StringUtils.equals(response.getResponseCode().name(),ResponseCode.RESOURCE_NOT_FOUND.name()));
+    }
+
     private static String setErrMessage(Throwable e) {
         if (e instanceof MiddlewareException) {
             return e.getMessage();

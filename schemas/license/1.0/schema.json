@@ -4,8 +4,7 @@
     "title": "License",
     "type": "object",
     "required": [
-        "name",
-        "url"
+        "name"
     ],
     "properties": {
         "name": {

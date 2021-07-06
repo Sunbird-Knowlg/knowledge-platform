@@ -1,0 +1,38 @@
+{
+  "objectType": "ObjectCategoryDefinition",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "schema_restrict_api": true,
+  "external": {
+    "tableName": "category_definition_data",
+    "properties": {
+      "objectMetadata": {
+        "type": "object"
+      },
+      "forms": {
+        "type": "object"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
+  "restrictProps": {
+    "create": [
+      "identifier",
+      "status",
+      "objectType",
+      "name",
+      "description"
+    ],
+    "update": [
+      "identifier",
+      "categoryId",
+      "targetObjectType",
+      "channel",
+      "status",
+      "objectType"
+    ]
+  }
+}

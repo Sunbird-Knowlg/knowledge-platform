@@ -1,0 +1,97 @@
+{
+  "$id": "channel-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Channel",
+  "type": "object",
+  "required": [
+    "name",
+    "code"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "description":{
+      "type": "string"
+    },
+    "status":{
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Live",
+        "Retired"
+      ],
+      "default": "Live"
+    },
+    "defaultFramework":{
+      "type": "string",
+      "default": "NCF"
+    },
+    "defaultCourseFramework":{
+      "type": "string",
+      "default": "TPD"
+    },
+    "createdBy":{
+      "type": "string"
+    },
+    "createdOn":{
+      "type": "string"
+    },
+    "lastUpdatedBy":{
+      "type": "string"
+    },
+    "lastUpdatedOn":{
+      "type": "string"
+    },
+    "contentFilter":{
+      "type": "string"
+    },
+    "appId":{
+      "type": "string"
+    },
+    "consumerId":{
+      "type": "string"
+    },
+    "lastStatusChangedOn":{
+      "type": "string"
+    },
+    "versionKey":{
+      "type": "string"
+    },
+    "defaultLicense":{
+      "type": "string"
+    },
+    "autoCreateBatch": {
+      "type": "string",
+      "enum": [
+        "Enabled",
+        "Disabled"
+      ],
+      "default": "Enabled"
+    },
+    "publisher": {
+      "type": "array"
+    },
+    "contentPrimaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "collectionPrimaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "assetPrimaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+    "$id": "categoryInstance-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CategoryInstance",
+    "type": "object",
+     "required": [ 
+     	"name",
+     	"code"
+     ],
+     "properties": {
+       "name": {
+         "type": "string"
+       },
+       "description": {
+         "type": "string"
+       },
+       "code": {
+         "type": "string"
+       },
+       "translations": {
+         "type": "object"
+       },
+         "defaultTerm": {
+           "type": "object"
+         },
+         "status": {
+           "type": "string",
+           "enum": [
+             "Draft",
+             "Live",
+             "Retired"
+           ],
+           "default": "Live"
+         },
+         "createdBy": {
+           "type": "string"
+         },
+         "createdOn": {
+           "type": "string"
+         },
+         "lastUpdatedBy": {
+           "type": "string"
+         },
+         "lastUpdatedOn": {
+           "type": "string"
+         },
+         "appId": {
+           "type": "string"
+         },
+         "channel": {
+           "type": "string"
+         },
+         "consumerId": {
+           "type": "string"
+         },
+         "lastStatusChangedOn": {
+           "type": "string"
+         },
+         "index": {
+           "type": "number"
+         }
+       }
+     }
+
+
+
+

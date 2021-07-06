@@ -1,0 +1,55 @@
+{
+  "objectType": "Term",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier"
+    ]
+  },
+  "external": {},
+  "relations": {
+    "categories": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Category", "CategoryInstance"
+      ]
+    },
+    "parents": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Term"
+      ]
+    },
+    "associationswith": {
+      "type": "associatedTo",
+      "direction": "in",
+      "objects": [
+        "Term"
+      ]
+    },
+    "children": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "Term"
+      ]
+    },
+    "associations": {
+      "type": "associatedTo",
+      "direction": "out",
+      "objects": [
+        "Term"
+      ]
+    }
+  },
+  "schema_restrict_api": false
+}
