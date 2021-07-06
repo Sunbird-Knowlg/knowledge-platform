@@ -78,7 +78,7 @@ trait FrameworkValidator extends IDefinition {
       val grades = fetchValidatedList(getList("gradeLevelIds", node), orgTermMap)
       if (CollectionUtils.isNotEmpty(grades)) node.getMetadata.putIfAbsent("gradeLevel", grades)
       val topics = fetchValidatedList(getList("topicsIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(topics)) node.getMetadata.putIfAbsent("topics", topics)
+      if (CollectionUtils.isNotEmpty(topics)) node.getMetadata.putIfAbsent("topic", topics)
       getValidatedTerms(node, targetFwTerms)
     }).flatMap(f => f)
   }
