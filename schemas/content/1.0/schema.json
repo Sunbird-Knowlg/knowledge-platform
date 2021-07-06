@@ -611,6 +611,19 @@
                 ]
             }
         },
+        "interceptionPoints": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            },
+            "default": []
+        },
+        "interceptionType": {
+            "type": "string",
+            "enum": [
+                "Timestamp"
+            ]
+        },
         "feedback": {
             "type": "array",
             "items": {
