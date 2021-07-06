@@ -3,6 +3,7 @@ package org.sunbird.collectioncsv.validator
 import org.apache.commons.csv.{CSVFormat, CSVRecord}
 import org.apache.commons.io.ByteOrderMark
 import org.apache.commons.io.input.BOMInputStream
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.collectioncsv.util.CollectionTOCUtil.{getFrameworkTopics, searchLinkedContents, validateDialCodes}
 import org.sunbird.collectioncsv.util.CollectionTOCConstants
 import org.sunbird.common.Platform
@@ -346,7 +347,7 @@ object CollectionCSVValidator {
       })
     }).filter(msg => msg.nonEmpty).toList
 
-    if(collectionHierarchy(CollectionTOCConstants.FRAMEWORK) == null || collectionHierarchy(CollectionTOCConstants.FRAMEWORK).toString.isEmpty)
+    if(collectionHierarchy(CollectionTOCConstants.FRAMEWORK) == null || StringUtils.isBlank(collectionHierarchy(CollectionTOCConstants.FRAMEWORK).asInstanceOf[String]))
       throw new ClientException("FRAMEWORK_MISSING", "Please set a framework for the content.")
 
     if(mappedTopicsList.nonEmpty) {
