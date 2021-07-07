@@ -347,7 +347,7 @@ object CollectionCSVValidator {
       })
     }).filter(msg => msg.nonEmpty).toList
 
-    if(collectionHierarchy(CollectionTOCConstants.FRAMEWORK) == null || StringUtils.isBlank(collectionHierarchy(CollectionTOCConstants.FRAMEWORK).asInstanceOf[String]))
+    if(collectionHierarchy(CollectionTOCConstants.FRAMEWORK) == null || StringUtils.isBlank(collectionHierarchy.getOrElse(CollectionTOCConstants.FRAMEWORK,"").asInstanceOf[String]))
       throw new ClientException("FRAMEWORK_MISSING", "Please set a framework for the content.")
 
     if(mappedTopicsList.nonEmpty) {

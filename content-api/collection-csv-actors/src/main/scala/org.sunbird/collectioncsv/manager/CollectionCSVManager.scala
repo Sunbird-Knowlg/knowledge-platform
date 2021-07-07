@@ -48,7 +48,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   def validateCollection(collection: Map[String, AnyRef], mode: String) {
-    if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).toString))
+    if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).asInstanceOf[String]))
       throw new ClientException("INVALID_COLLECTION", "Invalid Collection. Please Provide Valid Collection Identifier.")
     if(mode.equalsIgnoreCase("export")) {
       val children = collection(CollectionTOCConstants.CHILDREN).asInstanceOf[List[AnyRef]]
@@ -63,8 +63,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     populateFolderInfoMap(folderInfoMap, csvRecords, mode)
 
     // Prepare nodesMetadata and hierarchyMetadata using the folderInfoMap
-    val nodesMetadata = getNodesMetadata(folderInfoMap, mode, collectionHierarchy(CollectionTOCConstants.FRAMEWORK).toString, collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString)
-    val hierarchyMetadata = getHierarchyMetadata(folderInfoMap, mode, linkedContentsDetails, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString, collectionHierarchy(CollectionTOCConstants.NAME).toString, collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString)
+    val nodesMetadata = getNodesMetadata(folderInfoMap, mode, collectionHierarchy.getOrElse(CollectionTOCConstants.FRAMEWORK,"").asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String])
+    val hierarchyMetadata = getHierarchyMetadata(folderInfoMap, mode, linkedContentsDetails, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.NAME).asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String])
 
     // Invoke UpdateHierarchyManager to update the collection hierarchy
     val updateHierarchyResponse = UpdateHierarchyManager.updateHierarchy(getUpdateHierarchyRequest(nodesMetadata, hierarchyMetadata))
@@ -72,15 +72,15 @@ object CollectionCSVManager extends CollectionInputFileReader  {
 
     // Invoke DIAL code linking if mode=UPDATE
     if(mode.equals(CollectionTOCConstants.UPDATE)) {
-      linkDIALCodes(folderInfoMap, collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
+      linkDIALCodes(folderInfoMap, collectionHierarchy(CollectionTOCConstants.CHANNEL).asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String])
     }
 
     updateHierarchyResponse
   }
 
   def createCSVFileAndStore(collectionHierarchy: Map[String, AnyRef], collectionTocFileName: String)(implicit ss: StorageService): String = {
-    val collectionName = collectionHierarchy(CollectionTOCConstants.NAME).toString
-    val collectionType = collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString
+    val collectionName = collectionHierarchy(CollectionTOCConstants.NAME).asInstanceOf[String]
+    val collectionType = collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String]
     val collectionUnitType = contentTypeToUnitTypeMapping(collectionType)
     val childrenHierarchy = collectionHierarchy(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]]
     val nodesInfoList = prepareNodeInfo(collectionUnitType, childrenHierarchy, Map.empty[String, AnyRef], "")
@@ -99,14 +99,14 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       out.write(ByteOrderMark.UTF_BOM)
 
       val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader().withRecordSeparator(System.lineSeparator()).withQuoteMode(QuoteMode.NON_NUMERIC)
-      TelemetryManager.log("CollectionCSVManager:createFileAndStore -> Writing Headers to Output Stream for Collection | Id " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
+      TelemetryManager.log("CollectionCSVManager:createFileAndStore -> Writing Headers to Output Stream for Collection | Id " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String])
       csvPrinter = new CSVPrinter(out, csvFormat)
       csvPrinter.printRecord(collectionOutputTocHeaders.asJava)
       nodesMap.foreach(record => {
         val nodeDepthIndex = record._1
         val nodeInfo = record._2.asInstanceOf[Map[String, AnyRef]]
-        if(nodeInfo(CollectionTOCConstants.CONTENT_TYPE).toString.equalsIgnoreCase(collectionUnitType)) {
-          val nodeID = nodeInfo(CollectionTOCConstants.IDENTIFIER).toString
+        if(nodeInfo(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String].equalsIgnoreCase(collectionUnitType)) {
+          val nodeID = nodeInfo(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
           val recordToWrite = ListBuffer.empty[String]
           recordToWrite.append(collectionName)
           recordToWrite.append(nodeID)
@@ -121,8 +121,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
                 foldersLevelId ++= ":"
                 foldersLevelId ++= foldersLevel(iCounter)
               }
-              val parentNode = nodesMap(foldersLevelId.toString).asInstanceOf[Map[String, AnyRef]]
-              recordToWrite.append(parentNode(CollectionTOCConstants.NAME).toString)
+              val parentNode = nodesMap(foldersLevelId.asInstanceOf[String]).asInstanceOf[Map[String, AnyRef]]
+              recordToWrite.append(parentNode(CollectionTOCConstants.NAME).asInstanceOf[String])
             }
             else {
               recordToWrite.append(null)
@@ -133,11 +133,11 @@ object CollectionCSVManager extends CollectionInputFileReader  {
           val keywords = if (nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty) nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].mkString(",") else null
           val linkedContentsList = nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]]
 
-          recordToWrite.append(if (nodeInfo(CollectionTOCConstants.DESCRIPTION).toString.nonEmpty) nodeInfo(CollectionTOCConstants.DESCRIPTION).toString else null)
+          recordToWrite.append(if (nodeInfo(CollectionTOCConstants.DESCRIPTION).asInstanceOf[String].nonEmpty) nodeInfo(CollectionTOCConstants.DESCRIPTION).asInstanceOf[String] else null)
           recordToWrite.append(mappedTopics)
           recordToWrite.append(keywords)
-          recordToWrite.append(nodeInfo(CollectionTOCConstants.QR_CODE_REQUIRED).toString)
-          recordToWrite.append(if (nodeInfo(CollectionTOCConstants.QR_CODE).toString.nonEmpty) nodeInfo(CollectionTOCConstants.QR_CODE).toString else null)
+          recordToWrite.append(nodeInfo(CollectionTOCConstants.QR_CODE_REQUIRED).asInstanceOf[String])
+          recordToWrite.append(if (nodeInfo(CollectionTOCConstants.QR_CODE).asInstanceOf[String].nonEmpty) nodeInfo(CollectionTOCConstants.QR_CODE).asInstanceOf[String] else null)
 
           for (idx <- 0 until maxAllowedContentSize) {
             if (idx < linkedContentsList.size) {
@@ -154,7 +154,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
 
       csvPrinter.flush()
 
-      val folder = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc"
+      val folder = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String].toLowerCase + "/toc"
       TelemetryManager.log("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
       val csvURL = ss.uploadFile(folder, csvFile)
       TelemetryManager.log("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
@@ -164,8 +164,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     catch {
       case ce: ClientException => throw ce
       case e: Exception =>
-        TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString + " - Version Key: "
-          + collectionHierarchy(CollectionTOCConstants.VERSION_KEY).toString + e)
+        TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String] + " - Version Key: "
+          + collectionHierarchy(CollectionTOCConstants.VERSION_KEY).asInstanceOf[String] + e)
         throw new ServerException("ERROR_PROCESSING_REQUEST", "Something went wrong while Processing Request")
     } finally {
       try {
@@ -186,15 +186,15 @@ object CollectionCSVManager extends CollectionInputFileReader  {
         val linkedContents = {
           if (record.contains(CollectionTOCConstants.CHILDREN)) {
             record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
-              if (!childNode(CollectionTOCConstants.CONTENT_TYPE).toString.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString
+              if (!childNode(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String].equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
               else ""
             }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
           }
           else Seq.empty[String]
         }
 
-        val nodeDepth = if (record.contains(CollectionTOCConstants.DEPTH)) record(CollectionTOCConstants.DEPTH).toString.toInt else 0
-        val nodeIndex = if (record.contains(CollectionTOCConstants.INDEX)) record(CollectionTOCConstants.INDEX).toString.toInt else 0
+        val nodeDepth = if (record.contains(CollectionTOCConstants.DEPTH)) record(CollectionTOCConstants.DEPTH).asInstanceOf[String].toInt else 0
+        val nodeIndex = if (record.contains(CollectionTOCConstants.INDEX)) record(CollectionTOCConstants.INDEX).asInstanceOf[String].toInt else 0
         val nodeInfo = getNodeInfo(record, linkedContents, nodeDepth, nodeIndex)
 
         val appendedMap = {
@@ -218,16 +218,16 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   private def getNodeInfo(record: Map[String, AnyRef], linkedContents: Seq[String], nodeDepth: Integer, nodeIndex: Integer): Map[String, AnyRef] = {
-    val nodeId = record(CollectionTOCConstants.IDENTIFIER).toString
-    val nodeName = record(CollectionTOCConstants.NAME).toString
-    val nodeDescription = if (record.contains(CollectionTOCConstants.DESCRIPTION)) record(CollectionTOCConstants.DESCRIPTION).toString else ""
+    val nodeId = record(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
+    val nodeName = record(CollectionTOCConstants.NAME).asInstanceOf[String]
+    val nodeDescription = if (record.contains(CollectionTOCConstants.DESCRIPTION)) record(CollectionTOCConstants.DESCRIPTION).asInstanceOf[String] else ""
     val nodeKeywords = if (record.contains(CollectionTOCConstants.KEYWORDS)) record(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]] else List.empty[String]
     val nodeTopics = if (record.contains(CollectionTOCConstants.TOPIC)) record(CollectionTOCConstants.TOPIC).asInstanceOf[List[String]] else List.empty[String]
-    val nodeDialCodeRequired = if (record.contains(CollectionTOCConstants.DIAL_CODE_REQUIRED)) record(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString else "No"
+    val nodeDialCodeRequired = if (record.contains(CollectionTOCConstants.DIAL_CODE_REQUIRED)) record(CollectionTOCConstants.DIAL_CODE_REQUIRED).asInstanceOf[String] else "No"
     val nodeDIALCode = if (record.contains(CollectionTOCConstants.DIAL_CODES)) record(CollectionTOCConstants.DIAL_CODES).asInstanceOf[List[String]].head else ""
 
     Map(CollectionTOCConstants.IDENTIFIER -> nodeId, CollectionTOCConstants.NAME -> nodeName, CollectionTOCConstants.DESCRIPTION -> nodeDescription,
-      CollectionTOCConstants.KEYWORDS -> nodeKeywords, CollectionTOCConstants.TOPIC -> nodeTopics, CollectionTOCConstants.QR_CODE_REQUIRED -> nodeDialCodeRequired, CollectionTOCConstants.CONTENT_TYPE -> record(CollectionTOCConstants.CONTENT_TYPE).toString,
+      CollectionTOCConstants.KEYWORDS -> nodeKeywords, CollectionTOCConstants.TOPIC -> nodeTopics, CollectionTOCConstants.QR_CODE_REQUIRED -> nodeDialCodeRequired, CollectionTOCConstants.CONTENT_TYPE -> record(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String],
       CollectionTOCConstants.QR_CODE -> nodeDIALCode, CollectionTOCConstants.DEPTH -> nodeDepth, CollectionTOCConstants.INDEX -> nodeIndex, CollectionTOCConstants.LINKED_CONTENT -> linkedContents)
   }
 
@@ -316,14 +316,14 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
       if(mode.equals(CollectionTOCConstants.CREATE))
         s""""${record._1}": {"isNew": true,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection","contentType": "$collectionUnitType",
-           |"name": "${nodeInfo("name").toString}", "description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).toString else ""}",
+           |"name": "${nodeInfo("name").asInstanceOf[String]}", "description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).asInstanceOf[String] else ""}",
            |"dialcodeRequired": "No","code": "nodeID","framework": "$frameworkID" }}""".stripMargin
       else
-        s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
-           |"contentType": "$collectionUnitType","name": "${nodeInfo("name").toString}",
-           |"description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).toString else ""}",
-           |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": "${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}",
-           |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
+        s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
+           |"contentType": "$collectionUnitType","name": "${nodeInfo("name").asInstanceOf[String]}",
+           |"description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).asInstanceOf[String] else ""}",
+           |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).asInstanceOf[String]}","dialcodes": "${nodeInfo(CollectionTOCConstants.DIAL_CODES).asInstanceOf[String]}",
+           |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]}","framework": "$frameworkID",
            |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
           nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].mkString("[\"","\",\"","\"]") else "[]"},
            |"topic": ${if(nodeInfo.contains(CollectionTOCConstants.TOPIC) && nodeInfo(CollectionTOCConstants.TOPIC).asInstanceOf[List[String]].nonEmpty)
@@ -336,20 +336,20 @@ object CollectionCSVManager extends CollectionInputFileReader  {
 
     val linkedContentsInfoMap: Map[String, Map[String, String]] = if(linkedContentsDetails.nonEmpty) {
       linkedContentsDetails.flatMap(linkedContentRecord => {
-        Map(linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString ->
-          Map(CollectionTOCConstants.IDENTIFIER -> linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString,
-            CollectionTOCConstants.NAME -> linkedContentRecord(CollectionTOCConstants.NAME).toString,
-            CollectionTOCConstants.CONTENT_TYPE -> linkedContentRecord(CollectionTOCConstants.CONTENT_TYPE).toString))
+        Map(linkedContentRecord(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String] ->
+          Map(CollectionTOCConstants.IDENTIFIER -> linkedContentRecord(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String],
+            CollectionTOCConstants.NAME -> linkedContentRecord(CollectionTOCConstants.NAME).asInstanceOf[String],
+            CollectionTOCConstants.CONTENT_TYPE -> linkedContentRecord(CollectionTOCConstants.CONTENT_TYPE).asInstanceOf[String]))
       }).toMap
     } else Map.empty[String, Map[String, String]]
 
     val collectionL1NodeList = {
       folderInfoMap.map(nodeData => {
         if(nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]](CollectionTOCConstants.LEVEL)!=null &&
-          nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]](CollectionTOCConstants.LEVEL).toString.equalsIgnoreCase
+          nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]](CollectionTOCConstants.LEVEL).asInstanceOf[String].equalsIgnoreCase
           (createCSVMandatoryHeaderCols.head)) {
           if (mode.equals(CollectionTOCConstants.UPDATE))
-            nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]](CollectionTOCConstants.IDENTIFIER).toString
+            nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]](CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
           else nodeData._1
         }
         else ""
@@ -361,7 +361,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     val hierarchyChildNodesMetadata = folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
       if(mode.equals(CollectionTOCConstants.CREATE)) {
-        s""""${record._1}": {"name": "${nodeInfo("name").toString}","root": false,"contentType": "$collectionUnitType", "children": ${if(nodeInfo.contains(CollectionTOCConstants.CHILDREN)) nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Set[String]].mkString("[\"","\",\"","\"]") else "[]"}}"""
+        s""""${record._1}": {"name": "${nodeInfo("name").asInstanceOf[String]}","root": false,"contentType": "$collectionUnitType", "children": ${if(nodeInfo.contains(CollectionTOCConstants.CHILDREN)) nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Set[String]].mkString("[\"","\",\"","\"]") else "[]"}}"""
       }
       else {
         val childrenFolders = {
@@ -370,20 +370,20 @@ object CollectionCSVManager extends CollectionInputFileReader  {
             val allChildrenSet = nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Set[String]] ++ nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Set[String]]
             allChildrenSet.map(childFolder => {
               if(folderInfoMap.contains(childFolder))
-                folderInfoMap(childFolder).asInstanceOf[scala.collection.mutable.Map[String,AnyRef]](CollectionTOCConstants.IDENTIFIER).toString
+                folderInfoMap(childFolder).asInstanceOf[scala.collection.mutable.Map[String,AnyRef]](CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
               else childFolder
             }).mkString("[\"","\",\"","\"]")
           }
           else if(nodeInfo.contains(CollectionTOCConstants.CHILDREN) &&  nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Set[String]].nonEmpty)
             nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Set[String]].map(childFolder => {
-              folderInfoMap(childFolder).asInstanceOf[scala.collection.mutable.Map[String,AnyRef]](CollectionTOCConstants.IDENTIFIER).toString
+              folderInfoMap(childFolder).asInstanceOf[scala.collection.mutable.Map[String,AnyRef]](CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]
             }).mkString("[\"","\",\"","\"]")
           else if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Set[String]].nonEmpty)
             nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Set[String]].mkString("[\"","\",\"","\"]")
           else "[]"
         }
 
-        val folderNodeHierarchy = s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"name": "${nodeInfo("name").toString}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
+        val folderNodeHierarchy = s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]}": {"name": "${nodeInfo("name").asInstanceOf[String]}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Set[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
           {
@@ -425,8 +425,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     //invoke DIAL code Linking
     val linkDIALCodeReqMap = folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
-      if(nodeInfo(CollectionTOCConstants.DIAL_CODES) != null && nodeInfo(CollectionTOCConstants.DIAL_CODES).toString.nonEmpty)
-        new util.HashMap[String, String]{put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString); put(CollectionTOCConstants.DIALCODE, nodeInfo(CollectionTOCConstants.DIAL_CODES).toString)}
+      if(nodeInfo(CollectionTOCConstants.DIAL_CODES) != null && nodeInfo(CollectionTOCConstants.DIAL_CODES).asInstanceOf[String].nonEmpty)
+        new util.HashMap[String, String]{put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String]); put(CollectionTOCConstants.DIALCODE, nodeInfo(CollectionTOCConstants.DIAL_CODES).asInstanceOf[String])}
       else  new util.HashMap[String, String]()
     }).filter(record => record.nonEmpty).toList
 
