@@ -17,8 +17,6 @@ import org.sunbird.graph.utils.NodeUtil
 import scala.concurrent.{ExecutionContext, Future}
 
 object AssetCopyManager {
-  implicit val oec: OntologyEngineContext = new OntologyEngineContext
-  implicit val ss: StorageService = new StorageService
 
   def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     request.getContext.put(AssetConstants.ASSET_COPY_SCHEME, request.getRequest.getOrDefault(AssetConstants.ASSET_COPY_SCHEME, ""))

@@ -375,3 +375,25 @@ curl --location --request POST '{{host}}/object/category/v4/create' \
         }
     }
 }'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "CCT",
+            "description":"Creating and Critical Thinking"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "FLM",
+            "description":"Foundational Learning"
+        }
+    }
+}'

@@ -135,8 +135,8 @@ object HierarchyManager {
         val req = new Request(request)
         if ("add".equalsIgnoreCase(operation)) {
             val updatedChildren = restructureUnit(hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]],
-                convertNodeToMap(leafNodes), leafNodeIds, 1, rootNode.getIdentifier.replace(".img", ""))
-            val updatedHierarchy = Map("children" -> updatedChildren, "identifier" -> rootNode.getIdentifier.replace(".img", "")).asJava
+                convertNodeToMap(leafNodes), leafNodeIds, 1, rootNode.getIdentifier.replace(imgSuffix, ""))
+            val updatedHierarchy = Map("children" -> updatedChildren, "identifier" -> rootNode.getIdentifier.replace(imgSuffix, "")).asJava
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
         }
         if ("remove".equalsIgnoreCase(operation)) {
@@ -145,7 +145,7 @@ object HierarchyManager {
                 .filter(child => !leafNodeIds.contains(child.get("identifier")))
             filteredChildren.sortBy(_.get("index").asInstanceOf[Integer])
                 .zipWithIndex.foreach(zippedChild => zippedChild._1.put("index", (zippedChild._2.asInstanceOf[Integer] + 1).asInstanceOf[Object]))
-            val updatedHierarchy = Map("children" -> filteredChildren, "identifier" -> rootNode.getIdentifier.replace(".img", "")).asJava
+            val updatedHierarchy = Map("children" -> filteredChildren, "identifier" -> rootNode.getIdentifier.replace(imgSuffix, "")).asJava
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
         }
         req.put("identifier", rootNode.getIdentifier)
@@ -326,7 +326,7 @@ object HierarchyManager {
     def updateRootNode(rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
-        var childNodes = new java.util.ArrayList[String]()
+        val childNodes = new java.util.ArrayList[String]()
         childNodes.addAll(rootNode.getMetadata.getOrDefault("childNodes", Array[String]()).asInstanceOf[Array[String]].toList)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
@@ -402,7 +402,7 @@ object HierarchyManager {
                 } else
                     Future(Map[String, AnyRef]())
             } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404 && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
-                req.put("identifier", identifier.replaceAll(".img", "") + ".img")
+                req.put("identifier", identifier.replaceAll(imgSuffix, "") + imgSuffix)
                 val responseFuture = oec.graphService.readExternalProps(req, List("hierarchy"))
                 responseFuture.map(response => {
                     if (!ResponseHandler.checkError(response)) {
