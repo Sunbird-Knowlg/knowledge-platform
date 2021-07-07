@@ -38,9 +38,8 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext, ss: Sto
       HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
         val collectionHierarchy = getCollectionHierarchy(getHierarchyResponse)
         TelemetryManager.log("CollectionCSVActor --> uploadTOC --> after fetching collection Hierarchy: " + collectionHierarchy)
-
+        validateCollection(collectionHierarchy,"import")
         val linkedContentsDetails = validateInputData(csvRecordsAndMode._1, csvRecordsAndMode._2, csvRecordsAndMode._3, collectionHierarchy)
-
         // update the collection hierarchy
         updateCollection(collectionHierarchy, csvRecordsAndMode._2, csvRecordsAndMode._3, linkedContentsDetails)
       })
@@ -58,7 +57,7 @@ class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext, ss: Sto
      HierarchyManager.getHierarchy(request).map(getHierarchyResponse => {
        val collectionHierarchy = getCollectionHierarchy(getHierarchyResponse)
        TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> collectionHierarchy: " + collectionHierarchy)
-       validateCollection(collectionHierarchy)
+       validateCollection(collectionHierarchy,"export")
 
        val cloudPath = getCloudPath(fileExtension, collectionHierarchy)
        TelemetryManager.log ("CollectionCSVActor:getTOCUrl -> Sending Response for Toc Download API for Collection | Id: " + request.get(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String])
