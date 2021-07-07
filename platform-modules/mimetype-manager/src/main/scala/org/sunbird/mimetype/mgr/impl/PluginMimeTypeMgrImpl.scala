@@ -61,6 +61,8 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 	}
 
 	override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		if(!isValidArtifact(node))
+			throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either artifactUrl is missing or invalid!]")
 		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
 	}
 }

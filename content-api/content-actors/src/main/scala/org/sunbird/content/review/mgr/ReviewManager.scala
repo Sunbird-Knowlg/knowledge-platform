@@ -14,7 +14,7 @@ object ReviewManager {
 
 	def review(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val identifier: String = node.getIdentifier
-		val mimeType = node.getMetadata().getOrDefault("mimeType", "assets").asInstanceOf[String]
+		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(node.getObjectType, mimeType)
 		val reviewFuture: Future[Map[String, AnyRef]] = mgr.review(identifier, node)
 		reviewFuture.map(result => {

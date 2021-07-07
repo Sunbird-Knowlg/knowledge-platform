@@ -153,7 +153,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val readReq = new Request(request)
 		readReq.put("identifier", identifier)
 		readReq.put("mode", "edit")
-		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put("schemaName", node.getObjectType.toLowerCase())

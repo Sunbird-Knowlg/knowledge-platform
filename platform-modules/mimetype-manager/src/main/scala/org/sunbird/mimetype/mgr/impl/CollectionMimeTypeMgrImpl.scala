@@ -61,13 +61,13 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 			if (ResponseHandler.checkError(response) && !ResponseHandler.isResponseNotFoundError(response)) {
 				throw new ServerException("ERR_COLLECTION_REVIEW", "Unable to fetch hierarchy for identifier:" + rootNode.getIdentifier)
 			} else if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
-				throw new ClientException("ERR_COLLECTION_REVIEW", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
+				throw new ClientException("ERR_COLLECTION_REVIEW", "No hierarchy is present in external-store for identifier:" + rootNode.getIdentifier)
 			} else Future(response.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String])
 		})
 	}
 
 	def getChildren(hierarchyStr: String): Map[String, AnyRef] = {
-		val hierarchy: Map[String, AnyRef] = if (!hierarchyStr.asInstanceOf[String].isEmpty) {
+		val hierarchy: Map[String, AnyRef] = if (hierarchyStr.asInstanceOf[String].nonEmpty) {
 			ScalaJsonUtils.deserialize[Map[String, AnyRef]](hierarchyStr)
 		} else Map()
 		val children = hierarchy.getOrElse("children", List()).asInstanceOf[List[Map[String, AnyRef]]]

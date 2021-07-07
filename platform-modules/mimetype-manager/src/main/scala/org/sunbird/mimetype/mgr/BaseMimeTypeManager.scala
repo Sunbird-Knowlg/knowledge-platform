@@ -270,7 +270,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	}
 
 	def isValidArtifact(node: Node): Boolean = {
-		StringUtils.isNotBlank(node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String])
+		StringUtils.isNotBlank(node.getArtifactUrl)
 	}
 
 	def isValidUrl(url: String): Boolean = {
@@ -278,7 +278,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	}
 
 	def validate(node: Node, errorMsg: String): Unit = {
-		if(!isValidArtifact(node) && !isValidUrl(node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String]))
+		if(!isValidArtifact(node) && !isValidUrl(node.getArtifactUrl))
 			throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + errorMsg)
 	}
 

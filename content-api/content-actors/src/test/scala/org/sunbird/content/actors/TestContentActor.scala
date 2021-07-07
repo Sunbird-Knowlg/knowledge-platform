@@ -444,6 +444,8 @@ class TestContentActor extends BaseSpec with MockFactory {
         request.setOperation("reviewContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_NODE_ACCESS_DENIED")
+        assert(response.getParams.getErrmsg == "Review Operation Can't Be Applied On Node Under Processing State")
     }
 
     private def getNodeForReview(id: String, mimeType: String, primaryCategory: String, objType: String,  artifactUrl: String): Node = {
