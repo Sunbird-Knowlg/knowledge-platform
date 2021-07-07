@@ -253,18 +253,18 @@ object HierarchyManager {
         })
     }
 
-    def addChildrenToUnit(children: java.util.List[java.util.Map[String,AnyRef]], unitId:String, leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
+    def addChildrenToUnit(children: java.util.List[java.util.Map[String,AnyRef]], unitId:String, leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
         val childNodes = children.filter(child => ("Parent".equalsIgnoreCase(child.get("visibility").asInstanceOf[String]) && unitId.equalsIgnoreCase(child.get("identifier").asInstanceOf[String]))).toList
         if(null != childNodes && !childNodes.isEmpty){
             val child = childNodes.get(0)
-            leafNodes.toList.map(leafNode => validateLeafNodes(child, leafNode))
+            leafNodes.toList.map(leafNode => validateLeafNodes(child, leafNode, request))
             val childList = child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]]
             val restructuredChildren: java.util.List[java.util.Map[String,AnyRef]] = restructureUnit(childList, leafNodes, leafNodeIds, (child.get("depth").asInstanceOf[Integer] + 1), unitId)
             child.put("children", restructuredChildren)
         } else {
             for(child <- children) {
                 if(null !=child.get("children") && !child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]].isEmpty)
-                    addChildrenToUnit(child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]], unitId, leafNodes, leafNodeIds)
+                    addChildrenToUnit(child.get("children").asInstanceOf[java.util.List[java.util.Map[String,AnyRef]]], unitId, leafNodes, leafNodeIds, request)
             }
         }
     }
@@ -312,7 +312,7 @@ object HierarchyManager {
         val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
         if("add".equalsIgnoreCase(operation)){
             val leafNodesMap:java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
-            addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds)
+            addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
         }
         if("remove".equalsIgnoreCase(operation)) {
             removeChildrenFromUnit(children,unitId, leafNodeIds)
@@ -606,11 +606,15 @@ object HierarchyManager {
         updatedHierarchy
     }
 
-    def validateLeafNodes(parentNode: java.util.Map[String, AnyRef], childNode: java.util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    def validateLeafNodes(parentNode: java.util.Map[String, AnyRef], childNode: java.util.Map[String, AnyRef], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
         val primaryCategory = parentNode.getOrDefault("primaryCategory", "").asInstanceOf[String]
         val channel: String = parentNode.getOrDefault("channel", "all").asInstanceOf[String]
-        val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(primaryCategory, parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase(), channel)
-        val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), objectCategoryDefinition)
+        //val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(primaryCategory, parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase(), channel)
+        //val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", parentNode.getOrDefault("objectType", "").asInstanceOf[String].toLowerCase().replace("image", ""), objectCategoryDefinition)
+
+        val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(primaryCategory, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String].toLowerCase(), channel)
+        val outRelations = DefinitionNode.getOutRelations(HierarchyConstants.GRAPH_ID, "1.0", request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String].toLowerCase(), objectCategoryDefinition)
+
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).orNull.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrElse("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
             throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType "+childNode.get("objectType")+" found for : "+childNode.get("identifier") + "| Please provide children having one of the objectType from "+ configObjTypes.asJava)
