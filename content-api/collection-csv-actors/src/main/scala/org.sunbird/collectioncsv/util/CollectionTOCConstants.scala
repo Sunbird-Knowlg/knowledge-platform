@@ -77,5 +77,4 @@ object CollectionTOCConstants {
   val SUNBIRD_CONTENT_SEARCH_URL = "composite.search.url"
   val UPDATE_HIERARCHY_API = "sunbird_update_hierarchy_api"
   val LINK_DIAL_CODE_API = "sunbird_link_dial_code_api"
-
 }
