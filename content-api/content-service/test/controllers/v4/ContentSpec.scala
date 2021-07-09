@@ -81,6 +81,15 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+        "return success response for rejectContent API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Learning Resource","status": "Review"}}}""")
+            val fakeRequest = FakeRequest("POST", "/content/v4/review/reject/do_123").withJsonBody(json)
+            val result = controller.systemUpdate("do_123")(fakeRequest)
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
     "return success response for upload API with file" in {
         val controller = app.injector.instanceOf[controllers.v4.ContentController]
