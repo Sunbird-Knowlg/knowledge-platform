@@ -62,11 +62,10 @@ trait VersioningNode extends IDefinition {
             }
         } else {
             val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
-            if (Platform.config.hasPath(cacheKey) && Platform.config.getBoolean(cacheKey)) {
+            if (Platform.getBoolean(cacheKey, false)) {
                 val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
                 getCachedNode(identifier, ttl)
-            }
-            else
+            } else
                 super.getNode(identifier, "read", mode)
         }
     }

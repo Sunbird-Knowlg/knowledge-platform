@@ -18,7 +18,7 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
 
   "upload with valid file" should "return artifactUrl with successful response" in {
     val node = getNode()
-    node.getMetadata.put("mimeType", "image/jpg")
+    node.getMetadata.put("mimeType", "image/jpeg")
     val identifier = "do_123"
     implicit val ss = mock[StorageService]
     (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
@@ -74,6 +74,15 @@ class AssetMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMoc
       assert("do_123" == result.getOrElse("identifier", ""))
       assert(inputUrl == result.getOrElse("artifactUrl", ""))
     })
+  }
+
+  "upload with invalid mimeType" should "throw client exception" in {
+    val node = getNode()
+    node.getMetadata.put("mimeType", "image/svg+xml")
+    val exception = intercept[ClientException] {
+      new AssetMimeTypeMgrImpl().upload("do_123", node, new File(Resources.getResource("filesToZip/human_vs_robot-.jpg").toURI), None, UploadParams())
+    }
+    exception.getMessage shouldEqual "Uploaded File MimeType is not same as Asset MimeType."
   }
 
 }

@@ -158,4 +158,8 @@ public class Request implements Serializable {
     public void setObjectType(String objectType) {
         this.objectType = objectType;
     }
+
+    public String graphId() {
+        return (String) context.getOrDefault("graph_id", "");
+    }
 }

@@ -3,7 +3,6 @@ package org.sunbird.graph.schema
 import java.io.{ByteArrayInputStream, File}
 import java.net.URI
 import java.util
-import java.util.concurrent.CompletionException
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.lang3.StringUtils
@@ -12,10 +11,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.schema.impl.BaseSchemaValidator
-import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}

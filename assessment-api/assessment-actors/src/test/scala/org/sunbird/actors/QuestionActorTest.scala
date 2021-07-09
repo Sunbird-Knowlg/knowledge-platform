@@ -30,6 +30,9 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		val node = getNode("Question", None)
 		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
 		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		val request = getQuestionRequest()
 		request.getContext.put("identifier", "do1234")
 		request.putAll(mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.sunbird.question", "primaryCategory" -> "Multiple Choice Question", "visibility" -> "Default")))
@@ -61,6 +64,9 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		val request = getQuestionRequest()
 		request.getContext.put("identifier", "do1234")
 		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated desc")))
@@ -78,6 +84,9 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		val request = getQuestionRequest()
 		request.getContext.put("identifier", "do1234")
 		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated desc")))
@@ -159,6 +168,9 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(List(node))).once()
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
 		val request = getQuestionRequest()

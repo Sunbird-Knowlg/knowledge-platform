@@ -121,3 +121,8 @@ DELETE  /private/eventset/v4/retire/:identifier  controllers.v4.EventSetControll
 
 # Object v4 Api's
 GET     /object/v4/read/:identifier              controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
+
+
+# Collection TOC CSV APIs
+POST    /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
+GET    /collection/v4/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])
