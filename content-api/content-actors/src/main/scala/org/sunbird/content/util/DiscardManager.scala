@@ -34,8 +34,11 @@ object DiscardManager {
             else
                 DataNode.deleteNode(request)
             response.map(resp => 		{
-              ResponseHandler.OK().put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
-                  .put("message", "Draft version of the content with id : " + node.getIdentifier + " is discarded")
+                val response = ResponseHandler.OK()
+                response.put("node_id", node.getIdentifier)
+                response.put("identifier", node.getIdentifier)
+                response.getResult.put("message", "Draft version of the content with id : " + node.getIdentifier + " is discarded")
+                response
             })
         })recoverWith { case e: CompletionException => throw e.getCause }
     }
