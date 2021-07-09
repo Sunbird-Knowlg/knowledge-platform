@@ -90,11 +90,6 @@ public class Request implements Serializable {
         request.put(key, vo);
     }
 
-    public Request putIn(String key, Object vo) {
-        request.put(key, vo);
-        return this;
-    }
-
     public void putAll(Map<String, Object> map) {
         request.putAll(map);
     }
