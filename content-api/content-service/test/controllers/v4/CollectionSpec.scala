@@ -146,4 +146,13 @@ class CollectionSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
     }
+
+    "Collection Controller" should {
+        "return success response for review API" in {
+            val controller = app.injector.instanceOf[controllers.v3.ContentController]
+            val result = controller.review("0123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+    }
 }
