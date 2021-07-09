@@ -94,7 +94,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("COLLECTION_CHILDREN_EXISTS"))
     }
 
-    it should "return client error on input of create csv with missing column and additional column" in {
+    it should "return client error on input of create csv with invalid sequence" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -103,11 +103,11 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
 
-        val response = uploadFileToActor(collectionID, resourceDirectory + "InvalidHeadersFound.csv")
+        val response = uploadFileToActor(collectionID, resourceDirectory + "InvalidHeaderSequence.csv")
         assert(response != null)
         println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-        assert(response.getParams.getErr.equalsIgnoreCase("INVALID_HEADERS_FOUND"))
+        assert(response.getParams.getErr.equalsIgnoreCase("INVALID_HEADER_SEQUENCE"))
     }
 
     it should "return client error on input of create csv with missing column" in {
@@ -123,7 +123,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response != null)
         println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-        assert(response.getParams.getErr.equalsIgnoreCase("REQUIRED_HEADER_MISSING") || response.getParams.getErr.equalsIgnoreCase("INVALID_HEADER_SEQUENCE"))
+        assert(response.getParams.getErr.equalsIgnoreCase("REQUIRED_HEADER_MISSING") || response.getParams.getErr.equalsIgnoreCase("MISSING_HEADERS"))
     }
 
     it should "return client error on input of create csv with additional column" in {
@@ -204,6 +204,38 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
         assert(response.getParams.getErr.equalsIgnoreCase("DUPLICATE_ROWS"))
+    }
+
+    it should "return client error on input of create csv with unit field data exceeding maximum length" in {
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val collectionID = "do_113293355858984960134"
+        val node = createNode()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
+
+        val response = uploadFileToActor(collectionID, resourceDirectory + "MaxUnitNameLength.csv")
+        assert(response != null)
+        println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_FIELDS_LENGTH"))
+    }
+
+    it should "return client error on input of create csv with Description field data exceeding maximum length" in {
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val collectionID = "do_113293355858984960134"
+        val node = createNode()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getEmptyCassandraHierarchy())).anyNumberOfTimes()
+
+        val response = uploadFileToActor(collectionID, resourceDirectory + "MaxDescriptionLength.csv")
+        assert(response != null)
+        println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_FIELDS_LENGTH"))
     }
 
     it should "return client error on input of update csv with invalid QRCodeRequired and QRCode combination" in {
@@ -339,24 +371,6 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_LINKED_CONTENTS"))
-    }
-
-    it should "return client error on input of update csv with invalid contentType of linked contents" in {
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val collectionID = "do_1132828073514926081518"
-        val node = updateNode()
-        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes(node))).anyNumberOfTimes()
-        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
-        (oec.httpUtil _).expects().returns(httpUtil)
-        (httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(linkedContentsInvalidContentTypeResponse()).anyNumberOfTimes()
-
-        val response = uploadFileToActor(collectionID, resourceDirectory + "InvalidLinkedContentContentType.csv")
-        assert(response != null)
-        println("TestCollectionCSVActor --> response.getParams: " + response.getParams)
-        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-        assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_LINKED_CONTENTS_CONTENT_TYPE"))
     }
 
     it should "return success response on input of valid update TOC csv" in {
