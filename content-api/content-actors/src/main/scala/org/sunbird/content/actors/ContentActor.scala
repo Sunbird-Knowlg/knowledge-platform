@@ -3,7 +3,6 @@ package org.sunbird.content.actors
 import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
-
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
@@ -50,6 +49,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
+			case "rejectContent" => rejectContent(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -228,11 +228,32 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			else
 				DataNode.systemUpdate(request, response,"", None)
 		}).map(node => {
-			val response: Response = ResponseHandler.OK
-			response.put("identifier", identifier)
-			response.put("status", "success")
-			response
+			ResponseHandler.OK.put("identifier", identifier).put("status", "success")
 		})
+	}
+
+	def rejectContent(request: Request): Future[Response] = {
+		RequestUtil.validateRequest(request)
+		DataNode.read(request).map(node => {
+			val status = node.getMetadata.get("status").asInstanceOf[String]
+			if (StringUtils.isBlank(status))
+				throw new ClientException("ERR_METADATA_ISSUE", "Content metadata error, status is blank for identifier:" + node.getIdentifier)
+      if (StringUtils.equals("Review", status)) {
+        request.getRequest.put("status", "Draft")
+      } else if (StringUtils.equals("FlagReview", status))
+        request.getRequest.put("status", "FlagDraft")
+      else new ClientException("ERR_INVALID_REQUEST", "Content not in Review status.")
+			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
+			if (null != request.getRequest.get("rejectReasons") && !request.getRequest.get("rejectReasons").isInstanceOf[Array[_]])
+				throw new ClientException("ERR_INVALID_REQUEST_FORMAT","rejectReasons should be a Array")
+			request.putIn("publishChecklist", null).putIn("publishComment", null)
+      //updating node after changing the status
+			RequestUtil.restrictProperties(request)
+			DataNode.update(request).map(node => {
+				val identifier: String = node.getIdentifier.replace(".img", "")
+				ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
+			})
+		}).flatMap(f => f)
 	}
 
 }
