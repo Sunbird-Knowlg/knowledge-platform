@@ -194,8 +194,20 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(headers)
         val contentRequest = getRequest(content, headers, "systemUpdate")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("identifier", identifier)
         getResult(ApiId.SYSTEM_UPDATE_COLLECTION, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def reviewReject(identifier: String) = Action.async { implicit request =>
+      val headers = commonHeaders()
+      val body = requestBody()
+      val content = body
+      content.putAll(headers)
+      content.putAll(Map("identifier" -> identifier).asJava)
+      val contentRequest = getRequest(content, headers, "rejectContent")
+      setRequestContext(contentRequest, version, objectType, schemaName)
+      contentRequest.getContext.put("identifier", identifier)
+      getResult(ApiId.REJECT_COLLECTION, contentActor, contentRequest, version = apiVersion)
     }
 
     def importCollection(identifier: String) = Action.async { implicit request =>

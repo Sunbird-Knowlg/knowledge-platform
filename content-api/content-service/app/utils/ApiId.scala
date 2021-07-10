@@ -20,6 +20,7 @@ object ApiId {
 	val IMPORT_CONTENT = "api.content.import"
 	val SYSTEM_UPDATE_CONTENT = "api.content.system.update"
 	val REVIEW_CONTENT = "api.content.review"
+	val REJECT_CONTENT = "api.content.review.reject"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
@@ -71,6 +72,7 @@ object ApiId {
 	val UPDATE_HIERARCHY_V4 = "api.collection.hierarchy.update"
 	val GET_HIERARCHY_V4 = "api.collection.hierarchy.get"
 	val SYSTEM_UPDATE_COLLECTION = "api.collection.system.update"
+  val REJECT_COLLECTION = "api.collection.review.reject"
 
   //App APIs
   val REGISTER_APP = "api.app.register"

@@ -89,6 +89,13 @@ class CollectionSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+        "return success response for collection review reject API" in {
+          val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+          val result = controller.reviewReject("do_123")(FakeRequest())
+          isOK(result)
+          status(result) must equalTo(OK)
+        }
     }
 
     "return success response for hierarchy update API" in {
