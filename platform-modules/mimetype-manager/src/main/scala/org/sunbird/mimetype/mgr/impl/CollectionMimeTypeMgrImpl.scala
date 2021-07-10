@@ -5,6 +5,7 @@ import java.io.File
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
@@ -48,7 +49,7 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 					throw new ClientException("ERR_COLLECTION_REVIEW", "Children which are not available are: " + filteredList)
 				} else {
 					val fNodes: List[String] = nodes.filter(node => !validResourceStatus.contains(node.getMetadata.getOrDefault("status", "").asInstanceOf[String])).toList.map(node => node.getIdentifier)
-					if (fNodes.nonEmpty)
+					if (Platform.getBoolean("collection.children_status_validation", true) && fNodes.nonEmpty)
 						throw new ClientException("ERR_COLLECTION_REVIEW", "Unpublished Children Found With Identifier : " + fNodes)
 				}
 				true
