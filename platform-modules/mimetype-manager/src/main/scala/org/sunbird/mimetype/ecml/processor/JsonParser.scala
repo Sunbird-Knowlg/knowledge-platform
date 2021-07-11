@@ -58,7 +58,7 @@ object JsonParser {
 
     def getManifest(jsonObject: Map[String, AnyRef], validateMedia: Boolean): Manifest = {
         if(null != jsonObject && jsonObject.keySet.contains("manifest") && jsonObject.get("manifest").get.isInstanceOf[List[Map[String, AnyRef]]]) throw new ClientException("EXPECTED_JSON_OBJECT", "Error! JSON Object is Expected for the Element. manifest")
-        else if(jsonObject.get("manifest").isInstanceOf[Map[String, AnyRef]] && jsonObject.get("manifest").asInstanceOf[Map[String, AnyRef]].keySet.contains("media")){
+        else if(jsonObject.getOrElse("manifest", Map()).isInstanceOf[Map[String, AnyRef]] && jsonObject.getOrElse("manifest", Map()).asInstanceOf[Map[String, AnyRef]].keySet.contains("media")){
             val manifestObject = jsonObject.get("manifest").get.asInstanceOf[Map[String, AnyRef]]
             Manifest(getId(manifestObject), getData(manifestObject, "manifest"), getInnerText(manifestObject), getCdata(manifestObject), getMedias(manifestObject.get("media").get, validateMedia))
         }else classOf[Manifest].newInstance()
