@@ -96,6 +96,13 @@ class CollectionSpec extends BaseSpec {
           isOK(result)
           status(result) must equalTo(OK)
         }
+
+        "return success response for collection review API" in {
+            val controller = app.injector.instanceOf[controllers.v4.CollectionController]
+            val result = controller.review("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
 
     "return success response for hierarchy update API" in {
@@ -149,15 +156,6 @@ class CollectionSpec extends BaseSpec {
             val json: JsValue = Json.parse("""{"request": {"collection": {"primaryCategory": "Asset"}}}""")
             val fakeRequest = FakeRequest("POST", "/collection/v4/system/update/do_123").withJsonBody(json)
             val result = controller.systemUpdate("do_123")(fakeRequest)
-            isOK(result)
-            status(result) must equalTo(OK)
-        }
-    }
-
-    "Collection Controller" should {
-        "return success response for review API" in {
-            val controller = app.injector.instanceOf[controllers.v3.ContentController]
-            val result = controller.review("0123")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
