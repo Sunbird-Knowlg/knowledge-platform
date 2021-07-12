@@ -67,6 +67,8 @@ object CollectionTOCConstants {
   val TERMS = "terms"
   val TOC_URL = "tocUrl"
   val TTL = "ttl"
+  val COLLECTION_UNIT_FIELD_MAX_LENGTH = "collection.csv.maxUnitFieldLength"
+  val COLLECTION_DESC_FIELD_MAX_LENGTH = "collection.csv.maxDescFieldLength"
 
   val LEARNING_SERVICE_BASE_URL = "learning_service.api.base_url"
   val SUNBIRD_AUTHORIZATION = "learning_service.api.auth_key"
