@@ -58,7 +58,7 @@ object CollectionCSVValidator {
         val csvRecords = csvFileParser.getRecords
 
         //Check if CSV Headers are empty
-        if (null == csvHeaders || csvHeaders.isEmpty) throw new ClientException("BLANK_CSV_DATA", "Did not find any Table of Contents data. Please check and upload again.")
+        if (null == csvHeaders || csvHeaders.isEmpty) throw new ClientException("BLANK_CSV_DATA", "Not data found in the file. Please correct and upload again.")
 
         //Check if the input CSV is 'CREATE' TOC file format or 'UPDATE' TOC file format
         val mode = if (csvHeaders.containsKey(collectionNodeIdentifierHeader.head)) CollectionTOCConstants.UPDATE else CollectionTOCConstants.CREATE
@@ -94,9 +94,9 @@ object CollectionCSVValidator {
 
   def validateCSVRecordsDataFormat(csvRecords: util.List[CSVRecord], mode: String) {
     //Check if CSV Records are empty
-    if (null == csvRecords || csvRecords.isEmpty) throw new ClientException("BLANK_CSV_DATA", "Did not find any Table of Contents data. Please check and upload again.")
+    if (null == csvRecords || csvRecords.isEmpty) throw new ClientException("BLANK_CSV_DATA", "Not data found in the file. Please correct and upload again.")
     // check if records are more than allowed csv rows
-    if (csvRecords.nonEmpty && csvRecords.size > allowedNumberOfRecord) throw new ClientException("CSV_ROWS_EXCEEDS", "Number of rows in csv file is more than " + allowedNumberOfRecord)
+    if (csvRecords.nonEmpty && csvRecords.size > allowedNumberOfRecord) throw new ClientException("CSV_ROWS_EXCEEDS", s"Number of rows in the file exceeds the limit $allowedNumberOfRecord. Please reduce the number of folders and upload again.")
 
     validateMandatoryHeaderCols(csvRecords, mode)
     validateDuplicateRows(csvRecords)
@@ -122,18 +122,18 @@ object CollectionCSVValidator {
     // validate Header sequence
     if((configHeaders.keySet diff csvHeader.keySet).isEmpty && (csvHeader.keySet diff configHeaders.keySet).isEmpty && csvHeader.toSeq != configHeaders.toSeq) {
       val colSeqString = ListMap(configHeaders.toSeq.sortBy(_._2):_*).keySet mkString ","
-      val errorMessage = MessageFormat.format("Found invalid sequence of columns. Please follow the order: "+colSeqString)
+      val errorMessage = MessageFormat.format("The columns in csv are not in correct order as required. Please check the sample file and follow the same order. ")
       throw new ClientException("INVALID_HEADER_SEQUENCE", errorMessage)
     }
     //Check if Some columns are missing
     if((configHeaders.toSet diff csvHeader.toSet).toMap.keySet.nonEmpty && (configHeaders.toSet diff csvHeader.toSet).toMap.keySet.toList.head.nonEmpty) {
       val missingCols = (configHeaders.toSet diff csvHeader.toSet).toMap.keySet mkString ","
-      throw new ClientException("REQUIRED_HEADER_MISSING", MessageFormat.format("Following columns are not found in the file: "+missingCols))
+      throw new ClientException("REQUIRED_HEADER_MISSING", MessageFormat.format("Following columns are missing in the file. Please correct the same and upload again. \n "+missingCols))
     }
     //Check if any additional columns found
     if((csvHeader.toSet diff configHeaders.toSet).toMap.keySet.nonEmpty && (csvHeader.toSet diff configHeaders.toSet).toMap.keySet.toList.head.nonEmpty) {
       val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
-      throw new ClientException("ADDITIONAL_HEADER_FOUND", MessageFormat.format("Following additional columns are found in the file: "+additionalCols))
+      throw new ClientException("ADDITIONAL_HEADER_FOUND", MessageFormat.format("Following invalid columns found in the file. Please check the sample file and provide correct columns. \n"+additionalCols))
     }
   }
 
@@ -176,7 +176,7 @@ object CollectionCSVValidator {
     }
 
     if(missingDataErrorMessage.trim.nonEmpty)
-      throw new ClientException("REQUIRED_FIELD_MISSING", "Following Rows have missing values: "
+      throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: \n"
         + missingDataErrorMessage.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
     // Add column data validation messages from mandatory columns and hierarchy folder - END
   }
@@ -200,7 +200,7 @@ object CollectionCSVValidator {
     }).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if(dupRecordsList.trim.nonEmpty)
-      throw new ClientException("DUPLICATE_ROWS", "Following Rows are duplicate: " + dupRecordsList)
+      throw new ClientException("DUPLICATE_ROWS", "Following rows are duplicate, they have exactly same folder level values. Please correct and upload again: " + dupRecordsList)
     // Verify if there are any duplicate hierarchy folder structure - END
   }
 
@@ -216,7 +216,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if(qrDataErrorMessage.trim.nonEmpty)
-      throw new ClientException("ERROR_QR_CODE_ENTRY", "Following rows have issues for QR Code entries: " + qrDataErrorMessage)
+      throw new ClientException("ERROR_QR_CODE_ENTRY", "Following rows have incorrect QR Code entries. “QR Code Required?” should be “Yes” if there is a value in QR Code column. Please correct and upload again: " + qrDataErrorMessage)
     // Verify if there are any QR Codes data entry issues - END
     // Verify if there are any duplicate QR Codes - START
     val dupQRListMsg = csvRecords.filter(csvRecord => {
@@ -225,11 +225,11 @@ object CollectionCSVValidator {
           !csvRecord.getRecordNumber.equals(record.getRecordNumber)
       })
     }).map(dupQRRecord => {
-      MessageFormat.format("\nRow {0} - {1}", (dupQRRecord.getRecordNumber+1).toString, dupQRRecord.get(CollectionTOCConstants.QR_CODE))
+      MessageFormat.format("\nRow {0}", (dupQRRecord.getRecordNumber+1).toString)
     }).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if(dupQRListMsg.trim.nonEmpty)
-      throw new ClientException("DUPLICATE_QR_CODE_ENTRY", "Following rows have duplicate QR Code entries: " + dupQRListMsg)
+      throw new ClientException("DUPLICATE_QR_CODE_ENTRY", "Following rows have duplicate QR Code values. Please correct and upload again: " + dupQRListMsg)
     // Verify if there are any duplicate QR Codes - END
   }
 
@@ -249,7 +249,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if(missingLinkedContentDataList.trim.nonEmpty)
-      throw new ClientException("LINKED_CONTENTS_DATA_MISSING", "Following rows have linked contents data missing: " + missingLinkedContentDataList)
+      throw new ClientException("LINKED_CONTENTS_DATA_MISSING", "Following rows have missing “Linked Content” values. Please correct and upload again: " + missingLinkedContentDataList)
     // Check if data exists in Linked content columns - END
   }
 
@@ -264,7 +264,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if (invalidCollectionNameErrorMessage.trim.nonEmpty)
-      throw new ClientException("CSV_INVALID_COLLECTION_NAME", "Following rows have invalid Collection Name: " + invalidCollectionNameErrorMessage)
+      throw new ClientException("CSV_INVALID_COLLECTION_NAME", "Following rows have invalid “Collection Name”. Please correct and upload again: " + invalidCollectionNameErrorMessage)
     // validate collection name column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating collection name column in CSV")
   }
@@ -283,7 +283,7 @@ object CollectionCSVValidator {
       })}).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if(invalidUnitLengthErrorMessage.trim.nonEmpty)
-      throw new ClientException("CSV_INVALID_FIELDS_LENGTH", s"Following rows have Unit's Name field exceeding maximum length of $maxUnitFieldLength characters: "+invalidUnitLengthErrorMessage)
+      throw new ClientException("CSV_INVALID_FIELDS_LENGTH", s"Following rows have invalid “Folder Name”. The maximum length of characters should be $maxUnitFieldLength. Please correct and upload again: "+invalidUnitLengthErrorMessage)
   }
 
   private def validateDescFieldLength(csvRecords: util.List[CSVRecord]): Unit = {
@@ -295,7 +295,7 @@ object CollectionCSVValidator {
       })}).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if(invalidDescLengthErrorMessage.trim.nonEmpty)
-      throw new ClientException("CSV_INVALID_FIELDS_LENGTH", s"Following rows have 'Description' field exceeding maximum length of $maxDescFieldLength characters: "+invalidDescLengthErrorMessage)
+      throw new ClientException("CSV_INVALID_FIELDS_LENGTH", s"Following rows have invalid “Description”. The maximum length of characters should be $maxDescFieldLength. Please correct and upload again "+invalidDescLengthErrorMessage)
   }
 
   private def validateUnitIdentifiers(csvRecords: util.List[CSVRecord], collectionHierarchy: Map[String, AnyRef]): Unit = {
@@ -305,13 +305,13 @@ object CollectionCSVValidator {
     val invalidCollectionNodeIDErrorMessage = csvRecords.flatMap(csvRecord => {
       csvRecord.toMap.asScala.toMap.map(colData => {
         if (collectionNodeIdentifierHeader.contains(colData._1) && (colData._2.isEmpty || !collectionChildNodes.contains(colData._2.trim)))
-          MessageFormat.format("\nRow {0}", (csvRecord.getRecordNumber + 1).toString + " - " + colData._2)
+          MessageFormat.format("\nRow {0}", (csvRecord.getRecordNumber + 1).toString)
         else ""
       })
     }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
     if (invalidCollectionNodeIDErrorMessage.trim.nonEmpty)
-      throw new ClientException("CSV_INVALID_COLLECTION_NODE_ID", "Following rows have invalid folder identifier: " + invalidCollectionNodeIDErrorMessage)
+      throw new ClientException("CSV_INVALID_COLLECTION_NODE_ID", "Following rows have invalid “Folder Identifier”. Please correct and upload again: " + invalidCollectionNodeIDErrorMessage)
     // validate Folder Identifier column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")
   }
@@ -328,13 +328,13 @@ object CollectionCSVValidator {
       val invalidQRCodeErrorMessage = csvRecords.flatMap(csvRecord => {
         csvRecord.toMap.asScala.toMap.map(colData => {
           if (qrCodeHdrColsList.contains(colData._1) && (csvQRCodesList diff returnDIALCodes).contains(colData._2.trim))
-            MessageFormat.format("\nRow {0}", (csvRecord.getRecordNumber + 1).toString + " - " + colData._2)
+            MessageFormat.format("\nRow {0}", (csvRecord.getRecordNumber + 1).toString)
           else ""
         })
       }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
       if (invalidQRCodeErrorMessage.trim.nonEmpty)
-        throw new ClientException("CSV_INVALID_DIAL_CODES", "Following rows have invalid DIAL codes: " + invalidQRCodeErrorMessage)
+        throw new ClientException("CSV_INVALID_DIAL_CODES", "Following rows have invalid “QR Code” values. Please correct and upload again: " + invalidQRCodeErrorMessage)
     }
     // Validate QR Codes with reserved DIAL codes - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating QR Codes with reserved DIAL codes")
@@ -377,7 +377,7 @@ object CollectionCSVValidator {
       }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
       if (invalidTopicsErrorMessage.trim.nonEmpty)
-        throw new ClientException("CSV_INVALID_MAPPED_TOPICS", "Following rows have invalid Mapped Topics: " + invalidTopicsErrorMessage)
+        throw new ClientException("CSV_INVALID_MAPPED_TOPICS", "Following rows have invalid “Mapped Topics”. Please correct and upload again: " + invalidTopicsErrorMessage)
     }
     // Validate Mapped Topics with Collection Framework data - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Mapped Topics with Collection Framework data")
@@ -408,7 +408,7 @@ object CollectionCSVValidator {
       }).filter(msg => msg.nonEmpty).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
 
       if (invalidLinkedContentsErrorMessage.trim.nonEmpty)
-        throw new ClientException("CSV_INVALID_LINKED_CONTENTS", "Following rows have invalid contents to link. Please check if the contents you are trying to link are Live/Published: " + invalidLinkedContentsErrorMessage)
+        throw new ClientException("CSV_INVALID_LINKED_CONTENTS", "Following rows have invalid linked contents. No live content found for the given do_id. Please correct and upload again: " + invalidLinkedContentsErrorMessage)
 
       TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Linked Contents")
       returnedLinkedContentsResult

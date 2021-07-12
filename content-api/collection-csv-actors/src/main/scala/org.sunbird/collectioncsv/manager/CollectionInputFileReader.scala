@@ -23,14 +23,12 @@ trait CollectionInputFileReader {
   private val CONTENT_FOLDER = "cloud_storage.content.folder"
 
   def readInputFile(request: Request): (String, util.List[CSVRecord], String) = {
-    println("CollectionInputFileReader --> readInputFile")
-    println("CollectionInputFileReader --> readInputFile --> fileUrl: " + request.getRequest.getOrDefault("fileUrl","").asInstanceOf[String])
     val file = if(request.getRequest.getOrDefault("fileUrl","").asInstanceOf[String].nonEmpty){
       val copiedFile = copyURLToFile(request.get(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String], request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String])
       request.getRequest.put("file",copiedFile)
       copiedFile
     } else request.getRequest.get("file").asInstanceOf[File]
-    println("CollectionInputFileReader --> readInputFile --> file.getAbsolutePath: " + file.getAbsolutePath)
+
     val extension = "."+file.getAbsolutePath.split("\\.").last.toLowerCase
 
     extension match {

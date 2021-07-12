@@ -38,7 +38,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     // Validate if the mode is CREATE and children already exist in collection
     val children = collectionHierarchy(CollectionTOCConstants.CHILDREN).asInstanceOf[List[AnyRef]]
     if (mode.equals(CollectionTOCConstants.CREATE) && children.nonEmpty)
-      throw new ClientException("COLLECTION_CHILDREN_EXISTS", "Collection is already having children.")
+      throw new ClientException("COLLECTION_CHILDREN_EXISTS", "The “Folder Identifier” column is missing. Please correct and upload again.")
 
     //Validate the data format of the input CSV records
     validateRecordsDataFormat(inputFileExtension, csvRecords, mode)
@@ -311,6 +311,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   private def getNodesMetadata(folderInfoMap: mutable.LinkedHashMap[String, AnyRef], mode: String, frameworkID: String, collectionType: String): String = {
+
     val collectionUnitType = contentTypeToUnitTypeMapping(collectionType)
     folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
@@ -319,16 +320,22 @@ object CollectionCSVManager extends CollectionInputFileReader  {
            |"name": "${nodeInfo("name").toString}", "description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).toString else ""}",
            |"dialcodeRequired": "No","code": "nodeID","framework": "$frameworkID" }}""".stripMargin
       else
-        s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
-           |"contentType": "$collectionUnitType","name": "${nodeInfo("name").toString}",
-           |"description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).toString else ""}",
-           |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": "${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}",
-           |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
-           |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
-          nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].mkString("[\"","\",\"","\"]") else "[]"},
-           |"topic": ${if(nodeInfo.contains(CollectionTOCConstants.TOPIC) && nodeInfo(CollectionTOCConstants.TOPIC).asInstanceOf[List[String]].nonEmpty)
-          nodeInfo(CollectionTOCConstants.TOPIC).asInstanceOf[List[String]].mkString("[\"","\",\"","\"]") else "[]"} }}""".stripMargin
+        try {
+          s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
+             |"contentType": "$collectionUnitType","name": "${nodeInfo("name").toString}",
+             |"description": "${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) nodeInfo(CollectionTOCConstants.DESCRIPTION).toString else ""}",
+             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": "${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}",
+             |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
+             |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
+            nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].mkString("[\"","\",\"","\"]") else "[]"},
+             |"topic": ${if(nodeInfo.contains(CollectionTOCConstants.TOPIC) && nodeInfo(CollectionTOCConstants.TOPIC).asInstanceOf[List[String]].nonEmpty)
+            nodeInfo(CollectionTOCConstants.TOPIC).asInstanceOf[List[String]].mkString("[\"","\",\"","\"]") else "[]"} }}""".stripMargin
+        } catch {
+          case _:Exception => throw new ClientException("CORRUPT_FOLDER_HIERARCHY", "Please verify the updated folder levels. Please ensure no new folder levels are added in the csv and upload again.")
+        }
     }).mkString(",")
+
+
   }
 
   private def getHierarchyMetadata(folderInfoMap: mutable.LinkedHashMap[String, AnyRef], mode: String, linkedContentsDetails: List[Map[String, AnyRef]], collectionID: String, collectionName: String, collectionType: String): String = {
