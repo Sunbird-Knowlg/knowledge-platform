@@ -9,6 +9,7 @@ import org.sunbird.collectioncsv.validator.CollectionCSVValidator.{readInputCSV,
 import org.sunbird.common.Platform
 import org.sunbird.common.Slug.makeSlug
 import org.sunbird.common.dto.Request
+import org.sunbird.content.util.CopyManager.copyURLToFile
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.telemetry.logger.TelemetryManager
 
@@ -22,7 +23,12 @@ trait CollectionInputFileReader {
   private val CONTENT_FOLDER = "cloud_storage.content.folder"
 
   def readInputFile(request: Request): (String, util.List[CSVRecord], String) = {
-    val file = request.getRequest.get("file").asInstanceOf[File]
+    val file = if(request.getRequest.getOrDefault("fileUrl","").asInstanceOf[String].nonEmpty){
+      val copiedFile = copyURLToFile(request.get(CollectionTOCConstants.IDENTIFIER).asInstanceOf[String], request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String])
+      request.getRequest.put("file",copiedFile)
+      copiedFile
+    } else request.getRequest.get("file").asInstanceOf[File]
+
     val extension = "."+file.getAbsolutePath.split("\\.").last.toLowerCase
 
     extension match {
