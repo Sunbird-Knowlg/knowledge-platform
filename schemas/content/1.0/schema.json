@@ -1044,7 +1044,9 @@
             "type": "string"
         },
         "copyrightYear" : {
-            "type": "number"
+            "type": "number",
+            "minimum": 2020,
+            "exclusiveMaximum": 3000
         },
         "organisationId" : {
             "type": "string"
@@ -1147,12 +1149,12 @@
                 {
                     "type": "string",
                     "enum": ["Yes", "No"],
-                    "default": "Yes"
+                    "default": "No"
                 }
             },
             "default":
             {
-                "enabled": "Yes"
+                "enabled": "No"
             },
             "additionalProperties": false
         },
