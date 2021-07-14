@@ -125,7 +125,7 @@ object JsonParser {
     }
 
     def getMedia(mediaJson: Map[String, AnyRef], validateMedia: Boolean): Media = {
-        if(null != mediaJson) {
+        if(null != mediaJson && validateMedia) {
             val id = getDatafromJsonObject(mediaJson, "id")
             val src = getDatafromJsonObject(mediaJson, "src")
             val `type` = getDatafromJsonObject(mediaJson, "type")
