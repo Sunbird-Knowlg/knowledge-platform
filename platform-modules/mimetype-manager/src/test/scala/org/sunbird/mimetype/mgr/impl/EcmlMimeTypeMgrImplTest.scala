@@ -56,7 +56,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         implicit val ss = mock[StorageService]
         (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
         (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson.zip").toURI), None, UploadParams())
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, new File(Resources.getResource("validecml_withjson_new.zip").toURI), None, UploadParams())
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)
@@ -70,9 +70,9 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         val node = getNode()
         val identifier = "do_1234"
         implicit val ss = mock[StorageService]
-        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier))
-        (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *)
-        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/kp_ft_1594670084387/artifact/ecml_with_json.zip", None, UploadParams())
+        (ss.uploadFile(_:String, _: File, _: Option[Boolean])).expects(*, *, *).returns(Array(identifier, identifier)).anyNumberOfTimes()
+        (ss.uploadDirectory(_:String, _:File, _: Option[Boolean])).expects(*, *, *).anyNumberOfTimes()
+        val resFuture = new EcmlMimeTypeMgrImpl().upload(identifier, node, "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/assets/do_113322230485778432142/validecml_withjson_new.zip", None, UploadParams())
         resFuture.map(result => {
             assert(null != result)
             assert(result.nonEmpty)
