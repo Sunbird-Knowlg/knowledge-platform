@@ -8,7 +8,7 @@ import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
@@ -99,11 +99,14 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 	}
 
 	override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-		validate(node)
-		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+		validate(node).map(result => {
+			if(result)
+				getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String])
+			else throw new ServerException("ERR_NODE_REVIEW", "Something Went Wrong While Applying Review On Node Having Identifier : "+objectId)
+		})
 	}
 
-	def validate(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
+	def validate(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Boolean] = {
 		val artifactUrl = node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String]
 		val req = new Request()
 		req.setContext(Map[String, AnyRef]("schemaName" -> node.getObjectType.toLowerCase.replaceAll("image", ""), "version"->"1.0").asJava)
@@ -117,10 +120,11 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 				if(StringUtils.isNotBlank(body)) {
 					val ecrf: Plugin = getEcrfObject(getBodyType(body), body)
 					val processedEcrf: Plugin = new ECMLProcessor(getBasePath(node.getIdentifier), node.getIdentifier).process(ecrf)
-				}
+					if(null!=processedEcrf) true else false
+				} else false
 			} else if (ResponseHandler.checkError(response) && StringUtils.isBlank(artifactUrl)) {
 				throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either 'body' or 'artifactUrl' are required for processing of ECML content!")
-			}
+			} else true
 		})
 	}
 

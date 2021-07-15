@@ -57,7 +57,7 @@ trait LocalizeAssetProcessor extends IProcessor {
 
 	def getUrlWithPrefix(src: String) = {
 		if (StringUtils.isNotBlank(src) && !src.startsWith("http")) {
-			if (src.contains("content-plugins/")) PLUGIN_MEDIA_BASE_URL + src else CONTENT_MEDIA_BASE_URL + src
+			if (src.contains("content-plugins/")) PLUGIN_MEDIA_BASE_URL + File.separator + src else CONTENT_MEDIA_BASE_URL + src
 		} else src
 	}
 
