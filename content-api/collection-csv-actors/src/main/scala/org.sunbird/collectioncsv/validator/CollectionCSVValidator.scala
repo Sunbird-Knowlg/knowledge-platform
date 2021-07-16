@@ -121,17 +121,16 @@ object CollectionCSVValidator {
   private def validateDifferentialHeaders(csvHeader: Map[String, Integer], configHeaders: Map[String, Integer]): Unit = {
     // validate Header sequence
     if((configHeaders.keySet diff csvHeader.keySet).isEmpty && (csvHeader.keySet diff configHeaders.keySet).isEmpty && csvHeader.toSeq != configHeaders.toSeq) {
-      val colSeqString = ListMap(configHeaders.toSeq.sortBy(_._2):_*).keySet mkString ","
       val errorMessage = MessageFormat.format("The columns in csv are not in correct order as required. Please check the sample file and follow the same order. ")
       throw new ClientException("INVALID_HEADER_SEQUENCE", errorMessage)
     }
     //Check if Some columns are missing
-    if((configHeaders.toSet diff csvHeader.toSet).toMap.keySet.nonEmpty && (configHeaders.toSet diff csvHeader.toSet).toMap.keySet.toList.head.nonEmpty) {
-      val missingCols = (configHeaders.toSet diff csvHeader.toSet).toMap.keySet mkString ","
+    if((configHeaders.keySet diff csvHeader.keySet).nonEmpty && (configHeaders.keySet diff csvHeader.keySet).toList.head.nonEmpty) {
+      val missingCols = (configHeaders.keySet diff csvHeader.keySet) mkString ","
       throw new ClientException("REQUIRED_HEADER_MISSING", MessageFormat.format("Following columns are missing in the file. Please correct the same and upload again. \n "+missingCols))
     }
     //Check if any additional columns found
-    if((csvHeader.toSet diff configHeaders.toSet).toMap.keySet.nonEmpty && (csvHeader.toSet diff configHeaders.toSet).toMap.keySet.toList.head.nonEmpty) {
+    if((csvHeader.keySet diff configHeaders.keySet).nonEmpty && (csvHeader.keySet diff configHeaders.keySet).toList.head.nonEmpty) {
       val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
       throw new ClientException("ADDITIONAL_HEADER_FOUND", MessageFormat.format("Following invalid columns found in the file. Please check the sample file and provide correct columns. \n"+additionalCols))
     }
@@ -400,7 +399,7 @@ object CollectionCSVValidator {
 
       val invalidLinkedContentsErrorMessage = csvRecords.flatMap(csvRecord => {
         csvRecord.toMap.asScala.toMap.map(colData => {
-          if (linkedContentHdrColumnsList.contains(colData._1) && (csvLinkedContentsList diff returnedLinkedContentsIdentifierList).contains(colData._2))
+          if (linkedContentHdrColumnsList.contains(colData._1) && (csvLinkedContentsList.toSet.toList diff returnedLinkedContentsIdentifierList).contains(colData._2))
             MessageFormat.format("\nRow {0}", (csvRecord.getRecordNumber + 1).toString + " - " + colData._2)
           else
             ""
