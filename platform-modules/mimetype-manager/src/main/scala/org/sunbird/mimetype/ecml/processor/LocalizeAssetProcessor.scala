@@ -42,7 +42,7 @@ trait LocalizeAssetProcessor extends IProcessor {
 				  }
 			  }))
 			val mediaList:List[Media] = Await.result(future, Duration.apply(timeout, "second"))
-			if(null != mediaList && !mediaList.isEmpty) mediaList else medias
+			if(null != mediaList && !mediaList.isEmpty) mediaList ++ medias.filter(m => StringUtils.equalsIgnoreCase("youtube", m.`type`)) else medias
 		} else medias
 	}
 
