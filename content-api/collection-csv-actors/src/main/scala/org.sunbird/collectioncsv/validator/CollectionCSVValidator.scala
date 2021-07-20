@@ -305,6 +305,16 @@ object CollectionCSVValidator {
 
     if (invalidCollectionNodeIDErrorMessage.trim.nonEmpty)
       throw new ClientException("CSV_INVALID_COLLECTION_NODE_ID", "Following rows have invalid “Folder Identifier”. Please correct and upload again: " + invalidCollectionNodeIDErrorMessage)
+
+    val folderIdentifierList  = csvRecords.flatMap(csvRecord => {
+      csvRecord.toMap.asScala.toMap.map(colData => {
+        if (collectionNodeIdentifierHeader.contains(colData._1) && collectionChildNodes.contains(colData._2.trim)) colData._2.trim else ""
+      })
+    }).filter(msg => msg.nonEmpty)
+
+    if(folderIdentifierList.size>folderIdentifierList.distinct.size)
+      throw new ClientException("DUPLICATE_FOLDER_IDENTIFIERS", "Duplicate “Folder Identifier” found. Please correct and upload again.")
+
     // validate Folder Identifier column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")
   }
