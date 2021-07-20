@@ -126,12 +126,12 @@ object CollectionCSVValidator {
     }
     //Check if Some columns are missing
     if((configHeaders.keySet diff csvHeader.keySet).nonEmpty && (configHeaders.keySet diff csvHeader.keySet).toList.head.nonEmpty) {
-      val missingCols = (configHeaders.keySet diff csvHeader.keySet) mkString ","
+      val missingCols = (configHeaders.keySet diff csvHeader.keySet) mkString ",\n"
       throw new ClientException("REQUIRED_HEADER_MISSING", MessageFormat.format("Following columns are missing in the file. Please correct the same and upload again. \n "+missingCols))
     }
     //Check if any additional columns found
     if((csvHeader.keySet diff configHeaders.keySet).nonEmpty && (csvHeader.keySet diff configHeaders.keySet).toList.head.nonEmpty) {
-      val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ","
+      val additionalCols = (csvHeader.toSet diff configHeaders.toSet).toMap.keySet mkString ",\n"
       throw new ClientException("ADDITIONAL_HEADER_FOUND", MessageFormat.format("Following invalid columns found in the file. Please check the sample file and provide correct columns. \n"+additionalCols))
     }
   }
@@ -147,6 +147,10 @@ object CollectionCSVValidator {
         else ""
       })
     }).filter(msg => msg.nonEmpty).mkString(",")
+
+    if(mandatoryMissingDataList.trim.nonEmpty)
+      throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: \n"
+        + mandatoryMissingDataList.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
     // Check if data exists in mandatory columns - END
 
     // Check if data exists in hierarchy folder columns - START
@@ -163,21 +167,11 @@ object CollectionCSVValidator {
         else ""
       })
     }).filter(msg => msg.nonEmpty).mkString(",")
-    // Check if data exists in hierarchy folder columns - END
 
-    // Add column data validation messages from mandatory columns and hierarchy folder - START
-    val missingDataErrorMessage = {
-      if (mandatoryMissingDataList.trim.nonEmpty && missingDataList.trim.nonEmpty)
-        mandatoryMissingDataList.trim + "," + missingDataList.trim
-      else if (mandatoryMissingDataList.trim.nonEmpty) mandatoryMissingDataList.trim
-      else if (missingDataList.trim.nonEmpty) missingDataList.trim
-      else ""
-    }
-
-    if(missingDataErrorMessage.trim.nonEmpty)
+    if(missingDataList.trim.nonEmpty)
       throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: \n"
-        + missingDataErrorMessage.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
-    // Add column data validation messages from mandatory columns and hierarchy folder - END
+        + missingDataList.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
+    // Check if data exists in hierarchy folder columns - END
   }
 
   private def validateDuplicateRows(csvRecords: util.List[CSVRecord]): Unit = {
