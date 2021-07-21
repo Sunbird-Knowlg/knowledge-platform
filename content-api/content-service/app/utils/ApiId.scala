@@ -16,6 +16,7 @@ object ApiId {
 	val DISCARD_CONTENT = "api.content.discard"
 	val FlAG_CONTENT = "api.content.flag"
 	val ACCEPT_FLAG = "api.content.flag.accept"
+	val REJECT_FLAG = "api.content.flag.reject"
 	val LINK_DIAL_CONTENT = "api.content.dialcode.link"
 	val IMPORT_CONTENT = "api.content.import"
 	val SYSTEM_UPDATE_CONTENT = "api.content.system.update"
