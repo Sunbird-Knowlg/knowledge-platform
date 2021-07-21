@@ -240,7 +240,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(content, headers, "reviewContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
-        getResult(ApiId.REVIEW_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.REVIEW_COLLECTION, contentActor, contentRequest)
     }
 
 

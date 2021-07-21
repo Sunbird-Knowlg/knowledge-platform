@@ -217,12 +217,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         Future(Ok(response).as("application/json"))
     }
 
-    def rejectContent(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
-
     def publishUnlisted(identifier: String) = Action.async { implicit request =>
         val result = ResponseHandler.OK()
         val response = JavaJsonUtils.serialize(result)
