@@ -160,7 +160,7 @@ object UpdateHierarchyManager {
             if (StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
                 getQuestionNode(child.getOrDefault(HierarchyConstants.IDENTIFIER, "").asInstanceOf[String], HierarchyConstants.TAXONOMY_ID).map(node => {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
-                    node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
+                    node.getMetadata.put(HierarchyConstants.PARENT_KEY, child.get(HierarchyConstants.PARENT_KEY))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
                     node.setObjectType(HierarchyConstants.QUESTION_OBJECT_TYPE)
                     node.getMetadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.QUESTION_OBJECT_TYPE)
