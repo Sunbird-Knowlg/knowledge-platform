@@ -21,7 +21,6 @@ public class UrlFormatter implements FormatAttribute {
 
     @Override
     public boolean test(JsonValue value) {
-        System.out.println("Validating Url...");
         String str = ((JsonString) value).getString();
         try {
             //TODO: Change it to Head Call.

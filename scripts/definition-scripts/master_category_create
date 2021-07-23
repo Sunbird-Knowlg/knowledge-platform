@@ -1,0 +1,399 @@
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Textbook Unit",
+            "description":"Textbook Unit"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Playlist",
+            "description":"Playlist for Users"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Goals",
+            "description":"Goals for Users"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Course Unit",
+            "description":"Course Unit"
+        }
+    }
+}'
+
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Lesson Plan Unit",
+            "description":"Lesson Plan Unit"
+        }
+    }
+}'
+
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Plugin",
+            "description":"Plugin"
+        }
+    }
+}'
+
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Asset",
+            "description":"Asset"
+        }
+    }
+}'
+
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Template",
+            "description":"Template"
+        }
+    }
+}'
+
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Content Playlist",
+            "description":"Content Playlist"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Digital Textbook",
+            "description":"Digital Textbook"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Course Assessment",
+            "description":"Course Assessment"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Teacher Resource",
+            "description":"Teacher Resource"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "eTextbook",
+            "description":"eTextbook"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Practice Question Set",
+            "description":"Practice Question Set"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Course",
+            "description":"Course"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Learning Resource",
+            "description":"Learning Resource"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Explanation Content",
+            "description":"Explanation Content"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Certificate Template",
+            "description":"Certificate Template"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "CertAsset",
+            "description":"CertAsset"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Classroom Teaching Video",
+            "description":"Classroom Teaching Video"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Concept Map",
+            "description":"Concept Map"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Curiosity Question Set",
+            "description":"Curiosity Question Set"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Experiential Resource",
+            "description":"Experiential Resource"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Explanation Video",
+            "description":"Explanation Video"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Focus Spot",
+            "description":"Focus Spot"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Learning Outcome Definition",
+            "description":"Learning Outcome Definition"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Lesson Plan",
+            "description":"Lesson Plan"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Marking Scheme Rubric",
+            "description":"Marking Scheme Rubric"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Pedagogy Flow",
+            "description":"Pedagogy Flow"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Previous Board Exam Papers",
+            "description":"Previous Board Exam Papers"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "TV Lesson",
+            "description":"TV Lesson"
+        }
+    }
+}'
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Textbook",
+            "description":"Textbook"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Multiple Choice Question",
+            "description":"Multiple Choice Question"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Subjective Question",
+            "description":"Subjective Question"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "FTB Question",
+            "description":"FTB Question"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "CCT",
+            "description":"Creating and Critical Thinking"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "FLM",
+            "description":"Foundational Learning"
+        }
+    }
+}'

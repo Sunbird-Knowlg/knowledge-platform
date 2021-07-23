@@ -814,7 +814,7 @@ public class GraphQueryGenerationUtil extends BaseQueryGenerationUtil {
 		query.append("MATCH(m:"+graphId+" {"+SystemProperties.IL_UNIQUE_ID.name()+":endNode}) \n");
 		RelationTypes[] types = RelationTypes.values();
 		for (RelationTypes type : types) {
-			query.append("FOREACH (_ IN case WHEN relation='"+type.relationName()+"' then [1] else[] end| merge (n)-[r:"+type.relationName()+"]->(m) on create set r += relMetadata)\n");
+			query.append("FOREACH (_ IN case WHEN relation='"+type.relationName()+"' then [1] else[] end| merge (n)-[r:"+type.relationName()+"]->(m) set r += relMetadata)\n");
 		}
 		query.append("RETURN COUNT(*) AS RESULT;");
 		return query.toString();

@@ -1,6 +1,7 @@
 package org.sunbird.graph.dac.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.graphdb.Node;
@@ -230,8 +231,18 @@ public class Relation implements Serializable {
 		this.endNodeId = endNodeId;
 	}
 
+	// TODO: In 3.0 if metadata is empty set it with new HashMap and return (to handle NPE.
+//	public Map<String, Object> getMetadata() {
+//		if (MapUtils.isEmpty(metadata))
+//			metadata = new HashMap<String, Object>();
+//		return metadata;
+//	}
+
 	public Map<String, Object> getMetadata() {
-		return metadata;
+		if (!MapUtils.isEmpty(metadata))
+			return metadata;
+		else
+			return new HashMap<String, Object>();
 	}
 
 	public void setMetadata(Map<String, Object> metadata) {

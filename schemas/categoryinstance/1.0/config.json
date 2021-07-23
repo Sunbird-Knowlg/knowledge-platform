@@ -1,0 +1,48 @@
+{
+  "objectType": "CategoryInstance",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier"
+    ]
+  },
+  "external": {},
+  "relations": {
+    "frameworks": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Framework"
+      ]
+    },
+    "channels": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Channel"
+      ]
+    },
+    "terms": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "Term"
+      ]
+    },
+    "domains": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "Domain"
+      ]
+    }
+  },
+  "schema_restrict_api": false
+}

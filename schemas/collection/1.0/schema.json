@@ -12,7 +12,8 @@
     "code",
     "contentEncoding",
     "contentDisposition",
-    "mediaType"
+    "mediaType",
+    "primaryCategory"
   ],
   "properties": {
     "name": {
@@ -52,48 +53,12 @@
     "mimeType": {
       "type": "string",
       "enum": [
-        "application/vnd.ekstep.ecml-archive",
-        "application/vnd.ekstep.html-archive",
-        "application/vnd.android.package-archive",
-        "application/vnd.ekstep.content-archive",
-        "application/vnd.ekstep.content-collection",
-        "application/vnd.ekstep.plugin-archive",
-        "application/vnd.ekstep.h5p-archive",
-        "application/epub",
-        "text/x-url",
-        "video/x-youtube",
-        "application/octet-stream",
-        "application/msword",
-        "application/pdf",
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/tiff",
-        "image/bmp",
-        "image/gif",
-        "image/svg+xml",
-        "video/avi",
-        "video/mpeg",
-        "video/quicktime",
-        "video/3gpp",
-        "video/mp4",
-        "video/ogg",
-        "video/webm",
-        "audio/mp3",
-        "audio/mp4",
-        "audio/mpeg",
-        "audio/ogg",
-        "audio/webm",
-        "audio/x-wav",
-        "audio/wav"
+        "application/vnd.ekstep.content-collection"
       ]
     },
     "osId": {
-      "type": "string",
-      "enum": [
-        "org.ekstep.quiz.app"
-      ],
-      "default": "org.ekstep.quiz.app"
+        "type": "string",
+        "default": "org.ekstep.launcher"
     },
     "contentEncoding": {
       "type": "string",
@@ -108,7 +73,8 @@
       "enum": [
         "inline",
         "online",
-        "attachment"
+        "attachment",
+        "online-only"
       ],
       "default": "inline"
     },
@@ -168,7 +134,9 @@
       "type": "string",
       "enum": [
         "Default",
-        "Parent"
+        "Parent",
+        "Private",
+        "Protected"
       ],
       "default": "Default"
     },
@@ -177,11 +145,15 @@
       "items": {
         "type": "string",
         "enum": [
-          "Learner",
-          "Instructor"
+          "Student",
+          "Teacher",
+          "Administrator",
+          "Parent",
+          "Others",
+          "Other"
         ]
       },
-      "default": ["Learner"]
+      "default": ["Student"]
     },
     "posterImage": {
       "type": "string",
@@ -194,7 +166,10 @@
       "type": "object"
     },
     "contentCredits": {
-      "type": "object"
+      "type": "array",
+      "items": {
+          "type": "object"
+      }
     },
     "appIcon": {
       "type": "string",
@@ -347,20 +322,7 @@
     },
     "license": {
       "type": "string",
-      "enum": [
-        "Against DRM license",
-        "Creative Commons Attribution-NoDerivs (CC-BY-ND)",
-        "Creative Commons Attribution (CC BY)",
-        "Creative Commons Attribution-ShareAlike (CC BY-SA)",
-        "Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)",
-        "Creative Commons Zero (CC0)",
-        "Free Art License",
-        "Open Audio License",
-        "Open Game License",
-        "Standard YouTube License",
-        "Other"
-      ],
-      "default": "Creative Commons Attribution (CC BY)"
+      "default": "CC BY 4.0"
     },
     "language": {
       "type": "array",
@@ -449,7 +411,16 @@
         "CuriosityQuestionSet",
         "MarkingSchemeRubric",
         "ExplanationResource",
-        "ExperientialResource"
+        "ExperientialResource",
+        "eTextBook",
+        "OnboardingResource",
+        "ExplanationVideo",
+        "ClassroomTeachingVideo",
+        "ExplanationReadingMaterial",
+        "LearningActivity",
+        "PreviousBoardExamPapers",
+        "LessonPlanResource",
+        "TVLesson"
       ]
     },
     "resourceType": {
@@ -951,7 +922,8 @@
       "type": "array"
     },
     "version": {
-      "type": "number"
+      "type": "number",
+      "default": 2
     },
     "qrCodeProcessId": {
       "type": "string"
@@ -1004,6 +976,307 @@
     },
     "board" : {
       "type": "string"
+    },
+    "licenseterms" : {
+      "type": "string"
+    },
+    "copyrightYear" : {
+      "type": "number",
+      "minimum": 2020,
+      "exclusiveMaximum": 3000
+    },
+    "monitorable": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "progress-report",
+          "score-report"
+        ]
+      }
+    },
+    "userConsent": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "trackable": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        },
+        "autoBatch": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        }
+      },
+      "default": {
+        "enabled": "No",
+        "autoBatch": "No"
+      },
+      "additionalProperties": false
+    },
+    "credentials": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        }
+      },
+      "default": {
+        "enabled": "No"
+      },
+      "additionalProperties": false
+    },
+    "discussionForum":{
+      "type": "object",
+      "properties":
+      {
+          "enabled":
+          {
+              "type": "string",
+              "enum": ["Yes", "No"],
+              "default": "No"
+          }
+      },
+      "default":
+      {
+          "enabled": "No"
+      },
+      "additionalProperties": false
+    },
+    "primaryCategory": {
+      "type": "string"
+    },
+    "additionalCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prevStatus": {
+      "type": "string"
+    },
+    "batches": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "year": {
+      "type": "string"
+    },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "showNotification": {
+      "type": "boolean"
+    },
+    "collectionId" : {
+      "type": "string"
+    },
+    "courseId": {
+      "type": "string"
+    },
+    "me_totalRatingsCount": {
+      "type": "number"
+    },
+    "catalogPaths" : {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "competencies" : {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "sharedWith" : {
+      "type": "array"
+    },
+    "isExternal": {
+      "type": "boolean"
+    },
+    "learningMode": {
+      "type": "string",
+      "enum": [
+        "Self Paced",
+        "Instructor Led",
+        "Classroom"
+      ]
+    },
+    "creatorLogo" : {
+      "type": "string",
+      "format": "url"
+    },
+    "subTitles" : {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "reviewStatus" : {
+      "type" : "string",
+      "enum": [
+        "InReview",
+        "Reviewed"
+      ]
+    },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetFWIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetBoardIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetGradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetSubjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetMediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "maxAttempts": {
+      "type": "number"
+    },
+    "se_FWIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boardIds":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boards":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjects":{
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediums": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generateDIALCodes": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
     }
   }
 }

@@ -42,8 +42,8 @@ public class TelemetryAccessEventUtil {
 			else
 				context.put(TelemetryParams.ENV.name(), (String) data.get("env"));
 //			ExecutionContext.getCurrent().getGlobalContext().put(TelemetryParams.ENV.name(), (String) data.get("env"));
-//			context.put(TelemetryParams.CHANNEL.name(),
-//					(String) ExecutionContext.getCurrent().getGlobalContext().get(HeaderParam.CHANNEL_ID.name()));
+			context.put(TelemetryParams.CHANNEL.name(),
+					Platform.getString("channel.default", "in.ekstep"));
 			if (null != data.get("X-Session-ID")) {
 				context.put("sid", (String) data.get("X-Session-ID"));
 			} else if (null != request && null != request.getParams()) {

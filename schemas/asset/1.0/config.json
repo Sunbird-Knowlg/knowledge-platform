@@ -1,0 +1,105 @@
+{
+    "objectType": "Asset",
+    "restrictProps": {
+        "create" : [
+            "status", "dialcodes"
+        ],
+        "copy" : [
+            "status"
+        ],
+        "update": []
+    },
+    "relations": {
+        "concepts": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Concept"]
+        },
+        "questions": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["AssessmentItem"]
+        },
+        "children": {
+            "type": "hasSequenceMember",
+            "direction": "out",
+            "objects": ["Content", "ContentImage"]
+        },
+        "collections": {
+            "type": "hasSequenceMember",
+            "direction": "in",
+            "objects": ["Content", "ContentImage"]
+        },
+        "usedByContent": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        },
+        "usesContent": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Content"]
+        },
+        "itemSets": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["ItemSet"]
+        }
+    },
+    "version": "disable",
+    "versionCheckMode": "ON",
+    "frameworkCategories": ["board","medium","subject","gradeLevel","difficultyLevel","topic", "subDomains", "subjectCodes"],
+    "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+    "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+    "edge": {
+        "properties": {
+            "license": "License"
+        }
+    },
+    "copy": {
+        "scheme": {
+            "TextBookToCourse": {
+                "TextBook": "Course",
+                "TextBookUnit": "CourseUnit"
+            },
+            "TextBookToLessonPlan": {
+            }
+        }
+    },
+    "cacheEnabled": true,
+    "searchProps": {
+        "status": ["Live"],
+        "softConstraints": {
+            "medium": 15,
+            "subject": 15,
+            "ageGroup": 1,
+            "gradeLevel": 7,
+            "board": 4,
+            "relatedBoards": 4
+        }
+    },
+    "variants": {
+        "high": {
+            "dimensions": [
+                1024,
+                1024
+            ],
+            "dpi": 240
+        },
+        "medium": {
+            "dimensions": [
+                512,
+                512
+            ],
+            "dpi": 240
+        },
+        "low": {
+            "dimensions": [
+                128,
+                128
+            ],
+            "dpi": 240
+        }
+    },
+    "schema_restrict_api": false
+}

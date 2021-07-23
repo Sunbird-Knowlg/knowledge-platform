@@ -87,7 +87,6 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     }
 
     public ValidationResult validate(Map<String, Object> data) throws Exception {
-
         String dataWithDefaults = withDefaultValues(JsonUtils.serialize(data));
         Map<String, Object> validationDataWithDefaults = cleanEmptyKeys(JsonUtils.deserialize(dataWithDefaults, Map.class));
 
@@ -139,7 +138,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         Map<String, Object> externalData = new HashMap<>();
         if (config != null && config.hasPath("external.properties")) {
             Set<String> extProps = config.getObject("external.properties").keySet();
-            externalData = input.entrySet().stream().filter(f -> extProps.contains(f.getKey())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            externalData = input.entrySet().stream().filter(f -> extProps.contains(f.getKey()) && f.getValue()!=null).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             input.keySet().removeAll(extProps);
         }
         return externalData;
@@ -168,11 +167,33 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
             return ((Map<String, Object>) (new ObjectMapper().readValue(((BasicJsonSchema) schema).get("properties")
                     .getValueAsJson().asJsonObject().toString(), Map.class))).entrySet().stream().filter(entry ->
                     StringUtils.equalsIgnoreCase("object", (String) ((Map<String, Object>) entry.getValue()).get("type")) ||
-                            (null!=((Map<String, Object>) entry.getValue()).get("items") && StringUtils.equalsIgnoreCase("object", (String) ((Map<String, Object>) ((Map<String, Object>) entry.getValue()).get("items")).get("type")))
+                            (null!=((Map<String, Object>) entry.getValue()).get("items") && StringUtils.equalsIgnoreCase("object", (String) ((Map<String, Object>) ((Map<String, Object>) entry.getValue()).get("items")).get("type"))
+                            || (null!=((Map<String, Object>) entry.getValue()).get("items") && StringUtils.equalsIgnoreCase("string", (String) ((Map<String, Object>) ((Map<String, Object>) entry.getValue()).get("items")).get("type"))))
             ).map(entry -> entry.getKey()).collect(Collectors.toList());
         } catch (IOException e) {
             e.printStackTrace();
         }
         return new ArrayList<>();
+    }
+    
+    public List<String> getAllProps() {
+        List<String> propsList = new ArrayList<>();
+        try {
+           propsList.addAll(((Map<String, Object>) (new ObjectMapper().readValue(((BasicJsonSchema) schema).get("properties")
+                    .getValueAsJson().asJsonObject().toString(), Map.class))).keySet());
+           
+           if(null != config && config.hasPath("external.properties")) 
+               propsList.addAll(config.getObject("external.properties").keySet());
+           
+           if(null != config && config.hasPath("relations")) 
+               propsList.addAll(config.getObject("relations").keySet());
+
+            if(null != config && config.hasPath("edge.properties"))
+                propsList.addAll(config.getObject("edge.properties").keySet());
+            propsList.addAll(Arrays.asList("objectType", "identifier", "languageCode"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return propsList;
     }
 }
