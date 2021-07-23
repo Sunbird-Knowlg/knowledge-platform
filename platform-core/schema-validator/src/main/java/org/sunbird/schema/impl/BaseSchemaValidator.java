@@ -41,6 +41,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
     public JsonSchema schema;
     protected JsonSchemaReaderFactory schemaReaderFactory;
     protected Config config;
+    protected List<String> ignoreKeysList = Arrays.asList("objectType", "identifier");
 
     public BaseSchemaValidator(String name, String version) {
         this.name = name;
@@ -115,7 +116,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
             } else {
                 return true;
             }
-        }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }).filter(e -> !ignoreKeysList.contains(e.getKey())).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private List<String> validate(StringReader input) {
