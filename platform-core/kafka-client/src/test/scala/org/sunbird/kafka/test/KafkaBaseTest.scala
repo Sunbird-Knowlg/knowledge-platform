@@ -3,7 +3,7 @@ package org.sunbird.kafka.test
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
-class BaseTest extends FlatSpec with Matchers with BeforeAndAfterAll with EmbeddedKafka {
+class KafkaBaseTest extends FlatSpec with Matchers with BeforeAndAfterAll with EmbeddedKafka {
 
 	implicit val config = EmbeddedKafkaConfig(kafkaPort = 9092)
 

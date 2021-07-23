@@ -1,9 +1,9 @@
 package org.sunbird.kafka.client
 
 import org.sunbird.common.exception.ClientException
-import org.sunbird.kafka.test.BaseTest
+import org.sunbird.kafka.test.KafkaBaseTest
 
-class KafkaClientTest extends BaseTest {
+class KafkaClientTest extends KafkaBaseTest {
 
 	"validate with valid topic name" should "return true" in {
 		createTopic("test.topic1")
