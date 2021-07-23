@@ -121,6 +121,12 @@
     "depth": {
       "type": "number"
     },
+    "index": {
+      "type": "number"
+    },
+    "parent": {
+      "type": "string"
+    },
     "downloadUrl": {
       "type": "string",
       "format": "url"
@@ -571,5 +577,6 @@
       ],
       "default": "No"
     }
-  }
+  },
+  "additionalProperties": false
 }
