@@ -422,7 +422,7 @@ object UpdateHierarchyManager {
 
     private def populateHierarchyRelatedData(tempNode: Node, depth: Int, index: Int, parent: String) = {
         tempNode.getMetadata.put(HierarchyConstants.DEPTH, depth.asInstanceOf[AnyRef])
-        tempNode.getMetadata.put(HierarchyConstants.PARENT, parent.replaceAll(".img", ""))
+        tempNode.getMetadata.put(HierarchyConstants.PARENT_KEY, parent.replaceAll(".img", ""))
         tempNode.getMetadata.put(HierarchyConstants.INDEX, index.asInstanceOf[AnyRef])
     }
 
