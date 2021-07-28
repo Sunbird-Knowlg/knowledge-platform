@@ -284,7 +284,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 
 	def getEnrichedMetadata(status: String): Map[String, AnyRef] = {
 		val newStatus = if(List("FlagDraft", "FlagReview").contains(status)) "FlagReview" else "Review"
-		Map("lastSubmittedOn"-> DateUtils.formatCurrentDate("yyyy-MM-dd'T'HH:mm:ss'Z'XXX"), "reviewError" -> null, "status" -> newStatus)
+		Map("lastSubmittedOn"-> DateUtils.formatCurrentDate(), "reviewError" -> null, "status" -> newStatus)
 	}
 
 }
