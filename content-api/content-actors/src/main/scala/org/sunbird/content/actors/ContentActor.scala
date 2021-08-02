@@ -36,6 +36,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	private lazy val importMgr = new ImportManager(importConfig)
 
 	override def onReceive(request: Request): Future[Response] = {
+    println("Dispatcher name for ContentActor: " + this.getContext().getDispatcher())
+    println("Thread name for ContentActor: " + Thread.currentThread().getName)
 		request.getOperation match {
 			case "createContent" => create(request)
 			case "readContent" => read(request)
