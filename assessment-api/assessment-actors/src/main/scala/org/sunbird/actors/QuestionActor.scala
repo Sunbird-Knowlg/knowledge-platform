@@ -41,6 +41,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 	def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		request.getRequest.put("artifactUrl",null)
 		AssessmentManager.getValidatedNodeForUpdate(request, "ERR_QUESTION_UPDATE").flatMap(_ => AssessmentManager.updateNode(request))
 	}
 
