@@ -572,7 +572,7 @@
       "default": "No"
     },
     "rejectComment": {
-      "dataType": "string"
+      "type": "string"
     }
   }
 }
