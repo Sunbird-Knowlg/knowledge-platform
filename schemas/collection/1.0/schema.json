@@ -6,6 +6,7 @@
   "required": [
     "name",
     "status",
+    "description",
     "mimeType",
     "channel",
     "contentType",
