@@ -17,7 +17,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 import org.sunbird.url.common.URLErrorCodes
-import org.sunbird.url.util.{GoogleDriveUtil, HttpDownloadUtility}
+import org.sunbird.url.util.{GoogleDriveUrlUtil, HTTPUrlUtil}
 
 import java.io.File
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -170,9 +170,9 @@ class ImportManager(config: ImportConfig) {
 				if (StringUtils.isNotBlank(fileUrl) && fileUrl.contains("drive.google.com")) {
 					val fileId = fileUrl.split("download&id=")(1)
 					if (StringUtils.isBlank(fileId)) throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name, "Invalid fileUrl received for : " + identifier + " | fileUrl : " + fileUrl)
-					GoogleDriveUtil.downloadFile(fileId, getBasePath(identifier))
+					GoogleDriveUrlUtil.downloadFile(fileId, getBasePath(identifier))
 				}
-				else HttpDownloadUtility.downloadFile(fileUrl, getBasePath(identifier))
+				else HTTPUrlUtil.downloadFile(fileUrl, getBasePath(identifier))
 			}
 			file
 		} catch {

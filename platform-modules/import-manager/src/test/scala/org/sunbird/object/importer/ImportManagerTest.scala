@@ -174,7 +174,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		request.putAll(new util.HashMap[String, AnyRef](){{
 			put("content", new util.HashMap[String, AnyRef](){{
 				put("stage", "upload")
-				put("source","https://dock.preprod.ntp.net.in/api/content/v1/read/do_21334055220588544011259")
+				put("source","https://dock.sunbirded.org/api/content/v1/read/do_11307822356267827219477")
 				put("metadata", new util.HashMap[String, AnyRef](){{
 					put("name", "Test Content 2")
 					put("description", "Test Content 2")
