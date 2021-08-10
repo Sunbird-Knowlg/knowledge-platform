@@ -149,7 +149,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).mkString(",")
 
     if(mandatoryMissingDataList.trim.nonEmpty)
-      throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: \n"
+      throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: "
         + mandatoryMissingDataList.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
     // Check if data exists in mandatory columns - END
 
@@ -169,7 +169,7 @@ object CollectionCSVValidator {
     }).filter(msg => msg.nonEmpty).mkString(",")
 
     if(missingDataList.trim.nonEmpty)
-      throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: \n"
+      throw new ClientException("REQUIRED_FIELD_MISSING", "Following rows have missing folder values. Please correct and upload again: "
         + missingDataList.split(",").distinct.mkString(CollectionTOCConstants.COMMA_SEPARATOR))
     // Check if data exists in hierarchy folder columns - END
   }
@@ -312,8 +312,26 @@ object CollectionCSVValidator {
       })
     }).filter(msg => msg.nonEmpty)
 
-    if(folderIdentifierList.size>folderIdentifierList.distinct.size)
-      throw new ClientException("DUPLICATE_FOLDER_IDENTIFIERS", "Duplicate “Folder Identifier” found. Please correct and upload again.")
+    // Verify if there are any duplicate folder identifier - START
+    val dupFolderIdentifierList = csvRecords.filter(csvRecord => {
+      csvRecords.exists(record => {
+        val csvRecordFolderIdentifier = csvRecord.toMap.asScala.toMap.map(colData => {
+          if(collectionNodeIdentifierHeader.contains(colData._1))
+            colData
+        })
+        val recordFolderIdentifier = record.toMap.asScala.toMap.map(colData => {
+          if(collectionNodeIdentifierHeader.contains(colData._1))
+            colData
+        })
+        recordFolderIdentifier.equals(csvRecordFolderIdentifier) && !csvRecord.getRecordNumber.equals(record.getRecordNumber)
+      })
+    }).map(dupRecord => {
+      MessageFormat.format("\nRow {0}", (dupRecord.getRecordNumber+1).toString)
+    }).mkString(CollectionTOCConstants.COMMA_SEPARATOR)
+
+    if(dupFolderIdentifierList.trim.nonEmpty)
+      throw new ClientException("DUPLICATE_ROWS", "Following rows have duplicate “Folder Identifier”. Please correct and upload again: " + dupFolderIdentifierList)
+    // Verify if there are any duplicate folder identifier - END
 
     // validate Folder Identifier column in CSV - END
     TelemetryManager.log("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> after validating Folder Identifier column in CSV")

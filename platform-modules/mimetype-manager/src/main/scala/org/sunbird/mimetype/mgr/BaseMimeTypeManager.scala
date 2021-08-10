@@ -41,6 +41,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
 	val COMPOSED_H5P_ZIP: String = "composed-h5p-zip"
+	val mimeTypesToValidate: List[String] = if (Platform.config.hasPath("validation.strictMimeType")) Platform.config.getStringList("validation.strictMimeType").asScala.toList else List("image/svg+xml")
 
 	def validateUploadRequest(objectId: String, node: Node, data: AnyRef)(implicit ec: ExecutionContext): Unit = {
 		if (StringUtils.isBlank(objectId))

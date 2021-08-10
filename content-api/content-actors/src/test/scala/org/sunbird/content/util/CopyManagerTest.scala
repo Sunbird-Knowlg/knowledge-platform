@@ -20,6 +20,7 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
     "CopyManager" should "return copied node identifier when content is copied" ignore {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        implicit val ss: StorageService = mock[StorageService]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))

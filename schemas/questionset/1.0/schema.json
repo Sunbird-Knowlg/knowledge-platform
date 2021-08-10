@@ -570,6 +570,9 @@
         "No"
       ],
       "default": "No"
+    },
+    "rejectComment": {
+      "type": "string"
     }
   }
 }
