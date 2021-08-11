@@ -92,7 +92,9 @@ class ImportManager(config: ImportConfig) {
 						}
 						finalMetadata.put("appIcon", appIconMap.get(appIcon))
 					} catch {
-						case _:Exception =>	finalMetadata.put("appIcon", appIcon)
+						case ex:Exception =>
+							logger.error("Exception while downloading appIcon in ImportManager:: ", ex)
+							finalMetadata.put("appIcon", appIcon)
 					}
 				}
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
