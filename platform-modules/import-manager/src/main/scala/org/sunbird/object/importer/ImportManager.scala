@@ -5,6 +5,7 @@ import java.util.UUID
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.`object`.importer.constant.ImportConstants
 import org.sunbird.`object`.importer.error.ImportErrors
 import org.sunbird.cloudstore.StorageService
@@ -29,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String])
 
 class ImportManager(config: ImportConfig) {
+	private val logger: Logger = LoggerFactory.getLogger("ImportManager")
 	private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
 	private val CONTENT_FOLDER = Platform.getString("cloud_storage.content.folder", "content")
 	implicit val ss: StorageService = new StorageService
@@ -178,6 +180,7 @@ class ImportManager(config: ImportConfig) {
 			}
 			file
 		} catch {	case e: Exception =>
+			logger.error("ImportManager::downloadAppIconFile:: Exception", e)
 			//TODO: Identify the google drive link download failure cases and handle them accordingly
 			throw e	}
 	}

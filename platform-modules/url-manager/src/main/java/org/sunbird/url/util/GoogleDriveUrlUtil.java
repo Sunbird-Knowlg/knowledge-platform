@@ -10,6 +10,8 @@ import com.google.api.services.drive.Drive.Files.Get;
 import com.google.api.services.drive.model.File;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sunbird.common.Platform;
 import org.sunbird.common.Slug;
 import org.sunbird.common.exception.ClientException;
@@ -30,6 +32,7 @@ import java.util.regex.Pattern;
  * This Class Provides Utility Methods Which Process Given Google Drive File Url
  */
 public class GoogleDriveUrlUtil {
+	private static final Logger logger = LoggerFactory.getLogger("GoogleDriveUrlUtil");
 
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
@@ -160,6 +163,7 @@ public class GoogleDriveUrlUtil {
 			file = Slug.createSlugFile(file);
 			return file;
 		} catch (Exception e) {
+			logger.error("Exception while downloading appIcon file:: ", e.getMessage());
 			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
 		}
 	}
