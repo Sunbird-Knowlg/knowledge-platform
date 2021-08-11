@@ -290,10 +290,8 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 	}
 
 	"downloadAppIconFile " should "return valid file for google drive input" in {
-		val exception = intercept[ExceptionInInitializerError] {
-			val result = importMgr.downloadAppIconFile("do_123", "https://drive.google.com/uc?export=download&id=1gU-4yKWyieuR0Gir5mryVpWFNJWS3jpK")
-		}
-		assert(exception.getMessage ==  null)
+		val result = importMgr.downloadAppIconFile("do_123", "https://drive.google.com/uc?export=download&id=1gU-4yKWyieuR0Gir5mryVpWFNJWS3jpK")
+		assert(result.exists())
 	}
 
 	"validateStage with valid input" should "return true" in {
