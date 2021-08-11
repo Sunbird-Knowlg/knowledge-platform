@@ -176,6 +176,9 @@
       },
       "default": ["English"]
     },
+    "languageCode": {
+      "type": "array"
+    },
     "channel": {
       "type": "string"
     },
