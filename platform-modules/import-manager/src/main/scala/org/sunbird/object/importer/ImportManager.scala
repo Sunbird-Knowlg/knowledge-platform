@@ -168,7 +168,7 @@ class ImportManager(config: ImportConfig) {
 		if (!StringUtils.isBlank(objectId)) TEMP_FILE_LOCATION + File.separator + System.currentTimeMillis + "_temp" + File.separator + objectId else ""
 	}
 
-	private def downloadAppIconFile(identifier: String, fileUrl: String): File = {
+	def downloadAppIconFile(identifier: String, fileUrl: String): File = {
 		try {
 			val file: File =
 			{
