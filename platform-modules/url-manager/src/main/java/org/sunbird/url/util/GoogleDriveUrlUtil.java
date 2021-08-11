@@ -46,10 +46,6 @@ public class GoogleDriveUrlUtil {
 	private static final List<String> ERROR_CODES = Arrays.asList("dailyLimitExceeded402", "limitExceeded",
 			"dailyLimitExceeded", "quotaExceeded", "userRateLimitExceeded", "quotaExceeded402", "keyExpired",
 			"keyInvalid");
-	public static final Integer INITIAL_BACKOFF_DELAY = Platform.config.hasPath("import.initial_backoff_delay") ? Platform.config.getInt("import.initial_backoff_delay") : 1200000;    // 20 min
-	public static final Integer MAXIMUM_BACKOFF_DELAY = Platform.config.hasPath("import.maximum_backoff_delay") ? Platform.config.getInt("import.maximum_backoff_delay") : 3900000;    // 65 min
-	public static final Integer INCREMENT_BACKOFF_DELAY = Platform.config.hasPath("import.increment_backoff_delay") ? Platform.config.getInt("import.increment_backoff_delay") : 300000; // 5 min
-	public static Integer BACKOFF_DELAY = INITIAL_BACKOFF_DELAY;
 
 	private static boolean limitExceeded = false;
 	private static Drive drive = null;
@@ -156,31 +152,18 @@ public class GoogleDriveUrlUtil {
 			com.google.api.services.drive.model.File googleDriveFile = getFile.execute();
 			String fileName = googleDriveFile.getName();
 			java.io.File saveFile = new java.io.File(saveDir);
-			if (!saveFile.exists()) {
-				saveFile.mkdirs();
-			}
+			if (!saveFile.exists()) saveFile.mkdirs();
 			String saveFilePath = saveDir + java.io.File.separator + fileName;
 			OutputStream outputStream = new FileOutputStream(saveFilePath);
 			getFile.executeMediaAndDownloadTo(outputStream);
 			outputStream.close();
 			java.io.File file = new java.io.File(saveFilePath);
 			file = Slug.createSlugFile(file);
-			if (null != file && BACKOFF_DELAY != INITIAL_BACKOFF_DELAY)	BACKOFF_DELAY = INITIAL_BACKOFF_DELAY;
 			return file;
-		} catch(GoogleJsonResponseException ge) {
-			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + ge.getDetails().toString());
-		} catch(HttpResponseException he) {
-			he.printStackTrace();
-			if(he.getStatusCode() == 403) {
-				if (BACKOFF_DELAY <= MAXIMUM_BACKOFF_DELAY)	delay(BACKOFF_DELAY);
-				if (BACKOFF_DELAY == 2400000) BACKOFF_DELAY += 1500000;
-				else BACKOFF_DELAY = BACKOFF_DELAY * INCREMENT_BACKOFF_DELAY;
-			} else  throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + he.getContent());
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
 		}
-		return null;
 	}
 
 	public static void delay(int time) {
