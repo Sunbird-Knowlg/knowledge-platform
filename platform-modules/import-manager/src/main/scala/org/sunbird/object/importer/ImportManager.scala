@@ -150,7 +150,6 @@ class ImportManager(config: ImportConfig) {
 	}
 
 	def pushInstructionEvent(graphId: String, obj: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext): Unit = {
-		println("ImportManager --> pushInstructionEvent --> obj:: " + obj)
 		val stage = obj.getOrDefault(ImportConstants.STAGE, "").toString
 		val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
 		//TODO: Enhance identifier extraction logic for handling any query param, if present in source
@@ -178,13 +177,6 @@ class ImportManager(config: ImportConfig) {
 				else HTTPUrlUtil.downloadFile(fileUrl, getBasePath(identifier))
 			}
 			file
-		} catch {
-			case e: Exception =>
-				if (e.isInstanceOf[ServerException]) throw e
-				else {
-					TelemetryManager.log("Invalid fileUrl received for : " + identifier + " | fileUrl : " + fileUrl + "Exception is : " + e.getMessage)
-					throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name, "Invalid fileUrl received for : " + identifier + " | fileUrl : " + fileUrl)
-				}
-		}
+		} catch {	case e: Exception => throw e	}
 	}
 }

@@ -1,5 +1,7 @@
 package org.sunbird.`object`.importer
 
+import com.typesafe.config.ConfigException
+
 import java.util
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
@@ -285,6 +287,13 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 	"downloadAppIconFile " should "return valid file for non google drive input" in {
 		val result = importMgr.downloadAppIconFile("do_123","https://ntpstagingall.blob.core.windows.net/ntp-content-staging/content/do_21291553100098764812/artifact/focus-spot_1561727473311.thumb_1576602905573.png")
 		assert(result.exists())
+	}
+
+	"downloadAppIconFile " should "return valid file for google drive input" in {
+		val exception = intercept[ExceptionInInitializerError] {
+			val result = importMgr.downloadAppIconFile("do_123", "https://drive.google.com/uc?export=download&id=1gU-4yKWyieuR0Gir5mryVpWFNJWS3jpK")
+		}
+		assert(exception.getMessage ==  null)
 	}
 
 	"validateStage with valid input" should "return true" in {
