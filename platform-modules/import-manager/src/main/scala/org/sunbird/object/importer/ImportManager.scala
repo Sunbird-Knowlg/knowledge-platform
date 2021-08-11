@@ -71,20 +71,26 @@ class ImportManager(config: ImportConfig) {
 				val appIcon = sourceMetadata.getOrDefault("appIcon","").asInstanceOf[String]
 				if(appIcon != null && appIcon.nonEmpty)
 				{
-					if(!appIconMap.containsKey(appIcon)) {
-						val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
-						val appIconFile = downloadAppIconFile(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
-						val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
-						try{
-							if(new File(appIconFolder).exists() && new File(appIconFolder).isDirectory)
-								FileUtils.deleteDirectory(new File(appIconFolder))
-						}catch{
-							case e: Exception =>
-								e.printStackTrace()
+					try {
+						if (!appIconMap.containsKey(appIcon)) {
+							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
+							val appIconFile = downloadAppIconFile(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
+							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
+							println(s"ImportManager --> validateAndGetRequest --> appIcon:: $appIcon || appIconCloudUrl:: $appIconCloudUrl")
+							try {
+								if(appIconFile.exists()) appIconFile.delete()
+								if (new File(appIconFolder).exists() && new File(appIconFolder).isDirectory)
+									FileUtils.deleteDirectory(new File(appIconFolder))
+							} catch {
+								case e: Exception =>
+									e.printStackTrace()
+							}
+							appIconMap.put(appIcon, appIconCloudUrl)
 						}
-						appIconMap.put(appIcon, appIconCloudUrl)
+						sourceMetadata.put("appIcon", appIconMap.get(appIcon))
+					} catch {
+						case _:Exception =>	sourceMetadata.put("appIcon", appIcon)
 					}
-					sourceMetadata.put("appIcon",appIconMap.get(appIcon))
 				}
 				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
 					sourceMetadata.putAll(reqMetadata)
@@ -148,6 +154,7 @@ class ImportManager(config: ImportConfig) {
 	}
 
 	def pushInstructionEvent(graphId: String, obj: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext): Unit = {
+		println("ImportManager --> pushInstructionEvent --> obj:: " + obj)
 		val stage = obj.getOrDefault(ImportConstants.STAGE, "").toString
 		val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
 		//TODO: Enhance identifier extraction logic for handling any query param, if present in source

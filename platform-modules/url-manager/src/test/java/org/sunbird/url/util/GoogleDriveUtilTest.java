@@ -102,12 +102,4 @@ public class GoogleDriveUtilTest {
 		Long result = GoogleDriveUrlUtil.getSize(driveUrl);
 	}
 
-	@Test
-	public void testDownloadFileWithValidUrl() {
-		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
-		String driveUrl = "https://drive.google.com/uc?export=download&id=1nH-aHrU4cKcqFMI2HLHk8LtqxLctOwu9";
-		java.io.File appIconFile = GoogleDriveUrlUtil.downloadFile(driveUrl,downloadFolder);
-		assertTrue(appIconFile.exists());
-	}
-
 }
