@@ -1,11 +1,13 @@
 package org.sunbird.url.util;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ServerException;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -62,6 +64,7 @@ public class HttpUrlUtilTest {
 		String driveUrl = "https://dockpreprodall.blob.core.windows.net/dock-content-preprod/content/do_21334055220373913611129/artifact/screenshot-520.thumb.png";
 		java.io.File appIconFile = HTTPUrlUtil.downloadFile(driveUrl,downloadFolder);
 		assertTrue(appIconFile.exists());
+		try {FileUtils.deleteDirectory(appIconFile.getParentFile().getParentFile());} catch(IOException io) {}
 	}
 
 }

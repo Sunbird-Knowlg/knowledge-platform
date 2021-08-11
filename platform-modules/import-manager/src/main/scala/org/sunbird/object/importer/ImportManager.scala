@@ -177,6 +177,8 @@ class ImportManager(config: ImportConfig) {
 				else HTTPUrlUtil.downloadFile(fileUrl, getBasePath(identifier))
 			}
 			file
-		} catch {	case e: Exception => throw e	}
+		} catch {	case e: Exception =>
+			//TODO: Identify the google drive link download failure cases and handle them accordingly
+			throw e	}
 	}
 }
