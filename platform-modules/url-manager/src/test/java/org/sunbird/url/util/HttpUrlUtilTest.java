@@ -55,4 +55,13 @@ public class HttpUrlUtilTest {
 		String url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/";
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
+
+	@Test
+	public void testDownloadFileWithValidUrl() {
+		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
+		String driveUrl = "https://dockpreprodall.blob.core.windows.net/dock-content-preprod/content/do_21334055220373913611129/artifact/screenshot-520.thumb.png";
+		java.io.File appIconFile = HTTPUrlUtil.downloadFile(driveUrl,downloadFolder);
+		assertTrue(appIconFile.exists());
+	}
+
 }
