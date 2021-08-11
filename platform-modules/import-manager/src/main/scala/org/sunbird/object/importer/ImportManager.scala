@@ -68,13 +68,18 @@ class ImportManager(config: ImportConfig) {
 				val stage: String = obj.getOrDefault(ImportConstants.STAGE, "").toString
 				val reqMetadata: util.Map[String, AnyRef] = obj.getOrDefault(ImportConstants.METADATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				val sourceMetadata: util.Map[String, AnyRef] = getMetadata(source, request.getContext.get("objectType").asInstanceOf[String].toLowerCase())
-				val appIcon = sourceMetadata.getOrDefault("appIcon","").asInstanceOf[String]
+				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
+					sourceMetadata.putAll(reqMetadata)
+					sourceMetadata.put(ImportConstants.SOURCE, source)
+					sourceMetadata
+				} else reqMetadata
+				val appIcon = finalMetadata.getOrDefault("appIcon","").asInstanceOf[String]
 				if(appIcon != null && appIcon.nonEmpty)
 				{
 					try {
 						if (!appIconMap.containsKey(appIcon)) {
-							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
-							val appIconFile = downloadAppIconFile(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
+							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(finalMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
+							val appIconFile = downloadAppIconFile(finalMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
 							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
 							try {
 								if(appIconFile.exists()) FileUtils.deleteDirectory(appIconFile.getParentFile.getParentFile)
@@ -83,16 +88,11 @@ class ImportManager(config: ImportConfig) {
 							}
 							appIconMap.put(appIcon, appIconCloudUrl)
 						}
-						sourceMetadata.put("appIcon", appIconMap.get(appIcon))
+						finalMetadata.put("appIcon", appIconMap.get(appIcon))
 					} catch {
-						case _:Exception =>	sourceMetadata.put("appIcon", appIcon)
+						case _:Exception =>	finalMetadata.put("appIcon", appIcon)
 					}
 				}
-				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
-					sourceMetadata.putAll(reqMetadata)
-					sourceMetadata.put(ImportConstants.SOURCE, source)
-					sourceMetadata
-				} else reqMetadata
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				finalMetadata.keySet().removeAll(config.propsToRemove.asJava)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
