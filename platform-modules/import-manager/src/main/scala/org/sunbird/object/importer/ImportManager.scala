@@ -76,7 +76,6 @@ class ImportManager(config: ImportConfig) {
 							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
 							val appIconFile = downloadAppIconFile(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
 							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
-							println(s"ImportManager --> validateAndGetRequest --> appIcon:: $appIcon || appIconCloudUrl:: $appIconCloudUrl")
 							try {
 								if(appIconFile.exists()) appIconFile.delete()
 								if (new File(appIconFolder).exists() && new File(appIconFolder).isDirectory)
@@ -154,7 +153,6 @@ class ImportManager(config: ImportConfig) {
 	}
 
 	def pushInstructionEvent(graphId: String, obj: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext): Unit = {
-		println("ImportManager --> pushInstructionEvent --> obj:: " + obj)
 		val stage = obj.getOrDefault(ImportConstants.STAGE, "").toString
 		val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
 		//TODO: Enhance identifier extraction logic for handling any query param, if present in source
