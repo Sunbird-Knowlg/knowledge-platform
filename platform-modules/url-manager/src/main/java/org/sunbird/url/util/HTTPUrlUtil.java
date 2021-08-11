@@ -68,6 +68,7 @@ public class HTTPUrlUtil {
 		HttpURLConnection httpConn = null;
 		InputStream inputStream = null;
 		FileOutputStream outputStream = null;
+		File file = null;
 		try {
 			URL url = new URL(fileURL);
 			httpConn = (HttpURLConnection) url.openConnection();
@@ -112,36 +113,28 @@ public class HTTPUrlUtil {
 					outputStream.write(buffer, 0, bytesRead);
 				outputStream.close();
 				inputStream.close();
-				File file = new File(saveFilePath);
+				file = new File(saveFilePath);
 				file = Slug.createSlugFile(file);
 				TelemetryManager.log("Sluggified File Name: " + file.getAbsolutePath());
-
-				return file;
 			} else {
 				TelemetryManager.log("No file to download. Server replied HTTP code: " + responseCode);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			TelemetryManager.error("Error! While Downloading File:"+ e.getMessage(), e);
 		} finally {
-			if (null != httpConn)
-				httpConn.disconnect();
-			if (null != inputStream)
-				try {
+			try {
+				if (null != httpConn)
+					httpConn.disconnect();
+				if (null != inputStream)
 					inputStream.close();
-				} catch (IOException e) {
-					TelemetryManager.error("Error! While Closing the Input Stream: "+ e.getMessage(),e );
-				}
-			if (null != outputStream)
-				try {
+				if (null != outputStream)
 					outputStream.close();
-				} catch (IOException e) {
-					TelemetryManager.error("Error! While Closing the Output Stream: "+ e.getMessage(), e);
-				}
+			} catch (IOException e) {
+				TelemetryManager.error("Error! While Closing the Connection: "+ e.getMessage(), e);
+			}
 		}
 
-		TelemetryManager.warn("Something Went Wrong While Downloading the File '" + fileURL + "' returning 'null'. File url: "+ fileURL);
-		return null;
+		return file;
 	}
 
 }

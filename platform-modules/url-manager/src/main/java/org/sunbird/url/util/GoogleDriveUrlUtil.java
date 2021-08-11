@@ -154,39 +154,29 @@ public class GoogleDriveUrlUtil {
 			getFile.setKey(API_KEY);
 			getFile.setFields("id,name,size,owners,mimeType,properties,permissionIds,webContentLink");
 			com.google.api.services.drive.model.File googleDriveFile = getFile.execute();
-			TelemetryManager.log("GoogleDriveUtil :: downloadFile ::: Drive File Details:: " + googleDriveFile);
 			String fileName = googleDriveFile.getName();
 			java.io.File saveFile = new java.io.File(saveDir);
 			if (!saveFile.exists()) {
 				saveFile.mkdirs();
 			}
 			String saveFilePath = saveDir + java.io.File.separator + fileName;
-			TelemetryManager.log("GoogleDriveUtil :: downloadFile :: File Id :" + fileId + " | Save File Path: " + saveFilePath);
 			OutputStream outputStream = new FileOutputStream(saveFilePath);
 			getFile.executeMediaAndDownloadTo(outputStream);
 			outputStream.close();
 			java.io.File file = new java.io.File(saveFilePath);
 			file = Slug.createSlugFile(file);
-			TelemetryManager.log("GoogleDriveUtil :: downloadFile :: File Downloaded Successfully. Sluggified File Name: " + file.getAbsolutePath());
-			if (null != file && BACKOFF_DELAY != INITIAL_BACKOFF_DELAY)
-				BACKOFF_DELAY = INITIAL_BACKOFF_DELAY;
+			if (null != file && BACKOFF_DELAY != INITIAL_BACKOFF_DELAY)	BACKOFF_DELAY = INITIAL_BACKOFF_DELAY;
 			return file;
 		} catch(GoogleJsonResponseException ge) {
-			TelemetryManager.log("GoogleDriveUtil :: downloadFile :: GoogleJsonResponseException :: Error Occurred while downloading file having id "+fileId + " | Error is ::"+ge.getDetails().toString());
 			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + ge.getDetails().toString());
 		} catch(HttpResponseException he) {
-			TelemetryManager.log("GoogleDriveUtil :: downloadFile :: HttpResponseException :: Error Occurred while downloading file having id "+fileId + " | Error is ::"+he.getContent());
 			he.printStackTrace();
 			if(he.getStatusCode() == 403) {
-				if (BACKOFF_DELAY <= MAXIMUM_BACKOFF_DELAY)
-					delay(BACKOFF_DELAY);
-				if (BACKOFF_DELAY == 2400000)
-					BACKOFF_DELAY += 1500000;
-				else
-					BACKOFF_DELAY = BACKOFF_DELAY * INCREMENT_BACKOFF_DELAY;
+				if (BACKOFF_DELAY <= MAXIMUM_BACKOFF_DELAY)	delay(BACKOFF_DELAY);
+				if (BACKOFF_DELAY == 2400000) BACKOFF_DELAY += 1500000;
+				else BACKOFF_DELAY = BACKOFF_DELAY * INCREMENT_BACKOFF_DELAY;
 			} else  throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + he.getContent());
 		} catch (Exception e) {
-			TelemetryManager.log("GoogleDriveUtil :: downloadFile :: Exception :: Error Occurred While Downloading Google Drive File having Id " + fileId + " : " + e.getMessage());
 			e.printStackTrace();
 			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
 		}
@@ -194,11 +184,8 @@ public class GoogleDriveUrlUtil {
 	}
 
 	public static void delay(int time) {
-		TelemetryManager.log("delay is called with : " + time);
 		try {
 			Thread.sleep(time);
-		} catch (Exception e) {
-
-		}
+		} catch (Exception e) {e.printStackTrace();}
 	}
 }
