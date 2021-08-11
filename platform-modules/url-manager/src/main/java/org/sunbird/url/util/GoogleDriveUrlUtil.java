@@ -1,7 +1,6 @@
 package org.sunbird.url.util;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -164,11 +163,5 @@ public class GoogleDriveUrlUtil {
 			e.printStackTrace();
 			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
 		}
-	}
-
-	public static void delay(int time) {
-		try {
-			Thread.sleep(time);
-		} catch (Exception e) {e.printStackTrace();}
 	}
 }
