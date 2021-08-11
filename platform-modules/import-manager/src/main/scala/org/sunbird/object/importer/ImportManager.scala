@@ -5,6 +5,7 @@ import java.util.UUID
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.`object`.importer.constant.ImportConstants
 import org.sunbird.`object`.importer.error.ImportErrors
 import org.sunbird.cloudstore.StorageService
@@ -29,6 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String])
 
 class ImportManager(config: ImportConfig) {
+	private val logger: Logger = LoggerFactory.getLogger("ImportManager")
 	private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
 	private val CONTENT_FOLDER = Platform.getString("cloud_storage.content.folder", "content")
 	implicit val ss: StorageService = new StorageService
@@ -68,13 +70,18 @@ class ImportManager(config: ImportConfig) {
 				val stage: String = obj.getOrDefault(ImportConstants.STAGE, "").toString
 				val reqMetadata: util.Map[String, AnyRef] = obj.getOrDefault(ImportConstants.METADATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				val sourceMetadata: util.Map[String, AnyRef] = getMetadata(source, request.getContext.get("objectType").asInstanceOf[String].toLowerCase())
-				val appIcon = sourceMetadata.getOrDefault("appIcon","").asInstanceOf[String]
+				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
+					sourceMetadata.putAll(reqMetadata)
+					sourceMetadata.put(ImportConstants.SOURCE, source)
+					sourceMetadata
+				} else reqMetadata
+				val appIcon = finalMetadata.getOrDefault("appIcon","").asInstanceOf[String]
 				if(appIcon != null && appIcon.nonEmpty)
 				{
 					try {
 						if (!appIconMap.containsKey(appIcon)) {
-							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
-							val appIconFile = downloadAppIconFile(sourceMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
+							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(finalMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
+							val appIconFile = downloadAppIconFile(finalMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
 							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
 							try {
 								if(appIconFile.exists()) FileUtils.deleteDirectory(appIconFile.getParentFile.getParentFile)
@@ -83,16 +90,13 @@ class ImportManager(config: ImportConfig) {
 							}
 							appIconMap.put(appIcon, appIconCloudUrl)
 						}
-						sourceMetadata.put("appIcon", appIconMap.get(appIcon))
+						finalMetadata.put("appIcon", appIconMap.get(appIcon))
 					} catch {
-						case _:Exception =>	sourceMetadata.put("appIcon", appIcon)
+						case ex:Exception =>
+							logger.error("Exception while downloading appIcon in ImportManager:: ", ex)
+							finalMetadata.put("appIcon", appIcon)
 					}
 				}
-				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
-					sourceMetadata.putAll(reqMetadata)
-					sourceMetadata.put(ImportConstants.SOURCE, source)
-					sourceMetadata
-				} else reqMetadata
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				finalMetadata.keySet().removeAll(config.propsToRemove.asJava)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
@@ -177,6 +181,9 @@ class ImportManager(config: ImportConfig) {
 				else HTTPUrlUtil.downloadFile(fileUrl, getBasePath(identifier))
 			}
 			file
-		} catch {	case e: Exception => throw e	}
+		} catch {	case e: Exception =>
+			logger.error("ImportManager::downloadAppIconFile:: Exception", e)
+			//TODO: Identify the google drive link download failure cases and handle them accordingly
+			throw e	}
 	}
 }

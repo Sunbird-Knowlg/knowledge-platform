@@ -1,7 +1,5 @@
 package org.sunbird.`object`.importer
 
-import com.typesafe.config.ConfigException
-
 import java.util
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
@@ -10,7 +8,7 @@ import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.AsyncMockFactory
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ServerException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.kafka.client.KafkaClient
 
