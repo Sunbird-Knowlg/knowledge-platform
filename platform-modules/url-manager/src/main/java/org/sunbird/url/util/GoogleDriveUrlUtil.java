@@ -151,6 +151,7 @@ public class GoogleDriveUrlUtil {
 	public static java.io.File downloadFile(String fileId, String saveDir) {
 		try {
 			Drive.Files.Get getFile = drive.files().get(fileId);
+			getFile.setKey(API_KEY);
 			getFile.setFields("id,name,size,owners,mimeType,properties,permissionIds,webContentLink");
 			com.google.api.services.drive.model.File googleDriveFile = getFile.execute();
 			TelemetryManager.log("GoogleDriveUtil :: downloadFile ::: Drive File Details:: " + googleDriveFile);
