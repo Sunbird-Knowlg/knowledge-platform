@@ -160,7 +160,6 @@ public class GoogleDriveUrlUtil {
 			file = Slug.createSlugFile(file);
 			return file;
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
 		}
 	}
