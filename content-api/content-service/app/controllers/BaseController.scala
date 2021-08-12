@@ -159,7 +159,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 case (x: String, y: String) => (x, y)
                 case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
                     input.getOrDefault("resourceType", "").asInstanceOf[String]))
-                case (x: String, y) => (x, getPrimeryCategory(x))
+                case (x: String, y) => (x, getPrimaryCategory(x))
                 case (x, y: String) => (getContentType(y), y)
                 case _ => (contentType, primaryCategory)
             }
@@ -167,7 +167,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             input.put("primaryCategory", updatedPrimaryCategory)
     }
 
-    private def getPrimeryCategory(contentType: String): String ={
+    private def getPrimaryCategory(contentType: String): String ={
         val primaryCategory = categoryMap.get(contentType)
         if(primaryCategory.isInstanceOf[String])
             primaryCategory.asInstanceOf[String]
