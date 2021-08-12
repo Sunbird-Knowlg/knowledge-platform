@@ -76,7 +76,7 @@ class ImportManager(config: ImportConfig) {
 					sourceMetadata
 				} else reqMetadata
 				val appIcon = finalMetadata.getOrDefault("appIcon","").asInstanceOf[String]
-				if(appIcon != null && appIcon.nonEmpty)
+				if(appIcon != null && appIcon.nonEmpty && !appIcon.contains(ss.getContainerName()))
 				{
 					try {
 						if (!appIconMap.containsKey(appIcon)) {
