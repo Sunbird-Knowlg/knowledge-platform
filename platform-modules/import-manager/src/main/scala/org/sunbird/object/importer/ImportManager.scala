@@ -2,19 +2,24 @@ package org.sunbird.`object`.importer
 
 import java.util
 import java.util.UUID
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.`object`.importer.constant.ImportConstants
 import org.sunbird.`object`.importer.error.ImportErrors
-import org.sunbird.common.Platform
+import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
+import org.sunbird.url.common.URLErrorCodes
+import org.sunbird.url.util.{GoogleDriveUrlUtil, HTTPUrlUtil}
 
+import java.io.File
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -24,6 +29,10 @@ import scala.concurrent.{ExecutionContext, Future}
 case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String])
 
 class ImportManager(config: ImportConfig) {
+	private val logger: Logger = LoggerFactory.getLogger("ImportManager")
+	private val TEMP_FILE_LOCATION = Platform.getString("content.upload.temp_location", "/tmp/content")
+	private val CONTENT_FOLDER = Platform.getString("cloud_storage.content.folder", "content")
+	implicit val ss: StorageService = new StorageService
 
 	def importObject(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
@@ -36,13 +45,14 @@ class ImportManager(config: ImportConfig) {
 		val processId: String = if(StringUtils.isNotBlank(reqPid)) reqPid else  UUID.randomUUID().toString
 		val invalidCodes: util.List[String] = new util.ArrayList[String]()
 		val invalidStage: util.List[String] = new util.ArrayList[String]()
+
 		validateAndGetRequest(reqList, processId, invalidCodes, invalidStage, request).map(objects => {
 			if (CollectionUtils.isNotEmpty(invalidCodes)) {
-				val msg = if (invalidCodes.asScala.filter(c => StringUtils.isNotBlank(c)).toList.size > 0) " | Required Property's Missing For " + invalidCodes else ""
+				val msg = if (invalidCodes.asScala.filter(c => StringUtils.isNotBlank(c)).toList.nonEmpty) " | Required Property's Missing For " + invalidCodes else ""
 				throw new ClientException(ImportErrors.ERR_REQUIRED_PROPS_VALIDATION, ImportErrors.ERR_REQUIRED_PROPS_VALIDATION_MSG + ScalaJsonUtils.serialize(config.requiredProps) + msg)
 			} else if (CollectionUtils.isNotEmpty(invalidStage)) throw new ClientException(ImportErrors.ERR_OBJECT_STAGE_VALIDATION, ImportErrors.ERR_OBJECT_STAGE_VALIDATION_MSG + request.getContext.get("VALID_OBJECT_STAGE").asInstanceOf[java.util.List[String]])
 			else {
-				objects.asScala.map(obj => pushInstructionEvent(graphId, obj))
+				objects.asScala.foreach(obj => pushInstructionEvent(graphId, obj))
 				val response = ResponseHandler.OK()
 				response.put(ImportConstants.PROCESS_ID, processId)
 				response
@@ -53,6 +63,7 @@ class ImportManager(config: ImportConfig) {
 
 	def validateAndGetRequest(objects: util.List[util.Map[String, AnyRef]], processId: String, invalidCodes: util.List[String], invalidStages: util.List[String], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
 		Future {
+			val appIconMap: util.Map[String, String] = new util.HashMap[String, String]()
 			objects.asScala.map(obj => {
 				val source: String = obj.getOrDefault(ImportConstants.SOURCE, "").toString
 				val stage: String = obj.getOrDefault(ImportConstants.STAGE, "").toString
@@ -63,6 +74,32 @@ class ImportManager(config: ImportConfig) {
 					sourceMetadata.put(ImportConstants.SOURCE, source)
 					sourceMetadata
 				} else reqMetadata
+				val appIcon = finalMetadata.getOrDefault("appIcon","").asInstanceOf[String]
+				if(appIcon != null && appIcon.nonEmpty && !appIcon.contains(ss.getContainerName()))
+				{
+					try {
+						if (!appIconMap.containsKey(appIcon)) {
+							val identifier = {
+								if(finalMetadata.containsKey("identifier")) finalMetadata.getOrDefault("identifier", "").asInstanceOf[String]
+								else finalMetadata.getOrDefault("collectionId", "").asInstanceOf[String]
+							}
+							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(identifier, true) + File.separator + "assets"
+							val appIconFile = downloadAppIconFile(identifier, appIcon)
+							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
+							try {
+								if(appIconFile.exists()) FileUtils.deleteDirectory(appIconFile.getParentFile.getParentFile)
+							} catch {
+								case e: Exception => e.printStackTrace()
+							}
+							appIconMap.put(appIcon, appIconCloudUrl)
+						}
+						finalMetadata.put("appIcon", appIconMap.get(appIcon))
+					} catch {
+						case ex:Exception =>
+							logger.error("Exception while downloading appIcon in ImportManager:: ", ex)
+							finalMetadata.put("appIcon", appIcon)
+					}
+				}
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				finalMetadata.keySet().removeAll(config.propsToRemove.asJava)
 				finalMetadata.put(ImportConstants.PROCESS_ID, processId)
@@ -129,5 +166,27 @@ class ImportManager(config: ImportConfig) {
 		val originData = obj.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 		val event = getInstructionEvent(identifier, source, metadata, collection, stage, originData)
 		oec.kafkaClient.send(event, config.topicName)
+	}
+
+	def getBasePath(objectId: String): String = {
+		if (!StringUtils.isBlank(objectId)) TEMP_FILE_LOCATION + File.separator + System.currentTimeMillis + "_temp" + File.separator + objectId else ""
+	}
+
+	def downloadAppIconFile(identifier: String, fileUrl: String): File = {
+		try {
+			val file: File =
+			{
+				if (StringUtils.isNotBlank(fileUrl) && fileUrl.contains("drive.google.com")) {
+					val fileId = fileUrl.split("download&id=")(1)
+					if (StringUtils.isBlank(fileId)) throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name, "Invalid fileUrl received for : " + identifier + " | fileUrl : " + fileUrl)
+					GoogleDriveUrlUtil.downloadFile(fileId, getBasePath(identifier))
+				}
+				else HTTPUrlUtil.downloadFile(fileUrl, getBasePath(identifier))
+			}
+			file
+		} catch {	case e: Exception =>
+			logger.error("ImportManager::downloadAppIconFile:: Exception", e)
+			//TODO: Identify the google drive link download failure cases and handle them accordingly
+			throw e	}
 	}
 }

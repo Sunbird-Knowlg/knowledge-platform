@@ -2,12 +2,15 @@ package org.sunbird.url.util;
 
 import com.google.api.services.drive.model.File;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.sunbird.common.exception.ClientException;
+import org.sunbird.common.exception.ServerException;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -101,4 +104,15 @@ public class GoogleDriveUtilTest {
 		String driveUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy1.pdf";
 		Long result = GoogleDriveUrlUtil.getSize(driveUrl);
 	}
+
+	@Test
+	public void testDownloadFileWithValidUrl() {
+		exception.expect(ServerException.class);
+		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
+		String driveUrl = "https://drive.google.com/file/d/1UbgS47VcQbxLjmoTbFiDXzLKnLSdw0ye";
+		java.io.File appIconFile = GoogleDriveUrlUtil.downloadFile(driveUrl,downloadFolder);
+		assertTrue(appIconFile.exists());
+		try {FileUtils.deleteDirectory(appIconFile.getParentFile().getParentFile());} catch(IOException io) {}
+	}
+
 }
