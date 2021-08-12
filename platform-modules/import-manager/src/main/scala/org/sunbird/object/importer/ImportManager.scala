@@ -15,7 +15,6 @@ import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.utils.ScalaJsonUtils
-import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 import org.sunbird.url.common.URLErrorCodes
 import org.sunbird.url.util.{GoogleDriveUrlUtil, HTTPUrlUtil}
@@ -80,8 +79,12 @@ class ImportManager(config: ImportConfig) {
 				{
 					try {
 						if (!appIconMap.containsKey(appIcon)) {
-							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(finalMetadata.getOrDefault("identifier", "").asInstanceOf[String], true) + File.separator + "assets"
-							val appIconFile = downloadAppIconFile(finalMetadata.getOrDefault("identifier", "").asInstanceOf[String], appIcon)
+							val identifier = {
+								if(finalMetadata.containsKey("identifier")) finalMetadata.getOrDefault("identifier", "").asInstanceOf[String]
+								else finalMetadata.getOrDefault("collectionId", "").asInstanceOf[String]
+							}
+							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(identifier, true) + File.separator + "assets"
+							val appIconFile = downloadAppIconFile(identifier, appIcon)
 							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
 							try {
 								if(appIconFile.exists()) FileUtils.deleteDirectory(appIconFile.getParentFile.getParentFile)
