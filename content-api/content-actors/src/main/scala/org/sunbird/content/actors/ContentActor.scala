@@ -260,8 +260,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
         request.getRequest.put("status", "FlagDraft")
       else new ClientException("ERR_INVALID_REQUEST", "Content not in Review status.")
 			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
-			if (null != request.getRequest.get("rejectReasons") && !request.getRequest.get("rejectReasons").isInstanceOf[Array[_]])
-				throw new ClientException("ERR_INVALID_REQUEST_FORMAT","rejectReasons should be a Array")
 			request.putIn("publishChecklist", null).putIn("publishComment", null)
       //updating node after changing the status
 			RequestUtil.restrictProperties(request)
