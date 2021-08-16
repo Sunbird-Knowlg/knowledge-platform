@@ -43,17 +43,20 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 			val readReq = new Request(req)
 			readReq.getContext.put("graph_id", "domain")
 			readReq.put("identifiers", childMap.keySet.toList.asJava)
-			DataNode.list(readReq).map(nodes => {
-				if (nodes.size() != childMap.keySet.size) {
-					val filteredList = childMap.keySet.toList.filter(id => !nodes.contains(id))
-					throw new ClientException("ERR_COLLECTION_REVIEW", "Children which are not available are: " + filteredList)
-				} else {
-					val fNodes: List[String] = nodes.filter(node => !validResourceStatus.contains(node.getMetadata.getOrDefault("status", "").asInstanceOf[String])).toList.map(node => node.getIdentifier)
-					if (Platform.getBoolean("collection.children_status_validation", true) && fNodes.nonEmpty)
-						throw new ClientException("ERR_COLLECTION_REVIEW", "Unpublished Children Found With Identifier : " + fNodes)
-				}
-				true
-			})
+			if(childMap.nonEmpty)
+				DataNode.list(readReq).map(nodes => {
+					if (nodes.size() != childMap.keySet.size) {
+						val filteredList = childMap.keySet.toList.filter(id => !nodes.contains(id))
+						throw new ClientException("ERR_COLLECTION_REVIEW", "Children which are not available are: " + filteredList)
+					} else {
+						val fNodes: List[String] = nodes.filter(node => !validResourceStatus.contains(node.getMetadata.getOrDefault("status", "").asInstanceOf[String])).toList.map(node => node.getIdentifier)
+						if (Platform.getBoolean("collection.children_status_validation", true) && fNodes.nonEmpty)
+							throw new ClientException("ERR_COLLECTION_REVIEW", "Unpublished Children Found With Identifier : " + fNodes)
+					}
+					true
+				})
+			else
+				Future{List(true)}
 		}).flatMap(f => f)
 	}
 
