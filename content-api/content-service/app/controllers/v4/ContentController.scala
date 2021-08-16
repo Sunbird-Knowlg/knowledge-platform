@@ -188,7 +188,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def reviewReject(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier).asJava)
         val contentRequest = getRequest(content, headers, "rejectContent")
