@@ -505,6 +505,26 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("Content metadata error, status is blank for identifier:do_1234".equals(response.getParams.getErrmsg))
     }
 
+    it should "return success for 'rejectContent'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val node =  getValidNodeToReject()
+        node.getMetadata.put("status","Review")
+        node.getMetadata.put("framework", "NCF")
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123")))).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("rejectComment"->"Testing reject comment", "versionKey" -> "test_123","rejectReasons" -> Array("Incorrect Content"))))
+        request.setOperation("rejectContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
     private def getAssetNodeToUpload(): Node = {
         val node = new Node()
         node.setIdentifier("do_1234")
