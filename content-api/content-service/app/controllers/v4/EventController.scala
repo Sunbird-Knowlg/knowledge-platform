@@ -22,6 +22,8 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         content.putAll(headers)
         if(validateContentType(content))
             getErrorResponse(ApiId.CREATE_EVENT, apiVersion, "VALIDATION_ERROR", "contentType cannot be set from request.")
+        else if(validateDates(content))
+            getErrorResponse(ApiId.CREATE_EVENT, apiVersion, "VALIDATION_ERROR", "End Date should be greater than Start Date.")
         else {
             val contentRequest = getRequest(content, headers, "createContent", false)
             setRequestContext(contentRequest, version, objectType, schemaName)
