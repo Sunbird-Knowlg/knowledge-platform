@@ -20,6 +20,15 @@
     "description": {
       "type": "string"
     },
+   "processId": {
+            "type": "string"
+        },
+   "questionId": {
+            "type": "string"
+        },
+  "questionUploadStatus": {
+            "type": "string"
+        },
     "mimeType": {
       "type": "string",
       "enum": [
