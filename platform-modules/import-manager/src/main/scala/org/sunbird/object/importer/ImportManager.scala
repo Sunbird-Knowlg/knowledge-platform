@@ -77,7 +77,6 @@ class ImportManager(config: ImportConfig) {
 				val appIcon = finalMetadata.getOrDefault("appIcon","").asInstanceOf[String]
 				if(appIcon != null && appIcon.nonEmpty && !appIcon.contains(ss.getContainerName()))
 				{
-					try {
 						if (!appIconMap.containsKey(appIcon)) {
 							val identifier = {
 								if(finalMetadata.containsKey("identifier")) finalMetadata.getOrDefault("identifier", "").asInstanceOf[String]
@@ -85,20 +84,17 @@ class ImportManager(config: ImportConfig) {
 							}
 							val appIconFolder = CONTENT_FOLDER + File.separator + Slug.makeSlug(identifier, true) + File.separator + "assets"
 							val appIconFile = downloadAppIconFile(identifier, appIcon)
-							val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
-							try {
-								if(appIconFile.exists()) FileUtils.deleteDirectory(appIconFile.getParentFile.getParentFile)
-							} catch {
-								case e: Exception => e.printStackTrace()
+							if(appIconFile!=null) {
+								val appIconCloudUrl = ss.uploadFile(appIconFolder, appIconFile, Option(false))(1)
+								try {
+									if (appIconFile.exists()) FileUtils.deleteDirectory(appIconFile.getParentFile.getParentFile)
+								} catch {
+									case e: Exception => e.printStackTrace()
+								}
+								appIconMap.put(appIcon, appIconCloudUrl)
 							}
-							appIconMap.put(appIcon, appIconCloudUrl)
 						}
 						finalMetadata.put("appIcon", appIconMap.get(appIcon))
-					} catch {
-						case ex:Exception =>
-							logger.error("Exception while downloading appIcon in ImportManager:: ", ex)
-							finalMetadata.put("appIcon", appIcon)
-					}
 				}
 				val originData = finalMetadata.getOrDefault(ImportConstants.ORIGIN_DATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				finalMetadata.keySet().removeAll(config.propsToRemove.asJava)

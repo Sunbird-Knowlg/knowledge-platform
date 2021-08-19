@@ -1,7 +1,6 @@
 package org.sunbird.url.util;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.http.HttpResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -37,13 +36,9 @@ public class GoogleDriveUrlUtil {
 
 	private static final String GOOGLE_DRIVE_URL_REGEX = "[-\\w]{25,}";
 	private static final String DRIVE_FIELDS = "id, name, size";
-	private static final String APP_NAME = Platform.config.hasPath("learning.content.drive.application.name")
-			? Platform.config.getString("learning.content.drive.application.name") : "google-drive-url-validation";
+	private static final String APP_NAME = Platform.config.hasPath("learning_content_drive_appName")
+			? Platform.config.getString("learning_content_drive_appName") : "google-drive-url-validation";
 	private static final String API_KEY = Platform.config.getString("learning_content_drive_apiKey");
-	public static final Integer INITIAL_BACKOFF_DELAY = Platform.config.hasPath("auto_creator.initial_backoff_delay") ? Platform.config.getInt("auto_creator.initial_backoff_delay") : 1200000;    // 20 min
-	public static final Integer MAXIMUM_BACKOFF_DELAY = Platform.config.hasPath("auto_creator.maximum_backoff_delay") ? Platform.config.getInt("auto_creator.maximum_backoff_delay") : 3900000;    // 65 min
-	public static final Integer INCREMENT_BACKOFF_DELAY = Platform.config.hasPath("auto_creator.increment_backoff_delay") ? Platform.config.getInt("auto_creator.increment_backoff_delay") : 300000; // 5 min
-	public static Integer BACKOFF_DELAY = INITIAL_BACKOFF_DELAY;
 
 	private static final String ERR_MSG = "Please Provide Valid Google Drive URL!";
 	private static final String SERVICE_ERROR = "Unable to Connect To Google Service. Please Try Again After Sometime!";
@@ -163,34 +158,10 @@ public class GoogleDriveUrlUtil {
 			outputStream.close();
 			java.io.File file = new java.io.File(saveFilePath);
 			file = Slug.createSlugFile(file);
-			if (null != file && !Objects.equals(BACKOFF_DELAY, INITIAL_BACKOFF_DELAY))
-				BACKOFF_DELAY = INITIAL_BACKOFF_DELAY;
 			return file;
-		} catch(GoogleJsonResponseException ge) {
-			logger.error("GoogleDriveUtil :: downloadFile :: GoogleJsonResponseException :: Error Occurred while downloading file having id "+fileId + " | Error is ::"+ge.getDetails().toString(), ge);
-			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + ge.getDetails().toString());
-		} catch(HttpResponseException he) {
-			logger.error("GoogleDriveUtil :: downloadFile :: HttpResponseException :: Error Occurred while downloading file having id "+fileId + " | Error is ::"+he.getContent(), he);
-			he.printStackTrace();
-			if(he.getStatusCode() == 403) {
-				if (BACKOFF_DELAY <= MAXIMUM_BACKOFF_DELAY)
-					delay(BACKOFF_DELAY);
-				if (BACKOFF_DELAY == 2400000)
-					BACKOFF_DELAY += 1500000;
-				else
-					BACKOFF_DELAY = BACKOFF_DELAY * INCREMENT_BACKOFF_DELAY;
-			} else  throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + he.getContent());
 		} catch (Exception e) {
-			logger.error("GoogleDriveUtil :: downloadFile :: Exception :: Error Occurred While Downloading Google Drive File having Id " + fileId + " : " + e.getMessage(), e);
-			e.printStackTrace();
-			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
+			logger.error("Exception while downloading appIcon file:: ", e.getMessage());
+			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
 		}
-		return null;
-	}
-
-	public static void delay(int time) {
-		try {
-			Thread.sleep(time);
-		} catch (Exception ignored) {}
 	}
 }
