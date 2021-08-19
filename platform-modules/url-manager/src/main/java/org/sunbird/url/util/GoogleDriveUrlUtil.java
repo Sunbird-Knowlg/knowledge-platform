@@ -21,10 +21,7 @@ import org.sunbird.url.common.URLErrorCodes;
 
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,8 +36,8 @@ public class GoogleDriveUrlUtil {
 
 	private static final String GOOGLE_DRIVE_URL_REGEX = "[-\\w]{25,}";
 	private static final String DRIVE_FIELDS = "id, name, size";
-	private static final String APP_NAME = Platform.config.hasPath("learning.content.drive.application.name")
-			? Platform.config.getString("learning.content.drive.application.name") : "google-drive-url-validation";
+	private static final String APP_NAME = Platform.config.hasPath("learning_content_drive_appName")
+			? Platform.config.getString("learning_content_drive_appName") : "google-drive-url-validation";
 	private static final String API_KEY = Platform.config.getString("learning_content_drive_apiKey");
 
 	private static final String ERR_MSG = "Please Provide Valid Google Drive URL!";
@@ -50,7 +47,7 @@ public class GoogleDriveUrlUtil {
 			"keyInvalid");
 
 	private static boolean limitExceeded = false;
-	private static Drive drive = null;
+	private static Drive drive;
 
 	static {
 		drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, null).setApplicationName(APP_NAME).build();
@@ -92,7 +89,7 @@ public class GoogleDriveUrlUtil {
 		if (StringUtils.isBlank(fileId))
 			throw new ClientException(URLErrorCodes.ERR_INVALID_URL.name(), ERR_MSG);
 		File driveFile = getDriveFile(fileId);
-		Long size = Long.valueOf(0);
+		Long size = 0L;
 		if (null != driveFile)
 			size = driveFile.get("size") == null ? 0 : (Long) driveFile.get("size");
 
@@ -163,8 +160,8 @@ public class GoogleDriveUrlUtil {
 			file = Slug.createSlugFile(file);
 			return file;
 		} catch (Exception e) {
-			logger.error("Exception while downloading appIcon file:: ", e.getMessage());
-			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
+			logger.error("Exception while downloading appIcon file:: " + e.getMessage());
+			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
 		}
 	}
 }
