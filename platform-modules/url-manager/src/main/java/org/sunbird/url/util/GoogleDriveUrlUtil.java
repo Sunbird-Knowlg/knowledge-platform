@@ -160,7 +160,7 @@ public class GoogleDriveUrlUtil {
 			file = Slug.createSlugFile(file);
 			return file;
 		} catch (Exception e) {
-			logger.error("Exception while downloading appIcon file:: ", e.getMessage());
+			logger.error("Exception while downloading appIcon file:: " + e.getMessage());
 			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
 		}
 	}
