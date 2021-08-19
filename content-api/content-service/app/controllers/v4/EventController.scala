@@ -8,6 +8,7 @@ import utils.{ActorNames, ApiId, Constants}
 import javax.inject.{Inject, Named}
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.concurrent.ExecutionContext
+import utils.DateValidationUtils._
 
 @Singleton
 class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends ContentController(eventActor, cc, actorSystem) {
