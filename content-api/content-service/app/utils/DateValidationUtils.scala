@@ -23,7 +23,7 @@ object DateValidationUtils {
       val startTime : Date = stringToTimeConverter(startTimeString);
       val endTimeString : String = input.getOrDefault("endTime", "00:00:00+00:00").toString;
       val endTime : Date = stringToTimeConverter(endTimeString);
-      return startTime.after(endTime);
+      return (startTime.after(endTime) || startTime.equals(endTime));
     }
     return startDate.after(endDate);
   }
@@ -65,3 +65,4 @@ object DateValidationUtils {
     dateFormat.parse(timeString);
   }
 }
+
