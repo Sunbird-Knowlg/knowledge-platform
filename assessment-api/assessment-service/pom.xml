@@ -67,6 +67,12 @@
             <groupId>com.typesafe.play</groupId>
             <artifactId>play-guice_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.typesafe.play</groupId>
