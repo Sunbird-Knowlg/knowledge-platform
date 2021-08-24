@@ -67,7 +67,6 @@ public class GoogleDriveUrlUtil {
 
 
 	private static Credential getCredentials() throws Exception {
-		System.out.println("SERVICE_ACC_CRED:: " + SERVICE_ACC_CRED);
 		InputStream credentialsStream = new ByteArrayInputStream(SERVICE_ACC_CRED.getBytes(Charset.forName("UTF-8")));
 		GoogleCredential credential = null;
 		try {
