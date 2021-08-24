@@ -44,7 +44,7 @@ public class GoogleDriveUrlUtil {
 	private static final String DRIVE_FIELDS = "id, name, size";
 	private static final String API_KEY = Platform.config.getString("learning_content_drive_apiKey");
 	private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE_READONLY);
-	private static final String APP_NAME = Platform.config.hasPath("auto_creator.gdrive.application_name") ? Platform.config.getString("auto_creator.gdrive.application_name") : "drive-download-sunbird";
+	private static final String APP_NAME = Platform.config.hasPath("auto_creator_gdrive_application_name") ? Platform.config.getString("auto_creator_gdrive_application_name") : "drive-download-sunbird";
 	private static final String SERVICE_ACC_CRED = Platform.config.getString("auto_creator_g_service_acct_cred");
 	private static final String ERR_MSG = "Please Provide Valid Google Drive URL!";
 	private static final String SERVICE_ERROR = "Unable to Connect To Google Service. Please Try Again After Sometime!";
