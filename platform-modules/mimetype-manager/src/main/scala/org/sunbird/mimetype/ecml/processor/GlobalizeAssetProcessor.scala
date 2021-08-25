@@ -39,10 +39,12 @@ trait GlobalizeAssetProcessor extends IProcessor {
                             val blobUrl = if (!(mediaSrc.startsWith("http"))) {
                                 if (mediaSrc.startsWith("/")) BASE_URL + mediaSrc else BASE_URL + File.separator + mediaSrc
                             } else mediaSrc
+
                           TelemetryManager.log("GlobalizeAssetProcessor::uploadAssets:: uploading file:: "+file.getAbsolutePath)
                             val uploadFileUrl: Array[String] = if (StringUtils.isNoneBlank(cloudDirName) && getBlobLength(blobUrl) == 0) ss.uploadFile(cloudDirName, file)
                             else new Array[String](1)
                           TelemetryManager.log("GlobalizeAssetProcessor::uploadAssets:: uploadFileUrl:: "+uploadFileUrl)
+
                             if (null != uploadFileUrl && uploadFileUrl.size > 1) {
                                 if (!(mediaSrc.startsWith("http") || mediaSrc.startsWith("/"))) {
                                     val temp = media.data ++ Map("src" -> ("/" + mediaSrc))

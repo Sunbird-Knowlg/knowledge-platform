@@ -107,7 +107,6 @@ public class GoogleDriveUtilTest {
 
 	@Test
 	public void testDownloadFileWithValidUrl() {
-		exception.expect(ServerException.class);
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
 		String driveUrl = "https://drive.google.com/file/d/1UbgS47VcQbxLjmoTbFiDXzLKnLSdw0ye";
 		java.io.File appIconFile = GoogleDriveUrlUtil.downloadFile(driveUrl,downloadFolder);
