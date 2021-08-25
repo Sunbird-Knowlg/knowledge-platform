@@ -1,7 +1,5 @@
 package org.sunbird.url.util;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -9,7 +7,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.Drive.Files.Get;
-import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,12 +19,12 @@ import org.sunbird.common.exception.ServerException;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.sunbird.url.common.URLErrorCodes;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,10 +39,10 @@ public class GoogleDriveUrlUtil {
 
 	private static final String GOOGLE_DRIVE_URL_REGEX = "[-\\w]{25,}";
 	private static final String DRIVE_FIELDS = "id, name, size";
+	private static final String APP_NAME = Platform.config.hasPath("learning.content.drive.application.name")
+			? Platform.config.getString("learning.content.drive.application.name") : "google-drive-url-validation";
 	private static final String API_KEY = Platform.config.getString("learning_content_drive_apiKey");
-	private static final List<String> SCOPES = Arrays.asList(DriveScopes.DRIVE_READONLY);
-	private static final String APP_NAME = Platform.config.hasPath("auto_creator_gdrive_application_name") ? Platform.config.getString("auto_creator_gdrive_application_name") : "drive-download-sunbird";
-	private static final String SERVICE_ACC_CRED = Platform.config.getString("auto_creator_g_service_acct_cred");
+
 	private static final String ERR_MSG = "Please Provide Valid Google Drive URL!";
 	private static final String SERVICE_ERROR = "Unable to Connect To Google Service. Please Try Again After Sometime!";
 	private static final List<String> ERROR_CODES = Arrays.asList("dailyLimitExceeded402", "limitExceeded",
@@ -53,29 +50,10 @@ public class GoogleDriveUrlUtil {
 			"keyInvalid");
 
 	private static boolean limitExceeded = false;
-	private static Drive drive;
+	private static Drive drive = null;
 
 	static {
-		try {
-		drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials()).setApplicationName(APP_NAME).build();
-		} catch (Exception e) {
-			logger.error("Error occurred while creating google drive client ::: " + e.getMessage(), e);
-			e.printStackTrace();
-			throw new ServerException(URLErrorCodes.SYSTEM_ERROR.name(), "Error occurred while creating google drive client ::: "+ e.getMessage());
-		}
-	}
-
-
-	private static Credential getCredentials() throws Exception {
-		InputStream credentialsStream = new ByteArrayInputStream(SERVICE_ACC_CRED.getBytes(Charset.forName("UTF-8")));
-		GoogleCredential credential = null;
-		try {
-			credential = GoogleCredential.fromStream(credentialsStream).createScoped(SCOPES);
-		} catch (Exception e) {
-			logger.error("Error occurred while reading google credentials ::: " + e.getMessage(), e);
-			e.printStackTrace();
-		}
-		return credential;
+		drive = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, null).setApplicationName(APP_NAME).build();
 	}
 
 	private GoogleDriveUrlUtil(){}
@@ -114,7 +92,7 @@ public class GoogleDriveUrlUtil {
 		if (StringUtils.isBlank(fileId))
 			throw new ClientException(URLErrorCodes.ERR_INVALID_URL.name(), ERR_MSG);
 		File driveFile = getDriveFile(fileId);
-		Long size = 0L;
+		Long size = Long.valueOf(0);
 		if (null != driveFile)
 			size = driveFile.get("size") == null ? 0 : (Long) driveFile.get("size");
 
@@ -165,28 +143,5 @@ public class GoogleDriveUrlUtil {
 		if (limitExceeded)
 			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
 		return googleDriveFile;
-	}
-
-
-	public static java.io.File downloadFile(String driveUrl, String saveDir) {
-		try {
-			String fileId = getDriveFileId(driveUrl);
-			Drive.Files.Get getFile = drive.files().get(fileId);
-			getFile.setFields("id,name,size,owners,mimeType,properties,permissionIds,webContentLink");
-			com.google.api.services.drive.model.File googleDriveFile = getFile.execute();
-			String fileName = googleDriveFile.getName();
-			java.io.File saveFile = new java.io.File(saveDir);
-			if (!saveFile.exists()) saveFile.mkdirs();
-			String saveFilePath = saveDir + java.io.File.separator + fileName;
-			OutputStream outputStream = new FileOutputStream(saveFilePath);
-			getFile.executeMediaAndDownloadTo(outputStream);
-			outputStream.close();
-			java.io.File file = new java.io.File(saveFilePath);
-			file = Slug.createSlugFile(file);
-			return file;
-		} catch (Exception e) {
-			logger.error("Exception while downloading appIcon file:: " + e.getMessage());
-			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
-		}
 	}
 }
