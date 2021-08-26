@@ -1,7 +1,6 @@
 package org.sunbird.mimetype.mgr.impl
 
 import java.io.{File, IOException, StringReader}
-
 import javax.xml.parsers.{DocumentBuilderFactory, ParserConfigurationException}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
@@ -15,6 +14,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.ecml.{ECMLExtractor, ECMLProcessor}
 import org.sunbird.mimetype.ecml.processor.{JsonParser, Plugin, XmlParser}
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
+import org.sunbird.telemetry.logger.TelemetryManager
 import org.xml.sax.{InputSource, SAXException}
 
 import scala.collection.JavaConverters._
@@ -29,6 +29,8 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 
 	override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
 		validateFilePackage(uploadFile)
+
+		TelemetryManager.info("ECMLMimeTypeMgrImpl::upload:: objectId: " + objectId)
 		//generateECRF
 		val basePath:String = getBasePath(objectId)
 		extractPackage(uploadFile, basePath)

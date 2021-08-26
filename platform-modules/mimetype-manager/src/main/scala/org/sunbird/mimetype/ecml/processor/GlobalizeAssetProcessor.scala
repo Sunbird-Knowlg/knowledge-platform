@@ -21,12 +21,14 @@ trait GlobalizeAssetProcessor extends IProcessor {
     abstract override def process(ecrf: Plugin)(implicit ss: StorageService): Plugin = {
         val manifest = ecrf.manifest
         val updatedMedias:List[Media] = uploadAssets(manifest.medias)
+        TelemetryManager.info("GlobalizeAssetProcessor::process:: updatedMedias:: "+updatedMedias)
         val updatedManifest:Manifest = Manifest(manifest.id, manifest.data, manifest.innerText, manifest.cData, updatedMedias)
         super.process(Plugin(ecrf.id, ecrf.data, ecrf.innerText, ecrf.cData, ecrf.childrenPlugin, updatedManifest, ecrf.controllers, ecrf.events))
     }
 
     def uploadAssets(medias: List[Media])(implicit ss: StorageService, ec: ExecutionContext =  concurrent.ExecutionContext.Implicits.global): List[Media] = {
         if(null != medias) {
+          TelemetryManager.info("GlobalizeAssetProcessor::uploadAssets:: medias:: "+medias)
             val future:Future[List[Media]] = Future.sequence(medias.filter(media=> StringUtils.isNotBlank(media.id) && StringUtils.isNotBlank(media.src) && StringUtils.isNotBlank(media.`type`))
                     .map(media => {
                         Future{
@@ -40,10 +42,10 @@ trait GlobalizeAssetProcessor extends IProcessor {
                                 if (mediaSrc.startsWith("/")) BASE_URL + mediaSrc else BASE_URL + File.separator + mediaSrc
                             } else mediaSrc
 
-                          TelemetryManager.log("GlobalizeAssetProcessor::uploadAssets:: uploading file:: "+file.getAbsolutePath)
+                          TelemetryManager.info("GlobalizeAssetProcessor::uploadAssets:: uploading file:: "+file.getAbsolutePath)
                             val uploadFileUrl: Array[String] = if (StringUtils.isNoneBlank(cloudDirName) && getBlobLength(blobUrl) == 0) ss.uploadFile(cloudDirName, file)
                             else new Array[String](1)
-                          TelemetryManager.log("GlobalizeAssetProcessor::uploadAssets:: uploadFileUrl:: "+uploadFileUrl)
+                          TelemetryManager.info("GlobalizeAssetProcessor::uploadAssets:: uploadFileUrl:: "+uploadFileUrl)
 
                             if (null != uploadFileUrl && uploadFileUrl.size > 1) {
                                 if (!(mediaSrc.startsWith("http") || mediaSrc.startsWith("/"))) {
