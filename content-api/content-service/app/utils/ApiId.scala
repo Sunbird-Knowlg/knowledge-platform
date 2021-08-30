@@ -62,6 +62,7 @@ object ApiId {
 	//Collection V4 apis
 	val CREATE_COLLECTION = "api.collection.create"
 	val READ_COLLECTION = "api.collection.read"
+	val READ_PRIVATE_COLLECTION = "api.collection.private.read"
 	val UPDATE_COLLECTION = "api.collection.update"
 	val RETIRE_COLLECTION = "api.collection.retire"
 	val COPY_COLLECTION = "api.collection.copy"
