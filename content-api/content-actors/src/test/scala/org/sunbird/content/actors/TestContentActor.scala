@@ -246,6 +246,84 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
+    it should "return success response for 'readPrivateContent'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "Content")
+                put("visibility","Private")
+                put("channel","abc-123")
+            }
+        }))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.getRequest.put("channel", "abc-123")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return client error for 'readPrivateContent' if channel is 'blank'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("Please Provide Channel!".equals(response.getParams.getErrmsg))
+    }
+
+    it should "return client error for 'readPrivateContent' if visibility is not 'Private'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "Content")
+                put("visibility","Public")
+                put("channel","abc-123")
+            }
+        }))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    }
+
+    it should "return client error for 'readPrivateContent' if channel is mismatched" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "Content")
+                put("visibility","Public")
+                put("channel","abc-123")
+            }
+        }))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.getRequest.put("channel", "abc")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    }
+
     it should "return success response for 'updateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
