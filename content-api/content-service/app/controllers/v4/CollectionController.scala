@@ -69,7 +69,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readPrivateContent")
         setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_PRIVATE_CONTENT, contentActor, readRequest, version = apiVersion)
+        getResult(ApiId.READ_PRIVATE_COLLECTION, contentActor, readRequest, version = apiVersion)
     }
 
     def update(identifier: String) = Action.async { implicit request =>
