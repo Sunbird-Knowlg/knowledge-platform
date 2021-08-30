@@ -85,6 +85,7 @@ POST     /collection/v4/reject/:identifier    controllers.v4.CollectionControlle
 POST      /content/v4/create                       controllers.v4.ContentController.create
 PATCH     /content/v4/update/:identifier           controllers.v4.ContentController.update(identifier:String)
 GET       /content/v4/read/:identifier             controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET       /content/v4/private/read/:identifier     controllers.v4.ContentController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
 POST      /content/v4/upload/url/:identifier       controllers.v4.ContentController.uploadPreSigned(identifier:String, type: Option[String])
 POST      /content/v4/upload/:identifier           controllers.v4.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 POST      /content/v4/copy/:identifier             controllers.v4.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")

@@ -39,6 +39,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		request.getOperation match {
 			case "createContent" => create(request)
 			case "readContent" => read(request)
+			case "readPrivateContent" => privateRead(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
 			case "retireContent" => retire(request)
@@ -80,6 +81,35 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
         response.put(responseSchemaName, metadata)
       }
 			response
+		})
+	}
+
+	def privateRead(request: Request): Future[Response] = {
+		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		request.getRequest.put("fields", fields)
+		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
+		DataNode.read(request).map(node => {
+			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+			val response: Response = ResponseHandler.OK
+			if(StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
+				if (StringUtils.equalsIgnoreCase(metadata.get("channel").asInstanceOf[String],request.getRequest.get("channel").asInstanceOf[String])) {
+					if (responseSchemaName.isEmpty) {
+						response.put("content", metadata)
+					}
+					else {
+						response.put(responseSchemaName, metadata)
+					}
+					response
+				}
+				else {
+					throw new ClientException("ERR_INCORRECT_CHANNEL", "Channel id is not matched")
+				}
+			}
+			else {
+				throw new ClientException("ERR_ACCESS_DENIED", "Content visibility is default, public or parent. Cannot be accessed through private api")
+			}
 		})
 	}
 
