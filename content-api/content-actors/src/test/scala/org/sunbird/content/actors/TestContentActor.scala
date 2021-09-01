@@ -277,31 +277,12 @@ class TestContentActor extends BaseSpec with MockFactory {
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
         request.setOperation("readPrivateContent")
         val response = callActor(request, Props(new ContentActor()))
-        assert("failed".equals(response.getParams.getStatus))
-        assert("Please Provide Channel!".equals(response.getParams.getErrmsg))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_INVALID_CHANNEL")
+        assert(response.getParams.getErrmsg == "Please Provide Channel!")
     }
 
     it should "return client error for 'readPrivateContent' if visibility is not 'Private'" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
-        val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
-            {
-                put("name", "Content")
-                put("visibility","Public")
-                put("channel","abc-123")
-            }
-        }))
-        implicit val ss = mock[StorageService]
-        val request = getContentRequest()
-        request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
-        request.setOperation("readPrivateContent")
-        val response = callActor(request, Props(new ContentActor()))
-        assert("failed".equals(response.getParams.getStatus))
-        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-    }
-
-    it should "return client error for 'readPrivateContent' if channel is mismatched" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -316,12 +297,38 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
+        request.getRequest.put("channel", "abc-123")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_ACCESS_DENIED")
+        assert(response.getParams.getErrmsg == "Content visibility is default, public or parent. Cannot be accessed through private api")
+    }
+
+    it should "return client error for 'readPrivateContent' if channel is mismatched" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "Content")
+                put("visibility","Private")
+                put("channel","abc-123")
+            }
+        }))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
         request.getRequest.put("channel", "abc")
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
         request.setOperation("readPrivateContent")
         val response = callActor(request, Props(new ContentActor()))
-        assert("failed".equals(response.getParams.getStatus))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_INCORRECT_CHANNEL")
+        assert(response.getParams.getErrmsg == "Channel id is not matched")
+
     }
 
     it should "return success response for 'updateContent'" in {
