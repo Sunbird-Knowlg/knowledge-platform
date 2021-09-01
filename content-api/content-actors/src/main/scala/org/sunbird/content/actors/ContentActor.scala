@@ -93,8 +93,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
-			if(StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
-				if (StringUtils.equalsIgnoreCase(metadata.get("channel").asInstanceOf[String],request.getRequest.get("channel").asInstanceOf[String])) {
+			if(StringUtils.equalsIgnoreCase(metadata.getOrDefault("visibility", "").asInstanceOf[String],"Private")) {
+				if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("channel", "").asInstanceOf[String],request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) {
 					if (responseSchemaName.isEmpty) {
 						response.put("content", metadata)
 					}
