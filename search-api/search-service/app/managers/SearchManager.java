@@ -49,6 +49,12 @@ public class SearchManager {
         return getRes;
     }
 
+    public Future<Response> privateSearch(Request request, ActorRef actor) {
+        request.setOperation(SearchOperations.INDEX_SEARCH.name());
+        Future<Response> getRes = getSearchResponse(request, actor);
+        return getRes;
+    }
+
     public Future<Response> count(Request request, ActorRef actor) {
         request.setOperation(SearchOperations.COUNT.name());
         Future<Response> getRes = getSearchResponse(request, actor);
@@ -273,8 +279,14 @@ public class SearchManager {
     }
 
     public Future<Response> getSearchResponse(Response searchResult, Request req, ActorRef actor) {
-        Request request = getSearchRequest(ActorNames.SEARCH_ACTOR(),
-                SearchOperations.GROUP_SEARCH_RESULT_BY_OBJECTTYPE.name());
+        Request request = new Request();
+        if(req.getId().equalsIgnoreCase("api.search-service.private.search")) {
+            request = getSearchRequest(ActorNames.SEARCH_ACTOR(),
+                    SearchOperations.GROUP_PRIVATE_SEARCH_RESULT_BY_OBJECTTYPE.name());
+        }
+        else {
+            request = getSearchRequest(ActorNames.SEARCH_ACTOR(),
+                    SearchOperations.GROUP_SEARCH_RESULT_BY_OBJECTTYPE.name());
         request.put("searchResult", searchResult.getResult());
         request.setId(req.getId());
         request.setVer(req.getVer());
