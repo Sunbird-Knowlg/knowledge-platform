@@ -586,7 +586,7 @@ public class SearchActor extends SearchBaseActor {
                         if (obj instanceof Map) {
                             Map<String, Object> map = (Map<String, Object>) obj;
                             if (StringUtils.equalsIgnoreCase((String) map.getOrDefault("visibility",""),"Private")){
-                                throw new ClientException("ERR_ACCESS_DENIED","Cannot access private data, hence access denied for identifier: " + (String) map.get("identifier"));
+                                throw new ClientException("ERR_ACCESS_DENIED","Cannot access private data, hence access denied for identifier: " + map.get("identifier"));
                             }
                             String objectType = ((String) map.getOrDefault("objectType", "")).replaceAll("Image", "");
                             if(StringUtils.equalsIgnoreCase("Collection", objectType) || StringUtils.equalsIgnoreCase("Asset", objectType))
