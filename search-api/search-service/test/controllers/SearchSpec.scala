@@ -15,7 +15,14 @@ class SearchSpec extends BaseSpec {
             isOK(response)
             status(response) must equalTo(OK)
         }
-        
+
+        "search contents on private search request" in {
+            val controller = app.injector.instanceOf[controllers.SearchController]
+            val response = controller.privateSearch()(FakeRequest())
+            isOK(response)
+            status(response) must equalTo(OK)
+        }
+
         "getcount of search filters" in {
             val controller = app.injector.instanceOf[controllers.SearchController]
             val response = controller.count()(FakeRequest())
