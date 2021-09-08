@@ -615,11 +615,11 @@
             }
         },
         "interceptionPoints": {
-            "type": "array",
+            "type": "object",
             "items": {
-                "type": "object"
+                "type": "array"
             },
-            "default": []
+            "default": {}
         },
         "interceptionType": {
             "type": "string",
