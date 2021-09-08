@@ -70,4 +70,14 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         getResult(ApiId.PUBLISH_EVENT, eventActor, contentRequest, version = apiVersion)
     }
 
+    def getJoinMeetingUrl(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap[String, Object]()
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
+        val readRequest = getRequest(content, headers, "joinEvent")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
+        getResult(ApiId.JOIN_EVENT, eventActor, readRequest, version = apiVersion)
+    }
 }
