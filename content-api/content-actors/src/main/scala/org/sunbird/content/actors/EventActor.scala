@@ -1,5 +1,6 @@
 package org.sunbird.content.actors
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.sunbird.meet.bigBlueButton.api.BbbApi
 import org.sunbird.meet.Meeting
 import org.apache.commons.lang.StringUtils
@@ -28,7 +29,8 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       case "retireContent" => retire(request)
       case "discardContent" => discard(request)
       case "publishContent" => publish(request)
-      case "joinEvent" => joinEvent(request)
+      case "joinEventModerator" => joinEventModerator(request)
+      case "joinEventAttendee" => joinEventAttendee(request)
       case _ => ERROR(request.getOperation)
     }
   }
@@ -62,7 +64,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
 
   private def verifyStandaloneEventAndApply(f: Request => Future[Response], request: Request, dataUpdater: Option[Node => Unit] = None): Future[Response] = {
     DataNode.read(request).flatMap(node => {
-      val inRelations = if (node.getInRelations == null) new util.ArrayList[Relation]() else node.getInRelations;
+      val inRelations = if (node.getInRelations == null) new util.ArrayList[Relation]() else node.getInRelations
       val hasEventSetParent = inRelations.asScala.exists(rel => "EventSet".equalsIgnoreCase(rel.getStartNodeObjectType))
       if (hasEventSetParent)
         Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), "ERROR: Can't modify an Event which is part of an Event Set!"))
@@ -84,14 +86,13 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     node
   }
 
-  def joinEvent(request: Request): Future[Response] = {
+  def joinEventModerator(request: Request): Future[Response] = {
     val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
     val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
       metadata.put("identifier", node.getIdentifier.replace(".img", ""))
-      val response: Response = ResponseHandler.OK
 
       request.getRequest.remove("mode")
       request.getRequest.remove("fields")
@@ -109,26 +110,60 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
         new BbbApi()
       } else {
         // TODO : Set response of Meeting URL for other onlineProviders
-        new BbbApi()
+        throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
       }
 
       if (providerApiObject.deferEventCreation()) { // Creating Meeting if deferred Event creation, and updating Event with Meeting details
         providerApiObject.createMeeting(meetingRequest)
         if (meetingRequest.getShouldUpdate) {
-          request.getRequest.put("onlineProviderData", meetingRequest)
-          update(request) // Here, this is update event actor is called by making request identical for Update call, but event is not getting updated
+          val oMapper = new ObjectMapper()
+          val mapMeetingRequest: util.Map[String, AnyRef] = oMapper.convertValue(meetingRequest, classOf[util.Map[String, AnyRef]])
+          request.getRequest.put("onlineProviderData", mapMeetingRequest)
+          update(request) recoverWith { case e =>
+            Future(ResponseHandler.getErrorResponse(e))
+          }
         }
       }
       meetingRequest.setModerator(true) // For moderator join meet link
       val moderatorMeetingLink = providerApiObject.getJoinMeetingURL(meetingRequest)
+      val meetingLink = new java.util.HashMap[String, String]
+      meetingLink.put("onlineProvider", onlineProvider)
+      meetingLink.put("moderatorMeetingLink", moderatorMeetingLink)
+      val response: Response = ResponseHandler.OK
+      response.put(responseSchemaName, meetingLink)
+      response
+    }
+    )
+  }
+
+  def joinEventAttendee(request: Request): Future[Response] = {
+    val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
+    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    request.getRequest.put("fields", fields)
+    DataNode.read(request).map(node => {
+      val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+      metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+
+      val onlineProvider = metadata.get("onlineProvider").asInstanceOf[String]
+
+      val meetingRequest = new Meeting()
+      meetingRequest.setMeetingID(metadata.get("identifier").asInstanceOf[String])
+      val providerApiObject = if (StringUtils.equalsIgnoreCase(onlineProvider, "BigBlueButton")) {
+        new BbbApi()
+      } else {
+        // TODO : Set response of Meeting URL for other onlineProviders
+        throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
+      }
+
       meetingRequest.setModerator(false) // For attendee join meet link
       val attendeeMeetingLink = providerApiObject.getJoinMeetingURL(meetingRequest)
       val meetingLink = new java.util.HashMap[String, String]
       meetingLink.put("onlineProvider", onlineProvider)
-      meetingLink.put("moderatorMeetingLink", moderatorMeetingLink)
       meetingLink.put("attendeeMeetingLink", attendeeMeetingLink)
+      val response: Response = ResponseHandler.OK
       response.put(responseSchemaName, meetingLink)
       response
-    })
+    }
+    )
   }
 }

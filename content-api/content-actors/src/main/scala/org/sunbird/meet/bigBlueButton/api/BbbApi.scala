@@ -1,6 +1,7 @@
 package org.sunbird.meet.bigBlueButton.api
 
 import org.apache.commons.codec.digest.DigestUtils
+import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.meet.bigBlueButton.entity
 import org.sunbird.meet.bigBlueButton.entity.BBBException
 import org.sunbird.meet.{Meet, Meeting}
@@ -39,8 +40,7 @@ class BbbApi extends Meet {
 
   /* Create BBB meeting */
   @throws[entity.BBBException]
-  override def createMeeting(meetingAnyRef: Meeting): Meeting = {
-    val meeting = meetingAnyRef.asInstanceOf[Meeting]
+  override def createMeeting(meeting: Meeting): Meeting = {
     var response: util.Map[String, AnyRef] = null
     try {
       val query = new StringBuilder
@@ -68,10 +68,9 @@ class BbbApi extends Meet {
   }
 
   /* Build the join meeting url based on user role */
-  override def getJoinMeetingURL(meetingAnyRef: Meeting): String = {
+  override def getJoinMeetingURL(meeting: Meeting): String = {
     var url = null
     try {
-      var meeting = meetingAnyRef.asInstanceOf[Meeting]
       val joinQuery = new StringBuilder
       joinQuery.append("meetingID=" + meeting.getMeetingID)
       if (meeting.getUserId != null) joinQuery.append("&userID=" + encode(meeting.getUserId))
@@ -88,8 +87,19 @@ class BbbApi extends Meet {
       }
       if (meeting.getModerator)
         joinQuery.append("&password=" + meeting.getModeratorPW)
-      else
-        joinQuery.append("&password=" + meeting.getAttendeePW)
+      else {
+        try {
+          val response = getMeetingInfo(meeting.getMeetingID)
+          joinQuery.append("&password=" + response.get("attendeePW").asInstanceOf[String])
+        } catch {
+          case e: entity.BBBException =>
+            if ("notFound" == e.getMessageKey) {
+              throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Please wait for the Moderator to start Meeting")
+              //              throw new entity.BBBException(e.getMessageKey, "Please wait for Moderator to start Meeting", e)
+            }
+            throw e
+        }
+      }
       joinQuery.append(getCheckSumParameterForQuery(APICALL_JOIN, joinQuery.toString))
       val url = new java.lang.StringBuilder(bbbUrl)
       if (url.toString.endsWith("/api")) url.append("/")
