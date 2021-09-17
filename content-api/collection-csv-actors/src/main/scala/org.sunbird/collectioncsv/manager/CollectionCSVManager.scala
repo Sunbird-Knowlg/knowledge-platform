@@ -362,7 +362,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       }).filter(node => node.nonEmpty).toList.distinct.mkString("[\"","\",\"","\"]")
     }
 
-    val hierarchyRootNode = s""""$collectionID": {"name":"$collectionName","contentType":"$collectionType","root":true,"children":$collectionL1NodeList}"""
+    val hierarchyRootNode = s""""$collectionID": {"name":$collectionName,"contentType":"$collectionType","root":true,"children":$collectionL1NodeList}"""
 
     val hierarchyChildNodesMetadata = if(mode.equals(CollectionTOCConstants.CREATE)) {
       folderInfoMap.map(record => {
