@@ -367,7 +367,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     val hierarchyChildNodesMetadata = if(mode.equals(CollectionTOCConstants.CREATE)) {
       folderInfoMap.map(record => {
         val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
-          s""""${record._1}": {"name": "${JsonUtils.serialize(nodeInfo("name").toString)}","root": false,"contentType": "$collectionUnitType", "children": ${if (nodeInfo.contains(CollectionTOCConstants.CHILDREN)) nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]].mkString("[\"", "\",\"", "\"]") else "[]"}}"""
+          s""""${record._1}": {"name": ${JsonUtils.serialize(nodeInfo("name").toString)},"root": false,"contentType": "$collectionUnitType", "children": ${if (nodeInfo.contains(CollectionTOCConstants.CHILDREN)) nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]].mkString("[\"", "\",\"", "\"]") else "[]"}}"""
       }).mkString(",")
     } else {
       val linkedContentsInfoMap: Map[String, Map[String, String]] = if(linkedContentsDetails.nonEmpty) {
@@ -427,7 +427,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
         {
           val LinkedContentInfo = nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].map(contentId => {
             val linkedContentDetails: Map[String, String] = linkedContentsInfoMap(contentId)
-            s""""${linkedContentDetails(CollectionTOCConstants.IDENTIFIER)}": {"name": "${linkedContentDetails(CollectionTOCConstants.NAME)}","root": false,"contentType": "${linkedContentDetails(CollectionTOCConstants.CONTENT_TYPE)}", "children": []}"""
+            s""""${linkedContentDetails(CollectionTOCConstants.IDENTIFIER)}": {"name": ${linkedContentDetails(CollectionTOCConstants.NAME)},"root": false,"contentType": "${linkedContentDetails(CollectionTOCConstants.CONTENT_TYPE)}", "children": []}"""
           }).mkString(",")
           LinkedContentInfo
         } else ""
