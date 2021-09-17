@@ -273,7 +273,7 @@ public class SearchManager {
     }
 
     public Future<Response> getSearchResponse(Response searchResult, Request req, ActorRef actor) {
-        Request request = new Request();
+        Request request = null;
         if(req.getId().equalsIgnoreCase("api.search-service.private.search")) {
             request = getSearchRequest(ActorNames.SEARCH_ACTOR(),
                     SearchOperations.GROUP_PRIVATE_SEARCH_RESULT_BY_OBJECTTYPE.name());
