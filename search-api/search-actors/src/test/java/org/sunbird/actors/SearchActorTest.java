@@ -799,6 +799,42 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), response.getResponseCode().code());
     }
 
+    @Test
+    public void testPrivateSearch() {
+        Request request = getSearchRequest();
+        request.put("CHANNEL_ID","in.ekstep");
+        Map<String, Object> filters = new HashMap<String, Object>();
+        filters.put("identifier", "do_10000036");
+        request.put("filters", filters);
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        Request req = getGroupPrivateSearchResultsRequest();
+        req.put("searchResult", result);
+        Response resp = getSearchResponse(req);
+        ResponseCode res = resp.getResponseCode();
+        boolean statusCode = false;
+        if (res == ResponseCode.OK) {
+            statusCode = true;
+        }
+        Assert.assertTrue(statusCode);
+    }
+
+    @Test
+    public void testPrivateSearchWithInvalidVisibility() {
+        Request request = getSearchRequest();
+        request.put("CHANNEL_ID","in.ekstep");
+        Map<String, Object> filters = new HashMap<String, Object>();
+        filters.put("identifier", "do_10000035");
+        request.put("filters", filters);
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        Request req = getGroupPrivateSearchResultsRequest();
+        req.put("searchResult", result);
+        Response resp = getSearchResponse(req);
+        Assert.assertEquals("failed", resp.getParams().getStatus());
+        Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), resp.getResponseCode().code());
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void testSearchByFields() {

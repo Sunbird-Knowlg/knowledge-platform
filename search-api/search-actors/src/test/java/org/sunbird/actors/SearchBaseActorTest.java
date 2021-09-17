@@ -67,6 +67,11 @@ public class SearchBaseActorTest {
         return setSearchContext(request, SEARCH_ACTOR , "GROUP_SEARCH_RESULT_BY_OBJECTTYPE");
     }
 
+    protected Request getGroupPrivateSearchResultsRequest() {
+        Request request = new Request();
+        return setSearchContext(request, SEARCH_ACTOR , "GROUP_PRIVATE_SEARCH_RESULT_BY_OBJECTTYPE");
+    }
+
     protected Request setSearchContext(Request request, String manager, String operation) {
         request.setOperation(operation);
         return request;
@@ -162,6 +167,16 @@ public class SearchBaseActorTest {
         content.put("contentType", "Course");
         content.put("courseType", "TrainingCourse");
         addToIndex("10000035", content);
+
+        content = getContentTestRecord("do_10000036", 36, "test-board5");
+        content.put("name", "Test Course - 36");
+        content.put("description", "Test Course - TrainingCourse");
+        content.put("visibility", "Private");
+        content.put("channel", "in.ekstep");
+        content.put("mimeType", "application/vnd.ekstep.content-collection");
+        content.put("contentType", "Course");
+        content.put("courseType", "TrainingCourse");
+        addToIndex("10000036", content);
     }
 
     private static void addToIndex(String uniqueId, Map<String, Object> doc) throws Exception {
