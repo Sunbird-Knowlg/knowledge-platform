@@ -312,7 +312,6 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   private def getNodesMetadata(folderInfoMap: mutable.LinkedHashMap[String, AnyRef], mode: String, frameworkID: String, collectionType: String): String = {
-
     val collectionUnitType = contentTypeToUnitTypeMapping(collectionType)
     folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
