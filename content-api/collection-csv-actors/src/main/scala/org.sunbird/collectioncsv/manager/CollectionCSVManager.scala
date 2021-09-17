@@ -65,10 +65,11 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     // Prepare nodesMetadata and hierarchyMetadata using the folderInfoMap
     val nodesMetadata = getNodesMetadata(folderInfoMap, mode, collectionHierarchy.getOrElse(CollectionTOCConstants.FRAMEWORK,"").asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString)
     val hierarchyMetadata = getHierarchyMetadata(folderInfoMap, mode, linkedContentsDetails, collectionHierarchy)
-
+    TelemetryManager.log(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> nodesMetadata: " + nodesMetadata)
+    TelemetryManager.log(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> hierarchyMetadata: " + hierarchyMetadata)
     // Invoke UpdateHierarchyManager to update the collection hierarchy
     val updateHierarchyResponse = UpdateHierarchyManager.updateHierarchy(getUpdateHierarchyRequest(nodesMetadata, hierarchyMetadata))
-    TelemetryManager.log("CollectionCSVManager:updateCollection --> after invoking updateHierarchyManager: " + updateHierarchyResponse)
+    TelemetryManager.log(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> after invoking updateHierarchyManager: " + updateHierarchyResponse)
 
     // Invoke DIAL code linking if mode=UPDATE
     if(mode.equals(CollectionTOCConstants.UPDATE)) {
@@ -311,7 +312,6 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   private def getNodesMetadata(folderInfoMap: mutable.LinkedHashMap[String, AnyRef], mode: String, frameworkID: String, collectionType: String): String = {
-
     val collectionUnitType = contentTypeToUnitTypeMapping(collectionType)
     folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
