@@ -23,7 +23,7 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
     def privateSearch() = loggingAction.async { implicit request =>
         val internalReq = getRequest(ApiId.APPLICATION_PRIVATE_SEARCH)
         setHeaderContext(internalReq)
-        getResult(mgr.privateSearch(internalReq, searchActor), ApiId.APPLICATION_PRIVATE_SEARCH)
+        getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_PRIVATE_SEARCH)
     }
 
     def count() = Action.async { implicit request =>

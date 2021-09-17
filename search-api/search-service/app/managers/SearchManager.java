@@ -49,12 +49,6 @@ public class SearchManager {
         return getRes;
     }
 
-    public Future<Response> privateSearch(Request request, ActorRef actor) {
-        request.setOperation(SearchOperations.INDEX_SEARCH.name());
-        Future<Response> getRes = getSearchResponse(request, actor);
-        return getRes;
-    }
-
     public Future<Response> count(Request request, ActorRef actor) {
         request.setOperation(SearchOperations.COUNT.name());
         Future<Response> getRes = getSearchResponse(request, actor);
