@@ -833,6 +833,9 @@ public class SearchActorTest extends SearchBaseActorTest {
         Response resp = getSearchResponse(req);
         Assert.assertEquals("failed", resp.getParams().getStatus());
         Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), resp.getResponseCode().code());
+        Assert.assertEquals("ERR_ACCESS_DENIED", resp.getParams().getErr());
+        Assert.assertEquals("Content visibility is default, public or parent for identifier: do_10000035 Cannot be accessed through private api", resp.getParams().getErrmsg());
+
     }
 
     @SuppressWarnings("unchecked")
