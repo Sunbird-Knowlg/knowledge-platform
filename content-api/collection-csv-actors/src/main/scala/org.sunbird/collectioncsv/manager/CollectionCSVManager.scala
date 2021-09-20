@@ -21,6 +21,7 @@ import org.sunbird.utils.HierarchyConstants.MIME_TYPE
 import java.io.{File, FileOutputStream, IOException, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
 import java.util
+import java.util.logging.Logger
 import scala.collection.immutable.{ListMap, Map}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters.{asJavaIterableConverter, mapAsScalaMapConverter}
@@ -31,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object CollectionCSVManager extends CollectionInputFileReader  {
 
   private val CONTENT_FOLDER = "cloud_storage.content.folder"
-
+  val logger = Logger.getLogger("CollectionCSVManager")
   def getCode(code: String): String = {DigestUtils.md5Hex(code)}
 
   def validateInputData(inputFileExtension: String, csvRecords: util.List[CSVRecord], mode: String, collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
@@ -65,11 +66,11 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     // Prepare nodesMetadata and hierarchyMetadata using the folderInfoMap
     val nodesMetadata = getNodesMetadata(folderInfoMap, mode, collectionHierarchy.getOrElse(CollectionTOCConstants.FRAMEWORK,"").asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString)
     val hierarchyMetadata = getHierarchyMetadata(folderInfoMap, mode, linkedContentsDetails, collectionHierarchy)
-    TelemetryManager.log(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> nodesMetadata: " + nodesMetadata)
-    TelemetryManager.log(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> hierarchyMetadata: " + hierarchyMetadata)
+    println(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> nodesMetadata: " + nodesMetadata)
+    println(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> hierarchyMetadata: " + hierarchyMetadata)
     // Invoke UpdateHierarchyManager to update the collection hierarchy
     val updateHierarchyResponse = UpdateHierarchyManager.updateHierarchy(getUpdateHierarchyRequest(nodesMetadata, hierarchyMetadata))
-    TelemetryManager.log(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> after invoking updateHierarchyManager: " + updateHierarchyResponse)
+    TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> after invoking updateHierarchyManager: " + updateHierarchyResponse)
 
     // Invoke DIAL code linking if mode=UPDATE
     if(mode.equals(CollectionTOCConstants.UPDATE)) {
@@ -93,14 +94,14 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     var csvPrinter: CSVPrinter = null
     try{
       deleteQuietly(csvFile)
-      TelemetryManager.log("CollectionCSVManager:createFileAndStore -> Creating file for CSV at Location: " + csvFile.getAbsolutePath)
+      TelemetryManager.info("CollectionCSVManager:createFileAndStore -> Creating file for CSV at Location: " + csvFile.getAbsolutePath)
       touch(csvFile)
 
       out = new OutputStreamWriter(new FileOutputStream(csvFile), StandardCharsets.UTF_8)
       out.write(ByteOrderMark.UTF_BOM)
 
       val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader().withRecordSeparator(System.lineSeparator()).withQuoteMode(QuoteMode.NON_NUMERIC)
-      TelemetryManager.log("CollectionCSVManager:createFileAndStore -> Writing Headers to Output Stream for Collection | Id " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
+      TelemetryManager.info("CollectionCSVManager:createFileAndStore -> Writing Headers to Output Stream for Collection | Id " + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
       csvPrinter = new CSVPrinter(out, csvFormat)
       csvPrinter.printRecord(collectionOutputTocHeaders.asJava)
       nodesMap.foreach(record => {
@@ -156,16 +157,16 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       csvPrinter.flush()
 
       val folder = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc"
-      TelemetryManager.log("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
+      TelemetryManager.info("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
       val csvURL = ss.uploadFile(folder, csvFile)
-      TelemetryManager.log("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
+      TelemetryManager.info("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
 
       csvURL(1)
     }
     catch {
       case ce: ClientException => throw ce
       case e: Exception =>
-        TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString + " - Version Key: "
+        TelemetryManager.info("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString + " - Version Key: "
           + collectionHierarchy(CollectionTOCConstants.VERSION_KEY).toString + e)
         throw new ServerException("ERROR_PROCESSING_REQUEST", "Something went wrong while Processing Request")
     } finally {
@@ -175,7 +176,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
         if (null != csvFile && csvFile.exists) deleteQuietly(csvFile.getCanonicalFile)
       } catch {
         case e: IOException =>
-          TelemetryManager.log("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER) + " - Version Key: "
+          TelemetryManager.info("Error writing data to file | Collection Id:" + collectionHierarchy(CollectionTOCConstants.IDENTIFIER) + " - Version Key: "
             + collectionHierarchy(CollectionTOCConstants.VERSION_KEY) + e)
       }
     }
