@@ -67,11 +67,6 @@ public class SearchBaseActorTest {
         return setSearchContext(request, SEARCH_ACTOR , "GROUP_SEARCH_RESULT_BY_OBJECTTYPE");
     }
 
-    protected Request getGroupPrivateSearchResultsRequest() {
-        Request request = new Request();
-        return setSearchContext(request, SEARCH_ACTOR , "GROUP_PRIVATE_SEARCH_RESULT_BY_OBJECTTYPE");
-    }
-
     protected Request setSearchContext(Request request, String manager, String operation) {
         request.setOperation(operation);
         return request;

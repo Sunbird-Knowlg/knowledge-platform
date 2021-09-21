@@ -808,7 +808,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         request.put("filters", filters);
         Response response = getSearchResponse(request);
         Map<String, Object> result = response.getResult();
-        Request req = getGroupPrivateSearchResultsRequest();
+        Request req = getGroupSearchResultsRequest();
         req.put("searchResult", result);
         Response resp = getSearchResponse(req);
         ResponseCode res = resp.getResponseCode();

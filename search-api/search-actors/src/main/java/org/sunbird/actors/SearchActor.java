@@ -79,9 +79,6 @@ public class SearchActor extends SearchBaseActor {
             } else if (StringUtils.equalsIgnoreCase("GROUP_SEARCH_RESULT_BY_OBJECTTYPE", operation)) {
                 Map<String, Object> searchResponse = (Map<String, Object>) request.get("searchResult");
                 return Futures.successful(OK(getCompositeSearchResponse(searchResponse)));
-            } else if (StringUtils.equalsIgnoreCase("GROUP_PRIVATE_SEARCH_RESULT_BY_OBJECTTYPE", operation)) {
-                Map<String, Object> searchResponse = (Map<String, Object>) request.get("searchResult");
-                return Futures.successful(OK(getCompositePrivateSearchResponse(searchResponse, request)));
             } else {
                 TelemetryManager.log("Unsupported operation: " + operation);
                 throw new ClientException(SearchConstants.ERR_INVALID_OPERATION,
@@ -111,6 +108,11 @@ public class SearchActor extends SearchBaseActor {
             Map<String, Object> filters = (Map<String, Object>) req.get(SearchConstants.filters);
             if (null == filters)
                 filters = new HashMap<>();
+            if(StringUtils.equalsIgnoreCase(request.getId(),"api.search-service.private.search")) {
+                String channel = (String) req.getOrDefault("CHANNEL_ID","");
+                if(filters.get("channel") == null)
+                    filters.put("channel",channel);
+            }
             if (filters.containsKey("tags")) {
                 Object tags = filters.get("tags");
                 if (null != tags) {
@@ -610,54 +612,6 @@ public class SearchActor extends SearchBaseActor {
                                     list.add(map);
                                 }
                             }
-                        }
-                    }
-                }
-            } else {
-                respResult.put(entry.getKey(), entry.getValue());
-            }
-        }
-        return respResult;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getCompositePrivateSearchResponse(Map<String, Object> searchResponse, Request request) {
-        Map<String, Object> respResult = new HashMap<String, Object>();
-        for (Map.Entry<String, Object> entry : searchResponse.entrySet()) {
-            if (entry.getKey().equalsIgnoreCase("results")) {
-                List<Object> lstResult = (List<Object>) entry.getValue();
-                if (null != lstResult && !lstResult.isEmpty()) {
-                    Map<String, List<Map<String, Object>>> result = new HashMap<String, List<Map<String, Object>>>();
-                    for (Object obj : lstResult) {
-                        if (obj instanceof Map) {
-                            Map<String, Object> map = (Map<String, Object>) obj;
-                                if (StringUtils.equalsIgnoreCase((String) map.getOrDefault("channel", ""),(String) request.getContext().getOrDefault("CHANNEL_ID",""))) {
-                                    String objectType = ((String) map.getOrDefault("objectType", "")).replaceAll("Image", "");
-                                    if(StringUtils.equalsIgnoreCase("Collection", objectType) || StringUtils.equalsIgnoreCase("Asset", objectType))
-                                        map.replace("objectType", "Content");
-                                    else
-                                        map.replace("objectType", objectType);
-                                    if (StringUtils.isNotBlank(objectType)) {
-                                        String key = getResultParamKey(objectType);
-                                        if (StringUtils.isNotBlank(key)) {
-                                            List<Map<String, Object>> list = result.get(key);
-                                            if (null == list) {
-                                                list = new ArrayList<Map<String, Object>>();
-                                                result.put(key, list);
-                                                respResult.put(key, list);
-                                            }
-                                            String id = (String) map.get("identifier");
-                                            if (id.endsWith(".img")) {
-                                                id = id.replace(".img", "");
-                                                map.replace("identifier", id);
-                                            }
-                                            list.add(map);
-                                        }
-                                    }
-                                }
-                                else {
-                                    throw new ClientException("ERR_INCORRECT_CHANNEL", "Channel id is not matched for identifier: " + map.get("identifier") );
-                                }
                         }
                     }
                 }
