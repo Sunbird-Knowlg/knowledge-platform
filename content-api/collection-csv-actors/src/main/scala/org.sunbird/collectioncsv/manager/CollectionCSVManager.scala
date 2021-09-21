@@ -380,7 +380,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
         }).toMap
       } else Map.empty[String, Map[String, String]]
 
-      val hierarchyChildNodesInfo= scala.collection.mutable.LinkedHashMap.empty[String, scala.collection.mutable.Map[String,AnyRef]]
+      val hierarchyChildNodesInfo = scala.collection.mutable.LinkedHashMap.empty[String, scala.collection.mutable.Map[String,AnyRef]]
       populateHierarchyInfoMap(collectionUnitType, childrenHierarchy, hierarchyChildNodesInfo)
 
       val updatedFolderInfoMap: mutable.LinkedHashMap[String, scala.collection.mutable.Map[String,AnyRef]] = folderInfoMap.map(nodeData => {
@@ -496,7 +496,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       if (record(CollectionTOCConstants.CONTENT_TYPE).toString.equalsIgnoreCase(collectionUnitType) && record.contains(CollectionTOCConstants.CHILDREN))
         populateHierarchyInfoMap(collectionUnitType, record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]], hierarchyChildNodesInfo)
 
-      hierarchyChildNodesInfo += (record(CollectionTOCConstants.IDENTIFIER).toString -> scala.collection.mutable.Map(CollectionTOCConstants.NAME -> record(CollectionTOCConstants.NAME).toString, CollectionTOCConstants.CONTENT_TYPE -> record(CollectionTOCConstants.CONTENT_TYPE).toString, CollectionTOCConstants.CHILDREN -> UnitChildren, CollectionTOCConstants.LINKED_CONTENT -> linkedContents))
+      hierarchyChildNodesInfo += (record(CollectionTOCConstants.IDENTIFIER).toString -> scala.collection.mutable.Map(CollectionTOCConstants.NAME -> JsonUtils.serialize(record(CollectionTOCConstants.NAME).toString), CollectionTOCConstants.CONTENT_TYPE -> record(CollectionTOCConstants.CONTENT_TYPE).toString, CollectionTOCConstants.CHILDREN -> UnitChildren, CollectionTOCConstants.LINKED_CONTENT -> linkedContents))
     })
   }
 
