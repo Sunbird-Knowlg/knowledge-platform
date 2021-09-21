@@ -109,23 +109,25 @@ public class SearchActor extends SearchBaseActor {
             if (null == filters)
                 filters = new HashMap<>();
 
-            if (filters.get(SearchConstants.visibility) != null) {
-                Object visibilityObject = filters.get(SearchConstants.visibility);
-                List<String> visibility = null;
-                if (visibilityObject != null) {
-                    if (visibilityObject instanceof List) {
-                        visibility = (List<String>) visibilityObject;
-                    } else if (visibilityObject instanceof String) {
-                        visibility = Arrays.asList((String) visibilityObject);
-                    } else if (visibilityObject instanceof String[]) {
-                        visibility = Arrays.asList((String[]) visibilityObject);
+            if (StringUtils.equalsIgnoreCase(request.getId(),"api.search-service.search")) {
+                if (filters.get(SearchConstants.visibility) != null) {
+                    Object visibilityObject = filters.get(SearchConstants.visibility);
+                    List<String> visibility = null;
+                    if (visibilityObject != null) {
+                        if (visibilityObject instanceof List) {
+                            visibility = (List<String>) visibilityObject;
+                        } else if (visibilityObject instanceof String) {
+                            visibility = Arrays.asList((String) visibilityObject);
+                        } else if (visibilityObject instanceof String[]) {
+                            visibility = Arrays.asList((String[]) visibilityObject);
+                        }
                     }
+                    if (visibility.contains("Private")) {
+                        throw new ClientException("ERR_ACCESS_DENIED", "Cannot access private content through public search api ");
+                    }
+                } else {
+                    filters.put("visibility", "Default");
                 }
-                if (visibility.contains("Private")) {
-                    throw new ClientException("ERR_ACCESS_DENIED", "Cannot access private content through public search api ");
-                }
-            } else {
-                filters.put("visibility","Default");
             }
 
             if (filters.containsKey("tags")) {
