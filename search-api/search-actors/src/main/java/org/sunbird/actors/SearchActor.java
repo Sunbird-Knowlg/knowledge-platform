@@ -108,6 +108,26 @@ public class SearchActor extends SearchBaseActor {
             Map<String, Object> filters = (Map<String, Object>) req.get(SearchConstants.filters);
             if (null == filters)
                 filters = new HashMap<>();
+
+            if (filters.get(SearchConstants.visibility) != null) {
+                Object visibilityObject = filters.get(SearchConstants.visibility);
+                List<String> visibility = null;
+                if (visibilityObject != null) {
+                    if (visibilityObject instanceof List) {
+                        visibility = (List<String>) visibilityObject;
+                    } else if (visibilityObject instanceof String) {
+                        visibility = Arrays.asList((String) visibilityObject);
+                    } else if (visibilityObject instanceof String[]) {
+                        visibility = Arrays.asList((String[]) visibilityObject);
+                    }
+                }
+                if (visibility.contains("Private")) {
+                    throw new ClientException("ERR_ACCESS_DENIED", "Cannot access private content through public search api ");
+                }
+            } else {
+                filters.put("visibility","Default");
+            }
+
             if (filters.containsKey("tags")) {
                 Object tags = filters.get("tags");
                 if (null != tags) {
@@ -585,9 +605,6 @@ public class SearchActor extends SearchBaseActor {
                     for (Object obj : lstResult) {
                         if (obj instanceof Map) {
                             Map<String, Object> map = (Map<String, Object>) obj;
-                            if (StringUtils.equalsIgnoreCase((String) map.getOrDefault("visibility",""),"Private")){
-                                throw new ClientException("ERR_ACCESS_DENIED","Cannot access private data, hence access denied for identifier: " + map.get("identifier"));
-                            }
                             String objectType = ((String) map.getOrDefault("objectType", "")).replaceAll("Image", "");
                             if(StringUtils.equalsIgnoreCase("Collection", objectType) || StringUtils.equalsIgnoreCase("Asset", objectType))
                                 map.replace("objectType", "Content");

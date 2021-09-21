@@ -110,5 +110,6 @@ public class SearchConstants {
     public static final String ContentImage = "ContentImage";
     public static final String mode = "mode";
     public static final String softConstraints = "softConstraints";
+    public static final String visibility = "visibility";
     public static String soft = "soft";
 }
