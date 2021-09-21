@@ -108,11 +108,6 @@ public class SearchActor extends SearchBaseActor {
             Map<String, Object> filters = (Map<String, Object>) req.get(SearchConstants.filters);
             if (null == filters)
                 filters = new HashMap<>();
-            if(StringUtils.equalsIgnoreCase(request.getId(),"api.search-service.private.search")) {
-                String channel = (String) req.getOrDefault("CHANNEL_ID","");
-                if(filters.get("channel") == null)
-                    filters.put("channel",channel);
-            }
             if (filters.containsKey("tags")) {
                 Object tags = filters.get("tags");
                 if (null != tags) {

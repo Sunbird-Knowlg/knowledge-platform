@@ -5,9 +5,10 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import handlers.LoggingAction
 import managers.SearchManager
+import org.sunbird.search.util.SearchConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
-
+import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
@@ -23,6 +24,10 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
     def privateSearch() = loggingAction.async { implicit request =>
         val internalReq = getRequest(ApiId.APPLICATION_PRIVATE_SEARCH)
         setHeaderContext(internalReq)
+        val channel = internalReq.getContext.getOrDefault("CHANNEL_ID", "").asInstanceOf[String]
+        val filters = internalReq.getRequest.get(SearchConstants.filters).asInstanceOf[java.util.Map[String, Object]]
+        filters.putAll(Map("channel" -> channel).asJava)
+        internalReq.getContext.put("filters",filters)
         getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_PRIVATE_SEARCH)
     }
 
