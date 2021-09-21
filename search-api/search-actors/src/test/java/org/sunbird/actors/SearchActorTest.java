@@ -819,25 +819,6 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(statusCode);
     }
 
-    @Test
-    public void testPrivateSearchWithInvalidVisibility() {
-        Request request = getSearchRequest();
-        request.put("CHANNEL_ID","in.ekstep");
-        Map<String, Object> filters = new HashMap<String, Object>();
-        filters.put("identifier", "do_10000035");
-        request.put("filters", filters);
-        Response response = getSearchResponse(request);
-        Map<String, Object> result = response.getResult();
-        Request req = getGroupPrivateSearchResultsRequest();
-        req.put("searchResult", result);
-        Response resp = getSearchResponse(req);
-        Assert.assertEquals("failed", resp.getParams().getStatus());
-        Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), resp.getResponseCode().code());
-        Assert.assertEquals("ERR_ACCESS_DENIED", resp.getParams().getErr());
-        Assert.assertEquals("Content visibility is default, public or parent for identifier: do_10000035 Cannot be accessed through private api", resp.getParams().getErrmsg());
-
-    }
-
     @SuppressWarnings("unchecked")
     @Test
     public void testSearchByFields() {

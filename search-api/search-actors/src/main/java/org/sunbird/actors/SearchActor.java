@@ -631,7 +631,6 @@ public class SearchActor extends SearchBaseActor {
                     for (Object obj : lstResult) {
                         if (obj instanceof Map) {
                             Map<String, Object> map = (Map<String, Object>) obj;
-                            if(StringUtils.equalsIgnoreCase((String) map.getOrDefault("visibility", ""),"Private")) {
                                 if (StringUtils.equalsIgnoreCase((String) map.getOrDefault("channel", ""),(String) request.getContext().getOrDefault("CHANNEL_ID",""))) {
                                     String objectType = ((String) map.getOrDefault("objectType", "")).replaceAll("Image", "");
                                     if(StringUtils.equalsIgnoreCase("Collection", objectType) || StringUtils.equalsIgnoreCase("Asset", objectType))
@@ -659,10 +658,6 @@ public class SearchActor extends SearchBaseActor {
                                 else {
                                     throw new ClientException("ERR_INCORRECT_CHANNEL", "Channel id is not matched for identifier: " + map.get("identifier") );
                                 }
-                            }
-                            else {
-                                throw new ClientException("ERR_ACCESS_DENIED", "Content visibility is default, public or parent for identifier: " + map.get("identifier") + " Cannot be accessed through private api");
-                            }
                         }
                     }
                 }
