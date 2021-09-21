@@ -802,6 +802,7 @@ public class SearchActorTest extends SearchBaseActorTest {
     @Test
     public void testPrivateSearch() {
         Request request = getSearchRequest();
+        getSearchRequest().setId("api.search-service.private.search");
         request.put("CHANNEL_ID","in.ekstep");
         Map<String, Object> filters = new HashMap<String, Object>();
         filters.put("identifier", "do_10000036");
