@@ -50,17 +50,12 @@ object AssessmentManager {
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("Image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
-			if(StringUtils.equalsIgnoreCase(metadata.getOrDefault("visibility", "").asInstanceOf[String],"Private")) {
 				if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("channel", "").asInstanceOf[String],request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) {
 					ResponseHandler.OK.put(resName, metadata)
 				}
 				else {
 					throw new ClientException("ERR_INCORRECT_CHANNEL", "Channel id is not matched")
 				}
-			}
-			else {
-				throw new ClientException("ERR_ACCESS_DENIED", "Content visibility is default, public or parent. Cannot be accessed through private api")
-			}
 		})
 	}
 

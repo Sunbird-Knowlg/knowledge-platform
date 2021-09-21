@@ -89,29 +89,6 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		assert(response.getParams.getErrmsg == "Please Provide Channel!")
 	}
 
-	it should "return client error for 'readPrivateQuestion' if visibility is not 'Private'" in {
-		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
-		(oec.graphService _).expects().returns(graphDB)
-		val node = getNode("Question", Some(new util.HashMap[String, AnyRef]() {
-			{
-				put("name", "Question")
-				put("visibility","Public")
-				put("channel","abc-123")
-			}
-		}))
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
-		val request = getQuestionRequest()
-		request.getContext.put("identifier","do1234")
-		request.getRequest.put("channel", "abc-123")
-		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
-		request.setOperation("readPrivateQuestion")
-		val response = callActor(request, Props(new QuestionActor()))
-		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-		assert(response.getParams.getErr == "ERR_ACCESS_DENIED")
-		assert(response.getParams.getErrmsg == "Content visibility is default, public or parent. Cannot be accessed through private api")
-	}
-
 	it should "return client error for 'readPrivateQuestion' if channel is mismatched" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
