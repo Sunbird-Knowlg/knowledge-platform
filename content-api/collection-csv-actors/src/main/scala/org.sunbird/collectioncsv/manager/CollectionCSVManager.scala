@@ -423,7 +423,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
           else "[]"
         }
         TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> childrenFolders: " + childrenFolders)
-        val folderNodeHierarchy = s""""${record._1}": {"name": "${JsonUtils.serialize(nodeInfo("name").toString)}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
+        val folderNodeHierarchy = s""""${record._1}": {"name": "${nodeInfo("name").toString}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
         {
