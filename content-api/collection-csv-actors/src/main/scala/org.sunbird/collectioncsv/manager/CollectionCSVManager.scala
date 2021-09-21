@@ -66,8 +66,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     // Prepare nodesMetadata and hierarchyMetadata using the folderInfoMap
     val nodesMetadata = getNodesMetadata(folderInfoMap, mode, collectionHierarchy.getOrElse(CollectionTOCConstants.FRAMEWORK,"").asInstanceOf[String], collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString)
     val hierarchyMetadata = getHierarchyMetadata(folderInfoMap, mode, linkedContentsDetails, collectionHierarchy)
-    println(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> nodesMetadata: " + nodesMetadata)
-    println(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> hierarchyMetadata: " + hierarchyMetadata)
+    TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> nodesMetadata: " + nodesMetadata)
+    TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> hierarchyMetadata: " + hierarchyMetadata)
     // Invoke UpdateHierarchyManager to update the collection hierarchy
     val updateHierarchyResponse = UpdateHierarchyManager.updateHierarchy(getUpdateHierarchyRequest(nodesMetadata, hierarchyMetadata))
     TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> after invoking updateHierarchyManager: " + updateHierarchyResponse)
@@ -382,14 +382,15 @@ object CollectionCSVManager extends CollectionInputFileReader  {
 
       val hierarchyChildNodesInfo = scala.collection.mutable.LinkedHashMap.empty[String, scala.collection.mutable.Map[String,AnyRef]]
       populateHierarchyInfoMap(collectionUnitType, childrenHierarchy, hierarchyChildNodesInfo)
-
+      TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> hierarchyChildNodesInfo: " + hierarchyChildNodesInfo)
       val updatedFolderInfoMap: mutable.LinkedHashMap[String, scala.collection.mutable.Map[String,AnyRef]] = folderInfoMap.map(nodeData => {
         (nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]](CollectionTOCConstants.IDENTIFIER).toString -> nodeData._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]])
       })
-
+      TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> updatedFolderInfoMap: " + updatedFolderInfoMap)
       hierarchyChildNodesInfo.map(record => {
         val hierarchyNode = record._2
         val nodeInfo: scala.collection.mutable.Map[String, AnyRef] = if(updatedFolderInfoMap.contains(record._1)) updatedFolderInfoMap(record._1) else hierarchyNode
+        TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> nodeInfo: " + nodeInfo)
         val childrenFolders = if(!updatedFolderInfoMap.contains(record._1)) {
           if(hierarchyNode.contains(CollectionTOCConstants.CHILDREN) && hierarchyNode(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]].nonEmpty
             && hierarchyNode.contains(CollectionTOCConstants.LINKED_CONTENT) && hierarchyNode(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty) {
@@ -421,7 +422,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
             nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].toSet.mkString("[\"","\",\"","\"]")
           else "[]"
         }
-
+        TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> childrenFolders: " + childrenFolders)
         val folderNodeHierarchy = s""""${record._1}": {"name": "${nodeInfo("name").toString}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
@@ -496,7 +497,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       if (record(CollectionTOCConstants.CONTENT_TYPE).toString.equalsIgnoreCase(collectionUnitType) && record.contains(CollectionTOCConstants.CHILDREN))
         populateHierarchyInfoMap(collectionUnitType, record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]], hierarchyChildNodesInfo)
 
-      hierarchyChildNodesInfo += (record(CollectionTOCConstants.IDENTIFIER).toString -> scala.collection.mutable.Map(CollectionTOCConstants.NAME -> JsonUtils.serialize(record(CollectionTOCConstants.NAME).toString), CollectionTOCConstants.CONTENT_TYPE -> record(CollectionTOCConstants.CONTENT_TYPE).toString, CollectionTOCConstants.CHILDREN -> UnitChildren, CollectionTOCConstants.LINKED_CONTENT -> linkedContents))
+      if (record(CollectionTOCConstants.CONTENT_TYPE).toString.equalsIgnoreCase(collectionUnitType))
+        hierarchyChildNodesInfo += (record(CollectionTOCConstants.IDENTIFIER).toString -> scala.collection.mutable.Map(CollectionTOCConstants.NAME -> record(CollectionTOCConstants.NAME).toString, CollectionTOCConstants.CONTENT_TYPE -> record(CollectionTOCConstants.CONTENT_TYPE).toString, CollectionTOCConstants.CHILDREN -> UnitChildren, CollectionTOCConstants.LINKED_CONTENT -> linkedContents))
     })
   }
 
