@@ -390,7 +390,6 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       hierarchyChildNodesInfo.map(record => {
         val hierarchyNode = record._2
         val nodeInfo: scala.collection.mutable.Map[String, AnyRef] = if(updatedFolderInfoMap.contains(record._1)) updatedFolderInfoMap(record._1) else hierarchyNode
-        TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> nodeInfo: " + nodeInfo)
         val childrenFolders = if(!updatedFolderInfoMap.contains(record._1)) {
           if(hierarchyNode.contains(CollectionTOCConstants.CHILDREN) && hierarchyNode(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]].nonEmpty
             && hierarchyNode.contains(CollectionTOCConstants.LINKED_CONTENT) && hierarchyNode(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty) {
@@ -422,7 +421,6 @@ object CollectionCSVManager extends CollectionInputFileReader  {
             nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].toSet.mkString("[\"","\",\"","\"]")
           else "[]"
         }
-        TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: $collectionID -> childrenFolders: " + childrenFolders)
         val folderNodeHierarchy = s""""${record._1}": {"name": "${nodeInfo("name").toString}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
