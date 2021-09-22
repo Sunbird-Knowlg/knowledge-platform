@@ -92,6 +92,63 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new QuestionSetActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
+  
+    it should "return success response for 'readPrivateQuestionSet'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("QuestionSet", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "QuestionSet")
+                put("visibility","Private")
+                put("channel","abc-123")
+            }
+        }))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+        val request = getQuestionSetRequest()
+        request.getContext.put("identifier","do1234")
+        request.getRequest.put("channel", "abc-123")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateQuestionSet")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return client error for 'readPrivateQuestionSet' if channel is 'blank'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        val request = getQuestionSetRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateQuestionSet")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_INVALID_CHANNEL")
+        assert(response.getParams.getErrmsg == "Please Provide Channel!")
+    }
+
+    it should "return client error for 'readPrivateQuestionSet' if channel is mismatched" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("QuestionSet", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "QuestionSet")
+                put("visibility","Private")
+                put("channel","abc-123")
+            }
+        }))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getQuestionSetRequest()
+        request.getContext.put("identifier","do1234")
+        request.getRequest.put("channel", "abc")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readPrivateQuestionSet")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_INCORRECT_CHANNEL")
+        assert(response.getParams.getErrmsg == "Channel id is not matched")
+    }
 
     it should "return success response for 'updateQuestionSet'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
