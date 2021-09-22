@@ -26,7 +26,7 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
         setHeaderContext(internalReq)
         val channel = internalReq.getContext.getOrDefault("CHANNEL_ID", "").asInstanceOf[String]
         if(!channel.isBlank) {
-            val filters = internalReq.getRequest.get(SearchConstants.filters).asInstanceOf[java.util.Map[String, Object]]
+            val filters = internalReq.getRequest.getOrDefault(SearchConstants.filters,"").asInstanceOf[java.util.Map[String, Object]]
             filters.putAll(Map("channel" -> channel).asJava)
             internalReq.getContext.put("filters", filters)
         }
