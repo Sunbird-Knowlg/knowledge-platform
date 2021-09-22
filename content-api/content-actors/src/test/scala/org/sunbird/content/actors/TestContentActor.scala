@@ -246,7 +246,27 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    it should "return success response for 'readPrivateContent'" in {
+    it should "return client error response for 'readContent' if visibility is 'Private" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB)
+        val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
+            {
+                put("name", "Content")
+                put("visibility","Private")
+            }
+        }))
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.setOperation("readContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    }
+  
+   it should "return success response for 'readPrivateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -304,7 +324,6 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
         assert(response.getParams.getErr == "ERR_INCORRECT_CHANNEL")
         assert(response.getParams.getErrmsg == "Channel id is not matched")
-
     }
 
     it should "return success response for 'updateContent'" in {
