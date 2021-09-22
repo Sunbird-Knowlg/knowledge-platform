@@ -39,6 +39,13 @@ class ContentSpec extends BaseSpec {
       status(result) must equalTo(OK)
     }
 
+    "return success response for private read API" in {
+      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val result = controller.privateRead("do_123", None, None)(FakeRequest())
+      isOK(result)
+      status(result) must equalTo(OK)
+    }
+
     "return success response for flag API" in {
       val controller = app.injector.instanceOf[controllers.v4.ContentController]
       val result = controller.flag("do_123")(FakeRequest())
