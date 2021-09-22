@@ -2,6 +2,7 @@ package controllers
 
 import org.junit.runner._
 import org.specs2.runner._
+import play.api.libs.json.{JsValue, Json}
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -18,7 +19,9 @@ class SearchSpec extends BaseSpec {
 
         "search contents on private search request" in {
             val controller = app.injector.instanceOf[controllers.SearchController]
-            val response = controller.privateSearch()(FakeRequest())
+            val json: JsValue = Json.parse("""{"request": {"filters": {"objectType": ["Framework"]}}}""")
+            val fakeRequest = FakeRequest("POST", "/v3/private/search").withJsonBody(json).withHeaders(FakeHeaders())
+            val response = controller.privateSearch()(fakeRequest)
             isOK(response)
             status(response) must equalTo(OK)
         }
