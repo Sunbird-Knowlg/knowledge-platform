@@ -109,8 +109,8 @@ public class SearchActor extends SearchBaseActor {
             if (null == filters)
                 filters = new HashMap<>();
 
-            if (StringUtils.equalsIgnoreCase(request.getId(),SearchConstants.application_search_apiid)) {
-                Object visibilityObject = filters.get(SearchConstants.visibility);
+            if (StringUtils.equalsIgnoreCase(request.getId(),SearchConstants.APPLICATION_SEARCH_APIID)) {
+                Object visibilityObject = filters.get(SearchConstants.VISIBILITY);
                 if (visibilityObject != null) {
                     List<String> visibility = null;
                     if (visibilityObject instanceof List) {
@@ -125,7 +125,7 @@ public class SearchActor extends SearchBaseActor {
                     }
                 }
                  else {
-                    filters.put(SearchConstants.visibility, "Default");
+                    filters.put(SearchConstants.VISIBILITY, "Default");
                 }
             }
 
