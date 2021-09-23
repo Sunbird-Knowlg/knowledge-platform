@@ -78,7 +78,7 @@ object DefinitionNode {
     def validate(identifier: String, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
-        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String].replaceAll("image", "")
         val reqVersioning: String = request.getContext.getOrDefault("versioning", "").asInstanceOf[String]
         val versioning = if(StringUtils.isBlank(reqVersioning)) None else Option(reqVersioning)
 	      val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
