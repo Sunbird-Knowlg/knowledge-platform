@@ -111,7 +111,8 @@ public class SearchConstants {
     public static final String ContentImage = "ContentImage";
     public static final String mode = "mode";
     public static final String softConstraints = "softConstraints";
-    public static final String visibility = "visibility";
-    public static final String application_search_apiid = "api.search-service.search";
     public static String soft = "soft";
+    public static final String VISIBILITY = "visibility";
+    public static final String APPLICATION_SEARCH_APIID = "api.search-service.search";
+
 }
