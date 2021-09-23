@@ -820,6 +820,25 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(statusCode);
     }
 
+    @Test
+    public void testVisibilityConditions() {
+        Request request = getSearchRequest();
+        request.setId("api.search-service.search");
+        Map<String, Object> filters = new HashMap<String, Object>();
+        List<String> objectTypes = new ArrayList<String>();
+        objectTypes.add("Content");
+        filters.put("objectType", objectTypes);
+        List<String> visibility = new ArrayList<String>();
+        visibility.add("Private");
+        filters.put("visibility", visibility);
+        request.put("filters", filters);
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        Assert.assertEquals("failed", response.getParams().getStatus());
+        Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), response.getResponseCode().code());
+        Assert.assertEquals("ERR_ACCESS_DENIED", response.getParams().getErr());
+    }
+
     @SuppressWarnings("unchecked")
     @Test
     public void testSearchByFields() {
