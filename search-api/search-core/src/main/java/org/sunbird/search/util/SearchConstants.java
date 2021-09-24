@@ -59,7 +59,6 @@ public class SearchConstants {
     public static final String ERR_SYSTEM_ACTOR_NOT_CREATED = "ERR_SYSTEM_ACTOR_NOT_CREATED";
     public static final String ERR_ROUTER_ACTOR_NOT_FOUND = "ERR_ROUTER_ACTOR_NOT_FOUND";
     public static final String ERR_INVALID_OPERATION = "ERR_INVALID_OPERATION";
-    public static final String ERR_ACCESS_DENIED = "ERR_ACCESS_DENIED";
     public static final String SYSTEM_ERROR = "SYSTEM_ERROR";
 
     /**
@@ -112,7 +111,5 @@ public class SearchConstants {
     public static final String mode = "mode";
     public static final String softConstraints = "softConstraints";
     public static String soft = "soft";
-    public static final String VISIBILITY = "visibility";
-    public static final String APPLICATION_SEARCH_APIID = "api.search-service.search";
 
 }
