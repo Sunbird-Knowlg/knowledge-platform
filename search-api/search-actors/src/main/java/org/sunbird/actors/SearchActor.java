@@ -108,27 +108,6 @@ public class SearchActor extends SearchBaseActor {
             Map<String, Object> filters = (Map<String, Object>) req.get(SearchConstants.filters);
             if (null == filters)
                 filters = new HashMap<>();
-
-            if (StringUtils.equalsIgnoreCase(request.getId(),SearchConstants.APPLICATION_SEARCH_APIID)) {
-                Object visibilityObject = filters.get(SearchConstants.VISIBILITY);
-                if (visibilityObject != null) {
-                    List<String> visibility = null;
-                    if (visibilityObject instanceof List) {
-                        visibility = (List<String>) visibilityObject;
-                    } else if (visibilityObject instanceof String) {
-                        visibility = Arrays.asList((String) visibilityObject);
-                    } else if (visibilityObject instanceof String[]) {
-                        visibility = Arrays.asList((String[]) visibilityObject);
-                    }
-                    if (visibility.contains("Private")) {
-                        throw new ClientException(SearchConstants.ERR_ACCESS_DENIED, "Cannot access private content through public search api ");
-                    }
-                }
-                 else {
-                    filters.put(SearchConstants.VISIBILITY, "Default");
-                }
-            }
-
             if (filters.containsKey("tags")) {
                 Object tags = filters.get("tags");
                 if (null != tags) {
