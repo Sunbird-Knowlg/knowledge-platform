@@ -1,21 +1,22 @@
 package org.sunbird.actors
 
+import java.util
+
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.HttpUtil
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.dac.model.{Node, SearchCriteria}
+import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
+import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria}
+import org.sunbird.graph.nodes.DataNode.getRelationMap
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.utils.JavaJsonUtils
 
-import java.util
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class QuestionSetActorTest extends BaseSpec with MockFactory {
 
@@ -71,26 +72,6 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         request.setOperation("readQuestionSet")
         val response = callActor(request, Props(new QuestionSetActor()))
         assert("successful".equals(response.getParams.getStatus))
-    }
-
-    it should "return client error response for 'readQuestionSet' if visibility is 'Private'" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNode("QuestionSet", Some(new util.HashMap[String, AnyRef]() {
-            {
-                put("name", "QuestionSet")
-                put("description", "Updated question Set")
-                put("visibility","Private")
-            }
-        }))
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
-        val request = getQuestionSetRequest()
-        request.getContext.put("identifier", "do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
-        request.setOperation("readQuestionSet")
-        val response = callActor(request, Props(new QuestionSetActor()))
-        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
     it should "return success response for 'updateQuestionSet'" in {
