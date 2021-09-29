@@ -17,10 +17,12 @@
     "properties": {
         "name": {
             "type": "string",
-            "minLength": 5
+            "minLength": 5,
+            "pattern": "^[a-zA-Z0-9_#@%&*!^]*$"
         },
         "code": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_]*$"
         },
         "primaryCategory": {
             "type": "string"
@@ -42,11 +44,13 @@
         },
         "startDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
         },
         "endDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
         },
         "startTime": {
             "type": "string",
@@ -58,11 +62,13 @@
         },
         "registrationStartDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
         },
         "registrationEndDate": {
             "type": "string",
-            "format": "date"
+            "format": "date",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
         },
         "eventType": {
             "type": "string",
