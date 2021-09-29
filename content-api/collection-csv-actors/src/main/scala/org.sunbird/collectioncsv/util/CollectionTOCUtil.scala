@@ -81,7 +81,7 @@ object CollectionTOCUtil {
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> requestUrl: " + requestUrl)
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> reqMap: " + JsonUtils.serialize(reqMap))
     val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
-
+    TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> searchResponse: " + searchResponse)
     if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
       throw new ServerException("SERVER_ERROR", "Error while fetching Linked Contents List.")
 
