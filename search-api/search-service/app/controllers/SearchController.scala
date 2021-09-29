@@ -8,8 +8,6 @@ import managers.SearchManager
 import org.sunbird.search.util.SearchConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
-
-import java.util
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
@@ -20,18 +18,7 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
     def search() = loggingAction.async { implicit request =>
         val internalReq = getRequest(ApiId.APPLICATION_SEARCH)
         setHeaderContext(internalReq)
-        val filters = internalReq.getRequest.getOrDefault(SearchConstants.filters, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        val visibility: util.ArrayList[String] = filters.getOrDefault("visibility",new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
-        if (visibility.contains("Private")) {
-            getErrorResponse(ApiId.APPLICATION_SEARCH, "3.0", "ERR_ACCESS_DENIED", "Cannot access private content through public search api")
-        }
-        else {
-            if (visibility.isEmpty) {
-                filters.putAll(Map("visibility" -> "Default").asJava)
-            }
-            internalReq.getContext.put("filters", filters)
-            getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_SEARCH)
-        }
+        getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_SEARCH)
     }
 
     def privateSearch() = loggingAction.async { implicit request =>
