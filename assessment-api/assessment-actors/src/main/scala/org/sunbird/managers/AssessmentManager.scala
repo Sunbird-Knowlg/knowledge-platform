@@ -39,12 +39,7 @@ object AssessmentManager {
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("Image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
-			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
-				ResponseHandler.OK.put(resName, metadata)
-			}
-			else {
-				throw new ClientException("ERR_ACCESS_DENIED", s"$resName visibility is private, hence access denied")
-			}
+			ResponseHandler.OK.put(resName, metadata)
 		})
 	}
 
