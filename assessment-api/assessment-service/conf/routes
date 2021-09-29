@@ -14,7 +14,6 @@ DELETE    /itemset/v3/retire/:identifier    controllers.v3.ItemSetController.ret
 # Question API's
 POST      /question/v4/create                     controllers.v4.QuestionController.create
 GET       /question/v4/read/:identifier           controllers.v4.QuestionController.read(identifier:String, mode:Option[String], fields:Option[String])
-GET       /question/v4/private/read/:identifier   controllers.v4.QuestionController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
 PATCH     /question/v4/update/:identifier         controllers.v4.QuestionController.update(identifier:String)
 POST      /question/v4/review/:identifier         controllers.v4.QuestionController.review(identifier:String)
 POST      /question/v4/publish/:identifier        controllers.v4.QuestionController.publish(identifier:String)
@@ -26,7 +25,6 @@ POST      /question/v4/list                       controllers.v4.QuestionControl
 # QuestionSet API's
 POST      /questionset/v4/create                     controllers.v4.QuestionSetController.create
 GET       /questionset/v4/read/:identifier           controllers.v4.QuestionSetController.read(identifier:String, mode:Option[String], fields:Option[String])
-GET       /questionset/v4/private/read/:identifier   controllers.v4.QuestionSetController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
 PATCH     /questionset/v4/update/:identifier         controllers.v4.QuestionSetController.update(identifier:String)
 POST      /questionset/v4/review/:identifier         controllers.v4.QuestionSetController.review(identifier:String)
 POST      /questionset/v4/publish/:identifier        controllers.v4.QuestionSetController.publish(identifier:String)

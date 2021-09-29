@@ -1,7 +1,7 @@
 package utils
 
 object QuestionSetOperations extends Enumeration {
-	val createQuestionSet, readQuestionSet, readPrivateQuestionSet, updateQuestionSet, reviewQuestionSet, publishQuestionSet,
+	val createQuestionSet, readQuestionSet, updateQuestionSet, reviewQuestionSet, publishQuestionSet,
 	retireQuestionSet, addQuestion, removeQuestion, updateHierarchyQuestion, readHierarchyQuestion,
 	rejectQuestionSet, importQuestionSet, systemUpdateQuestionSet = Value
 }

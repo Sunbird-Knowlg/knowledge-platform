@@ -28,7 +28,6 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 	override def onReceive(request: Request): Future[Response] = request.getOperation match {
 		case "createQuestion" => AssessmentManager.create(request, "ERR_QUESTION_CREATE")
 		case "readQuestion" => AssessmentManager.read(request, "question")
-		case "readPrivateQuestion" => AssessmentManager.privateRead(request, "question")
 		case "updateQuestion" => update(request)
 		case "reviewQuestion" => review(request)
 		case "publishQuestion" => publish(request)
