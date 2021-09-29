@@ -47,6 +47,7 @@ object CollectionTOCConstants {
   val LINKED_CONTENT = "linkedContent"
   val CHANNEL = "channel"
   val CONTENT = "content"
+  val QUESTION_SET = "QuestionSet"
   val FRAMEWORK = "framework"
   val VERSION_KEY = "versionKey"
   val SUNBIRD_TOC_MAX_FIRST_LEVEL_UNITS = "collection.csv.maxFirstLevelUnits"
