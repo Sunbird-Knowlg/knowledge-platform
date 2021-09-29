@@ -86,12 +86,12 @@ object CollectionTOCUtil {
       throw new ServerException("SERVER_ERROR", "Error while fetching Linked Contents List.")
 
     try {
-      TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> searchResponse.getResult: " + searchResponse.getResult)
+      TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse.getResult: " + searchResponse.getResult)
       searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
     }
     catch {
-      case _:Exception =>
-        List.empty
+      case ex:Exception => TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> Exception:: " + ex.getMessage)
+          List.empty
     }
   }
 
