@@ -87,7 +87,11 @@ object CollectionTOCUtil {
 
     try {
       TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse.getResult: " + searchResponse.getResult)
-      searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
+      val contentList = searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
+      TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse --> contentList: " + contentList)
+      val questionSetList = searchResponse.getResult.getOrDefault(CollectionTOCConstants.QUESTION_SET, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
+      TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse --> questionSetList: " + questionSetList)
+      contentList ++ questionSetList
     }
     catch {
       case ex:Exception => TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> Exception:: " + ex.getMessage)
