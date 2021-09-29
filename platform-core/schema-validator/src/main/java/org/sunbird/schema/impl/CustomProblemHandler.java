@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 public class CustomProblemHandler implements ProblemHandler {
 
@@ -33,7 +34,8 @@ public class CustomProblemHandler implements ProblemHandler {
     }
 
     private String processMessage(Problem problem) {
-        String keyword = StringUtils.isNotBlank(problem.getKeyword()) ? problem.getKeyword() : "additionalProp";
+
+       String keyword = StringUtils.isNotBlank(problem.getKeyword()) ? problem.getKeyword() : "additionalProp";
         switch (keyword) {
             case "enum":
                 return ("Metadata " + Arrays.stream(problem.getPointer().split("/"))
@@ -73,8 +75,26 @@ public class CustomProblemHandler implements ProblemHandler {
                         + " : "
                         + problem.getMessage());
             }
+            case "minLength": {
+                 int actual = (int) problem.parametersAsMap().get("actual");
+                 int limit = (int) problem.parametersAsMap().get("limit");
+                 if( actual < limit)
+                 {
+                     return problem.getPointer().replaceAll("/", "")
+                        + " must be at least "+ problem.parametersAsMap().get("limit") +" characters long";
+                 }
+            }
+            case "pattern": {
+                 boolean matches = Pattern.matches((String) problem.parametersAsMap().get("pattern"),(String) problem.parametersAsMap().get("actual"));
+                 if(matches == false)
+                 {
+                       return problem.getPointer().replaceAll("/", "") + " does not match the requested pattern "+problem.parametersAsMap().get("pattern");
+                 }         
+            }
             default:
                 return "";
         }
+       
     }
+    
 }
