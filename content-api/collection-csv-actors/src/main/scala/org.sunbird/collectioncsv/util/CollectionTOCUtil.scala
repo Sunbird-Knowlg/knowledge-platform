@@ -81,11 +81,12 @@ object CollectionTOCUtil {
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> requestUrl: " + requestUrl)
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> reqMap: " + JsonUtils.serialize(reqMap))
     val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
-    TelemetryManager.log("CollectionTOCUtil --> linkDIALCode --> searchResponse: " + searchResponse)
+    TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> searchResponse: " + searchResponse)
     if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
       throw new ServerException("SERVER_ERROR", "Error while fetching Linked Contents List.")
 
     try {
+      TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> searchResponse.getResult: " + searchResponse.getResult)
       searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
     }
     catch {
