@@ -62,16 +62,6 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         getResult(ApiId.READ_COLLECTION, contentActor, readRequest, version = apiVersion)
     }
 
-    def privateRead(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-        content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
-        val readRequest = getRequest(content, headers, "readPrivateContent")
-        setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_PRIVATE_COLLECTION, contentActor, readRequest, version = apiVersion)
-    }
-
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
