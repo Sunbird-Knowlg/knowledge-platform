@@ -35,16 +35,6 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		getResult(ApiId.READ_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
 
-	def privateRead(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
-		val headers = commonHeaders()
-		val questionSet = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-		questionSet.putAll(headers)
-		questionSet.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read")).asJava)
-		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.readPrivateQuestionSet.toString)
-		setRequestContext(questionSetRequest, version, objectType, schemaName)
-		getResult(ApiId.READ_PRIVATE_QUESTION_SET, questionSetActor, questionSetRequest)
-	}
-
 	def update(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()

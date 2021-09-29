@@ -28,7 +28,6 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 	override def onReceive(request: Request): Future[Response] = request.getOperation match {
 		case "createQuestionSet" => AssessmentManager.create(request, "ERR_QUESTION_SET_CREATE")
 		case "readQuestionSet" => AssessmentManager.read(request, "questionset")
-		case "readPrivateQuestionSet" => AssessmentManager.privateRead(request, "questionset")
 		case "updateQuestionSet" => update(request)
 		case "reviewQuestionSet" => review(request)
 		case "publishQuestionSet" => publish(request)

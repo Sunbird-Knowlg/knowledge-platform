@@ -15,7 +15,6 @@ object ApiId {
 	//Question APIs
 	val CREATE_QUESTION = "api.question.create"
 	val READ_QUESTION = "api.question.read"
-	val READ_PRIVATE_QUESTION = "api.question.private.read"
 	val UPDATE_QUESTION = "api.question.update"
 	val REVIEW_QUESTION = "api.question.review"
 	val PUBLISH_QUESTION = "api.question.publish"
@@ -27,7 +26,6 @@ object ApiId {
 	//QuestionSet APIs
 	val CREATE_QUESTION_SET = "api.questionset.create"
 	val READ_QUESTION_SET = "api.questionset.read"
-	val READ_PRIVATE_QUESTION_SET = "api.questionset.private.read"
 	val UPDATE_QUESTION_SET = "api.questionset.update"
 	val REVIEW_QUESTION_SET = "api.questionset.review"
 	val PUBLISH_QUESTION_SET = "api.questionset.publish"
