@@ -1,5 +1,8 @@
 package controllers
 
+import java.util
+import java.util.UUID
+
 import akka.actor.ActorRef
 import akka.pattern.Patterns
 import org.apache.commons.lang3.StringUtils
@@ -9,9 +12,8 @@ import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.telemetry.TelemetryParams
 import play.api.mvc._
 
-import java.util
-import java.util.UUID
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class SearchBaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
@@ -121,13 +123,5 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
         if (null != searchRequest.getContext.get("CONSUMER_ID")) searchRequest.put(TelemetryParams.ACTOR.name, searchRequest.getContext.get("CONSUMER_ID"))
         else if (null != searchRequest && null != searchRequest.getParams.getCid) searchRequest.put(TelemetryParams.ACTOR.name, searchRequest.getParams.getCid)
         else searchRequest.put(TelemetryParams.ACTOR.name, "learning.platform")
-    }
-
-    def getErrorResponse(apiId: String, version: String, errCode: String, errMessage: String): Future[Result] = {
-        val result = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, errCode, errMessage)
-        result.setId(apiId)
-        result.setVer(version)
-        setResponseEnvelope(result)
-        Future(BadRequest(JsonUtils.serialize(result)).as("application/json"))
     }
 }
