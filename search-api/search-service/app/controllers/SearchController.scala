@@ -9,15 +9,41 @@ import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
 import scala.concurrent.ExecutionContext
+import java.util
 
 class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
+
+    val apiVersion = "3.0"
 
     val mgr: SearchManager = new SearchManager()
 
     def search() = loggingAction.async { implicit request =>
         val internalReq = getRequest(ApiId.APPLICATION_SEARCH)
         setHeaderContext(internalReq)
-        getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_SEARCH)
+        val filters = internalReq.getRequest.getOrDefault(SearchConstants.filters, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val visibility: util.ArrayList[String] = filters.getOrDefault("visibility",new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
+        if (visibility.contains("Private")) {
+            getErrorResponse(ApiId.APPLICATION_SEARCH, apiVersion, SearchConstants.ERR_ACCESS_DENIED, "Cannot access private content through public search api")
+        }
+        else {
+            internalReq.getContext.put(SearchConstants.setDefaultVisibility, "true")
+            getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_SEARCH)
+        }
+    }
+
+    def privateSearch() = loggingAction.async { implicit request =>
+        val internalReq = getRequest(ApiId.APPLICATION_PRIVATE_SEARCH)
+        setHeaderContext(internalReq)
+        val channel = internalReq.getContext.getOrDefault("CHANNEL_ID", "").asInstanceOf[String]
+        if(channel.isBlank) {
+            getErrorResponse(ApiId.APPLICATION_PRIVATE_SEARCH, apiVersion, SearchConstants.ERR_INVALID_CHANNEL, "Please provide channel!")
+        } else {
+            val filters = internalReq.getRequest.getOrDefault(SearchConstants.filters,"").asInstanceOf[java.util.Map[String, Object]]
+            filters.putAll(Map("channel" -> channel).asJava)
+            internalReq.getContext.put(SearchConstants.filters, filters)
+            internalReq.getContext.put(SearchConstants.setDefaultVisibility, "false")
+            getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_PRIVATE_SEARCH)
+        }
     }
 
     def count() = Action.async { implicit request =>

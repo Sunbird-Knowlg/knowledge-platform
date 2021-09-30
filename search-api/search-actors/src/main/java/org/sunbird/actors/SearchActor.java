@@ -6,6 +6,7 @@ import akka.dispatch.Recover;
 import akka.util.Timeout;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.Platform;
@@ -235,7 +236,7 @@ public class SearchActor extends SearchBaseActor {
             // Changing fields to null so that search all fields but returns
             // only the fields specified
             properties.addAll(getSearchQueryProperties(queryString, null));
-            properties.addAll(getSearchFilterProperties(filters, wordChainsRequest));
+            properties.addAll(getSearchFilterProperties(filters, wordChainsRequest,request));
             searchObj.setSortBy(sortBy);
             searchObj.setFacets(facets);
             searchObj.setProperties(properties);
@@ -366,7 +367,7 @@ public class SearchActor extends SearchBaseActor {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private List<Map<String, Object>> getSearchFilterProperties(Map<String, Object> filters, Boolean traversal)
+    private List<Map<String, Object>> getSearchFilterProperties(Map<String, Object> filters, Boolean traversal, Request request)
             throws Exception {
         List<Map<String, Object>> properties = new ArrayList<Map<String, Object>>();
         if (null == filters) filters = new HashMap<String, Object>();
@@ -515,7 +516,7 @@ public class SearchActor extends SearchBaseActor {
             properties.add(property);
         }
 
-        if (setDefaultVisibility(filters)) {
+        if (request.getContext().getOrDefault("setDefaultVisibility","") == "true" && setDefaultVisibility(filters)) {
             Map<String, Object> property = getFilterProperty("visibility", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Default" }));
             properties.add(property);
         }
@@ -767,7 +768,7 @@ public class SearchActor extends SearchBaseActor {
                 }
             }
             List<Map> implicitFilterProps = new ArrayList<Map>();
-            implicitFilterProps.addAll(getSearchFilterProperties(implicitFilter, false));
+            implicitFilterProps.addAll(getSearchFilterProperties(implicitFilter, false, new Request()));
             searchObj.setImplicitFilterProperties(implicitFilterProps);
         }
     }
