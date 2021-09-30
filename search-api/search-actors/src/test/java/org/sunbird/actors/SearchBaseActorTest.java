@@ -49,16 +49,19 @@ public class SearchBaseActorTest {
 
     protected Request getSearchRequest() {
         Request request = new Request();
+        request.setContext(new HashMap<String, Object>());
         return setSearchContext(request, SEARCH_ACTOR , "INDEX_SEARCH");
     }
 
     protected Request getCountRequest() {
         Request request = new Request();
+        request.setContext(new HashMap<String, Object>());
         return setSearchContext(request, SEARCH_ACTOR , "COUNT");
     }
 
     protected Request getMetricsRequest() {
         Request request = new Request();
+        request.setContext(new HashMap<String, Object>());
         return setSearchContext(request, SEARCH_ACTOR , "METRICS");
     }
 

@@ -235,7 +235,7 @@ public class SearchActor extends SearchBaseActor {
             // Changing fields to null so that search all fields but returns
             // only the fields specified
             properties.addAll(getSearchQueryProperties(queryString, null));
-            properties.addAll(getSearchFilterProperties(filters, wordChainsRequest,request));
+            properties.addAll(getSearchFilterProperties(filters, wordChainsRequest, request));
             searchObj.setSortBy(sortBy);
             searchObj.setFacets(facets);
             searchObj.setProperties(properties);
@@ -515,7 +515,7 @@ public class SearchActor extends SearchBaseActor {
             properties.add(property);
         }
 
-        if (request.getContext().getOrDefault("setDefaultVisibility","") == "true" && setDefaultVisibility(filters)) {
+        if (!StringUtils.equalsIgnoreCase((String) request.getContext().getOrDefault("setDefaultVisibility",""),"false")  && setDefaultVisibility(filters)) {
             Map<String, Object> property = getFilterProperty("visibility", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Default" }));
             properties.add(property);
         }
@@ -767,7 +767,9 @@ public class SearchActor extends SearchBaseActor {
                 }
             }
             List<Map> implicitFilterProps = new ArrayList<Map>();
-            implicitFilterProps.addAll(getSearchFilterProperties(implicitFilter, false, new Request()));
+            Request request = new Request();
+            request.setContext(new HashMap<String, Object>());
+            implicitFilterProps.addAll(getSearchFilterProperties(implicitFilter, false, request));
             searchObj.setImplicitFilterProperties(implicitFilterProps);
         }
     }
