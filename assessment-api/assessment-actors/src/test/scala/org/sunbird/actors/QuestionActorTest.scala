@@ -1,11 +1,11 @@
 package org.sunbird.actors
 import java.util
-
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.HttpUtil
 import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.common.dto.{Property, Request, Response}
+import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
@@ -53,6 +53,25 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setOperation("readQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))
+	}
+
+	it should "return client error response for 'readQuestion' if visibility is 'Private'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB)
+		val node = getNode("Question", Some(new util.HashMap[String, AnyRef]() {
+			{
+				put("name", "Question")
+				put("visibility","Private")
+			}
+		}))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+		val request = getQuestionRequest()
+		request.getContext.put("identifier", "do1234")
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+		request.setOperation("readQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
 	}
 
 	it should "return success response for 'updateQuestion'" in {

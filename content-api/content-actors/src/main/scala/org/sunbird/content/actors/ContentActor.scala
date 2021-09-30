@@ -79,7 +79,12 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
       else {
         response.put(responseSchemaName, metadata)
       }
-			response
+			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
+				response
+			}
+			else {
+				throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
+			}
 		})
 	}
 
