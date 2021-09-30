@@ -74,26 +74,6 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    it should "return client error response for 'readQuestionSet' if visibility is 'Private'" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNode("QuestionSet", Some(new util.HashMap[String, AnyRef]() {
-            {
-                put("name", "QuestionSet")
-                put("description", "Updated question Set")
-                put("visibility","Private")
-            }
-        }))
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
-        val request = getQuestionSetRequest()
-        request.getContext.put("identifier", "do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
-        request.setOperation("readQuestionSet")
-        val response = callActor(request, Props(new QuestionSetActor()))
-        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-    }
-  
     it should "return success response for 'readPrivateQuestionSet'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
