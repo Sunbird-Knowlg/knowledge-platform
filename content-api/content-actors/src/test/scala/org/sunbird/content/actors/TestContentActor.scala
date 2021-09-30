@@ -301,7 +301,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getParams.getErr == "ERR_INVALID_CHANNEL")
         assert(response.getParams.getErrmsg == "Please Provide Channel!")
     }
-
+    
     it should "return client error for 'readPrivateContent' if channel is mismatched" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
