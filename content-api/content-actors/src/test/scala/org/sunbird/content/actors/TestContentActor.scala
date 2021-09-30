@@ -254,6 +254,7 @@ class TestContentActor extends BaseSpec with MockFactory {
             {
                 put("name", "Content")
                 put("visibility","Private")
+                put("description", "test desc")
             }
         }))
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
