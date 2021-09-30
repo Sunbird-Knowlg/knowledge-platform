@@ -5,11 +5,13 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 import handlers.LoggingAction
 import managers.SearchManager
+import org.sunbird.search.util.SearchConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
 import scala.concurrent.ExecutionContext
 import java.util
+import scala.collection.JavaConverters._
 
 class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
 

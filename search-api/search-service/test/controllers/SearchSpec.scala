@@ -2,6 +2,7 @@ package controllers
 
 import org.junit.runner._
 import org.specs2.runner._
+import play.api.libs.json.{JsValue, Json}
 import play.api.test._
 import play.api.test.Helpers._
 
@@ -15,7 +16,7 @@ class SearchSpec extends BaseSpec {
             isOK(response)
             status(response) must equalTo(OK)
         }
-      
+
         "return client error response for search API if visibility is 'Private'" in {
             val controller = app.injector.instanceOf[controllers.SearchController]
             val json: JsValue = Json.parse("""{"request": {"filters": {"visibility": ["Private"]}}}""")
