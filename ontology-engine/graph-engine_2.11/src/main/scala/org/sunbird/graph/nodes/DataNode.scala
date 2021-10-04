@@ -64,7 +64,7 @@ object DataNode {
             else
                 Future(node)
         }).flatMap(f => f) recoverWith {
-            case e: CompletionException => throw e.getCause
+          case e: CompletionException => throw e.getCause
         }
     }
 

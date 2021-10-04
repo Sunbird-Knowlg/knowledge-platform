@@ -71,6 +71,10 @@
         "default": "Student"
       }
     },
+    "posterImage": {
+      "type": "string",
+      "format": "url"
+    },
     "author": {
       "type": "string"
     },
