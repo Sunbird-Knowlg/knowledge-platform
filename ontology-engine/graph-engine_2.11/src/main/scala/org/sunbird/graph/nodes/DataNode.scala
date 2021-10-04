@@ -64,7 +64,9 @@ object DataNode {
             else
                 Future(node)
         }).flatMap(f => f) recoverWith {
-            case e: CompletionException => throw e.getCause
+            case e: CompletionException =>
+              println("identifier: " + request.get("identifier").asInstanceOf[String] + ", error: " + e.getMessage)
+              throw e.getCause
         }
     }
 
