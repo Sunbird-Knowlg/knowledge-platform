@@ -515,7 +515,7 @@ public class SearchActor extends SearchBaseActor {
             properties.add(property);
         }
 
-        if (!StringUtils.equalsIgnoreCase((String) request.getContext().getOrDefault("setDefaultVisibility",""),"false")  && setDefaultVisibility(filters)) {
+        if (request != null && !StringUtils.equalsIgnoreCase((String) request.getContext().getOrDefault("setDefaultVisibility",""),"false")  && setDefaultVisibility(filters)) {
             Map<String, Object> property = getFilterProperty("visibility", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Default" }));
             properties.add(property);
         }
@@ -767,9 +767,7 @@ public class SearchActor extends SearchBaseActor {
                 }
             }
             List<Map> implicitFilterProps = new ArrayList<Map>();
-            Request request = new Request();
-            request.setContext(new HashMap<String, Object>());
-            implicitFilterProps.addAll(getSearchFilterProperties(implicitFilter, false, request));
+            implicitFilterProps.addAll(getSearchFilterProperties(implicitFilter, false, null));
             searchObj.setImplicitFilterProperties(implicitFilterProps);
         }
     }
