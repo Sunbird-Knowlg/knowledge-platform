@@ -97,8 +97,8 @@ object UpdateHierarchyManager {
         DataNode.read(req).map(rootNode => {
             val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new java.util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
             if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.QUESTIONSET_MIME_TYPE)) {
-                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
+                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
             }
             if(!StringUtils.equals(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String], HierarchyConstants.DEFAULT)) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Visibility found for Root node id: " + identifier)

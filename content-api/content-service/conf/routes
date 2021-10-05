@@ -79,7 +79,7 @@ GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.Coll
 POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
 POST     /collection/v4/copy/:identifier                     controllers.v4.CollectionController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 PATCH    /collection/v4/system/update/:identifier            controllers.v4.CollectionController.systemUpdate(identifier:String)
-
+POST     /collection/v4/review/reject/:identifier    controllers.v4.CollectionController.reviewReject(identifier:String)
 
 # Content v4 APIs
 POST      /content/v4/create                       controllers.v4.ContentController.create
@@ -95,6 +95,7 @@ POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentControl
 DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
 DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
 PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentController.systemUpdate(identifier:String)
+POST      /content/v4/review/reject/:identifier    controllers.v4.ContentController.reviewReject(identifier:String)
 
 # App v4 APIs
 POST      /app/v4/register                          controllers.v4.AppController.register
@@ -120,3 +121,8 @@ DELETE  /private/eventset/v4/retire/:identifier  controllers.v4.EventSetControll
 
 # Object v4 Api's
 GET     /object/v4/read/:identifier              controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
+
+
+# Collection TOC CSV APIs
+POST    /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
+GET    /collection/v4/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])

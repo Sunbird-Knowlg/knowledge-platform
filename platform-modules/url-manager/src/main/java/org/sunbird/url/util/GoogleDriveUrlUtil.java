@@ -10,12 +10,17 @@ import com.google.api.services.drive.Drive.Files.Get;
 import com.google.api.services.drive.model.File;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sunbird.common.Platform;
+import org.sunbird.common.Slug;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.sunbird.url.common.URLErrorCodes;
 
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +32,7 @@ import java.util.regex.Pattern;
  * This Class Provides Utility Methods Which Process Given Google Drive File Url
  */
 public class GoogleDriveUrlUtil {
+	private static final Logger logger = LoggerFactory.getLogger("GoogleDriveUrlUtil");
 
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
@@ -137,5 +143,28 @@ public class GoogleDriveUrlUtil {
 		if (limitExceeded)
 			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
 		return googleDriveFile;
+	}
+
+
+	public static java.io.File downloadFile(String fileId, String saveDir) {
+		try {
+			Drive.Files.Get getFile = drive.files().get(fileId);
+			getFile.setKey(API_KEY);
+			getFile.setFields("id,name,size,owners,mimeType,properties,permissionIds,webContentLink");
+			com.google.api.services.drive.model.File googleDriveFile = getFile.execute();
+			String fileName = googleDriveFile.getName();
+			java.io.File saveFile = new java.io.File(saveDir);
+			if (!saveFile.exists()) saveFile.mkdirs();
+			String saveFilePath = saveDir + java.io.File.separator + fileName;
+			OutputStream outputStream = new FileOutputStream(saveFilePath);
+			getFile.executeMediaAndDownloadTo(outputStream);
+			outputStream.close();
+			java.io.File file = new java.io.File(saveFilePath);
+			file = Slug.createSlugFile(file);
+			return file;
+		} catch (Exception e) {
+			logger.error("Exception while downloading appIcon file:: ", e.getMessage());
+			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
+		}
 	}
 }

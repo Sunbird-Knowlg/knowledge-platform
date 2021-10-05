@@ -88,4 +88,15 @@ class StorageService {
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
         getService().getSignedURL(getContainerName, key, ttl, permission)
     }
+
+    def getUri(key: String): String = {
+        try {
+           getService.getUri(getContainerName, key, Option.apply(false))
+        } catch {
+            case e:Exception => {
+               println("StorageService --> getUri --> Exception: " + e.getMessage)
+               ""
+            }
+        }
+    }
 }

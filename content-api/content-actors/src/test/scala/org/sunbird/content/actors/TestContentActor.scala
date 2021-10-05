@@ -1,23 +1,22 @@
 package org.sunbird.content.actors
 
-import java.io.File
-import java.util
-
-import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import akka.actor.Props
 import com.google.common.io.Resources
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
+import org.sunbird.common.{HttpUtil, JsonUtils}
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
+import java.io.File
+import java.util
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class TestContentActor extends BaseSpec with MockFactory {
 
@@ -406,6 +405,62 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("success".equals(response.get("status")))
     }
 
+    it should "return success response for 'rejectContent'" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val node =  getValidNodeToReject()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123")))).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.setOperation("rejectContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return client exception for 'rejectContent' without status" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val node =  getValidNodeToReject()
+        node.getMetadata.put("status","")
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123")))).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.setOperation("rejectContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("ERR_METADATA_ISSUE".equals(response.getParams.getErr))
+        assert("Content metadata error, status is blank for identifier:do_1234".equals(response.getParams.getErrmsg))
+    }
+
+    it should "return client exception for 'rejectContent' with invalid rejectReasons format" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        implicit val ss = mock[StorageService]
+        val node =  getValidNodeToReject()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("test_123")))).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier","do_1234")
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123","rejectReasons" -> "Incorrect Content")))
+        request.setOperation("rejectContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("failed".equals(response.getParams.getStatus))
+        assert("ERR_INVALID_REQUEST_FORMAT".equals(response.getParams.getErr))
+        assert("rejectReasons should be a Array".equals(response.getParams.getErrmsg))
+    }
+
     private def getAssetNodeToUpload(): Node = {
         val node = new Node()
         node.setIdentifier("do_1234")
@@ -487,6 +542,28 @@ class TestContentActor extends BaseSpec with MockFactory {
         node.setObjectType("Term")
         node.setGraphId("domain")
         node.setMetadata(mapAsJavaMap(Map("name"-> "CBSE")))
+        node
+    }
+
+    def getValidNodeToReject(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_1234")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Content")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_1234")
+                put("mimeType", "application/pdf")
+                put("status", "Review")
+                put("reviewStatus", "InReview")
+                put("contentType", "Resource")
+                put("name", "Node To Reject")
+                put("versionKey", "test_123")
+                put("channel", "in.ekstep")
+                put("code", "Resource_1")
+                put("primaryCategory", "Learning Resource")
+            }
+        })
         node
     }
 }

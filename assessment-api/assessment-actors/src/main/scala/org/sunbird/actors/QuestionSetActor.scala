@@ -97,7 +97,9 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 				val updateReq = new Request(request)
 				val date = DateUtils.formatCurrentDate
 				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
-				updateHierarchyNodes(updateReq, node, Map("status" -> "Draft", "hierarchy" -> updatedHierarchy), nodeIds)
+				val metadata: Map[String, AnyRef] = Map("status" -> "Draft", "hierarchy" -> updatedHierarchy)
+				val updatedMetadata = if(request.getRequest.containsKey("rejectComment")) (metadata ++ Map("rejectComment" -> request.get("rejectComment").asInstanceOf[String])) else metadata
+				updateHierarchyNodes(updateReq, node, updatedMetadata, nodeIds)
 			})
 		})
 	}
