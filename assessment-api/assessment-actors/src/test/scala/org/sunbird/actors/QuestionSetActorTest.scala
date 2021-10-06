@@ -127,7 +127,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         request.setOperation("readPrivateQuestionSet")
         val response = callActor(request, Props(new QuestionSetActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-        assert(response.getParams.getErr == "ERR_INCORRECT_CHANNEL")
+        assert(response.getParams.getErr == "ERR_ACCESS_DENIED")
         assert(response.getParams.getErrmsg == "Channel id is not matched")
     }
     
