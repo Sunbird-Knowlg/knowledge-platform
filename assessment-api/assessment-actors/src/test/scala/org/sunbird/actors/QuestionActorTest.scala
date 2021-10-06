@@ -108,7 +108,7 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setOperation("readPrivateQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-		assert(response.getParams.getErr == "ERR_INCORRECT_CHANNEL")
+		assert(response.getParams.getErr == "ERR_ACCESS_DENIED")
 		assert(response.getParams.getErrmsg == "Channel id is not matched")
 	}
 
