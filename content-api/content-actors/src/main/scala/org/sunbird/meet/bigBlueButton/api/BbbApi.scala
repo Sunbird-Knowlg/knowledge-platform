@@ -1,6 +1,7 @@
 package org.sunbird.meet.bigBlueButton.api
 
 import org.apache.commons.codec.digest.DigestUtils
+import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.meet.bigBlueButton.entity
 import org.sunbird.meet.bigBlueButton.entity.BBBException
@@ -16,9 +17,9 @@ import javax.xml.parsers.{DocumentBuilder, DocumentBuilderFactory, ParserConfigu
 class BbbApi extends Meet {
 
   // BBB server url
-  protected var bbbUrl = "https://bbbtest.centralindia.cloudapp.azure.com/bigbluebutton"
+  protected var bbbUrl = Platform.config.getString("bbb_server_api_url")
   //BBB security salt
-  protected var bbbSalt = "elGVai9aisugPR6LOqUfITED9aTwzU8wyIiYK1D0w"
+  protected var bbbSalt = Platform.config.getString("bbb_server_secure_salt")
 
   // API Server Path
   protected val API_SERVERPATH = "/api/"
