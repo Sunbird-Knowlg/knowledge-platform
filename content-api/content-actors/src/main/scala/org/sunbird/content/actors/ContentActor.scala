@@ -103,7 +103,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 					response
 				}
 				else {
-					throw new ClientException("ERR_INCORRECT_CHANNEL", "Channel id is not matched")
+					throw new ClientException("ERR_ACCESS_DENIED", "Channel id is not matched")
 				}
 		})
 	}
