@@ -302,7 +302,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         request.setOperation("readPrivateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
-        assert(response.getParams.getErr == "ERR_INCORRECT_CHANNEL")
+        assert(response.getParams.getErr == "ERR_ACCESS_DENIED")
         assert(response.getParams.getErrmsg == "Channel id is not matched")
     }
     
