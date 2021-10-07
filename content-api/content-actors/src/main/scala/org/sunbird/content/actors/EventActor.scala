@@ -119,7 +119,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
           val oMapper = new ObjectMapper()
           val mapMeetingRequest: util.Map[String, AnyRef] = oMapper.convertValue(meetingRequest, classOf[util.Map[String, AnyRef]])
           request.getRequest.put("onlineProviderData", mapMeetingRequest)
-          update(request) recoverWith { case e =>
+          super.update(request) recoverWith { case e =>
             Future(ResponseHandler.getErrorResponse(e))
           }
         }

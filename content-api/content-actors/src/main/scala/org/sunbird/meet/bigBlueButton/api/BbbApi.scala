@@ -96,7 +96,6 @@ class BbbApi extends Meet {
           case e: entity.BBBException =>
             if ("notFound" == e.getMessageKey) {
               throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Please wait for the Moderator to start Meeting")
-              //              throw new entity.BBBException(e.getMessageKey, "Please wait for Moderator to start Meeting", e)
             }
             throw e
         }
@@ -179,7 +178,6 @@ class BbbApi extends Meet {
         }
         httpConnection.disconnect()
         // parse response
-        //Patch to fix the NaN error
         var stringXml = xml.toString
 
         stringXml = stringXml.replaceAll(">.\\s+?<", "><")
