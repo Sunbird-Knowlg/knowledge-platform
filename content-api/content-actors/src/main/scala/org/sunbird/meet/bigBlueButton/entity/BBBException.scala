@@ -27,7 +27,7 @@ class BBBException(messageKey: String = "", message: String = "", cause: Throwab
     val _messageKey = getMessageKey
     val pretty = new StringBuilder
     if (_message != null) pretty.append(_message)
-    if (_messageKey != null && !("" == _messageKey.trim)) {
+    if (_messageKey != null && "" != _messageKey.trim) {
       pretty.append(" (")
       pretty.append(_messageKey)
       pretty.append(")")

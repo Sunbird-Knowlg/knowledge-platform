@@ -3,6 +3,7 @@ package org.sunbird.meet.bigBlueButton.api
 import org.apache.commons.codec.digest.DigestUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.content.util.ContentConstants
 import org.sunbird.meet.bigBlueButton.entity
 import org.sunbird.meet.bigBlueButton.entity.BBBException
 import org.sunbird.meet.{Meet, Meeting}
@@ -45,7 +46,7 @@ class BbbApi extends Meet {
     var response: util.Map[String, AnyRef] = null
     try {
       val query = new StringBuilder
-      query.append("meetingID=" + meeting.getMeetingID)
+      query.append(ContentConstants.MEETING_ID + meeting.getMeetingID)
       if (meeting.getName != null) query.append("&name=" + encode(meeting.getName))
       query.append(getCheckSumParameterForQuery(APICALL_CREATE, query.toString))
       response = doAPICall(APICALL_CREATE, query.toString)
@@ -73,7 +74,7 @@ class BbbApi extends Meet {
     var url = null
     try {
       val joinQuery = new StringBuilder
-      joinQuery.append("meetingID=" + meeting.getMeetingID)
+      joinQuery.append(ContentConstants.MEETING_ID + meeting.getMeetingID)
       if (meeting.getUserId != null) joinQuery.append("&userID=" + encode(meeting.getUserId))
       joinQuery.append("&fullName=")
       try {
@@ -115,7 +116,7 @@ class BbbApi extends Meet {
   @throws[entity.BBBException]
   def getMeetingInfo(meetingID: String): util.Map[String, AnyRef] = try {
     val query = new StringBuilder
-    query.append("meetingID=" + meetingID)
+    query.append(ContentConstants.MEETING_ID + meetingID)
     query.append(getCheckSumParameterForQuery(APICALL_GETMEETINGINFO, query.toString))
     val response = doAPICall(APICALL_GETMEETINGINFO, query.toString)
     response
@@ -149,7 +150,6 @@ class BbbApi extends Meet {
       val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
       if (APICALL_CREATE eq apiCall) {
         httpConnection.setRequestMethod("POST")
-        //                httpConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         httpConnection.setRequestProperty("Content-Length", "" + String.valueOf(0))
         httpConnection.setRequestProperty("Accept", "" + "*/*")
         httpConnection.setRequestProperty("Accept-Encoding", "" + "gzip, deflate, br")
