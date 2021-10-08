@@ -18,9 +18,9 @@ import javax.xml.parsers.{DocumentBuilder, DocumentBuilderFactory, ParserConfigu
 class BbbApi extends Meet {
 
   // BBB server url
-  protected var bbbUrl = Platform.config.getString("bbb_server_api_url")
+  protected val bbbUrl = Platform.config.getString("bbb_server_api_url")
   //BBB security salt
-  protected var bbbSalt = Platform.config.getString("bbb_server_secure_salt")
+  protected val bbbSalt = Platform.config.getString("bbb_server_secure_salt")
 
   // API Server Path
   protected val API_SERVERPATH = "/api/"
@@ -71,7 +71,6 @@ class BbbApi extends Meet {
 
   /* Build the join meeting url based on user role */
   override def getJoinMeetingURL(meeting: Meeting): String = {
-    var url = null
     try {
       val joinQuery = new StringBuilder
       joinQuery.append(ContentConstants.MEETING_ID + meeting.getMeetingID)
@@ -164,7 +163,7 @@ class BbbApi extends Meet {
         val xml = new StringBuilder
         try {
           isr = new InputStreamReader(httpConnection.getInputStream, "UTF-8")
-          var reader = new BufferedReader(isr)
+          val reader = new BufferedReader(isr)
           var line = reader.readLine()
           while ( {
             line != null
