@@ -1,4 +1,4 @@
-package org.sunbird.meet
+package org.sunbird.provider
 
 trait Meet {
 

@@ -1,12 +1,11 @@
-package org.sunbird.meet.bigBlueButton.api
+package org.sunbird.provider.bigBlueButton.api
 
 import org.apache.commons.codec.digest.DigestUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResponseCode}
-import org.sunbird.content.util.ContentConstants
-import org.sunbird.meet.bigBlueButton.entity
-import org.sunbird.meet.bigBlueButton.entity.BBBException
-import org.sunbird.meet.{Meet, Meeting}
+import org.sunbird.util.ProviderConstants
+import org.sunbird.provider.bigBlueButton.entity.BBBException
+import org.sunbird.provider.{Meet, Meeting}
 import org.w3c.dom.{Document, Node}
 import org.xml.sax.{InputSource, SAXException}
 
@@ -41,25 +40,25 @@ class BbbApi extends Meet {
   // --- BBB API implementation methods ------------------------------------
 
   /* Create BBB meeting */
-  @throws[entity.BBBException]
+  @throws[BBBException]
   override def createMeeting(meeting: Meeting): Meeting = {
     var response: util.Map[String, AnyRef] = null
     try {
       val query = new StringBuilder
-      query.append(ContentConstants.MEETING_ID + meeting.getMeetingID)
+      query.append(ProviderConstants.MEETING_ID + meeting.getMeetingID)
       if (meeting.getName != null) query.append("&name=" + encode(meeting.getName))
       query.append(getCheckSumParameterForQuery(APICALL_CREATE, query.toString))
       response = doAPICall(APICALL_CREATE, query.toString)
       meeting.setShouldUpdate(true)
     } catch {
-      case e: entity.BBBException =>
+      case e: BBBException =>
         if ("idNotUnique" == e.getMessageKey) {
           response = getMeetingInfo(meeting.getMeetingID)
         } else {
           throw e
         }
       case e: IOException =>
-        throw new entity.BBBException(BBBException.MESSAGEKEY_INTERNALERROR, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGEKEY_INTERNALERROR, e.getMessage, e)
     }
     // capture important information from returned response
     meeting.setMeetingID(response.get("meetingID").asInstanceOf[String])
@@ -73,7 +72,7 @@ class BbbApi extends Meet {
   override def getJoinMeetingURL(meeting: Meeting): String = {
     try {
       val joinQuery = new StringBuilder
-      joinQuery.append(ContentConstants.MEETING_ID + meeting.getMeetingID)
+      joinQuery.append(ProviderConstants.MEETING_ID + meeting.getMeetingID)
       if (meeting.getUserId != null) joinQuery.append("&userID=" + encode(meeting.getUserId))
       joinQuery.append("&fullName=")
       try {
@@ -93,7 +92,7 @@ class BbbApi extends Meet {
           val response = getMeetingInfo(meeting.getMeetingID)
           joinQuery.append("&password=" + response.get("attendeePW").asInstanceOf[String])
         } catch {
-          case e: entity.BBBException =>
+          case e: BBBException =>
             if ("notFound" == e.getMessageKey) {
               throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Please wait for the Moderator to start Meeting")
             }
@@ -112,16 +111,16 @@ class BbbApi extends Meet {
   }
 
   /* Get BBB meeting information */
-  @throws[entity.BBBException]
+  @throws[BBBException]
   def getMeetingInfo(meetingID: String): util.Map[String, AnyRef] = try {
     val query = new StringBuilder
-    query.append(ContentConstants.MEETING_ID + meetingID)
+    query.append(ProviderConstants.MEETING_ID + meetingID)
     query.append(getCheckSumParameterForQuery(APICALL_GETMEETINGINFO, query.toString))
     val response = doAPICall(APICALL_GETMEETINGINFO, query.toString)
     response
   } catch {
-    case e: entity.BBBException =>
-      throw new entity.BBBException(e.getMessageKey, e.getMessage, e)
+    case e: BBBException =>
+      throw new BBBException(e.getMessageKey, e.getMessage, e)
   }
 
   // --- BBB API utility methods -------------------------------------------
@@ -134,7 +133,7 @@ class BbbApi extends Meet {
   protected def getParametersEncoding = "UTF-8"
 
   /* Make an API call */
-  @throws[entity.BBBException]
+  @throws[BBBException]
   protected def doAPICall(apiCall: String, query: String): util.Map[String, AnyRef] = {
     val urlStr = new StringBuilder(bbbUrl)
     if (urlStr.toString.endsWith("/api")) urlStr.append("/")
@@ -201,21 +200,21 @@ class BbbApi extends Meet {
         }
         val response = getNodesAsMap(dom, "response")
         val returnCode = response.get("returncode").asInstanceOf[String]
-        if (APIRESPONSE_FAILED == returnCode) throw new entity.BBBException(response.get("messageKey").asInstanceOf[String], response.get("message").asInstanceOf[String], null)
+        if (APIRESPONSE_FAILED == returnCode) throw new BBBException(response.get("messageKey").asInstanceOf[String], response.get("message").asInstanceOf[String], null)
         response
       }
-      else throw new entity.BBBException(BBBException.MESSAGEKEY_HTTPERROR, "BBB server responded with HTTP status code " + responseCode, null)
+      else throw new BBBException(BBBException.MESSAGEKEY_HTTPERROR, "BBB server responded with HTTP status code " + responseCode, null)
     } catch {
-      case e: entity.BBBException =>
-        throw new entity.BBBException(e.getMessageKey, e.getMessage, e)
+      case e: BBBException =>
+        throw new BBBException(e.getMessageKey, e.getMessage, e)
       case e: IOException =>
-        throw new entity.BBBException(BBBException.MESSAGEKEY_UNREACHABLE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGEKEY_UNREACHABLE, e.getMessage, e)
       case e: SAXException =>
-        throw new entity.BBBException(BBBException.MESSAGEKEY_INVALIDRESPONSE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGEKEY_INVALIDRESPONSE, e.getMessage, e)
       case e: IllegalArgumentException =>
-        throw new entity.BBBException(BBBException.MESSAGEKEY_INVALIDRESPONSE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGEKEY_INVALIDRESPONSE, e.getMessage, e)
       case e: Exception =>
-        throw new entity.BBBException(BBBException.MESSAGEKEY_UNREACHABLE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGEKEY_UNREACHABLE, e.getMessage, e)
     }
   }
 

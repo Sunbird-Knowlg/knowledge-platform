@@ -1,8 +1,8 @@
 package org.sunbird.content.actors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.sunbird.meet.bigBlueButton.api.BbbApi
-import org.sunbird.meet.Meeting
+import org.sunbird.provider.bigBlueButton.api.BbbApi
+import org.sunbird.provider.Meeting
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}

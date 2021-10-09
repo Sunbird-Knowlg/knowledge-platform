@@ -1,4 +1,4 @@
-package org.sunbird.meet.bigBlueButton.entity
+package org.sunbird.provider.bigBlueButton.entity
 
 /**
  * Exception generated while communicating with BBB server
