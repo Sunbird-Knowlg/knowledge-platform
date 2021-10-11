@@ -112,6 +112,25 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		assert(response.getParams.getErrmsg == "Channel id is not matched")
 	}
 
+	it should "return client error response for 'readQuestion' if visibility is 'Private'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB)
+		val node = getNode("Question", Some(new util.HashMap[String, AnyRef]() {
+			{
+				put("name", "Question")
+				put("visibility","Private")
+			}
+		}))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+		val request = getQuestionRequest()
+		request.getContext.put("identifier", "do1234")
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+		request.setOperation("readQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+	}
+
 	it should "return success response for 'updateQuestion'" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
