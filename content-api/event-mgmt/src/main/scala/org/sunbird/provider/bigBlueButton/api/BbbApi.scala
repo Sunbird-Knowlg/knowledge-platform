@@ -17,22 +17,9 @@ import javax.xml.parsers.{DocumentBuilder, DocumentBuilderFactory, ParserConfigu
 class BbbApi extends Meet {
 
   // BBB server url
-  protected val bbbUrl = Platform.config.getString("bbb_server_api_url")
+  private val bbbUrl = Platform.config.getString(ProviderConstants.PROVIDER_BBB_SERVER_URL)
   //BBB security salt
-  protected val bbbSalt = Platform.config.getString("bbb_server_secure_salt")
-
-  // API Server Path
-  protected val API_SERVERPATH = "/api/"
-
-  // API Calls
-  protected val APICALL_CREATE = "create"
-  protected val APICALL_GETMEETINGINFO = "getMeetingInfo"
-  protected val APICALL_JOIN = "join"
-  protected val APICALL_GETCONFIGXML = "getDefaultConfigXML"
-
-  // API Response Codes
-  protected val APIRESPONSE_SUCCESS = "SUCCESS"
-  protected val APIRESPONSE_FAILED = "FAILED"
+  private val bbbSalt = Platform.config.getString(ProviderConstants.PROVIDER_BBB_SECURE_SALT)
 
   @throws[UnsupportedEncodingException]
   private def encode(msg: String) = URLEncoder.encode(msg, getParametersEncoding)
@@ -45,65 +32,76 @@ class BbbApi extends Meet {
     var response: util.Map[String, AnyRef] = null
     try {
       val query = new StringBuilder
-      query.append(ProviderConstants.MEETING_ID + meeting.getMeetingID)
-      if (meeting.getName != null) query.append("&name=" + encode(meeting.getName))
-      query.append(getCheckSumParameterForQuery(APICALL_CREATE, query.toString))
-      response = doAPICall(APICALL_CREATE, query.toString)
+      query.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.getMeetingID)
+      if (meeting.getName != null) query.append(ProviderConstants.QUERY_PARAM_NAME + encode(meeting.getName))
+      query.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_CREATE, query.toString))
+      response = doAPICall(ProviderConstants.API_CALL_CREATE, query.toString)
       meeting.setShouldUpdate(true)
     } catch {
       case e: BBBException =>
-        if ("idNotUnique" == e.getMessageKey) {
-          response = getMeetingInfo(meeting.getMeetingID)
-        } else {
-          throw e
+        e.getMessageKey match {
+          case BBBException.MESSAGE_KEY_ID_NOT_UNIQUE => response = getMeetingInfo(meeting.getMeetingID)
+          case _ => throw e
         }
       case e: IOException =>
-        throw new BBBException(BBBException.MESSAGEKEY_INTERNALERROR, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGE_KEY_INTERNAL_ERROR, e.getMessage, e)
     }
     // capture important information from returned response
-    meeting.setMeetingID(response.get("meetingID").asInstanceOf[String])
-    meeting.setModeratorPW(response.get("moderatorPW").asInstanceOf[String])
-    meeting.setAttendeePW(response.get("attendeePW").asInstanceOf[String])
-    meeting.setReturnCode(response.get("returncode").asInstanceOf[String])
+    meeting.setMeetingID(response.get(ProviderConstants.RESPONSE_MEETING_ID).asInstanceOf[String])
+    meeting.setModeratorPW(response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String])
+    meeting.setAttendeePW(response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String])
+    meeting.setReturnCode(response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
     meeting
   }
 
+  /* Builds the join meeting url for Moderator */
+  override def getModeratorJoinMeetingURL(meeting: Meeting): String = {
+    meeting.setModerator(true) // For moderator join meet link
+    if (meeting.getUserName == null)
+      meeting.setUserName(ProviderConstants.MODERATOR_USER)
+    getJoinMeetingURL(meeting)
+  }
+
+  /* Builds the join meeting url for Attendee */
+  override def getAttendeeJoinMeetingURL(meeting: Meeting): String = {
+    meeting.setModerator(false) // For attendee join meet link
+    if (meeting.getUserName == null)
+      meeting.setUserName(ProviderConstants.ATTENDEE_USER)
+    getJoinMeetingURL(meeting)
+  }
+
   /* Build the join meeting url based on user role */
-  override def getJoinMeetingURL(meeting: Meeting): String = {
+  private def getJoinMeetingURL(meeting: Meeting): String = {
     try {
       val joinQuery = new StringBuilder
-      joinQuery.append(ProviderConstants.MEETING_ID + meeting.getMeetingID)
-      if (meeting.getUserId != null) joinQuery.append("&userID=" + encode(meeting.getUserId))
-      joinQuery.append("&fullName=")
+      joinQuery.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.getMeetingID)
+      if (meeting.getUserId != null) joinQuery.append(ProviderConstants.QUERY_PARAM_USER_ID + encode(meeting.getUserId))
+      joinQuery.append(ProviderConstants.QUERY_PARAM_FULL_NAME)
       try {
-        if (meeting.getUserName == null)
-          joinQuery.append(encode("user"))
-        else
-          joinQuery.append(encode(meeting.getUserName))
+        joinQuery.append(encode(meeting.getUserName))
       }
       catch {
         case e: UnsupportedEncodingException =>
           joinQuery.append(meeting.getUserName)
       }
-      if (meeting.getModerator)
-        joinQuery.append("&password=" + meeting.getModeratorPW)
-      else {
-        try {
+      meeting.getModerator match {
+        case true => joinQuery.append(ProviderConstants.QUERY_PARAM_PASSWORD + meeting.getModeratorPW)
+        case false => try {
           val response = getMeetingInfo(meeting.getMeetingID)
-          joinQuery.append("&password=" + response.get("attendeePW").asInstanceOf[String])
+          joinQuery.append(ProviderConstants.QUERY_PARAM_PASSWORD + response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String])
         } catch {
           case e: BBBException =>
-            if ("notFound" == e.getMessageKey) {
+            if (BBBException.MESSAGE_KEY_NOT_FOUND == e.getMessageKey) {
               throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Please wait for the Moderator to start Meeting")
             }
             throw e
         }
       }
-      joinQuery.append(getCheckSumParameterForQuery(APICALL_JOIN, joinQuery.toString))
+      joinQuery.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_JOIN, joinQuery.toString))
       val url = new java.lang.StringBuilder(bbbUrl)
-      if (url.toString.endsWith("/api")) url.append("/")
-      else url.append(API_SERVERPATH)
-      url.append(APICALL_JOIN + "?" + joinQuery)
+      if (url.toString.endsWith(ProviderConstants.API_SERVER_PATH_TO_CHECK)) url.append(ProviderConstants.URL_PATH_SLASH)
+      else url.append(ProviderConstants.API_SERVER_PATH)
+      url.append(ProviderConstants.API_CALL_JOIN + ProviderConstants.URL_PATH_QUESTION_MARK + joinQuery)
       url.toString
     } catch {
       case e: UnsupportedEncodingException => throw e
@@ -114,9 +112,9 @@ class BbbApi extends Meet {
   @throws[BBBException]
   def getMeetingInfo(meetingID: String): util.Map[String, AnyRef] = try {
     val query = new StringBuilder
-    query.append(ProviderConstants.MEETING_ID + meetingID)
-    query.append(getCheckSumParameterForQuery(APICALL_GETMEETINGINFO, query.toString))
-    val response = doAPICall(APICALL_GETMEETINGINFO, query.toString)
+    query.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meetingID)
+    query.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_GET_MEETING_INFO, query.toString))
+    val response = doAPICall(ProviderConstants.API_CALL_GET_MEETING_INFO, query.toString)
     response
   } catch {
     case e: BBBException =>
@@ -126,34 +124,34 @@ class BbbApi extends Meet {
   // --- BBB API utility methods -------------------------------------------
 
   /** Compute the query string checksum based on the security salt */
-  protected def getCheckSumParameterForQuery(apiCall: String, queryString: String): String = if (bbbSalt != null) "&checksum=" + DigestUtils.shaHex(apiCall + queryString + bbbSalt)
+  private def getCheckSumParameterForQuery(apiCall: String, queryString: String): String = if (bbbSalt != null) ProviderConstants.QUERY_PARAM_CHECKSUM + DigestUtils.shaHex(apiCall + queryString + bbbSalt)
   else ""
 
   /** Encoding used when encoding url parameters */
-  protected def getParametersEncoding = "UTF-8"
+  private def getParametersEncoding = ProviderConstants.ENCODE
 
   /* Make an API call */
   @throws[BBBException]
-  protected def doAPICall(apiCall: String, query: String): util.Map[String, AnyRef] = {
+  private def doAPICall(apiCall: String, query: String): util.Map[String, AnyRef] = {
     val urlStr = new StringBuilder(bbbUrl)
-    if (urlStr.toString.endsWith("/api")) urlStr.append("/")
-    else urlStr.append(API_SERVERPATH)
+    if (urlStr.toString.endsWith(ProviderConstants.API_SERVER_PATH_TO_CHECK)) urlStr.append(ProviderConstants.URL_PATH_SLASH)
+    else urlStr.append(ProviderConstants.API_SERVER_PATH)
     urlStr.append(apiCall)
     if (query != null) {
-      urlStr.append("?")
+      urlStr.append(ProviderConstants.URL_PATH_QUESTION_MARK)
       urlStr.append(query)
     }
     try { // open connection
       val url = new URL(urlStr.toString)
       val httpConnection = url.openConnection.asInstanceOf[HttpURLConnection]
-      if (APICALL_CREATE eq apiCall) {
-        httpConnection.setRequestMethod("POST")
-        httpConnection.setRequestProperty("Content-Length", "" + String.valueOf(0))
-        httpConnection.setRequestProperty("Accept", "" + "*/*")
-        httpConnection.setRequestProperty("Accept-Encoding", "" + "gzip, deflate, br")
-        httpConnection.setRequestProperty("Connection", "" + "keep-alive")
+      apiCall match {
+        case ProviderConstants.API_CALL_CREATE => httpConnection.setRequestMethod(ProviderConstants.API_POST)
+          httpConnection.setRequestProperty("Content-Length", "" + String.valueOf(0))
+          httpConnection.setRequestProperty("Accept", "" + "*/*")
+          httpConnection.setRequestProperty("Accept-Encoding", "" + "gzip, deflate, br")
+          httpConnection.setRequestProperty("Connection", "" + "keep-alive")
+        case _ => httpConnection.setRequestMethod(ProviderConstants.API_GET)
       }
-      else httpConnection.setRequestMethod("GET")
       httpConnection.connect()
       val responseCode = httpConnection.getResponseCode
       if (responseCode == HttpURLConnection.HTTP_OK) { // read response
@@ -161,7 +159,7 @@ class BbbApi extends Meet {
         var reader: BufferedReader = null
         val xml = new StringBuilder
         try {
-          isr = new InputStreamReader(httpConnection.getInputStream, "UTF-8")
+          isr = new InputStreamReader(httpConnection.getInputStream, ProviderConstants.ENCODE)
           val reader = new BufferedReader(isr)
           var line = reader.readLine()
           while ( {
@@ -179,7 +177,7 @@ class BbbApi extends Meet {
         var stringXml = xml.toString
 
         stringXml = stringXml.replaceAll(">.\\s+?<", "><")
-        if (apiCall == APICALL_GETCONFIGXML) {
+        if (apiCall == ProviderConstants.API_CALL_GET_CONFIG_XML) {
           val map = new util.HashMap[String, AnyRef]
           map.put("xml", stringXml)
           return map
@@ -198,35 +196,35 @@ class BbbApi extends Meet {
           case e: ParserConfigurationException =>
 
         }
-        val response = getNodesAsMap(dom, "response")
-        val returnCode = response.get("returncode").asInstanceOf[String]
-        if (APIRESPONSE_FAILED == returnCode) throw new BBBException(response.get("messageKey").asInstanceOf[String], response.get("message").asInstanceOf[String], null)
+        val response = getNodesAsMap(dom, ProviderConstants.RESPONSE)
+        val returnCode = response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String]
+        if (ProviderConstants.API_RESPONSE_FAILED == returnCode) throw new BBBException(response.get(ProviderConstants.RESPONSE_MESSAGE_KEY).asInstanceOf[String], response.get(ProviderConstants.RESPONSE_MESSAGE).asInstanceOf[String], null)
         response
       }
-      else throw new BBBException(BBBException.MESSAGEKEY_HTTPERROR, "BBB server responded with HTTP status code " + responseCode, null)
+      else throw new BBBException(BBBException.MESSAGE_KEY_HTTP_ERROR, "BBB server responded with HTTP status code " + responseCode, null)
     } catch {
       case e: BBBException =>
         throw new BBBException(e.getMessageKey, e.getMessage, e)
       case e: IOException =>
-        throw new BBBException(BBBException.MESSAGEKEY_UNREACHABLE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGE_KEY_UNREACHABLE, e.getMessage, e)
       case e: SAXException =>
-        throw new BBBException(BBBException.MESSAGEKEY_INVALIDRESPONSE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGE_KEY_INVALID_RESPONSE, e.getMessage, e)
       case e: IllegalArgumentException =>
-        throw new BBBException(BBBException.MESSAGEKEY_INVALIDRESPONSE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGE_KEY_INVALID_RESPONSE, e.getMessage, e)
       case e: Exception =>
-        throw new BBBException(BBBException.MESSAGEKEY_UNREACHABLE, e.getMessage, e)
+        throw new BBBException(BBBException.MESSAGE_KEY_UNREACHABLE, e.getMessage, e)
     }
   }
 
   // --- BBB Other utility methods -----------------------------------------
 
-  /** Get all nodes under the specified element tag name as a Java map */
-  protected def getNodesAsMap(dom: Document, elementTagName: String): util.Map[String, AnyRef] = {
+  /** Get all nodes under the specified element tag name as a map */
+  private def getNodesAsMap(dom: Document, elementTagName: String): util.Map[String, AnyRef] = {
     val firstNode = dom.getElementsByTagName(elementTagName).item(0)
     processNode(firstNode)
   }
 
-  protected def processNode(_node: Node): util.Map[String, AnyRef] = {
+  private def processNode(_node: Node): util.Map[String, AnyRef] = {
     val map = new util.HashMap[String, AnyRef]
     val responseNodes = _node.getChildNodes
     var images = 1 //counter for images (i.e image1, image2, image3)

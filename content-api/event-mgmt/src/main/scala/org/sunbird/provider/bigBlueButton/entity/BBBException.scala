@@ -5,16 +5,16 @@ package org.sunbird.provider.bigBlueButton.entity
  */
 @SerialVersionUID(2421100107566638321L)
 object BBBException {
-  val MESSAGEKEY_HTTPERROR = "httpError"
-  val MESSAGEKEY_NOTFOUND = "notFound"
-  val MESSAGEKEY_NOACTION = "noActionSpecified"
-  val MESSAGEKEY_IDNOTUNIQUE = "idNotUnique"
-  val MESSAGEKEY_NOTSTARTED = "notStarted"
-  val MESSAGEKEY_ALREADYENDED = "alreadyEnded"
-  val MESSAGEKEY_INTERNALERROR = "internalError"
-  val MESSAGEKEY_UNREACHABLE = "unreachableServerError"
-  val MESSAGEKEY_INVALIDRESPONSE = "invalidResponseError"
-  val MESSAGEKEY_GENERALERROR = "generalError"
+  val MESSAGE_KEY_HTTP_ERROR = "httpError"
+  val MESSAGE_KEY_NOT_FOUND = "notFound"
+  val MESSAGE_KEY_NO_ACTION = "noActionSpecified"
+  val MESSAGE_KEY_ID_NOT_UNIQUE = "idNotUnique"
+  val MESSAGE_KEY_NOT_STARTED = "notStarted"
+  val MESSAGE_KEY_ALREADY_ENDED = "alreadyEnded"
+  val MESSAGE_KEY_INTERNAL_ERROR = "internalError"
+  val MESSAGE_KEY_UNREACHABLE = "unreachableServerError"
+  val MESSAGE_KEY_INVALID_RESPONSE = "invalidResponseError"
+  val MESSAGE_KEY_GENERAL_ERROR = "generalError"
 }
 
 @SerialVersionUID(2421100107566638321L)

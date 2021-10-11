@@ -12,6 +12,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.util.ProviderConstants
 
 import java.util
 import javax.inject.Inject
@@ -100,17 +101,18 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       request.getRequest.remove("status")
       request.setOperation("updateContent")
       request.getContext.put("identifier", request.getRequest.get("identifier"))
-      val onlineProvider = request.getRequest.getOrDefault("onlineProvider", "BigBlueButton").asInstanceOf[String]
+      val onlineProvider = request.getRequest.get("onlineProvider").asInstanceOf[String]
       request.getRequest.put("onlineProvider", onlineProvider)
 
       val meetingRequest = new Meeting()
-      meetingRequest.setMeetingID(request.getRequest.getOrDefault("identifier", java.util.UUID.randomUUID.toString).asInstanceOf[String])
-      meetingRequest.setName(request.getRequest.getOrDefault("name", "Test").asInstanceOf[String])
-      val providerApiObject = if (StringUtils.equalsIgnoreCase(onlineProvider, "BigBlueButton")) {
-        new BbbApi()
-      } else {
-        // TODO : Set response of Meeting URL for other onlineProviders
-        throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
+      meetingRequest.setMeetingID(request.getRequest.get("identifier").asInstanceOf[String])
+      meetingRequest.setName(request.getRequest.get("name").asInstanceOf[String])
+      val providerApiObject = onlineProvider toLowerCase match {
+        case ProviderConstants.BIG_BLUE_BUTTON =>
+          new BbbApi()
+        case _ =>
+          // TODO : Set response of Meeting URL for other onlineProviders
+          throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
       }
 
       if (providerApiObject.deferEventCreation()) { // Creating Meeting if deferred Event creation, and updating Event with Meeting details
@@ -119,19 +121,18 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
           val oMapper = new ObjectMapper()
           val mapMeetingRequest: util.Map[String, AnyRef] = oMapper.convertValue(meetingRequest, classOf[util.Map[String, AnyRef]])
           request.getRequest.put("onlineProviderData", mapMeetingRequest)
-          super.update(request) recoverWith { case e =>
-            Future(ResponseHandler.getErrorResponse(e))
+          super.update(request) recoverWith {
+            case e =>
+              Future(ResponseHandler.getErrorResponse(e))
           }
         }
       }
-      meetingRequest.setModerator(true) // For moderator join meet link
-      val moderatorMeetingLink = providerApiObject.getJoinMeetingURL(meetingRequest)
+      val moderatorMeetingLink = providerApiObject.getModeratorJoinMeetingURL(meetingRequest)
       val meetingLink = new java.util.HashMap[String, String]
       meetingLink.put("onlineProvider", onlineProvider)
       meetingLink.put("moderatorMeetingLink", moderatorMeetingLink)
       val response: Response = ResponseHandler.OK
       response.put(responseSchemaName, meetingLink)
-      response
     }
     )
   }
@@ -148,21 +149,20 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
 
       val meetingRequest = new Meeting()
       meetingRequest.setMeetingID(metadata.get("identifier").asInstanceOf[String])
-      val providerApiObject = if (StringUtils.equalsIgnoreCase(onlineProvider, "BigBlueButton")) {
-        new BbbApi()
-      } else {
-        // TODO : Set response of Meeting URL for other onlineProviders
-        throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
+      val providerApiObject = onlineProvider toLowerCase match {
+        case ProviderConstants.BIG_BLUE_BUTTON =>
+          new BbbApi()
+        case _ =>
+          // TODO : Set response of Meeting URL for other onlineProviders
+          throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
       }
 
-      meetingRequest.setModerator(false) // For attendee join meet link
-      val attendeeMeetingLink = providerApiObject.getJoinMeetingURL(meetingRequest)
+      val attendeeMeetingLink = providerApiObject.getAttendeeJoinMeetingURL(meetingRequest)
       val meetingLink = new java.util.HashMap[String, String]
       meetingLink.put("onlineProvider", onlineProvider)
       meetingLink.put("attendeeMeetingLink", attendeeMeetingLink)
       val response: Response = ResponseHandler.OK
       response.put(responseSchemaName, meetingLink)
-      response
     }
     )
   }
