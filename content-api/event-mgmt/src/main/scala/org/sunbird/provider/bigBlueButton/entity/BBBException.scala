@@ -18,7 +18,7 @@ object BBBException {
 }
 
 @SerialVersionUID(2421100107566638321L)
-class BBBException(messageKey: String = "", message: String = "", cause: Throwable = None.orNull) extends Exception(message, cause) {
+case class BBBException(messageKey: String = "", message: String = "", cause: Throwable = None.orNull) extends Exception(message, cause) {
 
   def getMessageKey: String = messageKey
 

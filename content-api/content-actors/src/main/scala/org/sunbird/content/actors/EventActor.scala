@@ -104,9 +104,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       val onlineProvider = request.getRequest.get("onlineProvider").asInstanceOf[String]
       request.getRequest.put("onlineProvider", onlineProvider)
 
-      val meetingRequest = new Meeting()
-      meetingRequest.setMeetingID(request.getRequest.get("identifier").asInstanceOf[String])
-      meetingRequest.setName(request.getRequest.get("name").asInstanceOf[String])
+      val meetingRequest = Meeting(request.getRequest.get("identifier").asInstanceOf[String], request.getRequest.get("name").asInstanceOf[String])
       val providerApiObject = onlineProvider toLowerCase match {
         case ProviderConstants.BIG_BLUE_BUTTON =>
           new BbbApi()
@@ -115,19 +113,21 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
           throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
       }
 
+      var meetingResponseWithPW: Meeting = null
       if (providerApiObject.deferEventCreation()) { // Creating Meeting if deferred Event creation, and updating Event with Meeting details
-        providerApiObject.createMeeting(meetingRequest)
-        if (meetingRequest.getShouldUpdate) {
+        val meetingResponse = providerApiObject.createMeeting(meetingRequest)
+        meetingResponseWithPW = meetingResponse
+        if (meetingResponse.shouldUpdate) {
           val oMapper = new ObjectMapper()
-          val mapMeetingRequest: util.Map[String, AnyRef] = oMapper.convertValue(meetingRequest, classOf[util.Map[String, AnyRef]])
-          request.getRequest.put("onlineProviderData", mapMeetingRequest)
+          val mapMeetingResponse: util.Map[String, AnyRef] = oMapper.convertValue(meetingResponse, classOf[util.Map[String, AnyRef]])
+          request.getRequest.put("onlineProviderData", mapMeetingResponse)
           super.update(request) recoverWith {
             case e =>
               Future(ResponseHandler.getErrorResponse(e))
           }
         }
       }
-      val moderatorMeetingLink = providerApiObject.getModeratorJoinMeetingURL(meetingRequest)
+      val moderatorMeetingLink = providerApiObject.getModeratorJoinMeetingURL(meetingResponseWithPW)
       val meetingLink = new java.util.HashMap[String, String]
       meetingLink.put("onlineProvider", onlineProvider)
       meetingLink.put("moderatorMeetingLink", moderatorMeetingLink)
@@ -147,8 +147,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
 
       val onlineProvider = metadata.get("onlineProvider").asInstanceOf[String]
 
-      val meetingRequest = new Meeting()
-      meetingRequest.setMeetingID(metadata.get("identifier").asInstanceOf[String])
+      val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String])
       val providerApiObject = onlineProvider toLowerCase match {
         case ProviderConstants.BIG_BLUE_BUTTON =>
           new BbbApi()

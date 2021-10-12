@@ -32,62 +32,64 @@ class BbbApi extends Meet {
     var response: util.Map[String, AnyRef] = null
     try {
       val query = new StringBuilder
-      query.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.getMeetingID)
-      if (meeting.getName != null) query.append(ProviderConstants.QUERY_PARAM_NAME + encode(meeting.getName))
+      query.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.meetingID)
+      if (meeting.name != null) query.append(ProviderConstants.QUERY_PARAM_NAME + encode(meeting.name))
       query.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_CREATE, query.toString))
       response = doAPICall(ProviderConstants.API_CALL_CREATE, query.toString)
-      meeting.setShouldUpdate(true)
+      val meetingUpdate = Meeting(meeting.meetingID, meeting.name, shouldUpdate = true)
     } catch {
       case e: BBBException =>
         e.getMessageKey match {
-          case BBBException.MESSAGE_KEY_ID_NOT_UNIQUE => response = getMeetingInfo(meeting.getMeetingID)
+          case BBBException.MESSAGE_KEY_ID_NOT_UNIQUE => response = getMeetingInfo(meeting.meetingID)
           case _ => throw e
         }
       case e: IOException =>
         throw new BBBException(BBBException.MESSAGE_KEY_INTERNAL_ERROR, e.getMessage, e)
     }
     // capture important information from returned response
-    meeting.setMeetingID(response.get(ProviderConstants.RESPONSE_MEETING_ID).asInstanceOf[String])
-    meeting.setModeratorPW(response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String])
-    meeting.setAttendeePW(response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String])
-    meeting.setReturnCode(response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
-    meeting
+    Meeting(meeting.meetingID, meeting.name, shouldUpdate = true, moderatorPW = response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String], attendeePW = response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String], returnCode = response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
   }
 
   /* Builds the join meeting url for Moderator */
   override def getModeratorJoinMeetingURL(meeting: Meeting): String = {
-    meeting.setModerator(true) // For moderator join meet link
-    if (meeting.getUserName == null)
-      meeting.setUserName(ProviderConstants.MODERATOR_USER)
-    getJoinMeetingURL(meeting)
+    getJoinMeetingURL(
+      if (meeting.userName == null) {
+        meeting.copy(isModerator = true, userName = ProviderConstants.MODERATOR_USER)
+      } else {
+        meeting.copy(isModerator = true)
+      }
+    )
   }
 
   /* Builds the join meeting url for Attendee */
   override def getAttendeeJoinMeetingURL(meeting: Meeting): String = {
-    meeting.setModerator(false) // For attendee join meet link
-    if (meeting.getUserName == null)
-      meeting.setUserName(ProviderConstants.ATTENDEE_USER)
-    getJoinMeetingURL(meeting)
+    getJoinMeetingURL(
+      if (meeting.userName == null) {
+        meeting.copy(isModerator = false, userName = ProviderConstants.ATTENDEE_USER)
+      } else {
+        meeting.copy(isModerator = false)
+      }
+    )
   }
 
   /* Build the join meeting url based on user role */
   private def getJoinMeetingURL(meeting: Meeting): String = {
     try {
       val joinQuery = new StringBuilder
-      joinQuery.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.getMeetingID)
-      if (meeting.getUserId != null) joinQuery.append(ProviderConstants.QUERY_PARAM_USER_ID + encode(meeting.getUserId))
+      joinQuery.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.meetingID)
+      if (meeting.userId != null) joinQuery.append(ProviderConstants.QUERY_PARAM_USER_ID + encode(meeting.userId))
       joinQuery.append(ProviderConstants.QUERY_PARAM_FULL_NAME)
       try {
-        joinQuery.append(encode(meeting.getUserName))
+        joinQuery.append(encode(meeting.userName))
       }
       catch {
         case e: UnsupportedEncodingException =>
-          joinQuery.append(meeting.getUserName)
+          joinQuery.append(meeting.userName)
       }
-      meeting.getModerator match {
-        case true => joinQuery.append(ProviderConstants.QUERY_PARAM_PASSWORD + meeting.getModeratorPW)
+      meeting.isModerator match {
+        case true => joinQuery.append(ProviderConstants.QUERY_PARAM_PASSWORD + meeting.moderatorPW)
         case false => try {
-          val response = getMeetingInfo(meeting.getMeetingID)
+          val response = getMeetingInfo(meeting.meetingID)
           joinQuery.append(ProviderConstants.QUERY_PARAM_PASSWORD + response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String])
         } catch {
           case e: BBBException =>
