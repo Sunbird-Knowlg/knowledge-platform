@@ -19,6 +19,7 @@ import javax.inject.Inject
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.Future
+import scala.collection.JavaConverters._
 
 class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends ContentActor {
 
@@ -101,7 +102,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       request.getRequest.remove("status")
       request.setOperation("updateContent")
       request.getContext.put("identifier", request.getRequest.get("identifier"))
-      val onlineProvider = request.getRequest.get("onlineProvider").asInstanceOf[String]
+      val onlineProvider = request.getRequest.getOrDefault("onlineProvider", "").asInstanceOf[String]
       request.getRequest.put("onlineProvider", onlineProvider)
 
       val meetingRequest = Meeting(request.getRequest.get("identifier").asInstanceOf[String], request.getRequest.get("name").asInstanceOf[String])
@@ -118,9 +119,12 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
         val meetingResponse = providerApiObject.createMeeting(meetingRequest)
         meetingResponseWithPW = meetingResponse
         if (meetingResponse.shouldUpdate) {
-          val oMapper = new ObjectMapper()
-          val mapMeetingResponse: util.Map[String, AnyRef] = oMapper.convertValue(meetingResponse, classOf[util.Map[String, AnyRef]])
-          request.getRequest.put("onlineProviderData", mapMeetingResponse)
+          // Converting object to map to get save in Event
+          val mapMeetingResponse: Map[String, AnyRef] = meetingResponse.getClass.getDeclaredFields.foldLeft(Map.empty[String, AnyRef]) { (a, f) =>
+            f.setAccessible(true)
+            a + (f.getName -> f.get(meetingResponse))
+          }
+          request.getRequest.put("onlineProviderData", mapMeetingResponse.asJava)
           super.update(request) recoverWith {
             case e =>
               Future(ResponseHandler.getErrorResponse(e))
@@ -145,7 +149,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
       metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 
-      val onlineProvider = metadata.get("onlineProvider").asInstanceOf[String]
+      val onlineProvider = metadata.getOrDefault("onlineProvider", "").asInstanceOf[String]
 
       val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String])
       val providerApiObject = onlineProvider toLowerCase match {

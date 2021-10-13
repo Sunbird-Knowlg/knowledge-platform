@@ -30,13 +30,14 @@ class BbbApi extends Meet {
   @throws[BBBException]
   override def createMeeting(meeting: Meeting): Meeting = {
     var response: util.Map[String, AnyRef] = null
+    var shouldUpdateFlag = false
     try {
       val query = new StringBuilder
       query.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.meetingID)
       if (meeting.name != null) query.append(ProviderConstants.QUERY_PARAM_NAME + encode(meeting.name))
       query.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_CREATE, query.toString))
       response = doAPICall(ProviderConstants.API_CALL_CREATE, query.toString)
-      val meetingUpdate = Meeting(meeting.meetingID, meeting.name, shouldUpdate = true)
+      shouldUpdateFlag = true
     } catch {
       case e: BBBException =>
         e.getMessageKey match {
@@ -47,7 +48,7 @@ class BbbApi extends Meet {
         throw new BBBException(BBBException.MESSAGE_KEY_INTERNAL_ERROR, e.getMessage, e)
     }
     // capture important information from returned response
-    Meeting(meeting.meetingID, meeting.name, shouldUpdate = true, moderatorPW = response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String], attendeePW = response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String], returnCode = response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
+    Meeting(meeting.meetingID, meeting.name, shouldUpdate = shouldUpdateFlag, moderatorPW = response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String], attendeePW = response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String], returnCode = response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
   }
 
   /* Builds the join meeting url for Moderator */
