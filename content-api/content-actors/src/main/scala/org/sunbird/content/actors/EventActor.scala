@@ -1,8 +1,6 @@
 package org.sunbird.content.actors
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import org.sunbird.provider.bigBlueButton.api.BbbApi
-import org.sunbird.provider.Meeting
+import org.sunbird.provider.Provider
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -12,14 +10,12 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.util.ProviderConstants
 
 import java.util
 import javax.inject.Inject
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.Future
-import scala.collection.JavaConverters._
 
 class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends ContentActor {
 
@@ -96,46 +92,24 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
       metadata.put("identifier", node.getIdentifier.replace(".img", ""))
 
-      request.getRequest.remove("mode")
-      request.getRequest.remove("fields")
-      request.getRequest.putAll(metadata)
-      request.getRequest.remove("status")
-      request.setOperation("updateContent")
-      request.getContext.put("identifier", request.getRequest.get("identifier"))
-      val onlineProvider = request.getRequest.getOrDefault("onlineProvider", "").asInstanceOf[String]
-      request.getRequest.put("onlineProvider", onlineProvider)
-
-      val meetingRequest = Meeting(request.getRequest.get("identifier").asInstanceOf[String], request.getRequest.get("name").asInstanceOf[String])
-      val providerApiObject = onlineProvider toLowerCase match {
-        case ProviderConstants.BIG_BLUE_BUTTON =>
-          new BbbApi()
-        case _ =>
-          // TODO : Set response of Meeting URL for other onlineProviders
-          throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
-      }
-
-      var meetingResponseWithPW: Meeting = null
-      if (providerApiObject.deferEventCreation()) { // Creating Meeting if deferred Event creation, and updating Event with Meeting details
-        val meetingResponse = providerApiObject.createMeeting(meetingRequest)
-        meetingResponseWithPW = meetingResponse
-        if (meetingResponse.shouldUpdate) {
-          // Converting object to map to get save in Event
-          val mapMeetingResponse: Map[String, AnyRef] = meetingResponse.getClass.getDeclaredFields.foldLeft(Map.empty[String, AnyRef]) { (a, f) =>
-            f.setAccessible(true)
-            a + (f.getName -> f.get(meetingResponse))
-          }
-          request.getRequest.put("onlineProviderData", mapMeetingResponse.asJava)
-          super.update(request) recoverWith {
-            case e =>
-              Future(ResponseHandler.getErrorResponse(e))
-          }
+      val meetingLink = Provider.getJoinEventUrlModerator(metadata)
+      val onlineProviderData = meetingLink.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
+      if (null != onlineProviderData && !onlineProviderData.isEmpty) {
+        request.getRequest.remove("mode")
+        request.getRequest.remove("fields")
+        request.getRequest.putAll(metadata)
+        request.getRequest.remove("status")
+        request.setOperation("updateContent")
+        request.getContext.put("identifier", request.getRequest.get("identifier"))
+        request.getRequest.put("onlineProvider", meetingLink.get("onlineProvider").asInstanceOf[String])
+        request.getRequest.put("onlineProviderData", onlineProviderData)
+        super.update(request) recoverWith {
+          case e =>
+            Future(ResponseHandler.getErrorResponse(e))
         }
       }
-      val moderatorMeetingLink = providerApiObject.getModeratorJoinMeetingURL(meetingResponseWithPW)
-      val meetingLink = new java.util.HashMap[String, String]
-      meetingLink.put("onlineProvider", onlineProvider)
-      meetingLink.put("moderatorMeetingLink", moderatorMeetingLink)
       val response: Response = ResponseHandler.OK
+      meetingLink.remove("onlineProviderData")
       response.put(responseSchemaName, meetingLink)
     }
     )
@@ -147,23 +121,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-      metadata.put("identifier", node.getIdentifier.replace(".img", ""))
-
-      val onlineProvider = metadata.getOrDefault("onlineProvider", "").asInstanceOf[String]
-
-      val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String])
-      val providerApiObject = onlineProvider toLowerCase match {
-        case ProviderConstants.BIG_BLUE_BUTTON =>
-          new BbbApi()
-        case _ =>
-          // TODO : Set response of Meeting URL for other onlineProviders
-          throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
-      }
-
-      val attendeeMeetingLink = providerApiObject.getAttendeeJoinMeetingURL(meetingRequest)
-      val meetingLink = new java.util.HashMap[String, String]
-      meetingLink.put("onlineProvider", onlineProvider)
-      meetingLink.put("attendeeMeetingLink", attendeeMeetingLink)
+      val meetingLink = Provider.getJoinEventUrlAttendee(metadata)
       val response: Response = ResponseHandler.OK
       response.put(responseSchemaName, meetingLink)
     }
