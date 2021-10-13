@@ -100,6 +100,10 @@ object UpdateHierarchyManager {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
                 throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
             }
+            if(!CollectionUtils.containsAny(HierarchyConstants.ROOT_NODE_VISIBILITY, metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String])) {
+                TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Visibility found for Root node id: " + identifier)
+                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid Visibility found for Root Node Identifier  : " + identifier)
+            }
             rootNode.setObjectType(HierarchyConstants.QUESTIONSET_OBJECT_TYPE)
             rootNode.getMetadata.put(HierarchyConstants.OBJECT_TYPE, HierarchyConstants.QUESTIONSET_OBJECT_TYPE)
             rootNode
