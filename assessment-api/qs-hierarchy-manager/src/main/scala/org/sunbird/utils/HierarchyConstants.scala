@@ -51,5 +51,4 @@ object HierarchyConstants {
     val QUESTIONSET_MIME_TYPE: String = "application/vnd.sunbird.questionset"
 	val QUESTIONSET_OBJECT_TYPE: String = "QuestionSet"
     val OPERATION_UPDATE_HIERARCHY: String = "updateHierarchy"
-    val ROOT_NODE_VISIBILITY: List[String] = List("Default", "Private")
 }
