@@ -22,6 +22,7 @@ DELETE    /question/v4/retire/:identifier         controllers.v4.QuestionControl
 POST     /question/v4/import                      controllers.v4.QuestionController.importQuestion()
 PATCH     /question/v4/system/update/:identifier  controllers.v4.QuestionController.systemUpdate(identifier:String)
 POST      /question/v4/list                       controllers.v4.QuestionController.list(fields:Option[String])
+POST      /question/v4/reject/:identifier         controllers.v4.QuestionController.reject(identifier:String)
 
 # QuestionSet API's
 POST      /questionset/v4/create                     controllers.v4.QuestionSetController.create

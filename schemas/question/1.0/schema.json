@@ -545,6 +545,9 @@
     },
     "variants": {
       "type": "object"
+    },
+    "rejectComment": {
+      "type": "string"
     }
   },
   "additionalProperties": false
