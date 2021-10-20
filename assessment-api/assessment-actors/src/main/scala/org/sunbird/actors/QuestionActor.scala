@@ -8,10 +8,11 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.managers.AssessmentManager
 import org.sunbird.utils.RequestUtil
-import java.util
 
+import java.util
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.exception.{ClientException, ErrorCodes}
 import org.sunbird.graph.utils.NodeUtil
 
 import scala.collection.JavaConverters
@@ -90,7 +91,8 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
 	def systemUpdate(request: Request): Future[Response] = {
 		val identifier = request.getContext.get("identifier").asInstanceOf[String]
-		RequestUtil.validateRequest(request)
+		if (request.getRequest.isEmpty)
+			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Request Body cannot be Empty.")
 		val readReq = new Request(request)
 		val identifiers = new util.ArrayList[String](){{
 			add(identifier)
