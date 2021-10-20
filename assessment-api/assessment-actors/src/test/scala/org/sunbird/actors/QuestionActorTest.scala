@@ -257,6 +257,14 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		assert("successful".equals(response.getParams.getStatus))
 	}
 
+	it should "return client error for 'systemUpdateQuestion' if request is empty" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val request = new Request()
+		request.setOperation("systemUpdateQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert("failed".equals(response.getParams.getStatus))
+	}
+
 	it should "return success response for 'listQuestion'" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
