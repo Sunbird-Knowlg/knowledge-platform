@@ -263,6 +263,7 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setOperation("systemUpdateQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("failed".equals(response.getParams.getStatus))
+		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
 	}
 
 	it should "return success response for 'listQuestion'" in {
