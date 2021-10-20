@@ -48,29 +48,17 @@ class BbbApi extends Meet {
         throw new BBBException(BBBException.MESSAGE_KEY_INTERNAL_ERROR, e.getMessage, e)
     }
     // capture important information from returned response
-    Meeting(meeting.meetingID, meeting.name, shouldUpdate = shouldUpdateFlag, moderatorPW = response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String], attendeePW = response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String], returnCode = response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
+    meeting.copy(shouldUpdate = shouldUpdateFlag, moderatorPW = response.get(ProviderConstants.RESPONSE_MODERATOR_PW).asInstanceOf[String], attendeePW = response.get(ProviderConstants.RESPONSE_ATTENDEE_PW).asInstanceOf[String], returnCode = response.get(ProviderConstants.RESPONSE_RETURN_CODE).asInstanceOf[String])
   }
 
   /* Builds the join meeting url for Moderator */
   override def getModeratorJoinMeetingURL(meeting: Meeting): String = {
-    getJoinMeetingURL(
-      if (meeting.userName == null) {
-        meeting.copy(isModerator = true, userName = ProviderConstants.MODERATOR_USER)
-      } else {
-        meeting.copy(isModerator = true)
-      }
-    )
+    getJoinMeetingURL(meeting.copy(isModerator = true, userName = meeting.userName))
   }
 
   /* Builds the join meeting url for Attendee */
   override def getAttendeeJoinMeetingURL(meeting: Meeting): String = {
-    getJoinMeetingURL(
-      if (meeting.userName == null) {
-        meeting.copy(isModerator = false, userName = ProviderConstants.ATTENDEE_USER)
-      } else {
-        meeting.copy(isModerator = false)
-      }
-    )
+    getJoinMeetingURL(meeting.copy(isModerator = false, userName = meeting.userName))
   }
 
   /* Build the join meeting url based on user role */

@@ -72,7 +72,8 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
 
     def getModeratorJoinMeetingUrl(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
-        val content = new java.util.HashMap[String, Object]()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "joinEventModerator")
@@ -83,7 +84,8 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
 
     def getAttendeeJoinMeetingUrl(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
-        val content = new java.util.HashMap[String, Object]()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "joinEventAttendee")

@@ -12,7 +12,7 @@ object Provider {
 
   def getJoinEventUrlModerator(metadata: java.util.Map[String, AnyRef]): util.Map[String, Any] = {
     val onlineProvider = metadata.getOrDefault("onlineProvider", "").asInstanceOf[String]
-    val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String], metadata.get("name").asInstanceOf[String])
+    val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String], metadata.get("name").asInstanceOf[String], userName = metadata.get("userName").asInstanceOf[String])
     val providerApiObject = onlineProvider toLowerCase match {
       case ProviderConstants.BIG_BLUE_BUTTON =>
         new BbbApi()
@@ -42,7 +42,7 @@ object Provider {
 
   def getJoinEventUrlAttendee(metadata: java.util.Map[String, AnyRef]): util.Map[String, Any] = {
     val onlineProvider = metadata.getOrDefault("onlineProvider", "").asInstanceOf[String]
-    val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String])
+    val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String], userName = metadata.get("userName").asInstanceOf[String])
     val providerApiObject = onlineProvider toLowerCase match {
       case ProviderConstants.BIG_BLUE_BUTTON =>
         new BbbApi()
