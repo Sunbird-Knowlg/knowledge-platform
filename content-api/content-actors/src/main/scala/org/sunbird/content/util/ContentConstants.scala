@@ -56,5 +56,5 @@ object ContentConstants {
     val LAST_UPDATED_ON:String = "lastUpdatedOn"
     val VERSION:String = "version"
     val COPY_SCHEME:String = "copyScheme"
-    val MEETING_ID = "meetingID="
+    val USER:String = "User"
 }

@@ -91,7 +91,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     DataNode.read(request).map(node => {
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
       metadata.put("identifier", node.getIdentifier.replace(".img", ""))
-      metadata.put("userName", request.getRequest.getOrDefault("userName", "User").asInstanceOf[String])
+      metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
 
       val meetingLink = Provider.getJoinEventUrlModerator(metadata)
       val onlineProviderData = meetingLink.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
@@ -123,7 +123,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-      metadata.put("userName", request.getRequest.getOrDefault("userName", "User").asInstanceOf[String])
+      metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
       val meetingLink = Provider.getJoinEventUrlAttendee(metadata)
       val response: Response = ResponseHandler.OK
       response.put(responseSchemaName, meetingLink)
