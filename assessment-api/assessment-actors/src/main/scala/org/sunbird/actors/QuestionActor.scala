@@ -1,19 +1,18 @@
 package org.sunbird.actors
 
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.AssessmentManager
 import org.sunbird.utils.RequestUtil
+
 import java.util
-
 import javax.inject.Inject
-import org.apache.commons.lang3.StringUtils
-import org.sunbird.graph.utils.NodeUtil
-
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,6 +35,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "importQuestion" => importQuestion(request)
 		case "systemUpdateQuestion" => systemUpdate(request)
 		case "listQuestions" => listQuestions(request)
+		case "rejectQuestion" => reject(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -114,4 +114,17 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 			ResponseHandler.OK.put("questions", questionList).put("count", questionList.size)
 		})
 	}
+
+	def reject(request: Request): Future[Response] = {
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		AssessmentManager.getValidateNodeForReject(request, "ERR_QUESTION_REJECT").flatMap(node => {
+			val updateRequest = new Request(request)
+			val date = DateUtils.formatCurrentDate
+			updateRequest.getContext.put("identifier", request.getContext.get("identifier"))
+			if(request.getRequest.containsKey("rejectComment"))
+				updateRequest.put("rejectComment", request.get("rejectComment").asInstanceOf[String])
+			updateRequest.putAll(Map("versionKey" -> node.getMetadata.get("versionKey"), "status" -> "Draft", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava)
+			AssessmentManager.updateNode(updateRequest)
+			})
+		}
 }

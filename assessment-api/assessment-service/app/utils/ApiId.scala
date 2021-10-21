@@ -23,6 +23,7 @@ object ApiId {
 	val IMPORT_QUESTION = "api.question.import"
 	val SYSTEM_UPDATE_QUESTION = "api.question.system.update"
 	val LIST_QUESTIONS = "api.questions.list"
+	val REJECT_QUESTION = "api.question.reject"
 
 	//QuestionSet APIs
 	val CREATE_QUESTION_SET = "api.questionset.create"

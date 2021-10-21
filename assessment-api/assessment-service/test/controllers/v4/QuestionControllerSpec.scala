@@ -70,4 +70,10 @@ class QuestionControllerSpec extends BaseSpec {
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
+
+	"reject should update the question status to Draft successfully for given valid identifier" in {
+		val result = controller.reject("do_123")(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
 }
