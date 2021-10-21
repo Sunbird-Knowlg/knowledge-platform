@@ -120,7 +120,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		AssessmentManager.getValidateNodeForReject(request, "ERR_QUESTION_REJECT").flatMap(node => {
 			val updateRequest = new Request(request)
 			val date = DateUtils.formatCurrentDate
-			updateRequest.getContext.put("identifier", request.get("identifier"))
+			updateRequest.getContext.put("identifier", request.getContext.get("identifier"))
 			if(request.getRequest.containsKey("rejectComment"))
 				updateRequest.put("rejectComment", request.get("rejectComment").asInstanceOf[String])
 			updateRequest.putAll(Map("versionKey" -> node.getMetadata.get("versionKey"), "status" -> "Draft", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava)
