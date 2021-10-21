@@ -308,7 +308,7 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 
 		val request = getQuestionRequest()
 		request.getContext.put("identifier", "do1234")
-		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated description","rejectComment" -> "Rejected for testing")))
+		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated desc","rejectComment" -> "Rejected for testing")))
 		request.setOperation("rejectQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))
