@@ -53,12 +53,12 @@ class BbbApi extends Meet {
 
   /* Builds the join meeting url for Moderator */
   override def getModeratorJoinMeetingURL(meeting: Meeting): String = {
-    getJoinMeetingURL(meeting.copy(isModerator = true, userName = meeting.userName))
+    getJoinMeetingURL(meeting.copy(isModerator = true, userName = meeting.userName, userId = meeting.userId))
   }
 
   /* Builds the join meeting url for Attendee */
   override def getAttendeeJoinMeetingURL(meeting: Meeting): String = {
-    getJoinMeetingURL(meeting.copy(isModerator = false, userName = meeting.userName))
+    getJoinMeetingURL(meeting.copy(isModerator = false, userName = meeting.userName, userId = meeting.userId))
   }
 
   /* Build the join meeting url based on user role */

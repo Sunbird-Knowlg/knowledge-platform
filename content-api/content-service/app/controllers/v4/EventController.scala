@@ -70,22 +70,22 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         getResult(ApiId.PUBLISH_EVENT, eventActor, contentRequest, version = apiVersion)
     }
 
-    def getModeratorJoinMeetingUrl(identifier: String, userName: Option[String]) = Action.async { implicit request =>
+    def getModeratorJoinMeetingUrl(identifier: String, userId:Option[String], userName: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap[String, Object]()
         content.putAll(headers)
-        content.putAll(Map("identifier"-> identifier, "userName" -> userName.getOrElse(Constants.USER)).asJava)
+        content.putAll(Map("identifier"-> identifier, "userId" -> userId.getOrElse(null), "userName" -> userName.getOrElse(Constants.USER)).asJava)
         val readRequest = getRequest(content, headers, "joinEventModerator")
         setRequestContext(readRequest, version, objectType, schemaName)
         readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
         getResult(ApiId.JOIN_EVENT, eventActor, readRequest, version = apiVersion)
     }
 
-    def getAttendeeJoinMeetingUrl(identifier: String, userName: Option[String]) = Action.async { implicit request =>
+    def getAttendeeJoinMeetingUrl(identifier: String, userId:Option[String], userName: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap[String, Object]()
         content.putAll(headers)
-        content.putAll(Map("identifier"-> identifier, "userName" -> userName.getOrElse(Constants.USER)).asJava)
+        content.putAll(Map("identifier"-> identifier, "userId" -> userId.getOrElse(null), "userName" -> userName.getOrElse(Constants.USER)).asJava)
         val readRequest = getRequest(content, headers, "joinEventAttendee")
         setRequestContext(readRequest, version, objectType, schemaName)
         readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);

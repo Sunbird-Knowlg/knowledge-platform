@@ -90,6 +90,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
       metadata.put("identifier", node.getIdentifier.replace(".img", ""))
       metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
+      metadata.put("userId", request.getRequest.get("userId").asInstanceOf[String])
 
       val meetingLink = Provider.getJoinEventUrlModerator(metadata)
       val onlineProviderData = meetingLink.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
@@ -99,6 +100,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
         request.getRequest.putAll(metadata)
         request.getRequest.remove("status")
         request.getRequest.remove("userName")
+        request.getRequest.remove("userId")
         request.setOperation("updateContent")
         request.getContext.put("identifier", request.getRequest.get("identifier"))
         request.getRequest.put("onlineProvider", meetingLink.get("onlineProvider").asInstanceOf[String])
@@ -120,6 +122,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     DataNode.read(request).map(node => {
       val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
       metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
+      metadata.put("userId", request.getRequest.get("userId").asInstanceOf[String])
       val meetingLink = Provider.getJoinEventUrlAttendee(metadata)
       val response: Response = ResponseHandler.OK
       response.put(responseSchemaName, meetingLink)
