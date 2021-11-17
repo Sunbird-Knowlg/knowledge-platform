@@ -140,9 +140,7 @@
           "Windows"
         ]
       },
-      "default": [
-        "All"
-      ]
+      "default": ["All"]
     },
     "minOsVersion": {
       "type": "string"
@@ -192,9 +190,7 @@
           "Other"
         ]
       },
-      "default": [
-        "Student"
-      ]
+      "default": ["Student"]
     },
     "posterImage": {
       "type": "string",
@@ -399,9 +395,7 @@
           "Other"
         ]
       },
-      "default": [
-        "English"
-      ]
+      "default": ["English"]
     },
     "languageCode": {
       "type": "array"
@@ -903,9 +897,7 @@
           "createdFor"
         ]
       },
-      "default": [
-        "createdBy"
-      ]
+      "default": ["createdBy"]
     },
     "reservedDialcodes": {
       "type": "object"
@@ -1120,18 +1112,12 @@
       "properties": {
         "enabled": {
           "type": "string",
-          "enum": [
-            "Yes",
-            "No"
-          ],
+          "enum": ["Yes","No"],
           "default": "No"
         },
         "autoBatch": {
           "type": "string",
-          "enum": [
-            "Yes",
-            "No"
-          ],
+          "enum": ["Yes","No"],
           "default": "No"
         }
       },
@@ -1146,10 +1132,7 @@
       "properties": {
         "enabled": {
           "type": "string",
-          "enum": [
-            "Yes",
-            "No"
-          ],
+          "enum": ["Yes","No"],
           "default": "No"
         }
       },
