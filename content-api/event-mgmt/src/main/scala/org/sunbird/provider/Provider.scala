@@ -12,7 +12,7 @@ object Provider {
 
   def getJoinEventUrlModerator(metadata: java.util.Map[String, AnyRef]): util.Map[String, Any] = {
     val onlineProvider = metadata.getOrDefault("onlineProvider", "").asInstanceOf[String]
-    val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String], metadata.get("name").asInstanceOf[String], userName = metadata.get("userName").asInstanceOf[String], userId = metadata.get("userId").asInstanceOf[String])
+    val meetingRequest = Meeting(metadata.get("identifier").asInstanceOf[String], metadata.get("name").asInstanceOf[String], userName = metadata.get("userName").asInstanceOf[String], userId = metadata.get("userId").asInstanceOf[String], record = true, allowStartStopRecording = true)
     val providerApiObject = onlineProvider toLowerCase match {
       case ProviderConstants.BIG_BLUE_BUTTON =>
         new BbbApi()
@@ -20,16 +20,14 @@ object Provider {
         // Set response of Meeting URL for other onlineProviders
         throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "No onlineProvider selected for the Event")
     }
-    var meetingResponseWithPW: Meeting = null
-    if (providerApiObject.deferEventCreation()) { // Creating Meeting if deferred Event creation, and updating Event with Meeting details
-      val meetingResponse = providerApiObject.createMeeting(meetingRequest)
-      meetingResponseWithPW = meetingResponse
-    }
+    val meetingResponseWithPW: Meeting = if (providerApiObject.deferEventCreation()) { // Creating Meeting if deferred Event creation, and updating Event with Meeting details
+      providerApiObject.createMeeting(meetingRequest)
+    } else null
     val moderatorMeetingLink = providerApiObject.getModeratorJoinMeetingURL(meetingResponseWithPW)
     val meetingLink = new java.util.HashMap[String, Any]
     meetingLink.put("onlineProvider", onlineProvider)
     meetingLink.put("moderatorMeetingLink", moderatorMeetingLink)
-    if (meetingResponseWithPW.shouldUpdate) {
+    if (null != meetingResponseWithPW && meetingResponseWithPW.shouldUpdate) {
       // Converting object to map to get save in Event
       val mapMeetingResponse: Map[String, Any] = meetingResponseWithPW.getClass.getDeclaredFields.foldLeft(Map.empty[String, Any]) { (a, f) =>
         f.setAccessible(true)

@@ -9,6 +9,8 @@ import org.sunbird.provider.{Meet, Meeting}
 import org.w3c.dom.{Document, Node}
 import org.xml.sax.{InputSource, SAXException}
 
+import util.control.Breaks._
+import scala.util.control._
 import java.io._
 import java.net.{HttpURLConnection, URL, URLEncoder}
 import java.util
@@ -35,6 +37,8 @@ class BbbApi extends Meet {
       val query = new StringBuilder
       query.append(ProviderConstants.QUERY_PARAM_MEETING_ID + meeting.meetingID)
       if (meeting.name != null) query.append(ProviderConstants.QUERY_PARAM_NAME + encode(meeting.name))
+      query.append(ProviderConstants.QUERY_PARAM_RECORD + meeting.record)
+      query.append(ProviderConstants.QUERY_PARAM_ALLOW_START_STOP_RECORDING + meeting.allowStartStopRecording)
       query.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_CREATE, query.toString))
       response = doAPICall(ProviderConstants.API_CALL_CREATE, query.toString)
       shouldUpdateFlag = true
@@ -147,7 +151,7 @@ class BbbApi extends Meet {
       val responseCode = httpConnection.getResponseCode
       if (responseCode == HttpURLConnection.HTTP_OK) { // read response
         var isr: InputStreamReader = null
-        var reader: BufferedReader = null
+        val reader: BufferedReader = null
         val xml = new StringBuilder
         try {
           isr = new InputStreamReader(httpConnection.getInputStream, ProviderConstants.ENCODE)
@@ -241,42 +245,45 @@ class BbbApi extends Meet {
       }
       else if (node.getChildNodes.getLength == 0 && node.getNodeType != org.w3c.dom.Node.TEXT_NODE && node.getNodeType != org.w3c.dom.Node.CDATA_SECTION_NODE) map.put(nodeName, "")
       // Below code could be needed when deep xml response read
-      //      else if (node.getChildNodes.getLength >= 1) {
-      //        var isList = false
-      //        for (c <- 0 until node.getChildNodes.getLength) {
-      //          try {
-      //            val n = node.getChildNodes.item(c)
-      //            if (n.getChildNodes.item(0).getNodeType != org.w3c.dom.Node.TEXT_NODE && n.getChildNodes.item(0).getNodeType != org.w3c.dom.Node.CDATA_SECTION_NODE) {
-      //              isList = true
-      //              break
-      //
-      //            }
-      //          } catch {
-      //            case e: Exception =>
-      //              breakable {
-      //                break
-      //              }
-      //          }
-      //        }
-      //        val list = new util.ArrayList[AnyRef]
-      //        if (isList) {
-      //          for (c <- 0 until node.getChildNodes.getLength) {
-      //            val n = node.getChildNodes.item(c)
-      //            list.add(processNode(n))
-      //          }
-      //          if (nodeName eq "preview") {
-      //            val n = node.getChildNodes.item(0)
-      //            map.put(nodeName, new util.ArrayList[AnyRef](processNode(n).values))
-      //          }
-      //          else map.put(nodeName, list)
-      //        }
-      //        else map.put(nodeName, processNode(node))
-      //      }
+      else if (node.getChildNodes.getLength >= 1) {
+        var isList = false
+        val outLoop = new Breaks
+        val inLoop = new Breaks
+        outLoop.breakable {
+          for (c <- 0 until node.getChildNodes.getLength) {
+            breakable {
+              try {
+                val n = node.getChildNodes.item(c)
+                if (n.getChildNodes.item(0).getNodeType != org.w3c.dom.Node.TEXT_NODE && n.getChildNodes.item(0).getNodeType != org.w3c.dom.Node.CDATA_SECTION_NODE) {
+                  isList = true
+                  outLoop.break
+                }
+              } catch {
+                case e: Exception =>
+                  inLoop.break
+              }
+            }
+          }
+        }
+        val list = new util.ArrayList[AnyRef]
+        if (isList) {
+          for (c <- 0 until node.getChildNodes.getLength) {
+            val n = node.getChildNodes.item(c)
+            list.add(processNode(n))
+          }
+          if (nodeName eq "preview") {
+            val n = node.getChildNodes.item(0)
+            map.put(nodeName, new util.ArrayList[AnyRef](processNode(n).values))
+          }
+          else map.put(nodeName, list)
+        }
+        else map.put(nodeName, processNode(node))
+      }
       else map.put(nodeName, processNode(node))
     }
     map
   }
 
   /* Defers the event creation */
-  override def deferEventCreation(): Boolean = true;
+  override def deferEventCreation(): Boolean = true
 }

@@ -34,6 +34,8 @@ object ProviderConstants {
   val QUERY_PARAM_FULL_NAME = "&fullName="
   val QUERY_PARAM_PASSWORD = "&password="
   val QUERY_PARAM_CHECKSUM = "&checksum="
+  val QUERY_PARAM_RECORD = "&record="
+  val QUERY_PARAM_ALLOW_START_STOP_RECORDING = "&allowStartStopRecording="
 
   // Response parameters
   val RESPONSE = "response"
