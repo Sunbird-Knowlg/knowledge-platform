@@ -202,6 +202,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(headers)
         content.putAll(Map("identifier" -> identifier).asJava)
         val contentRequest = getRequest(content, headers, "rejectContent")
+        contentRequest.put("mode", "edit")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
         getResult(ApiId.REJECT_CONTENT, contentActor, contentRequest, version = apiVersion)
