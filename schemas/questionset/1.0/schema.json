@@ -586,6 +586,17 @@
     },
     "rejectComment": {
       "type": "string"
+    },
+    "allowBranching": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "branchingLogic": {
+      "type": "object",
+      "description": "Store rules for dependent question"
     }
   },
   "additionalProperties": false
