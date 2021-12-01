@@ -107,13 +107,17 @@ object CopyManager {
 
     def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val childrenHierarchy = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+        val updatedChildrenHierarchy = childrenHierarchy.asScala.toList.map(child => {
+            child.put("parent",node.getIdentifier)
+            child
+        })
         val req = new Request(request)
         req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
         req.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
         req.getContext.put(ContentConstants.IDENTIFIER, node.getIdentifier)
         req.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef](){{
             put(ContentConstants.IDENTIFIER, node.getIdentifier)
-            put(ContentConstants.CHILDREN, childrenHierarchy)
+            put(ContentConstants.CHILDREN, updatedChildrenHierarchy.asJava)
         }}))
         DataNode.update(req).map(node=>node)
     }
