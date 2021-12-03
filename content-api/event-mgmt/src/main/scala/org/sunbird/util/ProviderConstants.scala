@@ -36,6 +36,7 @@ object ProviderConstants {
   val QUERY_PARAM_CHECKSUM = "&checksum="
   val QUERY_PARAM_RECORD = "&record="
   val QUERY_PARAM_ALLOW_START_STOP_RECORDING = "&allowStartStopRecording="
+  val QUERY_PARAM_MUTE_ON_START = "&muteOnStart="
 
   // Response parameters
   val RESPONSE = "response"

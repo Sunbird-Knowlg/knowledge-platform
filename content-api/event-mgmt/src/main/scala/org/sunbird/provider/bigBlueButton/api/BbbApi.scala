@@ -39,6 +39,7 @@ class BbbApi extends Meet {
       if (meeting.name != null) query.append(ProviderConstants.QUERY_PARAM_NAME + encode(meeting.name))
       query.append(ProviderConstants.QUERY_PARAM_RECORD + meeting.record)
       query.append(ProviderConstants.QUERY_PARAM_ALLOW_START_STOP_RECORDING + meeting.allowStartStopRecording)
+      query.append(ProviderConstants.QUERY_PARAM_MUTE_ON_START + meeting.muteOnStart)
       query.append(getCheckSumParameterForQuery(ProviderConstants.API_CALL_CREATE, query.toString))
       response = doAPICall(ProviderConstants.API_CALL_CREATE, query.toString)
       shouldUpdateFlag = true
