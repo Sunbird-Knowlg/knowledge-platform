@@ -104,7 +104,8 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
         request.setOperation("updateContent")
         request.getContext.put("identifier", request.getRequest.get("identifier"))
         request.getRequest.put("onlineProvider", meetingLink.get("onlineProvider").asInstanceOf[String])
-        request.getRequest.put("onlineProviderData", onlineProviderData)
+        val oldOnlineProviderData = request.getRequest.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
+        if (null != oldOnlineProviderData) oldOnlineProviderData.putAll(onlineProviderData) else request.getRequest.put("onlineProviderData", onlineProviderData)
         super.update(request) recoverWith {
           case e =>
             Future(ResponseHandler.getErrorResponse(e))

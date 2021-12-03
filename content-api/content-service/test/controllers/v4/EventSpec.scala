@@ -49,20 +49,6 @@ class EventSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
 
-        "return success response for getModeratorJoinMeetingUrl API" in {
-            val controller = app.injector.instanceOf[controllers.v4.EventController]
-            val result = controller.getModeratorJoinMeetingUrl("do_1234", Option("6f7c0d19"), Option("User"))(FakeRequest("GET", "/event/v4/join/moderator "))
-            isOK(result)
-            status(result) must equalTo(OK)
-        }
-
-        "return success response for getAttendeeJoinMeetingUrl API" in {
-            val controller = app.injector.instanceOf[controllers.v4.EventController]
-            val result = controller.getAttendeeJoinMeetingUrl("do_1234", Option("6f7c0d19"), Option("User"))(FakeRequest("GET", "/event/v4/join/attendee "))
-            isOK(result)
-            status(result) must equalTo(OK)
-        }
-
     }
 
 }

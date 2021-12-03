@@ -217,53 +217,8 @@ class TestEventActor extends BaseSpec with MockFactory {
                 put("endTime", "12:00:00Z")
                 put("registrationEndDate", "2021-01-02")
                 put("eventType", "Online")
-                put("onlineProvider", "BigBlueButton")
             }
         })
         node
-    }
-
-    it should "return success response for 'joinEventModerator'" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        implicit val ss = mock[StorageService]
-        val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getDraftNode()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-
-        val nodes: util.List[Node] = getCategoryNode()
-        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
-
-        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
-        val request = getContentRequest()
-        request.getContext.put("identifier", "do_1234")
-        request.putAll(mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234",
-            "startDate" -> "2021-03-04", "endDate" -> "2021-03-04", "startTime" -> "11:00:00Z", "endTime" -> "11:00:00Z",
-            "registrationEndDate" -> "2021-03-04", "eventType" -> "Online", "onlineProvider" -> "BigBlueButton", "versionKey" -> "test_123")))
-        request.setOperation("joinEventModerator")
-        val response = callActor(request, Props(new EventActor()))
-        assert("successful".equals(response.getParams.getStatus))
-        assert("BigBlueButton".equals(response.get("event").asInstanceOf[util.Map[String, Any]].get("onlineProvider").asInstanceOf[String]))
-        assert(!response.get("moderatorMeetingLink").asInstanceOf[String].isEmpty)
-    }
-
-    it should "return success response for 'joinEventAttendee'" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        implicit val ss = mock[StorageService]
-        val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getDraftNode()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-
-        val request = getContentRequest()
-        request.getContext.put("identifier", "do_1234")
-        request.putAll(mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234",
-            "startDate" -> "2021-03-04", "endDate" -> "2021-03-04", "startTime" -> "11:00:00Z", "endTime" -> "11:00:00Z",
-            "registrationEndDate" -> "2021-03-04", "eventType" -> "Online", "onlineProvider" -> "BigBlueButton", "versionKey" -> "test_123")))
-        request.setOperation("joinEventAttendee")
-        val response = callActor(request, Props(new EventActor()))
-        assert("successful".equals(response.getParams.getStatus))
-        assert("BigBlueButton".equals(response.get("event").asInstanceOf[util.Map[String, Any]].get("onlineProvider").asInstanceOf[String]))
-        assert(!response.get("attendeeMeetingLink").asInstanceOf[String].isEmpty)
     }
 }
