@@ -91,6 +91,7 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       metadata.put("identifier", node.getIdentifier.replace(".img", ""))
       metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
       metadata.put("userId", request.getRequest.get("userId").asInstanceOf[String])
+      metadata.put("muteOnStart", request.getRequest.get("muteOnStart").asInstanceOf[java.lang.Boolean])
 
       val meetingLink = Provider.getJoinEventUrlModerator(metadata)
       val onlineProviderData = meetingLink.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
