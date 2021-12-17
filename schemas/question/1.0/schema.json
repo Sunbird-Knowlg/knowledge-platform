@@ -548,6 +548,26 @@
     },
     "rejectComment": {
       "type": "string"
+    },
+    "showRemarks": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "remarks": {
+      "type": "object"
+    },
+    "showEvidence": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "evidence": {
+      "type": "object"
     }
   },
   "additionalProperties": false
