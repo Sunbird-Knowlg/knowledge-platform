@@ -137,12 +137,6 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
-        "return success response for rejectContent API" in {
-            val controller = app.injector.instanceOf[controllers.v3.ContentController]
-            val result = controller.rejectContent("01234")(FakeRequest())
-            isOK(result)
-            status(result) must equalTo(OK)
-        }
         "return success response for publishUnlisted API" in {
             val controller = app.injector.instanceOf[controllers.v3.ContentController]
             val result = controller.publishUnlisted("01234")(FakeRequest())

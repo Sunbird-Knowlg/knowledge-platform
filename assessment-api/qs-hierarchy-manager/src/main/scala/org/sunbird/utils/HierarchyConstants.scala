@@ -11,6 +11,7 @@ object HierarchyConstants {
     val IDENTIFIER: String = "identifier"
     val DEPTH: String = "depth"
     val PARENT: String = "Parent"
+    val PARENT_KEY: String = "parent"
     val INDEX: String = "index"
     val CHILDREN: String = "children"
     val VISIBILITY: String = "visibility"

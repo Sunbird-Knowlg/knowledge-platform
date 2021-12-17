@@ -8,7 +8,7 @@ import utils.ActorNames
 class AssessmentModule extends AbstractModule with AkkaGuiceSupport {
 
     override def configure() = {
-        super.configure()
+//        super.configure()
         bindActor(classOf[HealthActor], ActorNames.HEALTH_ACTOR)
         bindActor(classOf[ItemSetActor], ActorNames.ITEM_SET_ACTOR)
         bindActor(classOf[QuestionActor], ActorNames.QUESTION_ACTOR)

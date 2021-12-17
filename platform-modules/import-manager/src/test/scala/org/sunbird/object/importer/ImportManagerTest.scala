@@ -277,21 +277,6 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 		assert(BooleanUtils.isFalse(result))
 	}
 
-	"getBasePath " should "return valid path" in {
-		val result = importMgr.getBasePath("do_123")
-		assert(result.nonEmpty)
-	}
-
-	"downloadAppIconFile " should "return valid file for non google drive input" in {
-		val result = importMgr.downloadAppIconFile("do_123","https://ntpstagingall.blob.core.windows.net/ntp-content-staging/content/do_21291553100098764812/artifact/focus-spot_1561727473311.thumb_1576602905573.png")
-		assert(result.exists())
-	}
-
-	"downloadAppIconFile " should "return valid file for google drive input" in {
-		val result = importMgr.downloadAppIconFile("do_123", "https://drive.google.com/uc?export=download&id=1gU-4yKWyieuR0Gir5mryVpWFNJWS3jpK")
-		assert(result.exists())
-	}
-
 	"validateStage with valid input" should "return true" in {
 		val result = importMgr.validateStage("review", importConfig.validContentStage.asJava)
 		assert(BooleanUtils.isTrue(result))

@@ -29,10 +29,18 @@ jobs:
       - run:
           name: Setup environment and run tests
           command: bash vmsetup.sh
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
       - save_cache:
           paths:
             - ~/.m2
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+      - store_test_results:
+          path: ~/test-results
 
 workflows:
   version: 2.1

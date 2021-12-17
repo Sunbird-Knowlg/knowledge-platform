@@ -2,9 +2,9 @@ package org.sunbird.graph.schema.validator
 
 import java.util
 import java.util.concurrent.CompletionException
-
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
@@ -19,6 +19,8 @@ import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
 
 trait FrameworkValidator extends IDefinition {
+
+  val logger = LoggerFactory.getLogger("org.sunbird.graph.schema.validator.FrameworkValidator")
 
   @throws[Exception]
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -109,9 +111,10 @@ trait FrameworkValidator extends IDefinition {
     } else {
       val nodes = getMasterCategoryNodes(graphId, objectType)
       nodes.map(dataNodes => {
-        if (dataNodes.isEmpty)
-          throw new ServerException("ERR_MASTER_CATEGORY_NOT_FOUND", s"Data not found for objectType: $objectType ")
-        else {
+        if (dataNodes.isEmpty) {
+          logger.warn(s"ALERT!... There are no master framework category objects[$objectType] defined. This will not enable framework category properties validation.")
+          List[Map[String, AnyRef]]()
+        } else {
           val masterCategories: scala.collection.immutable.Map[String, AnyRef] = dataNodes.map(
             node => node.getMetadata.getOrDefault("code", "").asInstanceOf[String] -> Map[String, AnyRef](
               "code" -> node.getMetadata.getOrDefault("code", "").asInstanceOf[String],

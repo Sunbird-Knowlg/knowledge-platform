@@ -417,8 +417,9 @@ object CollectionCSVValidator {
 
     if (csvLinkedContentsList.nonEmpty) {
       val returnedLinkedContentsResult: List[Map[String, AnyRef]] = searchLinkedContents(csvLinkedContentsList)
+      TelemetryManager.info("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> linked content search response:: returnedLinkedContentsResult:: " +  returnedLinkedContentsResult.toString())
       val returnedLinkedContentsIdentifierList = returnedLinkedContentsResult.map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
-
+      TelemetryManager.info("CollectionCSVActor --> validateCSVRecordsDataAuthenticity --> linked content search response:: csvLinkedContentsList:: " +  csvLinkedContentsList.toString() + " || returnedLinkedContentsIdentifierList:: " + returnedLinkedContentsIdentifierList.toString())
       val invalidLinkedContentsErrorMessage = csvRecords.flatMap(csvRecord => {
         csvRecord.toMap.asScala.toMap.map(colData => {
           if (linkedContentHdrColumnsList.contains(colData._1) && (csvLinkedContentsList.toSet.toList diff returnedLinkedContentsIdentifierList).contains(colData._2))

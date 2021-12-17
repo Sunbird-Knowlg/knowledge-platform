@@ -81,16 +81,21 @@ object CollectionTOCUtil {
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> requestUrl: " + requestUrl)
     TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> reqMap: " + JsonUtils.serialize(reqMap))
     val searchResponse =  oec.httpUtil.post(requestUrl, reqMap, headerParam)
-
+    TelemetryManager.log("CollectionTOCUtil --> searchLinkedContents --> searchResponse: " + searchResponse)
     if (null == searchResponse || searchResponse.getResponseCode.code() != ResponseCode.OK.code())
       throw new ServerException("SERVER_ERROR", "Error while fetching Linked Contents List.")
 
     try {
-      searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
+      TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse.getResult: " + searchResponse.getResult)
+      val contentList = searchResponse.getResult.getOrDefault(CollectionTOCConstants.CONTENT, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
+      TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse --> contentList: " + contentList)
+      val questionSetList = searchResponse.getResult.getOrDefault(CollectionTOCConstants.QUESTION_SET, new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef])
+      TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> searchResponse --> questionSetList: " + questionSetList)
+      contentList ++ questionSetList
     }
     catch {
-      case _:Exception =>
-        List.empty
+      case ex:Exception => TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> Exception:: " + ex.getMessage)
+          List.empty
     }
   }
 

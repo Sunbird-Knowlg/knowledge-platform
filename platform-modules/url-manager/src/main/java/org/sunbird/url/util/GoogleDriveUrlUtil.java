@@ -144,27 +144,4 @@ public class GoogleDriveUrlUtil {
 			throw new ServerException(URLErrorCodes.ERR_GOOGLE_SERVICE.name(), SERVICE_ERROR);
 		return googleDriveFile;
 	}
-
-
-	public static java.io.File downloadFile(String fileId, String saveDir) {
-		try {
-			Drive.Files.Get getFile = drive.files().get(fileId);
-			getFile.setKey(API_KEY);
-			getFile.setFields("id,name,size,owners,mimeType,properties,permissionIds,webContentLink");
-			com.google.api.services.drive.model.File googleDriveFile = getFile.execute();
-			String fileName = googleDriveFile.getName();
-			java.io.File saveFile = new java.io.File(saveDir);
-			if (!saveFile.exists()) saveFile.mkdirs();
-			String saveFilePath = saveDir + java.io.File.separator + fileName;
-			OutputStream outputStream = new FileOutputStream(saveFilePath);
-			getFile.executeMediaAndDownloadTo(outputStream);
-			outputStream.close();
-			java.io.File file = new java.io.File(saveFilePath);
-			file = Slug.createSlugFile(file);
-			return file;
-		} catch (Exception e) {
-			logger.error("Exception while downloading appIcon file:: ", e.getMessage());
-			throw new ServerException(URLErrorCodes.ERR_INVALID_UPLOAD_FILE_URL.name(), "Invalid Response Received From Google API for file Id : " + fileId + " | Error is : " + e.getMessage());
-		}
-	}
 }

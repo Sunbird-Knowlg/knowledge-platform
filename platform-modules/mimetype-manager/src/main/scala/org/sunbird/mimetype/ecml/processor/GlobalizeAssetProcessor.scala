@@ -1,12 +1,12 @@
 package org.sunbird.mimetype.ecml.processor
 
 import java.io.File
-
 import com.mashape.unirest.http.Unirest
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{Platform, Slug}
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -21,12 +21,14 @@ trait GlobalizeAssetProcessor extends IProcessor {
     abstract override def process(ecrf: Plugin)(implicit ss: StorageService): Plugin = {
         val manifest = ecrf.manifest
         val updatedMedias:List[Media] = uploadAssets(manifest.medias)
+        TelemetryManager.info("GlobalizeAssetProcessor::process:: updatedMedias:: "+updatedMedias)
         val updatedManifest:Manifest = Manifest(manifest.id, manifest.data, manifest.innerText, manifest.cData, updatedMedias)
         super.process(Plugin(ecrf.id, ecrf.data, ecrf.innerText, ecrf.cData, ecrf.childrenPlugin, updatedManifest, ecrf.controllers, ecrf.events))
     }
 
     def uploadAssets(medias: List[Media])(implicit ss: StorageService, ec: ExecutionContext =  concurrent.ExecutionContext.Implicits.global): List[Media] = {
         if(null != medias) {
+          TelemetryManager.info("GlobalizeAssetProcessor::uploadAssets:: medias:: "+medias)
             val future:Future[List[Media]] = Future.sequence(medias.filter(media=> StringUtils.isNotBlank(media.id) && StringUtils.isNotBlank(media.src) && StringUtils.isNotBlank(media.`type`))
                     .map(media => {
                         Future{
@@ -39,9 +41,12 @@ trait GlobalizeAssetProcessor extends IProcessor {
                             val blobUrl = if (!(mediaSrc.startsWith("http"))) {
                                 if (mediaSrc.startsWith("/")) BASE_URL + mediaSrc else BASE_URL + File.separator + mediaSrc
                             } else mediaSrc
+                            TelemetryManager.info("GlobalizeAssetProcessor::uploadAssets:: mediaSrc: " + mediaSrc + " | uploading file: "+file.getAbsolutePath)
                             val uploadFileUrl: Array[String] = if (StringUtils.isNoneBlank(cloudDirName) && getBlobLength(blobUrl) == 0) ss.uploadFile(cloudDirName, file)
                             else new Array[String](1)
+
                             if (null != uploadFileUrl && uploadFileUrl.size > 1) {
+                              TelemetryManager.info("GlobalizeAssetProcessor::uploadAssets:: uploadFileUrl:: "+uploadFileUrl(1))
                                 if (!(mediaSrc.startsWith("http") || mediaSrc.startsWith("/"))) {
                                     val temp = media.data ++ Map("src" -> ("/" + mediaSrc))
                                     Media(media.id, temp, media.innerText, media.cData, uploadFileUrl(1), media.`type`, media.childrenPlugin)

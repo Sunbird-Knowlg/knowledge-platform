@@ -71,6 +71,10 @@
         "default": "Student"
       }
     },
+    "posterImage": {
+      "type": "string",
+      "format": "url"
+    },
     "author": {
       "type": "string"
     },
@@ -105,7 +109,7 @@
       "type": "string",
       "format": "url"
     },
-    "publishCheckList": {
+    "publishChecklist": {
       "type": "array"
     },
     "publishComment": {
@@ -120,6 +124,12 @@
     },
     "depth": {
       "type": "number"
+    },
+    "index": {
+      "type": "number"
+    },
+    "parent": {
+      "type": "string"
     },
     "downloadUrl": {
       "type": "string",
@@ -202,6 +212,9 @@
         ]
       },
       "default": ["English"]
+    },
+    "languageCode": {
+      "type": "array"
     },
     "channel": {
       "type": "string"
@@ -574,5 +587,6 @@
     "rejectComment": {
       "type": "string"
     }
-  }
+  },
+  "additionalProperties": false
 }

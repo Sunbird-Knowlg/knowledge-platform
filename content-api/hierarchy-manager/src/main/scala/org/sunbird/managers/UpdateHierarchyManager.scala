@@ -165,7 +165,7 @@ object UpdateHierarchyManager {
             if (StringUtils.equalsIgnoreCase(HierarchyConstants.DEFAULT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
                 getContentNode(child.getOrDefault(HierarchyConstants.IDENTIFIER, "").asInstanceOf[String], HierarchyConstants.TAXONOMY_ID).map(node => {
                     node.getMetadata.put(HierarchyConstants.DEPTH, child.get(HierarchyConstants.DEPTH))
-                    node.getMetadata.put(HierarchyConstants.PARENT, child.get(HierarchyConstants.PARENT))
+                    node.getMetadata.put(HierarchyConstants.PARENT_KEY, child.get(HierarchyConstants.PARENT_KEY))
                     node.getMetadata.put(HierarchyConstants.INDEX, child.get(HierarchyConstants.INDEX))
                     //TODO: Remove the Populate category mapping before updating for backward
                     HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(node.getMetadata, node.getObjectType)
@@ -412,7 +412,7 @@ object UpdateHierarchyManager {
 
     private def populateHierarchyRelatedData(tempNode: Node, depth: Int, index: Int, parent: String) = {
         tempNode.getMetadata.put(HierarchyConstants.DEPTH, depth.asInstanceOf[AnyRef])
-        tempNode.getMetadata.put(HierarchyConstants.PARENT, parent.replaceAll(".img", ""))
+        tempNode.getMetadata.put(HierarchyConstants.PARENT_KEY, parent.replaceAll(".img", ""))
         tempNode.getMetadata.put(HierarchyConstants.INDEX, index.asInstanceOf[AnyRef])
     }
 

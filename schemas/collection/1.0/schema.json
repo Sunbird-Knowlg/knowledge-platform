@@ -354,6 +354,9 @@
       },
       "default": ["English"]
     },
+    "languageCode": {
+      "type": "array"
+    },
     "words": {
       "type": "array"
     },

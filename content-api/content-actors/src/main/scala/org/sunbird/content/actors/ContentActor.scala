@@ -15,6 +15,7 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
+import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
@@ -49,6 +50,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
+			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case _ => ERROR(request.getOperation)
 		}
@@ -146,6 +148,20 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def importContent(request: Request): Future[Response] = importMgr.importObject(request)
 
+	def reviewContent(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put("identifier", identifier)
+		readReq.put("mode", "edit")
+		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
+			if (StringUtils.equalsAnyIgnoreCase("Processing", node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
+			else ReviewManager.review(request, node)
+		}).flatMap(f => f)
+	}
+
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
@@ -240,12 +256,14 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				throw new ClientException("ERR_METADATA_ISSUE", "Content metadata error, status is blank for identifier:" + node.getIdentifier)
       if (StringUtils.equals("Review", status)) {
         request.getRequest.put("status", "Draft")
-      } else if (StringUtils.equals("FlagReview", status))
+				request.getRequest.put("prevStatus", "Review")
+      } else if (StringUtils.equals("FlagReview", status)) {
         request.getRequest.put("status", "FlagDraft")
+				request.getRequest.put("prevStatus", "FlagReview")
+			}
       else new ClientException("ERR_INVALID_REQUEST", "Content not in Review status.")
+
 			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
-			if (null != request.getRequest.get("rejectReasons") && !request.getRequest.get("rejectReasons").isInstanceOf[Array[_]])
-				throw new ClientException("ERR_INVALID_REQUEST_FORMAT","rejectReasons should be a Array")
 			request.putIn("publishChecklist", null).putIn("publishComment", null)
       //updating node after changing the status
 			RequestUtil.restrictProperties(request)
