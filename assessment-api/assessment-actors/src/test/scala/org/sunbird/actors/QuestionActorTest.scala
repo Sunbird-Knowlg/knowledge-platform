@@ -1,11 +1,11 @@
 package org.sunbird.actors
 import java.util
-
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.HttpUtil
 import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.common.dto.{Property, Request, Response}
+import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
@@ -53,6 +53,82 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.setOperation("readQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))
+	}
+  
+	it should "return success response for 'readPrivateQuestion'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB)
+		val node = getNode("Question", Some(new util.HashMap[String, AnyRef]() {
+			{
+				put("name", "Question")
+				put("visibility","Private")
+				put("channel","abc-123")
+			}
+		}))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+		val request = getQuestionRequest()
+		request.getContext.put("identifier","do1234")
+		request.getRequest.put("channel", "abc-123")
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+		request.setOperation("readPrivateQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert("successful".equals(response.getParams.getStatus))
+	}
+
+	it should "return client error for 'readPrivateQuestion' if channel is 'blank'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		val request = getQuestionRequest()
+		request.getContext.put("identifier","do1234")
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+		request.setOperation("readPrivateQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+		assert(response.getParams.getErr == "ERR_INVALID_CHANNEL")
+		assert(response.getParams.getErrmsg == "Please Provide Channel!")
+	}
+
+	it should "return client error for 'readPrivateQuestion' if channel is mismatched" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB)
+		val node = getNode("Question", Some(new util.HashMap[String, AnyRef]() {
+			{
+				put("name", "Question")
+				put("visibility","Private")
+				put("channel","abc-123")
+			}
+		}))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+		val request = getQuestionRequest()
+		request.getContext.put("identifier","do1234")
+		request.getRequest.put("channel", "abc")
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+		request.setOperation("readPrivateQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+		assert(response.getParams.getErr == "ERR_ACCESS_DENIED")
+		assert(response.getParams.getErrmsg == "Channel id is not matched")
+	}
+
+	it should "return client error response for 'readQuestion' if visibility is 'Private'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB)
+		val node = getNode("Question", Some(new util.HashMap[String, AnyRef]() {
+			{
+				put("name", "Question")
+				put("visibility","Private")
+			}
+		}))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+		val request = getQuestionRequest()
+		request.getContext.put("identifier", "do1234")
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+		request.setOperation("readQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
 	}
 
 	it should "return success response for 'updateQuestion'" in {
@@ -216,6 +292,26 @@ class QuestionActorTest extends BaseSpec with MockFactory {
 		request.put("fields", "")
 		val response = callActor(request, Props(new QuestionActor()))
 		assert(response.getResponseCode.code == 400)
+	}
+
+	it should "return success response for 'rejectQuestion'" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val node = getNode("Question", None)
+		node.getMetadata.putAll(Map("versionKey" -> "1234", "primaryCategory" -> "Multiple Choice Question", "name" -> "Updated New Content", "code" -> "1234", "mimeType"-> "application/vnd.sunbird.question","status" -> "Review").asJava)
+		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
+		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+		val request = getQuestionRequest()
+		request.getContext.put("identifier", "do1234")
+		request.putAll(mapAsJavaMap(Map( "versionKey" -> "1234", "description" -> "updated description","rejectComment" -> "Rejected for testing")))
+		request.setOperation("rejectQuestion")
+		val response = callActor(request, Props(new QuestionActor()))
+		assert("successful".equals(response.getParams.getStatus))
 	}
 
 	private def getQuestionRequest(): Request = {

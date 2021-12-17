@@ -23,6 +23,12 @@ class QuestionControllerSpec extends BaseSpec {
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}
 
+	"private read should return an question successfully for given valid identifier" in {
+		val result = controller.privateRead("do_123", None, None)(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
+
 	"update should update the question successfully for given valid identifier" in {
 		val result = controller.update("do_123")(FakeRequest())
 		isOK(result)
@@ -61,6 +67,12 @@ class QuestionControllerSpec extends BaseSpec {
 
 	"list should list all the questions for given list of ids in the request" in {
 		val result = controller.list(None)(FakeRequest())
+		isOK(result)
+		status(result)(defaultAwaitTimeout) must equalTo(OK)
+	}
+
+	"reject should update the question status to Draft successfully for given valid identifier" in {
+		val result = controller.reject("do_123")(FakeRequest())
 		isOK(result)
 		status(result)(defaultAwaitTimeout) must equalTo(OK)
 	}

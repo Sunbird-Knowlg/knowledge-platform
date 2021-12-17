@@ -35,6 +35,16 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		getResult(ApiId.READ_QUESTION, questionActor, questionRequest)
 	}
 
+	def privateRead(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val question = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+		question.putAll(headers)
+		question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read")).asJava)
+		val questionRequest = getRequest(question, headers, QuestionOperations.readPrivateQuestion.toString)
+		setRequestContext(questionRequest, version, objectType, schemaName)
+		getResult(ApiId.READ_PRIVATE_QUESTION, questionActor, questionRequest)
+	}
+
 	def update(identifier: String) = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
@@ -108,5 +118,16 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		questionRequest.put("identifiers", questionRequest.get("identifier"))
 		setRequestContext(questionRequest, version, objectType, schemaName)
 		getResult(ApiId.LIST_QUESTIONS, questionActor, questionRequest)
+	}
+
+	def reject(identifier: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val question = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		question.putAll(headers)
+		val questionRequest = getRequest(question, headers, QuestionOperations.rejectQuestion.toString)
+		setRequestContext(questionRequest, version, objectType, schemaName)
+		questionRequest.getContext.put("identifier", identifier)
+		getResult(ApiId.REJECT_QUESTION, questionActor, questionRequest)
 	}
 }

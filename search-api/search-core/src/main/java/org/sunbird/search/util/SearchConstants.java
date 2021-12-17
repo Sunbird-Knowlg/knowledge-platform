@@ -59,6 +59,8 @@ public class SearchConstants {
     public static final String ERR_SYSTEM_ACTOR_NOT_CREATED = "ERR_SYSTEM_ACTOR_NOT_CREATED";
     public static final String ERR_ROUTER_ACTOR_NOT_FOUND = "ERR_ROUTER_ACTOR_NOT_FOUND";
     public static final String ERR_INVALID_OPERATION = "ERR_INVALID_OPERATION";
+    public static final String ERR_ACCESS_DENIED = "ERR_ACCESS_DENIED";
+    public static final String ERR_INVALID_CHANNEL = "ERR_INVALID_CHANNEL";
     public static final String SYSTEM_ERROR = "SYSTEM_ERROR";
 
     /**
@@ -110,5 +112,6 @@ public class SearchConstants {
     public static final String ContentImage = "ContentImage";
     public static final String mode = "mode";
     public static final String softConstraints = "softConstraints";
+    public static final String setDefaultVisibility = "setDefaultVisibility";
     public static String soft = "soft";
 }
