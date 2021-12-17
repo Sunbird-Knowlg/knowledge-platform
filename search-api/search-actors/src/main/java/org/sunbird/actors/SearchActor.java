@@ -677,7 +677,7 @@ public class SearchActor extends SearchBaseActor {
                     contentIds.add((String) content.get("identifier"));
                 }
 
-                Request request = new Request();
+                Request request = new Request(parentRequest);
                 Map<String, Object> filters = new HashMap<String, Object>();
                 List<String> objectTypes = new ArrayList<String>();
                 objectTypes.add("Content");
