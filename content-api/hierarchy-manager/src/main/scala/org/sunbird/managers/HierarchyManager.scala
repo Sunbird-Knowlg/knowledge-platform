@@ -313,6 +313,7 @@ object HierarchyManager {
     def updateRootNode(rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
+        val childNodes = new java.util.ArrayList[String]()
         childNodes.addAll(rootNode.getMetadata.get("childNodes").asInstanceOf[Array[String]].toList)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
