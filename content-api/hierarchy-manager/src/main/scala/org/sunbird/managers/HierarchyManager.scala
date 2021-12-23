@@ -422,7 +422,21 @@ object HierarchyManager {
                 } else
                     Future(Map[String, AnyRef]())
             } else
-                throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA", "Error while fetching hierarchy from cassandra")
+                {
+                    val req = new Request(request)
+                    req.put("identifier", identifier)
+                    val responseFuture = oec.graphService.readExternalProps(req, List("relational_metadata"))
+                    responseFuture.map(response => {
+                        if (!ResponseHandler.checkError(response)) {
+                            val relationalMetadataString = response.getResult.toMap.getOrDefault("relational_metadata", "").asInstanceOf[String]
+                            if (StringUtils.isNotEmpty(relationalMetadataString)) {
+                                Future(JsonUtils.deserialize(relationalMetadataString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                            } else
+                                Future(Map[String, AnyRef]())
+                        } else
+                            throw new ServerException("ERR_WHILE_FETCHING_RELATIONAL_METADATA_FROM_CASSANDRA", "Error while fetching relational_metadata from cassandra")
+                    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+                }
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
