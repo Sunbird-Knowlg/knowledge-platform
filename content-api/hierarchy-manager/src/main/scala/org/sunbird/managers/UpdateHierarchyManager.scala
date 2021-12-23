@@ -442,7 +442,6 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIER, rootId)
         req.put(HierarchyConstants.CHILDREN, new java.util.ArrayList())
         req.put(HierarchyConstants.CONCEPTS, new java.util.ArrayList())
-        println("UpdateHierarchyManager --> updateHierarchyData: --> update req: " + req)
         DataNode.update(req)
     }
 
