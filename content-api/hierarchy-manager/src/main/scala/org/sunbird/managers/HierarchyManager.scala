@@ -2,7 +2,6 @@ package org.sunbird.managers
 
 import java.util
 import java.util.concurrent.CompletionException
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
@@ -15,7 +14,7 @@ import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters
-import scala.collection.JavaConverters.asJavaIterableConverter
+import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter, mapAsScalaMapConverter}
 import scala.concurrent.{ExecutionContext, Future}
 import com.mashape.unirest.http.HttpResponse
 import com.mashape.unirest.http.Unirest
@@ -32,7 +31,7 @@ object HierarchyManager {
     val hierarchyPrefix: String = "hierarchy_"
     val statusList = List("Live", "Unlisted", "Flagged")
 
-    val keyTobeRemoved = {
+    val keyTobeRemoved: util.List[String] = {
         if(Platform.config.hasPath("content.hierarchy.removed_props_for_leafNodes"))
             Platform.config.getStringList("content.hierarchy.removed_props_for_leafNodes")
         else
@@ -129,27 +128,45 @@ object HierarchyManager {
             }
             val bookmarkId = request.get("bookmarkId").asInstanceOf[String]
             var metadata: util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-            val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
-            //TODO: Remove content Mapping for backward compatibility
-            HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
-            hierarchy.map(hierarchy => {
-                val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+
+            fetchRelationalMetadata(request, rootNode.getIdentifier).map(collRelationalMetadata => {
+                val hierarchy = fetchHierarchy(request, rootNode.getIdentifier)
+
                 //TODO: Remove content Mapping for backward compatibility
-                updateContentMappingInChildren(children)
-                val leafNodeIds = new util.ArrayList[String]()
-                fetchAllLeafNodes(children, leafNodeIds)
-                getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
-                    updateLatestLeafNodes(children, leafNodesMap)
-                    metadata.put("children", children)
-                    metadata.put("identifier", request.get("rootId"))
-                    if(StringUtils.isNotEmpty(bookmarkId))
-                        metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
-                    if (MapUtils.isEmpty(metadata)) {
-                        ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
-                    } else {
-                        ResponseHandler.OK.put("content", metadata)
+                HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
+                hierarchy.map(hierarchy => {
+                    val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[java.util.Map[String, AnyRef]]]
+
+                    //updating relationalMetadata of children
+                    if(collRelationalMetadata.nonEmpty) {
+                        val newRelationMetadataMap: Map[String, AnyRef] = collRelationalMetadata.flatMap(record => {
+                            if (record._2.asInstanceOf[java.util.Map[String, AnyRef]].containsKey(HierarchyConstants.RELATIONAL_METADATA)) {
+                                val recRelationalMetadata = record._2.asInstanceOf[java.util.Map[String, AnyRef]].get(HierarchyConstants.RELATIONAL_METADATA).asInstanceOf[java.util.Map[String, AnyRef]]
+                                recRelationalMetadata.asScala.toMap.flatMap(relRec => {
+                                    Map[String, AnyRef](relRec._1 + "::" + record._1 -> relRec._2)
+                                })
+                            } else Map.empty[String, AnyRef]
+                        })
+                        updateRelationMetadataMappingInChildren(children, newRelationMetadataMap)
                     }
-                })
+
+                    //TODO: Remove content Mapping for backward compatibility
+                    updateContentMappingInChildren(children)
+                    val leafNodeIds = new util.ArrayList[String]()
+                    fetchAllLeafNodes(children, leafNodeIds)
+                    getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
+                        updateLatestLeafNodes(children, leafNodesMap)
+                        metadata.put("children", children)
+                        metadata.put("identifier", request.get("rootId"))
+                        if (StringUtils.isNotEmpty(bookmarkId))
+                            metadata = filterBookmarkHierarchy(metadata.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], bookmarkId)
+                        if (MapUtils.isEmpty(metadata)) {
+                            ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "bookmarkId " + bookmarkId + " does not exist")
+                        } else {
+                            ResponseHandler.OK.put("content", metadata)
+                        }
+                    })
+                }).flatMap(f => f)
             }).flatMap(f => f)
         }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
                 val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
@@ -392,6 +409,24 @@ object HierarchyManager {
         }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
     }
 
+
+    def fetchRelationalMetadata(request: Request, identifier: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+        val req = new Request(request)
+        req.put("identifier", identifier.replaceAll(".img", "") + ".img")
+        val responseFuture = oec.graphService.readExternalProps(req, List("relational_metadata"))
+        responseFuture.map(response => {
+            if (!ResponseHandler.checkError(response)) {
+                val relationalMetadataString = response.getResult.toMap.getOrDefault("relational_metadata", "").asInstanceOf[String]
+                if (StringUtils.isNotEmpty(relationalMetadataString)) {
+                    Future(JsonUtils.deserialize(relationalMetadataString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                } else
+                    Future(Map[String, AnyRef]())
+            } else
+                throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA", "Error while fetching hierarchy from cassandra")
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }
+
+
     def getCassandraHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, AnyRef]] = {
         val rootHierarchy: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
         val hierarchy = fetchHierarchy(request, request.getRequest.get("rootId").asInstanceOf[String])
@@ -583,6 +618,16 @@ object HierarchyManager {
             Future{new util.HashMap[String, AnyRef]()}
         }
 
+    }
+
+    def updateRelationMetadataMappingInChildren(children: util.List[util.Map[String, AnyRef]], colRelationalMetadata: Map[String,AnyRef]): List[Any] = {
+        children.toList.map(content => {
+            if(colRelationalMetadata.contains(content.get("identifier")+"::"+content.get("parent"))) {
+                val contentRelMetadata = colRelationalMetadata(content.get("identifier")+"::"+content.get("parent"))
+                content.put(HierarchyConstants.RELATIONAL_METADATA,contentRelMetadata)
+            }
+            updateRelationMetadataMappingInChildren(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]],colRelationalMetadata)
+        })
     }
 
     def updateContentMappingInChildren(children: util.List[util.Map[String, AnyRef]]): List[Any] = {
