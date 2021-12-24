@@ -1280,6 +1280,12 @@
         "No"
       ],
       "default": "No"
+    },
+    "accessibility": {
+      "type": "array",
+      "items": {
+          "type": "object"
+      }
     }
   }
 }
