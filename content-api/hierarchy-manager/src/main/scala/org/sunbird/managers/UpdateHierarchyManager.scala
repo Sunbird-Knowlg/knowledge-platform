@@ -10,7 +10,6 @@ import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
@@ -114,7 +113,7 @@ object UpdateHierarchyManager {
 
     private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.util.HashMap[String, AnyRef]] = {
         fetchHierarchy(request, rootNode).map(hierarchyString => {
-            if (!hierarchyString.asInstanceOf[String].isEmpty) {
+            if (hierarchyString.asInstanceOf[String].nonEmpty) {
                 JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
             } else new java.util.HashMap[String, AnyRef]()
         })
@@ -442,7 +441,6 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.IDENTIFIER, rootId)
         req.put(HierarchyConstants.CHILDREN, new java.util.ArrayList())
         req.put(HierarchyConstants.CONCEPTS, new java.util.ArrayList())
-        println("UpdateHierarchyManager --> updateHierarchyData: --> update req: " + req)
         DataNode.update(req)
     }
 
