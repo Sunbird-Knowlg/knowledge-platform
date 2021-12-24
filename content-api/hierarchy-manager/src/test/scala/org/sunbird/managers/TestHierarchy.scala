@@ -355,7 +355,7 @@ class TestHierarchy extends BaseSpec {
             }
         })
         request.put("mode","edit")
-        request.put("rootId", "do_123")
+        request.put("rootId", "do_11283193441064550414")
         val future = HierarchyManager.getHierarchy(request)
         future.map(response => {
             println("getHierarchyWithEditMode -> getHierarchy -> response: " + response)
