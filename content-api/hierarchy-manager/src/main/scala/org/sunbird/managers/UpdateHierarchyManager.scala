@@ -10,7 +10,6 @@ import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
@@ -39,10 +38,6 @@ object UpdateHierarchyManager {
               .map(result => {
                   val nodes = result._2
                   TelemetryManager.info("NodeList final size: " + nodes.size)
-                  val duplicates = nodes.groupBy(node => node.getIdentifier).map(t => t._1 -> t._2.size).toMap
-                  //TelemetryManager.info("NodeList for root with duplicates :" + rootId +" :: " + ScalaJsonUtils.serialize(duplicates))
-                  val nodeMap: Map[String, AnyRef] = nodes.map(node => node.getIdentifier -> node.getMetadata.get("visibility")).toMap
-                  //TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeMap))
                   val idMap: mutable.Map[String, String] = mutable.Map()
                   idMap += (rootId -> rootId)
                   updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).map(modifiedNodeList => {
@@ -114,7 +109,7 @@ object UpdateHierarchyManager {
 
     private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.util.HashMap[String, AnyRef]] = {
         fetchHierarchy(request, rootNode).map(hierarchyString => {
-            if (!hierarchyString.asInstanceOf[String].isEmpty) {
+            if (hierarchyString.asInstanceOf[String].nonEmpty) {
                 JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
             } else new java.util.HashMap[String, AnyRef]()
         })
