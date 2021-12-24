@@ -358,7 +358,6 @@ class TestHierarchy extends BaseSpec {
         request.put("rootId", "do_11283193441064550414")
         val future = HierarchyManager.getHierarchy(request)
         future.map(response => {
-            println("getHierarchyWithEditMode -> getHierarchy -> response: " + response)
             assert(response.getResponseCode.code() == 200)
             assert(null != response.getResult.get("content"))
             assert(null != response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children"))
