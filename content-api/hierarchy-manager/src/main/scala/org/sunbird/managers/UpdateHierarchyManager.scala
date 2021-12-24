@@ -38,6 +38,10 @@ object UpdateHierarchyManager {
               .map(result => {
                   val nodes = result._2
                   TelemetryManager.info("NodeList final size: " + nodes.size)
+                  val duplicates = nodes.groupBy(node => node.getIdentifier).map(t => t._1 -> t._2.size).toMap
+                  //TelemetryManager.info("NodeList for root with duplicates :" + rootId +" :: " + ScalaJsonUtils.serialize(duplicates))
+                  val nodeMap: Map[String, AnyRef] = nodes.map(node => node.getIdentifier -> node.getMetadata.get("visibility")).toMap
+                  //TelemetryManager.info("NodeList for root id :" + rootId +" :: " + ScalaJsonUtils.serialize(nodeMap))
                   val idMap: mutable.Map[String, String] = mutable.Map()
                   idMap += (rootId -> rootId)
                   updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).map(modifiedNodeList => {
