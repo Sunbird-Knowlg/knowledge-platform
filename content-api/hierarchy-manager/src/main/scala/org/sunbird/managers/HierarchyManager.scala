@@ -412,6 +412,7 @@ object HierarchyManager {
 
 
     def fetchRelationalMetadata(request: Request, identifier: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+
         val req = new Request(request)
         req.put("identifier", identifier.replaceAll(".img", "") + ".img")
         val responseFuture = oec.graphService.readExternalProps(req, List("relational_metadata"))
