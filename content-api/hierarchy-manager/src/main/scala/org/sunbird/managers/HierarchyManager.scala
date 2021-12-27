@@ -329,7 +329,7 @@ object HierarchyManager {
         fetchRelationalMetadata(request, rootNode.getIdentifier).map(collRelationalMetadata => {
             val children = hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
             val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
-            val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String,AnyRef]]
+            val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String, AnyRef]]
             println("updateHierarchy --> unitsHierarchyMetadata BEFORE:: " + unitsHierarchyMetadata)
             if ("add".equalsIgnoreCase(operation)) {
                 val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
@@ -357,11 +357,11 @@ object HierarchyManager {
             updatedHierarchy.put("identifier", rootId)
             updatedHierarchy.put("children", children)
             println("updateHierarchy --> unitsHierarchyMetadata AFTER:: " + unitsHierarchyMetadata)
-            collRelationalMetadata.put(unitId, unitsHierarchyMetadata)
-            println("updateHierarchy --> updatedCollRelationalMetadata:: " + collRelationalMetadata)
+            val updatedCollRM = collRelationalMetadata + (unitId -> unitsHierarchyMetadata)
+            println("updateHierarchy --> updatedCollRelationalMetadata:: " + updatedCollRM)
 
             val req = new Request(request)
-            req.put("relational_metadata",ScalaJsonUtils.serialize(collRelationalMetadata))
+            req.put("relational_metadata",ScalaJsonUtils.serialize(updatedCollRM))
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
             req.put("identifier", rootNode.getIdentifier)
             oec.graphService.saveExternalProps(req)

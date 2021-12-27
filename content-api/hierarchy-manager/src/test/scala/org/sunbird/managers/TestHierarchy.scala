@@ -42,7 +42,8 @@ class TestHierarchy extends BaseSpec {
 
         request.put("rootId", "do_11283193441064550414")
         request.put("unitId", "do_11283193463014195215")
-        request.put("children", util.Arrays.asList("do_112831862871203840114"))
+        request.put("children", util.Arrays.asList("do_11340096165525094411"))
+        request.put("relationalMetadata",JsonUtils.serialize[Map[String,AnyRef]](" { \"do_11340096165525094411\": { \"name\": \"Test Name RM L1 - R1\", \"keywords\": [ \"Overwriting content KW1\" ] } }"))
         request.put("mode","edit")
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
@@ -51,7 +52,7 @@ class TestHierarchy extends BaseSpec {
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                     .one().getString("hierarchy")
             assert(!response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].contains("do_11283193463014195215"))
-            assert(hierarchy.contains("do_112831862871203840114"))
+            assert(hierarchy.contains("do_11340096165525094411"))
         })
     }
 
@@ -244,20 +245,20 @@ class TestHierarchy extends BaseSpec {
 
         request.put("rootId", "do_11283193441064550414")
         request.put("unitId", "do_11283193463014195215")
-        request.put("children", util.Arrays.asList("do_112831862871203840114"))
+        request.put("children", util.Arrays.asList("do_113193462958120275141"))
         request.put("mode","edit")
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                     .one().getString("hierarchy")
-            assert(hierarchy.contains("do_112831862871203840114"))
+            assert(hierarchy.contains("do_113193462958120275141"))
             val removeFuture = HierarchyManager.removeLeafNodesFromHierarchy(request)
             removeFuture.map(resp => {
                 assert(resp.getResponseCode.code() == 200)
                 val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                         .one().getString("hierarchy")
-                assert(!hierarchy.contains("do_112831862871203840114"))
+                assert(!hierarchy.contains("do_113193462958120275141"))
                 val relationalMetadataHierarchyString = readFromCassandra("Select relational_metadata from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                   .one().getString("relational_metadata")
                 val relationalMetadataHierarchy = JsonUtils.deserialize(relationalMetadataHierarchyString, classOf[java.util.Map[String, AnyRef]])
@@ -266,7 +267,7 @@ class TestHierarchy extends BaseSpec {
                 println("TestHierarchy --> removeLeafNodesToHierarchy --> unitsHierarchyMetadata:: " + unitsHierarchyMetadata)
                 val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
                 println("TestHierarchy --> removeLeafNodesToHierarchy --> unitsHierarchyChildren:: " + unitsHierarchyChildren)
-                assert(!unitsHierarchyChildren.contains("do_112831862871203840114"))
+                assert(!unitsHierarchyChildren.contains("do_113193462958120275141"))
                 val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
                 println("TestHierarchy --> removeLeafNodesToHierarchy --> unitsRelationalMetadata:: " + unitsRelationalMetadata)
                 assert(!unitsRelationalMetadata.containsKey("relationalMetadata"))
