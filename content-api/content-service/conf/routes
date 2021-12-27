@@ -80,6 +80,7 @@ GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.Coll
 POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
 POST     /collection/v4/copy/:identifier                     controllers.v4.CollectionController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 PATCH    /collection/v4/system/update/:identifier            controllers.v4.CollectionController.systemUpdate(identifier:String)
+POST     /collection/v4/review/:identifier           controllers.v4.CollectionController.review(identifier:String)
 POST     /collection/v4/reject/:identifier    controllers.v4.CollectionController.reviewReject(identifier:String)
 
 # Content v4 APIs
