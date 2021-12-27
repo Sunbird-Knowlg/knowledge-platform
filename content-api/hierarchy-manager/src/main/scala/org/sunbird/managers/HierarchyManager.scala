@@ -326,23 +326,30 @@ object HierarchyManager {
     }
 
     def updateHierarchy(unitId: String, hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-        val children =  hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-        val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
-        if("add".equalsIgnoreCase(operation)){
-            val leafNodesMap:java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
-            addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
-        }
-        if("remove".equalsIgnoreCase(operation)) {
-            removeChildrenFromUnit(children,unitId, leafNodeIds)
-        }
-        val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
-        val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-        updatedHierarchy.put("identifier", rootId)
-        updatedHierarchy.put("children", children)
-        val req = new Request(request)
-        req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-        req.put("identifier", rootNode.getIdentifier)
-        oec.graphService.saveExternalProps(req)
+        fetchRelationalMetadata(request, rootNode.getIdentifier).map(collRelationalMetadata => {
+            val children = hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+            val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
+            val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String,AnyRef]]
+            if ("add".equalsIgnoreCase(operation)) {
+                val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
+                addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
+                //TODO: add relationalMetadata for unit
+
+            }
+            if ("remove".equalsIgnoreCase(operation)) {
+                removeChildrenFromUnit(children, unitId, leafNodeIds)
+                //TODO: remove relationalMetadata for unit
+                unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
+            }
+            val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
+            val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
+            updatedHierarchy.put("identifier", rootId)
+            updatedHierarchy.put("children", children)
+            val req = new Request(request)
+            req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
+            req.put("identifier", rootNode.getIdentifier)
+            oec.graphService.saveExternalProps(req)
+        }).flatMap(f => f)
     }
 
     def restructureUnit(childList: java.util.List[java.util.Map[String, AnyRef]], leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], depth: Integer, parent: String): java.util.List[java.util.Map[String, AnyRef]] = {
@@ -412,7 +419,6 @@ object HierarchyManager {
 
 
     def fetchRelationalMetadata(request: Request, identifier: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-
         val req = new Request(request)
         req.put("identifier", identifier.replaceAll(".img", "") + ".img")
         val responseFuture = oec.graphService.readExternalProps(req, List("relational_metadata"))
