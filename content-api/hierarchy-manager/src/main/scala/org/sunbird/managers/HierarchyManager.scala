@@ -330,15 +330,15 @@ object HierarchyManager {
             val children = hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
             val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
             val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String,AnyRef]]
+            println("updateHierarchy --> unitsHierarchyMetadata BEFORE:: " + unitsHierarchyMetadata)
             if ("add".equalsIgnoreCase(operation)) {
                 val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
                 addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
                 //TODO: add relationalMetadata for unit
-                val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
-                unitsHierarchyChildren.addAll(leafNodeIds)
+                unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
                 if(request.get("relationalMetadata") != null) {
                     if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
-                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]] ++ request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
+                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]])
                     } else {
                         unitsHierarchyMetadata.put("relationalMetadata", request.get("relationalMetadata").asInstanceOf[java.util.Map[String, util.Map[String, AnyRef]]])
                     }
@@ -348,17 +348,15 @@ object HierarchyManager {
             if ("remove".equalsIgnoreCase(operation)) {
                 removeChildrenFromUnit(children, unitId, leafNodeIds)
                 //TODO: remove relationalMetadata for unit
-                val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
-                unitsHierarchyChildren.removeAll(leafNodeIds)
-                val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
-                unitsRelationalMetadata.remove(leafNodeIds)
-                if(unitsRelationalMetadata.size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
+                unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
+                unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(leafNodeIds)
+                if(unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
             }
             val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
             val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
             updatedHierarchy.put("identifier", rootId)
             updatedHierarchy.put("children", children)
-
+            println("updateHierarchy --> unitsHierarchyMetadata AFTER:: " + unitsHierarchyMetadata)
             val updatedCollRelationalMetadata = new java.util.HashMap[String, AnyRef]()
             updatedCollRelationalMetadata.put(unitId, unitsHierarchyMetadata)
 
