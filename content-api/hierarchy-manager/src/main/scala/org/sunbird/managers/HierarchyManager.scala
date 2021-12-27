@@ -338,9 +338,9 @@ object HierarchyManager {
                 unitsHierarchyChildren.addAll(leafNodeIds)
                 if(request.get("relationalMetadata") != null) {
                     if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
-                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.List[util.Map[String, AnyRef]]].addAll(request.get("relationalMetadata").asInstanceOf[java.util.List[util.Map[String, AnyRef]]])
+                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]] ++ request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
                     } else {
-                        unitsHierarchyMetadata.put("relationalMetadata", request.get("relationalMetadata").asInstanceOf[java.util.List[util.Map[String, AnyRef]]])
+                        unitsHierarchyMetadata.put("relationalMetadata", request.get("relationalMetadata").asInstanceOf[java.util.Map[String, util.Map[String, AnyRef]]])
                     }
                 }
 
@@ -350,8 +350,8 @@ object HierarchyManager {
                 //TODO: remove relationalMetadata for unit
                 val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
                 unitsHierarchyChildren.removeAll(leafNodeIds)
-                val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.List[util.Map[String,AnyRef]]]
-                unitsRelationalMetadata.removeAll(leafNodeIds)
+                val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
+                unitsRelationalMetadata.remove(leafNodeIds)
                 if(unitsRelationalMetadata.size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
             }
             val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
