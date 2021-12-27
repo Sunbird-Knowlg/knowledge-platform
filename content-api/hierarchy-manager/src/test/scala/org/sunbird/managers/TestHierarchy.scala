@@ -258,6 +258,10 @@ class TestHierarchy extends BaseSpec {
                 val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                         .one().getString("hierarchy")
                 assert(!hierarchy.contains("do_112831862871203840114"))
+                val relationalMetadata = readFromCassandra("Select relational_metadata from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
+                  .one().getString("relational_metadata")
+                println("removeLeafNodesToHierarchy --> relational_metadata:: "+relationalMetadata)
+                assert(relationalMetadata == null || relationalMetadata.isEmpty || !relationalMetadata.contains("do_112831862871203840114"))
             })
         }).flatMap(f => f)
     }
