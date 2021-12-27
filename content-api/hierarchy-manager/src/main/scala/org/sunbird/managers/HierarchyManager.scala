@@ -358,7 +358,13 @@ object HierarchyManager {
             val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
             updatedHierarchy.put("identifier", rootId)
             updatedHierarchy.put("children", children)
+
+            val updatedCollRelationalMetadata = new java.util.HashMap[String, AnyRef]()
+            updatedCollRelationalMetadata.put(unitId, unitsHierarchyMetadata)
+
             val req = new Request(request)
+            println("updateHierarchy --> updatedCollRelationalMetadata:: " + updatedCollRelationalMetadata)
+            req.put("relational_metadata",ScalaJsonUtils.serialize(updatedCollRelationalMetadata))
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
             req.put("identifier", rootNode.getIdentifier)
             oec.graphService.saveExternalProps(req)
