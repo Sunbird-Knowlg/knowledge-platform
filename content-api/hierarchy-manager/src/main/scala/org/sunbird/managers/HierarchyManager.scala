@@ -330,7 +330,6 @@ object HierarchyManager {
             val children = hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
             val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
             val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String, AnyRef]]
-            println("updateHierarchy --> operation:: " + operation + " || unitsHierarchyMetadata BEFORE:: " + unitsHierarchyMetadata)
             if ("add".equalsIgnoreCase(operation)) {
                 val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
                 addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
@@ -344,7 +343,6 @@ object HierarchyManager {
                         unitsHierarchyMetadata.put("relationalMetadata", requestRM)
                     }
                 }
-
             }
             if ("remove".equalsIgnoreCase(operation)) {
                 removeChildrenFromUnit(children, unitId, leafNodeIds)
@@ -357,10 +355,7 @@ object HierarchyManager {
             val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
             updatedHierarchy.put("identifier", rootId)
             updatedHierarchy.put("children", children)
-            println("updateHierarchy --> operation:: " + operation + " ||  unitsHierarchyMetadata AFTER:: " + unitsHierarchyMetadata)
             val updatedCollRM = collRelationalMetadata + (unitId -> unitsHierarchyMetadata)
-            println("updateHierarchy --> updatedCollRelationalMetadata:: " + updatedCollRM)
-
             val req = new Request(request)
             req.put("relational_metadata",ScalaJsonUtils.serialize(updatedCollRM))
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))

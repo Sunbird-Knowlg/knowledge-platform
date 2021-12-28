@@ -50,7 +50,6 @@ class TestHierarchy extends BaseSpec {
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
             assert(response.getResponseCode.code() == 200)
-            println("TestHierarchy --> addLeafNodesToHierarchy --> response.getResult:: " + response.getResult)
             assert(response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].containsAll(request.get("children").asInstanceOf[util.List[String]]))
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                     .one().getString("hierarchy")
@@ -60,15 +59,11 @@ class TestHierarchy extends BaseSpec {
             val relationalMetadataHierarchyString = readFromCassandra("Select relational_metadata from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
               .one().getString("relational_metadata")
             val relationalMetadataHierarchy = JsonUtils.deserialize(relationalMetadataHierarchyString, classOf[java.util.Map[String, AnyRef]])
-            println("TestHierarchy --> addLeafNodesToHierarchy --> relationalMetadataHierarchy:: " + relationalMetadataHierarchy)
             val unitsHierarchyMetadata = relationalMetadataHierarchy.get("do_11283193463014195215").asInstanceOf[java.util.Map[String,AnyRef]]
-            println("TestHierarchy --> addLeafNodesToHierarchy --> unitsHierarchyMetadata:: " + unitsHierarchyMetadata)
             val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
-            println("TestHierarchy --> addLeafNodesToHierarchy --> unitsHierarchyChildren:: " + unitsHierarchyChildren)
             assert(unitsHierarchyChildren.contains("do_11340096165525094411"))
             val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
-            println("TestHierarchy --> addLeafNodesToHierarchy --> unitsRelationalMetadata:: " + unitsRelationalMetadata)
-            assert(unitsRelationalMetadata.containsKey("relationalMetadata"))
+            assert(unitsRelationalMetadata.containsKey("do_11340096165525094411"))
         })
     }
 
@@ -272,21 +267,16 @@ class TestHierarchy extends BaseSpec {
             val removeFuture = HierarchyManager.removeLeafNodesFromHierarchy(request)
             removeFuture.map(resp => {
                 assert(resp.getResponseCode.code() == 200)
-                println("TestHierarchy --> removeLeafNodesToHierarchy --> response.getResult:: " + response.getResult)
                 val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                         .one().getString("hierarchy")
                 assert(!hierarchy.contains("do_11340096165525094411"))
                 val relationalMetadataHierarchyString = readFromCassandra("Select relational_metadata from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
                   .one().getString("relational_metadata")
                 val relationalMetadataHierarchy = JsonUtils.deserialize(relationalMetadataHierarchyString, classOf[java.util.Map[String, AnyRef]])
-                println("TestHierarchy --> removeLeafNodesToHierarchy --> relationalMetadataHierarchy:: " + relationalMetadataHierarchy)
                 val unitsHierarchyMetadata = relationalMetadataHierarchy.get("do_11283193463014195215").asInstanceOf[java.util.Map[String,AnyRef]]
-                println("TestHierarchy --> removeLeafNodesToHierarchy --> unitsHierarchyMetadata:: " + unitsHierarchyMetadata)
                 val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
-                println("TestHierarchy --> removeLeafNodesToHierarchy --> unitsHierarchyChildren:: " + unitsHierarchyChildren)
                 assert(!unitsHierarchyChildren.contains("do_11340096165525094411"))
                 val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
-                println("TestHierarchy --> removeLeafNodesToHierarchy --> unitsRelationalMetadata:: " + unitsRelationalMetadata)
                 assert(!unitsRelationalMetadata.containsKey("relationalMetadata"))
             })
         }).flatMap(f => f)
