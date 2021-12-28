@@ -348,7 +348,7 @@ object HierarchyManager {
                 removeChildrenFromUnit(children, unitId, leafNodeIds)
                 //TODO: remove relationalMetadata for unit
                 unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
-                unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(leafNodeIds)
+                leafNodeIds.foreach(rec => unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(rec))
                 if(unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
             }
             val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
