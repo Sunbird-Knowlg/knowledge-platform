@@ -333,7 +333,7 @@ object HierarchyManager {
             if ("add".equalsIgnoreCase(operation)) {
                 val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
                 addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
-                //TODO: add relationalMetadata for unit
+                //add relationalMetadata for unit
                 unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
                 if(request.get("relationalMetadata") != null) {
                     val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
@@ -346,7 +346,7 @@ object HierarchyManager {
             }
             if ("remove".equalsIgnoreCase(operation)) {
                 removeChildrenFromUnit(children, unitId, leafNodeIds)
-                //TODO: remove relationalMetadata for unit
+                //remove relationalMetadata for unit
                 unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
                 leafNodeIds.foreach(rec => unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(rec))
                 if(unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
