@@ -277,7 +277,7 @@ class TestHierarchy extends BaseSpec {
                 val unitsHierarchyChildren = unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]]
                 assert(!unitsHierarchyChildren.contains("do_11340096165525094411"))
                 val unitsRelationalMetadata = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
-                assert(!unitsRelationalMetadata.containsKey("relationalMetadata"))
+                assert(!unitsRelationalMetadata.containsKey("do_11340096165525094411"))
             })
         }).flatMap(f => f)
     }
