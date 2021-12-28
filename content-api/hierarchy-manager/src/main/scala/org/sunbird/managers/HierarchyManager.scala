@@ -337,12 +337,11 @@ object HierarchyManager {
                 //TODO: add relationalMetadata for unit
                 unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
                 if(request.get("relationalMetadata") != null) {
+                    val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
                     if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
-                        val unitsRM = unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[Map[String, AnyRef]].asJava.asInstanceOf[util.Map[String,AnyRef]]
-                        unitsRM.putAll(request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]])
-                        unitsHierarchyMetadata.put("relationalMetadata", unitsRM)
+                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)
                     } else {
-                        unitsHierarchyMetadata.put("relationalMetadata", request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]])
+                        unitsHierarchyMetadata.put("relationalMetadata", requestRM)
                     }
                 }
 
