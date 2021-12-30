@@ -15,7 +15,7 @@ trait GlobalizeAssetProcessor extends IProcessor {
 
     val ASSET_DIR:String = "cloud_storage.asset.folder"
     val OBJECT_DIR:String = "cloud_storage.content.folder"
-    val BASE_URL: String = Platform.getString("content.media.base_url", "https://dev.sunbirded.org")
+    val BASE_URL: String = Platform.getString("content.media.base.url", "https://dev.sunbirded.org")
     val timeout: Long = if(Platform.config.hasPath("asset.max_upload_time")) Platform.config.getLong("asset.max_upload_time") else 60
 
     abstract override def process(ecrf: Plugin)(implicit ss: StorageService): Plugin = {
