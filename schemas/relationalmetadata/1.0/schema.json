@@ -18,6 +18,9 @@
     },
     "relScore": {
       "type": "number"
+    },
+    "keywords": {
+      "type": "array"
     }
   },
   "additionalProperties": false
