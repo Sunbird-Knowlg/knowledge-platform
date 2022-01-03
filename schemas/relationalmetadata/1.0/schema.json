@@ -6,7 +6,8 @@
   "required": [],
   "properties": {
     "relName": {
-      "type": "string"
+      "type": "string",
+      "minLength": 5
     },
     "relTrackable": {
       "type": "boolean",
