@@ -1,7 +1,6 @@
 package org.sunbird.managers
 
 import java.util.concurrent.CompletionException
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -13,6 +12,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
+import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
@@ -427,6 +427,17 @@ object UpdateHierarchyManager {
 
     def updateHierarchyData(rootId: String, children: java.util.List[java.util.Map[String, AnyRef]], nodeList: List[Node], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val reqHierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
+        val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
+
+        reqHierarchy.foreach(rec=> {
+           if(rec._2.asInstanceOf[java.util.Map[String,AnyRef]].containsKey(HierarchyConstants.RELATIONAL_METADATA)) {
+               val rmObj = rec._2.asInstanceOf[java.util.Map[String,AnyRef]](HierarchyConstants.RELATIONAL_METADATA)
+               rmObj.asInstanceOf[java.util.Map[String,AnyRef]].foreach(rmChild=>{
+                   rmSchemaValidator.validate(rmChild._2.asInstanceOf[java.util.Map[String,AnyRef]])
+               })
+            }
+        })
+
         val node = getTempNode(nodeList, rootId)
         val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
         updatedHierarchy.put(HierarchyConstants.IDENTIFIER, rootId)

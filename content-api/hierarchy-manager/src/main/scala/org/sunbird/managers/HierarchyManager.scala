@@ -21,6 +21,7 @@ import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
+import org.sunbird.schema.SchemaValidatorFactory
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 import scala.annotation.tailrec
@@ -336,7 +337,11 @@ object HierarchyManager {
                 //add relationalMetadata for unit
                 unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
                 if(request.get("relationalMetadata") != null) {
+                    val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
                     val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
+                    requestRM.foreach(rmChild=>{
+                        rmSchemaValidator.validate(rmChild._2.asInstanceOf[java.util.Map[String,AnyRef]])
+                    })
                     if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
                         unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)
                     } else {

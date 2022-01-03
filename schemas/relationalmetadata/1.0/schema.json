@@ -5,7 +5,19 @@
   "type": "object",
   "required": [],
   "properties": {
-
+    "relName": {
+      "type": "string"
+    },
+    "relTrackable": {
+      "type": "boolean",
+      "default": false
+    },
+    "mandatoryQuestion": {
+      "type": "boolean"
+    },
+    "relScore": {
+      "type": "number"
+    }
   },
   "additionalProperties": true
 }
