@@ -394,7 +394,7 @@ class TestUpdateHierarchy extends BaseSpec {
             "            \t\"b9a50833-eff6-4ef5-a2a4-2413f2d51f6c\": {\n"+
             "            \t\t\"root\": false,\n"+
             "            \t\t\"children\": [\"do_31250856200414822416938\",\"do_11340096165525094411\"],\n"+
-            "            \t\t\"relationalMetadata\": {\n\"do_11340096165525094411\": {\n\"relName\": \"abc\",\n \"keywords\": [\"Overwriting content KW1\"]\n}\n}" +
+            "            \t\t\"relationalMetadata\": {\n\"do_11340096165525094411\": {\n\"relName\": \"abc\"\n}\n}" +
             "            \t}\n"+
             "            }"
         JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])

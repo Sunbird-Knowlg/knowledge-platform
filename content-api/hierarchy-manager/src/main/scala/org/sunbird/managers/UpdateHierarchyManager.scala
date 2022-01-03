@@ -433,13 +433,7 @@ object UpdateHierarchyManager {
            if(rec._2.asInstanceOf[java.util.Map[String,AnyRef]].containsKey(HierarchyConstants.RELATIONAL_METADATA)) {
                val rmObj = rec._2.asInstanceOf[java.util.Map[String,AnyRef]](HierarchyConstants.RELATIONAL_METADATA)
                rmObj.asInstanceOf[java.util.Map[String,AnyRef]].foreach(rmChild=>{
-                   try {
-                       println("UpdateHierarchyManager --> updateHierarchyData --> rmChild:: " + rmChild)
                        rmSchemaValidator.validate(rmChild._2.asInstanceOf[java.util.Map[String, AnyRef]].toMap[String,AnyRef])
-                   } catch {
-                       case cs:ClientException => println("UpdateHierarchyManager --> updateHierarchyData --> ClientException:: " + cs.getMessages)
-                           throw cs
-                   }
                })
             }
         })
