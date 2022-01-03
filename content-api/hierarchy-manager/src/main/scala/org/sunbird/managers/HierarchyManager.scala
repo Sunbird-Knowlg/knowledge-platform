@@ -340,7 +340,12 @@ object HierarchyManager {
                     val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
                     val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
                     requestRM.foreach(rmChild=>{
-                        rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String,AnyRef]])
+                        try {
+                            rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String, AnyRef]])
+                        } catch {
+                            case cs:ClientException => println("HierarchyManager --> updateHierarchy --> ClientException:: " + cs.getMessages)
+                            throw cs
+                        }
                     })
                     if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
                         unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)

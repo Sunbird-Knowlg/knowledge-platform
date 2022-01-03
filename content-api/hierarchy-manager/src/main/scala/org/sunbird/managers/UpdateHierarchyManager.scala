@@ -433,7 +433,7 @@ object UpdateHierarchyManager {
            if(rec._2.asInstanceOf[java.util.Map[String,AnyRef]].containsKey(HierarchyConstants.RELATIONAL_METADATA)) {
                val rmObj = rec._2.asInstanceOf[java.util.Map[String,AnyRef]](HierarchyConstants.RELATIONAL_METADATA)
                rmObj.asInstanceOf[java.util.Map[String,AnyRef]].foreach(rmChild=>{
-                   rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String,AnyRef]])
+                   rmSchemaValidator.validate(rmChild._2.asInstanceOf[java.util.Map[String,AnyRef]])
                })
             }
         })
