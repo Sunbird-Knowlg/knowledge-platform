@@ -14,7 +14,8 @@
       "default": false
     },
     "mandatoryQuestion": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "relScore": {
       "type": "number"
