@@ -45,12 +45,10 @@ class TestHierarchy extends BaseSpec {
         request.put("rootId", "do_11283193441064550414")
         request.put("unitId", "do_11283193463014195215")
         request.put("children", util.Arrays.asList("do_11340096165525094411"))
-        request.put("relationalMetadata",ScalaJsonUtils.deserialize[java.util.Map[String,AnyRef]](" { \"do_11340096165525094411\": { \"name\": \"Test Name RM\", \"keywords\": [ \"Overwriting content Keywords\" ] } }"))
+        request.put("relationalMetadata",ScalaJsonUtils.deserialize[java.util.Map[String,AnyRef]](" { \"do_11340096165525094411\": { \"relName\": \"Test Name RM\", \"keywords\": [ \"Overwriting content Keywords\" ] } }"))
         request.put("mode","edit")
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
-            println("TestHierarchy --> addLeafNodesToHierarchy --> response.responseCode:: " + response.getResponseCode)
-            println("TestHierarchy --> addLeafNodesToHierarchy --> response.result:: " + response.getResult)
             assert(response.getResponseCode.code() == 200)
             assert(response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].containsAll(request.get("children").asInstanceOf[util.List[String]]))
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
