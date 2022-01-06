@@ -4,7 +4,7 @@ import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ServerException}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
@@ -12,6 +12,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
+import org.sunbird.schema.dto.ValidationResult
 import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
@@ -55,7 +56,13 @@ object UpdateHierarchyManager {
                               if (request.getContext.getOrDefault("shouldImageDelete", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
                                   deleteHierarchy(request)
                               Future(response)
-                          }).flatMap(f => f)
+                          }).flatMap(f => f).recoverWith {
+                              case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
+                                  Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
+                              } else throw clientException
+                              case e: Exception =>
+                                  Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
+                          }
                       }).flatMap(f => f)
                   }).flatMap(f => f)
               })
@@ -433,7 +440,7 @@ object UpdateHierarchyManager {
            if(rec._2.asInstanceOf[java.util.Map[String,AnyRef]].containsKey(HierarchyConstants.RELATIONAL_METADATA)) {
                val rmObj = rec._2.asInstanceOf[java.util.Map[String,AnyRef]](HierarchyConstants.RELATIONAL_METADATA)
                rmObj.asInstanceOf[java.util.Map[String,AnyRef]].foreach(rmChild=>{
-                       rmSchemaValidator.validate(rmChild._2.asInstanceOf[java.util.Map[String, AnyRef]].toMap[String,AnyRef])
+                   rmSchemaValidator.validate(rmChild._2.asInstanceOf[java.util.Map[String, AnyRef]])
                })
             }
         })

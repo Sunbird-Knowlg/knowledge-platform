@@ -5,7 +5,7 @@ import java.util.concurrent.CompletionException
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler, ResponseParams}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
@@ -22,6 +22,7 @@ import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.schema.SchemaValidatorFactory
+import org.sunbird.schema.dto.ValidationResult
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 import scala.annotation.tailrec
@@ -340,7 +341,7 @@ object HierarchyManager {
                     val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
                     val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
                     requestRM.foreach(rmChild=>{
-                       rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String, AnyRef]])
+                        rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String, AnyRef]])
                     })
                     if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
                         unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)
@@ -366,7 +367,13 @@ object HierarchyManager {
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
             req.put("identifier", rootNode.getIdentifier)
             oec.graphService.saveExternalProps(req)
-        }).flatMap(f => f)
+        }).flatMap(f => f).recoverWith {
+            case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
+                Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
+            } else throw clientException
+            case e: Exception =>
+                Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
+        }
     }
 
     def restructureUnit(childList: java.util.List[java.util.Map[String, AnyRef]], leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], depth: Integer, parent: String): java.util.List[java.util.Map[String, AnyRef]] = {
