@@ -56,14 +56,13 @@ object UpdateHierarchyManager {
                               if (request.getContext.getOrDefault("shouldImageDelete", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
                                   deleteHierarchy(request)
                               Future(response)
-                          }).flatMap(f => f).recoverWith {
-                              case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
-                                  Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessage))
-                              } else throw clientException
-                              case e: Exception =>
-                                  Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
-                          }
-                      }).flatMap(f => f)
+                          }).flatMap(f => f)
+                      }).flatMap(f => f).recoverWith {
+                          case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
+                              Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessages.mkString(",")))
+                          } else throw clientException
+                          case e: Exception =>  throw e
+                      }
                   }).flatMap(f => f)
               })
         }).flatMap(f => f).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
