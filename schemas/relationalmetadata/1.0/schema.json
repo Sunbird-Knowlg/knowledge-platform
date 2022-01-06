@@ -19,6 +19,12 @@
     },
     "relScore": {
       "type": "number"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "additionalProperties": false
