@@ -5,7 +5,7 @@ import java.util.concurrent.CompletionException
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler, ResponseParams}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
@@ -21,6 +21,8 @@ import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
+import org.sunbird.schema.SchemaValidatorFactory
+import org.sunbird.schema.dto.ValidationResult
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 import scala.annotation.tailrec
@@ -326,23 +328,52 @@ object HierarchyManager {
     }
 
     def updateHierarchy(unitId: String, hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-        val children =  hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-        val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
-        if("add".equalsIgnoreCase(operation)){
-            val leafNodesMap:java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
-            addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
+        fetchRelationalMetadata(request, rootNode.getIdentifier).map(collRelationalMetadata => {
+            val children = hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+            val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
+            val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String, AnyRef]]
+            if ("add".equalsIgnoreCase(operation)) {
+                val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
+                addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
+                //add relationalMetadata for unit
+                unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
+                if(request.get("relationalMetadata") != null) {
+                    val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
+                    val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
+                    requestRM.foreach(rmChild=>{
+                        rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String, AnyRef]])
+                    })
+                    if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
+                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)
+                    } else {
+                        unitsHierarchyMetadata.put("relationalMetadata", requestRM)
+                    }
+                }
+            }
+            if ("remove".equalsIgnoreCase(operation)) {
+                removeChildrenFromUnit(children, unitId, leafNodeIds)
+                //remove relationalMetadata for unit
+                unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
+                leafNodeIds.foreach(rec => unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(rec))
+                if(unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
+            }
+            val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
+            val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
+            updatedHierarchy.put("identifier", rootId)
+            updatedHierarchy.put("children", children)
+            val updatedCollRM = collRelationalMetadata + (unitId -> unitsHierarchyMetadata)
+            val req = new Request(request)
+            req.put("relational_metadata",ScalaJsonUtils.serialize(updatedCollRM))
+            req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
+            req.put("identifier", rootNode.getIdentifier)
+            oec.graphService.saveExternalProps(req)
+        }).flatMap(f => f).recoverWith {
+            case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
+                Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessages.mkString(",")))
+            } else throw clientException
+            case e: Exception =>
+                Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
         }
-        if("remove".equalsIgnoreCase(operation)) {
-            removeChildrenFromUnit(children,unitId, leafNodeIds)
-        }
-        val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
-        val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-        updatedHierarchy.put("identifier", rootId)
-        updatedHierarchy.put("children", children)
-        val req = new Request(request)
-        req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-        req.put("identifier", rootNode.getIdentifier)
-        oec.graphService.saveExternalProps(req)
     }
 
     def restructureUnit(childList: java.util.List[java.util.Map[String, AnyRef]], leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], depth: Integer, parent: String): java.util.List[java.util.Map[String, AnyRef]] = {
@@ -412,7 +443,6 @@ object HierarchyManager {
 
 
     def fetchRelationalMetadata(request: Request, identifier: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-
         val req = new Request(request)
         req.put("identifier", identifier.replaceAll(".img", "") + ".img")
         val responseFuture = oec.graphService.readExternalProps(req, List("relational_metadata"))
