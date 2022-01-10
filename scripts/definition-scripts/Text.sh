@@ -14,7 +14,7 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
               "items": {
                 "type": "string",
                 "enum": [
-                  "date"
+                  "text"
                 ]
               }
             },
