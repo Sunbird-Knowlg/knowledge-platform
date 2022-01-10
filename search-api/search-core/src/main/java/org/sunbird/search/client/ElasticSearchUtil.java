@@ -711,7 +711,7 @@ public class ElasticSearchUtil {
 	}
 
 	private static Map<String, Object> checkDocStringLength(Map<String, Object> doc) {
-		if(doc.keySet().iterator().hasNext()) {
+		while (doc.keySet().iterator().hasNext()) {
 			String docKey = doc.keySet().iterator().next();
 			if ((doc.get(docKey) instanceof String) && doc.get(docKey).toString().length()>maxFieldLimit) {
 				doc.put(docKey, doc.get(docKey).toString().substring(0,maxFieldLimit));
