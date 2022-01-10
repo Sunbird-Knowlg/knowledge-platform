@@ -711,12 +711,11 @@ public class ElasticSearchUtil {
 	}
 
 	private static Map<String, Object> checkDocStringLength(Map<String, Object> doc) {
-		while (doc.keySet().iterator().hasNext()) {
-			String docKey = doc.keySet().iterator().next();
-			if ((doc.get(docKey) instanceof String) && doc.get(docKey).toString().length()>maxFieldLimit) {
-				doc.put(docKey, doc.get(docKey).toString().substring(0,maxFieldLimit));
+		for (Map.Entry<String, Object> entry : doc.entrySet()) {
+			if ((entry.getValue() instanceof String) && entry.getValue().toString().length()>maxFieldLimit) {
+				doc.put(entry.getKey(), entry.getValue().toString().substring(0,maxFieldLimit));
 			}
-		};
+		}
 		return doc;
 	}
 
