@@ -592,6 +592,10 @@
       "items": {
           "type": "object"
       }
+    },
+    "outcomeDeclaration": {
+      "type": "object",
+      "description": "External Property"
     }
   },
   "additionalProperties": false
