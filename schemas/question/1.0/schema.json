@@ -568,6 +568,12 @@
     },
     "evidence": {
       "type": "object"
+    },
+    "accessibility": {
+      "type": "array",
+      "items": {
+          "type": "object"
+      }
     }
   },
   "additionalProperties": false

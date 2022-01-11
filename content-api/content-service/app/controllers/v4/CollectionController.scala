@@ -215,6 +215,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
       content.putAll(headers)
       content.putAll(Map("identifier" -> identifier).asJava)
       val contentRequest = getRequest(content, headers, "rejectContent")
+      contentRequest.put("mode", "edit")
       setRequestContext(contentRequest, version, objectType, schemaName)
       contentRequest.getContext.put("identifier", identifier)
       getResult(ApiId.REJECT_COLLECTION, contentActor, contentRequest, version = apiVersion)
