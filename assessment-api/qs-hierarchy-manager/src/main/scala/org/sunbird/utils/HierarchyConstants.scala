@@ -51,4 +51,10 @@ object HierarchyConstants {
     val QUESTIONSET_MIME_TYPE: String = "application/vnd.sunbird.questionset"
 	val QUESTIONSET_OBJECT_TYPE: String = "QuestionSet"
     val OPERATION_UPDATE_HIERARCHY: String = "updateHierarchy"
+    val BRANCHING_LOGIC: String = "branchingLogic"
+    val ALLOW_BRANCHING: String = "allowBranching"
+    val TARGET: String = "target"
+    val SOURCE: String = "source"
+    val PRE_CONDITION: String = "preCondition"
+    val QUESTION_VISIBILITY: List[String] = List("Default", "Parent")
 }
