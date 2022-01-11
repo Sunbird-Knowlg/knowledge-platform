@@ -56,4 +56,5 @@ object HierarchyConstants {
     val TARGET: String = "target"
     val SOURCE: String = "source"
     val PRE_CONDITION: String = "preCondition"
+    val QUESTION_VISIBILITY: List[String] = List("Default", "Parent")
 }
