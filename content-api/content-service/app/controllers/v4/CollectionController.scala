@@ -90,7 +90,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(body, headers, "addHierarchy")
         contentRequest.put("mode", "edit")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.ADD_HIERARCHY_V4, collectionActor, contentRequest)
+        getResult(ApiId.ADD_HIERARCHY_V4, collectionActor, contentRequest, version = apiVersion)
     }
 
     def removeHierarchy() = Action.async { implicit request =>
@@ -251,7 +251,7 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         val contentRequest = getRequest(content, headers, "reviewContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
-        getResult(ApiId.REVIEW_COLLECTION, contentActor, contentRequest)
+        getResult(ApiId.REVIEW_COLLECTION, contentActor, contentRequest, version = apiVersion)
     }
 
 
