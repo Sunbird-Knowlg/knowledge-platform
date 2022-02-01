@@ -204,7 +204,7 @@ object UpdateHierarchyManager {
                     metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
                     if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.IS_NEW)
                             && nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.IS_NEW).asInstanceOf[Boolean]) {
-                        if (!nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean] && nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String].isEmpty)
+                        if (!nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean] && nodeModified._2.asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String].isEmpty)
                             metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
                         if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].contains(HierarchyConstants.SET_DEFAULT_VALUE))
                             createNewNode(nodeModified._1, idMap, metadata, nodeList, request, nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.SET_DEFAULT_VALUE).asInstanceOf[Boolean])
@@ -536,16 +536,16 @@ object UpdateHierarchyManager {
             val source = obj.getOrElse(HierarchyConstants.SOURCE, new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
             val preCondition = obj.getOrElse(HierarchyConstants.PRE_CONDITION, new util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]].toMap
             val children = hierarchy.getOrDefault(node.getIdentifier, new util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
-
+			// branching logic should be present for all dependent question
             if (!branchingLogic.keySet.containsAll(target))
                 throw new ClientException("ERR_BRANCHING_LOGIC", s"Please Provide Branching Rules for : ${branchingLogic.keySet.toList.diff(target).asJava}")
-
+			// all dependent object should belong to same parent object.
             if (!children.containsAll(target ++ List(entry._1)))
                 throw new ClientException("ERR_BRANCHING_LOGIC", s"Please Provide Dependent Object Within Same Parent having identifier : ${node.getIdentifier}")
-
+			// A dependent object should not depend on more than 1 object
             if (source.nonEmpty && source.size > 1)
                 throw new ClientException("ERR_BRANCHING_LOGIC", "An Object Can't Depend On More Than 1 Object")
-
+			// A dependent object should not have further dependency
             if ((source.nonEmpty && preCondition.nonEmpty) && target.nonEmpty)
                 throw new ClientException("ERR_BRANCHING_LOGIC", "A Dependent Object Can't Have Further Dependent Object")
 
