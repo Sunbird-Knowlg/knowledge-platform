@@ -33,7 +33,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         else {
             val contentRequest = getRequest(content, headers, "createContent", true)
             setRequestContext(contentRequest, version, objectType, schemaName)
-            getResult(ApiId.CREATE_ASSET, contentActor, contentRequest, version = apiVersion)
+            getResult(ApiId.CREATE_CONTENT, contentActor, contentRequest, version = apiVersion)
         }
     }
 
@@ -97,7 +97,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(Map("identifier" -> identifier).asJava)
         val acceptRequest = getRequest(content, headers, "acceptFlag")
         setRequestContext(acceptRequest, version, objectType, schemaName)
-        getResult(ApiId.ACCEPT_FLAG, contentActor, acceptRequest)
+        getResult(ApiId.ACCEPT_FLAG, contentActor, acceptRequest, version = apiVersion)
     }
 
 
@@ -108,7 +108,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         content.putAll(Map("identifier" -> identifier).asJava)
         val discardRequest = getRequest(content, headers, "discardContent")
         setRequestContext(discardRequest, version, objectType, schemaName)
-        getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest)
+        getResult(ApiId.DISCARD_CONTENT, contentActor, discardRequest, version = apiVersion)
     }
     def retire(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
@@ -192,7 +192,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val contentRequest = getRequest(content, headers, "reviewContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
-        getResult(ApiId.REVIEW_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.REVIEW_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
     def reviewReject(identifier: String) = Action.async { implicit request =>
