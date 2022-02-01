@@ -45,6 +45,13 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
                 "No"
               ],
               "default": "No"
+            },
+            "setPeriod": {
+              "type": "string",
+              enum": [
+                "Yes",
+                "No"
+              ]
             }
           }
         }
