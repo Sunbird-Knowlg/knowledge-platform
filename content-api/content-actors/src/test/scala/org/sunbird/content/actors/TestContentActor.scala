@@ -52,7 +52,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         }))
 
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "targetBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "targetBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)

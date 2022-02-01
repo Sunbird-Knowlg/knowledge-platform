@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.sunbird.search.client;
 
@@ -79,6 +79,7 @@ public class ElasticSearchUtil {
 
 	public static int defaultResultLimit = 10000;
 	private static final int resultLimit = 100;
+	private static final int maxFieldLimit = 32000;
 	public int defaultResultOffset = 0;
 	private static int BATCH_SIZE = (Platform.config.hasPath("search.batch.size"))
 			? Platform.config.getInt("search.batch.size")
@@ -92,7 +93,7 @@ public class ElasticSearchUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private static void createClient(String indexName, String connectionInfo) {
 		if (!esClient.containsKey(indexName)) {
@@ -178,10 +179,9 @@ public class ElasticSearchUtil {
 
 	public static void addDocumentWithId(String indexName, String documentType, String documentId, String document) {
 		try {
-			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {
-			});
-			IndexResponse response = getClient(indexName)
-					.index(new IndexRequest(indexName, documentType, documentId).source(doc));
+			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {});
+			Map<String, Object> updatedDoc = checkDocStringLength(doc);
+			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType, documentId).source(updatedDoc));
 			TelemetryManager.log("Added " + response.getId() + " to index " + response.getIndex());
 		} catch (IOException e) {
 			TelemetryManager.error("Error while adding document to index :" + indexName, e);
@@ -191,8 +191,8 @@ public class ElasticSearchUtil {
 	public static void addDocument(String indexName, String documentType, String document) {
 		try {
 			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {});
-
-			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType).source(doc));
+			Map<String, Object> updatedDoc = checkDocStringLength(doc);
+			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType).source(updatedDoc));
 			TelemetryManager.log("Added " + response.getId() + " to index " + response.getIndex());
 		} catch (IOException e) {
 			TelemetryManager.error("Error while adding document to index :" + indexName, e);
@@ -202,11 +202,10 @@ public class ElasticSearchUtil {
 	public static void updateDocument(String indexName, String documentType, String document, String documentId)
 			throws InterruptedException, ExecutionException {
 		try {
-			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {
-			});
-			IndexRequest indexRequest = new IndexRequest(indexName, documentType, documentId).source(doc);
-			UpdateRequest request = new UpdateRequest().index(indexName).type(documentType).id(documentId).doc(doc)
-					.upsert(indexRequest);
+			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {});
+			Map<String, Object> updatedDoc = checkDocStringLength(doc);
+			IndexRequest indexRequest = new IndexRequest(indexName, documentType, documentId).source(updatedDoc);
+			UpdateRequest request = new UpdateRequest().index(indexName).type(documentType).id(documentId).doc(updatedDoc).upsert(indexRequest);
 			UpdateResponse response = getClient(indexName).update(request);
 			TelemetryManager.log("Updated " + response.getId() + " to index " + response.getIndex());
 		} catch (IOException e) {
@@ -378,7 +377,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static SearchResponse wildCardSearch(String textKeyWord, String wordWildCard, String indexName,
-			String indexType, int limit)
+												String indexType, int limit)
 			throws Exception {
 		SearchSourceBuilder query = buildJsonForWildCardQuery(textKeyWord, wordWildCard, indexName);
 		query.size(limit);
@@ -387,7 +386,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Object> textFiltersSearch(Class objectClass, Map<String, Object> searchCriteria,
-			Map<String, Object> textFiltersMap, String indexName, String indexType, int limit)
+												 Map<String, Object> textFiltersMap, String indexName, String indexType, int limit)
 			throws Exception {
 		SearchResponse result = search(searchCriteria, textFiltersMap, indexName, indexType, null, false, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
@@ -395,8 +394,8 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static Map<String, Object> textFiltersGroupBySearch(Class objectClass, Map<String, Object> searchCriteria,
-			Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, String indexName,
-			String indexType) throws Exception {
+															   Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, String indexName,
+															   String indexType) throws Exception {
 		SearchResponse result = search(searchCriteria, textFiltersMap, indexName, indexType, groupByList, false,
 				resultLimit);
 		List<Object> documents = getDocumentsFromSearchResult(result, objectClass);
@@ -412,22 +411,22 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias,
-			Map<String, Object> textFiltersMap, String indexName, String indexType) throws Exception {
+										  Map<String, Object> textFiltersMap, String indexName, String indexType) throws Exception {
 		SearchResponse result = search(matchCriterias, textFiltersMap, indexName, indexType, null, false, resultLimit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias,
-			Map<String, Object> textFiltersMap, String indexName, String indexType,
-			List<Map<String, Object>> groupByList, int limit) throws Exception {
+										  Map<String, Object> textFiltersMap, String indexName, String indexType,
+										  List<Map<String, Object>> groupByList, int limit) throws Exception {
 		SearchResponse result = search(matchCriterias, textFiltersMap, indexName, indexType, groupByList, false,
 				limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
 
 	public static SearchResponse search(Map<String, Object> matchCriterias, Map<String, Object> textFiltersMap,
-			String indexName, String indexType, List<Map<String, Object>> groupBy, boolean isDistinct, int limit)
+										String indexName, String indexType, List<Map<String, Object>> groupBy, boolean isDistinct, int limit)
 			throws Exception {
 		SearchSourceBuilder query = buildJsonForQuery(matchCriterias, textFiltersMap, groupBy, isDistinct, indexName);
 		query.size(limit);
@@ -468,7 +467,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Map<String, Object> getCountFromAggregation(Aggregations aggregations,
-			List<Map<String, Object>> groupByList) {
+															  List<Map<String, Object>> groupByList) {
 		Map<String, Object> countMap = new HashMap<String, Object>();
 		if (aggregations != null) {
 			for (Map<String, Object> aggregationsMap : groupByList) {
@@ -509,7 +508,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static Map<String, Object> getCountOfSearch(Class objectClass, Map<String, Object> matchCriterias,
-			String indexName, String indexType, List<Map<String, Object>> groupByList, int limit)
+													   String indexName, String indexType, List<Map<String, Object>> groupByList, int limit)
 			throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, groupByList, false, limit);
 		Aggregations aggregations = result.getAggregations();
@@ -518,7 +517,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Map<String, Object> getDistinctCountOfSearch(Map<String, Object> matchCriterias, String IndexName,
-			String IndexType, List<Map<String, Object>> groupByList) throws Exception {
+															   String IndexType, List<Map<String, Object>> groupByList) throws Exception {
 		Map<String, Object> countMap = new HashMap<String, Object>();
 		SearchResponse result = search(matchCriterias, null, IndexName, IndexType, groupByList, true, 0);
 		Aggregations aggregations = result.getAggregations();
@@ -547,8 +546,8 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("unchecked")
 	public static SearchSourceBuilder buildJsonForQuery(Map<String, Object> matchCriterias,
-			Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, boolean isDistinct,
-			String indexName) {
+														Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, boolean isDistinct,
+														String indexName) {
 
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
@@ -606,14 +605,14 @@ public class ElasticSearchUtil {
 	}
 
 	private static SearchSourceBuilder buildJsonForWildCardQuery(String textKeyWord, String wordWildCard,
-			String indexName) {
+																 String indexName) {
 		return new SearchSourceBuilder().query(QueryBuilders.wildcardQuery(textKeyWord, wordWildCard));
 
 	}
 
 	@SuppressWarnings("unchecked")
 	public static Object getCountFromAggregation(Aggregations aggregations, List<Map<String, Object>> groupByList,
-			IESResultTransformer transformer) {
+												 IESResultTransformer transformer) {
 
 		Map<String, Object> countMap = new HashMap<String, Object>();
 		if (aggregations != null) {
@@ -709,6 +708,15 @@ public class ElasticSearchUtil {
 		} else {
 			throw new ServerException("ERR_BULK_DELETE_ES_DATA", "ES Index Not Found With Id : " + indexName);
 		}
+	}
+
+	private static Map<String, Object> checkDocStringLength(Map<String, Object> doc) {
+		for (Map.Entry<String, Object> entry : doc.entrySet()) {
+			if ((entry.getValue() instanceof String) && entry.getValue().toString().length()>maxFieldLimit) {
+				doc.put(entry.getKey(), entry.getValue().toString().substring(0,maxFieldLimit));
+			}
+		}
+		return doc;
 	}
 
 }
