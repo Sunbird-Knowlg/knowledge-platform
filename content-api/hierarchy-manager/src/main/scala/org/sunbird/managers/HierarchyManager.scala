@@ -67,11 +67,11 @@ object HierarchyManager {
                                 val updateResponse = updateHierarchy(unitId, hierarchy, leafNodes, node, request, "add")
                                 updateResponse.map(response => {
                                     if(!ResponseHandler.checkError(response)) {
-                                            ResponseHandler.OK
-                                                .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
-                                                .put(unitId, request.get("children"))
+                                        ResponseHandler.OK
+                                          .put("rootId", node.getIdentifier.replaceAll(imgSuffix, ""))
+                                          .put(unitId, request.get("children"))
                                     }else {
-                                        response 
+                                        response
                                     }
                                 })
                             }).flatMap(f => f)
@@ -331,31 +331,35 @@ object HierarchyManager {
         fetchRelationalMetadata(request, rootNode.getIdentifier).map(collRelationalMetadata => {
             val children = hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
             val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
-            val unitsHierarchyMetadata = collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String, AnyRef]]
+            val unitsHierarchyMetadata = if(collRelationalMetadata.contains(unitId)) collRelationalMetadata(unitId).asInstanceOf[java.util.Map[String, AnyRef]] else new java.util.HashMap[String, AnyRef]()
             if ("add".equalsIgnoreCase(operation)) {
                 val leafNodesMap: java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
                 addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
                 //add relationalMetadata for unit
-                unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
-                if(request.get("relationalMetadata") != null) {
-                    val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
-                    val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
-                    requestRM.foreach(rmChild=>{
-                        rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String, AnyRef]])
-                    })
-                    if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
-                        unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)
-                    } else {
-                        unitsHierarchyMetadata.put("relationalMetadata", requestRM)
+                if(collRelationalMetadata.nonEmpty && unitsHierarchyMetadata.nonEmpty) {
+                    unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].addAll(leafNodeIds)
+                    if (request.get("relationalMetadata") != null) {
+                        val rmSchemaValidator = SchemaValidatorFactory.getInstance(HierarchyConstants.RELATIONAL_METADATA.toLowerCase(), "1.0")
+                        val requestRM = request.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]]
+                        requestRM.foreach(rmChild => {
+                            rmSchemaValidator.validate(rmChild._2.asInstanceOf[Map[String, AnyRef]])
+                        })
+                        if (unitsHierarchyMetadata.containsKey("relationalMetadata")) {
+                            unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].putAll(requestRM)
+                        } else {
+                            unitsHierarchyMetadata.put("relationalMetadata", requestRM)
+                        }
                     }
                 }
             }
             if ("remove".equalsIgnoreCase(operation)) {
                 removeChildrenFromUnit(children, unitId, leafNodeIds)
                 //remove relationalMetadata for unit
-                unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
-                leafNodeIds.foreach(rec => unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(rec))
-                if(unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].size()==0) unitsHierarchyMetadata.remove("relationalMetadata")
+                if(collRelationalMetadata.nonEmpty && unitsHierarchyMetadata.nonEmpty) {
+                    unitsHierarchyMetadata.get("children").asInstanceOf[java.util.List[String]].removeAll(leafNodeIds)
+                    leafNodeIds.foreach(rec => unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].remove(rec))
+                    if (unitsHierarchyMetadata.get("relationalMetadata").asInstanceOf[java.util.Map[String, AnyRef]].size() == 0) unitsHierarchyMetadata.remove("relationalMetadata")
+                }
             }
             val rootId = rootNode.getIdentifier.replaceAll(imgSuffix, "")
             val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
@@ -386,9 +390,9 @@ object HierarchyManager {
         if(null != childList && !childList.isEmpty) {
             val childMap:Map[String, java.util.Map[String, AnyRef]] = childList.toList.map(f => f.get("identifier").asInstanceOf[String] -> f).toMap
             val existingLeafNodes = childMap.filter(p => leafNodeIds.contains(p._1))
-                existingLeafNodes.map(en => {
-                    leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
-                })
+            existingLeafNodes.map(en => {
+                leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
+            })
             filteredLeafNodes = bufferAsJavaList(childList.filter(existingLeafNode => {
                 !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
             }))
