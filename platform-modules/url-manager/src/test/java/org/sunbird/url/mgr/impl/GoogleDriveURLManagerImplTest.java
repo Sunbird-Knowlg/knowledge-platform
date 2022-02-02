@@ -27,7 +27,7 @@ public class GoogleDriveURLManagerImplTest {
 
 	@Test
 	public void testValidateUrlWithValidUrlValidCriteria() {
-		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
 		Map<String, Object> result = gdMgr.validateURL(driveUrl, "size");
 		assertTrue(MapUtils.isNotEmpty(result));
 		assertTrue(result.size() == 2);
@@ -41,7 +41,7 @@ public class GoogleDriveURLManagerImplTest {
 	public void testValidateUrlWithValidUrlInvalidCriteria() {
 		exception.expect(ClientException.class);
 		exception.expectMessage("Please Provide Valid Criteria For Validation. Supported Criteria : [size]");
-		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
 		Map<String, Object> result = gdMgr.validateURL(driveUrl, "name");
 
 	}
@@ -56,7 +56,7 @@ public class GoogleDriveURLManagerImplTest {
 
 	@Test
 	public void testReadMetadataWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
 		Map<String, Object> result = gdMgr.readMetadata(driveUrl);
 		assertTrue(MapUtils.isNotEmpty(result));
 		assertTrue(result.size() == 3);
