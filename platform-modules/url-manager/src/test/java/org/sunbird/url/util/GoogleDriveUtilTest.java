@@ -29,9 +29,9 @@ public class GoogleDriveUtilTest {
 
 	@Test
 	public void testGetDriveUrlWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1MWOUaECWthrPt-HUNXYUu1O3kFeus1ER/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
 		String output = GoogleDriveUrlUtil.getDriveFileId(driveUrl);
-		assertEquals("1MWOUaECWthrPt-HUNXYUu1O3kFeus1ER", output);
+		assertEquals("1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo", output);
 	}
 
 	@Test
@@ -43,7 +43,7 @@ public class GoogleDriveUtilTest {
 
 	@Test
 	public void testGetDriveFileWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1MWOUaECWthrPt-HUNXYUu1O3kFeus1ER/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
 		String fileId = GoogleDriveUrlUtil.getDriveFileId(driveUrl);
 		File driveFile = GoogleDriveUrlUtil.getDriveFile(fileId);
 		assertNotNull(driveFile);
@@ -70,7 +70,7 @@ public class GoogleDriveUtilTest {
 
 	@Test
 	public void testGetMetadataWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1MWOUaECWthrPt-HUNXYUu1O3kFeus1ER/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
 		Map<String, Object> result = GoogleDriveUrlUtil.getMetadata(driveUrl);
 		assertTrue(MapUtils.isNotEmpty(result));
 		assertTrue(result.size() == 3);
@@ -92,7 +92,7 @@ public class GoogleDriveUtilTest {
 
 	@Test
 	public void testGetSizeWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1MWOUaECWthrPt-HUNXYUu1O3kFeus1ER/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1az_AFAoRwu9cXlr1R5pO9fNhHexzJKXo/view?usp=sharing";
 		Long result = GoogleDriveUrlUtil.getSize(driveUrl);
 		assertTrue(result > 0);
 	}
