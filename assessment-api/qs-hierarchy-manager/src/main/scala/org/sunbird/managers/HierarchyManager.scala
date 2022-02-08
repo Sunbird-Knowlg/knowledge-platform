@@ -247,7 +247,7 @@ object HierarchyManager {
         }
         if(StringUtils.equalsAnyIgnoreCase(operation, "add") && MapUtils.isNotEmpty(branchingLogic)) {
             if(!children.containsAll(branchingLogic.keySet()))
-                throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Branch Rule Found For The Node Which Is Not A Children Having Identifier : "+branchingLogic.keySet().toList.diff(children.toList))
+                throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Branch Rule Found For The Node Which Is Not A Children Having Identifier : "+branchingLogic.keySet().toList.diff(children.toList).asJava)
         }
     }
 
