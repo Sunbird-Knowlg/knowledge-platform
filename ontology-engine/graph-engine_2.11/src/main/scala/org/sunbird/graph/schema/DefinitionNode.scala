@@ -250,8 +250,9 @@ object DefinitionNode {
 	}
 
     def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
-        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
         val futures = nodes.map(node => {
+	        val ocd = ObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
+	        val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
             definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
         })
         Future.sequence(futures)

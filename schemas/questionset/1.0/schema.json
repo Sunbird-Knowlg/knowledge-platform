@@ -587,6 +587,60 @@
     "rejectComment": {
       "type": "string"
     },
+    "allowBranching": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "branchingLogic": {
+      "type": "object",
+      "description": "Store rules for dependent question"
+    },
+    "entityType": {
+      "type": "string"
+    },
+    "secondaryLanguage": {
+      "type": "array"
+    },
+    "allowScoring": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "allowMultipleInstances": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "instances": {
+      "type": "object"
+    },
+    "startDate": {
+      "type": "string"
+    },
+    "endDate": {
+      "type": "string"
+    },
+    "ecm": {
+      "type": "array"
+    },
+    "recordedBy": {
+      "type": "string",
+      "enum": [
+        "Self",
+        "External"
+      ]
+    },
+    "renderingSequence": {
+      "type": "object"
+    },
     "accessibility": {
       "type": "array",
       "items": {
