@@ -74,7 +74,7 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         val headers = commonHeaders()
         val content = new java.util.HashMap[String, Object]()
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "userId" -> userId.getOrElse(null), "userName" -> userName.getOrElse(Constants.USER), "muteOnStart" -> muteOnStart.getOrElse(false).asInstanceOf[java.lang.Boolean], "logoutURL" -> logoutURL.getOrElse(null)).asJava)
+        content.putAll(Map("identifier" -> identifier, "userId" -> userId.getOrElse(null), "userName" -> userName.getOrElse(Constants.USER), "muteOnStart" -> muteOnStart.getOrElse(false).asInstanceOf[java.lang.Boolean], "logoutURL" -> logoutURL.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "joinEventModerator")
         setRequestContext(readRequest, version, objectType, schemaName)
         readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
