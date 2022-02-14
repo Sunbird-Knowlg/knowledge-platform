@@ -110,7 +110,7 @@ POST      /event/v4/publish/:identifier             controllers.v4.EventControll
 GET       /event/v4/read/:identifier                controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String])
 DELETE    /event/v4/discard/:identifier             controllers.v4.EventController.discard(identifier:String)
 DELETE    /private/event/v4/retire/:identifier      controllers.v4.EventController.retire(identifier:String)
-GET       /event/v4/join/moderator/:identifier      controllers.v4.EventController.getModeratorJoinMeetingUrl(identifier:String, userId:Option[String], userName:Option[String], muteOnStart:Option[Boolean])
+GET       /event/v4/join/moderator/:identifier      controllers.v4.EventController.getModeratorJoinMeetingUrl(identifier:String, userId:Option[String], userName:Option[String], muteOnStart:Option[Boolean], logoutURL:Option[String])
 GET       /event/v4/join/attendee/:identifier       controllers.v4.EventController.getAttendeeJoinMeetingUrl(identifier:String, userId:Option[String], userName:Option[String])
 
 # EventSet v4 Api's
