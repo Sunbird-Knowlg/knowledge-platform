@@ -1054,9 +1054,6 @@
         "organisationId" : {
             "type": "string"
         },
-        "programId": {
-            "type": "string"
-        },
         "itemSetPreviewUrl": {
             "type": "string"
         },
@@ -1386,6 +1383,18 @@
             "items": {
                 "type": "string"
             }
+        },
+        "transcripts": {
+          "type": "array",
+            "items": {
+              "type": "object"
+            }
+        },
+        "accessibility": {
+          "type": "array",
+          "items": {
+              "type": "object"
+          }
         }
     }
 }

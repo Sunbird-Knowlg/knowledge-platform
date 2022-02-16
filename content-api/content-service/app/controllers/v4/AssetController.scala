@@ -90,7 +90,7 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         content.putAll(Map("identifier" -> identifier, "type" -> `type`.getOrElse("assets")).asJava)
         val contentRequest = getRequest(content, headers, "uploadPreSignedUrl")
         setRequestContext(contentRequest, version, objectType, schemaName)
-        getResult(ApiId.UPLOAD_PRE_SIGNED_ASSET, contentActor, contentRequest)
+        getResult(ApiId.UPLOAD_PRE_SIGNED_ASSET, contentActor, contentRequest, version = apiVersion)
     }
 
     def copy(identifier: String) = Action.async { implicit request =>

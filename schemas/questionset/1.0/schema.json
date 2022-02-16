@@ -586,6 +586,12 @@
     },
     "rejectComment": {
       "type": "string"
+    },
+    "accessibility": {
+      "type": "array",
+      "items": {
+          "type": "object"
+      }
     }
   },
   "additionalProperties": false
