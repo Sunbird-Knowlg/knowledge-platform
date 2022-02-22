@@ -22,6 +22,7 @@ object AssessmentManager {
 
 	val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", false)
 
+
 	def create(request: Request, errCode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
 		if (StringUtils.isNotBlank(visibility) && StringUtils.equalsIgnoreCase(visibility, "Parent"))
@@ -153,9 +154,11 @@ object AssessmentManager {
 	}
 
 	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], rootUserId: String): Unit = {
+		TelemetryManager.info("validateChildrenRecursive :::: rootUserId :: "+rootUserId)
 		children.toList.foreach(content => {
+			TelemetryManager.info("validateChildrenRecursive :::: content map :: "+content)
 			if ((StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default")
-			  && !StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
+			  && !StringUtils.equalsAnyIgnoreCase(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
 			  && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
 				throw new ClientException("ERR_QUESTION_SET", "Object with identifier: " + content.get("identifier") + " is not Live. Please Publish it.")
 			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], rootUserId)
