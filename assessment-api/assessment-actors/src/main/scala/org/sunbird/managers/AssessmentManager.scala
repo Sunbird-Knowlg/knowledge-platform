@@ -154,9 +154,11 @@ object AssessmentManager {
 	}
 
 	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], rootUserId: String): Unit = {
+		println("validateChildrenRecursive :::: rootUserId :: "+rootUserId)
 		TelemetryManager.info("validateChildrenRecursive :::: rootUserId :: "+rootUserId)
 		children.toList.foreach(content => {
 			TelemetryManager.info("validateChildrenRecursive :::: content map :: "+content)
+			println("validateChildrenRecursive :::: content map :: "+content)
 			if ((StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default")
 			  && !StringUtils.equalsAnyIgnoreCase(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
 			  && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
