@@ -283,8 +283,7 @@ object HierarchyManager {
         leafNodes.map(node => {
             val updatedNode: Node = if(node.getObjectType.equalsIgnoreCase("QuestionSet")
               && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
-                val extData = node.getExternalData.filter(entry => !externalKeys.contains(entry._1))
-                println("external")
+                val extData = node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava
                 node.getMetadata.putAll(extData)
                 node
             } else node
