@@ -1,5 +1,6 @@
 package org.sunbird.content.actors
 
+import org.sunbird.provider.Provider
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -8,9 +9,11 @@ import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.NodeUtil
 
 import java.util
 import javax.inject.Inject
+import scala.collection.JavaConverters
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.Future
 
@@ -24,6 +27,8 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
       case "retireContent" => retire(request)
       case "discardContent" => discard(request)
       case "publishContent" => publish(request)
+      case "joinEventModerator" => joinEventModerator(request)
+      case "joinEventAttendee" => joinEventAttendee(request)
       case _ => ERROR(request.getOperation)
     }
   }
@@ -79,4 +84,52 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     node
   }
 
+  def joinEventModerator(request: Request): Future[Response] = {
+    val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
+    DataNode.read(request).map(node => {
+      val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+      metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+      metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
+      metadata.put("userId", request.getRequest.get("userId").asInstanceOf[String])
+      metadata.put("muteOnStart", request.getRequest.get("muteOnStart").asInstanceOf[java.lang.Boolean])
+      metadata.put("logoutURL", request.getRequest.get("logoutURL").asInstanceOf[String])
+
+      val meetingLink = Provider.getJoinEventUrlModerator(metadata)
+      val onlineProviderData = meetingLink.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
+      if (null != onlineProviderData && !onlineProviderData.isEmpty) {
+        request.getRequest.remove("mode")
+        request.getRequest.remove("fields")
+        request.getRequest.putAll(metadata)
+        request.getRequest.remove("status")
+        request.getRequest.remove("userName")
+        request.getRequest.remove("userId")
+        request.setOperation("updateContent")
+        request.getContext.put("identifier", request.getRequest.get("identifier"))
+        request.getRequest.put("onlineProvider", meetingLink.get("onlineProvider").asInstanceOf[String])
+        val oldOnlineProviderData = request.getRequest.get("onlineProviderData").asInstanceOf[util.Map[String, Any]]
+        if (null != oldOnlineProviderData) oldOnlineProviderData.putAll(onlineProviderData) else request.getRequest.put("onlineProviderData", onlineProviderData)
+        super.update(request) recoverWith {
+          case e =>
+            Future(ResponseHandler.getErrorResponse(e))
+        }
+      }
+      val response: Response = ResponseHandler.OK
+      meetingLink.remove("onlineProviderData")
+      response.put(responseSchemaName, meetingLink)
+    }
+    )
+  }
+
+  def joinEventAttendee(request: Request): Future[Response] = {
+    val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
+    DataNode.read(request).map(node => {
+      val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+      metadata.put("userName", request.getRequest.getOrDefault("userName", ContentConstants.USER).asInstanceOf[String])
+      metadata.put("userId", request.getRequest.get("userId").asInstanceOf[String])
+      val meetingLink = Provider.getJoinEventUrlAttendee(metadata)
+      val response: Response = ResponseHandler.OK
+      response.put(responseSchemaName, meetingLink)
+    }
+    )
+  }
 }

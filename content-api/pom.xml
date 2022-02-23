@@ -21,6 +21,7 @@
         <module>hierarchy-manager</module>
         <module>content-actors</module>
         <module>collection-csv-actors</module>
+        <module>event-mgmt</module>
     </modules>
     <dependencies>
     </dependencies>

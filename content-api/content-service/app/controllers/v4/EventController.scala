@@ -8,6 +8,7 @@ import utils.{ActorNames, ApiId, Constants}
 import javax.inject.{Inject, Named}
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.concurrent.ExecutionContext
+import utils.DateValidationUtils._
 
 @Singleton
 class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends ContentController(eventActor, cc, actorSystem) {
@@ -22,6 +23,8 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         content.putAll(headers)
         if(validateContentType(content))
             getErrorResponse(ApiId.CREATE_EVENT, apiVersion, "VALIDATION_ERROR", "contentType cannot be set from request.")
+        else if(validateDatesAndTimes(content))
+            getErrorResponse(ApiId.CREATE_EVENT, apiVersion, "VALIDATION_ERROR", "End Date/Time should be greater than Start Date/Time.")
         else {
             val contentRequest = getRequest(content, headers, "createContent", false)
             setRequestContext(contentRequest, version, objectType, schemaName)
@@ -67,4 +70,25 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         getResult(ApiId.PUBLISH_EVENT, eventActor, contentRequest, version = apiVersion)
     }
 
+    def getModeratorJoinMeetingUrl(identifier: String, userId: Option[String], userName: Option[String], muteOnStart: Option[Boolean], logoutURL: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap[String, Object]()
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "userId" -> userId.getOrElse(null), "userName" -> userName.getOrElse(Constants.USER), "muteOnStart" -> muteOnStart.getOrElse(false).asInstanceOf[java.lang.Boolean], "logoutURL" -> logoutURL.getOrElse("")).asJava)
+        val readRequest = getRequest(content, headers, "joinEventModerator")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
+        getResult(ApiId.JOIN_EVENT_MODERATOR, eventActor, readRequest, version = apiVersion)
+    }
+
+    def getAttendeeJoinMeetingUrl(identifier: String, userId: Option[String], userName: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap[String, Object]()
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "userId" -> userId.getOrElse(null), "userName" -> userName.getOrElse(Constants.USER)).asJava)
+        val readRequest = getRequest(content, headers, "joinEventAttendee")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
+        getResult(ApiId.JOIN_EVENT_ATTENDEE, eventActor, readRequest, version = apiVersion)
+    }
 }
