@@ -82,4 +82,25 @@ class UpdateHierarchyManagerTest extends BaseSpec {
 		})
 	}
 
+	"updateHierarchy with instruction metadata at section level" should "create the hierarchy structure for questionset" in {
+		graphDb.execute("UNWIND [" +
+		  "{IL_UNIQUE_ID:\"do_pqs_1234\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",IL_SYS_NODE_TYPE:\"DATA_NODE\",code:\"c288ea98-0a8d-c927-5ec3-e879a90e9e43\",allowScoring:\"No\",allowSkip:\"Yes\",containsUserData:\"No\",language:[\"English\"],mimeType:\"application/vnd.sunbird.questionset\",showHints:\"No\",createdOn:\"2022-02-06T20:43:01.535+0000\",primaryCategory:\"Practice Question Set\",contentDisposition:\"inline\",lastUpdatedOn:\"2022-02-06T20:43:01.535+0000\",contentEncoding:\"gzip\",showSolutions:\"No\",allowAnonymousAccess:\"Yes\",lastStatusChangedOn:\"2022-02-06T20:43:01.535+0000\",createdFor:[\"sunbird\"],requiresSubmit:\"No\",visibility:\"Default\",showTimer:\"No\",setType:\"materialised\",languageCode:[\"en\"],version:1,versionKey:\"1644180181535\",showFeedback:\"No\",license:\"CC BY 4.0\",createdBy:\"crt-01\",compatibilityLevel:5,name:\"Test Observation\",navigationMode:\"non-linear\",allowBranching:\"Yes\",shuffle:true,status:\"Draft\"}" +
+		  "] as row CREATE (n:domain) SET n += row")
+		val nodesModifiedString = "{\"section-1\":{\"metadata\":{\"code\":\"section-1\",\"name\":\"section-1\",\"description\":\"section-1\",\"mimeType\":\"application/vnd.sunbird.questionset\",\"primaryCategory\":\"Practice Question Set\",\"createdBy\":\"4e397c42-495e-4fdb-8558-f98176230916\",\"instructions\":{\"default\":\"estv\"}},\"objectType\":\"QuestionSet\",\"root\":false,\"isNew\":true},\"Q1\":{\"metadata\":{\"code\":\"Q1\",\"name\":\"Q1\",\"description\":\"Q1\",\"mimeType\":\"application/vnd.sunbird.question\",\"primaryCategory\":\"Text\",\"createdBy\":\"4e397c42-495e-4fdb-8558-f98176230916\"},\"objectType\":\"Question\",\"root\":false,\"isNew\":true},\"Q2\":{\"metadata\":{\"code\":\"Q2\",\"name\":\"Q2\",\"description\":\"Q2\",\"mimeType\":\"application/vnd.sunbird.question\",\"primaryCategory\":\"Text\",\"visibility\":\"Default\",\"createdBy\":\"4e397c42-495e-4fdb-8558-f98176230916\"},\"objectType\":\"Question\",\"root\":false,\"isNew\":true}}"
+		val hierarchyString = "{\"do_pqs_1234\":{\"children\":[\"section-1\"],\"root\":true},\"section-1\":{\"children\":[\"Q1\",\"Q2\"],\"root\":false}}"
+		val request = new Request()
+		val context = getContext(HierarchyConstants.QUESTIONSET_OBJECT_TYPE)
+		context.put(HierarchyConstants.ROOT_ID, "do_pqs_1234")
+		request.setContext(context)
+		request.put(HierarchyConstants.NODES_MODIFIED, JsonUtils.deserialize(nodesModifiedString, classOf[util.HashMap[String, AnyRef]]))
+		request.put(HierarchyConstants.HIERARCHY, JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]]))
+		UpdateHierarchyManager.updateHierarchy(request).map(response => {
+			assert(response.getResponseCode.code() == 200)
+			val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.questionset_hierarchy where identifier='do_pqs_1234'")
+			  .one().getString("hierarchy")
+			assert(StringUtils.isNotEmpty(hierarchy))
+			assert(hierarchy.contains("estv"))
+		})
+	}
+
 }

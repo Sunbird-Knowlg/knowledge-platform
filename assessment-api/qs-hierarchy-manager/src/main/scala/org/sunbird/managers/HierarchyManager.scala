@@ -39,6 +39,9 @@ object HierarchyManager {
         else
             java.util.Arrays.asList("collections","children","usedByContent","item_sets","methods","libraries","editorState")
     }
+
+    val externalKeys: java.util.List[String] = if(Platform.config.hasPath("questionset.hierarchy.remove_external_props")) Platform.config.getStringList("questionset.hierarchy.remove_external_props")
+    else List("hierarchy","outcomeDeclaration").asJava
     
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -278,7 +281,13 @@ object HierarchyManager {
 
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
-            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase().replace("image", ""), schemaVersion)
+            val updatedNode: Node = if(node.getObjectType.equalsIgnoreCase("QuestionSet")
+              && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
+                val extData = node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava
+                node.getMetadata.putAll(extData)
+                node
+            } else node
+            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(updatedNode, null, updatedNode.getObjectType.toLowerCase().replace("image", ""), schemaVersion)
             nodeMap.keySet().removeAll(keyTobeRemoved)
             nodeMap
         })
