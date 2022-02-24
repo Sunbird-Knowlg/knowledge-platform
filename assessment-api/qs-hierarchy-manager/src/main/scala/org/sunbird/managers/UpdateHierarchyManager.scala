@@ -42,7 +42,8 @@ object UpdateHierarchyManager {
                   TelemetryManager.info("NodeList final size: " + nodes.size)
                   val idMap: mutable.Map[String, String] = mutable.Map()
                   idMap += (rootId -> rootId)
-                  updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).map(modifiedNodeList => {
+                  updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).map(updatedList => {
+                      val modifiedNodeList = processBranching(updatedList, request, idMap)
                       getChildrenHierarchy(modifiedNodeList, rootId, hierarchy, idMap, result._1).map(children => {
                           TelemetryManager.log("Children for root id :" + rootId +" :: " + JsonUtils.serialize(children))
                           updateHierarchyData(rootId, children, modifiedNodeList, request).map(node => {
@@ -193,15 +194,17 @@ object UpdateHierarchyManager {
                     if(StringUtils.isBlank(objectType))
                         throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Object Type is mandatory for creation of node with id: ${nodeModified._1}")
                     val metadata = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new java.util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]]
-                    if(!StringUtils.equalsIgnoreCase(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "Parent").asInstanceOf[String], "Parent"))
+                    if(StringUtils.equalsAnyIgnoreCase("QuestionSet", objectType) && !StringUtils.equalsIgnoreCase(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "Parent").asInstanceOf[String], "Parent"))
                         throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Visibility can be only of type Parent for identifier: ${nodeModified._1}")
+                    if(StringUtils.equalsAnyIgnoreCase("Question", objectType) && !HierarchyConstants.QUESTION_VISIBILITY.contains(metadata.getOrDefault(HierarchyConstants.VISIBILITY, "Parent").asInstanceOf[String]))
+                        throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Visibility can be only of type ${HierarchyConstants.QUESTION_VISIBILITY.asJava} for identifier: ${nodeModified._1}")
                     metadata.remove(HierarchyConstants.DIALCODES)
                     metadata.put(HierarchyConstants.STATUS, "Draft")
                     metadata.put(HierarchyConstants.LAST_UPDATED_ON, DateUtils.formatCurrentDate)
                     metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
                     if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].containsKey(HierarchyConstants.IS_NEW)
                             && nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.IS_NEW).asInstanceOf[Boolean]) {
-                        if (!nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean])
+                        if (!nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean] && nodeModified._2.asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault(HierarchyConstants.METADATA, new util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String].isEmpty)
                             metadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.PARENT)
                         if (nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].contains(HierarchyConstants.SET_DEFAULT_VALUE))
                             createNewNode(nodeModified._1, idMap, metadata, nodeList, request, nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.SET_DEFAULT_VALUE).asInstanceOf[Boolean])
@@ -508,6 +511,52 @@ object UpdateHierarchyManager {
         val rootId = request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String]
         req.put(HierarchyConstants.IDENTIFIERS, if (rootId.contains(HierarchyConstants.IMAGE_SUFFIX)) List(rootId) else List(rootId + HierarchyConstants.IMAGE_SUFFIX))
         ExternalPropsManager.deleteProps(req)
+    }
+
+    private def processBranching(nodeList: List[Node], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Node] = {
+        val hierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
+        nodeList.distinct.map(node => {
+            if (StringUtils.equalsIgnoreCase("Yes", node.getMetadata.getOrDefault(HierarchyConstants.ALLOW_BRANCHING, "No").asInstanceOf[String]) &&
+              MapUtils.isNotEmpty(node.getMetadata.getOrDefault(HierarchyConstants.BRANCHING_LOGIC, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]])) {
+                validateAndUpdateBranching(node, hierarchy, idMap)
+            } else if (StringUtils.equalsIgnoreCase("No", node.getMetadata.getOrDefault(HierarchyConstants.ALLOW_BRANCHING, "No").asInstanceOf[String]) &&
+              MapUtils.isNotEmpty(node.getMetadata.getOrDefault(HierarchyConstants.BRANCHING_LOGIC, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]])) {
+                throw new ClientException("ERR_BRANCHING_LOGIC", s"Branching Is Not Enabled For: ${node.getIdentifier}. Please Remove branchingLogic from ${node.getIdentifier}")
+            } else node
+        })
+    }
+
+    private def validateAndUpdateBranching(node: Node, hierarchy: java.util.Map[String, AnyRef], idMap: mutable.Map[String, String]): Node = {
+        TelemetryManager.info(s"validating branching logic for: ${node.getIdentifier}")
+        val branchingLogic = node.getMetadata.getOrDefault(HierarchyConstants.BRANCHING_LOGIC, new util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]].toMap
+        TelemetryManager.info(s"branchingLogic for node ${node.getIdentifier} : ${branchingLogic}")
+        val updatedBranchingLogic = branchingLogic.map(entry => {
+            val obj: java.util.HashMap[String, AnyRef] = entry._2.asInstanceOf[java.util.HashMap[String, AnyRef]]
+            val target = obj.getOrElse(HierarchyConstants.TARGET, new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
+            val source = obj.getOrElse(HierarchyConstants.SOURCE, new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
+            val preCondition = obj.getOrElse(HierarchyConstants.PRE_CONDITION, new util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]].toMap
+            val children = hierarchy.getOrDefault(node.getIdentifier, new util.HashMap()).asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].toList
+			// branching logic should be present for all dependent question
+            if (!branchingLogic.keySet.containsAll(target))
+                throw new ClientException("ERR_BRANCHING_LOGIC", s"Please Provide Branching Rules for : ${branchingLogic.keySet.toList.diff(target).asJava}")
+			// all dependent object should belong to same parent object.
+            if (!children.containsAll(target ++ List(entry._1)))
+                throw new ClientException("ERR_BRANCHING_LOGIC", s"Please Provide Dependent Object Within Same Parent having identifier : ${node.getIdentifier}")
+			// A dependent object should not depend on more than 1 object
+            if (source.nonEmpty && source.size > 1)
+                throw new ClientException("ERR_BRANCHING_LOGIC", "An Object Can't Depend On More Than 1 Object")
+			// A dependent object should not have further dependency
+            if ((source.nonEmpty && preCondition.nonEmpty) && target.nonEmpty)
+                throw new ClientException("ERR_BRANCHING_LOGIC", "A Dependent Object Can't Have Further Dependent Object")
+
+            TelemetryManager.info(s"updating branching Logic for ${entry._1}")
+            obj.put(HierarchyConstants.TARGET, target.map(id => idMap.getOrElse(id, id)).asJava)
+            obj.put(HierarchyConstants.SOURCE, source.map(id => idMap.getOrElse(id, id)).asJava)
+            (idMap.getOrElse(entry._1, entry._1), obj)
+        })
+        TelemetryManager.info(s"branchingLogic after update for ${node.getIdentifier}: " + updatedBranchingLogic.asJava)
+        node.getMetadata.put(HierarchyConstants.BRANCHING_LOGIC, updatedBranchingLogic.asJava)
+        node
     }
 
 }

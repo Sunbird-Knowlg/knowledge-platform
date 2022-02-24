@@ -54,8 +54,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		request.getRequest.put("mode", "edit")
 		AssessmentManager.getValidatedNodeForReview(request, "ERR_QUESTION_SET_REVIEW").flatMap(node => {
 			AssessmentManager.getQuestionSetHierarchy(request, node).flatMap(hierarchyString => {
-				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
-				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review")
+				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String], node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
+				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Review", node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
 				val updateReq = new Request(request)
 				val date = DateUtils.formatCurrentDate
 				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
@@ -68,7 +68,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_SET_PUBLISH").flatMap(node => {
 			AssessmentManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
-				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
+				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String], node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
 				AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
 				ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
 			})
@@ -93,8 +93,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		request.getRequest.put("mode", "edit")
 		AssessmentManager.getValidateNodeForReject(request, "ERR_QUESTION_SET_REJECT").flatMap(node => {
 			AssessmentManager.getQuestionSetHierarchy(request, node).flatMap(hierarchyString => {
-				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String])
-				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Draft")
+				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String], node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
+				val (updatedHierarchy, nodeIds) = AssessmentManager.updateHierarchy(hierarchyString.asInstanceOf[String], "Draft", node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
 				val updateReq = new Request(request)
 				val date = DateUtils.formatCurrentDate
 				updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Draft", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
