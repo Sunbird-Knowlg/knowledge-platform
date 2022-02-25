@@ -281,9 +281,9 @@ object HierarchyManager {
 
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
-            val updatedNode: Node = if(node.getObjectType.equalsIgnoreCase("QuestionSet")
+            val updatedNode: Node = if (node.getObjectType.equalsIgnoreCase("QuestionSet")
               && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
-                val extData = node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava
+                val extData = if (null != node.getExternalData) node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava else Map().asJava
                 node.getMetadata.putAll(extData)
                 node
             } else node
