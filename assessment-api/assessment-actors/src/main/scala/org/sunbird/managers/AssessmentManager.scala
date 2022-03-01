@@ -21,6 +21,7 @@ import scala.collection.JavaConverters._
 object AssessmentManager {
 
 	val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", false)
+	val validStatus = List("Draft", "Review")
 
 	def create(request: Request, errCode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
@@ -140,15 +141,12 @@ object AssessmentManager {
 	}
 
 	def getQuestionSetHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
-		oec.graphService.readExternalProps(request, List("hierarchy")).flatMap(response => {
-			if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
-				if (StringUtils.equalsIgnoreCase("Live", rootNode.getMetadata.get("status").asInstanceOf[String]))
-					throw new ServerException("ERR_QUESTION_SET_REVIEW", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
-				request.put("identifier", if (!rootNode.getIdentifier.endsWith(".img")) rootNode.getIdentifier + ".img" else rootNode.getIdentifier)
-				oec.graphService.readExternalProps(request, List("hierarchy")).map(resp => {
-					resp.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String]
-				}) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get("identifier")) }
-			} else Future(response.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String])
+		request.put("rootId", request.get("identifier").asInstanceOf[String])
+		HierarchyManager.getUnPublishedHierarchy(request).map(resp => {
+			if (!ResponseHandler.checkError(resp) && resp.getResponseCode.code() == 200) {
+				val hierarchy = resp.getResult.get("questionSet").asInstanceOf[util.Map[String, AnyRef]]
+				JsonUtils.serialize(hierarchy)
+			} else throw new ServerException("ERR_QUESTION_SET_HIERARCHY", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
 		})
 	}
 
@@ -184,7 +182,7 @@ object AssessmentManager {
 	private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status: String, idList: List[String], rootUserId: String): List[String] = {
 		children.toList.flatMap(content => {
 			val updatedIdList: List[String] =
-				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent") || (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default") && StringUtils.equalsIgnoreCase("Draft", content.getOrDefault("status", "").asInstanceOf[String]) && StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))) {
+				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent") || (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default") && validStatus.contains(content.getOrDefault("status", "").asInstanceOf[String]) && StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))) {
 					content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 					content.put("status", status)
 					content.put("prevStatus", "Draft")
