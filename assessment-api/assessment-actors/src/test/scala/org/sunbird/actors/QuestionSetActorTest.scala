@@ -255,7 +255,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         val kfClient = mock[KafkaClient]
         (oec.kafkaClient _).expects().returns(kfClient).anyNumberOfTimes()
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNode("QuestionSet", None)
+        val node = getNode("do_11348469558523494411","QuestionSet", None)
         node.getMetadata.putAll(mapAsJavaMap(Map("name" -> "question_1",
             "visibility" -> "Default",
             "code" -> "finemanfine",
@@ -268,9 +268,15 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
             "showHints" -> "Yes",
             "summaryType" -> "Complete",
             "mimeType" -> "application/vnd.sunbird.questionset",
+            "createdBy" -> "g-001",
             "primaryCategory" -> "Practice Question Set")))
+        val nodeList = new util.ArrayList[Node]() {{
+            add(getNode("do_11348469662446387212","Question", Some(Map("visibility"-> "Parent", "createdBy"-> "g-001"))))
+            add(getNode("do_11348469662607769614","Question", Some(Map("visibility"-> "Default", "createdBy"-> "g-002"))))
+        }}
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).atLeastOnce()
-        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
+        (graphDB.getNodeByUniqueIds(_ :String, _: SearchCriteria)).expects(*, *).returns(Future(nodeList)).atLeastOnce()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getDraftCassandraHierarchy)).anyNumberOfTimes
         (kfClient.send(_: String, _: String)).expects(*, *).once()
         val request = getQuestionSetRequest()
         request.getContext.put("identifier", "do1234")
@@ -401,7 +407,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes
         (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(new Response())).anyNumberOfTimes
         (graphDB.updateNodes(_:String, _:util.List[String], _: util.Map[String, AnyRef])).expects(*, *, *).returns(Future(Map[String, Node]().asJava)).anyNumberOfTimes
-        val nodes: util.List[Node] = getCategoryNode()
+         val nodes: util.List[Node] = getCategoryNode()
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
         val request = getQuestionSetRequest()
@@ -596,6 +602,12 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 
     def getCassandraHierarchy(): Response = {
         val hierarchyString: String = """{"status":"Live","children":[{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_Old","allowSkip":"No","description":"QS-2_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.948+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","lastUpdatedOn":"2020-12-04T15:31:45.947+0530","showSolutions":"No","identifier":"do_11316516745992601613","lastStatusChangedOn":"2020-12-04T15:31:45.948+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":1,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105948","showFeedback":"No","depth":1,"name":"QS_V_Parent_2","navigationMode":"non-linear","shuffle":true,"status":"Draft"},{"parent":"do_113165166851596288123","totalQuestions":0,"code":"QS_V_Parent_New","allowSkip":"No","description":"QS-1_parent","language":["English"],"mimeType":"application/vnd.sunbird.questionset","showHints":"No","createdOn":"2020-12-04T15:31:45.872+0530","objectType":"QuestionSet","primaryCategory":"Practice Question Set","children":[{"parent":"do_11316516745922969611","identifier":"do_11316399038283776016","lastStatusChangedOn":"2020-12-02T23:36:59.783+0530","code":"question.code","visibility":"Default","index":1,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-12-02T23:36:59.783+0530","version":1,"objectType":"Question","versionKey":"1606932419783","depth":2,"primaryCategory":"Practice Question Set","name":"question_1","lastUpdatedOn":"2020-12-02T23:36:59.783+0530","status":"Draft"}],"lastUpdatedOn":"2020-12-04T15:31:45.861+0530","showSolutions":"No","identifier":"do_11316516745922969611","lastStatusChangedOn":"2020-12-04T15:31:45.876+0530","requiresSubmit":"No","visibility":"Parent","maxQuestions":0,"index":2,"setType":"materialised","languageCode":["en"],"version":1,"versionKey":"1607076105872","showFeedback":"No","depth":1,"name":"QS_V_Parent_1","navigationMode":"non-linear","shuffle":true,"status":"Draft"},{"identifier":"do_11315445058114355211","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-19T12:08:13.854+0530","code":"finemanfine","visibility":"Default","index":4,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-19T12:08:13.854+0530","version":1,"objectType":"Question","versionKey":"1605767893854","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-19T12:08:13.854+0530","contentType":"Resource","status":"Draft"},{"identifier":"do_11315319237189632011","parent":"do_113165166851596288123","lastStatusChangedOn":"2020-11-17T17:28:23.277+0530","code":"finemanfine","visibility":"Default","index":3,"language":["English"],"mimeType":"application/vnd.sunbird.question","languageCode":["en"],"createdOn":"2020-11-17T17:28:23.277+0530","version":1,"objectType":"Question","versionKey":"1605614303277","depth":1,"name":"question_1","lastUpdatedOn":"2020-11-17T17:28:23.277+0530","contentType":"Resource","status":"Draft"}],"identifier":"do_113165166851596288123"}"""
+        val response = new Response
+        response.put("hierarchy", hierarchyString)
+    }
+
+    def getDraftCassandraHierarchy(): Response = {
+        val hierarchyString: String = """{"identifier":"do_11348469558523494411","children":[{"parent":"do_11348469558523494411","code":"Q1","description":"Q1","language":["English"],"mimeType":"application/vnd.sunbird.question","createdOn":"2022-03-01T02:15:30.917+0530","objectType":"Question","primaryCategory":"Multiple Choice question","contentDisposition":"inline","lastUpdatedOn":"2022-03-01T02:15:30.915+0530","contentEncoding":"gzip","showSolutions":"No","allowAnonymousAccess":"Yes","identifier":"do_11348469662446387212","lastStatusChangedOn":"2022-03-01T02:15:30.917+0530","visibility":"Parent","showTimer":"No","index":1,"languageCode":["en"],"version":1,"versionKey":"1646081131087","showFeedback":"No","license":"CC BY 4.0","depth":1,"createdBy":"g-001","compatibilityLevel":4,"name":"Q1","status":"Draft"},{"parent":"do_11348469558523494411","code":"Q2","description":"Q2","language":["English"],"mimeType":"application/vnd.sunbird.question","createdOn":"2022-03-01T02:15:31.113+0530","objectType":"Question","primaryCategory":"Multiple Choice question","contentDisposition":"inline","lastUpdatedOn":"2022-03-01T02:15:31.126+0530","contentEncoding":"gzip","showSolutions":"No","allowAnonymousAccess":"Yes","identifier":"do_11348469662607769614","lastStatusChangedOn":"2022-03-01T02:15:31.113+0530","visibility":"Default","showTimer":"No","index":2,"languageCode":["en"],"version":1,"versionKey":"1646081131126","showFeedback":"No","license":"CC BY 4.0","depth":1,"createdBy":"g-002","compatibilityLevel":4,"name":"Q2","status":"Draft"}]}"""
         val response = new Response
         response.put("hierarchy", hierarchyString)
     }
