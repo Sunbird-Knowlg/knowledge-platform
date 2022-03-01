@@ -146,6 +146,7 @@ object AssessmentManager {
 		HierarchyManager.getUnPublishedHierarchy(request).map(resp => {
 			if (!ResponseHandler.checkError(resp) && resp.getResponseCode.code() == 200) {
 				val hierarchy = resp.getResult.get("questionSet").asInstanceOf[util.Map[String, AnyRef]]
+				println("hierarchy :::: getQuestionSetHierarchy :::: "+hierarchy)
 				JsonUtils.serialize(hierarchy)
 			} else throw new ServerException("ERR_QUESTION_SET_HIERARCHY", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
 		})

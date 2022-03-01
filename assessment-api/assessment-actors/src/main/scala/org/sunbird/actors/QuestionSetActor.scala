@@ -69,6 +69,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		request.put("mode", "edit")
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_SET_PUBLISH").flatMap(node => {
 			AssessmentManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
+				println("hierarchy actor layer ::: "+hierarchyString)
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String], node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
 				AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
 				ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
