@@ -66,6 +66,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 
 	def publish(request: Request): Future[Response] = {
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		request.put("mode", "edit")
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_SET_PUBLISH").flatMap(node => {
 			AssessmentManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String], node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
