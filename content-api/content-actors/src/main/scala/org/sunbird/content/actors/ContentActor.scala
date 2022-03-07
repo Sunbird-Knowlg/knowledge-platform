@@ -255,9 +255,12 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (StringUtils.isBlank(status))
 				throw new ClientException("ERR_METADATA_ISSUE", "Content metadata error, status is blank for identifier:" + node.getIdentifier)
       if (StringUtils.equals("Review", status)) {
-        request.getRequest.put("status", "Draft")
-      } else if (StringUtils.equals("FlagReview", status))
-        request.getRequest.put("status", "FlagDraft")
+	      request.getRequest.put("status", "Draft")
+	      request.getRequest.put("prevStatus", "Review")
+      } else if (StringUtils.equals("FlagReview", status)) {
+	      request.getRequest.put("status", "FlagDraft")
+	      request.getRequest.put("prevStatus", "FlagReview")
+      }
       else new ClientException("ERR_INVALID_REQUEST", "Content not in Review status.")
 			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
 			request.putIn("publishChecklist", null).putIn("publishComment", null)
