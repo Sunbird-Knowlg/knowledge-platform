@@ -21,7 +21,7 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 
-case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String])
+case class ImportConfig(topicName: String, requestLimit: Integer, requiredProps: List[String], validContentStage: List[String], propsToRemove: List[String], validSourceStatus: List[String])
 
 class ImportManager(config: ImportConfig) {
 
@@ -58,6 +58,8 @@ class ImportManager(config: ImportConfig) {
 				val stage: String = obj.getOrDefault(ImportConstants.STAGE, "").toString
 				val reqMetadata: util.Map[String, AnyRef] = obj.getOrDefault(ImportConstants.METADATA, new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
 				val sourceMetadata: util.Map[String, AnyRef] = getMetadata(source, request.getContext.get("objectType").asInstanceOf[String].toLowerCase())
+				if(StringUtils.isNotBlank(source) && config.validSourceStatus.nonEmpty && MapUtils.isNotEmpty(sourceMetadata) && !config.validSourceStatus.contains(sourceMetadata.getOrDefault("status", "").asInstanceOf[String]))
+					throw new ClientException(ImportErrors.ERR_SOURCE_STATUS_VALIDATION, ImportErrors.ERR_SOURCE_STATUS_VALIDATION_MSG + config.validSourceStatus.asJava)
 				val finalMetadata: util.Map[String, AnyRef] = if (MapUtils.isNotEmpty(sourceMetadata)) {
 					sourceMetadata.putAll(reqMetadata)
 					sourceMetadata.put(ImportConstants.SOURCE, source)
