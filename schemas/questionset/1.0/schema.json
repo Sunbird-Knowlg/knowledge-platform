@@ -650,6 +650,12 @@
     "outcomeDeclaration": {
       "type": "object",
       "description": "External Property"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "originData": {
+      "type": "object"
     }
   },
   "additionalProperties": false

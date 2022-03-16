@@ -574,6 +574,12 @@
       "items": {
           "type": "object"
       }
+    },
+    "origin": {
+      "type": "string"
+    },
+    "originData": {
+      "type": "object"
     }
   },
   "additionalProperties": false
