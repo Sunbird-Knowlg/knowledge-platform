@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class QuestionSetActorTest extends BaseSpec with MockFactory {
+class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
 
     "questionSetActor" should "return failed response for 'unknown' operation" in {
         implicit val oec: OntologyEngineContext = new OntologyEngineContext
@@ -537,6 +537,71 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new QuestionSetActor()))
         assert("successful".equals(response.getParams.getStatus))
     }
+
+	it should "return success response for 'copyQuestionSet' (Deep)" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getExistingRootNode())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876", false, *).returns(Future(getNewRootNode())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876.img", false, *).returns(Future(getNewRootNode())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", *, false, *).returns(Future(getQuestionNode())).anyNumberOfTimes()
+		inSequence {
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getObjectMetaDataResponse1()))
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData()))
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getObjectMetaDataResponse1())).anyNumberOfTimes()
+			(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getNewRootNode()))
+			(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData())).repeated(2)
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData()))
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getObjectMetaDataResponse2()))
+			(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode()))
+			(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getObjectMetaDataResponse2())).anyNumberOfTimes()
+			(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNode())).anyNumberOfTimes()
+			(graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+		}
+		val request = getQuestionSetCopyRequest()
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
+		request.setOperation("copyQuestionSet")
+		val response = callActor(request, Props(new QuestionSetActor()))
+		assert("successful".equals(response.getParams.getStatus))
+	}
+
+	it should "return success response for 'copyQuestionSet' (Shallow)" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val graphDB = mock[GraphService]
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getExistingRootNode())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_5678", false, *).returns(Future(getNewRootNode())).anyNumberOfTimes()
+		inSequence {
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData())).anyNumberOfTimes()
+			(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode()))
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData())).anyNumberOfTimes()
+			(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+			(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData()))
+			(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNode())).anyNumberOfTimes()
+			(graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+		}
+		val request = getQuestionSetCopyRequest()
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "shallow")))
+		request.setOperation("copyQuestionSet")
+		val response = callActor(request, Props(new QuestionSetActor()))
+		assert("successful".equals(response.getParams.getStatus))
+	}
+
+	it should "return error response for 'copyQuestionSet' when createdFor & createdBy is missing" in {
+		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+		val request = getInvalidQuestionCopyRequest()
+		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
+		request.setOperation("copyQuestionSet")
+		val response = callActor(request, Props(new QuestionSetActor()))
+		assert("failed".equals(response.getParams.getStatus))
+	}
 
     private def getQuestionSetRequest(): Request = {
         val request = new Request()
