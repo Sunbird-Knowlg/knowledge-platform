@@ -8,7 +8,7 @@ import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.managers.AssessmentManager
+import org.sunbird.managers.{AssessmentManager, CopyManager}
 import org.sunbird.utils.RequestUtil
 
 import java.util
@@ -36,6 +36,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "systemUpdateQuestion" => systemUpdate(request)
 		case "listQuestions" => listQuestions(request)
 		case "rejectQuestion" => reject(request)
+		case "copyQuestion" => copy(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -127,4 +128,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 			AssessmentManager.updateNode(updateRequest)
 			})
 		}
+
+	def copy(request: Request): Future[Response] ={
+		RequestUtil.restrictProperties(request)
+		CopyManager.copy(request)
+	}
 }
