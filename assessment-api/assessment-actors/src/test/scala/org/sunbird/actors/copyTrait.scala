@@ -101,9 +101,6 @@ trait copyTrait {
 		node.setMetadata(new util.HashMap[String, AnyRef]() {
 			{
 				put("code", "xyz")
-				//put("allowSkip", "Yes")
-				//put("containsUserData", "No")
-				//put("showHints", "No")
 				put("mimeType", {
 					if (StringUtil.endsWithIgnoreCase(objectType, AssessmentConstants.QUESTIONSET_SCHEMA_NAME)) {
 						AssessmentConstants.QUESTIONSET_MIME_TYPE
@@ -117,25 +114,18 @@ trait copyTrait {
 				put("contentDisposition", "inline")
 				put("contentEncoding", "gzip")
 				put("lastUpdatedOn", "2022-03-16T14:38:51.287+0530")
-				//put("generateDIALCodes", "No")
 				put("showSolutions", "No")
 				put("allowAnonymousAccess", "Yes")
 				put("identifier", identifier)
 				put("lastStatusChangedOn", "2022-03-16T14:35:11.040+0530")
-				//put("requiresSubmit", "No")
 				put("visibility", visibility)
 				put("showTimer", "No")
-				//put("setType", "materialised")
 				put("version", 1.asInstanceOf[Number])
 				put("showFeedback", "No")
 				put("versionKey", "1234")
 				put("license", "CC BY 4.0")
-				//put("depth", 0.asInstanceOf[Number])
 				put("compatibilityLevel", 5.asInstanceOf[Number])
-				//put("allowBranching", "No")
-				//put("navigationMode", "non-linear")
 				put("name", name)
-				//put("shuffle", true.asInstanceOf[AnyRef])
 				put("status", status)
 			}
 		})
