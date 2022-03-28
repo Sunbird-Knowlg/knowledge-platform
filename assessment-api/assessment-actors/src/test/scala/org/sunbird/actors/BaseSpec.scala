@@ -59,4 +59,20 @@ class BaseSpec extends FlatSpec with Matchers {
     })
     util.Arrays.asList(node)
   }
+
+  def getNode(identifier: String, objectType: String, metadata: Option[util.Map[String, AnyRef]]): Node = {
+    val node = new Node("domain", "DATA_NODE", objectType)
+    node.setGraphId("domain")
+    val nodeMetadata = metadata.getOrElse(new util.HashMap[String, AnyRef]() {{
+      put("name", "Question 1")
+      put("code", "ques.1")
+      put("status", "Draft")
+      put("primaryCategory", "Multiple Choice Question")
+    }})
+    node.setNodeType("DATA_NODE")
+    node.setMetadata(nodeMetadata)
+    node.setObjectType(objectType)
+    node.setIdentifier(identifier)
+    node
+  }
 }
