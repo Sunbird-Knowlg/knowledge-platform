@@ -20,7 +20,8 @@ import scala.collection.JavaConverters._
 
 object AssessmentManager {
 
-	val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", true)
+	val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", false)
+	val validStatus = List("Draft", "Review")
 
 	def create(request: Request, errCode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
@@ -128,36 +129,34 @@ object AssessmentManager {
 		})
 	}
 
-	def validateQuestionSetHierarchy(hierarchyString: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
+	def validateQuestionSetHierarchy(hierarchyString: String, rootUserId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
 		if (!skipValidation) {
 			val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
 				JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
 			} else
 				new java.util.HashMap[String, AnyRef]()
 			val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
-			validateChildrenRecursive(children)
+			validateChildrenRecursive(children, rootUserId)
 		}
 	}
 
 	def getQuestionSetHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
-		oec.graphService.readExternalProps(request, List("hierarchy")).flatMap(response => {
-			if (ResponseHandler.checkError(response) && ResponseHandler.isResponseNotFoundError(response)) {
-				if (StringUtils.equalsIgnoreCase("Live", rootNode.getMetadata.get("status").asInstanceOf[String]))
-					throw new ServerException("ERR_QUESTION_SET_REVIEW", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
-				request.put("identifier", if (!rootNode.getIdentifier.endsWith(".img")) rootNode.getIdentifier + ".img" else rootNode.getIdentifier)
-				oec.graphService.readExternalProps(request, List("hierarchy")).map(resp => {
-					resp.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String]
-				}) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get("identifier")) }
-			} else Future(response.getResult.toMap.getOrElse("hierarchy", "{}").asInstanceOf[String])
+		request.put("rootId", request.get("identifier").asInstanceOf[String])
+		HierarchyManager.getUnPublishedHierarchy(request).map(resp => {
+			if (!ResponseHandler.checkError(resp) && resp.getResponseCode.code() == 200) {
+				val hierarchy = resp.getResult.get("questionSet").asInstanceOf[util.Map[String, AnyRef]]
+				JsonUtils.serialize(hierarchy)
+			} else throw new ServerException("ERR_QUESTION_SET_HIERARCHY", "No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier)
 		})
 	}
 
-	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]]): Unit = {
+	private def validateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], rootUserId: String): Unit = {
 		children.toList.foreach(content => {
-			if (!StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
+			if ((StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default")
+			  && !StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
 			  && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
-				throw new ClientException("ERR_QUESTION_SET", "Content with identifier: " + content.get("identifier") + "is not Live. Please Publish it.")
-			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+				throw new ClientException("ERR_QUESTION_SET", "Object with identifier: " + content.get("identifier") + " is not Live. Please Publish it.")
+			validateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], rootUserId)
 		})
 	}
 
@@ -169,28 +168,32 @@ object AssessmentManager {
 		(visibilityIdMap.getOrDefault("Default", List()), visibilityIdMap.getOrDefault("Parent", List()))
 	}
 
-	def updateHierarchy(hierarchyString: String, status: String): (java.util.Map[String, AnyRef], java.util.List[String]) = {
-		val hierarchy = if (!hierarchyString.asInstanceOf[String].isEmpty) {
+	def updateHierarchy(hierarchyString: String, status: String, rootUserId: String): (java.util.Map[String, AnyRef], java.util.List[String]) = {
+		val hierarchy: java.util.Map[String, AnyRef] = if (!hierarchyString.asInstanceOf[String].isEmpty) {
 			JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
 		} else
 			new java.util.HashMap[String, AnyRef]()
+		val keys = List("identifier", "children").asJava
+		hierarchy.keySet().retainAll(keys)
 		val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
 		hierarchy.put("status", status)
-		val childrenToUpdate: List[String] = updateChildrenRecursive(children, status, List())
+		val childrenToUpdate: List[String] = updateChildrenRecursive(children, status, List(), rootUserId)
 		(hierarchy, childrenToUpdate.asJava)
 	}
 
-	private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status: String, idList: List[String]): List[String] = {
+	private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status: String, idList: List[String], rootUserId: String): List[String] = {
 		children.toList.flatMap(content => {
+			val objectType = content.getOrDefault("objectType", "").asInstanceOf[String]
 			val updatedIdList: List[String] =
-				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")) {
+				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent") || (StringUtils.equalsIgnoreCase( objectType, "Question") && StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default") && validStatus.contains(content.getOrDefault("status", "").asInstanceOf[String]) && StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))) {
 					content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
+					content.put("prevStatus", content.getOrDefault("status", "Draft"))
 					content.put("status", status)
 					content.put("prevStatus", "Draft")
 					content.put("lastUpdatedOn", DateUtils.formatCurrentDate)
-					content.get("identifier").asInstanceOf[String] :: idList
+					if(StringUtils.equalsAnyIgnoreCase(objectType, "Question")) content.get("identifier").asInstanceOf[String] :: idList else idList
 				} else idList
-			val list = updateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], status, updatedIdList)
+			val list = updateChildrenRecursive(content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], status, updatedIdList, rootUserId)
 			list ++ updatedIdList
 		})
 	}

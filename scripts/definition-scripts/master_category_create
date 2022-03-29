@@ -397,3 +397,80 @@ curl --location --request POST '{{host}}/object/category/v4/create' \
         }
     }
 }'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Survey",
+            "description":"Survey"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Observation",
+            "description":"Observation"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Observation With Rubrics",
+            "description":"Observation With Rubrics"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Text",
+            "description":"Text"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Date",
+            "description":"Date"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Slider",
+            "description":"Slider"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Multiselect Multiple Choice Question",
+            "description":"Multiselect Multiple Choice Question"
+        }
+    }
+}'

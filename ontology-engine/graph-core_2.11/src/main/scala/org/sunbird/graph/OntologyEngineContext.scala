@@ -7,7 +7,7 @@ class OntologyEngineContext {
 
     private val graphDB = new GraphService
     private val hUtil = new HttpUtil
-    private val kfClient = new KafkaClient
+    private lazy val kfClient = new KafkaClient
 
     def graphService = {
         graphDB
