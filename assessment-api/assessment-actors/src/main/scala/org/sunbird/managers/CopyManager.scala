@@ -25,7 +25,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 object CopyManager {
 
   private val originMetadataKeys: util.List[String] = Platform.getStringList("assessment.copy.origin_data", new util.ArrayList[String]())
-  private val internalHierarchyProps = List("identifier", "parent", "index", "depth")
+  private val internalHierarchyProps = List("identifier", "parent", "index", "depth", "branchingLogic")
   private val metadataNotTobeCopied = Platform.config.getStringList("assessment.copy.props_to_remove")
 
   def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
