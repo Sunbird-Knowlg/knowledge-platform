@@ -36,4 +36,13 @@ object AssessmentConstants {
   val QUESTION_SCHEMA_NAME: String = "question"
   val VISIBILITY_PARENT: String = "Parent"
   val VISIBILITY_DEFAULT: String = "Default"
+  val BRANCHING_LOGIC: String = "branchingLogic"
+  val COPY_OF: String = "copyOf"
+  val CONTAINS_BL: String = "containsBL"
+  val IDENTIFIERS: String = "identifiers"
+  val IS_NEW: String = "isNew"
+  val TARGET: String = "target"
+  val PRE_CONDITION: String = "preCondition"
+  val SOURCE: String = "source"
+  val PRE_CONDITION_VAR : String = "var"
 }

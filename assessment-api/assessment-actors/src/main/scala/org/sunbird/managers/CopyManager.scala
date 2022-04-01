@@ -1,9 +1,11 @@
 package org.sunbird.managers
 
+import com.google.gson.{Gson, GsonBuilder}
+import com.google.gson.reflect.TypeToken
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang.StringUtils
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
@@ -13,11 +15,13 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.AssessmentConstants
+import org.sunbird.utils.{AssessmentConstants, HierarchyConstants}
 
 import java.util
 import java.util.concurrent.{CompletionException, TimeUnit}
+import java.util.stream.Collectors
 import java.util.{Optional, UUID}
+import scala.collection.JavaConversions.{asScalaBuffer, mapAsScalaMap}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -97,15 +101,144 @@ object CopyManager {
     }).flatMap(f => f)
   }
 
-  def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+
+  def generateNodeBLRecord(nodesModified: util.HashMap[String, AnyRef]): util.HashMap[String, AnyRef] = {
+    val idSet = nodesModified.keySet().asScala.toList
+    val nodeBLRecord = new util.HashMap[String, AnyRef]()
+    idSet.map(id => {
+      val nodeMetaData = nodesModified.getOrDefault(id, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault(AssessmentConstants.METADATA, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]]
+      val containsBL = nodeMetaData.containsKey(AssessmentConstants.BRANCHING_LOGIC)
+      nodeBLRecord.put(id, new util.HashMap[String, AnyRef]() {
+        {
+          if (containsBL) put(AssessmentConstants.BRANCHING_LOGIC, nodeMetaData.get(AssessmentConstants.BRANCHING_LOGIC))
+          put(AssessmentConstants.CONTAINS_BL, containsBL.asInstanceOf[AnyRef])
+          put(AssessmentConstants.COPY_OF, nodeMetaData.get(AssessmentConstants.COPY_OF).asInstanceOf[String])
+        }
+      })
+      if (containsBL) nodeMetaData.remove(AssessmentConstants.BRANCHING_LOGIC)
+      nodeMetaData.remove(AssessmentConstants.COPY_OF)
+    })
+    nodeBLRecord
+  }
+
+  def branchingLogicArrayHandler(nodeBL: util.HashMap[String, AnyRef], name: String, oldToNewIdMap: util.Map[String, String]) = {
+    val array = nodeBL.getOrDefault(name, new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
+    val newArray = new util.ArrayList[String]()
+    array.map(id => {
+      if (oldToNewIdMap.containsKey(id)) {
+        newArray.add(oldToNewIdMap.get(id))
+      } else newArray.add(id)
+    })
+    nodeBL.remove(name)
+    nodeBL.put(name, newArray)
+  }
+
+  def preConditionHandler(nodeBL: util.HashMap[String, AnyRef], oldToNewIdMap: util.Map[String, String]): Unit = {
+    val preCondition = nodeBL.get(AssessmentConstants.PRE_CONDITION).asInstanceOf[util.HashMap[String, AnyRef]]
+    preCondition.keySet().asScala.toList.map(key => {
+      val conjunctionArray = preCondition.get(key).asInstanceOf[util.ArrayList[String]]
+      val condition = conjunctionArray.get(0).asInstanceOf[util.HashMap[String, AnyRef]]
+      condition.keySet().asScala.toList.map(logicOp => {
+        val conditionArray = condition.get(logicOp).asInstanceOf[util.ArrayList[String]]
+        val sourceQuestionRecord = conditionArray.get(0).asInstanceOf[util.HashMap[String, AnyRef]]
+        val preConditionVar = sourceQuestionRecord.get(AssessmentConstants.PRE_CONDITION_VAR).asInstanceOf[String]
+        val stringArray = preConditionVar.split("\\.")
+        if (oldToNewIdMap.containsKey(stringArray(0))) {
+          val newString = oldToNewIdMap.get(stringArray(0)) + "." + stringArray.drop(1).mkString(".")
+          sourceQuestionRecord.remove(AssessmentConstants.PRE_CONDITION_VAR)
+          sourceQuestionRecord.put(AssessmentConstants.PRE_CONDITION_VAR, newString)
+        }
+      })
+    })
+  }
+
+  def branchingLogicModifier(branchingLogic: util.HashMap[String, AnyRef], oldToNewIdMap: util.Map[String, String]): Unit = {
+    branchingLogic.keySet().asScala.toList.map(identifier => {
+      val nodeBL = branchingLogic.get(identifier).asInstanceOf[util.HashMap[String, AnyRef]]
+      nodeBL.keySet().asScala.toList.map(key => {
+        if (StringUtils.equalsIgnoreCase(key, AssessmentConstants.TARGET)) branchingLogicArrayHandler(nodeBL, AssessmentConstants.TARGET, oldToNewIdMap)
+        else if (StringUtils.equalsIgnoreCase(key, AssessmentConstants.PRE_CONDITION)) preConditionHandler(nodeBL, oldToNewIdMap)
+        else if (StringUtils.equalsIgnoreCase(key, AssessmentConstants.SOURCE)) branchingLogicArrayHandler(nodeBL, AssessmentConstants.SOURCE, oldToNewIdMap)
+      })
+      if (oldToNewIdMap.containsKey(identifier)) {
+        branchingLogic.put(oldToNewIdMap.get(identifier), nodeBL)
+        branchingLogic.remove(identifier)
+      }
+    })
+  }
+
+  def generateOldToNewIdMap(nodeBLRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]): util.Map[String, String] = {
+    val oldToNewIdMap = new util.HashMap[String, String]()
+    nodeBLRecord.keySet().asScala.toList.map(id => {
+      val nodeInfo = nodeBLRecord.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+      val newId = identifiers.get(id)
+      val oldId = nodeInfo.get(AssessmentConstants.COPY_OF).asInstanceOf[String]
+      oldToNewIdMap.put(oldId, newId)
+    })
+    oldToNewIdMap
+  }
+
+  def hierarchyRequestModifier(request: Request, nodeBLRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]): Unit = {
+    val nodesModified: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[java.util.HashMap[String, AnyRef]]
+    val hierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
+    val oldToNewIdMap = generateOldToNewIdMap(nodeBLRecord, identifiers)
+    nodeBLRecord.keySet().asScala.toList.map(id => {
+      val nodeInfo = nodeBLRecord.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+      val node = nodesModified.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+      val nodeMetaData = node.get(AssessmentConstants.METADATA).asInstanceOf[util.HashMap[String, AnyRef]]
+      val newId = identifiers.get(id)
+      if (nodeInfo.get(AssessmentConstants.CONTAINS_BL).asInstanceOf[Boolean]) {
+        val branchingLogic = nodeInfo.get(AssessmentConstants.BRANCHING_LOGIC).asInstanceOf[util.HashMap[String, AnyRef]]
+        branchingLogicModifier(branchingLogic, oldToNewIdMap)
+        nodeMetaData.put(AssessmentConstants.BRANCHING_LOGIC, branchingLogic)
+      }
+      node.remove(AssessmentConstants.IS_NEW)
+      node.put(AssessmentConstants.IS_NEW, false.asInstanceOf[AnyRef])
+      nodesModified.remove(id)
+      nodesModified.put(newId, node)
+    })
+    hierarchy.keySet().asScala.toList.map(id => {
+      val nodeHierarchy = hierarchy.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+      val children = nodeHierarchy.get(AssessmentConstants.CHILDREN).asInstanceOf[util.ArrayList[String]]
+      val newChildrenList = new util.ArrayList[String]
+      children.map(identifier => {
+        if (identifiers.containsKey(identifier)) newChildrenList.add(identifiers.get(identifier)) else newChildrenList.add(identifier)
+      })
+      nodeHierarchy.remove(AssessmentConstants.CHILDREN)
+      nodeHierarchy.put(AssessmentConstants.CHILDREN, newChildrenList)
+      if (identifiers.containsKey(id)) {
+        hierarchy.remove(id)
+        hierarchy.put(identifiers.get(id), nodeHierarchy)
+      }
+    })
+  }
+
+  def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType: String)
+                     (implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     prepareHierarchyRequest(originHierarchy, originNode, node, copyType, request).map(req => {
       val hierarchyRequest = new Request(request)
       hierarchyRequest.putAll(req)
-      hierarchyRequest.getContext.put(AssessmentConstants.SCHEMA_NAME, AssessmentConstants.QUESTIONSET_SCHEMA_NAME)
-      hierarchyRequest.getContext.put(AssessmentConstants.VERSION, AssessmentConstants.SCHEMA_VERSION)
+      val nodesModified: java.util.HashMap[String, AnyRef] = hierarchyRequest.getRequest.get(HierarchyConstants.NODES_MODIFIED)
+        .asInstanceOf[java.util.HashMap[String, AnyRef]]
+      val nodeBLRecord = generateNodeBLRecord(nodesModified)
+      val newUpdateRequest = JsonUtils.deserialize(ScalaJsonUtils.serialize(hierarchyRequest), classOf[Request])
       UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response => {
-        if (!ResponseHandler.checkError(response)) node else {
-          TelemetryManager.info(s"Update Hierarchy Failed For Copy Question Set Having Identifier: ${node.getIdentifier} | Response is : " + response)
+        if (!ResponseHandler.checkError(response)) {
+          val identifiers = response.getResult.get(AssessmentConstants.IDENTIFIERS).asInstanceOf[util.Map[String, String]]
+          hierarchyRequestModifier(newUpdateRequest, nodeBLRecord, identifiers)
+          UpdateHierarchyManager.updateHierarchy(newUpdateRequest).map(response_ => {
+            if (!ResponseHandler.checkError(response_)) {
+              node
+            } else {
+              TelemetryManager.info(s"Update Hierarchy Failed For Copy Question Set Having Identifier: ${node.getIdentifier} | Response " +
+                s"is " + s": " + response)
+              throw new ServerException("ERR_QUESTIONSET_COPY", "Something Went Wrong, Please Try Again")
+            }
+          })
+          node
+        } else {
+          TelemetryManager.info(s"Update Hierarchy Failed For Copy Question Set Having Identifier: ${node.getIdentifier} | Response is "
+            + s": " + response)
           throw new ServerException("ERR_QUESTIONSET_COPY", "Something Went Wrong, Please Try Again")
         }
       })
@@ -167,6 +300,7 @@ object CopyManager {
               put(AssessmentConstants.METADATA, cleanUpCopiedData(new util.HashMap[String, AnyRef]() {
                 {
                   putAll(child)
+                  put("copyOf", child.getOrDefault(AssessmentConstants.IDENTIFIER,""))
                   put(AssessmentConstants.CHILDREN, new util.ArrayList())
                   internalHierarchyProps.map(key => remove(key))
                 }
