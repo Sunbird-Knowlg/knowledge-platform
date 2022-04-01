@@ -57,7 +57,7 @@ object RetireManager {
     private def updateNodesToRetire(request: Request, updateMetadataMap: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         RedisCache.delete(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String])
         val updateReq = new Request(request)
-        updateReq.put(ContentConstants.IDENTIFIERS, java.util.Arrays.asList(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String], request.get(ContentConstants.IDENTIFIER).asInstanceOf[String] + HierarchyConstants.IMAGE_SUFFIX))
+        updateReq.put(ContentConstants.IDENTIFIERS, java.util.Arrays.asList(request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]))
         updateReq.put(ContentConstants.METADATA, updateMetadataMap)
         DataNode.bulkUpdate(updateReq).map(node => ResponseHandler.OK())
     }

@@ -656,6 +656,55 @@
     },
     "originData": {
       "type": "object"
+    },
+    "trackable": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        },
+        "autoBatch": {
+          "type": "string",
+          "enum": ["Yes","No"],
+          "default": "No"
+        }
+      },
+      "default": {
+        "enabled": "No",
+        "autoBatch": "No"
+      },
+      "additionalProperties": false
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "scoreCutoffType": {
+      "type": "string",
+      "enum": [
+        "AssessmentLevel",
+        "SectionLevel"
+      ],
+      "default": "AssessmentLevel"
+    },
+    "subTitle": {
+      "type": "string"
+    },
+    "minimumPassPercentage": {
+      "type": "number"
+    },
+    "additionalKeywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "additionalInstructions": {
+      "type": "string"
+    },
+    "reviewStatus": {
+      "type": "string"
     }
   },
   "additionalProperties": false

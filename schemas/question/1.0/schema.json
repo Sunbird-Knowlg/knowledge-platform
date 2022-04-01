@@ -425,7 +425,10 @@
       "enum": [
         "MCQ",
         "FTB",
-        "SA"
+        "SA",
+        "MCQ-MCA",
+        "MCQ-SCA",
+        "MTF"
       ]
     },
     "scoringMode": {

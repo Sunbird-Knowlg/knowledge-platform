@@ -106,6 +106,7 @@ public class SearchActor extends SearchBaseActor {
                 wordChainsRequest = false;
             List<Map> properties = new ArrayList<Map>();
             Map<String, Object> filters = (Map<String, Object>) req.get(SearchConstants.filters);
+            Map<String, Object> multiFilters = (Map<String, Object>) req.get("multiFilters");
             if (null == filters)
                 filters = new HashMap<>();
             if (filters.containsKey("tags")) {
@@ -239,6 +240,11 @@ public class SearchActor extends SearchBaseActor {
             searchObj.setSortBy(sortBy);
             searchObj.setFacets(facets);
             searchObj.setProperties(properties);
+            if (multiFilters != null) {
+                List<Map> multiFilterProperties = new ArrayList<Map>();
+                multiFilterProperties.addAll(getSearchFilterProperties(multiFilters, wordChainsRequest, request));
+                searchObj.setMultiFilterProperties(multiFilterProperties);
+            }
             // Added Implicit Filter Properties To Support Collection content tagging to reuse by tenants.
             setImplicitFilters(filters, searchObj);
             searchObj.setLimit(limit);

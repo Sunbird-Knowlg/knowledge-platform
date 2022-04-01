@@ -83,7 +83,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     }
 
     def getResult(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request, categoryMapping: Boolean = false, version: String = "3.0") : Future[Result] = {
-        val future = Patterns.ask(actor, request, 30000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
+        val future = Patterns.ask(actor, request, 120000) recoverWith {case e: Exception => Future(ResponseHandler.getErrorResponse(e))}
         future.map(f => {
             val result: Response = f.asInstanceOf[Response]
             result.setId(apiId)
