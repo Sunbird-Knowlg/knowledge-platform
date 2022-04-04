@@ -4,10 +4,11 @@ Repository for Knowledge Platform - 2.0
 
 ## Knowledge-platform local setup
 This readme file contains the instruction to set up and run the content-service in local machine.
+
+### System Requirements:
+
 ### Prerequisites:
-* Neo4j
-* Redis
-* Cassandra
+* Java 11
 
 ### Prepare folders for database data and logs
 
@@ -141,7 +142,7 @@ kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --par
 ```
 
 ### Running Content Service:
-### (Content V3+V4 APIs & Collection V4 APIs & Assets V4 APIs & Channel V3 APIs & License V3 APIs & Event V4 APIs & EventSet V4 APIs)
+### (Content V3+V4 APIs, Collection V4 APIs, Assets V4 APIs, Channel V3 APIs, License V3 APIs, Event V4 APIs, EventSet V4 APIs)
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
 mvn clean install -DskipTests
