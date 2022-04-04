@@ -427,13 +427,14 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
         resp.put("questionset", new util.HashMap[String, AnyRef](){{
             put("framework", "NCF")
             put("channel", "test")
+            put("status", "Live")
         }})
         (hUtil.get(_: String, _: String, _: util.Map[String, String])).expects(*, *, *).returns(resp)
         (oec.kafkaClient _).expects().returns(kfClient)
         (kfClient.send(_: String, _: String)).expects(*, *).returns(None)
         val request = getQuestionSetRequest()
         request.getRequest.put("questionset", new util.HashMap[String, AnyRef](){{
-            put("source", "https://dock.sunbirded.org/api/questionset/v1/read/do_11307822356267827219477")
+            put("source", "https://dock.sunbirded.org/api/questionset/v1/read/do_113486480153952256140")
             put("metadata", new util.HashMap[String, AnyRef](){{
                 put("name", "Test QuestionSet")
                 put("description", "Test QuestionSet")

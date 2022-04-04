@@ -9,6 +9,7 @@ object ImportErrors {
 	val ERR_REQUIRED_PROPS_VALIDATION: String = "ERR_REQUIRED_PROPS_VALIDATION"
 	val BE_JOB_REQUEST_EXCEPTION: String = "BE_JOB_REQUEST_EXCEPTION"
 	val ERR_OBJECT_STAGE_VALIDATION: String = "ERR_OBJECT_STAGE_VALIDATION"
+	val ERR_SOURCE_STATUS_VALIDATION: String = "ERR_SOURCE_STATUS_VALIDATION"
 
 	//Error Messages
 	val ERR_INVALID_IMPORT_REQUEST_MSG: String = "Invalid Request! Please Provide Valid Request."
@@ -17,4 +18,5 @@ object ImportErrors {
 	val ERR_REQUIRED_PROPS_VALIDATION_MSG: String = "Validation Failed! Mandatory Properties Are "
 	val BE_JOB_REQUEST_EXCEPTION_MSG: String = "Kafka Event Is Not Generated Properly."
 	val ERR_OBJECT_STAGE_VALIDATION_MSG: String = "Object Stage Validation Failed! Valid Object Stages Are "
+	val ERR_SOURCE_STATUS_VALIDATION_MSG: String = "Source Object Status Not Qualified For Import Operation. Please Provide Valid Source With Status "
 }
