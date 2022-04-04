@@ -547,7 +547,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getExistingRootNode())).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876", false, *).returns(Future(getNewRootNode())).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876.img", false, *).returns(Future(getNewRootNode())).anyNumberOfTimes()
-        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", *, false, *).returns(Future(getQuestionNode())).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", *, false, *).returns(Future(getQuestionNode("do_5678"))).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("objectMetadata")).returns(Future(getSuccessfulResponse())).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData())).anyNumberOfTimes()
         (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
@@ -555,7 +555,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNode())).anyNumberOfTimes()
         inSequence {
             (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getNewRootNode()))
-            (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode()))
+            (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode("do_5678")))
         }
         val request = getQuestionSetCopyRequest()
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
@@ -574,7 +574,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_5678", false, *).returns(Future(getNewRootNode())).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("objectMetadata")).returns(Future(getSuccessfulResponse())).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseWithData())).anyNumberOfTimes()
-        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode()))
+        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode("do_5678")))
         (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNode())).anyNumberOfTimes()
         (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
@@ -592,6 +592,32 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
         request.setOperation("copyQuestionSet")
         val response = callActor(request, Props(new QuestionSetActor()))
         assert("failed".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for 'copyQuestionSet' (Branching Logic Copy)" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getRootNodeWithBL("do_1234","do_2222","do_5555","do_7777", false))).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876", false, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_6666","do_8888", true))).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876.img", false, *).returns(Future(getNewRootNodeWithBL())).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", *, false, *).returns(Future(getQuestionNode("do_6666"))).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("objectMetadata")).returns(Future(getSuccessfulResponse())).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getExternalPropsResponseBL())).anyNumberOfTimes()
+        (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+        (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getRootNodeWithBL("do_1234","do_2222","do_5555","do_7777", false))).anyNumberOfTimes()
+        inSequence {
+            (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getNewRootNodeWithBL()))
+            (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getQuestionNode("do_6666")))
+        }
+        val request = getQuestionSetCopyRequest()
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
+        request.setOperation("copyQuestionSet")
+        val response = callActor(request, Props(new QuestionSetActor()))
+        assert("successful".equals(response.getParams.getStatus))
     }
 
     private def getQuestionSetRequest(): Request = {

@@ -346,7 +346,7 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val request = getQuestionCopyRequest()
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getQuestionNode())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getQuestionNode("do_5678"))).anyNumberOfTimes()
 		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
 		request.setOperation("copyQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
