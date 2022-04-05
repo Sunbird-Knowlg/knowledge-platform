@@ -515,7 +515,7 @@ public class SearchActor extends SearchBaseActor {
             properties.add(property);
         }
 
-        if (request != null && !StringUtils.equalsIgnoreCase((String) request.getContext().getOrDefault("setDefaultVisibility",""),"false")  && setDefaultVisibility(filters)) {
+        if (request != null && StringUtils.equalsIgnoreCase((String) request.getContext().getOrDefault("setDefaultVisibility",""),"true")  && setDefaultVisibility(filters)) {
             Map<String, Object> property = getFilterProperty("visibility", SearchConstants.SEARCH_OPERATION_EQUAL, Arrays.asList(new String[] { "Default" }));
             properties.add(property);
         }
