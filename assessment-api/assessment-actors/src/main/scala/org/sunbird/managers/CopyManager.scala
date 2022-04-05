@@ -211,6 +211,7 @@ object CopyManager {
         hierarchy.put(identifiers.get(id), nodeHierarchy)
       }
     })
+    request
   }
 
   def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType: String)
@@ -222,10 +223,12 @@ object CopyManager {
         .asInstanceOf[java.util.HashMap[String, AnyRef]]
       val nodeBLRecord = generateNodeBLRecord(nodesModified)
       val newUpdateRequest = JsonUtils.deserialize(ScalaJsonUtils.serialize(hierarchyRequest), classOf[Request])
+      println("BEFORE FIRST UPDATE HIERARCHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
       UpdateHierarchyManager.updateHierarchy(hierarchyRequest).map(response => {
         if (!ResponseHandler.checkError(response)) {
           val identifiers = response.getResult.get(AssessmentConstants.IDENTIFIERS).asInstanceOf[util.Map[String, String]]
           hierarchyRequestModifier(newUpdateRequest, nodeBLRecord, identifiers)
+          println("BEFORE SECOND UPDATE HIERARCHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY")
           UpdateHierarchyManager.updateHierarchy(newUpdateRequest).map(response_ => {
             if (!ResponseHandler.checkError(response_)) {
               node

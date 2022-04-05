@@ -160,7 +160,8 @@ trait copyTrait {
 		node
 	}
 
-	def getQuestionNode(identifier: String): Node = {
+	def getQuestionNode(identifier: String,callerName: String): Node = {
+		println(callerName+" CALLED FOR "+ identifier)
 		val node = getNode("Question", identifier, "Slider", AssessmentConstants.VISIBILITY_PARENT, "Question1", 0, "Draft")
 		node.setExternalData(new util.HashMap[String, AnyRef]() {
 			{
@@ -186,7 +187,8 @@ trait copyTrait {
 		node
 	}
 
-	def getSuccessfulResponse(): Response = {
+	def getSuccessfulResponse(callerName: String): Response = {
+		println(callerName+ "RETURNED SUCCESSFUL RESPONSE")
 		val response = new Response
 		response.setVer("3.0")
 		val responseParams = new ResponseParams
@@ -208,7 +210,7 @@ trait copyTrait {
 	}
 
 	def getExternalPropsResponseWithData(): Response = {
-		val response = getSuccessfulResponse()
+		val response = getSuccessfulResponse("getExternalPropsResponseWithData")
 		response.put("instructions", "This is the instruction for this QuestionSet")
 		response.put("outcomeDeclaration", "This is the outcomeDeclaration for this QuestionSet")
 		response.put("hierarchy", "{\"code\":\"ExistingRootNode\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
@@ -236,7 +238,7 @@ trait copyTrait {
 	}
 
 	def getReadPropsResponseForQuestion(): Response = {
-		val response = getSuccessfulResponse()
+		val response = getSuccessfulResponse("getReadPropsResponseForQuestion")
 		response.put("answer", "This is Answer 2")
 		response.put("body", "This is Body 2")
 		response
@@ -262,7 +264,8 @@ trait copyTrait {
 		node
 	}
 
-	def getRootNodeWithBL(rootId: String, sectionId: String, Q1_Id: String, Q2_Id:String, addBranchingLogic: Boolean): Node = {
+	def getRootNodeWithBL(rootId: String, sectionId: String, Q1_Id: String, Q2_Id:String, addBranchingLogic: Boolean, withChildren: Boolean, callerName: String): Node = {
+		println(callerName +" FETCHED ROOT NODE WITH ID: "+rootId)
 		val node = getNode("QuestionSet", rootId, "Observation", AssessmentConstants.VISIBILITY_DEFAULT, "ExistingRootNode", 1234,
 			"Live")
 		node.getMetadata.put("childNodes", new util.ArrayList[String](){
@@ -319,76 +322,66 @@ trait copyTrait {
 				}
 			})
 		}
-		section.getMetadata.put("children", children)
-		node.getMetadata.put("children", new util.ArrayList[util.Map[String, AnyRef]](){{
-			add(section.getMetadata)
-		}})
+		if(withChildren) {
+			section.getMetadata.put("children", children)
+			node.getMetadata.put("children", new util.ArrayList[util.Map[String, AnyRef]]() {
+				{
+					add(section.getMetadata)
+				}
+			})
+		}
 		node
 	}
 
-	def getNewRootNodeWithBL(): Node = {
-		val node = getNode("QuestionSet", "do_9876", "Observation", AssessmentConstants.VISIBILITY_DEFAULT, "NewRootNode", 1234,
-			"Live")
-		node.getMetadata.put("childNodes", Array("do_3333", "do_6666", "do_8888"))
-		node.getMetadata.put("children", new util.ArrayList[Node]() {
-			{
-				add(getNode("QuestionSet", "do_3333", "Observation", AssessmentConstants.VISIBILITY_DEFAULT, "Section_1", 1234,
-					"Live"))
-			}
-		})
-		val children = node.getMetadata.get("children").asInstanceOf[util.ArrayList[Node]]
-		val sectionNode = children.get(0)
-		sectionNode.getMetadata.put("children", new util.ArrayList[Node]() {
-			{
-				add(getNode("Question", "do_6666", "Slider", AssessmentConstants.VISIBILITY_PARENT, "Question1", 1234,
-					"Live"))
-				add(getNode("Question", "do_8888", "Slider", AssessmentConstants.VISIBILITY_DEFAULT, "Question2", 1234,
-					"Live"))
-			}
-		})
-		sectionNode.getMetadata.put("branchingLogic", new util.HashMap[String, AnyRef](){
-			{
-				put("do_6666", new util.HashMap[String, AnyRef](){
-					put("target", new util.ArrayList[String](){
-						{
-							add("do_8888")
-						}
-					})
-					put("preCondition", new util.HashMap[String, AnyRef]())
-					put("source", new util.ArrayList[String]())
-				})
-				put("do_8888", new util.HashMap[String, AnyRef](){
-					put("target", new util.ArrayList[String]())
-					put("preCondition", new util.HashMap[String, AnyRef](){
-						{
-							put("and", new util.ArrayList[util.HashMap[String, AnyRef]](){
-								add(new util.HashMap[String, AnyRef](){
-									put("eq", new util.ArrayList[AnyRef](){
-										{
-											add(new util.HashMap[String,String](){
-												put("var", "do_6666.response1.value")
-												put("type", "responseDeclaration")
-											})
-											add("0")
-										}
-									})
-								})
-							})
-						}
-					})
-					put("source", new util.ArrayList[String](){
-						{
-							add("do_6666")
-						}
-					})
-				} )
-			}
-		})
-		node
+	def getNewRootExternalPropsResponseBL(callerString: String): Response = {
+		println("CALLED EXTERNAL PROPS OF NEW ROOT NODE "+callerString )
+		val response = getSuccessfulResponse("getNewRootExternalPropsResponseBL")
+		response.put("instructions", "This is the instruction for this QuestionSet")
+		response.put("outcomeDeclaration", "This is the outcomeDeclaration for this QuestionSet")
+		response.put("hierarchy", "{\"code\":\"CopyQuestionSetv16\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"showHints\":\"No\",\"mimeType\":\"application/vnd.sunbird" +
+		  ".questionset\",\"createdOn\":\"2022-03-29T15:36:30.043+0530\",\"objectType\":\"QuestionSet\"," +
+		  "\"primaryCategory\":\"Observation\",\"contentDisposition\":\"inline\",\"contentEncoding\":\"gzip\"," +
+		  "\"lastUpdatedOn\":\"2022-03-29T15:41:46.796+0530\",\"generateDIALCodes\":\"No\",\"showSolutions\":\"No\"," +
+		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_9876\",\"lastStatusChangedOn\":\"2022-03-29T15:36:30.043+0530\"," +
+		  "\"requiresSubmit\":\"No\",\"visibility\":\"Default\",\"IL_SYS_NODE_TYPE\":\"DATA_NODE\",\"showTimer\":\"No\"," +
+		  "\"childNodes\":[\"do_6666\",\"do_3333\",\"do_8888\"],\"setType\":\"materialised\",\"version\":1,\"showFeedback\":\"No\"," +
+		  "\"versionKey\":\"1648548706796\",\"license\":\"CC BY 4.0\",\"depth\":0,\"compatibilityLevel\":5," +
+		  "\"IL_FUNC_OBJECT_TYPE\":\"QuestionSet\",\"allowBranching\":\"No\",\"navigationMode\":\"non-linear\"," +
+		  "\"name\":\"CopyQuestionSetv16\",\"shuffle\":true,\"IL_UNIQUE_ID\":\"do_9876\",\"status\":\"Live\"," +
+		  "\"children\":[{\"parent\":\"do_9876\",\"code\":\"S1\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+		  "\"channel\":\"{{channel_id}}\",\"description\":\"Section 1\"," +
+		  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
+		  "\"createdOn\":\"2022-03-29T15:37:42.872+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
+		  "\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\",\"channel\":\"{{channel_id}}\",\"description\":\"Q1\"," +
+		  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\",\"createdOn\":\"2022-03-29T15:37:42.837+0530\"," +
+		  "\"objectType\":\"Question\",\"primaryCategory\":\"Slider\",\"contentDisposition\":\"inline\"," +
+		  "\"lastUpdatedOn\":\"2022-03-29T15:37:42.836+0530\",\"contentEncoding\":\"gzip\",\"showSolutions\":\"No\"," +
+		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_6666\",\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\"," +
+		  "\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1,\"languageCode\":[\"en\"],\"version\":1," +
+		  "\"versionKey\":\"1648548462888\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":2,\"compatibilityLevel\":4," +
+		  "\"name\":\"Q1\",\"status\":\"Live\"},{\"parent\":\"do_3333\",\"code\":\"Q2\",\"channel\":\"{{channel_id}}\"," +
+		  "\"description\":\"Q2\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-03-29T15:37:42.852+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-03-29T15:37:42.896+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_8888\"," +
+		  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.852+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1648548462896\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}],\"contentDisposition\":\"inline\"," +
+		  "\"lastUpdatedOn\":\"2022-03-29T15:41:46.689+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
+		  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.872+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+		  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
+		  "\"versionKey\":\"1648548462872\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"compatibilityLevel\":5," +
+		  "\"name\":\"S1\",\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Live\"}]}")
+		response.put("body", "This is Body")
+		response.put("answer", "This is Answer")
+		response
 	}
 
-	def getExternalPropsResponseBL(): Response = {
-		val response = getSuccessfulResponse()
+	def getRootExternalPropsResponseBL(): Response = {
+		println("CALLED EXTERNAL PROPS OF ORIGINAL ROOT NODE")
+		val response = getSuccessfulResponse("getRootExternalPropsResponseBL")
 		response.put("instructions", "This is the instruction for this QuestionSet")
 		response.put("outcomeDeclaration", "This is the outcomeDeclaration for this QuestionSet")
 		response.put("hierarchy", "{\"code\":\"CopyQuestionSetv16\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
@@ -432,5 +425,97 @@ trait copyTrait {
 		response.put("body", "This is Body")
 		response.put("answer", "This is Answer")
 		response
+	}
+
+	def getReadExtPropsRequest(rootId: String) :Request = {
+		val request = getQuestionSetRequest()
+		request.getContext.put("rootId", rootId)
+		request.getContext.put("objectType", AssessmentConstants.QUESTIONSET)
+		request.put("identifier", rootId)
+		//request.put("fields", fields)
+		request
+	}
+
+	def getUpsertNodeBLWithBL(): Node = {
+		val node = getRootNodeWithBL("do_9876", "do_3333", "do_6666", "do_7777", false, false, "addNode")
+		node.setExternalData(new util.HashMap[String, AnyRef]() {
+			{
+				put("hierarchy", "{\"identifier\":\"do_9876\",\"children\":[{\"parent\":\"do_9876\"," +
+				  "\"code\":\"S1\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\",\"channel\":\"{{channel_id}}\"," +
+				  "\"branchingLogic\":{\"do_7777\":{\"preCondition\":{\"and\":[{\"eq\":[{\"type\":\"responseDeclaration" +
+				  "\",\"var\":\"do_6666.response1.value\"},\"0\"]}]},\"target\":[]," +
+				  "\"source\":[\"do_6666\"]},\"do_6666\":{\"preCondition\":{}," +
+				  "\"target\":[\"do_7777\"],\"source\":[]}},\"description\":\"Section 1\",\"language\":[\"English\"]," +
+				  "\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
+				  "\"createdOn\":\"2022-04-04T16:30:59.566+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
+				  "\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\",\"channel\":\"{{channel_id}}\"," +
+				  "\"description\":\"Q1\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+				  "\"createdOn\":\"2022-04-04T16:30:59.539+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+				  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-04T16:32:46.200+0530\",\"contentEncoding\":\"gzip\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_6666\"," +
+				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\",\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1," +
+				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649070166325\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
+				  "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Draft\"}," +
+				  "{\"parent\":\"do_3333\",\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"description\":\"Q2\"," +
+				  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+				  "\"createdOn\":\"2022-03-29T15:37:42.852+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+				  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-03-29T15:37:42.896+0530\",\"contentEncoding\":\"gzip\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_7777\"," +
+				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.852+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
+				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1648548462896\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
+				  "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}],\"contentDisposition\":\"inline\"," +
+				  "\"lastUpdatedOn\":\"2022-04-04T16:32:46.273+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
+				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.872+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+				  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
+				  "\"versionKey\":\"1649070059566\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"name\":\"S1\"," +
+				  "\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Draft\"}]}")
+			}
+		})
+		node
+	}
+
+	def getUpsertNodeBLWithoutBL(): Node = {
+		val node = getRootNodeWithBL("do_9876", "do_3333", "do_6666", "do_7777", false, false, "addNode")
+		node.setExternalData(new util.HashMap[String, AnyRef]() {
+			{
+				put("hierarchy", "{\"identifier\":\"do_9876\",\"children\":[{\"parent\":\"do_9876\"," + "\"code\":\"S1\"," +
+				  "\"allowSkip\":\"Yes\",\"containsUserData\":\"No\",\"channel\":\"{{channel_id}}\",\"description\":\"Section 1\"," +
+				  "\"language\":[\"English\"]," + "\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
+				  "\"createdOn\":\"2022-04-04T16:30:59.566+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
+				  "\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\",\"channel\":\"{{channel_id}}\"," + "\"description\":\"Q1\"," +
+				  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+				  "\"createdOn\":\"2022-04-04T16:30:59.539+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+				  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-04T16:32:46.200+0530\",\"contentEncoding\":\"gzip\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_6666\"," +
+				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\",\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1," +
+				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649070166325\",\"showFeedback\":\"No\",\"license\":\"CC BY "
+				  + "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Draft\"}," + "{\"parent\":\"do_3333\"," +
+				  "\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"description\":\"Q2\"," + "\"language\":[\"English\"]," +
+				  "\"mimeType\":\"application/vnd.sunbird.question\"," + "\"createdOn\":\"2022-03-29T15:37:42.852+0530\"," +
+				  "\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," + "\"contentDisposition\":\"inline\"," +
+				  "\"lastUpdatedOn\":\"2022-03-29T15:37:42.896+0530\",\"contentEncoding\":\"gzip\"," + "\"showSolutions\":\"No\"," +
+				  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_7777\"," +
+				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.852+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2,"
+				  + "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1648548462896\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
+				  "" + "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}]," +
+				  "\"contentDisposition\":\"inline\"," + "\"lastUpdatedOn\":\"2022-04-04T16:32:46.273+0530\",\"contentEncoding\":\"gzip\"," +
+				  "\"generateDIALCodes\":\"No\"," + "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
+				  "" + "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.872+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+				  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
+				  "\"versionKey\":\"1649070059566\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"name\":\"S1\"," +
+				  "\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Draft\"}]}")
+			}
+		})
+		node
+	}
+
+	def getUpdateHierarchyRequest(): Request ={
+		val request = getQuestionSetRequest()
+		request.getRequest.put(AssessmentConstants.NODES_MODIFIED,new util.HashMap[String, AnyRef](){
+			put(getNode("QuestionSet", "do_11350998455833395219", "Observation", AssessmentConstants.VISIBILITY_PARENT, "S1", 1234,
+				"Live"))
+		})
+		request
 	}
 }

@@ -314,6 +314,7 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 		assert("successful".equals(response.getParams.getStatus))
 	}
 
+	/*
 	it should "return success response for 'copyQuestion'" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
@@ -331,6 +332,8 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("successful".equals(response.getParams.getStatus))
 	}
+
+
 
 	it should "return error response for 'copyQuestion' when createdFor & createdBy is missing" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
@@ -352,6 +355,7 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 		val response = callActor(request, Props(new QuestionActor()))
 		assert("failed".equals(response.getParams.getStatus))
 	}
+	*/
 
 	private def getQuestionRequest(): Request = {
 		val request = new Request()
