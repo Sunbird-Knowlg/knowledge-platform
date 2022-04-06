@@ -198,6 +198,16 @@ trait copyTrait {
 		response
 	}
 
+	def getResourceNotFoundResponse(): Response = {
+		val response = new Response
+		response.setVer("3.0")
+		val responseParams = new ResponseParams
+		responseParams.setStatus("failed")
+		response.setParams(responseParams)
+		response.setResponseCode(ResponseCode.RESOURCE_NOT_FOUND)
+		response
+	}
+
 	def getExternalPropsRequest(): Request = {
 		val request = getQuestionSetRequest()
 		request.putAll(new util.HashMap[String, AnyRef]() {
@@ -268,17 +278,10 @@ trait copyTrait {
 		println(callerName +" FETCHED ROOT NODE WITH ID: "+rootId)
 		val node = getNode("QuestionSet", rootId, "Observation", AssessmentConstants.VISIBILITY_DEFAULT, "ExistingRootNode", 1234,
 			"Live")
-		node.getMetadata.put("childNodes", new util.ArrayList[String](){
-			{
-				add(sectionId)
-				add(Q1_Id)
-				add(Q2_Id)
-			}
-		})
 		val section = getNode("QuestionSet", sectionId, "Observation", AssessmentConstants.VISIBILITY_DEFAULT, "Section_1", 1234,
 			"Live")
 		val children = new util.ArrayList[util.Map[String, AnyRef]]()
-		children.add(getNode("Question", Q1_Id, "Slider", AssessmentConstants.VISIBILITY_PARENT, "Question1", 1234,
+		children.add(getNode("Question", Q1_Id, "Slider", AssessmentConstants.VISIBILITY_DEFAULT, "Question1", 1234,
 			"Live").getMetadata)
 		children.add(getNode("Question", Q2_Id, "Slider", AssessmentConstants.VISIBILITY_DEFAULT, "Question2", 1234,
 			"Live").getMetadata)
@@ -323,6 +326,13 @@ trait copyTrait {
 			})
 		}
 		if(withChildren) {
+			node.getMetadata.put("childNodes", new util.ArrayList[String](){
+				{
+					add(sectionId)
+					add(Q1_Id)
+					add(Q2_Id)
+				}
+			})
 			section.getMetadata.put("children", children)
 			node.getMetadata.put("children", new util.ArrayList[util.Map[String, AnyRef]]() {
 				{
@@ -334,96 +344,123 @@ trait copyTrait {
 	}
 
 	def getNewRootExternalPropsResponseBL(callerString: String): Response = {
-		println("CALLED EXTERNAL PROPS OF NEW ROOT NODE "+callerString )
+		println("CALLED EXTERNAL PROPS OF NEW ROOT NODE " + callerString)
 		val response = getSuccessfulResponse("getNewRootExternalPropsResponseBL")
-		response.put("instructions", "This is the instruction for this QuestionSet")
-		response.put("outcomeDeclaration", "This is the outcomeDeclaration for this QuestionSet")
-		response.put("hierarchy", "{\"code\":\"CopyQuestionSetv16\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
-		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"showHints\":\"No\",\"mimeType\":\"application/vnd.sunbird" +
-		  ".questionset\",\"createdOn\":\"2022-03-29T15:36:30.043+0530\",\"objectType\":\"QuestionSet\"," +
-		  "\"primaryCategory\":\"Observation\",\"contentDisposition\":\"inline\",\"contentEncoding\":\"gzip\"," +
-		  "\"lastUpdatedOn\":\"2022-03-29T15:41:46.796+0530\",\"generateDIALCodes\":\"No\",\"showSolutions\":\"No\"," +
-		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_9876\",\"lastStatusChangedOn\":\"2022-03-29T15:36:30.043+0530\"," +
-		  "\"requiresSubmit\":\"No\",\"visibility\":\"Default\",\"IL_SYS_NODE_TYPE\":\"DATA_NODE\",\"showTimer\":\"No\"," +
-		  "\"childNodes\":[\"do_6666\",\"do_3333\",\"do_8888\"],\"setType\":\"materialised\",\"version\":1,\"showFeedback\":\"No\"," +
-		  "\"versionKey\":\"1648548706796\",\"license\":\"CC BY 4.0\",\"depth\":0,\"compatibilityLevel\":5," +
-		  "\"IL_FUNC_OBJECT_TYPE\":\"QuestionSet\",\"allowBranching\":\"No\",\"navigationMode\":\"non-linear\"," +
-		  "\"name\":\"CopyQuestionSetv16\",\"shuffle\":true,\"IL_UNIQUE_ID\":\"do_9876\",\"status\":\"Live\"," +
-		  "\"children\":[{\"parent\":\"do_9876\",\"code\":\"S1\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
-		  "\"channel\":\"{{channel_id}}\",\"description\":\"Section 1\"," +
-		  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
-		  "\"createdOn\":\"2022-03-29T15:37:42.872+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
-		  "\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\",\"channel\":\"{{channel_id}}\",\"description\":\"Q1\"," +
-		  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\",\"createdOn\":\"2022-03-29T15:37:42.837+0530\"," +
-		  "\"objectType\":\"Question\",\"primaryCategory\":\"Slider\",\"contentDisposition\":\"inline\"," +
-		  "\"lastUpdatedOn\":\"2022-03-29T15:37:42.836+0530\",\"contentEncoding\":\"gzip\",\"showSolutions\":\"No\"," +
-		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_6666\",\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\"," +
-		  "\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1,\"languageCode\":[\"en\"],\"version\":1," +
-		  "\"versionKey\":\"1648548462888\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":2,\"compatibilityLevel\":4," +
-		  "\"name\":\"Q1\",\"status\":\"Live\"},{\"parent\":\"do_3333\",\"code\":\"Q2\",\"channel\":\"{{channel_id}}\"," +
-		  "\"description\":\"Q2\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
-		  "\"createdOn\":\"2022-03-29T15:37:42.852+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
-		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-03-29T15:37:42.896+0530\",\"contentEncoding\":\"gzip\"," +
-		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_8888\"," +
-		  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.852+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
-		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1648548462896\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		response.put("hierarchy", "{\"identifier\":\"do_9876\",\"children\":[{\"parent\":\"do_9876\"," +
+		  "\"code\":\"1911de43-48aa-4533-b93e-2e342e9f6ec7\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.questionset\"," +
+		  "\"showHints\":\"No\",\"createdOn\":\"2022-04-06T14:10:31.187+0530\",\"objectType\":\"QuestionSet\"," +
+		  "\"primaryCategory\":\"Observation\",\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\"," +
+		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-04-06T10:13:32.859+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.911+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_5555\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.859+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":1," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212911\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Live\"},{\"parent\":\"do_3333\"," +
+		  "\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-04-06T10:13:32.896+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.954+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_7777\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.896+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212954\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
 		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}],\"contentDisposition\":\"inline\"," +
-		  "\"lastUpdatedOn\":\"2022-03-29T15:41:46.689+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
+		  "\"lastUpdatedOn\":\"2022-04-06T14:10:31.185+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
 		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
-		  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.872+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T14:10:31.187+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
 		  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
-		  "\"versionKey\":\"1648548462872\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"compatibilityLevel\":5," +
-		  "\"name\":\"S1\",\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Live\"}]}")
-		response.put("body", "This is Body")
-		response.put("answer", "This is Answer")
+		  "\"versionKey\":\"1649234431187\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"name\":\"S1\"," +
+		  "\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Draft\"}]}")
 		response
 	}
 
 	def getRootExternalPropsResponseBL(): Response = {
 		println("CALLED EXTERNAL PROPS OF ORIGINAL ROOT NODE")
 		val response = getSuccessfulResponse("getRootExternalPropsResponseBL")
-		response.put("instructions", "This is the instruction for this QuestionSet")
-		response.put("outcomeDeclaration", "This is the outcomeDeclaration for this QuestionSet")
-		response.put("hierarchy", "{\"code\":\"CopyQuestionSetv16\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+		response.put("hierarchy", "{\"code\":\"CopyQuestionSetv21\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
 		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"showHints\":\"No\",\"mimeType\":\"application/vnd.sunbird" +
-		  ".questionset\",\"createdOn\":\"2022-03-29T15:36:30.043+0530\",\"objectType\":\"QuestionSet\"," +
+		  ".questionset\",\"createdOn\":\"2022-04-06T10:13:15.975+0530\",\"objectType\":\"QuestionSet\"," +
 		  "\"primaryCategory\":\"Observation\",\"contentDisposition\":\"inline\",\"contentEncoding\":\"gzip\"," +
-		  "\"lastUpdatedOn\":\"2022-03-29T15:41:46.796+0530\",\"generateDIALCodes\":\"No\",\"showSolutions\":\"No\"," +
-		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_1234\",\"lastStatusChangedOn\":\"2022-03-29T15:36:30.043+0530\"," +
-		  "\"requiresSubmit\":\"No\",\"visibility\":\"Default\",\"IL_SYS_NODE_TYPE\":\"DATA_NODE\",\"showTimer\":\"No\"," +
-		  "\"childNodes\":[\"do_5555\",\"do_2222\",\"do_7777\"],\"setType\":\"materialised\",\"version\":1,\"showFeedback\":\"No\"," +
-		  "\"versionKey\":\"1648548706796\",\"license\":\"CC BY 4.0\",\"depth\":0,\"compatibilityLevel\":5," +
+		  "\"lastUpdatedOn\":\"2022-04-06T10:16:05.263+0530\",\"generateDIALCodes\":\"No\",\"showSolutions\":\"No\"," +
+		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_1234\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:15.975+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Default\"," +
+		  "\"IL_SYS_NODE_TYPE\":\"DATA_NODE\",\"showTimer\":\"No\",\"childNodes\":[\"do_5555\"," +
+		  "\"do_2222\",\"do_7777\"],\"setType\":\"materialised\",\"version\":1,\"showFeedback\":\"No\"," +
+		  "\"versionKey\":\"1649220365263\",\"license\":\"CC BY 4.0\",\"depth\":0,\"compatibilityLevel\":5," +
 		  "\"IL_FUNC_OBJECT_TYPE\":\"QuestionSet\",\"allowBranching\":\"No\",\"navigationMode\":\"non-linear\"," +
-		  "\"name\":\"CopyQuestionSetv16\",\"shuffle\":true,\"IL_UNIQUE_ID\":\"do_1234\",\"status\":\"Live\"," +
+		  "\"name\":\"CopyQuestionSetv21\",\"shuffle\":true,\"IL_UNIQUE_ID\":\"do_1234\",\"status\":\"Live\"," +
 		  "\"children\":[{\"parent\":\"do_1234\",\"code\":\"S1\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
-		  "\"channel\":\"{{channel_id}}\",\"branchingLogic\":{\"do_5555\":{\"target\":[\"do_7777\"],\"preCondition\":{},\"source\":[]}," +
-		  "\"do_7777\":{\"target\":[],\"preCondition\":{\"and\":[{\"eq\":[{\"var\":\"do_5555.response1.value\"," +
-		  "\"type\":\"responseDeclaration\"},\"0\"]}]},\"source\":[\"do_5555\"]}},\"description\":\"Section 1\"," +
-		  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
-		  "\"createdOn\":\"2022-03-29T15:37:42.872+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
-		  "\"children\":[{\"parent\":\"do_2222\",\"code\":\"Q1\",\"channel\":\"{{channel_id}}\",\"description\":\"Q1\"," +
-		  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\",\"createdOn\":\"2022-03-29T15:37:42.837+0530\"," +
-		  "\"objectType\":\"Question\",\"primaryCategory\":\"Slider\",\"contentDisposition\":\"inline\"," +
-		  "\"lastUpdatedOn\":\"2022-03-29T15:37:42.836+0530\",\"contentEncoding\":\"gzip\",\"showSolutions\":\"No\"," +
-		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_5555\",\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\"," +
-		  "\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1,\"languageCode\":[\"en\"],\"version\":1," +
-		  "\"versionKey\":\"1648548462888\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":2,\"compatibilityLevel\":4," +
-		  "\"name\":\"Q1\",\"status\":\"Live\"},{\"parent\":\"do_2222\",\"code\":\"Q2\",\"channel\":\"{{channel_id}}\"," +
-		  "\"description\":\"Q2\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
-		  "\"createdOn\":\"2022-03-29T15:37:42.852+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
-		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-03-29T15:37:42.896+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"channel\":\"{{channel_id}}\",\"branchingLogic\":{\"do_5555\":{\"target\":[\"do_7777\"]," +
+		  "\"preCondition\":{},\"source\":[]},\"do_7777\":{\"target\":[]," +
+		  "\"preCondition\":{\"and\":[{\"eq\":[{\"var\":\"do_5555.response1.value\",\"type\":\"responseDeclaration\"}," +
+		  "\"0\"]}]},\"source\":[\"do_5555\"]}},\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird" +
+		  ".questionset\",\"showHints\":\"No\",\"createdOn\":\"2022-04-06T10:13:32.949+0530\",\"objectType\":\"QuestionSet\"," +
+		  "\"primaryCategory\":\"Observation\",\"children\":[{\"parent\":\"do_2222\",\"code\":\"Q1\"," +
+		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-04-06T10:13:32.859+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.911+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_5555\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.859+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":1," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212911\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Live\"},{\"parent\":\"do_2222\"," +
+		  "\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-04-06T10:13:32.896+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.954+0530\",\"contentEncoding\":\"gzip\"," +
 		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_7777\"," +
-		  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.852+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
-		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1648548462896\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.896+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212954\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
 		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}],\"contentDisposition\":\"inline\"," +
-		  "\"lastUpdatedOn\":\"2022-03-29T15:41:46.689+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
+		  "\"lastUpdatedOn\":\"2022-04-06T10:16:05.061+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
 		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_2222\"," +
-		  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.872+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.949+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
 		  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
-		  "\"versionKey\":\"1648548462872\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"compatibilityLevel\":5," +
+		  "\"versionKey\":\"1649220212949\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"compatibilityLevel\":5," +
 		  "\"name\":\"S1\",\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Live\"}]}")
-		response.put("body", "This is Body")
-		response.put("answer", "This is Answer")
+		response
+	}
+
+	def getNewRootExternalPropsResponseWithBL(): Response = {
+		println("CALLED EXTERNAL PROPS OF ORIGINAL ROOT NODE")
+		val response = getSuccessfulResponse("getRootExternalPropsResponseBL")
+		response.put("hierarchy", "{\"code\":\"CopyQuestionSetv21\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"showHints\":\"No\",\"mimeType\":\"application/vnd.sunbird" +
+		  ".questionset\",\"createdOn\":\"2022-04-06T10:13:15.975+0530\",\"objectType\":\"QuestionSet\"," +
+		  "\"primaryCategory\":\"Observation\",\"contentDisposition\":\"inline\",\"contentEncoding\":\"gzip\"," +
+		  "\"lastUpdatedOn\":\"2022-04-06T10:16:05.263+0530\",\"generateDIALCodes\":\"No\",\"showSolutions\":\"No\"," +
+		  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_9876\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:15.975+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Default\"," +
+		  "\"IL_SYS_NODE_TYPE\":\"DATA_NODE\",\"showTimer\":\"No\",\"childNodes\":[\"do_5555\"," +
+		  "\"do_3333\",\"do_7777\"],\"setType\":\"materialised\",\"version\":1,\"showFeedback\":\"No\"," +
+		  "\"versionKey\":\"1649220365263\",\"license\":\"CC BY 4.0\",\"depth\":0,\"compatibilityLevel\":5," +
+		  "\"IL_FUNC_OBJECT_TYPE\":\"QuestionSet\",\"allowBranching\":\"No\",\"navigationMode\":\"non-linear\"," +
+		  "\"name\":\"CopyQuestionSetv21\",\"shuffle\":true,\"IL_UNIQUE_ID\":\"do_9876\",\"status\":\"Live\"," +
+		  "\"children\":[{\"parent\":\"do_9876\",\"code\":\"S1\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+		  "\"channel\":\"{{channel_id}}\",\"branchingLogic\":{\"do_5555\":{\"target\":[\"do_7777\"]," +
+		  "\"preCondition\":{},\"source\":[]},\"do_7777\":{\"target\":[]," +
+		  "\"preCondition\":{\"and\":[{\"eq\":[{\"var\":\"do_5555.response1.value\",\"type\":\"responseDeclaration\"}," +
+		  "\"0\"]}]},\"source\":[\"do_5555\"]}},\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird" +
+		  ".questionset\",\"showHints\":\"No\",\"createdOn\":\"2022-04-06T10:13:32.949+0530\",\"objectType\":\"QuestionSet\"," +
+		  "\"primaryCategory\":\"Observation\",\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\"," +
+		  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-04-06T10:13:32.859+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.911+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_5555\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.859+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":1," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212911\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Live\"},{\"parent\":\"do_3333\"," +
+		  "\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+		  "\"createdOn\":\"2022-04-06T10:13:32.896+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+		  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.954+0530\",\"contentEncoding\":\"gzip\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_7777\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.896+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
+		  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212954\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\"," +
+		  "\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}],\"contentDisposition\":\"inline\"," +
+		  "\"lastUpdatedOn\":\"2022-04-06T10:16:05.061+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
+		  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
+		  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.949+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+		  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
+		  "\"versionKey\":\"1649220212949\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"compatibilityLevel\":5," +
+		  "\"name\":\"S1\",\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Live\"}]}")
 		response
 	}
 
@@ -437,14 +474,14 @@ trait copyTrait {
 	}
 
 	def getUpsertNodeBLWithBL(): Node = {
-		val node = getRootNodeWithBL("do_9876", "do_3333", "do_6666", "do_7777", false, false, "addNode")
+		val node = getRootNodeWithBL("do_9876", "do_3333", "do_5555", "do_7777", false, false, "addNode")
 		node.setExternalData(new util.HashMap[String, AnyRef]() {
 			{
 				put("hierarchy", "{\"identifier\":\"do_9876\",\"children\":[{\"parent\":\"do_9876\"," +
 				  "\"code\":\"S1\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\",\"channel\":\"{{channel_id}}\"," +
 				  "\"branchingLogic\":{\"do_7777\":{\"preCondition\":{\"and\":[{\"eq\":[{\"type\":\"responseDeclaration" +
-				  "\",\"var\":\"do_6666.response1.value\"},\"0\"]}]},\"target\":[]," +
-				  "\"source\":[\"do_6666\"]},\"do_6666\":{\"preCondition\":{}," +
+				  "\",\"var\":\"do_5555.response1.value\"},\"0\"]}]},\"target\":[]," +
+				  "\"source\":[\"do_5555\"]},\"do_5555\":{\"preCondition\":{}," +
 				  "\"target\":[\"do_7777\"],\"source\":[]}},\"description\":\"Section 1\",\"language\":[\"English\"]," +
 				  "\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
 				  "\"createdOn\":\"2022-04-04T16:30:59.566+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
@@ -452,7 +489,7 @@ trait copyTrait {
 				  "\"description\":\"Q1\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
 				  "\"createdOn\":\"2022-04-04T16:30:59.539+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
 				  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-04T16:32:46.200+0530\",\"contentEncoding\":\"gzip\"," +
-				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_6666\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_5555\"," +
 				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\",\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1," +
 				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649070166325\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
 				  "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Draft\"}," +
@@ -476,40 +513,45 @@ trait copyTrait {
 	}
 
 	def getUpsertNodeBLWithoutBL(): Node = {
-		val node = getRootNodeWithBL("do_9876", "do_3333", "do_6666", "do_7777", false, false, "addNode")
+		val node = getRootNodeWithBL("do_9876", "do_3333", "do_5555", "do_7777", false, false, "addNode")
 		node.setExternalData(new util.HashMap[String, AnyRef]() {
 			{
-				put("hierarchy", "{\"identifier\":\"do_9876\",\"children\":[{\"parent\":\"do_9876\"," + "\"code\":\"S1\"," +
-				  "\"allowSkip\":\"Yes\",\"containsUserData\":\"No\",\"channel\":\"{{channel_id}}\",\"description\":\"Section 1\"," +
-				  "\"language\":[\"English\"]," + "\"mimeType\":\"application/vnd.sunbird.questionset\",\"showHints\":\"No\"," +
-				  "\"createdOn\":\"2022-04-04T16:30:59.566+0530\",\"objectType\":\"QuestionSet\",\"primaryCategory\":\"Observation\"," +
-				  "\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\",\"channel\":\"{{channel_id}}\"," + "\"description\":\"Q1\"," +
-				  "\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
-				  "\"createdOn\":\"2022-04-04T16:30:59.539+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
-				  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-04T16:32:46.200+0530\",\"contentEncoding\":\"gzip\"," +
-				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_6666\"," +
-				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.837+0530\",\"visibility\":\"Parent\",\"showTimer\":\"No\",\"index\":1," +
-				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649070166325\",\"showFeedback\":\"No\",\"license\":\"CC BY "
-				  + "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Draft\"}," + "{\"parent\":\"do_3333\"," +
-				  "\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"description\":\"Q2\"," + "\"language\":[\"English\"]," +
-				  "\"mimeType\":\"application/vnd.sunbird.question\"," + "\"createdOn\":\"2022-03-29T15:37:42.852+0530\"," +
-				  "\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," + "\"contentDisposition\":\"inline\"," +
-				  "\"lastUpdatedOn\":\"2022-03-29T15:37:42.896+0530\",\"contentEncoding\":\"gzip\"," + "\"showSolutions\":\"No\"," +
+				put("hierarchy", "{\"identifier\":\"do_9876\",\"children\":[{\"parent\":\"do_9876\"," +
+				  "\"code\":\"9f0332ad-c3e3-4803-b673-50174aff24e3\",\"allowSkip\":\"Yes\",\"containsUserData\":\"No\"," +
+				  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.questionset\"," +
+				  "\"showHints\":\"No\",\"createdOn\":\"2022-04-06T12:51:53.592+0530\",\"objectType\":\"QuestionSet\"," +
+				  "\"primaryCategory\":\"Observation\",\"children\":[{\"parent\":\"do_3333\",\"code\":\"Q1\"," +
+				  "\"channel\":\"{{channel_id}}\",\"language\":[\"English\"],\"mimeType\":\"application/vnd.sunbird.question\"," +
+				  "\"createdOn\":\"2022-04-06T10:13:32.859+0530\",\"objectType\":\"Question\",\"primaryCategory\":\"Slider\"," +
+				  "\"contentDisposition\":\"inline\",\"lastUpdatedOn\":\"2022-04-06T10:13:32.911+0530\",\"contentEncoding\":\"gzip\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_5555\"," +
+				  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.859+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":1," +
+				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212911\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
+				  "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q1\",\"status\":\"Live\"}," +
+				  "{\"parent\":\"do_3333\",\"code\":\"Q2\",\"channel\":\"{{channel_id}}\",\"language\":[\"English\"]," +
+				  "\"mimeType\":\"application/vnd.sunbird.question\",\"createdOn\":\"2022-04-06T10:13:32.896+0530\"," +
+				  "\"objectType\":\"Question\",\"primaryCategory\":\"Slider\",\"contentDisposition\":\"inline\"," +
+				  "\"lastUpdatedOn\":\"2022-04-06T10:13:32.954+0530\",\"contentEncoding\":\"gzip\",\"showSolutions\":\"No\"," +
 				  "\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_7777\"," +
-				  "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.852+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2,"
-				  + "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1648548462896\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
-				  "" + "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}]," +
-				  "\"contentDisposition\":\"inline\"," + "\"lastUpdatedOn\":\"2022-04-04T16:32:46.273+0530\",\"contentEncoding\":\"gzip\"," +
-				  "\"generateDIALCodes\":\"No\"," + "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
-				  "" + "\"lastStatusChangedOn\":\"2022-03-29T15:37:42.872+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
+				  "\"lastStatusChangedOn\":\"2022-04-06T10:13:32.896+0530\",\"visibility\":\"Default\",\"showTimer\":\"No\",\"index\":2," +
+				  "\"languageCode\":[\"en\"],\"version\":1,\"versionKey\":\"1649220212954\",\"showFeedback\":\"No\",\"license\":\"CC BY " +
+				  "4.0\",\"depth\":2,\"compatibilityLevel\":4,\"name\":\"Q2\",\"status\":\"Live\"}],\"contentDisposition\":\"inline\"," +
+				  "\"lastUpdatedOn\":\"2022-04-06T12:51:53.591+0530\",\"contentEncoding\":\"gzip\",\"generateDIALCodes\":\"No\"," +
+				  "\"showSolutions\":\"No\",\"allowAnonymousAccess\":\"Yes\",\"identifier\":\"do_3333\"," +
+				  "\"lastStatusChangedOn\":\"2022-04-06T12:51:53.592+0530\",\"requiresSubmit\":\"No\",\"visibility\":\"Parent\"," +
 				  "\"showTimer\":\"No\",\"index\":1,\"setType\":\"materialised\",\"languageCode\":[\"en\"],\"version\":1," +
-				  "\"versionKey\":\"1649070059566\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"name\":\"S1\"," +
+				  "\"versionKey\":\"1649229713592\",\"showFeedback\":\"No\",\"license\":\"CC BY 4.0\",\"depth\":1,\"name\":\"S1\"," +
 				  "\"navigationMode\":\"non-linear\",\"allowBranching\":\"Yes\",\"shuffle\":true,\"status\":\"Draft\"}]}")
 			}
 		})
 		node
 	}
 
+	def getQuestionNodeBL(identifier: String): Node ={
+		val node = getNode("Question", identifier, "Slider", AssessmentConstants.VISIBILITY_DEFAULT, identifier, 1234,"Live")
+		node
+	}
+	/*
 	def getUpdateHierarchyRequest(): Request ={
 		val request = getQuestionSetRequest()
 		request.getRequest.put(AssessmentConstants.NODES_MODIFIED,new util.HashMap[String, AnyRef](){
@@ -518,4 +560,6 @@ trait copyTrait {
 		})
 		request
 	}
+
+	 */
 }

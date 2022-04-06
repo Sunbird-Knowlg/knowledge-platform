@@ -603,6 +603,29 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val nodes: util.List[Node] = getCategoryNode()
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "do_1234", *, *).returns(Future(getRootNodeWithBL("do_1234","do_2222","do_5555","do_7777", true,true,"getNodeByUniqueId"))).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "do_9876", *, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_5555","do_7777", false,false,"getNodeByUniqueId"))).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "do_9876.img", *, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_5555","do_7777", false,false,"getNodeByUniqueId"))).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "do_5555", *, *).returns(Future(getQuestionNodeBL("do_5555"))).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "do_7777", *, *).returns(Future(getQuestionNodeBL("do_7777"))).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("objectMetadata")).returns(Future(getSuccessfulResponse("readExternalProps"))).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("instructions", "outcomeDeclaration")).returns(Future(getSuccessfulResponse("readExternalProps"))).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("solutions", "body", "editorState", "interactions", "hints", "responseDeclaration", "media", "answer", "instructions")).returns(Future(getResourceNotFoundResponse())).anyNumberOfTimes()
+        (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_5555","do_7777", false, false,"addNode"))).anyNumberOfTimes
+        (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse("saveExternalProps"))).anyNumberOfTimes
+        (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse("updateExternalProps"))).anyNumberOfTimes
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_5555","do_7777", true,true,"getNodeByUniqueId"))).anyNumberOfTimes()
+        inSequence {
+            (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNodeBLWithoutBL()))
+            (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNodeBLWithBL())).anyNumberOfTimes
+        }
+        inSequence {
+            (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("hierarchy")).returns(Future(getRootExternalPropsResponseBL))
+            //(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("hierarchy")).returns(Future(getNewRootExternalPropsResponseBL("readExternalProps")))
+            //(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("hierarchy")).returns(Future(getNewRootExternalPropsResponseWithBL))
+            (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("hierarchy")).returns(Future(getNewRootExternalPropsResponseBL("readExternalProps"))).anyNumberOfTimes
+        }
+        /*
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getRootNodeWithBL("do_1234","do_2222","do_5555","do_7777", true,true,"getNodeByUniqueId"))).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876", false, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_6666","do_7777", false,true,"getNodeByUniqueId"))).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_9876.img", false, *).returns(Future(getRootNodeWithBL("do_9876","do_3333","do_6666","do_7777", false,true,"getNodeByUniqueId"))).anyNumberOfTimes()
@@ -635,6 +658,8 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
             (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getQuestionNode("do_6666", "addNode")))
             (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getUpsertNodeBLWithBL()))
         }
+
+         */
         val request = getQuestionSetCopyRequest()
         request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
         request.setOperation("copyQuestionSet")
