@@ -26,7 +26,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
     val mimeTypesToCheck = List("application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.html-archive", "application/vnd.android.package-archive",
         "video/webm", "video/x-youtube", "video/mp4")
-    val actorTimeout: Long = Platform.getLong("actor.timeoutMillisec", 120000L)
+    val actorTimeout: Long = Platform.getLong("actor.timeoutMillisec", 30000L)
 
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
