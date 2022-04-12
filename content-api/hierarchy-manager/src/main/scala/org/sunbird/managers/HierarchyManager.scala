@@ -453,8 +453,9 @@ object HierarchyManager {
         responseFuture.map(response => {
             if (!ResponseHandler.checkError(response)) {
                 val relationalMetadataString = response.getResult.toMap.getOrDefault("relational_metadata", "").asInstanceOf[String]
-                if (StringUtils.isNotEmpty(relationalMetadataString)) {
-                    Future(JsonUtils.deserialize(relationalMetadataString, classOf[java.util.Map[String, AnyRef]]).toMap)
+                if (StringUtils.isNotEmpty(relationalMetadataString) && !relationalMetadataString.trim.isBlank) {
+                    val relMetadataJavaMap = JsonUtils.deserialize(relationalMetadataString, classOf[java.util.Map[String, AnyRef]])
+                   if(relMetadataJavaMap != null && relMetadataJavaMap.size()>0) Future(relMetadataJavaMap.toMap) else Future(Map[String, AnyRef]())
                 } else
                     Future(Map[String, AnyRef]())
             } else {
@@ -464,7 +465,7 @@ object HierarchyManager {
                 responseFuture.map(response => {
                     if (!ResponseHandler.checkError(response)) {
                         val relationalMetadataString = response.getResult.toMap.getOrDefault("relational_metadata", "").asInstanceOf[String]
-                        if (StringUtils.isNotEmpty(relationalMetadataString)) {
+                        if (StringUtils.isNotEmpty(relationalMetadataString) && !relationalMetadataString.trim.isBlank) {
                             Future(JsonUtils.deserialize(relationalMetadataString, classOf[java.util.Map[String, AnyRef]]).toMap)
                         } else
                             Future(Map[String, AnyRef]())
