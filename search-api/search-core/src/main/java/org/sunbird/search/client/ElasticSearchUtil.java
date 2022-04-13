@@ -11,14 +11,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -229,7 +229,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static void deleteIndex(String indexName) throws InterruptedException, ExecutionException, IOException {
-		DeleteIndexResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName));
+		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName));
 		esClient.remove(indexName);
 		TelemetryManager.log("Deleted Index" + indexName + " : " + response.isAcknowledged());
 	}
