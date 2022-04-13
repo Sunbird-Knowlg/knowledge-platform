@@ -86,7 +86,8 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		val propsToRemove = Platform.getStringList("import.remove_props.question", java.util.Arrays.asList()).asScala.toList
 		val topicName = Platform.config.getString("import.output_topic_name")
 		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
-		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
+		val validSourceStatus = Platform.getStringList("import.valid_source_status", java.util.Arrays.asList("Live", "Unlisted")).asScala.toList
+		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove, validSourceStatus)
 	}
 
 	def systemUpdate(request: Request): Future[Response] = {

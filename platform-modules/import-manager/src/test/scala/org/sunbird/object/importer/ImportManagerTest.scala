@@ -22,7 +22,7 @@ class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactor
 	val REQUIRED_PROPS = List("name", "code", "mimeType", "contentType", "artifactUrl", "framework")
 	val VALID_OBJECT_STAGE = List("create", "upload", "review", "publish")
 	val PROPS_TO_REMOVE = List("downloadUrl","variants","previewUrl","streamingUrl","itemSets")
-	lazy val importConfig = ImportConfig(AUTO_CREATE_TOPIC_NAME, REQUEST_LIMIT, REQUIRED_PROPS, VALID_OBJECT_STAGE, PROPS_TO_REMOVE)
+	lazy val importConfig = ImportConfig(AUTO_CREATE_TOPIC_NAME, REQUEST_LIMIT, REQUIRED_PROPS, VALID_OBJECT_STAGE, PROPS_TO_REMOVE, List())
 	lazy val importMgr = new ImportManager(importConfig)
 
 	"getRequest with list input" should "return request data as list with java types" in {

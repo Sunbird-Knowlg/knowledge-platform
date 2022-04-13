@@ -2,12 +2,13 @@
 
 Repository for Knowledge Platform - 2.0
 
-## Content-Service local setup
+## Knowledge-platform local setup
 This readme file contains the instruction to set up and run the content-service in local machine.
+
+### System Requirements:
+
 ### Prerequisites:
-* Neo4j
-* Redis
-* Cassandra
+* Java 11
 
 ### Prepare folders for database data and logs
 
@@ -140,7 +141,10 @@ Example:
 kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic test_topic 
 ```
 
-### Running content-service:
+### Running Content Service:
+
+### (Content V3+V4 APIs, Collection V4 APIs, Assets V4 APIs, Channel V3 APIs, License V3 APIs, Event V4 APIs, EventSet V4 APIs)
+
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
 mvn clean install -DskipTests
@@ -149,7 +153,35 @@ mvn clean install -DskipTests
 ```shell
 mvn play2:run
 ```
-3. Using the below command we can verify whether the databases(neoj,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
+3. Using the below command we can verify whether the databases(neo4j,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
+```shell
+curl http://localhost:9000/health
+```
+
+### Running Assets/Composite Search Service:
+1. Go to the path: /knowledge-platform and run the below maven command to build the application.
+```shell
+mvn clean install -DskipTests
+```
+2. Go to the path: /knowledge-platform/search-api/search-service and run the below maven command to run the netty server.
+```shell
+mvn play2:run
+```
+3. Using the below command we can verify whether the databases(neo4j,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
+```shell
+curl http://localhost:9000/health
+```
+
+### Running Object Category Service:
+1. Go to the path: /knowledge-platform and run the below maven command to build the application.
+```shell
+mvn clean install -DskipTests
+```
+2. Go to the path: /knowledge-platform/taxonomy-api/taxonomy-service and run the below maven command to run the netty server.
+```shell
+mvn play2:run
+```
+3. Using the below command we can verify whether the databases(neo4j,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
 ```shell
 curl http://localhost:9000/health
 ```
