@@ -68,6 +68,6 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             put("schemaName", schemaName)
         }};
         request.setObjectType(objectType);
-        request.setContext(contextMap)
+        request.getContext().putAll(contextMap)
     }
 }
