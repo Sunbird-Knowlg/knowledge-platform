@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.*;
 import org.sunbird.search.util.SearchConstants;
@@ -166,10 +167,9 @@ public class ElasticSearchUtil {
 				createRequest.settings(Settings.builder().loadFromSource(settings, XContentType.JSON));
 			if (StringUtils.isNotBlank(documentType) && StringUtils.isNotBlank(mappings))
 				createRequest.mapping(documentType, mappings, XContentType.JSON);
-//			RequestOptions.Builder options = RequestOptions.DEFAULT.toBuilder();
-//			CreateIndexResponse createIndexResponse = client.indices().create(createRequest);
+			CreateIndexResponse createIndexResponse = client.indices().create(createRequest, RequestOptions.DEFAULT);
 
-			response = client.indices().create(createRequest).isAcknowledged();
+			response = createIndexResponse.isAcknowledged();
 		}
 		return response;
 	}
@@ -178,7 +178,7 @@ public class ElasticSearchUtil {
 		try {
 			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {});
 			Map<String, Object> updatedDoc = checkDocStringLength(doc);
-			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType, documentId).source(updatedDoc));
+			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType, documentId).source(updatedDoc), RequestOptions.DEFAULT);
 			TelemetryManager.log("Added " + response.getId() + " to index " + response.getIndex());
 		} catch (IOException e) {
 			TelemetryManager.error("Error while adding document to index :" + indexName, e);
@@ -189,7 +189,7 @@ public class ElasticSearchUtil {
 		try {
 			Map<String, Object> doc = mapper.readValue(document, new TypeReference<Map<String, Object>>() {});
 			Map<String, Object> updatedDoc = checkDocStringLength(doc);
-			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType).source(updatedDoc));
+			IndexResponse response = getClient(indexName).index(new IndexRequest(indexName, documentType).source(updatedDoc), RequestOptions.DEFAULT);
 			TelemetryManager.log("Added " + response.getId() + " to index " + response.getIndex());
 		} catch (IOException e) {
 			TelemetryManager.error("Error while adding document to index :" + indexName, e);
@@ -213,7 +213,7 @@ public class ElasticSearchUtil {
 
 	public static void deleteDocument(String indexName, String documentType, String documentId)
 			throws IOException {
-		DeleteResponse response = getClient(indexName).delete(new DeleteRequest(indexName, documentType, documentId));
+		DeleteResponse response = getClient(indexName).delete(new DeleteRequest(indexName, documentType, documentId), RequestOptions.DEFAULT);
 		TelemetryManager.log("Deleted " + response.getId() + " to index " + response.getIndex());
 	}
 
@@ -226,7 +226,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static void deleteIndex(String indexName) throws IOException {
-		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName));
+		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName), RequestOptions.DEFAULT);
 		esClient.remove(indexName);
 		TelemetryManager.log("Deleted Index" + indexName + " : " + response.isAcknowledged());
 	}
