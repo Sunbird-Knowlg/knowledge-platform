@@ -160,6 +160,7 @@ public class SearchManager {
                 params.setErrmsg(null);
             }
             response.setParams(params);
+            System.out.println("Search Manager response  result ::: "+response.getResult());
             if(response.getResult().containsKey("content")) {
                 List<Map<String,Object>> contentMap = (List<Map<String, Object>>) response.getResult().get("content");
                 for(Map<String,Object> content : contentMap){
@@ -179,6 +180,7 @@ public class SearchManager {
                 }
                 response.getResult().put("collections", collectionList);
             }
+            System.out.println("Search Manager response  result after modification ::: "+response.getResult());
             return response;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
