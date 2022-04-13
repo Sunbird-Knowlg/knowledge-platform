@@ -16,6 +16,8 @@
 		<scala.version>2.11.12</scala.version>
 		<scalatest.version>3.0.8</scalatest.version>
 		<fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
 	</properties>
 	<modules>
 		<module>platform-core</module>
