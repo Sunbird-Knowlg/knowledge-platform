@@ -12,7 +12,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.*;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
@@ -228,8 +228,8 @@ public class ElasticSearchUtil {
 		TelemetryManager.log("Deleted Documents by Query" + EntityUtils.toString(response.getEntity()));
 	}
 
-	public static void deleteIndex(String indexName) throws InterruptedException, ExecutionException, IOException {
-		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName));
+	public static void deleteIndex(String indexName) throws IOException {
+		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName), RequestOptions.DEFAULT);
 		esClient.remove(indexName);
 		TelemetryManager.log("Deleted Index" + indexName + " : " + response.isAcknowledged());
 	}
