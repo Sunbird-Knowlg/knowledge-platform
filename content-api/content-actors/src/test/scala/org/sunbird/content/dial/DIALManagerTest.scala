@@ -174,7 +174,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 	"link DIAL with valid request for content" should "update the contents successfully" in {
 		(oec.httpUtil _).expects().returns(httpUtil)
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getLinkDIALSearchResponse)
+		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
 
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes())).noMoreThanOnce()
 		val nodes: util.List[Node] = getCategoryNode()
@@ -260,10 +260,10 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 					put("identifier","do_1111")
 					put("dialcode", new util.ArrayList[String](){{
 						add("N4Z7D5")
-//						add("E8B7Z6")
-//						add("R4X2P2")
-//						add("L4A6W8")
-//						add("D2E1J9")
+						add("E8B7Z6")
+						add("R4X2P2")
+						add("L4A6W8")
+						add("D2E1J9")
 					}})
 				}})
 			}})
