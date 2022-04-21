@@ -232,9 +232,9 @@ object DIALManager {
 
 	def getChildrenDIALMap(childrenHierarchy: List[util.Map[String, AnyRef]], requestMap: Map[String, List[String]]): Map[String, AnyRef] = {
 		childrenHierarchy.map(child => {
-			val subChildrenDIALMap = 	if(child.get("children")!=null)
-																	getChildrenDIALMap(child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList, requestMap)
-																else Map.empty[String, String]
+			val subChildrenDIALMap = if(child.get("children")!=null)
+				getChildrenDIALMap(child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList, requestMap)
+			else Map.empty[String, String]
 
 			val childDIALMap = if(requestMap.contains(child.get("identifier").toString) && child.get("dialcodes")!=null)
 				Map(child.get("identifier").toString -> child.get("dialcodes"))
