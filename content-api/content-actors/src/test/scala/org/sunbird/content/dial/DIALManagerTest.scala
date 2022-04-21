@@ -107,20 +107,19 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		val input = new util.ArrayList[String]()
 		val result:List[String] = DIALManager.getList(input)
 		assert(result.isEmpty)
-		assert(result.size==0)
 	}
 
 	"validateAndGetRequestMap with valid input" should "return the request map" in {
 		(oec.httpUtil _).expects().returns(httpUtil)
-		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
+		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse())
 		val input = getRequestData()
 		val result = DIALManager.validateAndGetRequestMap("test", input)
 		assert(result.nonEmpty)
 		assert(result.size==5)
-		assert(result.get("do_88888").get.contains("L4A6W8"))
-		assert(result.get("do_88888").get.contains("D2E1J9"))
-		assert(result.get("do_2222").get.size==1)
-		assert(result.get("do_2222").get.contains("R4X2P2"))
+		assert(result("do_88888").contains("L4A6W8"))
+		assert(result("do_88888").contains("D2E1J9"))
+		assert(result("do_2222").size==1)
+		assert(result("do_2222").contains("R4X2P2"))
 	}
 
 	"validateReqStructure with valid request" should "not throw any exception" in {
@@ -175,7 +174,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 	"link DIAL with valid request for content" should "update the contents successfully" in {
 		(oec.httpUtil _).expects().returns(httpUtil)
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
+		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getLinkDIALSearchResponse)
 
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes())).noMoreThanOnce()
 		val nodes: util.List[Node] = getCategoryNode()
@@ -185,8 +184,10 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111")))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
 		val request = getContentDIALRequest()
-		val resFuture = DIALManager.link(request)
-		resFuture.map(result => {
+
+		println("DIALManagerTest:: link content:: request:: " + request)
+
+		DIALManager.link(request).map(result => {
 			assert(result.getResponseCode.toString=="OK")
 		})
 	}
@@ -195,6 +196,9 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		(oec.httpUtil _).expects().returns(httpUtil)
 		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
 		val request = getCollectionDIALRequest()
+
+		println("DIALManagerTest:: link collection:: request:: " + request)
+
 		val response = DIALManager.link(request)
 		response.map(result => {
 			assert(result.getResponseCode.toString=="OK")
@@ -203,6 +207,11 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 	def getDIALSearchResponse():Response = {
 		val resString = "{\n  \"id\": \"sunbird.dialcode.search\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2020-04-21T19:39:14ZZ\",\n  \"params\": {\n    \"resmsgid\": \"1dfcc25b-6c37-49f8-a6c3-7185063e8752\",\n    \"msgid\": null,\n    \"err\": null,\n    \"status\": \"successful\",\n    \"errmsg\": null\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"dialcodes\": [\n      {\n        \"dialcode_index\": 7609876,\n        \"identifier\": \"N4Z7D5\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.603+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610113,\n        \"identifier\": \"E8B7Z6\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.635+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610117,\n        \"identifier\": \"R4X2P2\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.637+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610961,\n        \"identifier\": \"L4A6W8\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.734+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7611164,\n        \"identifier\": \"D2E1J9\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.759+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      }\n    ],\n    \"count\": 5\n  }\n}";
+		JsonUtils.deserialize(resString, classOf[Response])
+	}
+
+	def getLinkDIALSearchResponse():Response = {
+		val resString = "{\n  \"id\": \"sunbird.dialcode.search\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2020-04-21T19:39:14ZZ\",\n  \"params\": {\n    \"resmsgid\": \"1dfcc25b-6c37-49f8-a6c3-7185063e8752\",\n    \"msgid\": null,\n    \"err\": null,\n    \"status\": \"successful\",\n    \"errmsg\": null\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"dialcodes\": [\n      {\n        \"dialcode_index\": 7609876,\n        \"identifier\": \"N4Z7D5\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.603+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      }  ],\n    \"count\": 1\n  }\n}";
 		JsonUtils.deserialize(resString, classOf[Response])
 	}
 
@@ -251,10 +260,10 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 					put("identifier","do_1111")
 					put("dialcode", new util.ArrayList[String](){{
 						add("N4Z7D5")
-						add("E8B7Z6")
-						add("R4X2P2")
-						add("L4A6W8")
-						add("D2E1J9")
+//						add("E8B7Z6")
+//						add("R4X2P2")
+//						add("L4A6W8")
+//						add("D2E1J9")
 					}})
 				}})
 			}})
