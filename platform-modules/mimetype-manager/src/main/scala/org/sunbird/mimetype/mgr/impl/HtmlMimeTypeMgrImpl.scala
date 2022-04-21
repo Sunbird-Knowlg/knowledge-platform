@@ -9,6 +9,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.telemetry.logger.TelemetryManager
+import org.sunbird.common.Platform
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,7 +17,9 @@ class HtmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 
     override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
-        if (isValidPackageStructure(uploadFile, List[String]("index.html"))) {
+        val isIndexHtmlValidationRequired: Boolean = if (Platform.config.hasPath("isIndexHtmlValidationRequired")) Platform.config.getBoolean("isIndexHtmlValidationRequired") else true
+        val isValidateSuccess: Boolean = if (isIndexHtmlValidationRequired) isValidPackageStructure(uploadFile, List[String]("index.html")) else true
+        if (isValidateSuccess) {
             val urls = uploadArtifactToCloud(uploadFile, objectId, filePath)
             node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
             node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
