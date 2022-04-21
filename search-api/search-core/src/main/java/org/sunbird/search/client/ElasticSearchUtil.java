@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.sunbird.search.client;
 
 import akka.dispatch.Futures;
@@ -11,9 +8,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.indices.CreateIndexResponse;
+import org.elasticsearch.client.*;
 import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.elasticsearch.action.ActionListener;
@@ -225,9 +222,8 @@ public class ElasticSearchUtil {
 		TelemetryManager.log("Deleted Documents by Query" + EntityUtils.toString(response.getEntity()));
 	}
 
-
-	public static void deleteIndex(String indexName) throws InterruptedException, ExecutionException, IOException {
-		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName));
+	public static void deleteIndex(String indexName) throws IOException {
+		AcknowledgedResponse response = getClient(indexName).indices().delete(new DeleteIndexRequest(indexName), RequestOptions.DEFAULT);
 		esClient.remove(indexName);
 		TelemetryManager.log("Deleted Index" + indexName + " : " + response.isAcknowledged());
 	}
@@ -239,7 +235,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static List<String> getMultiDocumentAsStringByIdList(String indexName, String documentType,
-			List<String> documentIdList) throws IOException {
+																List<String> documentIdList) throws IOException {
 		List<String> finalResult = new ArrayList<String>();
 		MultiGetRequest request = new MultiGetRequest();
 		documentIdList.forEach(docId -> request.add(indexName, documentType, docId));
@@ -280,7 +276,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static void bulkIndexWithAutoGenerateIndexId(String indexName, String documentType,
-			List<Map<String, Object>> jsonObjects)
+														List<Map<String, Object>> jsonObjects)
 			throws Exception {
 		if (isIndexExists(indexName)) {
 			RestHighLevelClient client = getClient(indexName);
@@ -306,7 +302,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias, String indexName,
-			String indexType, int limit) throws Exception {
+										  String indexType, int limit) throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, null, false, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
@@ -344,7 +340,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Map> textSearchReturningId(Map<String, Object> matchCriterias, String indexName,
-			String indexType)
+												  String indexType)
 			throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, null, false, 100);
 		return getDocumentsFromSearchResultWithId(result);
@@ -369,7 +365,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Object> wildCardSearch(Class objectClass, String textKeyWord, String wordWildCard,
-			String indexName, String indexType, int limit) throws Exception {
+											  String indexName, String indexType, int limit) throws Exception {
 		SearchResponse result = wildCardSearch(textKeyWord, wordWildCard, indexName, indexType, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
