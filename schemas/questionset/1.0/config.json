@@ -48,7 +48,8 @@
   "schema_restrict_api": true,
   "restrictProps": {
     "create": [
-      "children"
+      "children",
+      "status"
     ],
     "update": [
       "children",
