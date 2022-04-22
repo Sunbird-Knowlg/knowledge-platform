@@ -377,14 +377,7 @@ object CopyManager {
     }).flatMap(f=>f)
   }
 
-  def getOriginData(metadata: util.Map[String, AnyRef], copyType: String): java.util.Map[String, AnyRef] = {
-    new java.util.HashMap[String, AnyRef]() {
-      {
-        putAll(originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap.asJava)
-        put(AssessmentConstants.COPY_TYPE, copyType)
-      }
-    }
-  }
+  def getOriginData(metadata: util.Map[String, AnyRef], copyType: String): java.util.Map[String, AnyRef] = (Map(AssessmentConstants.COPY_TYPE -> copyType) ++ originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap).asJava
 
   def validateRequest(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
     val keysNotPresent = AssessmentConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
