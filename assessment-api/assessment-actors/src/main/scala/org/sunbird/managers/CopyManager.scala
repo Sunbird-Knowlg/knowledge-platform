@@ -44,7 +44,6 @@ object CopyManager {
           copyQuestionSet(node, request)
         case AssessmentConstants.QUESTION_MIME_TYPE =>
           node.setInRelations(null)
-          validateCopyQuestionReq(request, node) //Check if the question has got "Default" visibility.
           copyNode(node, request)
       }
       copiedNodeFuture.map(copiedNode => {
@@ -60,19 +59,12 @@ object CopyManager {
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
-  def validateCopyQuestionReq(request: Request, node: Node) = {
-    val visibility = node.getMetadata.getOrDefault(AssessmentConstants.VISIBILITY, AssessmentConstants.VISIBILITY_PARENT).asInstanceOf[String]
-    if (StringUtils.equalsIgnoreCase(visibility, AssessmentConstants.VISIBILITY_PARENT)) {
-      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "Question With Visibility Parent Cannot Be Copied Individually!")
-    }
-  }
-
   def validateExistingNode(request: Request, node: Node) = {
     val requestObjectType = request.getObjectType
     val nodeObjectType = node.getObjectType
-    if (!StringUtils.equalsIgnoreCase(requestObjectType, nodeObjectType)) {
-      throw new ClientException(AssessmentConstants.ERR_INVALID_OBJECT_TYPE, "Invalid Object Type: " + requestObjectType)
-    }
+    if (!StringUtils.equalsIgnoreCase(requestObjectType, nodeObjectType)) throw new ClientException(AssessmentConstants.ERR_INVALID_OBJECT_TYPE, s"Please Provide Valid ${requestObjectType} Identifier")
+    if (StringUtils.equalsIgnoreCase(node.getObjectType, AssessmentConstants.QUESTION) && StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(AssessmentConstants.VISIBILITY, AssessmentConstants.VISIBILITY_PARENT).asInstanceOf[String], AssessmentConstants.VISIBILITY_PARENT))
+      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "Question With Visibility Parent Cannot Be Copied Individually!")
   }
 
   def copyQuestionSet(originNode: Node, request: Request)(implicit ex: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -332,8 +324,8 @@ object CopyManager {
   def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val childrenHierarchy = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
     val req = new Request(request)
-    req.getContext.put(AssessmentConstants.SCHEMA_NAME, AssessmentConstants.QUESTIONSET_SCHEMA_NAME)
-    req.getContext.put(AssessmentConstants.VERSION, AssessmentConstants.SCHEMA_VERSION)
+    req.getContext.put(AssessmentConstants.SCHEMA_NAME, request.getContext.getOrDefault(AssessmentConstants.SCHEMA_NAME, AssessmentConstants.QUESTIONSET_SCHEMA_NAME))
+    req.getContext.put(AssessmentConstants.VERSION, request.getContext.getOrDefault(AssessmentConstants.VERSION, AssessmentConstants.SCHEMA_VERSION))
     req.getContext.put(AssessmentConstants.IDENTIFIER, node.getIdentifier)
     req.put(AssessmentConstants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef]() {
       {
@@ -345,7 +337,7 @@ object CopyManager {
   }
 
   def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
-    val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), node.getObjectType.toLowerCase.replace("image", ""), AssessmentConstants.SCHEMA_VERSION)
+    val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), node.getObjectType.toLowerCase.replace("image", ""), request.getContext.getOrDefault(AssessmentConstants.VERSION, "").asInstanceOf[String])
     val requestMap = request.getRequest
     requestMap.remove(AssessmentConstants.MODE)
     requestMap.remove(AssessmentConstants.COPY_SCHEME).asInstanceOf[String]
@@ -361,8 +353,6 @@ object CopyManager {
     request.getContext().put(AssessmentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
     val req = new Request(request)
     req.setRequest(metadata)
-
-
     val graphId = request.getContext.getOrDefault("graph_id", "").asInstanceOf[String]
     val version = request.getContext.getOrDefault("version", "").asInstanceOf[String]
     val externalProps = if (StringUtils.equalsIgnoreCase(AssessmentConstants.QUESTIONSET_MIME_TYPE, node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String])) {
@@ -374,18 +364,17 @@ object CopyManager {
     readReq.setContext(request.getContext)
     readReq.put("identifier", node.getIdentifier)
     readReq.put("fields", externalProps.asJava)
-    val maxWaitTime: FiniteDuration = Duration(5, TimeUnit.SECONDS)
-    Await.result(
-      DataNode.read(readReq).map(node => {
-        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, externalProps.asJava, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-        externalProps.foreach(prop => {
-          val propValue = metadata.get(prop)
-          if (metadata.containsKey(prop) && propValue != null) {
-            req.put(prop, propValue)
-          }
-        })
-      }), maxWaitTime)
-    Future(req)
+    DataNode.read(readReq).map(node => {
+      val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, externalProps.asJava, node.getObjectType.toLowerCase.replace
+      ("image", ""), request.getContext.get("version").asInstanceOf[String])
+      externalProps.foreach(prop => {
+        val propValue = metadata.get(prop)
+        if (metadata.containsKey(prop) && propValue != null) {
+          req.put(prop, propValue)
+        }
+      })
+      Future(req)
+    }).flatMap(f=>f)
   }
 
   def getOriginData(metadata: util.Map[String, AnyRef], copyType: String): java.util.Map[String, AnyRef] = {
@@ -406,8 +395,9 @@ object CopyManager {
   def validateShallowCopyReq(node: Node, request: Request) = {
     val copyType: String = request.getRequest.get("copyType").asInstanceOf[String]
     if (StringUtils.equalsIgnoreCase("shallow", copyType) && !StringUtils.equalsIgnoreCase("Live", node.getMetadata.get("status").asInstanceOf[String]))
-      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "QuestionSet with status " + node.getMetadata.get(AssessmentConstants.STATUS).asInstanceOf[String].toLowerCase + " cannot be partially (shallow) copied.")
-    //TODO: check if need to throw client exception for combination of copyType=shallow and mode=edit
+      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "QuestionSet With Status " + node.getMetadata.get(AssessmentConstants.STATUS).asInstanceOf[String].toLowerCase + " Cannot Be Partially (Shallow) Copied.")
+    if(StringUtils.equalsIgnoreCase("shallow", copyType) && StringUtils.equalsIgnoreCase(request.get(AssessmentConstants.MODE).asInstanceOf[String], "edit"))
+      request.getRequest.remove(AssessmentConstants.MODE)
   }
 
   def emptyCheckFilter(key: AnyRef): Boolean = key match {
