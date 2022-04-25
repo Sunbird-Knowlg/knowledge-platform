@@ -184,15 +184,12 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
 		val request = getContentDIALRequest()
 
-		println("DIALManagerTest:: link content:: request:: " + request)
-
 		DIALManager.link(request).map(result => {
 			assert(result.getResponseCode.toString=="OK")
 		})
 	}
 
-	"link DIAL with valid request for collections" should "update the collection content successfully" in {
-		
+	"link DIAL with valid request for collections" should "update the collection successfully" in {
 		(oec.httpUtil _).expects().returns(httpUtil)
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
@@ -208,8 +205,6 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		
 		val request = getCollectionDIALRequest()
 
-		println("DIALManagerTest:: link collection:: request:: " + request)
-
 		val response = DIALManager.link(request)
 		response.map(result => {
 			assert(result.getResponseCode.toString=="OK")
@@ -220,8 +215,49 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		val exception = intercept[ClientException] {
 			DIALManager.validateDuplicateDIALCodes(Map("do_2222" -> List("E8B7Z6", "R4X2P2"), "do_1111" -> List("N4Z7D5", "E8B7Z6", "L4A6W8", "D2E1J9", "R4X2P2")))
 		}
-		println("validateDuplicateDIALCodes:: exception:: " + exception.getMessage)
 		assert(exception.getErrCode ==  "ERR_DUPLICATE_DIAL_CODES")
+	}
+
+	"link DIAL with valid node invalid unit Id for collections" should "update the collection partially" in {
+		(oec.httpUtil _).expects().returns(httpUtil)
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
+
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111"))).anyNumberOfTimes()
+		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
+		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(new Response()))
+		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+
+		val request = getCollectionPartialSuccessRequest()
+
+		val response = DIALManager.link(request)
+		response.map(result => {
+			assert(result.getResponseCode.toString=="PARTIAL_SUCCESS")
+		})
+	}
+
+	"link DIAL with invalid unit Id request for collection" should "respond with Resource not found message" in {
+		(oec.httpUtil _).expects().returns(httpUtil)
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getDIALSearchResponse)
+
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111"))).anyNumberOfTimes()
+		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(new Response()))
+
+		val request = getCollectionRNFRequest()
+
+		val response = DIALManager.link(request)
+		response.map(result => {
+			assert(result.getResponseCode.toString=="RESOURCE_NOT_FOUND")
+		})
 	}
 
 	def getDIALSearchResponse:Response = {
@@ -373,7 +409,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		node
 	}
 
-	def getCollectionDuplicateDIALRequest(): Request = {
+	def getCollectionPartialSuccessRequest(): Request = {
 		val request = new Request()
 		request.setObjectType("Content")
 		request.setContext(getContext())
@@ -389,14 +425,42 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 						add("E8B7Z6")
 						add("L4A6W8")
 						add("D2E1J9")
-						add("R4X2P2")
 					}})
 				}})
 				add(new util.HashMap[String, AnyRef](){{
 					put("identifier",new util.ArrayList[String](){{
-						add("do_2222")
+						add("do_22223")
 					}})
 					put("dialcode", "R4X2P2")
+				}})
+
+			}})
+		}}
+
+		request.putAll(reqMap)
+		request
+	}
+
+	def getCollectionRNFRequest(): Request = {
+		val request = new Request()
+		request.setObjectType("Content")
+		request.setContext(getContext())
+		request.getContext.put("linkType","collection")
+		request.getContext.put("identifier","do_1111")
+
+		val reqMap : java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){{
+			put("content", new util.ArrayList[util.Map[String, AnyRef]](){{
+				add(new util.HashMap[String, AnyRef](){{
+					put("identifier",new util.ArrayList[String](){{
+						add("do_22223")
+					}})
+					put("dialcode", new util.ArrayList[String](){{
+						add("N4Z7D5")
+						add("E8B7Z6")
+						add("L4A6W8")
+						add("D2E1J9")
+						add("R4X2P2")
+					}})
 				}})
 
 			}})
