@@ -140,9 +140,7 @@ object DIALManager {
 				val childrenDIALMap = getChildrenDIALMap(updatedChildrenHierarchy, requestMap)
 				val consolidatedUnitDIALMap = if (!requestMap.contains(objectId)) childrenDIALMap else childrenDIALMap ++ Map(objectId -> requestMap(objectId))
 
-				val duplicateDIALCodes: Map[String, Set[String]] = validateDuplicateDIALCodes(consolidatedUnitDIALMap.filter(rec => rec._2.asInstanceOf[List[String]].nonEmpty))
-				if (duplicateDIALCodes.nonEmpty)
-					throw new ClientException(DIALErrors.ERR_DUPLICATE_DIAL_CODES, DIALErrors.ERR_DUPLICATE_DIAL_CODES_MSG + duplicateDIALCodes)
+				validateDuplicateDIALCodes(consolidatedUnitDIALMap.filter(rec => rec._2.asInstanceOf[List[String]].nonEmpty))
 
 				val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
 				updatedHierarchy.put("identifier", objectId)
@@ -246,7 +244,15 @@ object DIALManager {
 		}).filter(msg => msg.nonEmpty).flatten.toMap[String, AnyRef]
 	}
 
-	def validateDuplicateDIALCodes(unitDIALCodesMap: Map[String, AnyRef]): Map[String, Set[String]] = {
-		unitDIALCodesMap.groupBy(_._2).collect { case (key, group: Map[String, AnyRef]) if group.size > 1 => (key.asInstanceOf[List[String]].head, group.keySet) }
+	def validateDuplicateDIALCodes(unitDIALCodesMap: Map[String, AnyRef]): Unit = {
+		val duplicateDIALCodes = unitDIALCodesMap.flatMap(mapRec => mapRec._2.asInstanceOf[List[String]].flatMap(listRec => {
+			val dupUnitsList: List[String] = unitDIALCodesMap.flatMap(loopMapRec => if(loopMapRec._1 != mapRec._1 && loopMapRec._2.asInstanceOf[List[String]].contains(listRec)) {
+				List(loopMapRec._1, mapRec._1)
+			} else List.empty[String]).filter(unitRec => unitRec.nonEmpty).toList
+			Map(listRec -> dupUnitsList)
+		})).filter(unitRec => unitRec._2.nonEmpty)
+
+		if (duplicateDIALCodes.nonEmpty)
+			throw new ClientException(DIALErrors.ERR_DUPLICATE_DIAL_CODES, DIALErrors.ERR_DUPLICATE_DIAL_CODES_MSG + duplicateDIALCodes)
 	}
 }
