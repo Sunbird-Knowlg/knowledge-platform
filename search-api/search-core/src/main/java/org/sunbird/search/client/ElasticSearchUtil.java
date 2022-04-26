@@ -279,7 +279,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static void bulkIndexWithAutoGenerateIndexId(String indexName, String documentType,
-					List<Map<String, Object>> jsonObjects)
+			List<Map<String, Object>> jsonObjects)
 			throws Exception {
 		if (isIndexExists(indexName)) {
 			RestHighLevelClient client = getClient(indexName);
@@ -305,7 +305,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias, String indexName,
-					String indexType, int limit) throws Exception {
+			String indexType, int limit) throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, null, false, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
@@ -343,7 +343,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Map> textSearchReturningId(Map<String, Object> matchCriterias, String indexName,
-					String indexType)
+			String indexType)
 			throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, null, false, 100);
 		return getDocumentsFromSearchResultWithId(result);
@@ -368,7 +368,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Object> wildCardSearch(Class objectClass, String textKeyWord, String wordWildCard,
-					String indexName, String indexType, int limit) throws Exception {
+			String indexName, String indexType, int limit) throws Exception {
 		SearchResponse result = wildCardSearch(textKeyWord, wordWildCard, indexName, indexType, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
