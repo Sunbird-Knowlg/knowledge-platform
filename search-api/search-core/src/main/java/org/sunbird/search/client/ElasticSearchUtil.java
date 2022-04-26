@@ -238,7 +238,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static List<String> getMultiDocumentAsStringByIdList(String indexName, String documentType,
-					List<String> documentIdList) throws IOException {
+			List<String> documentIdList) throws IOException {
 		List<String> finalResult = new ArrayList<String>();
 		MultiGetRequest request = new MultiGetRequest();
 		documentIdList.forEach(docId -> request.add(indexName, documentType, docId));
