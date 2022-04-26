@@ -358,20 +358,9 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 				add(new util.HashMap[String, AnyRef](){{
 					put("identifier",new util.ArrayList[String](){{
 						add("do_2222")
-//						add("do_3333")
 					}})
 					put("dialcode", "R4X2P2")
 				}})
-//				add(new util.HashMap[String, AnyRef](){{
-//					put("identifier",new util.ArrayList[String](){{
-//						add("do_4444")
-//						add("do_5555")
-//					}})
-//					put("dialcode", new util.ArrayList[String](){{
-//						add("L4A6W8")
-//						add("D2E1J9")
-//					}})
-//				}})
 			}})
 		}}
 		reqMap
