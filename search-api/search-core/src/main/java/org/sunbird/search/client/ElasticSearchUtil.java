@@ -238,7 +238,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static List<String> getMultiDocumentAsStringByIdList(String indexName, String documentType,
-					List<String> documentIdList) throws IOException {
+																List<String> documentIdList) throws IOException {
 		List<String> finalResult = new ArrayList<String>();
 		MultiGetRequest request = new MultiGetRequest();
 		documentIdList.forEach(docId -> request.add(indexName, documentType, docId));
@@ -279,7 +279,7 @@ public class ElasticSearchUtil {
 	}
 
 	public static void bulkIndexWithAutoGenerateIndexId(String indexName, String documentType,
-					List<Map<String, Object>> jsonObjects)
+														List<Map<String, Object>> jsonObjects)
 			throws Exception {
 		if (isIndexExists(indexName)) {
 			RestHighLevelClient client = getClient(indexName);
@@ -305,7 +305,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias, String indexName,
-					String indexType, int limit) throws Exception {
+										  String indexType, int limit) throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, null, false, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
@@ -342,7 +342,9 @@ public class ElasticSearchUtil {
 	}
 
 	@SuppressWarnings({ "rawtypes" })
-	public static List<Map> textSearchReturningId(Map<String, Object> matchCriterias, String indexName,	String indexType) throws Exception {
+	public static List<Map> textSearchReturningId(Map<String, Object> matchCriterias, String indexName,
+												  String indexType)
+			throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, null, false, 100);
 		return getDocumentsFromSearchResultWithId(result);
 	}
@@ -366,13 +368,14 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Object> wildCardSearch(Class objectClass, String textKeyWord, String wordWildCard,
-					String indexName, String indexType, int limit) throws Exception {
+											  String indexName, String indexType, int limit) throws Exception {
 		SearchResponse result = wildCardSearch(textKeyWord, wordWildCard, indexName, indexType, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
 
 	public static SearchResponse wildCardSearch(String textKeyWord, String wordWildCard, String indexName,
-					String indexType, int limit) throws Exception {
+												String indexType, int limit)
+			throws Exception {
 		SearchSourceBuilder query = buildJsonForWildCardQuery(textKeyWord, wordWildCard, indexName);
 		query.size(limit);
 		return search(indexName, indexType, query);
@@ -380,15 +383,16 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static List<Object> textFiltersSearch(Class objectClass, Map<String, Object> searchCriteria,
-					Map<String, Object> textFiltersMap, String indexName, String indexType, int limit) throws Exception {
+												 Map<String, Object> textFiltersMap, String indexName, String indexType, int limit)
+			throws Exception {
 		SearchResponse result = search(searchCriteria, textFiltersMap, indexName, indexType, null, false, limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
 
 	@SuppressWarnings("rawtypes")
 	public static Map<String, Object> textFiltersGroupBySearch(Class objectClass, Map<String, Object> searchCriteria,
-				   Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, String indexName,
-				   String indexType) throws Exception {
+															   Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, String indexName,
+															   String indexType) throws Exception {
 		SearchResponse result = search(searchCriteria, textFiltersMap, indexName, indexType, groupByList, false,
 				resultLimit);
 		List<Object> documents = getDocumentsFromSearchResult(result, objectClass);
@@ -404,28 +408,30 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias,
-				  	Map<String, Object> textFiltersMap, String indexName, String indexType) throws Exception {
+										  Map<String, Object> textFiltersMap, String indexName, String indexType) throws Exception {
 		SearchResponse result = search(matchCriterias, textFiltersMap, indexName, indexType, null, false, resultLimit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
 
 	@SuppressWarnings("rawtypes")
 	public static List<Object> textSearch(Class objectClass, Map<String, Object> matchCriterias,
-					  Map<String, Object> textFiltersMap, String indexName, String indexType,
-					  List<Map<String, Object>> groupByList, int limit) throws Exception {
-		SearchResponse result = search(matchCriterias, textFiltersMap, indexName, indexType, groupByList, false, limit);
+										  Map<String, Object> textFiltersMap, String indexName, String indexType,
+										  List<Map<String, Object>> groupByList, int limit) throws Exception {
+		SearchResponse result = search(matchCriterias, textFiltersMap, indexName, indexType, groupByList, false,
+				limit);
 		return getDocumentsFromSearchResult(result, objectClass);
 	}
 
 	public static SearchResponse search(Map<String, Object> matchCriterias, Map<String, Object> textFiltersMap,
-					String indexName, String indexType, List<Map<String, Object>> groupBy, boolean isDistinct, int limit)
+										String indexName, String indexType, List<Map<String, Object>> groupBy, boolean isDistinct, int limit)
 			throws Exception {
 		SearchSourceBuilder query = buildJsonForQuery(matchCriterias, textFiltersMap, groupBy, isDistinct, indexName);
 		query.size(limit);
 		return search(indexName, indexType, query);
 	}
 
-	public static SearchResponse search(String indexName, String indexType, SearchSourceBuilder query) throws Exception {
+	public static SearchResponse search(String indexName, String indexType, SearchSourceBuilder query)
+			throws Exception {
 		return getClient(indexName).search(new SearchRequest(indexName).source(query), RequestOptions.DEFAULT);
 	}
 
@@ -499,7 +505,8 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("rawtypes")
 	public static Map<String, Object> getCountOfSearch(Class objectClass, Map<String, Object> matchCriterias,
-				   String indexName, String indexType, List<Map<String, Object>> groupByList, int limit) throws Exception {
+													   String indexName, String indexType, List<Map<String, Object>> groupByList, int limit)
+			throws Exception {
 		SearchResponse result = search(matchCriterias, null, indexName, indexType, groupByList, false, limit);
 		Aggregations aggregations = result.getAggregations();
 		return getCountFromAggregation(aggregations, groupByList);
@@ -507,7 +514,7 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Map<String, Object> getDistinctCountOfSearch(Map<String, Object> matchCriterias, String IndexName,
-				   String IndexType, List<Map<String, Object>> groupByList) throws Exception {
+															   String IndexType, List<Map<String, Object>> groupByList) throws Exception {
 		Map<String, Object> countMap = new HashMap<String, Object>();
 		SearchResponse result = search(matchCriterias, null, IndexName, IndexType, groupByList, true, 0);
 		Aggregations aggregations = result.getAggregations();
@@ -536,8 +543,8 @@ public class ElasticSearchUtil {
 
 	@SuppressWarnings("unchecked")
 	public static SearchSourceBuilder buildJsonForQuery(Map<String, Object> matchCriterias,
-					Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, boolean isDistinct,
-					String indexName) {
+														Map<String, Object> textFiltersMap, List<Map<String, Object>> groupByList, boolean isDistinct,
+														String indexName) {
 
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
@@ -594,7 +601,8 @@ public class ElasticSearchUtil {
 		return searchSourceBuilder;
 	}
 
-	private static SearchSourceBuilder buildJsonForWildCardQuery(String textKeyWord, String wordWildCard, String indexName) {
+	private static SearchSourceBuilder buildJsonForWildCardQuery(String textKeyWord, String wordWildCard,
+																 String indexName) {
 		return new SearchSourceBuilder().query(QueryBuilders.wildcardQuery(textKeyWord, wordWildCard));
 
 	}
