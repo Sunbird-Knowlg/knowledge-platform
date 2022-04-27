@@ -215,10 +215,7 @@ object DIALManager {
 
 				Future(errorResponse)
 			}
-
 		})
-
-
 	}
 
 	def validateChannel(contentChannel: String, channelId: String): Unit = {
