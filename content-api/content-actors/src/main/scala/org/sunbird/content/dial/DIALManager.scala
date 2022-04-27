@@ -127,15 +127,15 @@ object DIALManager {
 		request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
 		request.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
 		request.put(ContentConstants.ROOT_ID, objectId)
-		request.put(ContentConstants.MODE, "edit")
+		request.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 
 		val req = new Request(request)
-		req.put("identifier", request.get("rootId").asInstanceOf[String])
-		req.put("mode", request.get("mode").asInstanceOf[String])
+		req.put(ContentConstants.IDENTIFIER, objectId)
+		req.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(req).flatMap(rootNode => {
 			HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
 				val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
-				val childrenHierarchy = collectionHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+				val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]]
 				val updatedChildrenHierarchy = updateChildrenHierarchy(childrenHierarchy, requestMap)
 				val childrenDIALMap = getChildrenDIALMap(updatedChildrenHierarchy, requestMap)
 				val consolidatedUnitDIALMap = if (!requestMap.contains(objectId)) childrenDIALMap else childrenDIALMap ++ Map(objectId -> requestMap(objectId))
@@ -143,22 +143,22 @@ object DIALManager {
 				validateDuplicateDIALCodes(consolidatedUnitDIALMap.filter(rec => rec._2.asInstanceOf[List[String]].nonEmpty))
 
 				val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
-				updatedHierarchy.put("identifier", objectId)
-				updatedHierarchy.put("children", updatedChildrenHierarchy.asJava)
+				updatedHierarchy.put(ContentConstants.IDENTIFIER, objectId)
+				updatedHierarchy.put(ContentConstants.CHILDREN, updatedChildrenHierarchy.asJava)
 
 				val hierarchyReq = new Request(request)
-				hierarchyReq.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
-				hierarchyReq.put("identifier", rootNode.getIdentifier)
+				hierarchyReq.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
+				hierarchyReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
 				oec.graphService.saveExternalProps(hierarchyReq).flatMap(rec => if(requestMap.contains(objectId)) {
 					val updateReq = new Request(request)
-					updateReq.put("identifier", rootNode.getIdentifier)
+					updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
 					val rootNodeMetadata = rootNode.getMetadata
-					rootNodeMetadata.remove("discussionForum")
-					rootNodeMetadata.remove("credentials")
-					rootNodeMetadata.remove("trackable")
+					rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
+					rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
+					rootNodeMetadata.remove(DIALConstants.TRACKABLE)
 
-					if(rootNodeMetadata.containsKey("dialcodes"))
-						rootNodeMetadata.remove("dialcodes")
+					if(rootNodeMetadata.containsKey(DIALConstants.DIALCODES))
+						rootNodeMetadata.remove(DIALConstants.DIALCODES)
 
 					if(requestMap(objectId).isEmpty)
 						updateReq.put(DIALConstants.DIALCODES, null)
@@ -216,28 +216,28 @@ object DIALManager {
 
 	def updateChildrenHierarchy(childrenHierarchy: util.List[util.Map[String, AnyRef]], requestMap: Map[String, List[String]]): List[util.Map[String, AnyRef]] = {
 		childrenHierarchy.asScala.toList.map(child => {
-			if (requestMap.contains(child.get("identifier").toString) && StringUtils.equalsIgnoreCase("Parent", child.get("visibility").toString)) {
-				if (requestMap.getOrElse(child.get("identifier").toString, List.empty).nonEmpty && requestMap(child.get("identifier").toString).exists(rec => rec.trim.nonEmpty))
-					child.put("dialcodes", requestMap(child.get("identifier").toString))
+			if (requestMap.contains(child.get(ContentConstants.IDENTIFIER).toString) && StringUtils.equalsIgnoreCase("Parent", child.get(ContentConstants.VISIBILITY).toString)) {
+				if (requestMap.getOrElse(child.get(ContentConstants.IDENTIFIER).toString, List.empty).nonEmpty && requestMap(child.get(ContentConstants.IDENTIFIER).toString).exists(rec => rec.trim.nonEmpty))
+					child.put(DIALConstants.DIALCODES, requestMap(child.get(ContentConstants.IDENTIFIER).toString))
 				else
-					child.remove("dialcodes")
+					child.remove(DIALConstants.DIALCODES)
 			}
-			if(child.get("children")!=null)
-					updateChildrenHierarchy(child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]], requestMap)
+			if(child.get(ContentConstants.CHILDREN)!=null)
+					updateChildrenHierarchy(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], requestMap)
 			child
 		})
 	}
 
 	def getChildrenDIALMap(childrenHierarchy: List[util.Map[String, AnyRef]], requestMap: Map[String, List[String]]): Map[String, AnyRef] = {
 		childrenHierarchy.map(child => {
-			val subChildrenDIALMap = if(child.get("children")!=null)
-				getChildrenDIALMap(child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList, requestMap)
+			val subChildrenDIALMap = if(child.get(ContentConstants.CHILDREN)!=null)
+				getChildrenDIALMap(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList, requestMap)
 			else Map.empty[String, String]
 
-			val childDIALMap = if(requestMap.contains(child.get("identifier").toString) && child.get("dialcodes")!=null)
-				Map(child.get("identifier").toString -> child.get("dialcodes"))
-			else if(requestMap.contains(child.get("identifier").toString))
-				Map(child.get("identifier").toString -> List.empty)
+			val childDIALMap = if(requestMap.contains(child.get(ContentConstants.IDENTIFIER).toString) && child.get(DIALConstants.DIALCODES)!=null)
+				Map(child.get(ContentConstants.IDENTIFIER).toString -> child.get(DIALConstants.DIALCODES))
+			else if(requestMap.contains(child.get(ContentConstants.IDENTIFIER).toString))
+				Map(child.get(ContentConstants.IDENTIFIER).toString -> List.empty)
 			else Map.empty
 
 			subChildrenDIALMap ++ childDIALMap
