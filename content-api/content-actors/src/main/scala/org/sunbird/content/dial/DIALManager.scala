@@ -156,9 +156,6 @@ object DIALManager {
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
 		val contentId: String = request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
 
-		println("DialManager:: reserve:: channelId: " + channelId)
-		println("DialManager:: reserve:: contentId: " + contentId)
-
 		if (contentId == null || contentId.isEmpty) throw new ClientException(DIALErrors.ERR_CONTENT_BLANK_OBJECT_ID, DIALErrors.ERR_CONTENT_BLANK_OBJECT_ID_MSG)
 
 		val req = new Request()
@@ -234,7 +231,6 @@ object DIALManager {
 	}
 
 	def validateCountForReservingDialCode(request: util.Map[String, AnyRef]): Unit = {
-		println("DIALManager::  validateCountForReservingDialCode:: request:" + request)
 		if (null == request.get("count") || !request.get("count").isInstanceOf[Integer]) throw new ClientException(DIALErrors.ERR_INVALID_COUNT, DIALErrors.ERR_INVALID_COUNT_MSG)
 		val count = request.get("count").asInstanceOf[Integer]
 		val maxCount = if (Platform.config.hasPath("reserve_dialcode.max_count")) Platform.config.getInt("reserve_dialcode.max_count") else 250
@@ -253,16 +249,9 @@ object DIALManager {
 		requestMap.put("request", request)
 		val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
 
-		println("DIALManager:: generateDialCodes:: request URL:: " + DIALCODE_GENERATE_URI)
-		println("DIALManager:: generateDialCodes:: requestMap:: " + requestMap)
-
 		val generateResponse = oec.httpUtil.post(DIALCODE_GENERATE_URI, requestMap, headerParam)
-		println("DIALManager:: generateDialCodes:: getParams:: " + generateResponse.getParams)
 		if ((generateResponse.getResponseCode == ResponseCode.OK) || (generateResponse.getResponseCode == ResponseCode.PARTIAL_SUCCESS)) {
-			val result = generateResponse.getResult
-			println("DIALManager:: generateDialCodes:: result:: " + generateResponse.getResult)
-
-			val generatedDialCodes = result.get("dialcodes").asInstanceOf[util.ArrayList[String]].asScala.toList
+			val generatedDialCodes =  generateResponse.getResult.get("dialcodes").asInstanceOf[util.ArrayList[String]].asScala.toList
 			if (generatedDialCodes.nonEmpty) generatedDialCodes
 			else throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, DIALErrors.ERR_DIAL_GEN_LIST_EMPTY_MSG)
 		}
