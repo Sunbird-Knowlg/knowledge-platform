@@ -417,9 +417,7 @@ object UpdateHierarchyManager {
         val outputNodesListFuture = if (rootResourceChange && CollectionUtils.isNotEmpty(futures)) {
             val listOfFutures = Future.sequence(futures.toList)
             listOfFutures.map(f => f.flatten.distinct)
-        } else
-            Future(enrichedNodeList)
-        if (CollectionUtils.isNotEmpty(futures)) {
+        } else if (CollectionUtils.isNotEmpty(futures)) {
             val listOfFutures = Future.sequence(futures.toList)
             listOfFutures.map(f => f.flatten.distinct)
         } else
