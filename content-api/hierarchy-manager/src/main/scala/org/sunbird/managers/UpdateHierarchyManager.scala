@@ -369,7 +369,7 @@ object UpdateHierarchyManager {
 
     @throws[Exception]
     private def updateHierarchyRelatedData(childrenIds: Map[String, Int], depth: Int, parent: String, nodeList: List[Node], hierarchyStructure: Map[String, Map[String, Int]], enrichedNodeList: scala.collection.immutable.List[Node], request: Request, rootId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
-        val rootResourceChange: Boolean = if (Platform.config.hasPath("root.resource.change")) Platform.config.getBoolean("root.resource.change") else true
+        val rootResourceChange: Boolean = if (Platform.config.hasPath("hierarchyUpdate.allow.resource.at.root.level")) Platform.config.getBoolean("hierarchyUpdate.allow.resource.at.root.level") else true
         val futures = childrenIds.map(child => {
             val id = child._1
             val index = child._2 + 1
@@ -414,18 +414,11 @@ object UpdateHierarchyManager {
                 }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
             }
         })
-        val outputNodesListFuture = if (rootResourceChange && CollectionUtils.isNotEmpty(futures)) {
-            val listOfFutures = Future.sequence(futures.toList)
-            listOfFutures.map(f => f.flatten.distinct)
-        } else
-            Future(enrichedNodeList)
         if (CollectionUtils.isNotEmpty(futures)) {
             val listOfFutures = Future.sequence(futures.toList)
             listOfFutures.map(f => f.flatten.distinct)
         } else
             Future(enrichedNodeList)
-
-        outputNodesListFuture
     }
 
     private def populateHierarchyRelatedData(tempNode: Node, depth: Int, index: Int, parent: String) = {
