@@ -369,7 +369,7 @@ object UpdateHierarchyManager {
 
     @throws[Exception]
     private def updateHierarchyRelatedData(childrenIds: Map[String, Int], depth: Int, parent: String, nodeList: List[Node], hierarchyStructure: Map[String, Map[String, Int]], enrichedNodeList: scala.collection.immutable.List[Node], request: Request, rootId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
-        val rootResourceChange: Boolean = if (Platform.config.hasPath("hierarchyUpdate.allow.resource.at.root.level")) Platform.config.getBoolean("hierarchyUpdate.allow.resource.at.root.level") else true
+        val rootResourceChange: Boolean = if (Platform.config.hasPath("hierarchyUpdate.allow.resource.at.root.level")) Platform.config.getBoolean("hierarchyUpdate.allow.resource.at.root.level") else false
         val futures = childrenIds.map(child => {
             val id = child._1
             val index = child._2 + 1
