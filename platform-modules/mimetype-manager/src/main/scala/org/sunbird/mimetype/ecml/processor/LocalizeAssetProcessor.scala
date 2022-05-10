@@ -62,15 +62,16 @@ trait LocalizeAssetProcessor extends IProcessor {
 	}
 
 	def downloadFile(downloadPath: String, fileUrl: String): File = try {
-		TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: downloadPath:: " + downloadPath)
 		TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: fileUrl:: " + fileUrl)
 		createDirectory(downloadPath)
 		val file = new File(downloadPath + File.separator + getFileNameFromURL(fileUrl))
 		FileUtils.copyURLToFile(new URL(fileUrl), file)
 		file
 	} catch {
-		case e: IOException =>
+		case e: IOException => {
+			TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: IOException:: " + e.getMessage)
 			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
+		}
 	}
 
 	def createDirectory(directoryName: String): Unit = {
