@@ -57,7 +57,9 @@ trait LocalizeAssetProcessor extends IProcessor {
 
 	def getUrlWithPrefix(src: String) = {
 		if (StringUtils.isNotBlank(src) && !src.startsWith("http")) {
-			if (src.contains("content-plugins/")) PLUGIN_MEDIA_BASE_URL + File.separator + src else CONTENT_MEDIA_BASE_URL + src
+			if (src.contains("content-plugins/")) PLUGIN_MEDIA_BASE_URL + File.separator + src
+			else if(src.startsWith("assets/")) CONTENT_MEDIA_BASE_URL + File.separator + src
+			else CONTENT_MEDIA_BASE_URL + src
 		} else src
 	}
 
@@ -69,7 +71,7 @@ trait LocalizeAssetProcessor extends IProcessor {
 		file
 	} catch {
 		case e: IOException => {
-			TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: IOException:: " + e.getMessage)
+			e.printStackTrace()
 			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
 		}
 	}
