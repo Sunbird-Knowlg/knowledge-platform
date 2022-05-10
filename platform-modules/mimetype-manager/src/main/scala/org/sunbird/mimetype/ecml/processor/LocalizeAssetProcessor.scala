@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
-import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
@@ -57,19 +56,18 @@ trait LocalizeAssetProcessor extends IProcessor {
 
 	def getUrlWithPrefix(src: String) = {
 		if (StringUtils.isNotBlank(src) && !src.startsWith("http")) {
-			if (src.contains("content-plugins/")) PLUGIN_MEDIA_BASE_URL + File.separator + src else CONTENT_MEDIA_BASE_URL + src
+			if(!src.startsWith("/")) PLUGIN_MEDIA_BASE_URL + File.separator + src else PLUGIN_MEDIA_BASE_URL + src
 		} else src
 	}
 
 	def downloadFile(downloadPath: String, fileUrl: String): File = try {
-		TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: fileUrl:: " + fileUrl)
 		createDirectory(downloadPath)
 		val file = new File(downloadPath + File.separator + getFileNameFromURL(fileUrl))
 		FileUtils.copyURLToFile(new URL(fileUrl), file)
 		file
 	} catch {
 		case e: IOException => {
-			TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: IOException:: " + e.getMessage)
+			e.printStackTrace()
 			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
 		}
 	}
