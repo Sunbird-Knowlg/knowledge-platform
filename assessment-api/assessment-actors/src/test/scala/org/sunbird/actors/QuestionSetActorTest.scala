@@ -12,7 +12,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.managers.CopyManager
-import org.sunbird.utils.{AssessmentConstants, JavaJsonUtils}
+import org.sunbird.utils.{AssessmentConstants, BranchingUtil, JavaJsonUtils}
 
 import java.util
 import scala.collection.JavaConversions._
@@ -597,12 +597,12 @@ class QuestionSetActorTest extends BaseSpec with MockFactory with copyTrait {
     }
 
     it should "return expected result for 'generateNodeBLRecord'" in {
-        val result = CopyManager.generateNodeBLRecord(generateNodesModified("afa2bef1-b5db-45d9-b0d7-aeea757906c3", true))
+        val result = BranchingUtil.generateBranchingRecord(generateNodesModified("afa2bef1-b5db-45d9-b0d7-aeea757906c3", true))
         assert(result == generateNodeBLRecord)
     }
 
     it should "return expected result for 'hierarchyRequestModifier'" in {
-        val result = CopyManager.hierarchyRequestModifier(generateUpdateRequest(false, "afa2bef1-b5db-45d9-b0d7-aeea757906c3"), generateNodeBLRecord(), generateIdentifiers())
+        val result = BranchingUtil.hierarchyRequestModifier(generateUpdateRequest(false, "afa2bef1-b5db-45d9-b0d7-aeea757906c3"), generateNodeBLRecord(), generateIdentifiers())
         val expectedResult = generateUpdateRequest(true, "do_11351201604857856013")
         assert(result.getRequest.get(AssessmentConstants.NODES_MODIFIED) == expectedResult.getRequest.get(AssessmentConstants.NODES_MODIFIED))
         assert(result.getRequest.get(AssessmentConstants.HIERARCHY) == expectedResult.getRequest.get(AssessmentConstants.HIERARCHY))
