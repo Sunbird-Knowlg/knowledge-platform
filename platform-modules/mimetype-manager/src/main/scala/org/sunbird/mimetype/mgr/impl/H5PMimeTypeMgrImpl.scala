@@ -19,8 +19,13 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
 
     override def upload(objectId: String, node: Node, uploadFile: File, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, uploadFile)
+        TelemetryManager.info("H5P content upload params:: " + params)
         val validationParams = if (StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP))
             List[String]("/content/h5p.json", "content/h5p.json") else List[String]("h5p.json", "/h5p.json")
+
+        TelemetryManager.info("H5P content uploadFile exists:: " + uploadFile.exists())
+        TelemetryManager.info("H5P content validationParams:: " + validationParams)
+
         if (isValidPackageStructure(uploadFile, validationParams)) {
             val extractionBasePath = getBasePath(objectId)
             val zipFile = if (!StringUtils.equalsIgnoreCase(params.fileFormat.getOrElse(""), COMPOSED_H5P_ZIP)) {
@@ -41,7 +46,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             }
             Future { Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY)) }
         } else {
-            TelemetryManager.error("ERR_INVALID_FILE" + "Please Provide Valid File! with file name: " + uploadFile.getName)
+            TelemetryManager.error("ERR_INVALID_FILE:: " + "Please Provide Valid File! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Please Provide Valid File!")
         }
     }
