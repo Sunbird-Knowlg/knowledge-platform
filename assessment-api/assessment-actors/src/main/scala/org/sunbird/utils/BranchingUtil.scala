@@ -17,12 +17,14 @@ object BranchingUtil {
 			val containsBL = nodeMetaData.containsKey(AssessmentConstants.BRANCHING_LOGIC)
 			branchingRecord.put(id, new util.HashMap[String, AnyRef]() {
 				{
-					if (containsBL) put(AssessmentConstants.BRANCHING_LOGIC, nodeMetaData.get(AssessmentConstants.BRANCHING_LOGIC))
+					if (containsBL) {
+						put(AssessmentConstants.BRANCHING_LOGIC, nodeMetaData.get(AssessmentConstants.BRANCHING_LOGIC))
+						nodeMetaData.remove(AssessmentConstants.BRANCHING_LOGIC)
+					}
 					put(AssessmentConstants.CONTAINS_BL, containsBL.asInstanceOf[AnyRef])
 					put(AssessmentConstants.COPY_OF, nodeMetaData.get(AssessmentConstants.COPY_OF).asInstanceOf[String])
 				}
 			})
-			if (containsBL) nodeMetaData.remove(AssessmentConstants.BRANCHING_LOGIC)
 			nodeMetaData.remove(AssessmentConstants.COPY_OF)
 		})
 		branchingRecord
@@ -31,7 +33,7 @@ object BranchingUtil {
 	def hierarchyRequestModifier(request: Request, branchingRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]) = {
 		val nodesModified: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[java.util.HashMap[String, AnyRef]]
 		val hierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
-		val oldToNewIdMap = generateOldToNewIdMap(branchingRecord, identifiers)
+		val oldToNewIdMap = getIdentifierMapping(branchingRecord, identifiers)
 		branchingRecord.keySet().asScala.toList.map(id => {
 			val nodeInfo = branchingRecord.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
 			val node = nodesModified.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
@@ -53,7 +55,6 @@ object BranchingUtil {
 			children.map(identifier => {
 				if (identifiers.containsKey(identifier)) newChildrenList.add(identifiers.get(identifier)) else newChildrenList.add(identifier)
 			})
-			nodeHierarchy.remove(AssessmentConstants.CHILDREN)
 			nodeHierarchy.put(AssessmentConstants.CHILDREN, newChildrenList)
 			if (identifiers.containsKey(id)) {
 				hierarchy.remove(id)
@@ -78,7 +79,7 @@ object BranchingUtil {
 		})
 	}
 
-	def generateOldToNewIdMap(branchingRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]): util.Map[String, String] = {
+	def getIdentifierMapping(branchingRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]): util.Map[String, String] = {
 		val oldToNewIdMap = new util.HashMap[String, String]()
 		branchingRecord.keySet().asScala.toList.map(id => {
 			val nodeInfo = branchingRecord.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
@@ -97,7 +98,6 @@ object BranchingUtil {
 				newBranchingLogicArray.add(oldToNewIdMap.get(id))
 			} else newBranchingLogicArray.add(id)
 		})
-		nodeBL.remove(name)
 		nodeBL.put(name, newBranchingLogicArray)
 	}
 
@@ -113,7 +113,6 @@ object BranchingUtil {
 				val stringArray = preConditionVar.split("\\.")
 				if (oldToNewIdMap.containsKey(stringArray(0))) {
 					val newString = oldToNewIdMap.get(stringArray(0)) + "." + stringArray.drop(1).mkString(".")
-					sourceQuestionRecord.remove(AssessmentConstants.PRE_CONDITION_VAR)
 					sourceQuestionRecord.put(AssessmentConstants.PRE_CONDITION_VAR, newString)
 				}
 			})
