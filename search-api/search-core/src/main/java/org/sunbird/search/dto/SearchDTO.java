@@ -20,7 +20,7 @@ public class SearchDTO {
     private Map<String, Object> softConstraints = new HashMap<String, Object>();
     private List<Map<String, Object>> aggregations = new ArrayList<>();
     private List<Map> implicitFilterProperties;
-
+    private List<Map> multiFilterProperties;
 
 
     public SearchDTO() {
@@ -119,5 +119,13 @@ public class SearchDTO {
 
     public void setImplicitFilterProperties(List<Map> implicitFilterProperties) {
         this.implicitFilterProperties = implicitFilterProperties;
+    }
+
+    public List<Map> getMultiFilterProperties() {
+        return multiFilterProperties;
+    }
+
+    public void setMultiFilterProperties(List<Map> multiFilterProperties) {
+        this.multiFilterProperties = multiFilterProperties;
     }
 }

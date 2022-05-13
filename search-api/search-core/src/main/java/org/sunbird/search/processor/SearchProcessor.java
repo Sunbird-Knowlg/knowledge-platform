@@ -276,20 +276,43 @@ public class SearchProcessor {
 			SearchSourceBuilder searchSourceBuilder) {
 		TermsAggregationBuilder termBuilder = null;
 		if (groupByList != null && !groupByList.isEmpty()) {
+			HashMap<String, List<String>> nestedAggregation = new HashMap<>();
 			for (Map<String, Object> groupByMap : groupByList) {
 				String groupByParent = (String) groupByMap.get("groupByParent");
-				termBuilder = AggregationBuilders.terms(groupByParent)
-						.field(groupByParent + SearchConstants.RAW_FIELD_EXTENSION)
-						.size(ElasticSearchUtil.defaultResultLimit);
-				List<String> groupByChildList = (List<String>) groupByMap.get("groupByChildList");
-				if (groupByChildList != null && !groupByChildList.isEmpty()) {
-					for (String childGroupBy : groupByChildList) {
-						termBuilder.subAggregation(AggregationBuilders.terms(childGroupBy)
-								.field(childGroupBy + SearchConstants.RAW_FIELD_EXTENSION)
-								.size(ElasticSearchUtil.defaultResultLimit));
+				if (!groupByParent.contains(".")) {
+					termBuilder = AggregationBuilders.terms(groupByParent)
+							.field(groupByParent + SearchConstants.RAW_FIELD_EXTENSION)
+							.size(ElasticSearchUtil.defaultResultLimit);
+					List<String> groupByChildList = (List<String>) groupByMap.get("groupByChildList");
+					if (groupByChildList != null && !groupByChildList.isEmpty()) {
+						for (String childGroupBy : groupByChildList) {
+							termBuilder.subAggregation(AggregationBuilders.terms(childGroupBy)
+									.field(childGroupBy + SearchConstants.RAW_FIELD_EXTENSION)
+									.size(ElasticSearchUtil.defaultResultLimit));
+						}
+					}
+					searchSourceBuilder.aggregation(termBuilder);
+				} else {
+					if (nestedAggregation.get(groupByParent.split("\\.")[0]) != null) {
+						nestedAggregation.get(groupByParent.split("\\.")[0]).add(groupByParent.split("\\.")[1]);
+					} else {
+						List<String> nestedAggrList = new ArrayList<>();
+						nestedAggrList.add(groupByParent.split("\\.")[1]);
+						nestedAggregation.put(groupByParent.split("\\.")[0], nestedAggrList);
 					}
 				}
-				searchSourceBuilder.aggregation(termBuilder);
+			}
+			if (!nestedAggregation.isEmpty()) {
+				for (Map.Entry<String, List<String>> mapData : nestedAggregation.entrySet()) {
+					AggregationBuilder nestedAggregationBuilder = AggregationBuilders.nested(mapData.getKey(), mapData.getKey());
+					for (String nestedValue : mapData.getValue()) {
+						termBuilder = AggregationBuilders.terms(nestedValue)
+								.field(mapData.getKey() + "." + nestedValue + SearchConstants.RAW_FIELD_EXTENSION)
+								.size(ElasticSearchUtil.defaultResultLimit);
+						nestedAggregationBuilder.subAggregation(termBuilder);
+					}
+					searchSourceBuilder.aggregation(nestedAggregationBuilder);
+				}
 			}
 		}
 	}
@@ -304,6 +327,21 @@ public class SearchProcessor {
 		QueryBuilder queryBuilder = null;
 		String totalOperation = searchDTO.getOperation();
 		List<Map> properties = searchDTO.getProperties();
+		formQuery(properties, queryBuilder, boolQuery, totalOperation);
+		if(searchDTO.getMultiFilterProperties() != null) {
+			formQuery(searchDTO.getMultiFilterProperties(), queryBuilder, boolQuery, SearchConstants.SEARCH_OPERATION_OR);
+		}
+
+		Map<String, Object> softConstraints = searchDTO.getSoftConstraints();
+		if (null != softConstraints && !softConstraints.isEmpty()) {
+			boolQuery.should(getSoftConstraintQuery(softConstraints));
+			searchDTO.setSortBy(null);
+			// relevanceSort = true;
+		}
+		return boolQuery;
+	}
+
+	private void formQuery(List<Map> properties, QueryBuilder queryBuilder, BoolQueryBuilder boolQuery, String operation) {
 		for (Map<String, Object> property : properties) {
 			String opertation = (String) property.get("operation");
 
@@ -408,21 +446,13 @@ public class SearchProcessor {
 				break;
 			}
 			}
-			if (totalOperation.equalsIgnoreCase(AND)) {
+			if (operation.equalsIgnoreCase(AND)) {
 				boolQuery.must(queryBuilder);
 			} else {
 				boolQuery.should(queryBuilder);
 			}
 
 		}
-
-		Map<String, Object> softConstraints = searchDTO.getSoftConstraints();
-		if (null != softConstraints && !softConstraints.isEmpty()) {
-			boolQuery.should(getSoftConstraintQuery(softConstraints));
-			searchDTO.setSortBy(null);
-			// relevanceSort = true;
-		}
-		return boolQuery;
 	}
 
 	private QueryBuilder checkNestedProperty(QueryBuilder queryBuilder, String propertyName) {
