@@ -11,7 +11,7 @@ import scala.collection.JavaConversions.mapAsJavaMap
 import scala.collection.JavaConverters.asJavaIterableConverter
 import scala.collection.mutable
 
-trait copyTrait {
+object CopySpec {
 
 	private def getQuestionSetRequest(): Request = {
 		val request = new Request()
@@ -327,7 +327,7 @@ trait copyTrait {
 		nodesModified
 	}
 
-	def generateNodeBLRecord(): util.HashMap[String, AnyRef] = {
+	def generateBranchingRecord(): util.HashMap[String, AnyRef] = {
 		val nodeBLRecord = new util.HashMap[String, AnyRef]()
 		nodeBLRecord.put("afa2bef1-b5db-45d9-b0d7-aeea757906c3", new util.HashMap[String, AnyRef]() {
 			{

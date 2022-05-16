@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
+class QuestionActorTest extends BaseSpec with MockFactory {
 
 	"questionActor" should "return failed response for 'unknown' operation" in {
 		implicit val oec: OntologyEngineContext = new OntologyEngineContext
@@ -321,12 +321,12 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val nodes: util.List[Node] = getCategoryNode()
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getExistingQuestionNode())).anyNumberOfTimes()
-		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("objectMetadata")).returns(Future(getSuccessfulResponse())).anyNumberOfTimes()
-		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getReadPropsResponseForQuestion())).anyNumberOfTimes()
-		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getNewQuestionNode()))
-		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
-		val request = getQuestionCopyRequest()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(CopySpec.getExistingQuestionNode())).anyNumberOfTimes()
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, List("objectMetadata")).returns(Future(CopySpec.getSuccessfulResponse())).anyNumberOfTimes()
+		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(CopySpec.getReadPropsResponseForQuestion())).anyNumberOfTimes()
+		(graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(CopySpec.getNewQuestionNode()))
+		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(CopySpec.getSuccessfulResponse())).anyNumberOfTimes
+		val request = CopySpec.getQuestionCopyRequest()
 		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
 		request.setOperation("copyQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
@@ -335,7 +335,7 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 
 	it should "return error response for 'copyQuestion' when createdFor & createdBy is missing" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val request = getInvalidQuestionSetCopyRequest()
+		val request = CopySpec.getInvalidQuestionSetCopyRequest()
 		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
 		request.setOperation("copyQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
@@ -346,8 +346,8 @@ class QuestionActorTest extends BaseSpec with MockFactory with copyTrait {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-		val request = getQuestionCopyRequest()
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(getQuestionNode())).anyNumberOfTimes()
+		val request = CopySpec.getQuestionCopyRequest()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects("domain", "do_1234", false, *).returns(Future(CopySpec.getQuestionNode())).anyNumberOfTimes()
 		request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "mode" -> "", "copyType"-> "deep")))
 		request.setOperation("copyQuestion")
 		val response = callActor(request, Props(new QuestionActor()))
