@@ -182,6 +182,9 @@ public class SearchBaseActorTest {
         map.put("contentType", getContentType());
         map.put("createdOn", new Date().toString());
         map.put("lastUpdatedOn", new Date().toString());
+        Map<String, Object> competencyObj = new HashMap<>();
+        competencyObj.put("name","CompetencyOne");
+        map.put("competencies_v3", Arrays.asList(competencyObj));
         if(StringUtils.isNotBlank(board))
             map.put("board",board);
         Set<String> ageList = getAgeGroup();
