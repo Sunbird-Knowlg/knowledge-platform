@@ -1,8 +1,10 @@
 package org.sunbird.actors
 
 import java.util
+
 import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
@@ -65,13 +67,16 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 	}
 
 	def publish(request: Request): Future[Response] = {
+		val lastPublishedBy: String = request.getRequest.getOrDefault("lastPublishedBy", "").asInstanceOf[String]
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		request.put("mode", "edit")
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_SET_PUBLISH").flatMap(node => {
 			AssessmentManager.getQuestionSetHierarchy(request, node).map(hierarchyString => {
 				AssessmentManager.validateQuestionSetHierarchy(hierarchyString.asInstanceOf[String], node.getMetadata.getOrDefault("createdBy", "").asInstanceOf[String])
+				if(StringUtils.isNotBlank(lastPublishedBy))
+					node.getMetadata.put("lastPublishedBy", lastPublishedBy)
 				AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
-				ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
+				ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "QuestionSet is successfully sent for Publish").asJava)
 			})
 		})
 	}
