@@ -1,0 +1,48 @@
+{
+  "objectType": "Movie",
+  "relations": {
+    "boxSet": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["BoxSet"]
+    }
+  },
+  "restrictProps": {
+    "create" : [
+    ],
+    "update" : [
+      "director", "runTime", "maturityRating"
+    ]
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "cacheEnabled": false,
+  "schema_restrict_api": true,
+  "external": {
+    "tableName": "movie_data",
+    "properties": {
+      "trivia": {
+        "type": "string"
+      },
+      "lyrics": {
+        "type": "blob"
+      },
+      "summaries": {
+        "type": "string"
+      },
+      "synopsis": {
+        "type": "string"
+      },
+      "awards": {
+        "type": "string"
+      },
+      "cast": {
+        "type": "blob"
+      }
+    },
+    "primaryKey": ["identifier"]
+  }
+}
