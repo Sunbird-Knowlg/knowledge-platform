@@ -1,0 +1,82 @@
+{
+  "$id": "movie-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Movie",
+  "type": "object",
+  "required": [
+    "name",
+    "year",
+    "director",
+    "genres",
+    "description"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "year": {
+      "type": "string"
+    },
+    "director": {
+      "type": "string"
+    },
+    "genres": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "description": {
+      "type": "string"
+    },
+    "maturityRating": {
+      "type": "string",
+      "enum": [
+        "U",
+        "U/A 7+",
+        "U/A 13+",
+        "U/A 16+",
+        "A"
+      ]
+    },
+    "writers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stars": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "imdbRating": {
+      "type": "number"
+    },
+    "runTime": {
+      "type": "number"
+    },
+    "releaseDate": {
+      "type": "string"
+    },
+    "language": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "unreleased",
+        "released",
+        "banned",
+        "running"
+      ],
+      "default": "unreleased"
+    }
+  },
+  "additionalProperties": false
+}
