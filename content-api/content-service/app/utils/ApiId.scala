@@ -100,4 +100,6 @@ object ApiId {
 	val IMPORT_CSV = "api.collection.import"
 	val EXPORT_CSV = "api.collection.export"
 
+	//Movie APIs
+	val ADD_MOVIE = "api.movie.add"
 }
