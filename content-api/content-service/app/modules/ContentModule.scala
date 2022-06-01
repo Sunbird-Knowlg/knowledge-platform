@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
 import org.sunbird.content.actors.{AppActor, AssetActor, CategoryActor, CollectionActor, ContentActor, EventActor, EventSetActor, HealthActor, LicenseActor, ObjectActor}
+import org.sunbird.movie.actors.MovieActor
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 
@@ -24,6 +25,7 @@ class ContentModule extends AbstractModule with AkkaGuiceSupport {
         bindActor(classOf[AppActor], ActorNames.APP_ACTOR)
         bindActor(classOf[ObjectActor], ActorNames.OBJECT_ACTOR)
         bindActor(classOf[CollectionCSVActor], ActorNames.COLLECTION_CSV_ACTOR)
+        bindActor(classOf[MovieActor], ActorNames.MOVIE_ACTOR)
         println("Initialized application actors...")
         // $COVERAGE-ON
     }

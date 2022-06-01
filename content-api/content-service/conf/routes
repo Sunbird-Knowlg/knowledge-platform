@@ -132,7 +132,4 @@ GET    /collection/v4/export/:collectionId          controllers.v4.CollectionCon
 POST   /collection/v4/review/:identifier            controllers.v4.CollectionController.review(identifier:String)
 
 # Movie V4 APIs
-//add
-//Update
-//Delete
-//Read
+POST    /movie/v4/create                          controllers.v4.MovieController.create

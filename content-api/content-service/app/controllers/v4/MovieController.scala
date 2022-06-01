@@ -14,12 +14,12 @@ class MovieController @Inject()(@Named(ActorNames.MOVIE_ACTOR) movieActor: Actor
 	val schemaName: String = "movie"
 	val version = "1.0"
 
-	def add() = Action.async { implicit request =>
+	def create() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
 		val movie = body.getOrDefault("movie", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
 		movie.putAll(headers)
-		val movieRequest = getRequest(movie,headers,MovieOperations.addMovie.toString)
+		val movieRequest = getRequest(movie,headers,MovieOperations.createMovie.toString)
 		setRequestContext(movieRequest, version, objectType,schemaName)
 		getResult(ApiId.ADD_MOVIE, movieActor, movieRequest)
 	}

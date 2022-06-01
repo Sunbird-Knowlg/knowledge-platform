@@ -15,7 +15,7 @@ class MovieActor @Inject() (implicit oec: OntologyEngineContext) extends BaseAct
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
-			case "addMovie" => add(request)
+			case "createMovie" => create(request)
 			/*
 			case "updateMovie" => update(request)
 			case "readMovie" => read(request)
@@ -26,7 +26,7 @@ class MovieActor @Inject() (implicit oec: OntologyEngineContext) extends BaseAct
 		}
 	}
 
-	def add(request: Request): Future[Response]={
+	def create(request: Request): Future[Response]={
 		RequestUtil.restrictProperties(request)
 		DataNode.create(request).map(node =>{
 			val response = ResponseHandler.OK
