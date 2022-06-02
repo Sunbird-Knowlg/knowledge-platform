@@ -23,12 +23,6 @@ class MovieActor @Inject() (implicit oec: OntologyEngineContext) extends BaseAct
 			case "createMovie" => create(request)
 			case "readMovie" => read(request)
 			case "updateMovie" => update(request)
-			/*
-
-
-			case "removeMovie" => remove(request)
-
-			 */
 			case _ => ERROR(request.getOperation)
 		}
 	}
