@@ -22,7 +22,7 @@ class MovieController @Inject()(@Named(ActorNames.MOVIE_ACTOR) movieActor: Actor
 		movie.putAll(headers)
 		val movieRequest = getRequest(movie, headers, MovieOperations.createMovie.toString)
 		setRequestContext(movieRequest, version, objectType, schemaName)
-		getResult(ApiId.ADD_MOVIE, movieActor, movieRequest)
+		getResult(ApiId.CREATE_MOVIE, movieActor, movieRequest)
 	}
 
 	def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
