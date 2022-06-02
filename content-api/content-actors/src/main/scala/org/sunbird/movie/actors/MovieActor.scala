@@ -51,14 +51,4 @@ class MovieActor @Inject() (implicit oec: OntologyEngineContext) extends BaseAct
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		MovieManager.getValidatedNodeForUpdate(request, "ERR_MOVIE_UPDATE").flatMap(_ => MovieManager.updateNode(request))
 	}
-
-	/*
-
-
-	def remove(request: Request): Future[Response]={
-		RequestUtil.restrictProperties(request)
-
-	}
-
-	 */
 }
