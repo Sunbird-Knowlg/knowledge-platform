@@ -6,6 +6,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.movie.managers.MovieManager
 import org.sunbird.util.RequestUtil
 
 import java.util
@@ -21,8 +22,9 @@ class MovieActor @Inject() (implicit oec: OntologyEngineContext) extends BaseAct
 		request.getOperation match {
 			case "createMovie" => create(request)
 			case "readMovie" => read(request)
-			/*
 			case "updateMovie" => update(request)
+			/*
+
 
 			case "removeMovie" => remove(request)
 
@@ -50,10 +52,14 @@ class MovieActor @Inject() (implicit oec: OntologyEngineContext) extends BaseAct
 		})
 	}
 
-	/*
-	def update(request: Request): Future[Response]={
+	def update(request: Request): Future[Response] = {
 		RequestUtil.restrictProperties(request)
+		request.getRequest.put("identifier", request.getContext.get("identifier"))
+		MovieManager.getValidatedNodeForUpdate(request, "ERR_MOVIE_UPDATE").flatMap(_ => MovieManager.updateNode(request))
 	}
+
+	/*
+
 
 	def remove(request: Request): Future[Response]={
 		RequestUtil.restrictProperties(request)

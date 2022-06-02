@@ -134,3 +134,4 @@ POST   /collection/v4/review/:identifier            controllers.v4.CollectionCon
 # Movie V4 APIs
 POST    /movie/v4/create                          controllers.v4.MovieController.create
 GET     /movie/v4/read/:identifier                controllers.v4.MovieController.read(identifier:String, mode:Option[String], fields:Option[String])
+PATCH   /movie/v4/update/:identifier              controllers.v4.MovieController.update(identifier:String)

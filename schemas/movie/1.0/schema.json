@@ -76,6 +76,24 @@
         "running"
       ],
       "default": "unreleased"
+    },
+    "versionKey": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "createdOn": {
+      "type": "string"
     }
   },
   "additionalProperties": false

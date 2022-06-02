@@ -34,4 +34,15 @@ class MovieController @Inject()(@Named(ActorNames.MOVIE_ACTOR) movieActor: Actor
 		setRequestContext(movieRequest, version, objectType, schemaName)
 		getResult(ApiId.READ_MOVIE, movieActor, movieRequest)
 	}
+
+	def update(identifier: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val movie = body.getOrDefault("movie", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		movie.putAll(headers)
+		val movieRequest = getRequest(movie, headers, MovieOperations.updateMovie.toString)
+		setRequestContext(movieRequest, version, objectType, schemaName)
+		movieRequest.getContext.put("identifier", identifier)
+		getResult(ApiId.UPDATE_MOVIE, movieActor, movieRequest)
+	}
 }
