@@ -14,4 +14,5 @@ object ActorNames {
     final val APP_ACTOR = "appActor"
     final val OBJECT_ACTOR = "objectActor"
     final val COLLECTION_CSV_ACTOR = "collectionCSVActor"
+    final val MOVIE_ACTOR = "movieActor"
 }

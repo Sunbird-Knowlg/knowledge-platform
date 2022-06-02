@@ -24,23 +24,14 @@
   "external": {
     "tableName": "movie_data",
     "properties": {
-      "trivia": {
-        "type": "string"
-      },
-      "lyrics": {
-        "type": "blob"
-      },
       "summaries": {
         "type": "string"
       },
       "synopsis": {
-        "type": "string"
+        "type": "blob"
       },
       "awards": {
         "type": "string"
-      },
-      "cast": {
-        "type": "blob"
       }
     },
     "primaryKey": ["identifier"]

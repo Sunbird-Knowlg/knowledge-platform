@@ -130,3 +130,6 @@ GET     /object/v4/read/:identifier              controllers.v4.ObjectController
 POST   /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
 GET    /collection/v4/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])
 POST   /collection/v4/review/:identifier            controllers.v4.CollectionController.review(identifier:String)
+
+# Movie V4 APIs
+POST    /movie/v4/create                          controllers.v4.MovieController.create
