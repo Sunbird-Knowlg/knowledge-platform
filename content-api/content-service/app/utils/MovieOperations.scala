@@ -1,5 +1,5 @@
 package utils
 
 object MovieOperations extends Enumeration {
-	val createMovie = Value
+	val createMovie, readMovie = Value
 }

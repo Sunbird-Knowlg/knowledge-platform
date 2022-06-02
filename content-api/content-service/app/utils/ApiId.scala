@@ -102,4 +102,5 @@ object ApiId {
 
 	//Movie APIs
 	val ADD_MOVIE = "api.movie.add"
+	val READ_MOVIE = "api.movie.read"
 }

@@ -9,9 +9,10 @@
   },
   "restrictProps": {
     "create" : [
+      "identifier","status", "objectType"
     ],
     "update" : [
-      "director", "runTime", "maturityRating"
+      "director", "runTime", "maturityRating", "identifier", "status"
     ]
   },
   "version": "enable",
