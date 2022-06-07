@@ -12,6 +12,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
+import org.sunbird.utils.RequestUtil
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.JavaConversions._
@@ -27,6 +28,7 @@ object AssessmentManager {
 		val visibility: String = request.getRequest.getOrDefault("visibility", "").asInstanceOf[String]
 		if (StringUtils.isNotBlank(visibility) && StringUtils.equalsIgnoreCase(visibility, "Parent"))
 			throw new ClientException(errCode, "Visibility cannot be Parent!")
+		RequestUtil.restrictProperties(request)
 		DataNode.create(request).map(node => {
 			val response = ResponseHandler.OK
 			response.putAll(Map("identifier" -> node.getIdentifier, "versionKey" -> node.getMetadata.get("versionKey")).asJava)
@@ -176,7 +178,6 @@ object AssessmentManager {
 		val keys = List("identifier", "children").asJava
 		hierarchy.keySet().retainAll(keys)
 		val children = hierarchy.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
-		hierarchy.put("status", status)
 		val childrenToUpdate: List[String] = updateChildrenRecursive(children, status, List(), rootUserId)
 		(hierarchy, childrenToUpdate.asJava)
 	}
@@ -189,7 +190,6 @@ object AssessmentManager {
 					content.put("lastStatusChangedOn", DateUtils.formatCurrentDate)
 					content.put("prevStatus", content.getOrDefault("status", "Draft"))
 					content.put("status", status)
-					content.put("prevStatus", "Draft")
 					content.put("lastUpdatedOn", DateUtils.formatCurrentDate)
 					if(StringUtils.equalsAnyIgnoreCase(objectType, "Question")) content.get("identifier").asInstanceOf[String] :: idList else idList
 				} else idList

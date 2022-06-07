@@ -318,12 +318,12 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
       if(mode.equals(CollectionTOCConstants.CREATE))
         s""""${record._1}": {"isNew": true,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection","contentType": "$collectionUnitType",
-           |"name": ${JsonUtils.serialize(nodeInfo("name").toString)}, "description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
+           |"name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
            |"dialcodeRequired": "No","code": "nodeID","framework": "$frameworkID" }}""".stripMargin
       else
         try {
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
-             |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString)},
+             |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)},
              |"description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
              |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": "${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}",
              |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
@@ -368,7 +368,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     val hierarchyChildNodesMetadata = if(mode.equals(CollectionTOCConstants.CREATE)) {
       folderInfoMap.map(record => {
         val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
-          s""""${record._1}": {"name": ${JsonUtils.serialize(nodeInfo("name").toString)},"root": false,"contentType": "$collectionUnitType", "children": ${if (nodeInfo.contains(CollectionTOCConstants.CHILDREN)) nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]].mkString("[\"", "\",\"", "\"]") else "[]"}}"""
+          s""""${record._1}": {"name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)},"root": false,"contentType": "$collectionUnitType", "children": ${if (nodeInfo.contains(CollectionTOCConstants.CHILDREN)) nodeInfo(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]].mkString("[\"", "\",\"", "\"]") else "[]"}}"""
       }).mkString(",")
     } else {
       val linkedContentsInfoMap: Map[String, Map[String, String]] = if(linkedContentsDetails.nonEmpty) {
@@ -421,7 +421,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
             nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].toSet.mkString("[\"","\",\"","\"]")
           else "[]"
         }
-        val folderNodeHierarchy = s""""${record._1}": {"name": "${nodeInfo("name").toString}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
+        val folderNodeHierarchy = s""""${record._1}": {"name": "${nodeInfo("name").toString.trim}","root": false,"contentType": "$collectionUnitType", "children": $childrenFolders}"""
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
         {

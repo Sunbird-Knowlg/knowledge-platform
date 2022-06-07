@@ -9,6 +9,7 @@
   },
   "restrictProps": {
     "create" : [
+      "status"
     ],
     "update" : [
       "visibility", "code", "status", "mimeType"

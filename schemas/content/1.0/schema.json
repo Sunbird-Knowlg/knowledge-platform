@@ -87,7 +87,8 @@
                 "audio/webm",
                 "audio/x-wav",
                 "audio/wav",
-                "application/json"
+                "application/json",
+                "application/quiz"
             ]
         },
         "osId": {
@@ -1395,6 +1396,18 @@
           "items": {
               "type": "object"
           }
+        },
+        "taxonomyPaths_v2": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "competencies_v3": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         }
     }
 }

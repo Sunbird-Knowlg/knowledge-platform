@@ -9,6 +9,10 @@ import org.sunbird.search.util.SearchConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 import java.util
+
+import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.Platform
+
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
@@ -22,17 +26,19 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
         val internalReq = getRequest(ApiId.APPLICATION_SEARCH)
         setHeaderContext(internalReq)
         val filters = internalReq.getRequest.getOrDefault(SearchConstants.filters, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        val visibilityObject = filters.getOrDefault("visibility","")
-        var visibility:util.List[String] = null
-        if (visibilityObject != null) {
-            if (visibilityObject.isInstanceOf[util.ArrayList[_]]) visibility = visibilityObject.asInstanceOf[util.ArrayList[String]]
-            else if (visibilityObject.isInstanceOf[String]) visibility = util.Arrays.asList(visibilityObject.asInstanceOf[String])
+        val visibilityReq = filters.getOrDefault("visibility", new util.ArrayList[String]())
+        val visibility: List[String] = visibilityReq match {
+            case visibilityReq: util.List[_] => visibilityReq.asInstanceOf[util.List[String]].asScala.toList.map(x => if (StringUtils.isNotBlank(x)) x.toLowerCase).asInstanceOf[List[String]]
+            case visibilityReq: String => List(visibilityReq).map(x => if (StringUtils.isNotBlank(x)) x.toLowerCase).asInstanceOf[List[String]]
+            case _ => List()
         }
-        if (visibility.contains("Private")) {
+
+        if (visibility.nonEmpty && visibility.contains("private"))
             getErrorResponse(ApiId.APPLICATION_SEARCH, apiVersion, SearchConstants.ERR_ACCESS_DENIED, "Cannot access private content through public search api")
-        }
         else {
-            internalReq.getContext.put(SearchConstants.setDefaultVisibility, "true")
+            val searchableVisibility: List[String] = Platform.getStringList("object.searchableVisibility", util.Arrays.asList("Default", "Parent", "Protected")).asScala.toList.map(x => x.toLowerCase)
+            val setDefaultVisibility: String = if (visibility.nonEmpty && searchableVisibility.containsSlice(visibility)) "false" else "true"
+            internalReq.getContext.put(SearchConstants.setDefaultVisibility, setDefaultVisibility)
             getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_SEARCH)
         }
     }

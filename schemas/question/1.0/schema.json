@@ -425,7 +425,10 @@
       "enum": [
         "MCQ",
         "FTB",
-        "SA"
+        "SA",
+        "MCQ-MCA",
+        "MCQ-SCA",
+        "MTF"
       ]
     },
     "scoringMode": {
@@ -574,6 +577,27 @@
       "items": {
           "type": "object"
       }
+    },
+    "origin": {
+      "type": "string"
+    },
+    "originData": {
+      "type": "object"
+    },
+    "choices": {
+      "type": "object",
+      "description": "Choices which needs to be used in MCQ / MTF type question"
+    },
+    "rhsChoices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Choices which needs to be used in RHS of MTF type question"
+    },
+    "downloadUrl": {
+      "type": "string",
+      "format": "url"
     }
   },
   "additionalProperties": false

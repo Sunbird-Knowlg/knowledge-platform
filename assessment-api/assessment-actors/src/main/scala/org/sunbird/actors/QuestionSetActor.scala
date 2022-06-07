@@ -1,7 +1,6 @@
 package org.sunbird.actors
 
 import java.util
-
 import javax.inject.Inject
 import org.apache.commons.collections4.CollectionUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
@@ -13,7 +12,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
-import org.sunbird.managers.{AssessmentManager, HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.{AssessmentManager, CopyManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
 import scala.collection.JavaConverters._
@@ -40,6 +39,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		case "rejectQuestionSet" => reject(request)
 		case "importQuestionSet" => importQuestionSet(request)
 		case "systemUpdateQuestionSet" => systemUpdate(request)
+		case "copyQuestionSet" => copy(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -135,7 +135,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		val propsToRemove = Platform.getStringList("import.remove_props.questionset", java.util.Arrays.asList()).asScala.toList
 		val topicName = Platform.config.getString("import.output_topic_name")
 		val reqLimit = Platform.getInteger("import.request_size_limit", 200)
-		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove)
+		val validSourceStatus = Platform.getStringList("import.valid_source_status", java.util.Arrays.asList("Live", "Unlisted")).asScala.toList
+		ImportConfig(topicName, reqLimit, requiredProps, validStages, propsToRemove, validSourceStatus)
 	}
 
 	def systemUpdate(request: Request): Future[Response] = {
@@ -156,4 +157,8 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ba
 		}).map(node => ResponseHandler.OK.put("identifier", identifier).put("status", "success"))
 	}
 
+	def copy(request: Request): Future[Response] ={
+		RequestUtil.restrictProperties(request)
+		CopyManager.copy(request)
+	}
 }
