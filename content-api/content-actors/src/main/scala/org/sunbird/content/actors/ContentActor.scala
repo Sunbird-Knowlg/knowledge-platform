@@ -243,6 +243,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		"Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
 			node.getMetadata.put("contentType", "Course")
 		}
+
+		//TODO: Below fix to be reviewed when the fix for null to Stringify in ExternalStore.scala is implemented
+		if(node.getExternalData != null && node.getExternalData.containsKey("relational_metadata") && node.getExternalData.get("relational_metadata") == null) {
+			node.getExternalData.put("relational_metadata", "{}")
+		}
 		node
 	}
 
