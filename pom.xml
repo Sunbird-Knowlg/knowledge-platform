@@ -17,15 +17,34 @@
 		<scalatest.version>3.0.8</scalatest.version>
 		<fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
 	</properties>
-	<modules>
-		<module>platform-core</module>
-		<module>ontology-engine</module>
-		<module>content-api</module>
-		<module>assessment-api</module>
-		<module>taxonomy-api</module>
-        <module>platform-modules</module>
-        <module>search-api</module>
-    </modules>
+	<profiles>
+		<profile>
+			<id>knowlg-platform</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>platform-core</module>
+				<module>ontology-engine</module>
+				<module>content-api</module>
+				<module>assessment-api</module>
+				<module>taxonomy-api</module>
+				<module>platform-modules</module>
+				<module>search-api</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>knowlg-core</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<modules>
+				<module>platform-core</module>
+				<module>ontology-engine</module>
+				<module>platform-modules/import-manager</module>
+			</modules>
+		</profile>
+	</profiles>
 	<dependencies>
 	</dependencies>
 	<build>
