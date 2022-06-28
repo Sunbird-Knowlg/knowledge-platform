@@ -1,8 +1,7 @@
 package org.sunbird.managers
 
-import org.apache.commons.collections.CollectionUtils
+import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.MapUtils
-import org.apache.commons.lang.StringUtils
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
@@ -14,11 +13,13 @@ import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{AssessmentConstants, BranchingUtil, HierarchyConstants}
-
 import java.util
-import java.util.concurrent.{CompletionException}
+import java.util.concurrent.CompletionException
 import java.util.{Optional, UUID}
-import scala.collection.JavaConversions.{mapAsScalaMap}
+
+import org.apache.commons.lang3.StringUtils
+
+import scala.collection.JavaConversions.mapAsScalaMap
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 

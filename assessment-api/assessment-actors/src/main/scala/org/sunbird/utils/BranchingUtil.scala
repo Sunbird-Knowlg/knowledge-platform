@@ -1,6 +1,6 @@
 package org.sunbird.utils
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
 
 import java.util
