@@ -158,4 +158,15 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_ACTOR) ques
 		questionSetRequest.getContext.put("identifier", identifier);
 		getResult(ApiId.SYSTEM_UPDATE_QUESTION_SET, questionSetActor, questionSetRequest)
 	}
+
+	def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+		questionSet.putAll(headers)
+		questionSet.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse(""), "copyType" -> copyType).asJava)
+		val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.copyQuestionSet.toString)
+		setRequestContext(questionSetRequest, version, objectType, schemaName)
+		getResult(ApiId.COPY_QUESTION_SET, questionSetActor, questionSetRequest)
+	}
 }

@@ -8,7 +8,7 @@ import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.managers.AssessmentManager
+import org.sunbird.managers.{AssessmentManager, CopyManager}
 import org.sunbird.utils.RequestUtil
 
 import java.util
@@ -36,6 +36,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "systemUpdateQuestion" => systemUpdate(request)
 		case "listQuestions" => listQuestions(request)
 		case "rejectQuestion" => reject(request)
+		case "copyQuestion" => copy(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -57,8 +58,11 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 	}
 
 	def publish(request: Request): Future[Response] = {
+		val lastPublishedBy: String = request.getRequest.getOrDefault("lastPublishedBy", "").asInstanceOf[String]
 		request.getRequest.put("identifier", request.getContext.get("identifier"))
 		AssessmentManager.getValidatedNodeForPublish(request, "ERR_QUESTION_PUBLISH").map(node => {
+			if(StringUtils.isNotBlank(lastPublishedBy))
+				node.getMetadata.put("lastPublishedBy", lastPublishedBy)
 			AssessmentManager.pushInstructionEvent(node.getIdentifier, node)
 			ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Question is successfully sent for Publish").asJava)
 		})
@@ -128,4 +132,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 			AssessmentManager.updateNode(updateRequest)
 			})
 		}
+
+	def copy(request: Request): Future[Response] ={
+		RequestUtil.restrictProperties(request)
+		CopyManager.copy(request)
+	}
 }

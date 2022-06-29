@@ -246,7 +246,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 		//TODO: Below fix to be reviewed when the fix for null to Stringify in ExternalStore.scala is implemented
 		if(node.getExternalData != null && node.getExternalData.containsKey("relational_metadata") && node.getExternalData.get("relational_metadata") == null) {
-				node.getExternalData.put("relational_metadata", "{}")
+			node.getExternalData.put("relational_metadata", "{}")
 		}
 
 		node
