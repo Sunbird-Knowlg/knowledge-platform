@@ -16,5 +16,8 @@ object DIALConstants {
 	val AUTHORIZATION: String = "Authorization"
 	val X_CHANNEL_ID: String = "X-Channel-Id"
 	val VERSION_KEY: String = "versionKey"
+	val DISCUSSION_FORUM: String = "discussionForum"
+	val CREDENTIALS: String = "credentials"
+	val TRACKABLE: String = "trackable"
 
 }
