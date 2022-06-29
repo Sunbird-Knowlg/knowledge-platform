@@ -8,6 +8,7 @@ import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 import scala.collection.JavaConverters._
@@ -165,7 +166,7 @@ object DIALManager {
 		req.put(ContentConstants.MODE, "edit")
 		DataNode.read(req).flatMap(rootNode => {
 			val contentMetadata = rootNode.getMetadata
-			println("DialManager:: reserve:: contentMetadata: " + contentMetadata)
+			TelemetryManager.info("DialManager:: reserve:: contentMetadata: " + contentMetadata)
 			val contentChannel = contentMetadata.get("channel").asInstanceOf[String]
 			validateChannel(contentChannel, channelId)
 			validateContentForReservedDialcodes(contentMetadata)
@@ -175,11 +176,11 @@ object DIALManager {
 				throw new ClientException(DIALErrors.ERR_CONTENT_INVALID_OBJECT, DIALErrors.ERR_CONTENT_INVALID_OBJECT_MSG)
 
 			val reservedDialCodes = contentMetadata.getOrDefault("dialcodes", Map.empty[String, Integer]).asInstanceOf[Map[String, Integer]]
-			println("DialManager:: reserve:: reservedDialCodes: " + reservedDialCodes)
+			TelemetryManager.info("DialManager:: reserve:: reservedDialCodes: " + reservedDialCodes)
 			val maxIndex: Integer = if (reservedDialCodes.nonEmpty) reservedDialCodes.max._2	else -1
 			val dialCodes = reservedDialCodes.keySet
 			val reqDialcodesCount = request.getRequest.get("dialcodes").asInstanceOf[util.Map[String, AnyRef]].get("count").asInstanceOf[Integer]
-			println("DialManager:: reserve:: reqDialcodesCount: " + reqDialcodesCount)
+			TelemetryManager.info("DialManager:: reserve:: reqDialcodesCount: " + reqDialcodesCount)
 			val updateDialCodes  = if (dialCodes.size < reqDialcodesCount) {
 				val newDialcodes = generateDialCodes(channelId, contentId, reqDialcodesCount - dialCodes.size, request.get("publisher").asInstanceOf[String])
 				val newDialCodesMap: Map[String, Integer] = newDialcodes.zipWithIndex.map { case (newDialCode, idx) =>
@@ -187,7 +188,7 @@ object DIALManager {
 				}.toMap
 				reservedDialCodes ++ newDialCodesMap
 			} else reservedDialCodes
-			println("DialManager:: reserve:: updateDialCodes: " + updateDialCodes)
+			TelemetryManager.info("DialManager:: reserve:: updateDialCodes: " + updateDialCodes)
 			if(updateDialCodes.size > reservedDialCodes.size) {
 				val updateReq = new Request(request)
 				updateReq.put("identifier", rootNode.getIdentifier)
@@ -205,7 +206,7 @@ object DIALManager {
 					response.getResult.put("processId", updatedNode.getMetadata.get("processId"))
 					response.getResult.put("reservedDialcodes", updatedNode.getMetadata.get("reservedDialcodes"))
 					response.getResult.put("versionKey", updatedNode.getMetadata.get("versionKey"))
-					println("DialManager:: reserve:: response: " + response)
+					TelemetryManager.info("DialManager:: reserve:: response: " + response)
 					response
 				})
 			} else {
@@ -214,7 +215,7 @@ object DIALManager {
 				errorResponse.getResult.put("node_id", contentId)
 				errorResponse.getResult.put("processId", rootNode.getMetadata.get("processId"))
 				errorResponse.getResult.put("reservedDialcodes", rootNode.getMetadata.get("reservedDialcodes"))
-				println("DialManager:: reserve:: errorResponse: " + errorResponse)
+				TelemetryManager.info("DialManager:: reserve:: errorResponse: " + errorResponse)
 				Future(errorResponse)
 			}
 		})
