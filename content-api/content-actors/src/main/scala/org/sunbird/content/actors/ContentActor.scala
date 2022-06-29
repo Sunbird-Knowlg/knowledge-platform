@@ -248,7 +248,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if(node.getExternalData != null && node.getExternalData.containsKey("relational_metadata") && node.getExternalData.get("relational_metadata") == null) {
 			node.getExternalData.put("relational_metadata", "{}")
 		}
-
 		node
 	}
 
