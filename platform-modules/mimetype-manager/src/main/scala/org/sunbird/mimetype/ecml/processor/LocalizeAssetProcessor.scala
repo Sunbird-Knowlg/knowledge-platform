@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
-import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
@@ -62,8 +61,6 @@ trait LocalizeAssetProcessor extends IProcessor {
 	}
 
 	def downloadFile(downloadPath: String, fileUrl: String): File = try {
-		TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: downloadPath:: " + downloadPath)
-		TelemetryManager.info("LocalizeAssetProcessor:: downloadFile:: fileUrl:: " + fileUrl)
 		createDirectory(downloadPath)
 		val file = new File(downloadPath + File.separator + getFileNameFromURL(fileUrl))
 		FileUtils.copyURLToFile(new URL(fileUrl), file)
