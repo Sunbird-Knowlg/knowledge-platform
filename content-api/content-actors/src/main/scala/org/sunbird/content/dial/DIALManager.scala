@@ -59,12 +59,16 @@ object DIALManager {
 
 	def validateAndGetRequestMap(channelId: String, requestList: List[Map[String, List[String]]])(implicit oec:OntologyEngineContext): Map[String, List[String]] = {
 		var reqMap = HashMap[String, List[String]]()
-		requestList.foreach(req => {
-			val contents: List[String] = req(DIALConstants.IDENTIFIER)
-			val dialcodes: List[String] = req(DIALConstants.DIALCODE)
-			validateReqStructure(dialcodes, contents)
-			contents.foreach(id => reqMap += (id -> dialcodes))
-		})
+		try {
+			requestList.foreach(req => {
+				val contents: List[String] = req(DIALConstants.IDENTIFIER)
+				val dialcodes: List[String] = req(DIALConstants.DIALCODE)
+				validateReqStructure(dialcodes, contents)
+				contents.foreach(id => reqMap += (id -> dialcodes))
+			})
+		} catch {
+			case e: Exception => throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG)
+		}
 		TelemetryManager.info("DIALManager::validateAndGetRequestMap:: requestList: " + requestList)
 		if (Platform.getBoolean("content.link_dialcode.validation", true)) {
 			val dials = requestList.collect { case m if m.contains(DIALConstants.DIALCODE) => m(DIALConstants.DIALCODE) }.flatten
@@ -257,7 +261,7 @@ object DIALManager {
 			val dupUnitsList: List[String] = unitDIALCodesMap.flatMap(loopMapRec => if(loopMapRec._1 != mapRec._1 && loopMapRec._2.asInstanceOf[List[String]].contains(listRec)) {
 				List(loopMapRec._1, mapRec._1)
 			} else List.empty[String]).filter(unitRec => unitRec.nonEmpty).toList
-			Map(listRec -> dupUnitsList)
+			Map(listRec -> dupUnitsList.toSet)
 		})).filter(unitRec => unitRec._2.nonEmpty)
 
 		if (duplicateDIALCodes.nonEmpty)
