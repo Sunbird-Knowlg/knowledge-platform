@@ -65,8 +65,10 @@ object DIALManager {
 			validateReqStructure(dialcodes, contents)
 			contents.foreach(id => reqMap += (id -> dialcodes))
 		})
+		TelemetryManager.info("DIALManager::validateAndGetRequestMap:: requestList: " + requestList)
 		if (Platform.getBoolean("content.link_dialcode.validation", true)) {
 			val dials = requestList.collect { case m if m.contains(DIALConstants.DIALCODE) => m(DIALConstants.DIALCODE) }.flatten
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: dials: " + dials)
 			validateDialCodes(channelId, dials)
 		}
 		reqMap
@@ -90,8 +92,10 @@ object DIALManager {
 				}})
 			}}
 			val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
-
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: DIAL_SEARCH_API_URL: " + DIAL_SEARCH_API_URL)
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: reqMap: " + reqMap)
 			val searchResponse = oec.httpUtil.post(DIAL_SEARCH_API_URL, reqMap, headerParam)
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: searchResponse.getResponseCode: " + searchResponse.getResponseCode)
 			if (searchResponse.getResponseCode.toString == "OK") {
 				val result = searchResponse.getResult
 				if (dialcodes.distinct.size == result.get(DIALConstants.COUNT).asInstanceOf[Integer]) {
