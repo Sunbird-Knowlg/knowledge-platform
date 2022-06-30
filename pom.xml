@@ -41,7 +41,7 @@
 			<modules>
 				<module>platform-core</module>
 				<module>ontology-engine</module>
-				<module>platform-modules/import-manager</module>
+				<module>platform-modules</module>
 			</modules>
 		</profile>
 	</profiles>
