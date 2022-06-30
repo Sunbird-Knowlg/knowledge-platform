@@ -10,6 +10,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.managers.HierarchyManager
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 import scala.collection.JavaConverters._
@@ -27,8 +28,11 @@ object DIALManager {
 		val linkType: String = request.getContext.getOrDefault(DIALConstants.LINK_TYPE, DIALConstants.CONTENT).asInstanceOf[String]
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
 		val objectId: String = request.getContext.getOrDefault(DIALConstants.IDENTIFIER, "").asInstanceOf[String]
+		TelemetryManager.info("DIALManager::link:: linkType: " + linkType + " || channelId: " + channelId + " || objectId: " + objectId)
 		val reqList: List[Map[String, List[String]]] = getRequestData(request)
+		TelemetryManager.info("DIALManager::link:: reqList: " + reqList)
 		val requestMap: Map[String, List[String]] = validateAndGetRequestMap(channelId, reqList)
+		TelemetryManager.info("DIALManager::link:: requestMap: " + requestMap)
 		linkType match {
 			case DIALConstants.CONTENT => linkContent(requestMap, request.getContext)
 			case DIALConstants.COLLECTION => linkCollection(objectId, requestMap, request.getContext)
@@ -126,17 +130,19 @@ object DIALManager {
 		req.setContext(reqContext)
 		req.put(ContentConstants.IDENTIFIER, objectId)
 		req.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
+		TelemetryManager.info("DIALManager::linkCollection:: req: " + req)
 		DataNode.read(req).flatMap(rootNode => {
 			req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
 			req.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
 			req.put(ContentConstants.ROOT_ID, objectId)
+			TelemetryManager.info("DIALManager::linkCollection:: updated req: " + req)
 			HierarchyManager.getHierarchy(req).flatMap(getHierarchyResponse => {
 				val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
 				val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]]
 				val updatedChildrenHierarchy = updateChildrenHierarchy(childrenHierarchy, requestMap)
 				val childrenDIALMap = getChildrenDIALMap(updatedChildrenHierarchy, requestMap)
 				val consolidatedUnitDIALMap = if (!requestMap.contains(objectId)) childrenDIALMap else childrenDIALMap ++ Map(objectId -> requestMap(objectId))
-
+				TelemetryManager.info("DIALManager::linkCollection:: consolidatedUnitDIALMap: " + consolidatedUnitDIALMap)
 				validateDuplicateDIALCodes(consolidatedUnitDIALMap.filter(rec => rec._2.asInstanceOf[List[String]].nonEmpty))
 
 				val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
@@ -146,6 +152,7 @@ object DIALManager {
 				val hierarchyReq = new Request(req)
 				hierarchyReq.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
 				hierarchyReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
+				TelemetryManager.info("DIALManager::linkCollection:: hierarchyReq: " + hierarchyReq)
 				oec.graphService.saveExternalProps(hierarchyReq).flatMap(rec => if(requestMap.contains(objectId)) {
 					val updateReq = new Request(req)
 					updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
