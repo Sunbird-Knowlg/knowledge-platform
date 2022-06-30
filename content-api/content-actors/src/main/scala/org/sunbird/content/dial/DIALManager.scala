@@ -59,16 +59,12 @@ object DIALManager {
 
 	def validateAndGetRequestMap(channelId: String, requestList: List[Map[String, List[String]]])(implicit oec:OntologyEngineContext): Map[String, List[String]] = {
 		var reqMap = HashMap[String, List[String]]()
-		try {
-			requestList.foreach(req => {
-				val contents: List[String] = req(DIALConstants.IDENTIFIER)
-				val dialcodes: List[String] = req(DIALConstants.DIALCODE)
-				validateReqStructure(dialcodes, contents)
-				contents.foreach(id => reqMap += (id -> dialcodes))
-			})
-		} catch {
-			case e: Exception => throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG)
-		}
+		requestList.foreach(req => {
+			val contents: List[String] = if(req.contains(DIALConstants.IDENTIFIER)) req(DIALConstants.IDENTIFIER) else throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG + DIALConstants.IDENTIFIER)
+			val dialcodes: List[String] = if(req.contains(DIALConstants.DIALCODE)) req(DIALConstants.DIALCODE) else throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG + DIALConstants.DIALCODE)
+			validateReqStructure(dialcodes, contents)
+			contents.foreach(id => reqMap += (id -> dialcodes))
+		})
 		TelemetryManager.info("DIALManager::validateAndGetRequestMap:: requestList: " + requestList)
 		if (Platform.getBoolean("content.link_dialcode.validation", true)) {
 			val dials = requestList.collect { case m if m.contains(DIALConstants.DIALCODE) => m(DIALConstants.DIALCODE) }.flatten

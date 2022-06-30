@@ -16,5 +16,5 @@ object DIALErrors {
 	val ERR_CONTENT_NOT_FOUND_MSG: String = "Content Not Found With Id(s): "
 	val ERR_SERVER_ERROR_MSG: String = "Something Went Wrong While Processing Your Request. Please Try Again After Sometime!"
 	val ERR_DUPLICATE_DIAL_CODES_MSG: String = "QR Code should not be linked to multiple contents. Please validate: "
-	val ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG: String = "Required fields for content link dialcode are missing."
+	val ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG: String = "Required fields for content link dialcode are missing: "
 }
