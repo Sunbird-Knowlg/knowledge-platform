@@ -60,13 +60,15 @@ object DIALManager {
 	def validateAndGetRequestMap(channelId: String, requestList: List[Map[String, List[String]]])(implicit oec:OntologyEngineContext): Map[String, List[String]] = {
 		var reqMap = HashMap[String, List[String]]()
 		requestList.foreach(req => {
-			val contents: List[String] = req(DIALConstants.IDENTIFIER)
-			val dialcodes: List[String] = req(DIALConstants.DIALCODE)
+			val contents: List[String] = if(req.contains(DIALConstants.IDENTIFIER)) req(DIALConstants.IDENTIFIER) else throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG + DIALConstants.IDENTIFIER)
+			val dialcodes: List[String] = if(req.contains(DIALConstants.DIALCODE)) req(DIALConstants.DIALCODE) else throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG + DIALConstants.DIALCODE)
 			validateReqStructure(dialcodes, contents)
 			contents.foreach(id => reqMap += (id -> dialcodes))
 		})
+		TelemetryManager.info("DIALManager::validateAndGetRequestMap:: requestList: " + requestList)
 		if (Platform.getBoolean("content.link_dialcode.validation", true)) {
 			val dials = requestList.collect { case m if m.contains(DIALConstants.DIALCODE) => m(DIALConstants.DIALCODE) }.flatten
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: dials: " + dials)
 			validateDialCodes(channelId, dials)
 		}
 		reqMap
@@ -90,8 +92,10 @@ object DIALManager {
 				}})
 			}}
 			val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
-
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: DIAL_SEARCH_API_URL: " + DIAL_SEARCH_API_URL)
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: reqMap: " + reqMap)
 			val searchResponse = oec.httpUtil.post(DIAL_SEARCH_API_URL, reqMap, headerParam)
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: searchResponse.getResponseCode: " + searchResponse.getResponseCode)
 			if (searchResponse.getResponseCode.toString == "OK") {
 				val result = searchResponse.getResult
 				if (dialcodes.distinct.size == result.get(DIALConstants.COUNT).asInstanceOf[Integer]) {
@@ -253,7 +257,7 @@ object DIALManager {
 			val dupUnitsList: List[String] = unitDIALCodesMap.flatMap(loopMapRec => if(loopMapRec._1 != mapRec._1 && loopMapRec._2.asInstanceOf[List[String]].contains(listRec)) {
 				List(loopMapRec._1, mapRec._1)
 			} else List.empty[String]).filter(unitRec => unitRec.nonEmpty).toList
-			Map(listRec -> dupUnitsList)
+			Map(listRec -> dupUnitsList.toSet)
 		})).filter(unitRec => unitRec._2.nonEmpty)
 
 		if (duplicateDIALCodes.nonEmpty)
