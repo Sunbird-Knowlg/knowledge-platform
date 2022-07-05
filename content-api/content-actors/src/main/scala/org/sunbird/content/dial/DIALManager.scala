@@ -8,27 +8,33 @@ import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.managers.HierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
+import scala.collection.immutable.{HashMap, Map}
 import scala.concurrent.{ExecutionContext, Future}
 
 
 object DIALManager {
 
-	val DIAL_SEARCH_API_URL = Platform.config.getString("dial_service.api.base_url") + "/dialcode/v3/search"
-	val DIALCODE_GENERATE_URI = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate_url")
-	val DIAL_API_AUTH_KEY = "Bearer " + Platform.config.getString("dial_service.api.auth_key")
-	val PASSPORT_KEY = Platform.config.getString("graph.passport.key.base")
+
+	val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate_url")
+	val DIAL_SEARCH_API_URL: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.search")
+	val DIAL_API_AUTH_KEY: String = "Bearer " + Platform.config.getString("dial_service.api.auth_key")
+	val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
 
 	def link(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val linkType: String = request.getContext.getOrDefault(DIALConstants.LINK_TYPE, DIALConstants.CONTENT).asInstanceOf[String]
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
 		val objectId: String = request.getContext.getOrDefault(DIALConstants.IDENTIFIER, "").asInstanceOf[String]
+		TelemetryManager.info("DIALManager::link:: linkType: " + linkType + " || channelId: " + channelId + " || objectId: " + objectId)
 		val reqList: List[Map[String, List[String]]] = getRequestData(request)
+		TelemetryManager.info("DIALManager::link:: reqList: " + reqList)
 		val requestMap: Map[String, List[String]] = validateAndGetRequestMap(channelId, reqList)
+		TelemetryManager.info("DIALManager::link:: requestMap: " + requestMap)
 		linkType match {
 			case DIALConstants.CONTENT => linkContent(requestMap, request.getContext)
 			case DIALConstants.COLLECTION => linkCollection(objectId, requestMap, request.getContext)
@@ -56,13 +62,15 @@ object DIALManager {
 	def validateAndGetRequestMap(channelId: String, requestList: List[Map[String, List[String]]])(implicit oec:OntologyEngineContext): Map[String, List[String]] = {
 		var reqMap = HashMap[String, List[String]]()
 		requestList.foreach(req => {
-			val contents: List[String] = req.get(DIALConstants.IDENTIFIER).get
-			val dialcodes: List[String] = req.get(DIALConstants.DIALCODE).get
+			val contents: List[String] = if(req.contains(DIALConstants.IDENTIFIER)) req(DIALConstants.IDENTIFIER) else throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG + DIALConstants.IDENTIFIER)
+			val dialcodes: List[String] = if(req.contains(DIALConstants.DIALCODE)) req(DIALConstants.DIALCODE) else throw new ClientException(DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING, DIALErrors.ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG + DIALConstants.DIALCODE)
 			validateReqStructure(dialcodes, contents)
 			contents.foreach(id => reqMap += (id -> dialcodes))
 		})
+		TelemetryManager.info("DIALManager::validateAndGetRequestMap:: requestList: " + requestList)
 		if (Platform.getBoolean("content.link_dialcode.validation", true)) {
-			val dials = requestList.collect { case m if m.get(DIALConstants.DIALCODE).nonEmpty => m.get(DIALConstants.DIALCODE).get }.flatten
+			val dials = requestList.collect { case m if m.contains(DIALConstants.DIALCODE) => m(DIALConstants.DIALCODE) }.flatten
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: dials: " + dials)
 			validateDialCodes(channelId, dials)
 		}
 		reqMap
@@ -77,7 +85,7 @@ object DIALManager {
 	}
 
 	def validateDialCodes(channelId: String, dialcodes: List[String])(implicit oec: OntologyEngineContext): Boolean = {
-		if (!dialcodes.isEmpty) {
+		if (dialcodes.nonEmpty) {
 			val reqMap = new util.HashMap[String, AnyRef]() {{
 				put(DIALConstants.REQUEST, new util.HashMap[String, AnyRef]() {{
 					put(DIALConstants.SEARCH, new util.HashMap[String, AnyRef]() {{
@@ -85,8 +93,11 @@ object DIALManager {
 					}})
 				}})
 			}}
-			val headerParam = HashMap[String, String](DIALConstants.X_CHANNEL_ID -> channelId, DIALConstants.AUTHORIZATION -> DIAL_API_AUTH_KEY).asJava
+			val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: DIAL_SEARCH_API_URL: " + DIAL_SEARCH_API_URL)
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: reqMap: " + reqMap)
 			val searchResponse = oec.httpUtil.post(DIAL_SEARCH_API_URL, reqMap, headerParam)
+			TelemetryManager.info("DIALManager::validateAndGetRequestMap:: searchResponse.getResponseCode: " + searchResponse.getResponseCode)
 			if (searchResponse.getResponseCode.toString == "OK") {
 				val result = searchResponse.getResult
 				if (dialcodes.distinct.size == result.get(DIALConstants.COUNT).asInstanceOf[Integer]) {
@@ -105,7 +116,7 @@ object DIALManager {
 		validateContents(requestMap, reqContext).map(result => {
 			val futureList: List[Future[Node]] = requestMap.filter(x => !result.contains(x._1)).map(map => {
 				val updateReqMap = new util.HashMap[String, AnyRef]() {{
-					val dials: util.List[String] = if (!map._2.isEmpty) map._2.asJava else new util.ArrayList[String]()
+					val dials: util.List[String] = if (map._2.nonEmpty) map._2.asJava else new util.ArrayList[String]()
 					put(DIALConstants.DIALCODES, dials)
 					put(DIALConstants.VERSION_KEY, PASSPORT_KEY)
 				}}
@@ -120,11 +131,60 @@ object DIALManager {
 		}).flatMap(f => f)
 	}
 
-	//TODO: Complete the implementation
-	def linkCollection(objectId: String, requestMap: Map[String, List[String]], getContext: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-		Future {
-			ResponseHandler.OK()
-		}
+	def linkCollection(objectId: String, requestMap: Map[String, List[String]], reqContext: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+		val req = new Request()
+		req.setContext(reqContext)
+		req.put(ContentConstants.IDENTIFIER, objectId)
+		req.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
+		TelemetryManager.info("DIALManager::linkCollection:: req: " + req)
+		DataNode.read(req).flatMap(rootNode => {
+			req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
+			req.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
+			req.put(ContentConstants.ROOT_ID, objectId)
+			TelemetryManager.info("DIALManager::linkCollection:: updated req: " + req)
+			HierarchyManager.getHierarchy(req).flatMap(getHierarchyResponse => {
+				val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+				val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+				val updatedChildrenHierarchy = updateChildrenHierarchy(childrenHierarchy, requestMap)
+				val childrenDIALMap = getChildrenDIALMap(updatedChildrenHierarchy, requestMap)
+				val consolidatedUnitDIALMap = if (!requestMap.contains(objectId)) childrenDIALMap else childrenDIALMap ++ Map(objectId -> requestMap(objectId))
+				TelemetryManager.info("DIALManager::linkCollection:: consolidatedUnitDIALMap: " + consolidatedUnitDIALMap)
+				validateDuplicateDIALCodes(consolidatedUnitDIALMap.filter(rec => rec._2.asInstanceOf[List[String]].nonEmpty))
+
+				val updatedHierarchy = new java.util.HashMap[String, AnyRef]()
+				updatedHierarchy.put(ContentConstants.IDENTIFIER, objectId)
+				updatedHierarchy.put(ContentConstants.CHILDREN, updatedChildrenHierarchy.asJava)
+
+				val hierarchyReq = new Request(req)
+				hierarchyReq.put(ContentConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
+				hierarchyReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
+				TelemetryManager.info("DIALManager::linkCollection:: hierarchyReq: " + hierarchyReq)
+				oec.graphService.saveExternalProps(hierarchyReq).flatMap(rec => if(requestMap.contains(objectId)) {
+					val updateReq = new Request(req)
+					updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
+					val rootNodeMetadata = rootNode.getMetadata
+					rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
+					rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
+					rootNodeMetadata.remove(DIALConstants.TRACKABLE)
+
+					if(rootNodeMetadata.containsKey(DIALConstants.DIALCODES))
+						rootNodeMetadata.remove(DIALConstants.DIALCODES)
+
+					if(requestMap(objectId).isEmpty)
+						updateReq.put(DIALConstants.DIALCODES, null)
+					else
+						updateReq.put(DIALConstants.DIALCODES, requestMap(objectId).toArray[String])
+
+					updateReq.getRequest.putAll(rootNodeMetadata)
+
+					DataNode.update(updateReq).flatMap(response => {
+						getResponseCollectionLink(requestMap, consolidatedUnitDIALMap.keySet.toList, requestMap.keySet.diff(consolidatedUnitDIALMap.keySet).toList)
+					})
+				} else {
+					getResponseCollectionLink(requestMap, consolidatedUnitDIALMap.keySet.toList, requestMap.keySet.diff(consolidatedUnitDIALMap.keySet).toList)
+				})
+			})
+		})
 	}
 
 	def validateContents(requestMap: Map[String, List[String]], reqContext: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec:OntologyEngineContext): Future[List[String]] = {
@@ -152,6 +212,7 @@ object DIALManager {
 				ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, DIALErrors.ERR_DIALCODE_LINK, DIALErrors.ERR_CONTENT_NOT_FOUND_MSG + invalidIds.asJava)
 		})
 	}
+
 
 	def reserve(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
@@ -262,5 +323,58 @@ object DIALManager {
 		else {
 			throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, DIALErrors.ERR_DIAL_GENERATION_MSG)
 		}
+	}
+
+	def getResponseCollectionLink(requestMap: Map[String, List[String]], updatedUnits: List[String], invalidIds: List[String])(implicit ec: ExecutionContext): Future[Response] = {
+		val response = if (requestMap.keySet.size == updatedUnits.size)
+				ResponseHandler.OK
+			else if (invalidIds.nonEmpty && updatedUnits.isEmpty)
+				ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, DIALErrors.ERR_DIALCODE_LINK, DIALErrors.ERR_CONTENT_NOT_FOUND_MSG + invalidIds.asJava)
+			else
+				ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, DIALErrors.ERR_DIALCODE_LINK, DIALErrors.ERR_CONTENT_NOT_FOUND_MSG + invalidIds.asJava)
+
+		Future(response)
+	}
+
+	def updateChildrenHierarchy(childrenHierarchy: util.List[util.Map[String, AnyRef]], requestMap: Map[String, List[String]]): List[util.Map[String, AnyRef]] = {
+		childrenHierarchy.asScala.toList.map(child => {
+			if (requestMap.contains(child.get(ContentConstants.IDENTIFIER).toString) && StringUtils.equalsIgnoreCase("Parent", child.get(ContentConstants.VISIBILITY).toString)) {
+				if (requestMap.getOrElse(child.get(ContentConstants.IDENTIFIER).toString, List.empty).nonEmpty && requestMap(child.get(ContentConstants.IDENTIFIER).toString).exists(rec => rec.trim.nonEmpty))
+					child.put(DIALConstants.DIALCODES, requestMap(child.get(ContentConstants.IDENTIFIER).toString))
+				else
+					child.remove(DIALConstants.DIALCODES)
+			}
+			if(child.get(ContentConstants.CHILDREN)!=null)
+					updateChildrenHierarchy(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], requestMap)
+			child
+		})
+	}
+
+	def getChildrenDIALMap(childrenHierarchy: List[util.Map[String, AnyRef]], requestMap: Map[String, List[String]]): Map[String, AnyRef] = {
+		childrenHierarchy.map(child => {
+			val subChildrenDIALMap = if(child.get(ContentConstants.CHILDREN)!=null)
+				getChildrenDIALMap(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList, requestMap)
+			else Map.empty[String, String]
+
+			val childDIALMap = if(requestMap.contains(child.get(ContentConstants.IDENTIFIER).toString) && child.get(DIALConstants.DIALCODES)!=null)
+				Map(child.get(ContentConstants.IDENTIFIER).toString -> child.get(DIALConstants.DIALCODES))
+			else if(requestMap.contains(child.get(ContentConstants.IDENTIFIER).toString))
+				Map(child.get(ContentConstants.IDENTIFIER).toString -> List.empty)
+			else Map.empty
+
+			subChildrenDIALMap ++ childDIALMap
+		}).filter(msg => msg.nonEmpty).flatten.toMap[String, AnyRef]
+	}
+
+	def validateDuplicateDIALCodes(unitDIALCodesMap: Map[String, AnyRef]): Unit = {
+		val duplicateDIALCodes = unitDIALCodesMap.flatMap(mapRec => mapRec._2.asInstanceOf[List[String]].flatMap(listRec => {
+			val dupUnitsList: List[String] = unitDIALCodesMap.flatMap(loopMapRec => if(loopMapRec._1 != mapRec._1 && loopMapRec._2.asInstanceOf[List[String]].contains(listRec)) {
+				List(loopMapRec._1, mapRec._1)
+			} else List.empty[String]).filter(unitRec => unitRec.nonEmpty).toList
+			Map(listRec -> dupUnitsList.toSet)
+		})).filter(unitRec => unitRec._2.nonEmpty)
+
+		if (duplicateDIALCodes.nonEmpty)
+			throw new ClientException(DIALErrors.ERR_DUPLICATE_DIAL_CODES, DIALErrors.ERR_DUPLICATE_DIAL_CODES_MSG + duplicateDIALCodes)
 	}
 }
