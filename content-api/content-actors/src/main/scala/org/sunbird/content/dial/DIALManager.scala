@@ -296,12 +296,14 @@ object DIALManager {
 			} else reservedDialCodes
 			TelemetryManager.info("DialManager:: reserve:: updateDialCodes: " + updateDialCodes)
 			if(updateDialCodes.size > reservedDialCodes.size) {
-				val updateReq = new Request(request)
-				updateReq.put("identifier", rootNode.getIdentifier)
+				val updateReq = new Request(req)
+				updateReq.setContext(request.getContext)
+				updateReq.getContext.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
+				updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
 				val rootNodeMetadata = rootNode.getMetadata
-				rootNodeMetadata.remove("discussionForum")
-				rootNodeMetadata.remove("credentials")
-				rootNodeMetadata.remove("trackable")
+				rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
+				rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
+				rootNodeMetadata.remove(DIALConstants.TRACKABLE)
 
 				updateReq.put(DIALConstants.RESERVED_DIALCODES, updateDialCodes)
 				updateReq.getRequest.putAll(rootNodeMetadata)
@@ -355,9 +357,8 @@ object DIALManager {
 		val requestMap = new util.HashMap[String, AnyRef]
 		requestMap.put("request", request)
 		val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
-
 		val generateResponse = oec.httpUtil.post(DIALCODE_GENERATE_URI, requestMap, headerParam)
-		if ((generateResponse.getResponseCode == ResponseCode.OK) || (generateResponse.getResponseCode == ResponseCode.PARTIAL_SUCCESS)) {
+		if (generateResponse.getResponseCode == ResponseCode.OK || generateResponse.getResponseCode == ResponseCode.PARTIAL_SUCCESS) {
 			val generatedDialCodes =  generateResponse.getResult.get("dialcodes").asInstanceOf[util.ArrayList[String]].asScala.toList
 			if (generatedDialCodes.nonEmpty) generatedDialCodes
 			else throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, DIALErrors.ERR_DIAL_GEN_LIST_EMPTY_MSG)
