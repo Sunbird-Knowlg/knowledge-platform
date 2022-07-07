@@ -131,6 +131,16 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.LINK_DIAL_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
+    def reserveDialCode(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val reserveDialCode = getRequest(body, headers, "reserveDialCode")
+        setRequestContext(reserveDialCode, version, objectType, schemaName)
+        getResult(ApiId.RESERVE_DIAL_CONTENT, contentActor, reserveDialCode)
+    }
+
     def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = requestFormData(identifier)

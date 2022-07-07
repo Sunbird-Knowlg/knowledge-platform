@@ -279,11 +279,10 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 		val response = DIALManager.reserve(request)
 		response.map(result => {
-			println("Result:: " + result.getResult)
 			assert(result.getResponseCode.toString=="OK")
 		})
-
 	}
+
 
 	def getDIALSearchResponse:Response = {
 		val resString = "{\n  \"id\": \"sunbird.dialcode.search\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2020-04-21T19:39:14ZZ\",\n  \"params\": {\n    \"resmsgid\": \"1dfcc25b-6c37-49f8-a6c3-7185063e8752\",\n    \"msgid\": null,\n    \"err\": null,\n    \"status\": \"successful\",\n    \"errmsg\": null\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"dialcodes\": [\n      {\n        \"dialcode_index\": 7609876,\n        \"identifier\": \"N4Z7D5\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.603+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610113,\n        \"identifier\": \"E8B7Z6\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.635+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610117,\n        \"identifier\": \"R4X2P2\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.637+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610961,\n        \"identifier\": \"L4A6W8\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.734+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7611164,\n        \"identifier\": \"D2E1J9\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.759+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      }\n    ],\n    \"count\": 5\n  }\n}";
@@ -575,4 +574,26 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		val resString = "{\"id\": \"api.dialcode.generate\",\"ver\": \"1.0\",\"ts\": \"2022-07-05T09:47:26.000Z\",\"params\": {\"resmsgid\": \"79eb8b00-fc47-11ec-af25-0f53946b16ec\",\"msgid\": \"79be1260-fc47-11ec-8c03-63ca5ce41074\",\"status\": \"successful\",\"err\": null,\"errmsg\": null},\"responseCode\": \"OK\",\"result\": {\"dialcodes\": [\"K2C3R6\",\"H2E8F9\"],\"count\": 2,\"batchcode\": \"do_11357423520695910411\",\"publisher\": null}}"
 		JsonUtils.deserialize(resString, classOf[Response])
 	}
+
+	def getInvalidChannelReserveDIALRequest(identifier: String): Request = {
+		val request = new Request()
+		request.setObjectType("Content")
+		request.setContext(getInavlidChannelContext())
+		request.getContext.put("identifier",identifier)
+		request.put("identifier",identifier)
+		request.putAll(getReserveRequest())
+		request
+	}
+
+	def getInavlidChannelContext():util.Map[String, AnyRef] = {
+		val contextMap: java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){{
+			put("graph_id", "domain")
+			put("version" , "1.0")
+			put("objectType" , "Content")
+			put("schemaName", "content")
+			put("channel", "invalidChannel")
+		}}
+		contextMap
+	}
+
 }
