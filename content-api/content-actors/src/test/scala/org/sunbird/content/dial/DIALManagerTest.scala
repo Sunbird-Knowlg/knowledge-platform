@@ -265,13 +265,13 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getGenerateDIALResponse)
 
-		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getNodes())).noMoreThanOnce()
 		val nodes: util.List[Node] = getCategoryNode()
-		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).noMoreThanOnce()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
 		val contentId: String = "do_123456"
-		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId)))
-		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId+".img")))
+//		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId))).anyNumberOfTimes()
+//		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId+".img"))).anyNumberOfTimes()
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode(contentId)))
 
@@ -279,6 +279,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 		val response = DIALManager.reserve(request)
 		response.map(result => {
+			println("Result:: " + result.getResult)
 			assert(result.getResponseCode.toString=="OK")
 		})
 
@@ -397,6 +398,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 			add(getNode("do_3333"))
 			add(getNode("do_4444"))
 			add(getNode("do_5555"))
+			add(getNode("do_123456"))
 		}}
 		result
 	}
