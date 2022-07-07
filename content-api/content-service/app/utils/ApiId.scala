@@ -100,5 +100,5 @@ object ApiId {
 	//Collection CSV APIs
 	val IMPORT_CSV = "api.collection.import"
 	val EXPORT_CSV = "api.collection.export"
-
+	val RESERVE_DIAL_COLLECTION = "api.collection.dialcode.reserve"
 }
