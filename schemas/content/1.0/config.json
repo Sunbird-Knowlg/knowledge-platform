@@ -29,6 +29,9 @@
             },
             "externallink": {
                 "type": "text"
+            },
+            "script": {
+                "type": "text"
             }
         },
         "primaryKey": ["content_id"]
