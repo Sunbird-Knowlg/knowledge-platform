@@ -33,8 +33,11 @@
       },
       "awards": {
         "type": "string"
+      },
+      "story": {
+        "type": "text"
       }
     },
-    "primaryKey": ["identifier"]
+    "primaryKey": ["movie_id"]
   }
 }
