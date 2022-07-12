@@ -583,6 +583,17 @@
     },
     "originData": {
       "type": "object"
+    },
+    "choices": {
+      "type": "object",
+      "description": "Choices which needs to be used in MCQ / MTF type question"
+    },
+    "rhsChoices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Choices which needs to be used in RHS of MTF type question"
     }
   },
   "additionalProperties": false
