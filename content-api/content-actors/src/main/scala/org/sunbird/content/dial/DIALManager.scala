@@ -21,7 +21,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object DIALManager {
 
 	val DIAL_SEARCH_API_URL: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.search")
-	val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate_url")
+	val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate")
 	val DIAL_API_AUTH_KEY: String = "Bearer " + Platform.config.getString("dial_service.api.auth_key")
 	val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
 
