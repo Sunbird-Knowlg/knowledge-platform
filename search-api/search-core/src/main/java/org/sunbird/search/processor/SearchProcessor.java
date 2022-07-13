@@ -6,17 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.lucene.search.function.CombineFunction;
-import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery.ScoreMode;
-import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder.FilterFunctionBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -38,11 +29,7 @@ import org.sunbird.telemetry.logger.TelemetryManager;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SearchProcessor {
@@ -327,9 +314,9 @@ public class SearchProcessor {
 		QueryBuilder queryBuilder = null;
 		String totalOperation = searchDTO.getOperation();
 		List<Map> properties = searchDTO.getProperties();
-		formQuery(properties, queryBuilder, boolQuery, totalOperation);
+		formQuery(properties, queryBuilder, boolQuery, totalOperation, searchDTO.isFuzzySearch());
 		if(searchDTO.getMultiFilterProperties() != null) {
-			formQuery(searchDTO.getMultiFilterProperties(), queryBuilder, boolQuery, SearchConstants.SEARCH_OPERATION_OR);
+			formQuery(searchDTO.getMultiFilterProperties(), queryBuilder, boolQuery, SearchConstants.SEARCH_OPERATION_OR, searchDTO.isFuzzySearch());
 		}
 
 		Map<String, Object> softConstraints = searchDTO.getSoftConstraints();
@@ -341,7 +328,7 @@ public class SearchProcessor {
 		return boolQuery;
 	}
 
-	private void formQuery(List<Map> properties, QueryBuilder queryBuilder, BoolQueryBuilder boolQuery, String operation) {
+	private void formQuery(List<Map> properties, QueryBuilder queryBuilder, BoolQueryBuilder boolQuery, String operation, Boolean fuzzy) {
 		for (Map<String, Object> property : properties) {
 			String opertation = (String) property.get("operation");
 
@@ -358,7 +345,7 @@ public class SearchProcessor {
 			if (propertyName.equals("*")) {
 				relevanceSort = true;
 				propertyName = "all_fields";
-				queryBuilder = getAllFieldsPropertyQuery(values);
+				queryBuilder = getAllFieldsPropertyQuery(values, fuzzy);
 				boolQuery.must(queryBuilder);
 				continue;
 			}
@@ -462,145 +449,12 @@ public class SearchProcessor {
 		return queryBuilder;
 	}
 
-	/**
-	 * @param searchDTO
-	 * @return
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private QueryBuilder prepareFilteredSearchQuery(SearchDTO searchDTO) {
-		List<FilterFunctionBuilder> filterFunctionBuilder = new ArrayList<>();
-
-		Map<String, Float> weightages = (Map<String, Float>) searchDTO.getAdditionalProperty("weightagesMap");
-		if (weightages == null) {
-			weightages = new HashMap<String, Float>();
-			weightages.put("default_weightage", 1.0f);
-		}
-		List<String> querySearchFeilds = ElasticSearchUtil.getQuerySearchFields();
-		List<Map> properties = searchDTO.getProperties();
-		for (Map<String, Object> property : properties) {
-			String opertation = (String) property.get("operation");
-
-			List<Object> values;
-			try {
-				values = (List<Object>) property.get("values");
-			} catch (Exception e) {
-				values = Arrays.asList(property.get("values"));
-			}
-
-			values = values.stream().filter(value -> (null != value)).collect(Collectors.toList());
-			String propertyName = (String) property.get("propertyName");
-			if (propertyName.equals("*")) {
-				relevanceSort = true;
-				propertyName = "all_fields";
-				filterFunctionBuilder
-						.add(new FilterFunctionBuilder(getAllFieldsPropertyQuery(values),
-								ScoreFunctionBuilders.weightFactorFunction(weightages.get("default_weightage"))));
-				continue;
-			}
-
-			propertyName = propertyName + SearchConstants.RAW_FIELD_EXTENSION;
-			float weight = getweight(querySearchFeilds, propertyName);
-			switch (opertation) {
-			case SearchConstants.SEARCH_OPERATION_EQUAL: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getMustTermQuery(propertyName, values, true),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_NOT_EQUAL: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getMustTermQuery(propertyName, values, true),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_ENDS_WITH: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getRegexQuery(propertyName, values), ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_LIKE:
-			case SearchConstants.SEARCH_OPERATION_CONTAINS: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getMatchPhraseQuery(propertyName, values, true),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_NOT_LIKE: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getMatchPhraseQuery(propertyName, values, false),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_STARTS_WITH: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getMatchPhrasePrefixQuery(propertyName, values),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_EXISTS: {
-				filterFunctionBuilder.add(
-						new FilterFunctionBuilder(getExistsQuery(propertyName, values, true),
-								ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_NOT_EXISTS: {
-				filterFunctionBuilder.add(
-						new FilterFunctionBuilder(getExistsQuery(propertyName, values, false),
-								ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_NOT_IN: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getNotInQuery(propertyName, values), ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_GREATER_THAN: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getRangeQuery(propertyName, values, SearchConstants.SEARCH_OPERATION_GREATER_THAN),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_GREATER_THAN_EQUALS: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getRangeQuery(propertyName, values,
-								SearchConstants.SEARCH_OPERATION_GREATER_THAN_EQUALS),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_LESS_THAN: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getRangeQuery(propertyName, values, SearchConstants.SEARCH_OPERATION_LESS_THAN),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_LESS_THAN_EQUALS: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getRangeQuery(propertyName, values, SearchConstants.SEARCH_OPERATION_LESS_THAN_EQUALS),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			case SearchConstants.SEARCH_OPERATION_AND: {
-				filterFunctionBuilder.add(new FilterFunctionBuilder(
-						getAndQuery(propertyName, values),
-						ScoreFunctionBuilders.weightFactorFunction(weight)));
-				break;
-			}
-			}
-		}
-
-		FunctionScoreQueryBuilder queryBuilder = QueryBuilders
-				.functionScoreQuery(
-						filterFunctionBuilder.toArray(new FilterFunctionBuilder[filterFunctionBuilder.size()]))
-				.boostMode(CombineFunction.REPLACE).scoreMode(ScoreMode.SUM);
-		return queryBuilder;
-
-	}
 
 	private QueryBuilder getAndQuery(String propertyName, List<Object> values) {
 		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 		for (Object value : values) {
 				queryBuilder.must(
-						QueryBuilders.matchQuery(propertyName, value).operator(Operator.AND));
+						QueryBuilders.matchQuery(propertyName, value).operator(Operator.AND).fuzzyTranspositions(false));
 		}
 		return queryBuilder;
 	}
@@ -627,7 +481,7 @@ public class SearchProcessor {
 	 * @param values
 	 * @return
 	 */
-	private QueryBuilder getAllFieldsPropertyQuery(List<Object> values) {
+	private QueryBuilder getAllFieldsPropertyQuery(List<Object> values, Boolean fuzzy) {
 		List<String> queryFields = ElasticSearchUtil.getQuerySearchFields();
 		Map<String, Float> queryFieldsMap = new HashMap<>();
 		for (String field : queryFields) {
@@ -638,9 +492,15 @@ public class SearchProcessor {
 		}
 		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 		for (Object value : values) {
-			queryBuilder
-					.should(QueryBuilders.multiMatchQuery(value).fields(queryFieldsMap)
-							.operator(Operator.AND).type(Type.CROSS_FIELDS).lenient(true));
+			if (fuzzy) {
+				queryBuilder
+						.should(QueryBuilders.multiMatchQuery(value).fields(queryFieldsMap)
+								.operator(Operator.AND).fuzziness("AUTO").lenient(true));
+			} else {
+				queryBuilder
+						.should(QueryBuilders.multiMatchQuery(value).fields(queryFieldsMap)
+								.operator(Operator.AND).type(Type.CROSS_FIELDS).fuzzyTranspositions(false).lenient(true));
+			}
 		}
 
 		return queryBuilder;
@@ -660,13 +520,13 @@ public class SearchProcessor {
 				for(Object value: dataList) {
 					queryBuilder
 							.should(QueryBuilders.matchQuery(key + SearchConstants.RAW_FIELD_EXTENSION, value)
-									.boost(Integer.valueOf((int) data.get(0)).floatValue()));
+									.boost(Integer.valueOf((int) data.get(0)).floatValue()).fuzzyTranspositions(false));
 				}
 			}
 			else {
 				queryBuilder.should(
 						QueryBuilders.matchQuery(key + SearchConstants.RAW_FIELD_EXTENSION, data.get(1))
-								.boost(Integer.valueOf((int) data.get(0)).floatValue()));
+								.boost(Integer.valueOf((int) data.get(0)).floatValue()).fuzzyTranspositions(false));
 			}
 		}
 		return queryBuilder;
@@ -799,10 +659,10 @@ public class SearchProcessor {
 		for (Object value : values) {
 			if (match) {
 				queryBuilder.should(
-						QueryBuilders.matchQuery(propertyName, value));
+						QueryBuilders.matchQuery(propertyName, value).fuzzyTranspositions(false));
 			} else {
 				queryBuilder.mustNot(
-						QueryBuilders.matchQuery(propertyName, value));
+						QueryBuilders.matchQuery(propertyName, value).fuzzyTranspositions(false));
 			}
 		}
 
@@ -965,7 +825,7 @@ public class SearchProcessor {
 	}
 
 	private QueryBuilder getQuery(SearchDTO searchDTO) {
-		return searchDTO.isFuzzySearch() ? prepareFilteredSearchQuery(searchDTO) : prepareSearchQuery(searchDTO);
+		return prepareSearchQuery(searchDTO);
 	}
 
 
