@@ -17,7 +17,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 	implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 	val graphDB: GraphService = mock[GraphService]
 	val httpUtil: HttpUtil = mock[HttpUtil]
-	
+
 	"getRequestData with list input" should "return request data as list with scala types" in {
 		val reqMap : java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){{
 			put("content", new util.ArrayList[util.Map[String, AnyRef]](){{
@@ -202,7 +202,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
 		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(new Response()))
 		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
-		
+
 		val request = getCollectionDIALRequest()
 
 		val response = DIALManager.link(request)
@@ -259,6 +259,30 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 			assert(result.getResponseCode.toString=="RESOURCE_NOT_FOUND")
 		})
 	}
+
+	"reserve DIAL" should "update content with reservedDialcodes" in {
+		(oec.httpUtil _).expects().returns(httpUtil)
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+		(httpUtil.post(_: String, _:java.util.Map[String, AnyRef], _:java.util.Map[String, String])).expects(*, *, *).returns(getGenerateDIALResponse)
+
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+		val contentId: String = "do_123456"
+//		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId))).anyNumberOfTimes()
+//		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId+".img"))).anyNumberOfTimes()
+		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode(contentId)))
+
+		val request = getReserveDIALRequest(contentId)
+
+		val response = DIALManager.reserve(request)
+		response.map(result => {
+			assert(result.getResponseCode.toString=="OK")
+		})
+	}
+
 
 	def getDIALSearchResponse:Response = {
 		val resString = "{\n  \"id\": \"sunbird.dialcode.search\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2020-04-21T19:39:14ZZ\",\n  \"params\": {\n    \"resmsgid\": \"1dfcc25b-6c37-49f8-a6c3-7185063e8752\",\n    \"msgid\": null,\n    \"err\": null,\n    \"status\": \"successful\",\n    \"errmsg\": null\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"dialcodes\": [\n      {\n        \"dialcode_index\": 7609876,\n        \"identifier\": \"N4Z7D5\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.603+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610113,\n        \"identifier\": \"E8B7Z6\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.635+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610117,\n        \"identifier\": \"R4X2P2\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.637+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610961,\n        \"identifier\": \"L4A6W8\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.734+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7611164,\n        \"identifier\": \"D2E1J9\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.759+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      }\n    ],\n    \"count\": 5\n  }\n}";
@@ -373,6 +397,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 			add(getNode("do_3333"))
 			add(getNode("do_4444"))
 			add(getNode("do_5555"))
+			add(getNode("do_123456"))
 		}}
 		result
 	}
@@ -523,4 +548,30 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		response.put("hierarchy", hierarchyString)
 	}
 
+	def getReserveDIALRequest(identifier: String): Request = {
+		val request = new Request()
+		request.setObjectType("Content")
+		request.setContext(getContext())
+		request.getContext.put("identifier",identifier)
+		request.put("identifier",identifier)
+		request.putAll(getReserveRequest())
+		request
+	}
+
+	def getReserveRequest():util.Map[String, AnyRef] = {
+		val reqMap : java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){
+			put("dialcodes", new util.HashMap[String, AnyRef](){
+				put("count", 2.asInstanceOf[Integer])
+				put("qrCodeSpec", new util.HashMap[String, AnyRef](){
+					put("errorCorrectionLevel", "H")
+				})
+			})
+		}
+		reqMap
+	}
+
+	def getGenerateDIALResponse:Response = {
+		val resString = "{\"id\": \"api.dialcode.generate\",\"ver\": \"1.0\",\"ts\": \"2022-07-05T09:47:26.000Z\",\"params\": {\"resmsgid\": \"79eb8b00-fc47-11ec-af25-0f53946b16ec\",\"msgid\": \"79be1260-fc47-11ec-8c03-63ca5ce41074\",\"status\": \"successful\",\"err\": null,\"errmsg\": null},\"responseCode\": \"OK\",\"result\": {\"dialcodes\": [\"K2C3R6\",\"H2E8F9\"],\"count\": 2,\"batchcode\": \"do_11357423520695910411\",\"publisher\": null}}"
+		JsonUtils.deserialize(resString, classOf[Response])
+	}
 }

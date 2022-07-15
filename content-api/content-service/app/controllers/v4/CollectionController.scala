@@ -186,6 +186,16 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         getResult(ApiId.LINK_DIAL_COLLECTION, contentActor, contentRequest, version = apiVersion)
     }
 
+    def reserveDialCode(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val reserveDialCode = getRequest(body, headers, "reserveDialCode")
+        setRequestContext(reserveDialCode, version, objectType, schemaName)
+        getResult(ApiId.RESERVE_DIAL_COLLECTION, contentActor, reserveDialCode)
+    }
+
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
