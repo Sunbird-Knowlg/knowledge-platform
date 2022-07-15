@@ -347,14 +347,16 @@ object DIALManager {
 
 	@throws[Exception]
 	private def generateDialCodes(channelId: String, contentId: String, dialcodeCount: Integer, publisher: String)(implicit oec: OntologyEngineContext): List[String] = {
-		val dialcodeMap = new util.HashMap[String, AnyRef]
-		dialcodeMap.put(DIALConstants.COUNT, dialcodeCount)
-		dialcodeMap.put(DIALConstants.PUBLISHER, publisher)
-		dialcodeMap.put(DIALConstants.BATCH_CODE, contentId)
-		val request = new util.HashMap[String, AnyRef]
-		request.put(DIALConstants.DIALCODES, dialcodeMap)
-		val requestMap = new util.HashMap[String, AnyRef]
-		requestMap.put(DIALConstants.REQUEST, request)
+		val requestMap = new util.HashMap[String, AnyRef]() {{
+			put(DIALConstants.REQUEST, new util.HashMap[String, AnyRef]() {{
+				put(DIALConstants.DIALCODES, new util.HashMap[String, AnyRef]() {{
+					put(DIALConstants.COUNT, dialcodeCount)
+					put(DIALConstants.PUBLISHER, publisher)
+					put(DIALConstants.BATCH_CODE, contentId)
+				}})
+			}})
+		}}
+
 		val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
 		val generateResponse = oec.httpUtil.post(DIALCODE_GENERATE_URI, requestMap, headerParam)
 		if (generateResponse.getResponseCode == ResponseCode.OK || generateResponse.getResponseCode == ResponseCode.PARTIAL_SUCCESS) {
@@ -380,7 +382,7 @@ object DIALManager {
 		rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
 		rootNodeMetadata.remove(DIALConstants.TRACKABLE)
 
-		updateReq.put(DIALConstants.RESERVED_DIALCODES, updateDialCodes)
+		updateReq.put(DIALConstants.RESERVED_DIALCODES, updateDialCodes.asJava)
 		updateReq.getRequest.putAll(rootNodeMetadata)
 
 		updateReq

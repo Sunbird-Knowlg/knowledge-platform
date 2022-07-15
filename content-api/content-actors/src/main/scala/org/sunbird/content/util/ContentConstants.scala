@@ -57,6 +57,6 @@ object ContentConstants {
     val VERSION:String = "version"
     val COPY_SCHEME:String = "copyScheme"
     val PARENT: String = "Parent"
-    val BEARER: String = "Bearer"
+    val BEARER: String = "Bearer "
     val OK_RESPONSE_CODE: String = "OK"
 }
