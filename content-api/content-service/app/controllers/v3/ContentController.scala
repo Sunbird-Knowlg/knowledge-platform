@@ -206,9 +206,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def reserveDialCode(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val reserveDialCode = getRequest(body, headers, "reserveDialCode")
+        setRequestContext(reserveDialCode, version, objectType, schemaName)
+        getResult(ApiId.RESERVE_DIAL_CONTENT, contentActor, reserveDialCode)
     }
 
     def releaseDialcodes(identifier: String) = Action.async { implicit request =>

@@ -99,6 +99,7 @@ DELETE    /content/v4/retire/:identifier           controllers.v4.ContentControl
 PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentController.systemUpdate(identifier:String)
 POST      /content/v4/review/:identifier           controllers.v4.ContentController.review(identifier:String)
 POST      /content/v4/reject/:identifier           controllers.v4.ContentController.reviewReject(identifier:String)
+POST      /content/v4/dialcode/reserve/:identifier  controllers.v4.ContentController.reserveDialCode(identifier:String)
 
 # App v4 APIs
 POST      /app/v4/register                          controllers.v4.AppController.register
@@ -130,3 +131,4 @@ GET     /object/v4/read/:identifier              controllers.v4.ObjectController
 POST   /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
 GET    /collection/v4/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])
 POST   /collection/v4/review/:identifier            controllers.v4.CollectionController.review(identifier:String)
+POST   /collection/v4/dialcode/reserve/:identifier  controllers.v4.CollectionController.reserveDialCode(identifier:String)
