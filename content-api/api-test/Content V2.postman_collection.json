@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "95bee03d-d782-47da-89f9-cc70bb0a267e",
 		"name": "Content V2",
-		"description": "The Content Management APIs allow you to create, manage and process content on the Sunbird platform. Content is the basic building block of the Knowledge Service. Some examples would be Videos, Audio, Pdfs, Html, ECML etc. The basic operations for this API include Create, Update, Read, Review, Publish.\n\nThe URL for Content Management API(s) is /content/v1.",
+		"description": "The Content Management APIs allow you to create, manage and process content on the Sunbird platform. Content is the basic building block of the Knowledge Service. Some examples would be Videos, Audio, Pdfs, Html, ECML etc. The basic operations for this API include Create, Update, Read, Review, Publish.\n\n*   Each of the endpoints serve a different purpose, so which one to use depends on what you want to do\n*   The operations include CRUD (Create, Update, Read and Delete) operations and other operations such as upload, publish, flag, link DIAL code, etc.\n*   The URL for Content Management API(s) is /content/v2.\n    \n\nAPI tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1419050"
 	},
@@ -77,25 +77,29 @@
 				"header": [
 					{
 						"key": "Content-Type",
-						"value": "application/json"
+						"value": "application/json",
+						"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
 					},
 					{
 						"key": "X-Authenticated-User-token",
-						"value": "{{keycloak_access_token}}"
+						"value": "{{keycloak_access_token}}",
+						"description": "Represents the authorized User ID to execute the API."
 					},
 					{
 						"key": "Authorization",
-						"value": "{{kong_api_key}}"
+						"value": "{{kong_api_key}}",
+						"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
 					},
 					{
 						"key": "X-Channel-Id",
 						"value": "{{channel_id}}",
-						"type": "text"
+						"type": "text",
+						"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
 					}
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n            \"resourceType\": \"Learn\",\n            \"framework\": \"ekstep_ncert_k-12\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
+					"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 				},
 				"url": {
 					"raw": "{{host}}/content/v2/create",
@@ -108,7 +112,7 @@
 						"create"
 					]
 				},
-				"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+				"description": "This API is associated with creating content on the Sunbird Platform. Mandatory fields cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
 			},
 			"response": [
 				{
@@ -116,11 +120,6 @@
 					"originalRequest": {
 						"method": "POST",
 						"header": [
-							{
-								"key": "userId",
-								"value": "user",
-								"type": "text"
-							},
 							{
 								"key": "Content-Type",
 								"value": "application/json",
@@ -137,8 +136,8 @@
 								"type": "text"
 							},
 							{
-								"key": "Cookie",
-								"value": "connect.sid=s%3AyRLPeHt6zZ93WjZ2BD_Cejc11xNN-isK.ANbL%2FZ1t88yXax%2BiXjGFVtgFUAKhoWdl%2FgXU4yBX9rU; 81f30cf708470b974874c8a96a6bcdb2=l99ob678op07nq0qs5i0dae0m3; AWSELB=83D53DFF08C363B9195F6717118E44E326DE55CB796FB96A69500BA54C477B7512D6342B64B0B494BBD6699FCFFFB308C0DC9247AA23DA73B4F62BA4C399A735F647C86F50",
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
 								"type": "text"
 							}
 						],
@@ -147,11 +146,16 @@
 							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"API DOCUMENTATION CONTENT\",\n            \"mimeType\": \"application/pdf\",\n            \"code\": \"api-docs\",\n            \"primaryCategory\": \"Explanation Content\",\n            \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\"\n        }\n    }\n}"
 						},
 						"url": {
-							"raw": "{{host}}/content/v2/create",
+							"raw": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+							"protocol": "https",
 							"host": [
-								"{{host}}"
+								"dev",
+								"knowlg",
+								"sunbird",
+								"org"
 							],
 							"path": [
+								"api",
 								"content",
 								"v2",
 								"create"
@@ -326,14 +330,22 @@
 				"method": "GET",
 				"header": [
 					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+					},
+					{
 						"key": "X-Authenticated-User-token",
 						"value": "{{keycloak_access_token}}",
-						"type": "text"
+						"type": "text",
+						"description": "Represents the authorized User ID to execute the API."
 					},
 					{
 						"key": "Authorization",
 						"value": "{{kong_api_key}}",
-						"type": "text"
+						"type": "text",
+						"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
 					}
 				],
 				"url": {
@@ -348,7 +360,7 @@
 						"{{content_id}}"
 					]
 				},
-				"description": "Fetch a particular Batch\nThis API is associated with fetching a particular batch on the Sunbird Platform.\nThe endpoint for Fetch a particular Batch is /batch/read/{Batch_ID}\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+				"description": "This API is associated with viewing and reading out the content on the Sunbird Platform. You need to provide a valid content Id value in {{content_id}} field of API URL."
 			},
 			"response": [
 				{
@@ -356,6 +368,11 @@
 					"originalRequest": {
 						"method": "GET",
 						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
 							{
 								"key": "X-Authenticated-User-token",
 								"value": "{{keycloak_access_token}}",
@@ -368,11 +385,16 @@
 							}
 						],
 						"url": {
-							"raw": "{{host}}/content/v2/read/{{content_id}}",
+							"raw": "https://dev.knowlg.sunbird.org/api/content/v2/read/{{content_id}}",
+							"protocol": "https",
 							"host": [
-								"{{host}}"
+								"dev",
+								"knowlg",
+								"sunbird",
+								"org"
 							],
 							"path": [
+								"api",
 								"content",
 								"v2",
 								"read",
@@ -543,22 +565,26 @@
 					{
 						"key": "Content-Type",
 						"value": "application/json",
-						"type": "text"
+						"type": "text",
+						"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
 					},
 					{
 						"key": "X-Authenticated-User-token",
 						"value": "{{keycloak_access_token}}",
-						"type": "text"
+						"type": "text",
+						"description": "Represents the authorized User ID to execute the API."
 					},
 					{
 						"key": "Authorization",
 						"value": "{{kong_api_key}}",
-						"type": "text"
+						"type": "text",
+						"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
 					},
 					{
 						"key": "X-Channel-Id",
 						"value": "{{channel_id}}",
-						"type": "text"
+						"type": "text",
+						"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
 					}
 				],
 				"body": {
@@ -577,7 +603,7 @@
 						"{{content_id}}"
 					]
 				},
-				"description": "This API is associated with updating a batch on the Sunbird Platform.\nThe endpoint for Course Batch Update is /batch/update\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+				"description": "This API is associated with updating content on the Sunbird Platform. Mandatory fields cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
 			},
 			"response": []
 		}
