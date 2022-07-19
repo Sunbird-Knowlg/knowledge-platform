@@ -102,11 +102,12 @@
 					"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 				},
 				"url": {
-					"raw": "{{host}}/content/v2/create",
+					"raw": "{{host}}/api/content/v2/create",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
+						"api",
 						"content",
 						"v2",
 						"create"
@@ -123,36 +124,33 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
 							},
 							{
 								"key": "X-Authenticated-User-token",
 								"value": "{{keycloak_access_token}}",
-								"type": "text"
+								"description": "Represents the authorized User ID to execute the API."
 							},
 							{
 								"key": "Authorization",
 								"value": "{{kong_api_key}}",
-								"type": "text"
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
 							},
 							{
 								"key": "X-Channel-Id",
 								"value": "{{channel_id}}",
-								"type": "text"
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"API DOCUMENTATION CONTENT\",\n            \"mimeType\": \"application/pdf\",\n            \"code\": \"api-docs\",\n            \"primaryCategory\": \"Explanation Content\",\n            \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\"\n        }\n    }\n}"
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 						},
 						"url": {
-							"raw": "https://dev.knowlg.sunbird.org/api/content/v2/create",
-							"protocol": "https",
+							"raw": "{{host}}/api/content/v2/create",
 							"host": [
-								"dev",
-								"knowlg",
-								"sunbird",
-								"org"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -168,7 +166,7 @@
 					"header": [
 						{
 							"key": "Date",
-							"value": "Mon, 23 Nov 2020 06:42:39 GMT"
+							"value": "Tue, 19 Jul 2022 06:42:53 GMT"
 						},
 						{
 							"key": "Content-Type",
@@ -188,47 +186,31 @@
 						},
 						{
 							"key": "X-RateLimit-Limit-hour",
-							"value": "30000"
+							"value": "1000000"
 						},
 						{
 							"key": "X-RateLimit-Remaining-hour",
-							"value": "29991"
+							"value": "999995"
 						},
 						{
-							"key": "Referrer-Policy",
-							"value": "origin-when-cross-origin, strict-origin-when-cross-origin"
+							"key": "request-time",
+							"value": "34"
 						},
 						{
-							"key": "X-Frame-Options",
-							"value": "DENY"
-						},
-						{
-							"key": "X-XSS-Protection",
-							"value": "1; mode=block"
-						},
-						{
-							"key": "x-response-length",
-							"value": "55"
-						},
-						{
-							"key": "X-Content-Type-Options",
-							"value": "nosniff"
+							"key": "x-envoy-upstream-service-time",
+							"value": "36"
 						},
 						{
 							"key": "Access-Control-Allow-Origin",
 							"value": "*"
 						},
 						{
-							"key": "X-Permitted-Cross-Domain-Policies",
-							"value": "master-only"
-						},
-						{
 							"key": "X-Kong-Upstream-Latency",
-							"value": "53"
+							"value": "40"
 						},
 						{
 							"key": "X-Kong-Proxy-Latency",
-							"value": "36"
+							"value": "41"
 						},
 						{
 							"key": "Via",
@@ -240,7 +222,215 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n    \"id\": \"api.content.create\",\n    \"ver\": \"1.0\",\n    \"ts\": \"2020-12-09T11:11:12.697Z\",\n    \"params\": {\n        \"resmsgid\": \"3f5de290-3a0f-11eb-be5b-f9d249ba9049\",\n        \"msgid\": \"3f57a100-3a0f-11eb-be5b-f9d249ba9049\",\n        \"status\": \"successful\",\n        \"err\": null,\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"content_id\": \"do_1131687405374504961738\",\n        \"versionKey\": \"1607512272640\"\n    }\n}"
+					"body": "{\n    \"id\": \"api.content.create\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:42:53ZZ\",\n    \"params\": {\n        \"resmsgid\": \"a06bcfc7-23b6-494a-8a63-bbdee8c6e373\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"do_21358408067678208014\",\n        \"node_id\": \"do_21358408067678208014\",\n        \"versionKey\": \"1658212973248\"\n    }\n}"
+				},
+				{
+					"name": "Content Create - 400 Bad Request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/content/v2/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"create"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:28:26 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "297"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999998"
+						},
+						{
+							"key": "request-time",
+							"value": "11"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "13"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "18"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "125"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.create\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:28:26ZZ\",\n    \"params\": {\n        \"resmsgid\": \"7efe066b-39e0-4f03-a569-0e9f19e8822b\",\n        \"msgid\": null,\n        \"err\": \"CLIENT_ERROR\",\n        \"status\": \"failed\",\n        \"errmsg\": \"Validation Errors\"\n    },\n    \"responseCode\": \"CLIENT_ERROR\",\n    \"result\": {\n        \"messages\": [\n            \"Required Metadata name not set\"\n        ]\n    }\n}"
+				},
+				{
+					"name": "Content Create - 404 Not Found",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"abcd\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/content/v2/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"create"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:33:43 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999997"
+						},
+						{
+							"key": "request-time",
+							"value": "16"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "18"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "23"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "115"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.create\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:33:43ZZ\",\n    \"params\": {\n        \"resmsgid\": \"78745a2e-004b-4422-99e4-e2494387b3d4\",\n        \"msgid\": null,\n        \"err\": \"404\",\n        \"status\": \"failed\",\n        \"errmsg\": \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"\n    },\n    \"responseCode\": \"RESOURCE_NOT_FOUND\",\n    \"result\": {\n        \"messages\": null\n    }\n}"
 				}
 			]
 		},
@@ -324,6 +514,15 @@
 						],
 						"type": "text/javascript"
 					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// pm.globals.set('content_id', 'do_213584064677732352111');"
+						],
+						"type": "text/javascript"
+					}
 				}
 			],
 			"request": {
@@ -349,11 +548,12 @@
 					}
 				],
 				"url": {
-					"raw": "{{host}}/content/v2/read/{{content_id}}",
+					"raw": "{{host}}/api/content/v2/read/{{content_id}}",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
+						"api",
 						"content",
 						"v2",
 						"read",
@@ -371,27 +571,26 @@
 							{
 								"key": "Content-Type",
 								"value": "application/json",
-								"type": "text"
+								"type": "text",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
 							},
 							{
 								"key": "X-Authenticated-User-token",
 								"value": "{{keycloak_access_token}}",
-								"type": "text"
+								"type": "text",
+								"description": "Represents the authorized User ID to execute the API."
 							},
 							{
 								"key": "Authorization",
 								"value": "{{kong_api_key}}",
-								"type": "text"
+								"type": "text",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
 							}
 						],
 						"url": {
-							"raw": "https://dev.knowlg.sunbird.org/api/content/v2/read/{{content_id}}",
-							"protocol": "https",
+							"raw": "{{host}}/api/content/v2/read/{{content_id}}",
 							"host": [
-								"dev",
-								"knowlg",
-								"sunbird",
-								"org"
+								"{{host}}"
 							],
 							"path": [
 								"api",
@@ -408,7 +607,7 @@
 					"header": [
 						{
 							"key": "Date",
-							"value": "Mon, 23 Nov 2020 04:48:35 GMT"
+							"value": "Tue, 19 Jul 2022 06:44:16 GMT"
 						},
 						{
 							"key": "Content-Type",
@@ -428,59 +627,35 @@
 						},
 						{
 							"key": "X-RateLimit-Limit-hour",
-							"value": "30000"
+							"value": "1000000"
 						},
 						{
 							"key": "X-RateLimit-Remaining-hour",
-							"value": "29999"
+							"value": "999996"
 						},
 						{
-							"key": "Referrer-Policy",
-							"value": "origin-when-cross-origin, strict-origin-when-cross-origin"
+							"key": "request-time",
+							"value": "26"
 						},
 						{
-							"key": "X-Frame-Options",
-							"value": "DENY"
-						},
-						{
-							"key": "X-XSS-Protection",
-							"value": "1; mode=block"
-						},
-						{
-							"key": "x-response-length",
-							"value": "2759"
-						},
-						{
-							"key": "X-Content-Type-Options",
-							"value": "nosniff"
+							"key": "x-envoy-upstream-service-time",
+							"value": "28"
 						},
 						{
 							"key": "Access-Control-Allow-Origin",
 							"value": "*"
 						},
 						{
-							"key": "X-Permitted-Cross-Domain-Policies",
-							"value": "master-only"
-						},
-						{
 							"key": "X-Kong-Upstream-Latency",
-							"value": "11"
+							"value": "32"
 						},
 						{
 							"key": "X-Kong-Proxy-Latency",
-							"value": "35"
+							"value": "14"
 						},
 						{
 							"key": "Via",
 							"value": "kong/0.14.1"
-						},
-						{
-							"key": "X-Proxy-Cache",
-							"value": "MISS"
-						},
-						{
-							"key": "X-Proxy-Cache-Date",
-							"value": "Mon, 23 Nov 2020 04:48:35 GMT"
 						},
 						{
 							"key": "Content-Encoding",
@@ -488,7 +663,109 @@
 						}
 					],
 					"cookie": [],
-					"body": "{\n    \"id\": \"api.content.read\",\n    \"ver\": \"1.0\",\n    \"ts\": \"2020-12-09T12:09:04.202Z\",\n    \"params\": {\n        \"resmsgid\": \"548b82a0-3a17-11eb-be5b-f9d249ba9049\",\n        \"msgid\": \"5488ea90-3a17-11eb-be5b-f9d249ba9049\",\n        \"status\": \"successful\",\n        \"err\": null,\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"content\": {\n            \"ownershipType\": [\n                \"createdBy\"\n            ],\n            \"code\": \"org.sunbird.ccG6ru\",\n            \"credentials\": {\n                \"enabled\": \"No\"\n            },\n            \"channel\": \"in.ekstep\",\n            \"language\": [\n                \"English\"\n            ],\n            \"mimeType\": \"application/pdf\",\n            \"idealScreenSize\": \"normal\",\n            \"createdOn\": \"2020-12-09T12:08:54.913+0000\",\n            \"objectType\": \"Content\",\n            \"primaryCategory\": \"Explanation Content\",\n            \"contentDisposition\": \"inline\",\n            \"lastUpdatedOn\": \"2020-12-09T12:08:54.913+0000\",\n            \"contentEncoding\": \"identity\",\n            \"contentType\": \"Resource\",\n            \"dialcodeRequired\": \"No\",\n            \"identifier\": \"do_1131687689003827201864\",\n            \"lastStatusChangedOn\": \"2020-12-09T12:08:54.913+0000\",\n            \"audience\": [\n                \"Student\"\n            ],\n            \"os\": [\n                \"All\"\n            ],\n            \"visibility\": \"Default\",\n            \"consumerId\": \"7411b6bd-89f3-40ec-98d1-229dc64ce77d\",\n            \"mediaType\": \"content\",\n            \"osId\": \"org.ekstep.quiz.app\",\n            \"languageCode\": [\n                \"en\"\n            ],\n            \"version\": 2,\n            \"versionKey\": \"1607515734913\",\n            \"license\": \"CC BY 4.0\",\n            \"idealScreenDensity\": \"hdpi\",\n            \"framework\": \"NCF\",\n            \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"compatibilityLevel\": 1,\n            \"name\": \"API DOCUMENTATION CONTENT\",\n            \"status\": \"Draft\"\n        }\n    }\n}"
+					"body": "{\n    \"id\": \"api.content.read\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:44:16ZZ\",\n    \"params\": {\n        \"resmsgid\": \"2c23c136-d4eb-4c88-897b-7077bd2894cd\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"content\": {\n            \"ownershipType\": [\n                \"createdBy\"\n            ],\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"interceptionPoints\": {},\n            \"credentials\": {\n                \"enabled\": \"No\"\n            },\n            \"channel\": \"channel_id\",\n            \"language\": [\n                \"English\"\n            ],\n            \"mimeType\": \"application/pdf\",\n            \"idealScreenSize\": \"normal\",\n            \"createdOn\": \"2022-07-19T06:42:53.248+0000\",\n            \"objectType\": \"Content\",\n            \"primaryCategory\": \"Explanation Content\",\n            \"contentDisposition\": \"inline\",\n            \"lastUpdatedOn\": \"2022-07-19T06:42:53.248+0000\",\n            \"contentEncoding\": \"identity\",\n            \"contentType\": \"ClassroomTeachingVideo\",\n            \"dialcodeRequired\": \"No\",\n            \"identifier\": \"do_21358408067678208014\",\n            \"lastStatusChangedOn\": \"2022-07-19T06:42:53.248+0000\",\n            \"audience\": [\n                \"Student\"\n            ],\n            \"os\": [\n                \"All\"\n            ],\n            \"visibility\": \"Default\",\n            \"consumerId\": \"ab35de9d-2a45-410a-901f-82a25e05af6d\",\n            \"discussionForum\": {\n                \"enabled\": \"No\"\n            },\n            \"mediaType\": \"content\",\n            \"osId\": \"org.ekstep.quiz.app\",\n            \"languageCode\": [\n                \"en\"\n            ],\n            \"version\": 2,\n            \"versionKey\": \"1658212973248\",\n            \"license\": \"CC BY 4.0\",\n            \"idealScreenDensity\": \"hdpi\",\n            \"framework\": \"NCF\",\n            \"compatibilityLevel\": 1,\n            \"name\": \"Untitled Content\",\n            \"status\": \"Draft\"\n        }\n    }\n}"
+				},
+				{
+					"name": "Content Read - 404 Not Found",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"type": "text",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							}
+						],
+						"url": {
+							"raw": "{{host}}/api/content/v2/read/{{content_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"read",
+								"{{content_id}}"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:36:38 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999997"
+						},
+						{
+							"key": "request-time",
+							"value": "59"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "61"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "74"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "116"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.read\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:36:38ZZ\",\n    \"params\": {\n        \"resmsgid\": \"e8f48807-bff1-45c0-8eeb-760dcf7f98cf\",\n        \"msgid\": null,\n        \"err\": \"NOT_FOUND\",\n        \"status\": \"failed\",\n        \"errmsg\": \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_213584064677732352111\"\n    },\n    \"responseCode\": \"RESOURCE_NOT_FOUND\",\n    \"result\": {\n        \"messages\": null\n    }\n}"
 				}
 			]
 		},
@@ -557,6 +834,16 @@
 						],
 						"type": "text/javascript"
 					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// pm.globals.set('versionKey', '3534534543');",
+							"// pm.globals.set(\"content_id\", 'do_213584064677732352111');"
+						],
+						"type": "text/javascript"
+					}
 				}
 			],
 			"request": {
@@ -592,11 +879,12 @@
 					"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 				},
 				"url": {
-					"raw": "{{host}}/content/v2/update/{{content_id}}",
+					"raw": "{{host}}/api/content/v2/update/{{content_id}}",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
+						"api",
 						"content",
 						"v2",
 						"update",
@@ -605,7 +893,336 @@
 				},
 				"description": "This API is associated with updating content on the Sunbird Platform. Mandatory fields cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
 			},
-			"response": []
+			"response": [
+				{
+					"name": "Content Update - 400 Bad Request",
+					"originalRequest": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"type": "text",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/content/v2/update/{{content_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"update",
+								"{{content_id}}"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:38:11 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "269"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999997"
+						},
+						{
+							"key": "request-time",
+							"value": "33"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "35"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "38"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "12"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.update\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:38:11ZZ\",\n    \"params\": {\n        \"resmsgid\": \"0237c6eb-9d37-474f-aed5-c83aee24116b\",\n        \"msgid\": null,\n        \"err\": \"CLIENT_ERROR\",\n        \"status\": \"failed\",\n        \"errmsg\": \"Invalid version Key\"\n    },\n    \"responseCode\": \"CLIENT_ERROR\",\n    \"result\": {\n        \"messages\": null\n    }\n}"
+				},
+				{
+					"name": "Content Update - 404 Not Found",
+					"originalRequest": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"type": "text",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/content/v2/update/{{content_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"update",
+								"{{content_id}}"
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:39:22 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999996"
+						},
+						{
+							"key": "request-time",
+							"value": "12"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "14"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "18"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "116"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.update\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:39:22ZZ\",\n    \"params\": {\n        \"resmsgid\": \"e60a2a4d-c8f9-4f10-bc66-695e0f86d82c\",\n        \"msgid\": null,\n        \"err\": \"NOT_FOUND\",\n        \"status\": \"failed\",\n        \"errmsg\": \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_213584064677732352111\"\n    },\n    \"responseCode\": \"RESOURCE_NOT_FOUND\",\n    \"result\": {\n        \"messages\": null\n    }\n}"
+				},
+				{
+					"name": "Content Update - 200 OK",
+					"originalRequest": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"type": "text",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/content/v2/update/{{content_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"update",
+								"{{content_id}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:44:37 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999995"
+						},
+						{
+							"key": "request-time",
+							"value": "87"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "88"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "92"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "115"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.update\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:44:37ZZ\",\n    \"params\": {\n        \"resmsgid\": \"767eada1-6342-4503-ad0d-b18aea711aab\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"do_21358408067678208014\",\n        \"node_id\": \"do_21358408067678208014\",\n        \"versionKey\": \"1658213077381\"\n    }\n}"
+				}
+			]
 		}
 	]
 }

@@ -77,11 +77,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -155,11 +156,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"~`S!@#$%^&*()_+=:;\\\"'<,>.?/\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -248,11 +250,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{host}}/content/v2/read/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/read/{{content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"read",
@@ -325,11 +328,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{host}}/content/v2/read/{{content_id}}?fields=name,primaryCategory",
+									"raw": "{{host}}/api/content/v2/read/{{content_id}}?fields=name,primaryCategory",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"read",
@@ -448,11 +452,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n            \"resourceType\": \"Learn\",\n            \"framework\": \"ekstep_ncert_k-12\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/update/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"update",
@@ -567,11 +572,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"description\": \"dsd\",\n            \"name\": \"~`S!@#$%^&*()_+=:;\\\"'<,>.?/\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/update/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"update",
@@ -662,7 +668,7 @@
 					"name": "Content Create",
 					"item": [
 						{
-							"name": "Content Create - 404 - missing name",
+							"name": "Content Create - 400 - missing name",
 							"event": [
 								{
 									"listen": "test",
@@ -739,11 +745,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -754,7 +761,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 404 - name empty",
+							"name": "Content Create - 400 - name empty",
 							"event": [
 								{
 									"listen": "test",
@@ -831,11 +838,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -846,7 +854,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 404 - missing code",
+							"name": "Content Create - 400 - missing code",
 							"event": [
 								{
 									"listen": "test",
@@ -923,11 +931,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -938,7 +947,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 404 - missing mimeType",
+							"name": "Content Create - 400 - missing mimeType",
 							"event": [
 								{
 									"listen": "test",
@@ -1015,11 +1024,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -1030,7 +1040,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 404 - missing primaryCategory",
+							"name": "Content Create - 400 - missing primaryCategory",
 							"event": [
 								{
 									"listen": "test",
@@ -1105,11 +1115,12 @@
 									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"Untitled Content\",\n      \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n      \"mimeType\": \"application/pdf\"\n    }\n  }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -1195,11 +1206,12 @@
 									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"Untitled Content\",\n      \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n      \"mimeType\": \"application/pdf\",\n      \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n      \"resourceType\": \"Learn\",\n      \"framework\": \"ekstep_ncert_k-12\",\n      \"primaryCategory\": \"aabaa\"\n    }\n  }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/create",
+									"raw": "{{host}}/api/content/v2/create",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"create"
@@ -1242,7 +1254,7 @@
 					"name": "Content Read",
 					"item": [
 						{
-							"name": "Content Read",
+							"name": "Content Read - 404 - Not Found",
 							"event": [
 								{
 									"listen": "test",
@@ -1320,11 +1332,12 @@
 									}
 								],
 								"url": {
-									"raw": "{{host}}/content/v2/read/{{invalid_content_id}}",
+									"raw": "{{host}}/api/content/v2/read/{{invalid_content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"read",
@@ -1452,11 +1465,104 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/update/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
+										"content",
+										"v2",
+										"update",
+										"{{content_id}}"
+									]
+								},
+								"description": "This API is associated with updating a batch on the Sunbird Platform.\nThe endpoint for Course Batch Update is /batch/update\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "Content Update - 400 - Empty name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"//Verification",
+											"pm.test(\"Status code is 400\", () => {",
+											"    pm.response.to.have.status(400)",
+											"});",
+											"//code name contains a string",
+											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
+											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Validation Errors\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(\"result body should include messages \\\"Required Metadata name not set\\\"\", () => {",
+											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
+											"    pm.expect(jsonResponse.result.messages).to.include('Required Metadata name not set');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}",
+										"type": "text"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}",
+										"type": "text"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"description\": \"dsd\",\n            \"name\": \"\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
 										"content",
 										"v2",
 										"update",
@@ -1551,11 +1657,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/update/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
+										"api",
 										"content",
 										"v2",
 										"update",
@@ -1643,102 +1750,12 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\",\n            \"primaryCategory\": \"abcd\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/content/v2/update/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
 									"host": [
 										"{{host}}"
 									],
 									"path": [
-										"content",
-										"v2",
-										"update",
-										"{{content_id}}"
-									]
-								},
-								"description": "This API is associated with updating a batch on the Sunbird Platform.\nThe endpoint for Course Batch Update is /batch/update\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
-							},
-							"response": []
-						},
-						{
-							"name": "Content Update - 404 - Empty name",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"let jsonResponse = pm.response.json()",
-											"",
-											"//Verification",
-											"pm.test(\"Status code is 400\", () => {",
-											"    pm.response.to.have.status(400)",
-											"});",
-											"//code name contains a string",
-											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
-											"",
-											"pm.test(\"Verify keys and data type of the response result\", () => {",
-											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
-											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
-											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
-											"});",
-											"",
-											"//Validation",
-											"// Response body",
-											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
-											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
-											"});",
-											"",
-											"// Params",
-											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
-											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
-											"});",
-											"pm.test(\"params.errmsg should be \\\"Validation Errors\\\"\", () => {",
-											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors\");",
-											"});",
-											"",
-											"// Result",
-											"pm.test(\"result body should include messages \\\"Required Metadata name not set\\\"\", () => {",
-											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
-											"    pm.expect(jsonResponse.result.messages).to.include('Required Metadata name not set');",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "PATCH",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									},
-									{
-										"key": "X-Authenticated-User-token",
-										"value": "{{keycloak_access_token}}",
-										"type": "text"
-									},
-									{
-										"key": "Authorization",
-										"value": "{{kong_api_key}}",
-										"type": "text"
-									},
-									{
-										"key": "X-Channel-Id",
-										"value": "{{channel_id}}",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"description\": \"dsd\",\n            \"name\": \"\"\n        }\n    }\n}"
-								},
-								"url": {
-									"raw": "{{host}}/content/v2/update/{{content_id}}",
-									"host": [
-										"{{host}}"
-									],
-									"path": [
+										"api",
 										"content",
 										"v2",
 										"update",
