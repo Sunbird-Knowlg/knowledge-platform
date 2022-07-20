@@ -179,6 +179,7 @@ object DIALManager {
 		rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
 		rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
 		rootNodeMetadata.remove(DIALConstants.TRACKABLE)
+		rootNodeMetadata.remove(DIALConstants.RESERVED_DIALCODES)
 
 		if(rootNodeMetadata.containsKey(DIALConstants.DIALCODES))
 			rootNodeMetadata.remove(DIALConstants.DIALCODES)
