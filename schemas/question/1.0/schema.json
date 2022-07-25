@@ -598,6 +598,9 @@
     "downloadUrl": {
       "type": "string",
       "format": "url"
+    },
+    "ecm": {
+      "type": "string"
     }
   },
   "additionalProperties": false
