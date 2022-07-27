@@ -392,7 +392,6 @@ object DIALManager {
 	def getDIALReserveUpdateResponse(response: Response, count: Integer, contentId: String, node: Node): Response = {
 		response.getResult.put(DIALConstants.COUNT, count)
 		response.getResult.put(ContentConstants.NODE_ID, contentId)
-		response.getResult.put(DIALConstants.PROCESS_ID, node.getMetadata.get(DIALConstants.PROCESS_ID))
 		response.getResult.put(DIALConstants.RESERVED_DIALCODES, node.getMetadata.get(DIALConstants.RESERVED_DIALCODES))
 
 		response
