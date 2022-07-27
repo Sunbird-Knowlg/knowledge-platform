@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "95bee03d-d782-47da-89f9-cc70bb0a267e",
 		"name": "Content V2",
-		"description": "The Content Management APIs allow you to create, manage and process content on the Sunbird platform. Content is the basic building block of the Knowledge Service. Some examples would be Videos, Audio, Pdfs, Html, ECML etc. The basic operations for this API include Create, Update, Read, Review, Publish.\n\n*   Each of the endpoints serve a different purpose, so which one to use depends on what you want to do\n*   The operations include CRUD (Create, Update, Read and Delete) operations and other operations such as upload, publish, flag, link DIAL code, etc.\n*   The URL for Content Management API(s) is /content/v2.\n    \n\nAPI tests",
+		"description": "The Content Management APIs allow you to create, manage and process content on the Sunbird platform. Content is the basic building block of the Knowledge Service. Some examples would be Videos, Audio, Pdfs, Html, ECML etc. The basic operations for this API include Create, Update, Read, Review, Publish.\n\n*   Each of the endpoints serve a different purpose, so which one to use depends on what you want to do\n*   The operations include CRUD (Create, Update, Read and Delete) operations and other operations such as upload, publish, flag, link DIAL code, etc.\n*   The URL for Content Management API(s) is /content/v2.\n    \n\nFor more details refer [here](https://knowlg.sunbird.org/learn/readme)\n\nAPI tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "1419050"
 	},
@@ -113,7 +113,7 @@
 						"create"
 					]
 				},
-				"description": "This API is associated with creating content on the Sunbird Platform. Mandatory fields cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
+				"description": "This API is associated with creating content on the Sunbird Platform. Mandatory fields (name, code, mimeType and primaryCategory) cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
 			},
 			"response": [
 				{
@@ -891,9 +891,121 @@
 						"{{content_id}}"
 					]
 				},
-				"description": "This API is associated with updating content on the Sunbird Platform. Mandatory fields cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
+				"description": "This API is associated with updating content on the Sunbird Platform. Mandatory fields (name, code, mimeType and primaryCategory) cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
 			},
 			"response": [
+				{
+					"name": "Content Update - 200 OK",
+					"originalRequest": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"type": "text",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/content/v2/update/{{content_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"content",
+								"v2",
+								"update",
+								"{{content_id}}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Tue, 19 Jul 2022 06:44:37 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "X-RateLimit-Limit-hour",
+							"value": "1000000"
+						},
+						{
+							"key": "X-RateLimit-Remaining-hour",
+							"value": "999995"
+						},
+						{
+							"key": "request-time",
+							"value": "87"
+						},
+						{
+							"key": "x-envoy-upstream-service-time",
+							"value": "88"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "X-Kong-Upstream-Latency",
+							"value": "92"
+						},
+						{
+							"key": "X-Kong-Proxy-Latency",
+							"value": "115"
+						},
+						{
+							"key": "Via",
+							"value": "kong/0.14.1"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": \"api.content.update\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:44:37ZZ\",\n    \"params\": {\n        \"resmsgid\": \"767eada1-6342-4503-ad0d-b18aea711aab\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"do_21358408067678208014\",\n        \"node_id\": \"do_21358408067678208014\",\n        \"versionKey\": \"1658213077381\"\n    }\n}"
+				},
 				{
 					"name": "Content Update - 400 Bad Request",
 					"originalRequest": {
@@ -1109,118 +1221,6 @@
 					],
 					"cookie": [],
 					"body": "{\n    \"id\": \"api.content.update\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:39:22ZZ\",\n    \"params\": {\n        \"resmsgid\": \"e60a2a4d-c8f9-4f10-bc66-695e0f86d82c\",\n        \"msgid\": null,\n        \"err\": \"NOT_FOUND\",\n        \"status\": \"failed\",\n        \"errmsg\": \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_213584064677732352111\"\n    },\n    \"responseCode\": \"RESOURCE_NOT_FOUND\",\n    \"result\": {\n        \"messages\": null\n    }\n}"
-				},
-				{
-					"name": "Content Update - 200 OK",
-					"originalRequest": {
-						"method": "PATCH",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text",
-								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
-							},
-							{
-								"key": "X-Authenticated-User-token",
-								"value": "{{keycloak_access_token}}",
-								"type": "text",
-								"description": "Represents the authorized User ID to execute the API."
-							},
-							{
-								"key": "Authorization",
-								"value": "{{kong_api_key}}",
-								"type": "text",
-								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
-							},
-							{
-								"key": "X-Channel-Id",
-								"value": "{{channel_id}}",
-								"type": "text",
-								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/content/v2/update/{{content_id}}",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"content",
-								"v2",
-								"update",
-								"{{content_id}}"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Date",
-							"value": "Tue, 19 Jul 2022 06:44:37 GMT"
-						},
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						},
-						{
-							"key": "Transfer-Encoding",
-							"value": "chunked"
-						},
-						{
-							"key": "Connection",
-							"value": "keep-alive"
-						},
-						{
-							"key": "Vary",
-							"value": "Accept-Encoding"
-						},
-						{
-							"key": "X-RateLimit-Limit-hour",
-							"value": "1000000"
-						},
-						{
-							"key": "X-RateLimit-Remaining-hour",
-							"value": "999995"
-						},
-						{
-							"key": "request-time",
-							"value": "87"
-						},
-						{
-							"key": "x-envoy-upstream-service-time",
-							"value": "88"
-						},
-						{
-							"key": "Access-Control-Allow-Origin",
-							"value": "*"
-						},
-						{
-							"key": "X-Kong-Upstream-Latency",
-							"value": "92"
-						},
-						{
-							"key": "X-Kong-Proxy-Latency",
-							"value": "115"
-						},
-						{
-							"key": "Via",
-							"value": "kong/0.14.1"
-						},
-						{
-							"key": "Content-Encoding",
-							"value": "gzip"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"id\": \"api.content.update\",\n    \"ver\": \"4.0\",\n    \"ts\": \"2022-07-19T06:44:37ZZ\",\n    \"params\": {\n        \"resmsgid\": \"767eada1-6342-4503-ad0d-b18aea711aab\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"do_21358408067678208014\",\n        \"node_id\": \"do_21358408067678208014\",\n        \"versionKey\": \"1658213077381\"\n    }\n}"
 				}
 			]
 		}
