@@ -14,7 +14,7 @@
 					"name": "Content Create ",
 					"item": [
 						{
-							"name": "Content Create - with minimal required attribute",
+							"name": "200 - With minimal required attribute",
 							"event": [
 								{
 									"listen": "test",
@@ -93,7 +93,174 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - Special character in name",
+							"name": "200 - With identifier",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json();",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('identifier', 'node_id', 'versionKey');",
+											"  pm.expect(jsonResponse.result.identifier).to.be.a(\"string\");",
+											"  pm.expect(jsonResponse.result.node_id).to.be.a(\"string\");",
+											"  pm.expect(jsonResponse.result.versionKey).to.be.a(\"string\");",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"id should be api.content.create\", function () {",
+											"   pm.expect(jsonResponse.id).to.eql(\"api.content.create\");",
+											"});",
+											"pm.test(\"ver should be 4.0\", function () {",
+											"   pm.expect(jsonResponse.ver).to.eql(\"4.0\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(`identifier should be equal to ${JSON.parse(request.data).request.content.identifier}`, () => {",
+											"    pm.expect(jsonResponse.result.identifier).to.eql(`${JSON.parse(request.data).request.content.identifier}`);",
+											"});",
+											"pm.test(`node_id should be equal to ${JSON.parse(request.data).request.content.identifier}`, () => {",
+											"    pm.expect(jsonResponse.result.node_id).to.eql(`${JSON.parse(request.data).request.content.identifier}`);",
+											"});",
+											"",
+											"// Set global variable",
+											"pm.globals.set(\"content_id\", jsonResponse.result.identifier);",
+											"pm.globals.set(\"versionKey\", jsonResponse.result.versionKey);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"identifier\": \"some_identifier\",\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "200 - With external fields",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json();",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('identifier', 'node_id', 'versionKey');",
+											"  pm.expect(jsonResponse.result.identifier).to.be.a(\"string\");",
+											"  pm.expect(jsonResponse.result.node_id).to.be.a(\"string\");",
+											"  pm.expect(jsonResponse.result.versionKey).to.be.a(\"string\");",
+											"});",
+											"",
+											"//Validation",
+											"pm.test(\"id should be api.content.create\", function () {",
+											"   pm.expect(jsonResponse.id).to.eql(\"api.content.create\");",
+											"});",
+											"pm.test(\"ver should be 4.0\", function () {",
+											"   pm.expect(jsonResponse.ver).to.eql(\"4.0\");",
+											"});",
+											"",
+											"// Set global variable",
+											"pm.globals.set(\"content_id\", jsonResponse.result.identifier);",
+											"pm.globals.set(\"versionKey\", jsonResponse.result.versionKey);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\",\n            \"body\": \"{\\\"key\\\":\\\"value\\\"}\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "200 - Special character in name",
 							"event": [
 								{
 									"listen": "test",
@@ -177,7 +344,7 @@
 					"name": "Content Read",
 					"item": [
 						{
-							"name": "Content Read",
+							"name": "200 - Get all data except external data",
 							"event": [
 								{
 									"listen": "test",
@@ -267,7 +434,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Read - fields query params",
+							"name": "200 - Get specific attributes by sending fields query params",
 							"event": [
 								{
 									"listen": "test",
@@ -328,7 +495,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{host}}/api/content/v2/read/{{content_id}}?fields=name,primaryCategory",
+									"raw": "{{host}}/api/content/v2/read/{{content_id}}?fields=name,primaryCategory,body",
 									"host": [
 										"{{host}}"
 									],
@@ -342,7 +509,8 @@
 									"query": [
 										{
 											"key": "fields",
-											"value": "name,primaryCategory"
+											"value": "name,primaryCategory,body",
+											"description": "Fields param is used to get the external data in response, by default read API doesn't return external data. Also fields can be used to get the specific data only in response instead of getting all the data."
 										}
 									]
 								},
@@ -376,7 +544,7 @@
 					"name": "Content Update",
 					"item": [
 						{
-							"name": "Content Update",
+							"name": "200 - Update existing data or add new data",
 							"event": [
 								{
 									"listen": "test",
@@ -449,7 +617,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n            \"resourceType\": \"Learn\",\n            \"framework\": \"ekstep_ncert_k-12\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"description\": \"dsd\",\n            \"resourceType\": \"Learn\",\n            \"framework\": \"ekstep_ncert_k-12\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 								},
 								"url": {
 									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
@@ -469,74 +637,38 @@
 							"response": []
 						},
 						{
-							"name": "Content Update - Special character in name",
+							"name": "200 - Special character in name",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"let jsonResponse = pm.response.json()",
-											"",
-											"//Verification",
-											"pm.test(\"Status code is 404\", function () {",
-											"    pm.response.to.have.status(404)",
-											"});",
-											"//code name contains a string",
-											"tests[\"Status code name has string \\\"Not Found\\\"\"] = responseCode.name.has(\"Not Found\");",
-											"",
-											"pm.test(\"Content-Type header is present\", () => {",
-											"  pm.response.to.have.header(\"Content-Type\");",
-											"});",
-											"pm.test(\"Content-Type header is application/json\", () => {",
-											"  pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/json');",
-											"});",
-											"pm.test(\"Content-Encoding header should not present\", () => {",
-											"  pm.response.to.have.header(\"Content-Encoding\");",
-											"});",
-											"pm.test(\"Content-Encoding header is gzip\", () => {",
-											"  pm.expect(pm.response.headers.get('Content-Encoding')).to.eql('gzip');",
-											"});",
+											"let jsonResponse = pm.response.json();",
 											"",
 											"pm.test(\"Verify keys and data type of the response result\", () => {",
-											"  pm.expect(jsonResponse).to.be.an(\"object\").that.has.all.keys('id', 'ver', 'ts', 'params', 'responseCode', 'result');",
-											"  pm.expect(jsonResponse.id).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.ver).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.ts).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.responseCode).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.params).to.be.an(\"object\").that.has.all.keys('resmsgid', 'msgid', 'err', 'status', 'errmsg');",
-											"  pm.expect(jsonResponse.params.resmsgid).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.params.msgid).to.be.null;",
-											"  pm.expect(jsonResponse.params.err).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.params.status).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"string\");",
-											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
-											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
-											"  pm.expect(jsonResponse.result.messages).to.be.null;",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('identifier', 'node_id', 'versionKey');",
+											"  pm.expect(jsonResponse.result.identifier).to.be.a(\"string\");",
+											"  pm.expect(jsonResponse.result.node_id).to.be.a(\"string\");",
+											"  pm.expect(jsonResponse.result.versionKey).to.be.a(\"string\");",
 											"});",
 											"",
 											"//Validation",
-											"// Response body",
 											"pm.test(\"id should be api.content.update\", () => {",
 											"   pm.expect(jsonResponse.id).to.eql(\"api.content.update\");",
 											"});",
 											"pm.test(\"ver should be 4.0\", () => {",
 											"   pm.expect(jsonResponse.ver).to.eql(\"4.0\");",
 											"});",
-											"pm.test(\"params.err should be \\\"404\\\"\", () => {",
-											"    pm.expect(jsonResponse.params.err).to.eql(\"404\");",
+											"",
+											"pm.test(\"identifier should be equal to \" + pm.globals.get(\"content_id\"), () => {",
+											"    pm.expect(jsonResponse.result.identifier).to.eql(pm.globals.get(\"content_id\"));",
 											"});",
-											"pm.test(\"params.status should be \\\"failed\\\"\", () => {",
-											"    pm.expect(jsonResponse.params.status).to.eql(\"failed\");",
+											"pm.test(\"node_id should be equal to \" + pm.globals.get(\"content_id\"), () => {",
+											"    pm.expect(jsonResponse.result.node_id).to.eql(pm.globals.get(\"content_id\"));",
 											"});",
-											"pm.test(\"params.errmsg should be \\\"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\\\"\", () => {",
-											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\");",
-											"});",
-											"pm.test(\"responseCode should be RESOURCE_NOT_FOUND\", () => {",
-											"    pm.expect(jsonResponse.responseCode).to.eql(\"RESOURCE_NOT_FOUND\");",
-											"});",
-											"pm.test(\"messages should be null\", () => {",
-											"    pm.expect(jsonResponse.result.messages).to.eql(null);",
-											"});",
+											"",
+											"// Set global variable",
+											"pm.globals.set(\"versionKey\", jsonResponse.result.versionKey);",
 											""
 										],
 										"type": "text/javascript"
@@ -668,7 +800,194 @@
 					"name": "Content Create",
 					"item": [
 						{
-							"name": "Content Create - 400 - missing name",
+							"name": "400 - missing channel",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"//Verification",
+											"pm.test(\"Status code is 400\", () => {",
+											"    pm.response.to.have.status(400)",
+											"});",
+											"//code name contains a string",
+											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
+											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Validation Errors\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(\"result body should include messages \\\"Required Metadata channel not set\\\"\", () => {",
+											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
+											"    pm.expect(jsonResponse.result.messages).to.include('Required Metadata channel not set');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"Untitled Content\",\n      \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n      \"mimeType\": \"application/pdf\",\n      \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n      \"resourceType\": \"Learn\",\n      \"framework\": \"ekstep_ncert_k-12\",\n      \"primaryCategory\": \"Explanation Content\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "400 - empty channel",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"//Verification",
+											"pm.test(\"Status code is 400\", () => {",
+											"    pm.response.to.have.status(400)",
+											"});",
+											"//code name contains a string",
+											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
+											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Validation Errors\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(\"result body should include messages \\\"Required Metadata channel not set\\\"\", () => {",
+											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
+											"    pm.expect(jsonResponse.result.messages).to.include('Required Metadata channel not set');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"Untitled Content\",\n      \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n      \"mimeType\": \"application/pdf\",\n      \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n      \"resourceType\": \"Learn\",\n      \"framework\": \"ekstep_ncert_k-12\",\n      \"primaryCategory\": \"Explanation Content\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "400 - missing name",
 							"event": [
 								{
 									"listen": "test",
@@ -761,7 +1080,100 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 400 - name empty",
+							"name": "400 - name: invalid datatype",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"//Verification",
+											"pm.test(\"Status code is 400\", () => {",
+											"    pm.response.to.have.status(400)",
+											"});",
+											"//code name contains a string",
+											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
+											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Validation Errors\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(\"result body should include messages \\\"Metadata name should be a/an String value\\\"\", () => {",
+											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
+											"    pm.expect(jsonResponse.result.messages).to.include('Metadata name should be a/an String value');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": 423432,\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/pdf\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "400 - name empty",
 							"event": [
 								{
 									"listen": "test",
@@ -854,7 +1266,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 400 - missing code",
+							"name": "400 - missing code",
 							"event": [
 								{
 									"listen": "test",
@@ -947,7 +1359,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 400 - missing mimeType",
+							"name": "400 - missing mimeType",
 							"event": [
 								{
 									"listen": "test",
@@ -1040,7 +1452,100 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 400 - missing primaryCategory",
+							"name": "400 - invalid mimeType",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"//Verification",
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400)",
+											"});",
+											"//code name contains a string",
+											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
+											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Validation Errors\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(\"result body should include messages \\\"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\\\"\", () => {",
+											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
+											"    pm.expect(jsonResponse.result.messages).to.include('Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Untitled Content\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"some-mimeType\",\n            \"primaryCategory\": \"Explanation Content\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "400 - missing primaryCategory",
 							"event": [
 								{
 									"listen": "test",
@@ -1131,7 +1636,100 @@
 							"response": []
 						},
 						{
-							"name": "Content Create - 404 - Invalid primaryCategory",
+							"name": "400 - Invalid subject",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"//Verification",
+											"pm.test(\"Status code is 400\", () => {",
+											"    pm.response.to.have.status(400)",
+											"});",
+											"//code name contains a string",
+											"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"  pm.expect(jsonResponse.result).to.have.all.keys('messages');",
+											"  pm.expect(jsonResponse.result.messages).to.not.be.empty;",
+											"});",
+											"",
+											"//Validation",
+											"// Response body",
+											"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"CLIENT_ERROR\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"CLIENT_ERROR\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Validation Errors.\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Validation Errors.\");",
+											"});",
+											"",
+											"// Result",
+											"pm.test(\"result body should include messages \\\"subject range data is empty from the given framework.\\\"\", () => {",
+											"    pm.expect(jsonResponse.result.messages).to.have.length(1)",
+											"    pm.expect(jsonResponse.result.messages).to.include('subject range data is empty from the given framework.');",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"Untitled Content\",\n      \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n      \"mimeType\": \"application/pdf\",\n      \"createdBy\": \"530b19ea-dc8d-4cc7-a4b5-0c0214c8113a\",\n      \"resourceType\": \"Learn\",\n      \"framework\": \"ekstep_ncert_k-12-erwe\",\n      \"subject\": [\"test\"],\n      \"primaryCategory\": \"Explanation Content\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/content/v2/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"content",
+										"v2",
+										"create"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "404 - Invalid primaryCategory",
 							"event": [
 								{
 									"listen": "test",
@@ -1254,7 +1852,7 @@
 					"name": "Content Read",
 					"item": [
 						{
-							"name": "Content Read - 404 - Not Found",
+							"name": "404 - Not Found",
 							"event": [
 								{
 									"listen": "test",
@@ -1374,7 +1972,7 @@
 					"name": "Content Update",
 					"item": [
 						{
-							"name": "Content Update - 400 - Invalid versionKey",
+							"name": "400 - Invalid versionKey",
 							"event": [
 								{
 									"listen": "test",
@@ -1429,7 +2027,7 @@
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											"pm.globals.set('versionKey', '3534534543');",
+											"pm.globals.set('invalid-versionKey', '3534534543');",
 											"// pm.globals.set(\"content_id\", '');"
 										],
 										"type": "text/javascript"
@@ -1462,7 +2060,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{invalid-versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 								},
 								"url": {
 									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
@@ -1482,7 +2080,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Update - 400 - Empty name",
+							"name": "400 - Empty name",
 							"event": [
 								{
 									"listen": "test",
@@ -1574,7 +2172,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Update - 404 - Invalid content id",
+							"name": "404 - Invalid content id",
 							"event": [
 								{
 									"listen": "test",
@@ -1605,8 +2203,8 @@
 											"pm.test(\"params.err should be NOT_FOUND\", () => {",
 											"    pm.expect(jsonResponse.params.err).to.eql(\"NOT_FOUND\");",
 											"});",
-											"pm.test(`params.errmsg should be \\\"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: ${pm.globals.get(\"content_id\")}\\\"`, () => {",
-											"    pm.expect(jsonResponse.params.errmsg).to.eql(`Error! Node(s) doesn't Exists. | [Invalid Node Id.]: ${pm.globals.get(\"content_id\")}`);",
+											"pm.test(`params.errmsg should be \\\"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: ${pm.globals.get(\"invalid_content_id\")}\\\"`, () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(`Error! Node(s) doesn't Exists. | [Invalid Node Id.]: ${pm.globals.get(\"invalid_content_id\")}`);",
 											"});",
 											"",
 											"// Result",
@@ -1622,7 +2220,7 @@
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											"pm.globals.set(\"content_id\", 'do_21357909972698726412211');"
+											"pm.globals.set(\"invalid_content_id\", 'do_21357909972698726412211');"
 										],
 										"type": "text/javascript"
 									}
@@ -1657,7 +2255,7 @@
 									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"versionKey\": \"{{versionKey}}\",\n            \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n            \"description\": \"dsd\",\n            \"name\": \"API DOCUMENTATION CONTENT\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{host}}/api/content/v2/update/{{content_id}}",
+									"raw": "{{host}}/api/content/v2/update/{{invalid_content_id}}",
 									"host": [
 										"{{host}}"
 									],
@@ -1666,7 +2264,7 @@
 										"content",
 										"v2",
 										"update",
-										"{{content_id}}"
+										"{{invalid_content_id}}"
 									]
 								},
 								"description": "This API is associated with updating a batch on the Sunbird Platform.\nThe endpoint for Course Batch Update is /batch/update\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
@@ -1674,7 +2272,7 @@
 							"response": []
 						},
 						{
-							"name": "Content Update - 404 - Invalid primaryCategory",
+							"name": "404 - Invalid primaryCategory",
 							"event": [
 								{
 									"listen": "test",
