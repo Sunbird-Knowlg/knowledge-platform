@@ -378,14 +378,8 @@ object DIALManager {
 		updateReq.setContext(request.getContext)
 		updateReq.getContext.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
 		updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
-		val rootNodeMetadata = rootNode.getMetadata
-		rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
-		rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
-		rootNodeMetadata.remove(DIALConstants.TRACKABLE)
-
+		updateReq.put(DIALConstants.VERSION_KEY,rootNode.getMetadata.get("versionKey"))
 		updateReq.put(DIALConstants.RESERVED_DIALCODES, updateDialCodes.asJava)
-		updateReq.getRequest.putAll(rootNodeMetadata)
-
 		updateReq
 	}
 
