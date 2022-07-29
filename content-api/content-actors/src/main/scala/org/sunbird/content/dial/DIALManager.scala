@@ -287,15 +287,15 @@ object DIALManager {
 		req.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(req).flatMap(rootNode => {
 			val contentMetadata = rootNode.getMetadata
-			TelemetryManager.log("DIALManager:: reserve:: contentMetadata: " + contentMetadata)
+
 			validateChannel(contentMetadata.get(DIALConstants.CHANNEL).asInstanceOf[String], channelId)
 			validateContentForReservedDialcodes(contentMetadata)
 			validateCountForReservingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
 			validateContentStatus(contentMetadata)
-			TelemetryManager.log("DIALManager:: reserve:: post validation: ")
+
 			val reservedDialCodes = contentMetadata.getOrDefault(DIALConstants.DIALCODES, Map.empty[String, Integer]).asInstanceOf[Map[String, Integer]]
 			val updateDialCodes  = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
-			TelemetryManager.log("DIALManager:: reserve:: updateDialCodes: " + updateDialCodes)
+
 			if(updateDialCodes.size > reservedDialCodes.size) {
 				val updateReq = getDIALReserveUpdateRequest(req, request, rootNode, updateDialCodes)
 				DataNode.update(updateReq).map(updatedNode => {
