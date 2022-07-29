@@ -274,7 +274,6 @@ object DIALManager {
 	}
 
 	def reserve(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-		TelemetryManager.log("DIALManager:: reserve")
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
 		val contentId: String = request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
 
