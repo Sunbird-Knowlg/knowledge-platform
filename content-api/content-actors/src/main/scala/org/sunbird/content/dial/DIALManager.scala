@@ -291,7 +291,7 @@ object DIALManager {
 			validateCountForReservingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
 			validateContentStatus(contentMetadata)
 
-			val reservedDialCodes = contentMetadata.getOrDefault(DIALConstants.DIALCODES, Map.empty[String, Integer]).asInstanceOf[Map[String, Integer]]
+			val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
 			val updateDialCodes  = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
 
 			if(updateDialCodes.size > reservedDialCodes.size) {
