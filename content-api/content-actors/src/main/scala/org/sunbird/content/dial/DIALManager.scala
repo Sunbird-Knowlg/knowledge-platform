@@ -10,6 +10,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.managers.HierarchyManager
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 import scala.collection.JavaConverters._
@@ -273,6 +274,7 @@ object DIALManager {
 	}
 
 	def reserve(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+		TelemetryManager.log("DIALManager:: reserve")
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
 		val contentId: String = request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
 
@@ -285,15 +287,15 @@ object DIALManager {
 		req.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(req).flatMap(rootNode => {
 			val contentMetadata = rootNode.getMetadata
-
+			TelemetryManager.log("DIALManager:: reserve:: contentMetadata: " + contentMetadata)
 			validateChannel(contentMetadata.get(DIALConstants.CHANNEL).asInstanceOf[String], channelId)
 			validateContentForReservedDialcodes(contentMetadata)
 			validateCountForReservingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
 			validateContentStatus(contentMetadata)
-
+			TelemetryManager.log("DIALManager:: reserve:: post validation: ")
 			val reservedDialCodes = contentMetadata.getOrDefault(DIALConstants.DIALCODES, Map.empty[String, Integer]).asInstanceOf[Map[String, Integer]]
 			val updateDialCodes  = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
-
+			TelemetryManager.log("DIALManager:: reserve:: updateDialCodes: " + updateDialCodes)
 			if(updateDialCodes.size > reservedDialCodes.size) {
 				val updateReq = getDIALReserveUpdateRequest(req, request, rootNode, updateDialCodes)
 				DataNode.update(updateReq).map(updatedNode => {
@@ -378,14 +380,8 @@ object DIALManager {
 		updateReq.setContext(request.getContext)
 		updateReq.getContext.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
 		updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
-		val rootNodeMetadata = rootNode.getMetadata
-		rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
-		rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
-		rootNodeMetadata.remove(DIALConstants.TRACKABLE)
-
+		updateReq.put(DIALConstants.VERSION_KEY,rootNode.getMetadata.get("versionKey"))
 		updateReq.put(DIALConstants.RESERVED_DIALCODES, updateDialCodes.asJava)
-		updateReq.getRequest.putAll(rootNodeMetadata)
-
 		updateReq
 	}
 
