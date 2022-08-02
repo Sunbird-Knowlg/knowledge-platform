@@ -175,21 +175,13 @@ object DIALManager {
 	def getLinkUpdateRequest(req: Request, rootNode: Node, requestMap: Map[String, List[String]], objectId: String): Request = {
 		val updateReq = new Request(req)
 		updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
-		val rootNodeMetadata = rootNode.getMetadata
-		rootNodeMetadata.remove(DIALConstants.DISCUSSION_FORUM)
-		rootNodeMetadata.remove(DIALConstants.CREDENTIALS)
-		rootNodeMetadata.remove(DIALConstants.TRACKABLE)
-		rootNodeMetadata.remove(DIALConstants.RESERVED_DIALCODES)
-
-		if(rootNodeMetadata.containsKey(DIALConstants.DIALCODES))
-			rootNodeMetadata.remove(DIALConstants.DIALCODES)
+		updateReq.put(DIALConstants.VERSION_KEY,rootNode.getMetadata.get("versionKey"))
 
 		if(requestMap(objectId).isEmpty)
 			updateReq.put(DIALConstants.DIALCODES, null)
 		else
 			updateReq.put(DIALConstants.DIALCODES, requestMap(objectId).toArray[String])
 
-		updateReq.getRequest.putAll(rootNodeMetadata)
 		updateReq
 	}
 
