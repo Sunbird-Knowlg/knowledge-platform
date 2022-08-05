@@ -4,6 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 import org.apache.commons.io.FilenameUtils
+
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
@@ -15,6 +16,7 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
+import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
@@ -54,6 +56,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "systemUpdate" => systemUpdate(request)
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
+			case "publishContent" => publishContent(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -192,6 +195,25 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (StringUtils.equalsAnyIgnoreCase("Processing", node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
 			else ReviewManager.review(request, node)
+		}).flatMap(f => f)
+	}
+
+	def publishContent(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
+		val publisher: String = request.getRequest.getOrDefault("lastPublishedBy", "").asInstanceOf[String]
+
+		if(publisher.isBlank) throw new ClientException("ERR_CONTENT_BLANK_PUBLISHER", "Publisher User Id is blank")
+
+		val readReq = new Request(request)
+		readReq.put("identifier", identifier)
+		readReq.put("mode", "edit")
+		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
+			if (StringUtils.equalsAnyIgnoreCase("Processing", node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Publish Operation Can't Be Applied On Node Under Processing State")
+			node.getMetadata.put("lastPublishedBy", publisher)
+			PublishManager.publish(request, node)
 		}).flatMap(f => f)
 	}
 

@@ -264,5 +264,29 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         getResult(ApiId.REVIEW_COLLECTION, contentActor, contentRequest, version = apiVersion)
     }
 
+    def publish(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "publishContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("publish_type", "public");
+        getResult(ApiId.PUBLISH_CONTENT, contentActor, contentRequest)
+    }
+
+    def publishUnlisted(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "publishContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("publish_type", "unlisted");
+        getResult(ApiId.PUBLISH_CONTENT, contentActor, contentRequest)
+    }
+
 
 }

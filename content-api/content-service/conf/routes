@@ -20,7 +20,6 @@ POST     /content/v3/bundle                     controllers.v3.ContentController
 POST     /content/v3/flag/accept/:identifier    controllers.v3.ContentController.acceptFlag(identifier:String)
 POST     /content/v3/flag/reject/:identifier    controllers.v3.ContentController.rejectFlag(identifier:String)
 POST     /content/v3/publish/:identifier        controllers.v3.ContentController.publish(identifier:String)
-POST     /content/v3/public/publish/:identifier controllers.v3.ContentController.publish(identifier:String)
 POST     /content/v3/review/:identifier         controllers.v3.ContentController.review(identifier:String)
 DELETE   /content/v3/discard/:identifier        controllers.v3.ContentController.discard(identifier:String)
 DELETE   /content/v3/retire/:identifier         controllers.v3.ContentController.retire(identifier:String)
@@ -80,7 +79,9 @@ GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.Coll
 POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
 POST     /collection/v4/copy/:identifier                     controllers.v4.CollectionController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 PATCH    /collection/v4/system/update/:identifier            controllers.v4.CollectionController.systemUpdate(identifier:String)
-POST     /collection/v4/reject/:identifier    controllers.v4.CollectionController.reviewReject(identifier:String)
+POST     /collection/v4/reject/:identifier          controllers.v4.CollectionController.reviewReject(identifier:String)
+POST     /collection/v4/publish/:identifier         controllers.v4.CollectionController.publish(identifier:String)
+POST     /collection/v4/unlisted/publish/:identifier  controllers.v4.CollectionController.publishUnlisted(identifier:String)
 
 # Content v4 APIs
 POST      /content/v4/create                       controllers.v4.ContentController.create
@@ -100,6 +101,8 @@ PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentControl
 POST      /content/v4/review/:identifier           controllers.v4.ContentController.review(identifier:String)
 POST      /content/v4/reject/:identifier           controllers.v4.ContentController.reviewReject(identifier:String)
 POST      /content/v4/dialcode/reserve/:identifier  controllers.v4.ContentController.reserveDialCode(identifier:String)
+POST      /content/v4/publish/:identifier           controllers.v4.ContentController.publish(identifier:String)
+POST      /content/v4/unlisted/publish/:identifier  controllers.v4.ContentController.publishUnlisted(identifier:String)
 
 # App v4 APIs
 POST      /app/v4/register                          controllers.v4.AppController.register

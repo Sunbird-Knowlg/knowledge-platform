@@ -108,6 +108,14 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 		})
 	}
 
+	override def publish(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		validate(node).map(result => {
+			if(result) {
+				getEnrichedPublishMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String])
+			} else throw new ServerException("ERR_NODE_REVIEW", "Something Went Wrong While Applying Review On Node Having Identifier : "+objectId)
+		})
+	}
+
 	def validate(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Boolean] = {
 		val artifactUrl = node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String]
 		val req = new Request()

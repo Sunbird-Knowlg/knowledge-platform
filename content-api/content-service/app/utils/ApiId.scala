@@ -22,6 +22,7 @@ object ApiId {
 	val SYSTEM_UPDATE_CONTENT = "api.content.system.update"
 	val REVIEW_CONTENT = "api.content.review"
 	val REJECT_CONTENT = "api.content.review.reject"
+	val PUBLISH_CONTENT = "api.content.publish"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"
