@@ -646,6 +646,106 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
+    it should "return success response for 'publishContent' for youtube mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "video/x-youtube", "LearningResource", "Content", "https://www.youtube.com/watch?v=EtYU11qNciQ&t=612s")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.getRequest.put("lastPublishedBy", "Support Team")
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for 'publishContent' for video mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "video/mp4", "LearningResource", "Content", "https://ekstep-public-prod.s3-ap-south-1.amazonaws.com/content/do_312293067955650560231/artifact/itemupload_1500618666256.mp4")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.getRequest.put("lastPublishedBy", "Support Team")
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for 'publishContent' for HTML mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "application/vnd.ekstep.html-archive", "LearningResource", "Content", "https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/content/do_21357841995316428811795/artifact/2.-ekiikrnn-kii-prkrti-output-3_1657521986480_1657522093104.zip")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.getRequest.put("lastPublishedBy", "Support Team")
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for 'publishContent' for H5P mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "application/vnd.ekstep.h5p-archive", "LearningResource", "Content", "https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/content/do_2135971978057482241406/artifact/1659814186163_do_2135971978057482241406.zip")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.getRequest.put("lastPublishedBy", "Support Team")
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "return success response for 'publishContent' for Plugin mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "application/vnd.ekstep.plugin-archive", "LearningResource", "Content", "https://ntpproductionall.blob.core.windows.net/ntp-content-production/content/org.ekstep.summary/artifact/org.ekstep.summary-1.0-1_1574060894628.zip")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.getRequest.put("lastPublishedBy", "Support Team")
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
     it should "through client exception for publish operation if node is under processing" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
