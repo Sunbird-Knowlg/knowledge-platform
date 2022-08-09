@@ -746,6 +746,24 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
+    it should "return success response for 'publishContent' for Collection mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getValidNode()
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_1234")
+        request.getRequest.put("lastPublishedBy", "Support Team")
+        request.setOperation("publishContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
     it should "through client exception for publish operation if node is under processing" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
