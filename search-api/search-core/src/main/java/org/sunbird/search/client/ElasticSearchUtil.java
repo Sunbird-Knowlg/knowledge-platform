@@ -46,6 +46,7 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ServerException;
@@ -616,9 +617,16 @@ public class ElasticSearchUtil {
 			for (Map<String, Object> aggregationsMap : groupByList) {
 				Map<String, Object> parentCountMap = new HashMap<String, Object>();
 				String groupByParent = (String) aggregationsMap.get("groupByParent");
-				Terms terms = aggregations.get(groupByParent);
+				Terms terms = null;
+				List<Bucket> buckets = null;
+				if (groupByParent.contains(".")) {
+					Nested nested = aggregations.get(groupByParent.split("\\.")[0]);
+					terms = nested.getAggregations().get(groupByParent.split("\\.")[1]);
+				} else {
+					terms = aggregations.get(groupByParent);
+				}
+				buckets = (List<Bucket>)terms.getBuckets();
 				List<Map<String, Object>> parentGroupList = new ArrayList<Map<String, Object>>();
-				List<Bucket> buckets = (List<Bucket>) terms.getBuckets();
 				for (Bucket bucket : buckets) {
 					Map<String, Object> parentCountObject = new HashMap<String, Object>();
 					parentCountObject.put("count", bucket.getDocCount());

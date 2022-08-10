@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.sunbird.search.dto.SearchDTO;
 import org.sunbird.search.processor.SearchProcessor;
 import org.sunbird.search.util.SearchConstants;
+import scala.Array;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
@@ -66,6 +67,9 @@ public class SearchProcessorTest extends BaseSearchTest {
 		map.put("contentType", getContentType());
 		map.put("createdOn", new Date().toString());
 		map.put("lastUpdatedOn", new Date().toString());
+		Map<String, Object> competencyObj = new HashMap<>();
+		competencyObj.put("name","CompetencyOne");
+		map.put("competencies_v3", Arrays.asList(competencyObj));
 		if (index % 5 == 0) {
 			map.put("lastPublishedOn", d.toString());
 			map.put("status", "Live");
@@ -1082,6 +1086,50 @@ public class SearchProcessorTest extends BaseSearchTest {
 					List<String> desc = (List<String>) content.get("subject");
 					if (null != desc && desc.contains("English") && desc.contains("Mathematics"))
 						found = true;
+				}
+				Assert.assertTrue(found);
+			}
+		}, ExecutionContext.Implicits$.MODULE$.global());
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testSearchByQueryWithMultiFilters() throws Exception {
+		SearchDTO searchObj = new SearchDTO();
+		List<Map> properties = new ArrayList<Map>();
+		Map<String, Object> property = new HashMap<String, Object>();
+		property = new HashMap<String, Object>();
+		property.put(SearchConstants.values, Arrays.asList("Content"));
+		property.put(SearchConstants.propertyName, "objectType");
+		property.put(SearchConstants.operation, SearchConstants.SEARCH_OPERATION_EQUAL);
+		properties.add(property);
+		searchObj.setProperties(properties);
+		property = new HashMap<String, Object>();
+		property.put(SearchConstants.values, Arrays.asList("CompetencyOne"));
+		property.put(SearchConstants.propertyName, "competencies_v3.name");
+		property.put(SearchConstants.operation, SearchConstants.SEARCH_OPERATION_EQUAL);
+		searchObj.setMultiFilterProperties(Arrays.asList(property));
+		searchObj.setFacets(Arrays.asList("competencies_v3.name"));
+		searchObj.setLimit(100);
+		searchObj.setOperation(SearchConstants.SEARCH_OPERATION_AND);
+		Future<Map<String, Object>> res = searchprocessor.processSearch(searchObj, true);
+		res.onSuccess(new OnSuccess<Map<String, Object>>() {
+			public void onSuccess(Map<String, Object> response) {
+				List<Map> results = (List<Map>) response.get("results");
+				Assert.assertNotNull(results);
+				Assert.assertTrue(results.size() >= 1);
+				boolean found = false;
+				for (Object obj : results) {
+					Map<String, Object> content = (Map<String, Object>) obj;
+					List<Map<String, Object>> competencies = (List<Map<String, Object>>) content.get("competencies_v3");
+					if(null != competencies) {
+						for(Map<String, Object> competency : competencies) {
+							String name = (String) competency.get("name");
+							if(null != name && "CompetencyOne".equalsIgnoreCase(name)) {
+								found = true;
+							}
+						}
+					}
 				}
 				Assert.assertTrue(found);
 			}

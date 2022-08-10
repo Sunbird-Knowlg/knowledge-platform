@@ -1261,4 +1261,32 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(content2.get("medium") instanceof List);
     }
 
+    @Test
+    public void testSearchByQueryWithMultiFilters() {
+        Request request = getSearchRequest();
+        Map<String, Object> filters = new HashMap<String, Object>();
+        List<String> objectTypes = new ArrayList<String>();
+        objectTypes.add("Content");
+        filters.put("objectType", objectTypes);
+        filters.put("status", new ArrayList<String>());
+        request.put("filters", filters);
+        Map<String, Object> multiFilters = new HashMap<>();
+        multiFilters.put("competencies_v3.name", "CompetencyOne");
+        // request.put("limit", 1);
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        List<Object> list = (List<Object>) result.get("results");
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.size() > 1);
+        boolean found = false;
+        for (Object obj : list) {
+            Map<String, Object> content = (Map<String, Object>) obj;
+            List<Map<String, Object>> competencies = (List<Map<String, Object>>) content.get("competencies_v3");
+            if(null != competencies) {
+                found = true;
+            }
+        }
+        Assert.assertTrue(found);
+    }
+
 }
