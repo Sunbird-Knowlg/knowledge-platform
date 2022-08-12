@@ -227,7 +227,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
         contentRequest.getContext.put("publish_type", "public");
-        getResult(ApiId.PUBLISH_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.PUBLISH_CONTENT_PUBLIC, contentActor, contentRequest, version = apiVersion)
     }
 
     def publishUnlisted(identifier: String) = Action.async { implicit request =>
@@ -239,7 +239,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
         contentRequest.getContext.put("publish_type", "unlisted");
-        getResult(ApiId.PUBLISH_CONTENT, contentActor, contentRequest)
+        getResult(ApiId.PUBLISH_CONTENT_UNLSTED, contentActor, contentRequest, version = apiVersion)
     }
 
 }

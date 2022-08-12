@@ -73,5 +73,6 @@ object ContentConstants {
     val ACTION: String = "action"
     val PUBLISH: String = "publish"
     val ENV: String = "env"
-    val KAFKA_PUBLISH_TOPIC = "kafka.publish.request.topic"
+    val KAFKA_PUBLISH_TOPIC: String = "kafka.publish.request.topic"
+    val PROCESSING: String = "Processing"
 }
