@@ -61,7 +61,6 @@ object PublishManager {
 
 	private def generateInstructionEventMetadata(actor: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectData: util.Map[String, AnyRef], edata: util.Map[String, AnyRef], node: Node, identifier: String): Unit = {
 		val metadata: util.Map[String, AnyRef] = node.getMetadata
-		val instructionEventMetadata = new util.HashMap[String, AnyRef]
 
 		actor.put(ContentConstants.ID, node.getObjectType.toLowerCase() + "-publish")
 		actor.put(ContentConstants.TYPE, ContentConstants.SYSTEM)
@@ -76,12 +75,17 @@ object PublishManager {
 		}
 		objectData.put(ContentConstants.ID, identifier)
 		objectData.put(ContentConstants.VER, metadata.get(ContentConstants.VERSION_KEY))
+		getEData(metadata, edata, identifier, node.getObjectType)
+	}
+
+	private def getEData(metadata: util.Map[String, AnyRef], edata:  util.Map[String, AnyRef], identifier: String, objectType: String): Unit = {
+		val instructionEventMetadata = new util.HashMap[String, AnyRef]
 		edata.put(ContentConstants.PUBLISH_TYPE, metadata.get(ContentConstants.PUBLISH_TYPE))
 		instructionEventMetadata.put(ContentConstants.PACKAGE_VERSION, metadata.getOrDefault(ContentConstants.PACKAGE_VERSION,0.asInstanceOf[AnyRef]))
 		instructionEventMetadata.put(ContentConstants.MIME_TYPE, metadata.get(ContentConstants.MIME_TYPE))
 		instructionEventMetadata.put(ContentConstants.LAST_PUBLISHED_BY, metadata.get(ContentConstants.LAST_PUBLISHED_BY))
 		instructionEventMetadata.put(ContentConstants.IDENTIFIER, identifier)
-		instructionEventMetadata.put(ContentConstants.OBJECT_TYPE, node.getObjectType)
+		instructionEventMetadata.put(ContentConstants.OBJECT_TYPE, objectType)
 		edata.put(ContentConstants.METADATA, instructionEventMetadata)
 		edata.put(ContentConstants.ACTION, ContentConstants.PUBLISH)
 		edata.put(ContentConstants.CONTENT_TYPE, metadata.get(ContentConstants.CONTENT_TYPE))
