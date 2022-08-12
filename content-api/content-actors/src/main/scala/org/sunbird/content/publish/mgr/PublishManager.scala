@@ -62,8 +62,11 @@ object PublishManager {
 	private def generateInstructionEventMetadata(actor: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectData: util.Map[String, AnyRef], edata: util.Map[String, AnyRef], node: Node, identifier: String): Unit = {
 		val metadata: util.Map[String, AnyRef] = node.getMetadata
 
+		// actor
 		actor.put(ContentConstants.ID, node.getObjectType.toLowerCase() + "-publish")
 		actor.put(ContentConstants.TYPE, ContentConstants.SYSTEM)
+
+		//context
 		context.put(ContentConstants.CHANNEL, metadata.get(ContentConstants.CHANNEL))
 		context.put(ContentConstants.P_DATA, new util.HashMap[String, AnyRef]() {{
 			put(ContentConstants.ID, ContentConstants.SUNBIRD_PLATFORM)
@@ -73,8 +76,12 @@ object PublishManager {
 			val env: String = Platform.getString("cloud_storage.env", "dev")
 			context.put(ContentConstants.ENV, env)
 		}
+
+		//objectData
 		objectData.put(ContentConstants.ID, identifier)
 		objectData.put(ContentConstants.VER, metadata.get(ContentConstants.VERSION_KEY))
+
+		//edata
 		getEData(metadata, edata, identifier, node.getObjectType)
 	}
 
