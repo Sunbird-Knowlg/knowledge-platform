@@ -3,8 +3,7 @@
 		"_postman_id": "ec007894-70ee-4951-8e96-98f79de5908a",
 		"name": "Content V2 API Test",
 		"description": "The Content Management APIs allow you to create, manage and process content on the Sunbird platform. Content is the basic building block of the Knowledge Service. Some examples would be Videos, Audio, Pdfs, Html, ECML etc. The basic operations for this API include Create, Update, Read, Review, Publish.\n\nThe URL for Content Management API(s) is /content/v1.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "1419050"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
@@ -1362,7 +1361,8 @@
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "The Content/Collection Reserve DIAL code APIs allow you to reserve DIAL codes to a content/collection on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/reserve and /collection/v1/dialcode/reserve."
 				},
 				{
 					"name": "Content Link DIAL code",
@@ -1408,7 +1408,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}"
+										"value": "{{keycloak_access_token}}"
 									}
 								],
 								"body": {
@@ -1473,7 +1473,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}"
+										"value": "{{keycloak_access_token}}"
 									}
 								],
 								"body": {
@@ -1497,7 +1497,8 @@
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "The Content/Collection Link DIAL code APIs allow you to link DIAL codes to content/collection/collection units on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/link and /collection/v1/dialcode/link."
 				},
 				{
 					"name": "Content Publish API",
@@ -1904,7 +1905,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}"
+												"value": "{{keycloak_access_token}}"
 											}
 										],
 										"body": {
@@ -5450,7 +5451,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5508,7 +5509,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5566,7 +5567,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5624,7 +5625,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5682,7 +5683,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5740,7 +5741,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5798,7 +5799,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5856,7 +5857,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5914,7 +5915,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -5972,7 +5973,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -6003,7 +6004,8 @@
 								}
 							]
 						}
-					]
+					],
+					"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/publish and /collection/v1/publish."
 				}
 			],
 			"event": [
@@ -7964,7 +7966,8 @@
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "The Content/Collection Reserve DIAL code APIs allow you to reserve DIAL codes to a content/collection on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/reserve and /collection/v1/dialcode/reserve."
 				},
 				{
 					"name": "Content Link DIAL code",
@@ -8019,7 +8022,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}"
+										"value": "{{keycloak_access_token}}"
 									}
 								],
 								"body": {
@@ -8093,7 +8096,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}"
+										"value": "{{keycloak_access_token}}"
 									}
 								],
 								"body": {
@@ -8167,7 +8170,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}"
+										"value": "{{keycloak_access_token}}"
 									}
 								],
 								"body": {
@@ -8191,7 +8194,8 @@
 							},
 							"response": []
 						}
-					]
+					],
+					"description": "The Content/Collection Link DIAL code APIs allow you to link DIAL codes to content/collection/collection units on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/link and /collection/v1/dialcode/link"
 				},
 				{
 					"name": "Content Publish API",
@@ -12491,7 +12495,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12549,7 +12553,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12616,7 +12620,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12683,7 +12687,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12750,7 +12754,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12817,7 +12821,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12884,7 +12888,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -12951,7 +12955,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -13018,7 +13022,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -13085,7 +13089,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -13162,7 +13166,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -13238,7 +13242,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -13315,7 +13319,7 @@
 											},
 											{
 												"key": "x-authenticated-user-token",
-												"value": "{{user-token}}",
+												"value": "{{keycloak_access_token}}",
 												"type": "text"
 											},
 											{
@@ -13346,7 +13350,8 @@
 								}
 							]
 						}
-					]
+					],
+					"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/publish and /collection/v1/publish."
 				}
 			],
 			"event": [

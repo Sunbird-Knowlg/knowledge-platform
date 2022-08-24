@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "607f186e-f5e0-4d51-a4c6-02c534d1689c",
 		"name": "Publish API",
-		"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/publish and /collection/v2/publish.",
+		"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/publish and /collection/v1/publish.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -8193,7 +8193,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8250,7 +8250,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8307,7 +8307,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8364,7 +8364,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8421,7 +8421,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8478,7 +8478,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8535,7 +8535,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8592,7 +8592,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8649,7 +8649,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8706,7 +8706,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8822,7 +8822,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8879,7 +8879,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -8945,7 +8945,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9011,7 +9011,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9077,7 +9077,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9143,7 +9143,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9209,7 +9209,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9275,7 +9275,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9341,7 +9341,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9407,7 +9407,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9483,7 +9483,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9558,7 +9558,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
@@ -9634,7 +9634,7 @@
 									},
 									{
 										"key": "x-authenticated-user-token",
-										"value": "{{user-token}}",
+										"value": "{{keycloak_access_token}}",
 										"type": "text"
 									},
 									{
