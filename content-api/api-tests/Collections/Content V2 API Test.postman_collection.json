@@ -1362,7 +1362,7 @@
 							"response": []
 						}
 					],
-					"description": "The Content/Collection Reserve DIAL code APIs allow you to reserve DIAL codes to a content/collection on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/reserve and /collection/v1/dialcode/reserve."
+					"description": "The Content/Collection Reserve DIAL code APIs allow you to reserve DIAL codes to a content/collection on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URLs for Content Reserve DIAL code API(s) are /content/v2/dialcode/reserve and /collection/v1/dialcode/reserve."
 				},
 				{
 					"name": "Content Link DIAL code",
@@ -1498,7 +1498,7 @@
 							"response": []
 						}
 					],
-					"description": "The Content/Collection Link DIAL code APIs allow you to link DIAL codes to content/collection/collection units on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/link and /collection/v1/dialcode/link."
+					"description": "The Content/Collection Link DIAL code APIs allow you to link DIAL codes to content/collection/collection units on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URLs for Content Link DIAL code API(s) are /content/v2/dialcode/link and /collection/v1/dialcode/link."
 				},
 				{
 					"name": "Content Publish API",
@@ -6005,7 +6005,7 @@
 							]
 						}
 					],
-					"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/publish and /collection/v1/publish."
+					"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URLs for Content Publish API(s) are /content/v2/publish and /collection/v1/publish."
 				}
 			],
 			"event": [
@@ -7967,7 +7967,7 @@
 							"response": []
 						}
 					],
-					"description": "The Content/Collection Reserve DIAL code APIs allow you to reserve DIAL codes to a content/collection on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/reserve and /collection/v1/dialcode/reserve."
+					"description": "The Content/Collection Reserve DIAL code APIs allow you to reserve DIAL codes to a content/collection on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URLs for Content Reserve DIAL code API(s) are /content/v2/dialcode/reserve and /collction/v1/dialcode/reserve."
 				},
 				{
 					"name": "Content Link DIAL code",
@@ -8195,7 +8195,7 @@
 							"response": []
 						}
 					],
-					"description": "The Content/Collection Link DIAL code APIs allow you to link DIAL codes to content/collection/collection units on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/dialcode/link and /collection/v1/dialcode/link"
+					"description": "The Content/Collection Link DIAL code APIs allow you to link DIAL codes to content/collection/collection units on the Sunbird platform. Reserve DAIL code API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URLs for Content Link DIAL code API(s) are /content/v2/dialcode/link and /collection/v1/dialcode/link"
 				},
 				{
 					"name": "Content Publish API",
@@ -13351,7 +13351,7 @@
 							]
 						}
 					],
-					"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URL for Content Management API(s) is /content/v2/publish and /collection/v1/publish."
+					"description": "The Content/Collection Publish APIs allow you to publish content/collection on the Sunbird platform. Publish API was previously available as part of learning-service which has now been refactored into content-service.\n\nThe URLs for Content Publish API(s) are /content/v2/publish and /collection/v1/publish."
 				}
 			],
 			"event": [
