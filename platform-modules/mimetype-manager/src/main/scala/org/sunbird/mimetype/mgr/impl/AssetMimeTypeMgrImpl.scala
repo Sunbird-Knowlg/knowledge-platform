@@ -38,4 +38,7 @@ class AssetMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
 		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
 	}
 
+	override def publish(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		Future(getEnrichedPublishMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+	}
 }
