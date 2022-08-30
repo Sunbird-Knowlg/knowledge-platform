@@ -1,7 +1,6 @@
 package org.sunbird.cloudstore
 
 import java.io.File
-
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.common.Platform
@@ -10,7 +9,7 @@ import org.sunbird.cloud.storage.factory.StorageServiceFactory
 import org.sunbird.common.exception.ServerException
 import org.sunbird.common.Slug
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class StorageService {
 
@@ -18,20 +17,20 @@ class StorageService {
     var storageService: BaseStorageService = null
 
     @throws[Exception]
-    def getService(): BaseStorageService = {
+    def getService: BaseStorageService = {
         if (null == storageService) {
             if (StringUtils.equalsIgnoreCase(storageType, "azure")) {
                 val storageKey = Platform.config.getString("azure_storage_key")
                 val storageSecret = Platform.config.getString("azure_storage_secret")
-                storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret))
+                storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
             } else if (StringUtils.equalsIgnoreCase(storageType, "aws")) {
                 val storageKey = Platform.config.getString("aws_storage_key")
                 val storageSecret = Platform.config.getString("aws_storage_secret")
-                storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret))
+                storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
             } else if (StringUtils.equalsIgnoreCase(storageType, "gcloud")) {
                 val storageKey = Platform.config.getString("gcloud_client_key")
                 val storageSecret = Platform.config.getString("gcloud_private_secret")
-                storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret))
+                storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
             }
 //            else if (StringUtils.equalsIgnoreCase(storageType, "cephs3")) {
 //                val storageKey = Platform.config.getString("cephs3_storage_key")
@@ -44,17 +43,13 @@ class StorageService {
         storageService
     }
 
-    def getContainerName(): String = {
-        if (StringUtils.equalsIgnoreCase(storageType, "azure"))
-            Platform.config.getString("azure_storage_container")
-        else if (StringUtils.equalsIgnoreCase(storageType, "aws"))
-            Platform.config.getString("aws_storage_container")
-        else if (StringUtils.equalsIgnoreCase(storageType, "gcloud"))
-          Platform.config.getString("gcloud_storage_bucket")
-        else if (StringUtils.equalsIgnoreCase(storageType, "cephs3"))
-            Platform.config.getString("cephs3_storage_container")
-        else
-            throw new ServerException("ERR_INVALID_CLOUD_STORAGE", "Container name not configured.")
+    def getContainerName: String = {
+      storageType match {
+        case "azure" => Platform.config.getString("azure_storage_container")
+        case "aws" => Platform.config.getString("aws_storage_container")
+        case "gcloud" => Platform.config.getString("gcloud_storage_bucket")
+        case _ => throw new ServerException("ERR_INVALID_CLOUD_STORAGE", "Container name not configured.")
+      }
     }
 
     def uploadFile(folderName: String, file: File, slug: Option[Boolean] = Option(true)): Array[String] = {
@@ -67,11 +62,11 @@ class StorageService {
     def uploadDirectory(folderName: String, directory: File, slug: Option[Boolean] = Option(true)): Array[String] = {
         val slugFile = if (slug.getOrElse(true)) Slug.createSlugFile(directory) else directory
         val objectKey = folderName + File.separator
-        val url = getService.upload(getContainerName(), slugFile.getAbsolutePath, objectKey, Option.apply(true), Option.apply(1), Option.apply(5), Option.empty)
+        val url = getService.upload(getContainerName, slugFile.getAbsolutePath, objectKey, Option.apply(true), Option.apply(1), Option.apply(5), Option.empty)
         Array[String](objectKey, url)
     }
 
-    def uploadDirectoryAsync(folderName: String, directory: File, slug: Option[Boolean] = Option(true))(implicit ec: ExecutionContext) = {
+    def uploadDirectoryAsync(folderName: String, directory: File, slug: Option[Boolean] = Option(true))(implicit ec: ExecutionContext): Future[List[String]] = {
         val slugFile = if (slug.getOrElse(true)) Slug.createSlugFile(directory) else directory
         val objectKey = folderName + File.separator
         getService.uploadFolder(getContainerName, slugFile.getAbsolutePath, objectKey, Option.apply(false), None, None, 1)
@@ -82,26 +77,28 @@ class StorageService {
         blob.contentLength
     }
 
-    def copyObjectsByPrefix(source: String, destination: String) = {
+    def copyObjectsByPrefix(source: String, destination: String): Unit = {
         getService.copyObjects(getContainerName, source, getContainerName, destination, Option.apply(true))
     }
 
-    def deleteFile(key: String, isDirectory: Option[Boolean] = Option(false)) = {
+    def deleteFile(key: String, isDirectory: Option[Boolean] = Option(false)): Unit = {
         getService.deleteObject(getContainerName, key, isDirectory)
     }
 
-    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-        getService().getSignedURL(getContainerName, key, ttl, permission)
+    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String], contentType: Option[String] = None): String = {
+      storageType match {
+        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, contentType)
+        case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
+      }
     }
 
     def getUri(key: String): String = {
         try {
            getService.getUri(getContainerName, key, Option.apply(false))
         } catch {
-            case e:Exception => {
-               println("StorageService --> getUri --> Exception: " + e.getMessage)
-               ""
-            }
+            case e:Exception =>
+              println("StorageService --> getUri --> Exception: " + e.getMessage)
+              ""
         }
     }
 }
