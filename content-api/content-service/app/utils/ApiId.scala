@@ -30,6 +30,7 @@ object ApiId {
 	val GET_HIERARCHY = "api.content.hierarchy.get"
 	val LINK_DIAL_COLLECTION = "api.collection.dialcode.link"
 	val RESERVE_DIAL_CONTENT = "api.content.dialcode.reserve"
+	val RELEASE_DIAL_CONTENT = "api.content.dialcode.release"
 
 	//License APIs
 	val CREATE_LICENSE = "api.license.create"
@@ -101,4 +102,5 @@ object ApiId {
 	val IMPORT_CSV = "api.collection.import"
 	val EXPORT_CSV = "api.collection.export"
 	val RESERVE_DIAL_COLLECTION = "api.collection.dialcode.reserve"
+	val RELEASE_DIAL_COLLECTION = "api.collection.dialcode.release"
 }

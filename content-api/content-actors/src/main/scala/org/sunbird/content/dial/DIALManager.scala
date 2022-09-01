@@ -279,8 +279,8 @@ object DIALManager {
 			val contentMetadata = rootNode.getMetadata
 
 			validateChannel(contentMetadata.get(DIALConstants.CHANNEL).asInstanceOf[String], channelId)
-			validateContentForReservedDialcodes(contentMetadata)
-			validateCountForReservingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
+			validateContentForReserveAndReleaseDialcodes(contentMetadata)
+			validateCountForReservingAndReleasingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
 			validateContentStatus(contentMetadata)
 
 			val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
@@ -302,17 +302,113 @@ object DIALManager {
 		})
 	}
 
+	def release(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
+		val contentId: String = request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
+
+		if (contentId == null || contentId.isEmpty) throw new ClientException(DIALErrors.ERR_CONTENT_BLANK_OBJECT_ID, DIALErrors.ERR_CONTENT_BLANK_OBJECT_ID_MSG)
+
+		val req = new Request()
+		req.setContext(request.getContext)
+		req.put(DIALConstants.IDENTIFIER, contentId)
+		req.put(ContentConstants.ROOT_ID, contentId)
+		req.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
+		DataNode.read(req).flatMap(rootNode => {
+			val contentMetadata = rootNode.getMetadata
+
+			validateChannel(contentMetadata.get(DIALConstants.CHANNEL).asInstanceOf[String], channelId)
+			validateContentForReserveAndReleaseDialcodes(contentMetadata)
+			validateCountForReservingAndReleasingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
+
+			val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String])
+				else throw new ClientException(DIALErrors.ERR_CONTENT_MISSING_RESERVED_DIAL_CODES, DIALErrors.ERR_CONTENT_MISSING_RESERVED_DIAL_CODES_MSG)
+
+			populateAssignedDialCodes(contentId, contentMetadata, req).map(assignedDialCodes => {
+				val toReleaseDIALCodes = reservedDialCodes.keySet -- assignedDialCodes.toSet
+
+				if(toReleaseDIALCodes.isEmpty) throw new ClientException(DIALErrors.ERR_ALL_DIALCODES_UTILIZED, DIALErrors.ERR_ALL_DIALCODES_UTILIZED_MSG)
+
+				val reqDialcodesCount = request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]].get(DIALConstants.COUNT).asInstanceOf[Integer]
+
+				val updatedReleaseDialcodes = if (toReleaseDIALCodes.size > reqDialcodesCount) {
+					toReleaseDIALCodes.take(reqDialcodesCount)
+				} else toReleaseDIALCodes
+
+				val updatedReserveDialCodes = reservedDialCodes.filter(rec => !updatedReleaseDialcodes.contains(rec._1)).keySet.zipWithIndex.map { case (dialCode, idx) =>
+					(dialCode -> idx.asInstanceOf[Integer])
+				}.toMap
+
+				val updateReq = new Request()
+				updateReq.setContext(request.getContext)
+				updateReq.getContext.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
+				updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
+				updateReq.put(DIALConstants.VERSION_KEY,rootNode.getMetadata.get(ContentConstants.VERSION_KEY))
+				updateReq.put(DIALConstants.RESERVED_DIALCODES, if(updatedReserveDialCodes.nonEmpty) updatedReserveDialCodes.asJava else null)
+				DataNode.update(updateReq).map(node => {
+					ResponseHandler.OK.putAll(Map(ContentConstants.IDENTIFIER -> node.getIdentifier.replace(ContentConstants.IMAGE_SUFFIX, ""),
+						ContentConstants.VERSION_KEY -> node.getMetadata.get(ContentConstants.VERSION_KEY),
+						DIALConstants.RESERVED_DIALCODES -> node.getMetadata.get(DIALConstants.RESERVED_DIALCODES)).asJava)
+				})
+			}).flatMap(f=>f)
+		})
+	}
+
+	def populateAssignedDialCodes(contentId: String, contentMetadata: util.Map[String, AnyRef], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[String]] = {
+
+		request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
+		request.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
+		request.put(ContentConstants.ROOT_ID, contentId)
+
+		HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
+			val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+			val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
+			val childrenAssignedDIALList = getAssignedDIALcodes(childrenHierarchy)
+			val contentAssignedDIALList = childrenAssignedDIALList ++ collectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
+
+			if(contentMetadata.getOrDefault(ContentConstants.IDENTIFIER,"").asInstanceOf[String].endsWith(ContentConstants.IMAGE_SUFFIX)) {
+				request.put(ContentConstants.ROOT_ID, contentMetadata.getOrDefault(ContentConstants.IDENTIFIER,"").asInstanceOf[String])
+				request.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
+				HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
+					val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+					val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
+					val childrenAssignedDIALList = getAssignedDIALcodes(childrenHierarchy)
+					val contentImageAssignedDIALList = childrenAssignedDIALList ++ collectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
+
+					Future(contentImageAssignedDIALList ++ contentAssignedDIALList)
+				})
+			} else Future(contentAssignedDIALList)
+		})
+	}
+
+	def getAssignedDIALcodes(childrenHierarchy: List[util.Map[String, AnyRef]]): List[String] = {
+		childrenHierarchy.map(child => {
+			val subChildrenDIALMap = if(child.get(ContentConstants.CHILDREN)!=null)
+				getAssignedDIALcodes(child.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList)
+			else List.empty[String]
+
+			val childDIALMap = if(child.get(DIALConstants.DIALCODES)!=null)
+				child.get(DIALConstants.DIALCODES).asInstanceOf[List[String]]
+			else List.empty[String]
+
+			subChildrenDIALMap ++ childDIALMap
+		}).filter(msg => msg.nonEmpty).flatten
+	}
+
+
 	def validateChannel(contentChannel: String, channelId: String): Unit = {
 		if(contentChannel == null || channelId == null || !contentChannel.equalsIgnoreCase(channelId))
 			throw new ClientException(DIALErrors.ERR_INVALID_CHANNEL, DIALErrors.ERR_INVALID_CHANNEL_MSG)
 	}
 
-	def validateContentForReservedDialcodes(metaData: util.Map[String, AnyRef]): Unit = {
+	def validateContentForReserveAndReleaseDialcodes(metaData: util.Map[String, AnyRef]): Unit = {
 		val validMimeType = if (Platform.config.hasPath("reserve_dialcode.mimeType")) Platform.config.getStringList("reserve_dialcode.mimeType") else util.Arrays.asList(ContentConstants.COLLECTION_MIME_TYPE)
 		if (!validMimeType.contains(metaData.get(ContentConstants.MIME_TYPE))) throw new ClientException(DIALErrors.ERR_CONTENT_MIMETYPE, DIALErrors.ERR_CONTENT_MIMETYPE_MSG)
+
+		if(metaData.get(ContentConstants.STATUS).asInstanceOf[String].equalsIgnoreCase("Retired"))
+			throw new ClientException(DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID, DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID_MSG)
 	}
 
-	def validateCountForReservingDialCode(request: util.Map[String, AnyRef]): Unit = {
+	def validateCountForReservingAndReleasingDialCode(request: util.Map[String, AnyRef]): Unit = {
 		if (null == request.get(DIALConstants.COUNT) || !request.get(DIALConstants.COUNT).isInstanceOf[Integer]) throw new ClientException(DIALErrors.ERR_INVALID_COUNT, DIALErrors.ERR_INVALID_COUNT_MSG)
 		val count = request.get(DIALConstants.COUNT).asInstanceOf[Integer]
 		val maxCount = if (Platform.config.hasPath("reserve_dialcode.max_count")) Platform.config.getInt("reserve_dialcode.max_count") else 250

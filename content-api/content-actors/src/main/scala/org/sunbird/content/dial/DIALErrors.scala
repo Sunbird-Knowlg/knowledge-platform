@@ -13,6 +13,9 @@ object DIALErrors {
 	val ERR_CONTENT_INVALID_OBJECT: String = "ERR_CONTENT_INVALID_OBJECT"
 	val ERR_DUPLICATE_DIAL_CODES: String = "ERR_DUPLICATE_DIAL_CODES"
 	val ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING: String = "ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING"
+	val ERR_CONTENT_RETIRED_OBJECT_ID: String = "ERR_CONTENT_RETIRED_OBJECT_ID"
+	val ERR_CONTENT_MISSING_RESERVED_DIAL_CODES: String = "ERR_CONTENT_MISSING_RESERVED_DIAL_CODES"
+	val ERR_ALL_DIALCODES_UTILIZED: String = "ERR_ALL_DIALCODES_UTILIZED"
 
 	//Error Messages
 	val ERR_INVALID_REQ_MSG: String = "Invalid Request! Please Provide Valid Request."
@@ -29,7 +32,10 @@ object DIALErrors {
 	val ERR_DIAL_GEN_LIST_EMPTY_MSG: String = "Dialcode generated list is empty. Please Try Again After Sometime!"
 	val ERR_DIAL_GENERATION_MSG: String = "Error During generate Dialcode. Please Try Again After Sometime!"
 	val ERR_DIAL_INVALID_COUNT_RESPONSE = "No new DIAL Codes have been generated, as requested count is less or equal to existing reserved dialcode count."
-	val ERR_CONTENT_INVALID_OBJECT_MSG = "Invalid Request. Cannot update status of Live Node."
+	val ERR_CONTENT_INVALID_OBJECT_MSG = "Invalid Request. Cannot update 'Live' content."
 	val ERR_DUPLICATE_DIAL_CODES_MSG: String = "QR Code should not be linked to multiple contents. Please validate: "
 	val ERR_DIALCODE_CONTENT_LINK_FIELDS_MISSING_MSG: String = "Required fields for content link dialcode are missing: "
+	val ERR_CONTENT_RETIRED_OBJECT_ID_MSG: String = "Invalid Request. Cannot update 'Retired' content."
+	val ERR_CONTENT_MISSING_RESERVED_DIAL_CODES_MSG: String = "Invalid Request. Content does not have reserved DIAL codes."
+	val ERR_ALL_DIALCODES_UTILIZED_MSG: String = "Error! All Reserved DIAL Codes are Utilized."
 }

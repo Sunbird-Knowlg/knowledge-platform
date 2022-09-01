@@ -193,7 +193,17 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         body.putAll(Map("identifier" -> identifier).asJava)
         val reserveDialCode = getRequest(body, headers, "reserveDialCode")
         setRequestContext(reserveDialCode, version, objectType, schemaName)
-        getResult(ApiId.RESERVE_DIAL_COLLECTION, contentActor, reserveDialCode)
+        getResult(ApiId.RESERVE_DIAL_COLLECTION, contentActor, reserveDialCode, version = apiVersion)
+    }
+
+    def releaseDialCode(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val releaseDialCode = getRequest(body, headers, "releaseDialCode")
+        setRequestContext(releaseDialCode, version, objectType, schemaName)
+        getResult(ApiId.RELEASE_DIAL_COLLECTION, contentActor, releaseDialCode, version = apiVersion)
     }
 
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
