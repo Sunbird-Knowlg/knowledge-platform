@@ -40,4 +40,9 @@ class DefaultMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMa
 		validate(node, " | [Either artifactUrl is missing or invalid!]")
 		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
 	}
+
+	override def publish(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		validate(node, " | [Either artifactUrl is missing or invalid!]")
+		Future(getEnrichedPublishMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+	}
 }

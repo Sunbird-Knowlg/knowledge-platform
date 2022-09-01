@@ -289,5 +289,9 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		Map("lastSubmittedOn"-> DateUtils.formatCurrentDate(), "reviewError" -> null, "status" -> newStatus)
 	}
 
+	def getEnrichedPublishMetadata(status: String): Map[String, AnyRef] = {
+		Map("lastPublishedOn"-> DateUtils.formatCurrentDate(), "rejectReasons" -> null, "rejectComment" -> null, "publishError" -> null, "importError" -> null)
+	}
+
 }
 

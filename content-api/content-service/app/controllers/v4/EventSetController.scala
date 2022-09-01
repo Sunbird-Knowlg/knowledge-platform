@@ -64,7 +64,7 @@ class EventSetController @Inject()(@Named(ActorNames.EVENT_SET_ACTOR) eventSetAc
     }
   }
 
-  def publish(identifier: String): Action[AnyContent] = Action.async { implicit request =>
+  override def publish(identifier: String): Action[AnyContent] = Action.async { implicit request =>
     val headers = commonHeaders()
     val content = new java.util.HashMap[String, Object]()
     content.put("identifier", identifier)

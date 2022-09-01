@@ -18,4 +18,7 @@ trait MimeTypeManager {
 
 	@throws[Exception]
 	def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]]
+
+	@throws[Exception]
+	def publish(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]]
 }
