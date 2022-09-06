@@ -283,6 +283,25 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		})
 	}
 
+	"release DIAL" should "update content with reservedDialcodes excluding the number of dialcodes mentioned in count" in {
+		(oec.httpUtil _).expects().returns(httpUtil)
+		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+
+		val nodes: util.List[Node] = getCategoryNode()
+		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+		val contentId: String = "do_123456"
+		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode(contentId))).anyNumberOfTimes()
+		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode(contentId)))
+
+		val request = getReleaseDIALRequest(contentId)
+
+		val response = DIALManager.release(request)
+		response.map(result => {
+			assert(result.getResponseCode.toString=="OK")
+		})
+	}
 
 	def getDIALSearchResponse:Response = {
 		val resString = "{\n  \"id\": \"sunbird.dialcode.search\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2020-04-21T19:39:14ZZ\",\n  \"params\": {\n    \"resmsgid\": \"1dfcc25b-6c37-49f8-a6c3-7185063e8752\",\n    \"msgid\": null,\n    \"err\": null,\n    \"status\": \"successful\",\n    \"errmsg\": null\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"dialcodes\": [\n      {\n        \"dialcode_index\": 7609876,\n        \"identifier\": \"N4Z7D5\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.603+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610113,\n        \"identifier\": \"E8B7Z6\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.635+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610117,\n        \"identifier\": \"R4X2P2\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.637+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7610961,\n        \"identifier\": \"L4A6W8\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.734+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      },\n      {\n        \"dialcode_index\": 7611164,\n        \"identifier\": \"D2E1J9\",\n        \"channel\": \"testr01\",\n        \"batchcode\": \"testPub0001.20200421T193801\",\n        \"publisher\": \"testPub0001\",\n        \"generated_on\": \"2020-04-21T19:38:01.759+0000\",\n        \"status\": \"Draft\",\n        \"objectType\": \"DialCode\"\n      }\n    ],\n    \"count\": 5\n  }\n}";
@@ -561,10 +580,29 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 	def getReserveRequest():util.Map[String, AnyRef] = {
 		val reqMap : java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){
 			put("dialcodes", new util.HashMap[String, AnyRef](){
-				put("count", 2.asInstanceOf[Integer])
+				put("count", 12.asInstanceOf[Integer])
 				put("qrCodeSpec", new util.HashMap[String, AnyRef](){
 					put("errorCorrectionLevel", "H")
 				})
+			})
+		}
+		reqMap
+	}
+
+	def getReleaseDIALRequest(identifier: String): Request = {
+		val request = new Request()
+		request.setObjectType("Content")
+		request.setContext(getContext())
+		request.getContext.put("identifier",identifier)
+		request.put("identifier",identifier)
+		request.putAll(getReserveRequest())
+		request
+	}
+
+	def getReleaseRequest():util.Map[String, AnyRef] = {
+		val reqMap : java.util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](){
+			put("dialcodes", new util.HashMap[String, AnyRef](){
+				put("count", 2.asInstanceOf[Integer])
 			})
 		}
 		reqMap
