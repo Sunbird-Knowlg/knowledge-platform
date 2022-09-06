@@ -351,33 +351,33 @@ object DIALManager {
 	}
 
 	def populateAssignedDialCodes(contentId: String, contentMetadata: util.Map[String, AnyRef], request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[String]] = {
-		request.put(ContentConstants.MODE,"")
 		request.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
 		request.getContext.put(ContentConstants.VERSION, ContentConstants.SCHEMA_VERSION)
-		request.put(ContentConstants.ROOT_ID, contentId.replaceAll(ContentConstants.IMAGE_SUFFIX, ""))
+		request.put(ContentConstants.ROOT_ID, contentMetadata.getOrDefault(ContentConstants.IDENTIFIER,"").asInstanceOf[String])
+		request.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 
-		HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
-			val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
-			val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
-			val childrenAssignedDIALList = getAssignedDIALcodes(childrenHierarchy)
-			val contentAssignedDIALList = if(collectionHierarchy.containsKey(DIALConstants.DIALCODES) && collectionHierarchy.get(DIALConstants.DIALCODES) != null)
-					childrenAssignedDIALList ++ collectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
-			else childrenAssignedDIALList
+		HierarchyManager.getHierarchy(request).flatMap(getImageHierarchyResponse => {
+			val imageCollectionHierarchy = getImageHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+			val imageChildrenHierarchy = imageCollectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
+			val imageChildrenAssignedDIALList = getAssignedDIALcodes(imageChildrenHierarchy)
+			val contentImageAssignedDIALList = if(imageCollectionHierarchy.containsKey(DIALConstants.DIALCODES) && imageCollectionHierarchy.get(DIALConstants.DIALCODES) != null)
+				imageChildrenAssignedDIALList ++ imageCollectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
+			else imageChildrenAssignedDIALList
 
+			request.put(ContentConstants.ROOT_ID, contentId)
+			request.put(ContentConstants.MODE, "")
 			if(contentMetadata.getOrDefault(ContentConstants.IDENTIFIER,"").asInstanceOf[String].endsWith(ContentConstants.IMAGE_SUFFIX)) {
-				request.put(ContentConstants.ROOT_ID, contentMetadata.getOrDefault(ContentConstants.IDENTIFIER,"").asInstanceOf[String])
-				request.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
-				HierarchyManager.getHierarchy(request).flatMap(getImageHierarchyResponse => {
-					val imageCollectionHierarchy = getImageHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
-					val imageChildrenHierarchy = imageCollectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
-					val imageChildrenAssignedDIALList = getAssignedDIALcodes(imageChildrenHierarchy)
-					val contentImageAssignedDIALList = if(imageCollectionHierarchy.containsKey(DIALConstants.DIALCODES) && imageCollectionHierarchy.get(DIALConstants.DIALCODES) != null)
-						imageChildrenAssignedDIALList ++ imageCollectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
-					else imageChildrenAssignedDIALList
+				HierarchyManager.getHierarchy(request).flatMap(getHierarchyResponse => {
+					val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+					val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
+					val childrenAssignedDIALList = getAssignedDIALcodes(childrenHierarchy)
+					val contentAssignedDIALList = if(collectionHierarchy.containsKey(DIALConstants.DIALCODES) && collectionHierarchy.get(DIALConstants.DIALCODES) != null)
+						childrenAssignedDIALList ++ collectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
+					else childrenAssignedDIALList
 
 					Future(contentImageAssignedDIALList ++ contentAssignedDIALList)
 				})
-			} else Future(contentAssignedDIALList)
+			} else Future(contentImageAssignedDIALList)
 		})
 	}
 
