@@ -250,6 +250,8 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 		(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(getCassandraHierarchy())).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode("do_1111"))).anyNumberOfTimes()
+		(graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+		(graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getNode("do_1111")))
 		(graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(new Response()))
 
 		val request = getCollectionRNFRequest()
