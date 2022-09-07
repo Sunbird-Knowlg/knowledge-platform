@@ -181,9 +181,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
-	def reserveDialCode(request: Request): Future[Response] = DIALManager.reserve(request)
+	def reserveDialCode(request: Request): Future[Response] = DIALManager.reserveOrRelease(request, ContentConstants.RESERVE)
 
-	def releaseDialCode(request: Request): Future[Response] = DIALManager.release(request)
+	def releaseDialCode(request: Request): Future[Response] = DIALManager.reserveOrRelease(request, ContentConstants.RELEASE)
 
 	def importContent(request: Request): Future[Response] = importMgr.importObject(request)
 

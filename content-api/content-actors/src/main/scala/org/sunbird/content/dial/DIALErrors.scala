@@ -16,6 +16,7 @@ object DIALErrors {
 	val ERR_CONTENT_RETIRED_OBJECT_ID: String = "ERR_CONTENT_RETIRED_OBJECT_ID"
 	val ERR_CONTENT_MISSING_RESERVED_DIAL_CODES: String = "ERR_CONTENT_MISSING_RESERVED_DIAL_CODES"
 	val ERR_ALL_DIALCODES_UTILIZED: String = "ERR_ALL_DIALCODES_UTILIZED"
+	val ERR_INVALID_OPERATION: String = "ERR_INVALID_OPERATION"
 
 	//Error Messages
 	val ERR_INVALID_REQ_MSG: String = "Invalid Request! Please Provide Valid Request."
@@ -38,4 +39,5 @@ object DIALErrors {
 	val ERR_CONTENT_RETIRED_OBJECT_ID_MSG: String = "Invalid Request. Cannot update 'Retired' content."
 	val ERR_CONTENT_MISSING_RESERVED_DIAL_CODES_MSG: String = "Invalid Request. Content does not have reserved DIAL codes."
 	val ERR_ALL_DIALCODES_UTILIZED_MSG: String = "Error! All Reserved DIAL Codes are Utilized."
+	val ERR_INVALID_OPERATION_MSG: String = "Invalid operation request!"
 }

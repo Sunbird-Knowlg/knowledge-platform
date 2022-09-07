@@ -280,7 +280,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 		val request = getReserveDIALRequest(contentId)
 
-		val response = DIALManager.reserve(request)
+		val response = DIALManager.reserveOrRelease(request, "reserve")
 		response.map(result => {
 			assert(result.getResponseCode.toString=="OK")
 		})
@@ -300,7 +300,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 		val request = getReleaseDIALRequest(contentId)
 
-		val response = DIALManager.release(request)
+		val response = DIALManager.reserveOrRelease(request, "release")
 		response.map(result => {
 			assert(result.getResponseCode.toString=="OK")
 		})
