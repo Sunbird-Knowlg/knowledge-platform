@@ -627,7 +627,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		request.setContext(getContext())
 		request.getContext.put("identifier",identifier)
 		request.put("identifier",identifier)
-		request.putAll(getReserveRequest())
+		request.putAll(getReleaseRequest())
 		request
 	}
 
