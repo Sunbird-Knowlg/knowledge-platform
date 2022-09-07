@@ -313,8 +313,8 @@ object DIALManager {
 		val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String])
 		else throw new ClientException(DIALErrors.ERR_CONTENT_MISSING_RESERVED_DIAL_CODES, DIALErrors.ERR_CONTENT_MISSING_RESERVED_DIAL_CODES_MSG)
 
-		val countInRequest = request.get(DIALConstants.COUNT).asInstanceOf[Integer]
-		if(reservedDialCodes.keySet.size < countInRequest)
+		val countInRequest = request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]].get(DIALConstants.COUNT).asInstanceOf[Integer]
+		if(reservedDialCodes.keys.size < countInRequest)
 			throw new ClientException(DIALErrors.ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES, DIALErrors.ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES_MSG)
 
 		populateAssignedDialCodes(contentId, contentMetadata, request).map(assignedDialCodes => {
@@ -407,9 +407,9 @@ object DIALManager {
 			throw new ClientException(DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID, DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID_MSG)
 	}
 
-	def validateCountForReservingAndReleasingDialCode(request: util.Map[String, AnyRef]): Unit = {
-		if (null == request.get(DIALConstants.COUNT) || !request.get(DIALConstants.COUNT).isInstanceOf[Integer]) throw new ClientException(DIALErrors.ERR_INVALID_COUNT, DIALErrors.ERR_INVALID_COUNT_MSG)
-		val count = request.get(DIALConstants.COUNT).asInstanceOf[Integer]
+	def validateCountForReservingAndReleasingDialCode(requestDIALCodesMap: util.Map[String, AnyRef]): Unit = {
+		if (null == requestDIALCodesMap.get(DIALConstants.COUNT) || !requestDIALCodesMap.get(DIALConstants.COUNT).isInstanceOf[Integer]) throw new ClientException(DIALErrors.ERR_INVALID_COUNT, DIALErrors.ERR_INVALID_COUNT_MSG)
+		val count = requestDIALCodesMap.get(DIALConstants.COUNT).asInstanceOf[Integer]
 		val maxCount = if (Platform.config.hasPath("reserve_dialcode.max_count")) Platform.config.getInt("reserve_dialcode.max_count") else 250
 		if (count < 1 || count > maxCount) throw new ClientException(DIALErrors.ERR_INVALID_COUNT_RANGE, DIALErrors.ERR_INVALID_COUNT_RANGE_MSG + maxCount + ".")
 	}
