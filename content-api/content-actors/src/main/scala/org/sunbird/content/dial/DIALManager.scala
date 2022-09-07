@@ -313,6 +313,10 @@ object DIALManager {
 		val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String])
 		else throw new ClientException(DIALErrors.ERR_CONTENT_MISSING_RESERVED_DIAL_CODES, DIALErrors.ERR_CONTENT_MISSING_RESERVED_DIAL_CODES_MSG)
 
+		val countInRequest = request.get(DIALConstants.COUNT).asInstanceOf[Integer]
+		if(reservedDialCodes.keySet.size < countInRequest)
+			throw new ClientException(DIALErrors.ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES, DIALErrors.ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES_MSG)
+
 		populateAssignedDialCodes(contentId, contentMetadata, request).map(assignedDialCodes => {
 			val toReleaseDIALCodes = reservedDialCodes.keySet -- assignedDialCodes.toSet
 
