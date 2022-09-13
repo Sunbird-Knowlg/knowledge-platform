@@ -402,7 +402,7 @@ object DIALManager {
 		val validMimeType = if (Platform.config.hasPath("reserve_dialcode.mimeType")) Platform.config.getStringList("reserve_dialcode.mimeType") else util.Arrays.asList(ContentConstants.COLLECTION_MIME_TYPE)
 		if (!validMimeType.contains(metaData.get(ContentConstants.MIME_TYPE))) throw new ClientException(DIALErrors.ERR_CONTENT_MIMETYPE, DIALErrors.ERR_CONTENT_MIMETYPE_MSG)
 
-		val validContentStatus = if (Platform.config.hasPath("reserve_dialcode.valid_content_status")) Platform.config.getStringList("reserve_dialcode.valid_content_status") else util.Arrays.asList(ContentConstants.DRAFT)
+		val validContentStatus = if (Platform.config.hasPath("reserve_dialcode.valid_content_status")) Platform.config.getStringList("reserve_dialcode.valid_content_status") else util.Arrays.asList(ContentConstants.DRAFT, ContentConstants.LIVE)
 		if(!validContentStatus.contains(metaData.get(ContentConstants.STATUS).asInstanceOf[String])) throw new ClientException(DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID, DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID_MSG)
 	}
 

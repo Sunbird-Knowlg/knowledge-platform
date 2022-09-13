@@ -78,4 +78,5 @@ object ContentConstants {
     val RESERVE: String = "reserve"
     val RELEASE: String = "release"
     val DRAFT: String = "Draft"
+    val LIVE: String = "Live"
 }
