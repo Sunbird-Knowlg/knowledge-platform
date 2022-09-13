@@ -77,4 +77,5 @@ object ContentConstants {
     val PROCESSING: String = "Processing"
     val RESERVE: String = "reserve"
     val RELEASE: String = "release"
+    val DRAFT: String = "Draft"
 }

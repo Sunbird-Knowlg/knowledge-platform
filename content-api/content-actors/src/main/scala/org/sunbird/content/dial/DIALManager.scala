@@ -279,12 +279,11 @@ object DIALManager {
 			validateContentForReserveAndReleaseDialcodes(contentMetadata)
 			validateCountForReservingAndReleasingDialCode(request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]])
 
-			if(operation.nonEmpty && operation.equalsIgnoreCase(ContentConstants.RESERVE)) {
-				reserve(request, channelId, contentId, rootNode, contentMetadata)
-			} else if(operation.nonEmpty && operation.equalsIgnoreCase(ContentConstants.RELEASE)) {
-				release(request, contentId, rootNode, contentMetadata)
-			} else throw new ClientException(DIALErrors.ERR_INVALID_OPERATION, DIALErrors.ERR_INVALID_OPERATION_MSG)
-
+			operation match {
+				case ContentConstants.RESERVE => reserve(request, channelId, contentId, rootNode, contentMetadata)
+				case ContentConstants.RELEASE => release(request, contentId, rootNode, contentMetadata)
+				case _ => throw new ClientException(DIALErrors.ERR_INVALID_OPERATION, DIALErrors.ERR_INVALID_OPERATION_MSG)
+			}
 		})
 	}
 
@@ -403,8 +402,8 @@ object DIALManager {
 		val validMimeType = if (Platform.config.hasPath("reserve_dialcode.mimeType")) Platform.config.getStringList("reserve_dialcode.mimeType") else util.Arrays.asList(ContentConstants.COLLECTION_MIME_TYPE)
 		if (!validMimeType.contains(metaData.get(ContentConstants.MIME_TYPE))) throw new ClientException(DIALErrors.ERR_CONTENT_MIMETYPE, DIALErrors.ERR_CONTENT_MIMETYPE_MSG)
 
-		if(metaData.get(ContentConstants.STATUS).asInstanceOf[String].equalsIgnoreCase("Retired"))
-			throw new ClientException(DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID, DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID_MSG)
+		val validContentStatus = if (Platform.config.hasPath("reserve_dialcode.valid_content_status")) Platform.config.getStringList("reserve_dialcode.valid_content_status") else util.Arrays.asList(ContentConstants.DRAFT)
+		if(!validContentStatus.contains(metaData.get(ContentConstants.STATUS).asInstanceOf[String])) throw new ClientException(DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID, DIALErrors.ERR_CONTENT_RETIRED_OBJECT_ID_MSG)
 	}
 
 	def validateCountForReservingAndReleasingDialCode(requestDIALCodesMap: util.Map[String, AnyRef]): Unit = {
