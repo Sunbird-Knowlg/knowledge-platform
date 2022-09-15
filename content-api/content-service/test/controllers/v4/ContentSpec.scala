@@ -191,4 +191,26 @@ class ContentSpec extends BaseSpec {
     }
   }
 
+  "Content Controller with valid request " should {
+    "return success response for dialcode reserve API" in {
+      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val json: JsValue = Json.parse("""{"request": {"dialcodes": {"count": 5, "qrCodeSpec": { "errorCorrectionLevel": "H" }}}}""".stripMargin)
+      val fakeRequest = FakeRequest("POST", "/content/v4/dialcode/reserve/do_123").withJsonBody(json)
+      val result = controller.reserveDialCode("do_123")(fakeRequest)
+      isOK(result)
+      status(result) must equalTo(OK)
+    }
+  }
+
+  "Content Controller with valid request " should {
+    "return success response for dialcode release API" in {
+      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val json: JsValue = Json.parse("""{"request": {"dialcodes": {"count": 1}}}""".stripMargin)
+      val fakeRequest = FakeRequest("POST", "/content/v4/dialcode/release/do_123").withJsonBody(json)
+      val result = controller.releaseDialCode("do_123")(fakeRequest)
+      isOK(result)
+      status(result) must equalTo(OK)
+    }
+  }
+
 }

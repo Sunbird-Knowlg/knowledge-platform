@@ -52,6 +52,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "acceptFlag" => acceptFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
 			case "reserveDialCode" => reserveDialCode(request)
+			case "releaseDialCode" => releaseDialCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
 			case "reviewContent" => reviewContent(request)
@@ -180,7 +181,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
-	def reserveDialCode(request: Request): Future[Response] = DIALManager.reserve(request)
+	def reserveDialCode(request: Request): Future[Response] = DIALManager.reserveOrRelease(request, ContentConstants.RESERVE)
+
+	def releaseDialCode(request: Request): Future[Response] = DIALManager.reserveOrRelease(request, ContentConstants.RELEASE)
 
 	def importContent(request: Request): Future[Response] = importMgr.importObject(request)
 

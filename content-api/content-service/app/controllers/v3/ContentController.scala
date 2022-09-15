@@ -234,9 +234,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def releaseDialcodes(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val releaseDialCode = getRequest(body, headers, "releaseDialCode")
+        setRequestContext(releaseDialCode, version, objectType, schemaName)
+        getResult(ApiId.RELEASE_DIAL_CONTENT, contentActor, releaseDialCode)
     }
 
     def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>

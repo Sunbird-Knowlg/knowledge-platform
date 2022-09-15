@@ -1,0 +1,488 @@
+{
+	"id": "0f65eca4-84c1-4ad3-9ca7-4c0c035fe6a1",
+	"name": "Release DIAL Code API",
+	"timestamp": "2022-09-07T11:58:49.914Z",
+	"collection_id": "13387833-d76732b8-56b7-4a54-84f1-4c43e694dcd9",
+	"folder_id": 0,
+	"environment_id": "0e0b136d-70cc-437e-a0df-ccba162408d9",
+	"totalPass": 21,
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "32d3736c-e0f7-4d97-9230-4a4c8d8a80eb",
+			"name": "Collection Create",
+			"url": "http://localhost:9000/content/v4/create",
+			"time": 49,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				49
+			],
+			"allTests": [
+				{
+					"Status code is 200": true
+				}
+			]
+		},
+		{
+			"id": "ce3e135b-72fc-4561-badc-5094ecab1ab2",
+			"name": "Collection Create wo reserved DIAL codes",
+			"url": "http://localhost:9000/content/v4/create",
+			"time": 28,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				28
+			],
+			"allTests": [
+				{
+					"Status code is 200": true
+				}
+			]
+		},
+		{
+			"id": "1f0520aa-3f59-4c3e-be73-2574ea09a123",
+			"name": "TOC Upload",
+			"url": "http://localhost:9000/collection/v4/import/do_113619625412968448149",
+			"time": 533,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				533
+			],
+			"allTests": [
+				{
+					"Status code is 200": true
+				}
+			]
+		},
+		{
+			"id": "c7ebfb77-7f9e-483b-afd6-4b6b44067e8b",
+			"name": "Reserve DIAL code",
+			"url": "http://localhost:9000/collection/v4/dialcode/reserve/do_113619625412968448149",
+			"time": 1702,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				1702
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "5a0c02b8-ab74-4d12-9ce3-06ba874311b9",
+			"name": "Link DIAL code",
+			"url": "http://localhost:9000/collection/v4/dialcode/link/do_113619625412968448149",
+			"time": 199,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				199
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "48eaac17-ecf6-45e2-ad72-b95ef26d9e55",
+			"name": "Release DIAL code",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 101,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Response returns with reservedDialcodes with one less": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response returns with reservedDialcodes with one less": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				101
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Response returns with reservedDialcodes with one less": true
+				}
+			]
+		},
+		{
+			"id": "cec90850-4020-4b24-a4f3-76b2c52b9da6",
+			"name": "Release DIAL code Invalid Channel Id header",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 24,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_INVALID_CHANNEL": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_INVALID_CHANNEL": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_INVALID_CHANNEL": true
+				}
+			]
+		},
+		{
+			"id": "60202782-e345-4c4c-8f1e-939cd7ee8f0b",
+			"name": "Release DIAL code with Zero count",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 30,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_INVALID_COUNT_RANGE": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_INVALID_COUNT_RANGE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				30
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_INVALID_COUNT_RANGE": true
+				}
+			]
+		},
+		{
+			"id": "28f49920-9a42-441b-90b6-34260a2cd834",
+			"name": "Release DIAL code with negative count",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 31,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_INVALID_COUNT_RANGE": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_INVALID_COUNT_RANGE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				31
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_INVALID_COUNT_RANGE": true
+				}
+			]
+		},
+		{
+			"id": "b0dd02cf-d5b8-44bb-acd7-367bdc5f9592",
+			"name": "Release DIAL code with count greater than max limit(250)",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 35,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_INVALID_COUNT_RANGE": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_INVALID_COUNT_RANGE": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				35
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_INVALID_COUNT_RANGE": true
+				}
+			]
+		},
+		{
+			"id": "208caab7-3f00-47ab-ae97-838e9b4815b4",
+			"name": "Release DIAL code with invalid collection Id",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_dummy_id",
+			"time": 35,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Response throws RESOURCE_NOT_FOUND": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				35
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Response throws RESOURCE_NOT_FOUND": true
+				}
+			]
+		},
+		{
+			"id": "9a169a58-785e-468e-b8fe-014b0d3898d9",
+			"name": "Release DIAL code for collection wo reserved DIAL codes",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625413853184150",
+			"time": 55,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_CONTENT_MISSING_RESERVED_DIAL_CODES": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_CONTENT_MISSING_RESERVED_DIAL_CODES": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				55
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_CONTENT_MISSING_RESERVED_DIAL_CODES": true
+				}
+			]
+		},
+		{
+			"id": "5d662783-fe26-41db-a2b6-66ed08be9430",
+			"name": "Release DIAL code with count greater than reserved DIAL codes count",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 31,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				31
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES": true
+				}
+			]
+		},
+		{
+			"id": "2610536f-2c69-41c1-be92-6df6b4a153dc",
+			"name": "Release DIAL code with count same as linked DIAL codes",
+			"url": "http://localhost:9000/collection/v4/dialcode/release/do_113619625412968448149",
+			"time": 89,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Response throws ERR_ALL_DIALCODES_UTILIZED": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response throws ERR_ALL_DIALCODES_UTILIZED": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				89
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Response throws ERR_ALL_DIALCODES_UTILIZED": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2942,
+	"collection": {
+		"requests": [
+			{
+				"id": "32d3736c-e0f7-4d97-9230-4a4c8d8a80eb",
+				"method": "POST"
+			},
+			{
+				"id": "ce3e135b-72fc-4561-badc-5094ecab1ab2",
+				"method": "POST"
+			},
+			{
+				"id": "1f0520aa-3f59-4c3e-be73-2574ea09a123",
+				"method": "POST"
+			},
+			{
+				"id": "c7ebfb77-7f9e-483b-afd6-4b6b44067e8b",
+				"method": "POST"
+			},
+			{
+				"id": "5a0c02b8-ab74-4d12-9ce3-06ba874311b9",
+				"method": "POST"
+			},
+			{
+				"id": "48eaac17-ecf6-45e2-ad72-b95ef26d9e55",
+				"method": "POST"
+			},
+			{
+				"id": "cec90850-4020-4b24-a4f3-76b2c52b9da6",
+				"method": "POST"
+			},
+			{
+				"id": "60202782-e345-4c4c-8f1e-939cd7ee8f0b",
+				"method": "POST"
+			},
+			{
+				"id": "28f49920-9a42-441b-90b6-34260a2cd834",
+				"method": "POST"
+			},
+			{
+				"id": "b0dd02cf-d5b8-44bb-acd7-367bdc5f9592",
+				"method": "POST"
+			},
+			{
+				"id": "208caab7-3f00-47ab-ae97-838e9b4815b4",
+				"method": "POST"
+			},
+			{
+				"id": "9a169a58-785e-468e-b8fe-014b0d3898d9",
+				"method": "POST"
+			},
+			{
+				"id": "5d662783-fe26-41db-a2b6-66ed08be9430",
+				"method": "POST"
+			},
+			{
+				"id": "2610536f-2c69-41c1-be92-6df6b4a153dc",
+				"method": "POST"
+			}
+		]
+	}
+}
