@@ -144,7 +144,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def uploadPreSignedUrl(request: Request): Future[Response] = {
 		val `type`: String = request.get("type").asInstanceOf[String].toLowerCase()
 		val fileName: String = request.get("fileName").asInstanceOf[String]
-		val mimeType: String = request.get("mimeType").asInstanceOf[String]
 		val filePath: String = request.getRequest.getOrDefault("filePath","").asInstanceOf[String]
 			.replaceAll("^/+|/+$", "")
 		val identifier: String = request.get("identifier").asInstanceOf[String]
@@ -153,7 +152,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 				else filePath + File.separator + "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
-			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"), Option.apply(mimeType))
+			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
 			ResponseHandler.OK().put("identifier", identifier).put("pre_signed_url", preSignedURL)
 				.put("url_expiry", expiry)
 		}) recoverWith { case e: CompletionException => throw e.getCause }

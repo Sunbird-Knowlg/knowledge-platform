@@ -94,7 +94,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNode()))
         implicit val ss: StorageService = mock[StorageService]
-        (ss.getSignedURL(_: String, _: Option[Int], _: Option[String], _: Option[String])).expects(*, *, *, *).returns("cloud store url")
+        (ss.getSignedURL(_: String, _: Option[Int], _: Option[String])).expects(*, *, *).returns("cloud store url")
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("fileName" -> "presigned_url", "filePath" -> "/data/cloudstore/", "type" -> "assets", "identifier" -> "do_1234")))
         request.setOperation("uploadPreSignedUrl")
