@@ -19,7 +19,7 @@ class StorageServiceTest extends AsyncFlatSpec with Matchers {
 
     "getSignedURL" should "return the signed url" in {
         val objectKey = "content" + File.separator + "asset" + File.separator + "do_53245" + File.separator + "abc.png"
-        val preSignedURL = ss.getSignedURL(objectKey, Option.apply(600), Option.apply("w"), Option.apply(""))
+        val preSignedURL = ss.getSignedURL(objectKey, Option.apply(600), Option.apply("w"))
         assert(preSignedURL.contains(objectKey))
     }
 

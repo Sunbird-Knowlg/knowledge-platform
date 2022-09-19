@@ -87,7 +87,7 @@ class StorageService {
         getService.deleteObject(getContainerName, key, isDirectory)
     }
 
-    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String], contentType: Option[String] = None): String = {
+    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
       storageType match {
         case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
