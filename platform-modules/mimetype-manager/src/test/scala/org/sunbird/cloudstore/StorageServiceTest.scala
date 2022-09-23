@@ -27,4 +27,29 @@ class StorageServiceTest extends AsyncFlatSpec with Matchers {
         val uri = ss.getUri("content/abc.json")
         assert(uri != null)
     }
+
+    "getMimeType" should "return the mimetype application/epub+zip for epub" in {
+        val result = ss.getMimeType("test.alert.epub")
+        assert(result == "application/epub+zip")
+    }
+
+    "getMimeType" should "return the mimetype application/octet-stream for h5p" in {
+        val result = ss.getMimeType("test.alert.h5p")
+        assert(result == "application/octet-stream")
+    }
+
+    "getMimeType" should "return the mimetype text/csv for csv" in {
+        val result = ss.getMimeType("test.alert.csv")
+        assert(result == "text/csv")
+    }
+
+    "getMimeType" should "return the mimetype application/pdf for pdf" in {
+        val result = ss.getMimeType("test.alert.pdf")
+        assert(result == "application/pdf")
+    }
+
+    "getMimeType" should "return the mimetype application/zip for zip" in {
+        val result = ss.getMimeType("test.alert.zip")
+        assert(result == "application/zip")
+    }
 }
