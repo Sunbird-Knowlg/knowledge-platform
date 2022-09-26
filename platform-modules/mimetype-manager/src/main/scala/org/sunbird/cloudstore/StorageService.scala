@@ -1,14 +1,13 @@
 package org.sunbird.cloudstore
 
-import java.io.File
 import org.apache.commons.lang3.StringUtils
+import org.apache.tika.Tika
 import org.sunbird.cloud.storage.BaseStorageService
-import org.sunbird.common.Platform
-import org.sunbird.cloud.storage.factory.StorageConfig
-import org.sunbird.cloud.storage.factory.StorageServiceFactory
+import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
+import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
-import org.sunbird.common.Slug
 
+import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
 
 class StorageService {
@@ -85,9 +84,9 @@ class StorageService {
         getService.deleteObject(getContainerName, key, isDirectory)
     }
 
-    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String], contentType: Option[String] = None): String = {
+    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
       storageType match {
-        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, contentType)
+        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
     }
@@ -101,4 +100,10 @@ class StorageService {
               ""
         }
     }
+
+  def getMimeType(fileName: String): String = {
+    val tika: Tika = new Tika()
+    tika.detect(fileName)
+  }
+
 }
