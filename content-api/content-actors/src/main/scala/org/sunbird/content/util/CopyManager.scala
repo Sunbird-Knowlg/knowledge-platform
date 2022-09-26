@@ -222,7 +222,7 @@ object CopyManager {
     protected def getFileNameFromURL(fileUrl: String): String = if (!FilenameUtils.getExtension(fileUrl).isEmpty)
         FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis + "." + FilenameUtils.getExtension(fileUrl) else FilenameUtils.getBaseName(fileUrl) + "_" + System.currentTimeMillis
 
-    protected def isInternalUrl(url: String)(implicit ss: StorageService): Boolean = url.contains(ss.getContainerName())
+    protected def isInternalUrl(url: String)(implicit ss: StorageService): Boolean = url.contains(ss.getContainerName)
 
     def prepareHierarchyRequest(originHierarchy: util.Map[String, AnyRef], originNode: Node, node: Node, copyType: String, request: Request):util.HashMap[String, AnyRef] = {
         val children:util.List[util.Map[String, AnyRef]] = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
