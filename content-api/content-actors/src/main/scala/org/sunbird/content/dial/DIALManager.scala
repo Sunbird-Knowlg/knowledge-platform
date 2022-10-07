@@ -361,10 +361,9 @@ object DIALManager {
 			val imageChildrenAssignedDIALList = getAssignedDIALcodes(imageChildrenHierarchy)
 			val contentImageAssignedDIALList = if(imageCollectionHierarchy.containsKey(DIALConstants.DIALCODES) && imageCollectionHierarchy.get(DIALConstants.DIALCODES) != null) {
 				TelemetryManager.info("DIALManager:: populateAssignedDialCodes:: collection DIAL codes:: " + imageCollectionHierarchy.get(DIALConstants.DIALCODES))
-				val hierarchyDialCode = imageCollectionHierarchy.get(DIALConstants.DIALCODES) match {
-					case javaStr: java.lang.String => ScalaJsonUtils.deserialize[List[String]](javaStr)
-					case anyVal => anyVal.asInstanceOf[List[String]]
-				}
+				val hierarchyDialCodeStr = ScalaJsonUtils.serialize(imageCollectionHierarchy.get(DIALConstants.DIALCODES))
+				TelemetryManager.info("DIALManager:: populateAssignedDialCodes:: hierarchyDialCodeStr:: " + hierarchyDialCodeStr)
+				val hierarchyDialCode = ScalaJsonUtils.deserialize[List[String]](hierarchyDialCodeStr)
 				imageChildrenAssignedDIALList ++ hierarchyDialCode
 			}
 			else imageChildrenAssignedDIALList
