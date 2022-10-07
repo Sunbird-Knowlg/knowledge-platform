@@ -372,11 +372,9 @@ object DIALManager {
 					val collectionHierarchy = getHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
 					val childrenHierarchy = collectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
 					val childrenAssignedDIALList = getAssignedDIALcodes(childrenHierarchy)
-					val contentAssignedDIALList = if(collectionHierarchy.containsKey(DIALConstants.DIALCODES) && collectionHierarchy.get(DIALConstants.DIALCODES) != null) {
-						val collectionDialCodeStr = ScalaJsonUtils.serialize(collectionHierarchy.get(DIALConstants.DIALCODES))
-						val collectionDialCode = ScalaJsonUtils.deserialize[List[String]](collectionDialCodeStr)
-						childrenAssignedDIALList ++ collectionDialCode
-					} else childrenAssignedDIALList
+					val contentAssignedDIALList = if(collectionHierarchy.containsKey(DIALConstants.DIALCODES) && collectionHierarchy.get(DIALConstants.DIALCODES) != null)
+						childrenAssignedDIALList ++ collectionHierarchy.getOrDefault(DIALConstants.DIALCODES, List.empty[String]).asInstanceOf[List[String]]
+					else childrenAssignedDIALList
 
 					Future(contentImageAssignedDIALList ++ contentAssignedDIALList)
 				})
