@@ -356,15 +356,12 @@ object DIALManager {
 
 		HierarchyManager.getHierarchy(request).flatMap(getImageHierarchyResponse => {
 			val imageCollectionHierarchy = getImageHierarchyResponse.getResult.getOrDefault(ContentConstants.CONTENT, new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
-			TelemetryManager.info("DIALManager:: populateAssignedDialCodes:: imageCollectionHierarchy:: " + imageCollectionHierarchy)
 			val imageChildrenHierarchy = imageCollectionHierarchy.get(ContentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
 			val imageChildrenAssignedDIALList = getAssignedDIALcodes(imageChildrenHierarchy)
 			val contentImageAssignedDIALList = if(imageCollectionHierarchy.containsKey(DIALConstants.DIALCODES) && imageCollectionHierarchy.get(DIALConstants.DIALCODES) != null) {
-				TelemetryManager.info("DIALManager:: populateAssignedDialCodes:: collection DIAL codes:: " + imageCollectionHierarchy.get(DIALConstants.DIALCODES))
-				val hierarchyDialCodeStr = ScalaJsonUtils.serialize(imageCollectionHierarchy.get(DIALConstants.DIALCODES))
-				TelemetryManager.info("DIALManager:: populateAssignedDialCodes:: hierarchyDialCodeStr:: " + hierarchyDialCodeStr)
-				val hierarchyDialCode = ScalaJsonUtils.deserialize[List[String]](hierarchyDialCodeStr)
-				imageChildrenAssignedDIALList ++ hierarchyDialCode
+				val collectionDialCodeStr = ScalaJsonUtils.serialize(imageCollectionHierarchy.get(DIALConstants.DIALCODES))
+				val collectionDialCode = ScalaJsonUtils.deserialize[List[String]](collectionDialCodeStr)
+				imageChildrenAssignedDIALList ++ collectionDialCode
 			}
 			else imageChildrenAssignedDIALList
 
