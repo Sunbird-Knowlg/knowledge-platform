@@ -2,13 +2,32 @@
 
 Repository for Knowledge Platform - 2.0
 
-## Knowledge-platform local setup
+## Knowledge-platform local setup 
 This readme file contains the instruction to set up and run the content-service in local machine.
 
 ### System Requirements:
 
 ### Prerequisites:
 * Java 11
+* Docker, Docker Compose
+
+
+## One step installation 
+
+1. Go to Root folder (knowledge-platform)
+2. Run "local-setup.sh" file
+``` shell
+sh ./local-setup.md
+```
+ 
+ This will install all the requied dcoker images & local folders for DB mounting.
+ 3. Follow the below manual setps of running content service 
+  refer: [Running Content Service:](#running-content-service)
+
+
+
+## Manual steps to install all the dependents
+Please follow the manual steps in [One step installation](#one-step-installation) is failed.
 
 ### Prepare folders for database data and logs
 
