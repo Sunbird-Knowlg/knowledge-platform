@@ -68,11 +68,7 @@ class StorageService {
     }
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-      storageType match {
-        // TODO: We need to remove CSP name related code. Below code needs to be refactored.
-        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
-        case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
-      }
+      getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
     }
 
     def getUri(key: String): String = {
