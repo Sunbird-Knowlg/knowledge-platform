@@ -1,0 +1,291 @@
+{
+	"id": "cf102fa4-c8e2-4199-a6e6-6a04dae9262d",
+	"name": "Composite Search API",
+	"timestamp": "2022-11-16T06:10:20.538Z",
+	"collection_id": "65bcacf8-0c90-4f3f-874b-a5d2c01cdc36",
+	"folder_id": 0,
+	"environment_id": "43ba92f2-e81b-446b-8b2a-589126842629",
+	"totalPass": 36,
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "6c4437c8-62ec-4917-bc5a-838fd333b71c",
+			"name": "200 - Get live Content list",
+			"url": "https://dev.knowlg.sunbird.org//action/composite/v3/search",
+			"time": 727,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"Content type should be Content": true,
+				"id should be api.v1.search": true,
+				"ver should be 1.0": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content type should be Content": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.v1.search": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 1.0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				727
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"Content type should be Content": true,
+					"id should be api.v1.search": true,
+					"ver should be 1.0": true
+				}
+			]
+		},
+		{
+			"id": "eaba0158-fbb9-480a-8971-e5f4aad1fc47",
+			"name": "200 - Get live Assesment list",
+			"url": "https://dev.knowlg.sunbird.org//action/composite/v3/search",
+			"time": 323,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"Content type should be Asset": true,
+				"id should be api.v1.search": true,
+				"ver should be 1.0": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content type should be Asset": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.v1.search": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 1.0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				323
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"Content type should be Asset": true,
+					"id should be api.v1.search": true,
+					"ver should be 1.0": true
+				}
+			]
+		},
+		{
+			"id": "97be2029-e5dc-4dcd-8736-9178818022cf",
+			"name": "200 - Get live assets list",
+			"url": "https://dev.knowlg.sunbird.org//action/composite/v3/search",
+			"time": 268,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"Content type should be Asset": true,
+				"id should be api.v1.search": true,
+				"ver should be 1.0": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content type should be Asset": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.v1.search": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 1.0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				268
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"Content type should be Asset": true,
+					"id should be api.v1.search": true,
+					"ver should be 1.0": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 1318,
+	"collection": {
+		"requests": [
+			{
+				"id": "6c4437c8-62ec-4917-bc5a-838fd333b71c",
+				"method": "POST"
+			},
+			{
+				"id": "eaba0158-fbb9-480a-8971-e5f4aad1fc47",
+				"method": "POST"
+			},
+			{
+				"id": "97be2029-e5dc-4dcd-8736-9178818022cf",
+				"method": "POST"
+			}
+		]
+	}
+}
