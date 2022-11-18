@@ -303,6 +303,218 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Negative",
+			"item": [
+				{
+					"name": "400 - Search filters missing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonResponse = pm.response.json()",
+									"",
+									"//Verification",
+									"pm.test(\"Status code is 400\", () => {",
+									"    pm.response.to.have.status(400)",
+									"});",
+									"//code name contains a string",
+									"tests[\"Status code name has string \\\"Bad Request\\\"\"] = responseCode.name.has(\"Bad Request\");",
+									"",
+									"pm.test(\"Verify keys and data type of the response result\", () => {",
+									"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+									"});",
+									"",
+									"//Validation",
+									"// Response body",
+									"pm.test(\"responseCode should be \\\"CLIENT_ERROR\\\"\", () => {",
+									"    pm.expect(jsonResponse.responseCode).to.eql(\"CLIENT_ERROR\");",
+									"});",
+									"",
+									"// Params",
+									"pm.test(\"params.err should be \\\"ERR_CONTENT_SEARCH_FIELDS_MISSING\\\"\", () => {",
+									"    pm.expect(jsonResponse.params.err).to.eql(\"ERR_CONTENT_SEARCH_FIELDS_MISSING\");",
+									"});",
+									"pm.test(\"params.errmsg should be \\\"Required fields for search content are missing\\\"\", () => {",
+									"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Required fields for search content are missing\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"connection": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/action/composite/v3/search",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"action",
+								"composite",
+								"v3",
+								"search"
+							]
+						},
+						"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+					},
+					"response": []
+				},
+				{
+					"name": "500 - parameter cannot be negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonResponse = pm.response.json()",
+									"",
+									"//Verification",
+									"pm.test(\"Status code is 500\", () => {",
+									"    pm.response.to.have.status(500)",
+									"});",
+									"",
+									"pm.test(\"Verify keys and data type of the response result\", () => {",
+									"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+									"});",
+									"",
+									"//Validation",
+									"// Response body",
+									"pm.test(\"responseCode should be \\\"SERVER_ERROR\\\"\", () => {",
+									"    pm.expect(jsonResponse.responseCode).to.eql(\"SERVER_ERROR\");",
+									"});",
+									"",
+									"// Params",
+									"pm.test(\"params.err should be \\\"ERR_SYSTEM_EXCEPTION\\\"\", () => {",
+									"    pm.expect(jsonResponse.params.err).to.eql(\"ERR_SYSTEM_EXCEPTION\");",
+									"});",
+									"pm.test(\"params.errmsg should be \\\"[size] parameter cannot be negative, found [-1]\\\"\", () => {",
+									"    pm.expect(jsonResponse.params.errmsg).to.eql(\"[size] parameter cannot be negative, found [-1]\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"connection": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"objectType\": [\n                \"AssessmentItem\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        },\n        \"limit\": -1\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/action/composite/v3/search",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"action",
+								"composite",
+								"v3",
+								"search"
+							]
+						},
+						"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"let jsonResponse = pm.response.json();",
+							"",
+							"pm.test(\"Verify keys and data type of the params in negative scenario\", () => {",
+							"  pm.expect(jsonResponse.params.resmsgid).to.be.a(\"string\");",
+							"  pm.expect(jsonResponse.params.msgid).to.be.null;",
+							"  pm.expect(jsonResponse.params.err).to.be.a(\"string\");",
+							"  pm.expect(jsonResponse.params.status).to.be.a(\"string\");",
+							"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"string\");",
+							"});",
+							"",
+							"pm.test(\"params.status should be \\\"failed\\\"\", () => {",
+							"    pm.expect(jsonResponse.params.status).to.eql(\"failed\");",
+							"});",
+							"",
+							"pm.test(\"id should be api.v1.search\", () => {",
+							"   pm.expect(jsonResponse.id).to.eql(\"api.v1.search\");",
+							"});",
+							"pm.test(\"ver should be 1.0\", () => {",
+							"   pm.expect(jsonResponse.ver).to.eql(\"1.0\");",
+							"});"
+						]
+					}
+				}
+			]
 		}
 	],
 	"event": [
