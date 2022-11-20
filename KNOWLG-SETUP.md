@@ -79,12 +79,20 @@ It requires the below DBs for Knowlg.
 ```shell
 cd kubernetes
 helm install redis sunbird-dbs/redis -n knowlg-db
+
+minikube mount <LOCAL_SOURCE_DIR>:/var/lib/neo4j/data // LOCAL_SOURCE_DIR is where neo4j dump is extracted Ex: /Users/abc/sunbird-dbs/neo4j/data
 helm install neo4j sunbird-dbs/neo4j -n knowlg-db
+
+minikube mount <LOCAL_SOURCE_DIR>:/mnt/backups // LOCAL_SOURCE_DIR is where neo4j dump is extracted Ex: /Users/abc/sunbird-dbs/cassandra/backups
 helm install cassandra sunbird-dbs/cassandra -n knowlg-db
+
+ssh to cassandra pod
+run => cqlsh
+run => source '/mnt/backups/cassandra_backup/db_schema.cql';
 ```
+
 **Note:** 
-1. The `helm` charts for Kafka, Elasticsearch will be added soon.
-2. The documentation will be updated to enable seed data while starting the service. 
+- The `helm` charts for Kafka, Elasticsearch will be added soon.
 
 ### Define ConfigMap
 We use the configmap to load the configuration for the microservices.
