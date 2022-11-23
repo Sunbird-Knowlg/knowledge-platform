@@ -1,5 +1,6 @@
 package org.sunbird.graph
 
+import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.external.ExternalPropsManager
@@ -11,16 +12,21 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GraphService {
     implicit  val ec: ExecutionContext = ExecutionContext.global
+    val isrRelativePathEnabled = Platform.getBoolean("cloudstorage.metadata.replace_absolute_path", false)
 
     def addNode(graphId: String, node: Node): Future[Node] = {
-        val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
-        node.setMetadata(metadata)
+        if(isrRelativePathEnabled) {
+            val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
+            node.setMetadata(metadata)
+        }
         NodeAsyncOperations.addNode(graphId, node)
     }
 
     def upsertNode(graphId: String, node: Node, request: Request): Future[Node] = {
-        val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
-        node.setMetadata(metadata)
+        if(isrRelativePathEnabled) {
+            val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
+            node.setMetadata(metadata)
+        }
         NodeAsyncOperations.upsertNode(graphId, node, request)
     }
 
@@ -29,7 +35,7 @@ class GraphService {
     }
 
     def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node] = {
-        SearchAsyncOperations.getNodeByUniqueId(graphId, nodeId, getTags, request).map(node => CSPMetaUtil.updateAbsolutePath(node))
+        SearchAsyncOperations.getNodeByUniqueId(graphId, nodeId, getTags, request).map(node => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(node) else node)
     }
 
     def deleteNode(graphId: String, nodeId: String, request: Request): Future[java.lang.Boolean] = {
@@ -37,15 +43,15 @@ class GraphService {
     }
 
     def getNodeProperty(graphId: String, identifier: String, property: String): Future[Property] = {
-        SearchAsyncOperations.getNodeProperty(graphId, identifier, property).map(property => CSPMetaUtil.updateAbsolutePath(property))
+        SearchAsyncOperations.getNodeProperty(graphId, identifier, property).map(property => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(property) else property)
     }
     def updateNodes(graphId: String, identifiers:java.util.List[String], metadata:java.util.Map[String,AnyRef]):Future[java.util.Map[String, Node]] = {
-        val updatedMetadata = CSPMetaUtil.updateRelativePath(metadata)
+        val updatedMetadata = if(isrRelativePathEnabled) CSPMetaUtil.updateRelativePath(metadata) else metadata
         NodeAsyncOperations.updateNodes(graphId, identifiers, updatedMetadata)
     }
 
     def getNodeByUniqueIds(graphId:String, searchCriteria: SearchCriteria): Future[java.util.List[Node]] = {
-        SearchAsyncOperations.getNodeByUniqueIds(graphId, searchCriteria).map(nodes => CSPMetaUtil.updateAbsolutePath(nodes))
+        SearchAsyncOperations.getNodeByUniqueIds(graphId, searchCriteria).map(nodes => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(nodes) else nodes)
     }
 
     def readExternalProps(request: Request, fields: List[String]): Future[Response] = {

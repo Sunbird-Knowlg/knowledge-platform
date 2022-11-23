@@ -17,7 +17,12 @@ object CSPMetaUtil {
     val cspMeta = Platform.getStringList("cloudstorage.metadata.list", defaultMetadataList).asScala.toList
     val absolutePath = Platform.getString("cloudstorage.read_base_path", "") + java.io.File.separator + Platform.getString("cloud_storage_container", "")
     if (MapUtils.isNotEmpty(data)) {
-      val updatedMeta: java.util.Map[String, AnyRef] = data.asScala.map(x => if (cspMeta.contains(x._1)) (x._1, x._2.asInstanceOf[String].replace("CLOUD_STORAGE_BASE_PATH", absolutePath)) else (x._1, x._2)).toMap.asJava
+      val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
+      data.asScala.map(x =>
+        if (cspMeta.contains(x._1))
+          updatedMeta.put(x._1, x._2.asInstanceOf[String].replace("CLOUD_STORAGE_BASE_PATH", absolutePath))
+        else updatedMeta.put(x._1, x._2)
+      ).asJava
       updatedMeta
     } else data
   }
@@ -48,22 +53,18 @@ object CSPMetaUtil {
     property
   }
 
-//  def updateRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
-//    val cspMeta = Platform.getStringList("cloudstorage.metadata.list", defaultMetadataList)
-//    val validCSPSource: java.util.List[String] = Platform.getStringList("cloudstorage.write_base_path", defaultWriteBasePath)
-//    val basePath: List[String] = validCSPSource.asScala.toList.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", ""))
-//    if (MapUtils.isNotEmpty(data)) {
-//      val updatedMeta: java.util.Map[String, AnyRef] = data.asScala.map(x => if (cspMeta.contains(x._1)) (x._1, basePath.map(path => {if (x._2.asInstanceOf[String].contains(path)) x._2.asInstanceOf[String].replace(path, "CLOUD_STORAGE_BASE_PATH") else x._2 })) else (x._1, x._2)).toMap.asJava
-//      updatedMeta
-//    } else data
-//  }
-
   def updateRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
     val cspMeta: java.util.List[String] = Platform.getStringList("cloudstorage.metadata.list", defaultMetadataList)
     val validCSPSource: java.util.List[String] = Platform.getStringList("cloudstorage.write_base_path", defaultWriteBasePath)
     val basePath: List[String] = validCSPSource.asScala.toList.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", ""))
     if (MapUtils.isNotEmpty(data)) {
-      val updatedMeta: java.util.Map[String, AnyRef] = data.asScala.map(x => if (cspMeta.contains(x._1)) (x._1, basePath.map(path => if (x._2.asInstanceOf[String].contains(path)) x._2.asInstanceOf[String].replace(path, "CLOUD_STORAGE_BASE_PATH") else x._2)) else (x._1, x._2)).toMap.asJava
+      val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
+      data.asScala.map(x =>
+          if (cspMeta.contains(x._1)) {
+            val filteredPath = basePath.filter(path => x._2.asInstanceOf[String].contains(path))
+            updatedMeta.put(x._1, if(filteredPath.nonEmpty) x._2.asInstanceOf[String].replaceAll(filteredPath.head, "CLOUD_STORAGE_BASE_PATH") else x._2)
+          } else updatedMeta.put(x._1, x._2)
+      ).asJava
       updatedMeta
     } else data
   }
