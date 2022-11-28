@@ -3,8 +3,8 @@ package org.sunbird.graph.util
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
-import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.Property
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 
 import scala.collection.JavaConverters._
@@ -69,6 +69,26 @@ object CSPMetaUtil {
     } else data
     logger.info("CSPMetaUtil ::: updateRelativePath util.Map[String, AnyRef] ::: data after url replace :: " + result)
     result
+  }
+
+  def updateExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
+    logger.info("CSPMetaUtil ::: updateExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
+
+    val values = data.get("values")
+    val updatedValues = values match {
+      case x: List[AnyRef] => {
+        val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
+        val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
+        val repArray = getReplacementData(basePaths, "CLOUD_STORAGE_BASE_PATH")
+
+        x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
+      }
+      case _ => values
+    }
+
+    data.put("values", updatedValues)
+    logger.info("CSPMetaUtil ::: updateExternalRelativePath util.Map[String, AnyRef] ::: data after url replace :: " + data)
+    data
   }
 
   private def getBasePath(key: String, value: AnyRef, oldPath: Array[String], newPath: Array[String]): AnyRef = {
