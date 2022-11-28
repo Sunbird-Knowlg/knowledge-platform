@@ -1,7 +1,6 @@
 package org.sunbird.graph
 
 import java.io.File
-import java.util
 
 import com.datastax.driver.core.Session
 import org.apache.commons.io.FileUtils
@@ -134,7 +133,7 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         node.setIdentifier("board")
         node.setNodeType("DATA_NODE")
         node.setObjectType("Category")
-        node.setMetadata(new util.HashMap[String, AnyRef]() {
+        node.setMetadata(new java.util.HashMap[String, AnyRef]() {
             {
                 put("code", "board")
                 put("orgIdFieldName", "boardIds")
