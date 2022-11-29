@@ -71,6 +71,21 @@ object CSPMetaUtil {
     result
   }
 
+  def saveExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
+    logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
+    val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
+    val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
+    val repArray = getReplacementData(basePaths, "CLOUD_STORAGE_BASE_PATH")
+
+    val updatedData: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
+    data.asScala.map(field => {
+      updatedData.put(field._1, StringUtils.replaceEach(field._2.asInstanceOf[String], basePaths, repArray).asInstanceOf[AnyRef])
+    }).asJava
+
+    logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data after url replace :: " + updatedData)
+    updatedData
+  }
+
   def updateExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
     logger.info("CSPMetaUtil ::: updateExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
 
