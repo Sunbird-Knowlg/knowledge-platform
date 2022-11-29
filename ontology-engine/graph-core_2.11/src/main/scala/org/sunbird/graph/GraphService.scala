@@ -66,7 +66,7 @@ class GraphService {
 
     def saveExternalProps(request: Request): Future[Response] = {
         val externalProps: java.util.Map[String, AnyRef] = request.getRequest
-        val updatedExternalProps = if(isrRelativePathEnabled) CSPMetaUtil.updateExternalRelativePath(externalProps) else externalProps
+        val updatedExternalProps = if(isrRelativePathEnabled) CSPMetaUtil.saveExternalRelativePath(externalProps) else externalProps
         request.setRequest(updatedExternalProps)
         ExternalPropsManager.saveProps(request)
     }
