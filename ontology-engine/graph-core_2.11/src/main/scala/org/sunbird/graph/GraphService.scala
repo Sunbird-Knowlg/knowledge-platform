@@ -31,7 +31,7 @@ class GraphService {
     }
 
     def upsertRootNode(graphId: String, request: Request): Future[Node] = {
-        NodeAsyncOperations.upsertRootNode(graphId, request).map(resNode => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
+        NodeAsyncOperations.upsertRootNode(graphId, request)
     }
 
     def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node] = {
