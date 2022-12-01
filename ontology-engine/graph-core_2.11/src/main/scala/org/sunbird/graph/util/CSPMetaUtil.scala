@@ -13,13 +13,15 @@ object CSPMetaUtil {
   private[this] val logger = LoggerFactory.getLogger(classOf[CSPMetaUtil])
 
   def updateAbsolutePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
+    logger.info("CSPMetaUtil ::: updateAbsolutePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
+    val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]()).asScala.toList
     val absolutePath = Platform.getString("cloudstorage.read_base_path", "") + java.io.File.separator + Platform.getString("cloud_storage_container", "")
     if (MapUtils.isNotEmpty(data)) {
       val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
       data.asScala.map(x =>
         if (cspMeta.contains(x._1))
-          updatedMeta.put(x._1, x._2.asInstanceOf[String].replace("CLOUD_STORAGE_BASE_PATH", absolutePath))
+          updatedMeta.put(x._1, x._2.asInstanceOf[String].replace(relativePathPrefix, absolutePath))
         else updatedMeta.put(x._1, x._2)
       ).asJava
       updatedMeta
@@ -39,13 +41,14 @@ object CSPMetaUtil {
   }
 
   def updateAbsolutePath(property: Property): Property = {
+    val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]())
     val absolutePath = Platform.getString("cloudstorage.read_base_path", "") + java.io.File.separator + Platform.getString("cloud_storage_container", "")
     if(cspMeta.contains(property.getPropertyName)) {
       val value = property.getPropertyValue
       value match {
         case str: String =>
-          property.setPropertyValue(str.replace("CLOUD_STORAGE_BASE_PATH", absolutePath))
+          property.setPropertyValue(str.replace(relativePathPrefix, absolutePath))
         case _ =>
       }
     }
@@ -54,10 +57,11 @@ object CSPMetaUtil {
 
   def updateRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
     logger.info("CSPMetaUtil ::: updateRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
+    val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta: java.util.List[String] = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]())
     val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
     val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
-    val repArray = getReplacementData(basePaths, "CLOUD_STORAGE_BASE_PATH")
+    val repArray = getReplacementData(basePaths, relativePathPrefix)
     val result = if (MapUtils.isNotEmpty(data)) {
       val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
       data.asScala.map(x =>
@@ -73,13 +77,24 @@ object CSPMetaUtil {
 
   def saveExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
     logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
+    val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
     val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
-    val repArray = getReplacementData(basePaths, "CLOUD_STORAGE_BASE_PATH")
+    val repArray = getReplacementData(basePaths, relativePathPrefix)
 
     val updatedData: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
-    data.asScala.map(field => {
-      updatedData.put(field._1, StringUtils.replaceEach(field._2.asInstanceOf[String], basePaths, repArray).asInstanceOf[AnyRef])
+    data.asScala.map(col => {
+      col._2 match {
+        case x: List[AnyRef] => {
+          val output = x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
+          updatedData.put(col._1, output)
+        }
+        case y: java.util.List[AnyRef] => {
+          val output = y.asScala.toList.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
+          updatedData.put(col._1, output)
+        }
+        case _ => updatedData.put(col._1, StringUtils.replaceEach(col._2.asInstanceOf[String], basePaths, repArray).asInstanceOf[AnyRef])
+      }
     }).asJava
 
     logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data after url replace :: " + updatedData)
@@ -88,16 +103,14 @@ object CSPMetaUtil {
 
   def updateExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
     logger.info("CSPMetaUtil ::: updateExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
+    val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
+    val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
+    val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
+    val repArray = getReplacementData(basePaths, relativePathPrefix)
 
     val values = data.get("values")
     val updatedValues = values match {
-      case x: List[AnyRef] => {
-        val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
-        val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
-        val repArray = getReplacementData(basePaths, "CLOUD_STORAGE_BASE_PATH")
-
-        x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
-      }
+      case x: List[AnyRef] => x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
       case _ => values
     }
 
