@@ -17,7 +17,7 @@ object CSPMetaUtil {
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]()).asScala.toList
     val absolutePath = Platform.getString("cloudstorage.read_base_path", "") + java.io.File.separator + Platform.getString("cloud_storage_container", "")
-    if (MapUtils.isNotEmpty(data)) {
+    val returnData = if (MapUtils.isNotEmpty(data)) {
       val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
       data.asScala.map(x =>
         if (cspMeta.contains(x._1))
@@ -26,6 +26,8 @@ object CSPMetaUtil {
       ).asJava
       updatedMeta
     } else data
+    logger.info("CSPMetaUtil ::: updateAbsolutePath util.Map[String, AnyRef] ::: updateAbsolutePath returnData :: " + returnData)
+    returnData
   }
 
   def updateAbsolutePath(node: Node): Node = {
