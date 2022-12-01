@@ -78,8 +78,18 @@ object CSPMetaUtil {
     val repArray = getReplacementData(basePaths, "CLOUD_STORAGE_BASE_PATH")
 
     val updatedData: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
-    data.asScala.map(field => {
-      updatedData.put(field._1, StringUtils.replaceEach(field._2.asInstanceOf[String], basePaths, repArray).asInstanceOf[AnyRef])
+    data.asScala.map(col => {
+      col._2 match {
+        case x: List[AnyRef] => {
+          val output = x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
+          updatedData.put(col._1, output)
+        }
+        case y: java.util.List[AnyRef] => {
+          val output = y.asScala.toList.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
+          updatedData.put(col._1, output)
+        }
+        case _ => updatedData.put(col._1, StringUtils.replaceEach(col._2.asInstanceOf[String], basePaths, repArray).asInstanceOf[AnyRef])
+      }
     }).asJava
 
     logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data after url replace :: " + updatedData)
