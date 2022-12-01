@@ -19,7 +19,7 @@ class GraphService {
             val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
             node.setMetadata(metadata)
         }
-        NodeAsyncOperations.addNode(graphId, node)
+        NodeAsyncOperations.addNode(graphId, node).map(resNode => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
     }
 
     def upsertNode(graphId: String, node: Node, request: Request): Future[Node] = {
@@ -27,7 +27,7 @@ class GraphService {
             val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
             node.setMetadata(metadata)
         }
-        NodeAsyncOperations.upsertNode(graphId, node, request)
+        NodeAsyncOperations.upsertNode(graphId, node, request).map(resNode => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
     }
 
     def upsertRootNode(graphId: String, request: Request): Future[Node] = {
