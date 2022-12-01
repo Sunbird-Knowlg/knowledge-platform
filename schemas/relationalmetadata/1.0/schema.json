@@ -5,11 +5,11 @@
   "type": "object",
   "required": [],
   "properties": {
-    "relName": {
+    "name": {
       "type": "string",
       "minLength": 5
     },
-    "relTrackable": {
+    "optional": {
       "type": "boolean",
       "default": false
     },
@@ -17,7 +17,7 @@
       "type": "boolean",
       "default": false
     },
-    "relScore": {
+    "score": {
       "type": "number"
     },
     "keywords": {

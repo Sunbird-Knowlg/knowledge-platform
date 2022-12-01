@@ -17,7 +17,7 @@ object CSPMetaUtil {
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]()).asScala.toList
     val absolutePath = Platform.getString("cloudstorage.read_base_path", "") + java.io.File.separator + Platform.getString("cloud_storage_container", "")
-    if (MapUtils.isNotEmpty(data)) {
+    val returnData = if (MapUtils.isNotEmpty(data)) {
       val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
       data.asScala.map(x =>
         if (cspMeta.contains(x._1))
@@ -26,6 +26,8 @@ object CSPMetaUtil {
       ).asJava
       updatedMeta
     } else data
+    logger.info("CSPMetaUtil ::: updateAbsolutePath util.Map[String, AnyRef] ::: updateAbsolutePath returnData :: " + returnData)
+    returnData
   }
 
   def updateAbsolutePath(node: Node): Node = {
@@ -82,20 +84,8 @@ object CSPMetaUtil {
     val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
     val repArray = getReplacementData(basePaths, relativePathPrefix)
 
-    val updatedData: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
-    data.asScala.map(col => {
-      col._2 match {
-        case x: List[AnyRef] => {
-          val output = x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
-          updatedData.put(col._1, output)
-        }
-        case y: java.util.List[AnyRef] => {
-          val output = y.asScala.toList.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
-          updatedData.put(col._1, output)
-        }
-        case _ => updatedData.put(col._1, StringUtils.replaceEach(col._2.asInstanceOf[String], basePaths, repArray).asInstanceOf[AnyRef])
-      }
-    }).asJava
+    val updatedObjString = StringUtils.replaceEach(JsonUtils.serialize(data), basePaths, repArray)
+    val updatedData = JsonUtils.deserialize(updatedObjString, classOf[java.util.Map[String, AnyRef]])
 
     logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data after url replace :: " + updatedData)
     updatedData
