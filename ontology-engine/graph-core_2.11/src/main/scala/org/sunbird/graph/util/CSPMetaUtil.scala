@@ -100,7 +100,7 @@ object CSPMetaUtil {
 
     val values = data.get("values")
     val updatedValues = values match {
-      case x: List[AnyRef] => x.map(value => StringUtils.replaceEach(value.asInstanceOf[String], basePaths, repArray))
+      case x: List[AnyRef] => x.map(value => getBasePath("", value, basePaths, repArray))
       case _ => values
     }
 
