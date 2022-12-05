@@ -20,9 +20,13 @@ object CSPMetaUtil {
     val returnData = if (MapUtils.isNotEmpty(data)) {
       val updatedMeta: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]
       data.asScala.map(x =>
-        if (cspMeta.contains(x._1))
-          updatedMeta.put(x._1, x._2.asInstanceOf[String].replace(relativePathPrefix, absolutePath))
-        else updatedMeta.put(x._1, x._2)
+        if (cspMeta.contains(x._1)) {
+          x._2 match {
+            case value: String =>
+              updatedMeta.put(x._1, value.replace(relativePathPrefix, absolutePath))
+            case _ => updatedMeta.put(x._1, x._2)
+          }
+        } else updatedMeta.put(x._1, x._2)
       ).asJava
       updatedMeta
     } else data
