@@ -139,7 +139,7 @@ object CSPMetaUtil {
         }
         case r: java.util.Map[String, AnyRef] => {
           val updatedObjString = StringUtils.replaceEach(JsonUtils.serialize(r), oldPath, newPath)
-          val updatedData = JsonUtils.deserialize(updatedObjString, classOf[java.util.List[AnyRef]])
+          val updatedData = JsonUtils.deserialize(updatedObjString, classOf[java.util.Map[String, AnyRef]])
           updatedData
         }
         case s: util.List[AnyRef] => {
