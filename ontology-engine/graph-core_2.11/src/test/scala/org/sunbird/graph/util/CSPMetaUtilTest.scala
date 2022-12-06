@@ -2,7 +2,7 @@ package org.sunbird.graph.util
 
 import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
-
+import scala.collection.JavaConverters._
 import java.util
 
 class CSPMetaUtilTest extends BaseSpec {
@@ -34,6 +34,51 @@ class CSPMetaUtilTest extends BaseSpec {
     })
     assert(migratedData != null && migratedData.get(0).getMetadata.toString.contains("https://sunbirddev.blob.core.windows.net/sunbird-content-dev"))
 }
+
+    "updateExternalRelativePath" should "return data having relative path" in {
+        val data = new java.util.HashMap[String, AnyRef]{{
+            put("identifier", "do_213680293213650944125");
+            put("values", List(new util.HashMap[String, AnyRef](){{
+                put("default", "<p>Question Set</p>")
+            }}, new util.HashMap[String, AnyRef](){{
+                put("identifier", "do_213680293213650944125");
+                put("children",List(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "do_123")
+                    put("appIcon", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/assets/do_21367965089393049618/b1d586453b4e0b1535bf55332347934e.jpg")
+                }}).asJava)
+            }},
+                new util.ArrayList[util.HashMap[String, String]](){{
+                    add(new util.HashMap[String, String](){{
+                        put("src", "/asset/public/content/assets/do_21367965089393049618/b1d586453b4e0b1535bf55332347934e.jpg");
+                        put("basePath", "https://inquiry.sunbird.org")
+                    }});
+                    add(new util.HashMap[String, String](){{
+                        put("src", "/asset/public/content/assets/do_21367965089393049618/b1d586453b4e0b1535bf55332347934e.jpg");
+                        put("basePath", "https://inquiry.sunbird.org")
+                    }})
+                }}));
+            put("fields", List("instructions", "hierarchy"))
+        }}
+        val output = CSPMetaUtil.updateExternalRelativePath(data)
+        assert(!output.toString.contains("https://sunbirddev.blob.core.windows.net/sunbird-content-dev"))
+        assert(output.toString.contains("CONTENT_STORAGE_BASE_PATH"))
+    }
+
+    "updateExternalAbsolutePath" should "return data with absolute cloud path" in {
+        val data = new util.HashMap[String, AnyRef](){{
+            put("identifier", "do_123")
+            put("hierarchy", new util.HashMap[String, AnyRef](){{
+                put("identifier", "do_213680293213650944125");
+                put("children",List(new util.HashMap[String, AnyRef](){{
+                    put("identifier", "do_123")
+                    put("appIcon", "CONTENT_STORAGE_BASE_PATH/content/assets/do_21367965089393049618/b1d586453b4e0b1535bf55332347934e.jpg")
+                }}).asJava)
+            }})
+        }}
+        val output = CSPMetaUtil.updateExternalAbsolutePath(data)
+        assert(output.toString.contains("https://sunbirddev.blob.core.windows.net/sunbird-content-dev"))
+        assert(!output.toString.contains("CONTENT_STORAGE_BASE_PATH"))
+    }
 
     def getReplaceData(): String = {
             """{"ownershipType": ["createdBy"],"subject": ["Mathematics"],"channel": "0126825293972439041","organisation": ["Sunbird"],
