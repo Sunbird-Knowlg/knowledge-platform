@@ -57,8 +57,7 @@ class GraphService {
 
     def readExternalProps(request: Request, fields: List[String]): Future[Response] = {
         ExternalPropsManager.fetchProps(request, fields).map(res => {
-            println("GraphService:: readExternalProps:: res.params:: " + res.getParams+ " || res.responseCode:: " + res.getResponseCode + " || res.result:: " + res.getResult)
-            if(isrRelativePathEnabled && res.getResponseCode != ResponseCode.RESOURCE_NOT_FOUND) {
+            if(isrRelativePathEnabled && res.getResponseCode == ResponseCode.OK) {
                 val updatedResult = CSPMetaUtil.updateExternalAbsolutePath(res.getResult)
                 val response = ResponseHandler.OK()
                 response.putAll(updatedResult)
