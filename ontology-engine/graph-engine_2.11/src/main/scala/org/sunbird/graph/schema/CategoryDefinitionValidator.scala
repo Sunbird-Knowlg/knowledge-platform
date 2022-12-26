@@ -3,7 +3,6 @@ package org.sunbird.graph.schema
 import java.io.{ByteArrayInputStream, File}
 import java.net.URI
 import java.util
-
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.lang3.StringUtils
 import org.leadpony.justify.api.JsonSchema
@@ -12,6 +11,7 @@ import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode, Se
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.schema.impl.BaseSchemaValidator
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
@@ -27,11 +27,14 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
 
     def loadSchema(ocd: ObjectCategoryDefinition)(implicit oec: OntologyEngineContext, ec: ExecutionContext): CategoryDefinitionValidator = {
         val categoryId: String = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, ocd.channel)
+        TelemetryManager.info("CategoryDefinitionValidator:: loadSchema:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap)
         if(ObjectCategoryDefinitionMap.containsKey(categoryId) && null != ObjectCategoryDefinitionMap.get(categoryId)){
+            TelemetryManager.info("CategoryDefinitionValidator:: loadSchema:: INSIDE IF BLOCK:: " )
             this.schema = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("schema", null).asInstanceOf[JsonSchema]
             this.config = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("config", null).asInstanceOf[Config]
         }
         else {
+            TelemetryManager.info("CategoryDefinitionValidator:: loadSchema:: INSIDE ELSE BLOCK:: " )
             val (schemaMap, configMap) = prepareSchema(ocd)
             this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
             this.config = ConfigFactory.parseMap(configMap)
@@ -42,6 +45,7 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
 
     def prepareSchema(ocd: ObjectCategoryDefinition)(implicit oec: OntologyEngineContext, ec: ExecutionContext): (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
         val categoryId: String = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, ocd.channel)
+        TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap)
         val request: Request = new Request()
         val context = new util.HashMap[String, AnyRef]()
         context.put("schemaName", "objectcategorydefinition")
@@ -55,12 +59,17 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
                     if ("all".equalsIgnoreCase(ocd.channel))
                         throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
                     else {
+                        TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: " )
                         val updatedId = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, "all")
+                        TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap )
                         request.put("identifier", updatedId)
                         val channelCatResp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
                         if(StringUtils.equalsAnyIgnoreCase(channelCatResp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
                           throw new ResourceNotFoundException(channelCatResp.getParams.getErr, channelCatResp.getParams.getErrmsg + " " + channelCatResp.getResult)
-                        } else channelCatResp
+                        } else {
+                            TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: channelCatResp:: " + channelCatResp )
+                            channelCatResp
+                        }
                     }
                 } else throw new ServerException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
             } else resp
