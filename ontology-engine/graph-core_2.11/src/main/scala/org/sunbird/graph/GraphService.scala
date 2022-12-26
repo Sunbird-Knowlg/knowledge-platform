@@ -55,13 +55,14 @@ class GraphService {
     }
 
     def readExternalProps(request: Request, fields: List[String]): Future[Response] = {
-        ExternalPropsManager.fetchProps(request, fields).map(res =>
+        ExternalPropsManager.fetchProps(request, fields).map(res => {
+            println("GraphService:: readExternalProps:: res.params:: " + res.getParams+ " || res.responseCode:: " + res.getResponseCode + " || res.result:: " + res.getResult)
             if(isrRelativePathEnabled) {
                 val updatedResult = CSPMetaUtil.updateExternalAbsolutePath(res.getResult)
                 val response = ResponseHandler.OK()
                 response.putAll(updatedResult)
                 response
-            } else res)
+            } else res})
     }
 
     def saveExternalProps(request: Request): Future[Response] = {

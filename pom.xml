@@ -27,7 +27,7 @@
 				<module>platform-core</module>
 				<module>ontology-engine</module>
 				<module>content-api</module>
-				<module>assessment-api</module>
+<!--				<module>assessment-api</module>-->
 				<module>taxonomy-api</module>
 				<module>platform-modules</module>
 				<module>search-api</module>
