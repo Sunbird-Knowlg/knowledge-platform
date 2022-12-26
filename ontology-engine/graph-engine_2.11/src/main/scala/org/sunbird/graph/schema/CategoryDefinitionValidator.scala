@@ -27,14 +27,14 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
 
     def loadSchema(ocd: ObjectCategoryDefinition)(implicit oec: OntologyEngineContext, ec: ExecutionContext): CategoryDefinitionValidator = {
         val categoryId: String = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, ocd.channel)
-        TelemetryManager.info("CategoryDefinitionValidator:: loadSchema:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap)
+        println("CategoryDefinitionValidator:: loadSchema:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap)
         if(ObjectCategoryDefinitionMap.containsKey(categoryId) && null != ObjectCategoryDefinitionMap.get(categoryId)){
-            TelemetryManager.info("CategoryDefinitionValidator:: loadSchema:: INSIDE IF BLOCK:: " )
+            println("CategoryDefinitionValidator:: loadSchema:: INSIDE IF BLOCK:: " )
             this.schema = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("schema", null).asInstanceOf[JsonSchema]
             this.config = ObjectCategoryDefinitionMap.get(categoryId).getOrElse("config", null).asInstanceOf[Config]
         }
         else {
-            TelemetryManager.info("CategoryDefinitionValidator:: loadSchema:: INSIDE ELSE BLOCK:: " )
+            println("CategoryDefinitionValidator:: loadSchema:: INSIDE ELSE BLOCK:: " )
             val (schemaMap, configMap) = prepareSchema(ocd)
             this.schema = readSchema(new ByteArrayInputStream(JsonUtils.serialize(schemaMap).getBytes))
             this.config = ConfigFactory.parseMap(configMap)
@@ -45,7 +45,7 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
 
     def prepareSchema(ocd: ObjectCategoryDefinition)(implicit oec: OntologyEngineContext, ec: ExecutionContext): (java.util.Map[String, AnyRef], java.util.Map[String, AnyRef]) = {
         val categoryId: String = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, ocd.channel)
-        TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap)
+        println("CategoryDefinitionValidator:: prepareSchema:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap)
         val request: Request = new Request()
         val context = new util.HashMap[String, AnyRef]()
         context.put("schemaName", "objectcategorydefinition")
@@ -59,15 +59,15 @@ class CategoryDefinitionValidator(schemaName: String, version: String) extends B
                     if ("all".equalsIgnoreCase(ocd.channel))
                         throw new ResourceNotFoundException(resp.getParams.getErr, resp.getParams.getErrmsg + " " + resp.getResult)
                     else {
-                        TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: " )
+                        println("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: " )
                         val updatedId = ObjectCategoryDefinitionMap.prepareCategoryId(ocd.categoryName, ocd.objectType, "all")
-                        TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap )
+                        println("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: ObjectCategoryDefinitionMap:: " + ObjectCategoryDefinitionMap )
                         request.put("identifier", updatedId)
                         val channelCatResp = Await.result(oec.graphService.readExternalProps(request, List("objectMetadata")), Duration.apply("30 seconds"))
                         if(StringUtils.equalsAnyIgnoreCase(channelCatResp.getResponseCode.name(), ResponseCode.RESOURCE_NOT_FOUND.name())) {
                           throw new ResourceNotFoundException(channelCatResp.getParams.getErr, channelCatResp.getParams.getErrmsg + " " + channelCatResp.getResult)
                         } else {
-                            TelemetryManager.info("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: channelCatResp:: " + channelCatResp )
+                            println("CategoryDefinitionValidator:: prepareSchema:: INSIDE ELSE BLOCK:: channelCatResp:: " + channelCatResp )
                             channelCatResp
                         }
                     }
