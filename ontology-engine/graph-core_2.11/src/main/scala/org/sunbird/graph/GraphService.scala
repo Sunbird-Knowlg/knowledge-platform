@@ -2,6 +2,7 @@ package org.sunbird.graph
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
+import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.service.operation.{GraphAsyncOperations, Neo4JBoltSearchOperations, NodeAsyncOperations, SearchAsyncOperations}
@@ -57,7 +58,7 @@ class GraphService {
     def readExternalProps(request: Request, fields: List[String]): Future[Response] = {
         ExternalPropsManager.fetchProps(request, fields).map(res => {
             println("GraphService:: readExternalProps:: res.params:: " + res.getParams+ " || res.responseCode:: " + res.getResponseCode + " || res.result:: " + res.getResult)
-            if(isrRelativePathEnabled) {
+            if(isrRelativePathEnabled && res.getResponseCode != ResponseCode.RESOURCE_NOT_FOUND) {
                 val updatedResult = CSPMetaUtil.updateExternalAbsolutePath(res.getResult)
                 val response = ResponseHandler.OK()
                 response.putAll(updatedResult)
