@@ -3,6 +3,7 @@ package org.sunbird.graph.schema
 import java.io.{ByteArrayInputStream, File}
 import java.net.URI
 import java.util
+
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.commons.lang3.StringUtils
 import org.leadpony.justify.api.JsonSchema
