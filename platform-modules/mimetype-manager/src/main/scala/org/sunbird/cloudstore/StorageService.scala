@@ -1,14 +1,18 @@
 package org.sunbird.cloudstore
 
+import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.cloud.storage.{BlobId, BlobInfo, Storage, StorageOptions}
 import org.apache.commons.lang3.StringUtils
 import org.apache.tika.Tika
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
+import org.sunbird.common.{Platform, Slug}
 
 import java.io.File
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.TimeUnit
+import scala.concurrent.{ExecutionContext, Future};
+
 
 class StorageService {
 
@@ -86,10 +90,22 @@ class StorageService {
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
       storageType match {
-        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
+        case "gcloud" => getGCPSignedURL("113740098487205958998",
+          Platform.config.getString("gcloud_client_key"),
+          Platform.config.getString("gcloud_private_secret"),
+          "6aef3a75efe29225e6347244de3e8f1ddd8437df", "upsmf-368011", key)
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
     }
+
+  def getGCPSignedURL(clientId: String, clientEmail: String, privateKeyPkcs8: String, privateKeyIds: String, projectId: String, objectName: String):  String = {
+    val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
+    val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
+    val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
+    val url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature)
+    println("url:", url)
+    url.toString;
+  }
 
     def getUri(key: String): String = {
         try {
