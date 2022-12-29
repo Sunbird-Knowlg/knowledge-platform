@@ -93,16 +93,16 @@ class StorageService {
         case "gcloud" => getGCPSignedURL("113740098487205958998",
           Platform.config.getString("gcloud_client_key"),
           Platform.config.getString("gcloud_private_secret"),
-          "6aef3a75efe29225e6347244de3e8f1ddd8437df", "upsmf-368011", key)
+          "6aef3a75efe29225e6347244de3e8f1ddd8437df", "upsmf-368011", key, ttl.get)
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
     }
 
-  def getGCPSignedURL(clientId: String, clientEmail: String, privateKeyPkcs8: String, privateKeyIds: String, projectId: String, objectName: String):  String = {
+  def getGCPSignedURL(clientId: String, clientEmail: String, privateKeyPkcs8: String, privateKeyIds: String, projectId: String, objectName: String, ttl: Int):  String = {
     val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
     val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
-    val url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature)
+    val url = storage.signUrl(blobInfo, ttl, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature)
     println("url:", url)
     url.toString;
   }
