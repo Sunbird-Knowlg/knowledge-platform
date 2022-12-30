@@ -102,7 +102,7 @@ class StorageService {
     val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
     val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
-    val url = storage.signUrl(blobInfo, ttl, TimeUnit.DAYS, Storage.SignUrlOption.withV4Signature)
+    val url = storage.signUrl(blobInfo, 7, TimeUnit.DAYS, Storage.SignUrlOption.withV4Signature)
     println("url:", url)
     url.toString;
   }
