@@ -99,9 +99,15 @@ class StorageService {
     }
 
   def getGCPSignedURL(clientId: String, clientEmail: String, privateKeyPkcs8: String, privateKeyIds: String, projectId: String, objectName: String, ttl: Int):  String = {
-    val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
+    //val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
+    val credentials: ServiceAccountCredentials = ServiceAccountCredentials.newBuilder.setProjectId(projectId).setPrivateKeyId("6aef3a75efe29225e6347244de3e8f1ddd8437df").setPrivateKeyString("-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqtqMByEGjddwE\n0oIkQRT4KukhPn65ozDQUfgop55VblUWeJEqmeGfTXdOTTVHpwwuYR9esrMgR5WN\n8IUGSLRmap9iyb4QBUV/gCjJIpsVu6HFMadBQCFceqzTqPMK6g6dwObNtDMxH6yP\nV47L/McwiPNoug2W+zBiRQ6YZ1GvQVY5s0KTX6EgkN/u3DW6kUu6NqcgqGuCWqUo\nEjss4HaX4D7DSbmKgOts/rKjwtDv9fgKLgbMlufwpxwWe/jygVUNvZumBARNIuVe\n+RbO6OvHb26H18KgkdDzB1VkzKX+750iIIa/KGrZHJStiw0zfri0/H0KdzbClvoO\nT6cBN/zVAgMBAAECggEAPN9dJsCKr0fSiaGqqFTQrmFWufT36SgIuu/PpmeGrP3n\nt1iMov02F8DevvwG+KLXVB5rui/MccE00eUm+gOo2DBC304CyOGoU3uWj4oYdNpw\nJ8m50ymT+87+m4bOC2FEjvn/EvCjpGuf84kMMS7UtDjRWtGlEOZG7XOkbbHBzdTQ\nGldzEgsqi2T8O5I31xZ1b2LJzAVODrv7TiVElhGcUB/1MkProjhkcyJx3B3cpClw\nY8Lq2R2urTf4NxMnmh/PmUfBzLQLauSDI/MH9NN57J1M/5uWYAIY/eaf8BtqEsbr\nXLmBP1WfNchXbfXLeadaiAX45ukt0y103qd0TmJa7QKBgQDdvgTcjKMddzfU6PeB\nXO3upl2FVLA6B89J/QiEKoeg4bkM2C3pNkGvgVA3HfHfauMhhwFee8mP14HLZQvb\n+0k9tL64CiznkuEfOBApkXJDsW0iAN3TwMj5zVRAVHWBRcexMt74CdySuKDOkV9G\n5feOXfdhOZM6z8LSfGs+2lYbQwKBgQDFFmj8Mtv4Pv5zsF1/UeFnuijkHO84dNYn\nflTB5Pmwb4Z5rhnJzG446cxr9f7E/+3yjd+xtBQf5ttPwvCBbZR20RO2jA5o/qij\nXaYHCjlE7yOpAfgU+p5K3JH9bTMLuPsSVaxBof7cFoqjFalVGmpR1qAj4UGHc9mT\nnV6CGCbqBwKBgQCTI+RV9XzHsLR7s5uJXAEGu56TOv81grkqf52HFjGpsB77Rvgw\nKLCtpUF1UYmOl37gYJWn/Lxjlr2qGgMkljqjl6x2s0nY4L5B2RHgg4MvKC0iwzBv\nsx2ppXaiuWi/v24jR35tWR3kvl72s8Bla3Q6JGBjQ7FO9U5yHd2Md5VrwQKBgAzy\nQOk4KgzvjmVpE2s2pLjcmK0LXYd23U5w1P57nQ9C9DFwB0+jNyZT7VK2MQsdyLKj\nMSuKKbxCvOtLYeMOoK8BYusd3iB1gfxhPXO+7y4hC1WhxHsUT2uZe5mLH8xIVW3J\n5OvWyVgJvwehd6MYfh1sHM7ekCBmsscokjm3fm7nAoGBAL5PXhD6rCaHGOo0KXEA\n0S6rzMI6qBzQvMyOVj7b0lwey6q+G2xl7Cc9IUmxVzhBe7daD6QSQ4dU91ZKaIys\nopfZWibHFcQm6I6FJI3ha73EOB2zyyl3xlBxK9fMQVN8gELdXhA8DBuMD+Qxj6Nr\nbqteFJLCyz7ATtETSb3+hP+G\n-----END PRIVATE KEY-----\n").setClientEmail("jenkins@upsmf-368011.iam.gserviceaccount.com").setClientId("113740098487205958998").build()
+    println("credentials : ", credentials)
     val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
+    println("container name : ", getContainerName)
+    println("object name : ", objectName)
+    println("Storage : ", storage)
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
+    println("blob : ", blobInfo)
     val url = storage.signUrl(blobInfo, 7, TimeUnit.DAYS, Storage.SignUrlOption.withV4Signature)
     println("url:", url)
     url.toString;
