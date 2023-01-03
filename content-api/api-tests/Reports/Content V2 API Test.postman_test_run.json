@@ -1,0 +1,2574 @@
+{
+	"id": "489956f4-e5fd-4c92-8408-6a4598e10940",
+	"name": "Content V2 API Test",
+	"timestamp": "2022-07-27T05:30:40.864Z",
+	"collection_id": "1419050-58a713b4-b8bb-4885-9909-b23d253f8f31",
+	"folder_id": 0,
+	"environment_id": "1419050-b1be6ead-50b9-49a1-b0e2-95f479990dad",
+	"totalPass": 328,
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "2383265f-a48f-47dc-9538-e3c7a16b1d98",
+			"name": "200 - With minimal required attribute",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 229,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				229
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true
+				}
+			]
+		},
+		{
+			"id": "fdb1f5bc-f5b3-4c3c-b622-bd86a8f92b40",
+			"name": "200 - With identifier",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 61,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to some_identifier": true,
+				"node_id should be equal to some_identifier": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to some_identifier": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be equal to some_identifier": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				61
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to some_identifier": true,
+					"node_id should be equal to some_identifier": true
+				}
+			]
+		},
+		{
+			"id": "67644d61-7797-4f54-82cf-d4b7711b5282",
+			"name": "200 - With external fields",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 84,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				84
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true
+				}
+			]
+		},
+		{
+			"id": "4fa811d0-1e33-493c-95fe-39bac77bae42",
+			"name": "200 - Special character in name",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 67,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				67
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true
+				}
+			]
+		},
+		{
+			"id": "5f38fbf3-1dd6-4f5a-8796-6ca07d837d25",
+			"name": "200 - Get all data ecxept external data",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/read/do_2135897074718965761132",
+			"time": 111,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.read": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to do_2135897074718965761132": true,
+				"objectType should be Content": true,
+				"visibility should be Default": true,
+				"compatibilityLevel should be 1": true,
+				"status should be Draft": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.read": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2135897074718965761132": {
+					"pass": 1,
+					"fail": 0
+				},
+				"objectType should be Content": {
+					"pass": 1,
+					"fail": 0
+				},
+				"visibility should be Default": {
+					"pass": 1,
+					"fail": 0
+				},
+				"compatibilityLevel should be 1": {
+					"pass": 1,
+					"fail": 0
+				},
+				"status should be Draft": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				111
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.read": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to do_2135897074718965761132": true,
+					"objectType should be Content": true,
+					"visibility should be Default": true,
+					"compatibilityLevel should be 1": true,
+					"status should be Draft": true
+				}
+			]
+		},
+		{
+			"id": "6cad6c08-f73b-4d00-9395-b8cbcb3cafe0",
+			"name": "200 - Get specific attributes by sending fields query params",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/read/do_2135897074718965761132?fields=name,primaryCategory,body",
+			"time": 69,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.read": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to do_2135897074718965761132": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.read": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2135897074718965761132": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				69
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.read": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to do_2135897074718965761132": true
+				}
+			]
+		},
+		{
+			"id": "bcd0f26d-ca6b-4eb7-815a-e85c4044a829",
+			"name": "200 - Update existing data or add new data",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/update/do_2135897074718965761132",
+			"time": 558,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to do_2135897074718965761132": true,
+				"node_id should be equal to do_2135897074718965761132": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2135897074718965761132": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be equal to do_2135897074718965761132": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				558
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to do_2135897074718965761132": true,
+					"node_id should be equal to do_2135897074718965761132": true
+				}
+			]
+		},
+		{
+			"id": "1d43c4ab-ea8b-449c-8dca-aa7eda247bfa",
+			"name": "200 - Special character in name",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/update/do_2135897074718965761132",
+			"time": 575,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Status code is 200": true,
+				"Verify keys and data type of the params in positive scenario": true,
+				"params.status should be \"successful\"": true,
+				"responseCode should be OK": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to do_2135897074718965761132": true,
+				"node_id should be equal to do_2135897074718965761132": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in positive scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"successful\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2135897074718965761132": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be equal to do_2135897074718965761132": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				575
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Status code is 200": true,
+					"Verify keys and data type of the params in positive scenario": true,
+					"params.status should be \"successful\"": true,
+					"responseCode should be OK": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to do_2135897074718965761132": true,
+					"node_id should be equal to do_2135897074718965761132": true
+				}
+			]
+		},
+		{
+			"id": "6d2a8074-8afe-40ba-9e29-2376fc3db053",
+			"name": "400 - missing channel",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 21,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata channel not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata channel not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				21
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata channel not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "59690e87-ff4d-4d1d-b549-0156afa7611b",
+			"name": "400 - empty channel",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 71,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata channel not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata channel not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				71
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata channel not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "dd956c1e-35b6-4525-baaf-0b2a8ab5ab57",
+			"name": "400 - missing name",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 69,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata name not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata name not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				69
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata name not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "c6c1b7fd-a278-4ef3-9d2e-6c76a53d1c33",
+			"name": "400 - name: invalid datatype",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 49,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Metadata name should be a/an String value\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Metadata name should be a/an String value\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				49
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Metadata name should be a/an String value\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "a1ac9342-84c0-4395-aa52-b8248007722d",
+			"name": "400 - name empty",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 48,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata name not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata name not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				48
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata name not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "37e04040-1676-4dca-a674-54210b5990e2",
+			"name": "400 - missing code",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 67,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata code not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata code not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				67
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata code not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "077b803b-7fbb-4264-823c-c41c0bac597d",
+			"name": "400 - missing mimeType",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 45,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata mimeType not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata mimeType not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				45
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata mimeType not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "6a365695-00de-4d90-ab6f-4726e59b1898",
+			"name": "400 - invalid mimeType",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 69,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				69
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "174eb09b-0d2d-4ef4-9109-e74e75472d28",
+			"name": "400 - missing primaryCategory",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 48,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"VALIDATION_ERROR\"": true,
+				"params.errmsg should be \"primaryCategory is a mandatory parameter\"": true,
+				"result body should be empty": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"VALIDATION_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"primaryCategory is a mandatory parameter\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should be empty": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				48
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"VALIDATION_ERROR\"": true,
+					"params.errmsg should be \"primaryCategory is a mandatory parameter\"": true,
+					"result body should be empty": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "136c3218-e05b-418e-886a-d10129c996ba",
+			"name": "400 - Invalid subject",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 50,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors.\"": true,
+				"result body should include messages \"subject range data is empty from the given framework.\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors.\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"subject range data is empty from the given framework.\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				50
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors.\"": true,
+					"result body should include messages \"subject range data is empty from the given framework.\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "c4a3ef78-c5f3-4a82-ac3e-88ba8e2cc4b3",
+			"name": "404 - Invalid primaryCategory",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/create",
+			"time": 75,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Status code is 404": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"404\"": true,
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:aabaa_content_all {}\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"404\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:aabaa_content_all {}\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				75
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Status code is 404": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"404\"": true,
+					"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:aabaa_content_all {}\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "59f831d2-df67-4297-9641-2304cea74637",
+			"name": "404 - Not Found",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/read/do_42353245436534",
+			"time": 65,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"Status code is 404": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.read": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_42353245436534\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.read": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_42353245436534\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				65
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"Status code is 404": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.read": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_42353245436534\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "8be3bf77-e65e-4dab-9053-cf7400fd5aa5",
+			"name": "400 - Invalid versionKey",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/update/do_2135897074718965761132",
+			"time": 77,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Content-Encoding header should not present": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be CLIENT_ERROR": true,
+				"params.status should be failed": true,
+				"params.errmsg should be \"Invalid version Key\"": true,
+				"messages should be null": true,
+				"Status code name has string Bad Request": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Encoding header should not present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Invalid version Key\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				77
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Content-Encoding header should not present": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be CLIENT_ERROR": true,
+					"params.status should be failed": true,
+					"params.errmsg should be \"Invalid version Key\"": true,
+					"messages should be null": true,
+					"Status code name has string Bad Request": true
+				}
+			]
+		},
+		{
+			"id": "d705cd83-e917-4be6-a755-e9c7d377c9c6",
+			"name": "400 - Empty name",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/update/do_2135897074718965761132",
+			"time": 42,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"Status code is 400": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata name not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata name not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				42
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"Status code is 400": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata name not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "13158c62-e311-458c-a9ef-fabe24c065f6",
+			"name": "404 - Invalid content id",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/update/do_21357909972698726412211",
+			"time": 36,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"Status code is 404": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be NOT_FOUND": true,
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_21357909972698726412211\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_21357909972698726412211\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				36
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"Status code is 404": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be NOT_FOUND": true,
+					"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_21357909972698726412211\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "d05ba7e2-041f-4a54-9370-e5ecfd286a62",
+			"name": "404 - Invalid primaryCategory",
+			"url": "https://dev.knowlg.sunbird.org/api/content/v2/update/do_2135897074718965761132",
+			"time": 109,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Content-Type header is present": true,
+				"Content-Type header is application/json": true,
+				"Validate keys and data type of the response body": true,
+				"Verify keys and data type of the params in negative scenario": true,
+				"params.status should be \"failed\"": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"Status code is 404": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"404\"": true,
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Content-Type header is present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Type header is application/json": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Validate keys and data type of the response body": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the params in negative scenario": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"404\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				109
+			],
+			"allTests": [
+				{
+					"Content-Type header is present": true,
+					"Content-Type header is application/json": true,
+					"Validate keys and data type of the response body": true,
+					"Verify keys and data type of the params in negative scenario": true,
+					"params.status should be \"failed\"": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"Status code is 404": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"404\"": true,
+					"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2695,
+	"collection": {
+		"requests": [
+			{
+				"id": "2383265f-a48f-47dc-9538-e3c7a16b1d98",
+				"method": "POST"
+			},
+			{
+				"id": "fdb1f5bc-f5b3-4c3c-b622-bd86a8f92b40",
+				"method": "POST"
+			},
+			{
+				"id": "67644d61-7797-4f54-82cf-d4b7711b5282",
+				"method": "POST"
+			},
+			{
+				"id": "4fa811d0-1e33-493c-95fe-39bac77bae42",
+				"method": "POST"
+			},
+			{
+				"id": "5f38fbf3-1dd6-4f5a-8796-6ca07d837d25",
+				"method": "GET"
+			},
+			{
+				"id": "6cad6c08-f73b-4d00-9395-b8cbcb3cafe0",
+				"method": "GET"
+			},
+			{
+				"id": "bcd0f26d-ca6b-4eb7-815a-e85c4044a829",
+				"method": "PATCH"
+			},
+			{
+				"id": "1d43c4ab-ea8b-449c-8dca-aa7eda247bfa",
+				"method": "PATCH"
+			},
+			{
+				"id": "6d2a8074-8afe-40ba-9e29-2376fc3db053",
+				"method": "POST"
+			},
+			{
+				"id": "59690e87-ff4d-4d1d-b549-0156afa7611b",
+				"method": "POST"
+			},
+			{
+				"id": "dd956c1e-35b6-4525-baaf-0b2a8ab5ab57",
+				"method": "POST"
+			},
+			{
+				"id": "c6c1b7fd-a278-4ef3-9d2e-6c76a53d1c33",
+				"method": "POST"
+			},
+			{
+				"id": "a1ac9342-84c0-4395-aa52-b8248007722d",
+				"method": "POST"
+			},
+			{
+				"id": "37e04040-1676-4dca-a674-54210b5990e2",
+				"method": "POST"
+			},
+			{
+				"id": "077b803b-7fbb-4264-823c-c41c0bac597d",
+				"method": "POST"
+			},
+			{
+				"id": "6a365695-00de-4d90-ab6f-4726e59b1898",
+				"method": "POST"
+			},
+			{
+				"id": "174eb09b-0d2d-4ef4-9109-e74e75472d28",
+				"method": "POST"
+			},
+			{
+				"id": "136c3218-e05b-418e-886a-d10129c996ba",
+				"method": "POST"
+			},
+			{
+				"id": "c4a3ef78-c5f3-4a82-ac3e-88ba8e2cc4b3",
+				"method": "POST"
+			},
+			{
+				"id": "59f831d2-df67-4297-9641-2304cea74637",
+				"method": "GET"
+			},
+			{
+				"id": "8be3bf77-e65e-4dab-9053-cf7400fd5aa5",
+				"method": "PATCH"
+			},
+			{
+				"id": "d705cd83-e917-4be6-a755-e9c7d377c9c6",
+				"method": "PATCH"
+			},
+			{
+				"id": "13158c62-e311-458c-a9ef-fabe24c065f6",
+				"method": "PATCH"
+			},
+			{
+				"id": "d05ba7e2-041f-4a54-9370-e5ecfd286a62",
+				"method": "PATCH"
+			}
+		]
+	}
+}

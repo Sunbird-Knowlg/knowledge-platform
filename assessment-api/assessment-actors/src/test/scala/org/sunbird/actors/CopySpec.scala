@@ -1,6 +1,6 @@
 package org.sunbird.actors
 
-import org.mortbay.util.StringUtil
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.utils.AssessmentConstants
@@ -105,7 +105,7 @@ object CopySpec {
 			{
 				put("code", "xyz")
 				put("mimeType", {
-					if (StringUtil.endsWithIgnoreCase(objectType, AssessmentConstants.QUESTIONSET_SCHEMA_NAME)) {
+					if (StringUtils.endsWithIgnoreCase(objectType, AssessmentConstants.QUESTIONSET_SCHEMA_NAME)) {
 						AssessmentConstants.QUESTIONSET_MIME_TYPE
 					} else {
 						AssessmentConstants.QUESTION_MIME_TYPE

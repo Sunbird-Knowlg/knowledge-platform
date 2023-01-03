@@ -1,0 +1,907 @@
+{
+	"info": {
+		"_postman_id": "d76732b8-56b7-4a54-84f1-4c43e694dcd9",
+		"name": "Release DIAL Code API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Pre-requisite",
+			"item": [
+				{
+					"name": "Collection Create",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonResponse = pm.response.json()",
+									"",
+									"//Verification",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200)",
+									"});",
+									"",
+									"// Set global variable",
+									"pm.environment.set(\"collection_id\", jsonResponse.result.identifier);",
+									"pm.globals.set(\"versionKey\", jsonResponse.result.versionKey);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Sample Collection\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/vnd.ekstep.content-collection\",\n            \"primaryCategory\": \"Digital Textbook\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/content/v4/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"content",
+								"v4",
+								"create"
+							]
+						},
+						"description": "This API is associated with creating content on the Sunbird Platform. Mandatory fields (name, code, mimeType and primaryCategory) cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
+					},
+					"response": []
+				},
+				{
+					"name": "Collection Create wo reserved DIAL codes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonResponse = pm.response.json()",
+									"",
+									"//Verification",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200)",
+									"});",
+									"",
+									"// Set global variable",
+									"pm.environment.set(\"collection_id_wo_reserved_dial_codes\", jsonResponse.result.identifier);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"description": "The Content Type entity is the media type of the resource.Possible media types can be application/json."
+							},
+							{
+								"key": "X-Authenticated-User-token",
+								"value": "{{keycloak_access_token}}",
+								"description": "Represents the authorized User ID to execute the API."
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}",
+								"description": "To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here."
+							},
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text",
+								"description": "Represents a physical location (e.g: state) uniquely to which the user belongs."
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Sample Collection\",\n            \"code\": \"1242e9ea-660a-4536-a142-cc242a7a4162\",\n            \"mimeType\": \"application/vnd.ekstep.content-collection\",\n            \"primaryCategory\": \"Digital Textbook\"\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/content/v4/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"content",
+								"v4",
+								"create"
+							]
+						},
+						"description": "This API is associated with creating content on the Sunbird Platform. Mandatory fields (name, code, mimeType and primaryCategory) cannot be null or empty.\n\nThe body refers to the format of the request.\n\n*   The body contains metadata about the content to be updated.\n*   Please refer for supported [metadata](https://github.com/project-sunbird/knowledge-platform/blob/master/schemas/content/1.0/schema.json)"
+					},
+					"response": []
+				},
+				{
+					"name": "TOC Upload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Verification",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200)",
+									"});",
+									"",
+									"const responseJson = pm.response.json();",
+									"const unitIdentifiers = _.values(responseJson.result.identifiers)",
+									"",
+									"pm.globals.set(\"unitA\", unitIdentifiers[_.size(unitIdentifiers) - 2]);",
+									"pm.globals.set(\"unitB\", unitIdentifiers[_.size(unitIdentifiers) - 3]);",
+									"pm.globals.set(\"unitC\", unitIdentifiers[_.size(unitIdentifiers) - 4]);",
+									"console.log(pm.globals.get(\"unitA\") + \", \" + pm.globals.get(\"unitB\") + \", \" + pm.globals.get(\"unitC\"))",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "x-authenticated-user-token",
+								"value": "{{user-token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "fileUrl",
+									"value": "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/hierarchy/do_113316820811522048194/createtoc.csv",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/import/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"import",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reserve DIAL code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();",
+									"",
+									"var reservedDialcodesObj = JSON.parse(responseJson.result.reservedDialcodes);",
+									"const reservedDialCodesList = _.keys(reservedDialcodesObj)",
+									"",
+									"pm.globals.set(\"originalReservedDIALCodes\", reservedDialCodesList)",
+									"pm.globals.set(\"dialcodeA\", reservedDialCodesList[_.size(reservedDialCodesList) - 2]);",
+									"pm.globals.set(\"dialcodeB\", reservedDialCodesList[_.size(reservedDialCodesList) - 3]);",
+									"pm.globals.set(\"dialcodeC\", reservedDialCodesList[_.size(reservedDialCodesList) - 4]);",
+									"",
+									"console.log(pm.globals.get(\"dialcodeA\") + \", \" + pm.globals.get(\"dialcodeB\") + \", \" + pm.globals.get(\"dialcodeC\"))"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set(\"ReservedDialCodesCount\", 8);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": {{ReservedDialCodesCount}},\n            \"qrCodeSpec\": {\n                \"errorCorrectionLevel\": \"H\"\n            }\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/reserve/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"reserve",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link DIAL code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"setTimeout(function(){}, 1000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "x-authenticated-user-token",
+								"value": "{{keycloak_access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"content\": [{\n            \"identifier\": [\"{{unitA}}\"],\n            \"dialcode\": [\"{{dialcodeA}}\"]\n        },\n        {\n            \"identifier\": [\"{{unitB}}\"],\n            \"dialcode\": [\"{{dialcodeB}}\"]\n        },\n        {\n            \"identifier\": [\"{{unitC}}\"],\n            \"dialcode\": [\"{{dialcodeC}}\"]\n        }]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/link/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"link",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Positive",
+			"item": [
+				{
+					"name": "Release DIAL code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response returns with reservedDialcodes with one less\", function () {",
+									"    const responseJson = pm.response.json();",
+									"      ",
+									"    var reservedDialcodesObj = JSON.parse(responseJson.result.reservedDialcodes);",
+									"    const reservedDialCodesList = _.keys(reservedDialcodesObj)",
+									"    var expectedCount = pm.globals.get(\"ReservedDialCodesCount\")-1",
+									"    console.log(\"expected Count:: \" + expectedCount)",
+									"    console.log(\"returned Count:: \" + _.size(reservedDialCodesList))",
+									"    pm.expect(_.size(reservedDialCodesList) == expectedCount)",
+									"",
+									"    var orgReservedDIALList = pm.globals.get(\"originalReservedDIALCodes\")",
+									"    var releasedDialcode = _.difference(orgReservedDIALList, reservedDialCodesList)",
+									"    console.log(\"releasedDialcode:: \" + releasedDialcode)",
+									"",
+									"    pm.expect((releasedDialcode != pm.globals.get(\"dialcodeA\")) && ",
+									"                (releasedDialcode != pm.globals.get(\"dialcodeB\")) && ",
+									"                    (releasedDialcode != pm.globals.get(\"dialcodeC\")))",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 5\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Negative",
+			"item": [
+				{
+					"name": "Release DIAL code Invalid Channel Id header",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_INVALID_CHANNEL\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_INVALID_CHANNEL\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "dummy"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 1\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code with Zero count",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_INVALID_COUNT_RANGE\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_INVALID_COUNT_RANGE\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 0\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code with negative count",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_INVALID_COUNT_RANGE\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_INVALID_COUNT_RANGE\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": -2\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code with count greater than max limit(250)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_INVALID_COUNT_RANGE\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_INVALID_COUNT_RANGE\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 251\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code with invalid collection Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Response throws RESOURCE_NOT_FOUND\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"RESOURCE_NOT_FOUND\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"NOT_FOUND\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 25\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/do_dummy_id",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"do_dummy_id"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code for collection wo reserved DIAL codes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_CONTENT_MISSING_RESERVED_DIAL_CODES\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_CONTENT_MISSING_RESERVED_DIAL_CODES\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 2\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id_wo_reserved_dial_codes}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id_wo_reserved_dial_codes}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code with count greater than reserved DIAL codes count",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_COUNT_GREATER_THAN_RESERVED_DIAL_CODES\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 25\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Release DIAL code with count same as linked DIAL codes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response throws ERR_ALL_DIALCODES_UTILIZED\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.responseCode).equals(\"CLIENT_ERROR\")",
+									"        ",
+									"    const params = responseJson.params;",
+									"    pm.expect(params.status).equals(\"failed\")",
+									"    pm.expect(params.err).equals(\"ERR_ALL_DIALCODES_UTILIZED\")   ",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Channel-ID",
+								"value": "{{channel_id}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"dialcodes\": {\n            \"count\": 2\n        }\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/collection/v4/dialcode/release/{{collection_id}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"collection",
+								"v4",
+								"dialcode",
+								"release",
+								"{{collection_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

@@ -55,7 +55,7 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         }
     }
 
-    def publish(identifier: String): Action[AnyContent] = Action.async { implicit request =>
+    override def publish(identifier: String): Action[AnyContent] = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap[String, Object]()
         content.put("status", "Live")

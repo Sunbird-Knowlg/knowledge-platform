@@ -34,6 +34,10 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 		validate(node).map(res => getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
 	}
 
+	override def publish(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		validate(node).map(res => getEnrichedPublishMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+	}
+
 	def validate(node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext) = {
 		val req = new Request()
 		req.setContext(Map[String, AnyRef]("schemaName" -> node.getObjectType.toLowerCase.replaceAll("image", ""), "version"->"1.0").asJava)

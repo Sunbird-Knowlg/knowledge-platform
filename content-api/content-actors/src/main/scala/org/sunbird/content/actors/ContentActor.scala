@@ -4,6 +4,7 @@ import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
 import org.apache.commons.io.FilenameUtils
+
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
@@ -15,6 +16,7 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
+import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
@@ -49,10 +51,13 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
+			case "reserveDialCode" => reserveDialCode(request)
+			case "releaseDialCode" => releaseDialCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
+			case "publishContent" => publishContent(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -61,7 +66,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
 		DataNode.create(request, dataModifier).map(node => {
-			ResponseHandler.OK.put("identifier", node.getIdentifier).put("node_id", node.getIdentifier)
+			ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
 				.put("versionKey", node.getMetadata.get("versionKey"))
 		})
 	}
@@ -72,7 +77,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
       if (responseSchemaName.isEmpty) {
         response.put("content", metadata)
@@ -96,7 +101,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-			metadata.put("identifier", node.getIdentifier.replace(".img", ""))
+			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 				if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("channel", "").asInstanceOf[String],request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) {
 					if (responseSchemaName.isEmpty) {
@@ -119,19 +124,19 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		RequestUtil.restrictProperties(request)
 		DataNode.update(request, dataModifier).map(node => {
 			val identifier: String = node.getIdentifier.replace(".img", "")
-			ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
+			ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 				.put("versionKey", node.getMetadata.get("versionKey"))
 		})
 	}
 
 	def upload(request: Request): Future[Response] = {
-		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
 		val readReq = new Request(request)
-		readReq.put("identifier", identifier)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
-				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
+				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
 		}).flatMap(f => f)
 	}
@@ -146,14 +151,14 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val fileName: String = request.get("fileName").asInstanceOf[String]
 		val filePath: String = request.getRequest.getOrDefault("filePath","").asInstanceOf[String]
 			.replaceAll("^/+|/+$", "")
-		val identifier: String = request.get("identifier").asInstanceOf[String]
+		val identifier: String = request.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
 		validatePreSignedUrlRequest(`type`, fileName, filePath)
 		DataNode.read(request).map(node => {
 			val objectKey = if (StringUtils.isEmpty(filePath)) "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 				else filePath + File.separator + "content" + File.separator + `type` + File.separator + identifier + File.separator + Slug.makeSlug(fileName, true)
 			val expiry = Platform.config.getString("cloud_storage.upload.url.ttl")
 			val preSignedURL = ss.getSignedURL(objectKey, Option.apply(expiry.toInt), Option.apply("w"))
-			ResponseHandler.OK().put("identifier", identifier).put("pre_signed_url", preSignedURL)
+			ResponseHandler.OK().put(ContentConstants.IDENTIFIER, identifier).put("pre_signed_url", preSignedURL)
 				.put("url_expiry", expiry)
 		}) recoverWith { case e: CompletionException => throw e.getCause }
 	}
@@ -176,19 +181,42 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
+	def reserveDialCode(request: Request): Future[Response] = DIALManager.reserveOrRelease(request, ContentConstants.RESERVE)
+
+	def releaseDialCode(request: Request): Future[Response] = DIALManager.reserveOrRelease(request, ContentConstants.RELEASE)
+
 	def importContent(request: Request): Future[Response] = importMgr.importObject(request)
 
 	def reviewContent(request: Request): Future[Response] = {
-		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
 		val readReq = new Request(request)
-		readReq.put("identifier", identifier)
-		readReq.put("mode", "edit")
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(readReq).map(node => {
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
-				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
-			if (StringUtils.equalsAnyIgnoreCase("Processing", node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
+			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
 			else ReviewManager.review(request, node)
+		}).flatMap(f => f)
+	}
+
+	def publishContent(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val publisher: String = request.getRequest.getOrDefault(ContentConstants.LAST_PUBLISHED_BY, "").asInstanceOf[String]
+
+		if(publisher.isBlank) throw new ClientException("ERR_CONTENT_BLANK_PUBLISHER", "Publisher User Id is blank")
+
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
+		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
+			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
+				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Publish Operation Can't Be Applied On Node Under Processing State")
+			node.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
+			PublishManager.publish(request, node)
 		}).flatMap(f => f)
 	}
 
@@ -243,6 +271,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		"Yes".equalsIgnoreCase(node.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
 			node.getMetadata.put("contentType", "Course")
 		}
+
+		//TODO: Below fix to be reviewed when the fix for null to Stringify in ExternalStore.scala is implemented
+		if(node.getExternalData != null && node.getExternalData.containsKey("relational_metadata") && node.getExternalData.get("relational_metadata") == null) {
+			node.getExternalData.put("relational_metadata", "{}")
+		}
 		node
 	}
 
@@ -257,7 +290,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def systemUpdate(request: Request): Future[Response] = {
-		val identifier = request.getContext.get("identifier").asInstanceOf[String]
+		val identifier = request.getContext.get(ContentConstants.IDENTIFIER).asInstanceOf[String]
 		RequestUtil.validateRequest(request)
 		RedisCache.delete(hierarchyPrefix + request.get("rootId"))
 
@@ -275,21 +308,21 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			else
 				DataNode.systemUpdate(request, response,"", None)
 		}).map(node => {
-			ResponseHandler.OK.put("identifier", identifier).put("status", "success")
+			ResponseHandler.OK.put(ContentConstants.IDENTIFIER, identifier).put(ContentConstants.STATUS, "success")
 		})
 	}
 
 	def rejectContent(request: Request): Future[Response] = {
 		RequestUtil.validateRequest(request)
 		DataNode.read(request).map(node => {
-			val status = node.getMetadata.get("status").asInstanceOf[String]
+			val status = node.getMetadata.get(ContentConstants.STATUS).asInstanceOf[String]
 			if (StringUtils.isBlank(status))
 				throw new ClientException("ERR_METADATA_ISSUE", "Content metadata error, status is blank for identifier:" + node.getIdentifier)
       if (StringUtils.equals("Review", status)) {
-        request.getRequest.put("status", "Draft")
+        request.getRequest.put(ContentConstants.STATUS, "Draft")
 				request.getRequest.put("prevStatus", "Review")
       } else if (StringUtils.equals("FlagReview", status)) {
-        request.getRequest.put("status", "FlagDraft")
+        request.getRequest.put(ContentConstants.STATUS, "FlagDraft")
 				request.getRequest.put("prevStatus", "FlagReview")
 			}
       else new ClientException("ERR_INVALID_REQUEST", "Content not in Review status.")
@@ -300,7 +333,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			RequestUtil.restrictProperties(request)
 			DataNode.update(request).map(node => {
 				val identifier: String = node.getIdentifier.replace(".img", "")
-				ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
+				ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 			})
 		}).flatMap(f => f)
 	}

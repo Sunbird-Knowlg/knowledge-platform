@@ -148,9 +148,27 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def publish(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "publishContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("publish_type", "public");
+        getResult(ApiId.PUBLISH_CONTENT_PUBLIC, contentActor, contentRequest)
+    }
+
+    def publishUnlisted(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "publishContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("publish_type", "unlisted");
+        getResult(ApiId.PUBLISH_CONTENT_UNLSTED, contentActor, contentRequest)
     }
 
     def review(identifier: String) = Action.async { implicit request =>
@@ -206,21 +224,23 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     }
 
     def reserveDialCode(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val reserveDialCode = getRequest(body, headers, "reserveDialCode")
+        setRequestContext(reserveDialCode, version, objectType, schemaName)
+        getResult(ApiId.RESERVE_DIAL_CONTENT, contentActor, reserveDialCode)
     }
 
     def releaseDialcodes(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
-    }
-
-    def publishUnlisted(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        body.putAll(Map("identifier" -> identifier).asJava)
+        val releaseDialCode = getRequest(body, headers, "releaseDialCode")
+        setRequestContext(releaseDialCode, version, objectType, schemaName)
+        getResult(ApiId.RELEASE_DIAL_CONTENT, contentActor, releaseDialCode)
     }
 
     def upload(identifier: String, fileFormat: Option[String], validation: Option[String]) = Action.async { implicit request =>
