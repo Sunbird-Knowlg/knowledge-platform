@@ -104,11 +104,12 @@ class StorageService {
     val privateKeyPkcs8 = Platform.config.getString("gcloud_private_secret")
     val privateKeyIds = Platform.config.getString("gcloud_private_bucket_project_key_id")
     val projectId = Platform.config.getString("gcloud_private_bucket_projectId")
+    println("uploading file to container : ", getContainerName)
+    println("file name getting uploaded : ", objectName)
     val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
     println("credentials created")
     val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
-    println("container name : ", getContainerName)
-    println("object name : ", objectName)
+    println("storage object created")
     val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
     extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
@@ -118,7 +119,7 @@ class StorageService {
     val url = storage.signUrl(blobInfo, expiryTime, TimeUnit.DAYS, Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
       Storage.SignUrlOption.withExtHeaders(extensionHeaders),
       Storage.SignUrlOption.withV4Signature);
-    println("url created")
+    println("url created: ", url)
     url.toString;
   }
 
