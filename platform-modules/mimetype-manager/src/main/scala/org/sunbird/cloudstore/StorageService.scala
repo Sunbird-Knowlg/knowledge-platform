@@ -93,10 +93,10 @@ class StorageService {
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
       storageType match {
-        case "gcloud" => getGCPSignedURL(Platform.config.getString("gcloud_private_bucket_projecclientid"),
+        case "gcloud" => getGCPSignedURL(Platform.config.getString("gcloud_private_bucket_project_client_id"),
           Platform.config.getString("gcloud_client_key"),
           Platform.config.getString("gcloud_private_secret"),
-          Platform.config.getString("gcloud_private_bucket_projeckeyid"), Platform.config.getString("gcloud_private_bucket_projectId"), key, ttl.get)
+          Platform.config.getString("gcloud_private_bucket_project_key_id"), Platform.config.getString("gcloud_private_bucket_project_id"), key, ttl.get)
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
     }
