@@ -96,7 +96,7 @@ class StorageService {
         case "gcloud" => getGCPSignedURL(Platform.config.getString("gcloud_private_bucket_project_client_id"),
           Platform.config.getString("gcloud_client_key"),
           Platform.config.getString("gcloud_private_secret"),
-          Platform.config.getString("gcloud_private_bucket_project_key_id"), Platform.config.getString("gcloud_private_bucket_project_id"), key, ttl.get)
+          Platform.config.getString("gcloud_private_bucket_project_key_id"), Platform.config.getString("gcloud_private_bucket_projectId"), key, ttl.get)
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
     }
