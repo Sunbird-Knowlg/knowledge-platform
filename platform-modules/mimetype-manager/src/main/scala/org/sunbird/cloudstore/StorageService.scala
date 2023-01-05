@@ -93,15 +93,17 @@ class StorageService {
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
       storageType match {
-        case "gcloud" => getGCPSignedURL(Platform.config.getString("gcloud_private_bucket_project_client_id"),
-          Platform.config.getString("gcloud_client_key"),
-          Platform.config.getString("gcloud_private_secret"),
-          Platform.config.getString("gcloud_private_bucket_project_key_id"), Platform.config.getString("gcloud_private_bucket_projectId"), key, ttl.get)
+        case "gcloud" => getGCPSignedURL(key, ttl.get)
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
     }
 
-  def getGCPSignedURL(clientId: String, clientEmail: String, privateKeyPkcs8: String, privateKeyIds: String, projectId: String, objectName: String, ttl: Long):  String = {
+  def getGCPSignedURL(objectName: String, ttl: Long):  String = {
+    val clientId = Platform.config.getString("gcloud_private_bucket_project_client_id")
+    val clientEmail = Platform.config.getString("gcloud_client_key")
+    val privateKeyPkcs8 = Platform.config.getString("gcloud_private_secret")
+    val privateKeyIds = Platform.config.getString("gcloud_private_bucket_project_key_id")
+    val projectId = Platform.config.getString("gcloud_private_bucket_projectId")
     val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
     println("credentials : ", credentials)
     val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
