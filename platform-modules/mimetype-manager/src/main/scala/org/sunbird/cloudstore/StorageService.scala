@@ -105,20 +105,20 @@ class StorageService {
     val privateKeyIds = Platform.config.getString("gcloud_private_bucket_project_key_id")
     val projectId = Platform.config.getString("gcloud_private_bucket_projectId")
     val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
-    println("credentials : ", credentials)
+    println("credentials created")
     val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
     println("container name : ", getContainerName)
     println("object name : ", objectName)
-    println("Storage : ", storage)
     val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
     extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
-    println("blob : ", blobInfo)
+    println("blob object created")
     val expiryTime = if(ttl > 7) 7 else ttl
+    println("expiry time : ", expiryTime)
     val url = storage.signUrl(blobInfo, expiryTime, TimeUnit.DAYS, Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
       Storage.SignUrlOption.withExtHeaders(extensionHeaders),
       Storage.SignUrlOption.withV4Signature);
-    println("url:", url)
+    println("url created")
     url.toString;
   }
 
