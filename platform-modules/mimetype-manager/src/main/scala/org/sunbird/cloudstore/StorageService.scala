@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.tika.Tika
 import org.apache.tika.metadata.HttpHeaders
 import org.apache.tika.mime.MimeTypes
+import org.slf4j.LoggerFactory
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import org.sunbird.common.exception.ServerException
@@ -19,6 +20,7 @@ import scala.concurrent.{ExecutionContext, Future};
 
 class StorageService {
 
+    val logger = LoggerFactory.getLogger(this.getClass)
     val storageType: String = if (Platform.config.hasPath("cloud_storage_type")) Platform.config.getString("cloud_storage_type") else ""
     var storageService: BaseStorageService = null
 
@@ -105,28 +107,40 @@ class StorageService {
    * @return
    */
     private def getGCPSignedURL(objectName: String, ttl: Long):  String = {
+      // getting project Id
+      val projectId = Platform.config.getString("gcloud_private_bucket_projectId")
+      // getting credentials
+      val credentials = getServiceAccountCredentials()
+      // creating storage options
+      val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
+      // setting header as application/octet-stream (required by google)
+      val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
+      extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
+      // creating blob info
+      val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
+      // check for expiry time
+      val expiryTime = if(ttl > 7) 7 else ttl
+      logger.debug("expiry time : ", expiryTime)
+      //creating signed url
+      val url = storage.signUrl(blobInfo, expiryTime, TimeUnit.DAYS, Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+        Storage.SignUrlOption.withExtHeaders(extensionHeaders),
+        Storage.SignUrlOption.withV4Signature);
+      logger.debug("url created: ", url)
+      logger.info("Signed url created")
+      url.toString;
+    }
+
+    /**
+     * Method to get service account credentials
+     * @return
+     */
+    private def getServiceAccountCredentials() : ServiceAccountCredentials = {
+      // getting GCP related parameters required to create service Account credentials
       val clientId = Platform.config.getString("gcloud_private_bucket_project_client_id")
       val clientEmail = Platform.config.getString("gcloud_client_key")
       val privateKeyPkcs8 = Platform.config.getString("gcloud_private_secret")
       val privateKeyIds = Platform.config.getString("gcloud_private_bucket_project_key_id")
-      val projectId = Platform.config.getString("gcloud_private_bucket_projectId")
-      println("uploading file to container : ", getContainerName)
-      println("file name getting uploaded : ", objectName)
-      val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
-      println("credentials created")
-      val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
-      println("storage object created")
-      val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
-      extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
-      val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
-      println("blob object created")
-      val expiryTime = if(ttl > 7) 7 else ttl
-      println("expiry time : ", expiryTime)
-      val url = storage.signUrl(blobInfo, expiryTime, TimeUnit.DAYS, Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
-        Storage.SignUrlOption.withExtHeaders(extensionHeaders),
-        Storage.SignUrlOption.withV4Signature);
-      println("url created: ", url)
-      url.toString;
+      ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
     }
 
     def getUri(key: String): String = {
