@@ -1,14 +1,21 @@
 package org.sunbird.cloudstore
 
+import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.cloud.storage.{BlobId, BlobInfo, HttpMethod, Storage, StorageOptions}
 import org.apache.commons.lang3.StringUtils
 import org.apache.tika.Tika
+import org.apache.tika.metadata.HttpHeaders
+import org.apache.tika.mime.MimeTypes
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
+import org.sunbird.common.{Platform, Slug}
 
 import java.io.File
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.TimeUnit
+import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future};
+
 
 class StorageService {
 
@@ -86,9 +93,34 @@ class StorageService {
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
       storageType match {
-        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
+        case "gcloud" => getGCPSignedURL(key, ttl.get)
         case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
       }
+    }
+
+    def getGCPSignedURL(objectName: String, ttl: Long):  String = {
+      val clientId = Platform.config.getString("gcloud_private_bucket_project_client_id")
+      val clientEmail = Platform.config.getString("gcloud_client_key")
+      val privateKeyPkcs8 = Platform.config.getString("gcloud_private_secret")
+      val privateKeyIds = Platform.config.getString("gcloud_private_bucket_project_key_id")
+      val projectId = Platform.config.getString("gcloud_private_bucket_projectId")
+      println("uploading file to container : ", getContainerName)
+      println("file name getting uploaded : ", objectName)
+      val credentials = ServiceAccountCredentials.fromPkcs8(clientId, clientEmail, privateKeyPkcs8, privateKeyIds, new java.util.ArrayList[String]())
+      println("credentials created")
+      val storage = StorageOptions.newBuilder.setProjectId(projectId).setCredentials(credentials).build.getService
+      println("storage object created")
+      val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
+      extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
+      val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
+      println("blob object created")
+      val expiryTime = if(ttl > 7) 7 else ttl
+      println("expiry time : ", expiryTime)
+      val url = storage.signUrl(blobInfo, expiryTime, TimeUnit.DAYS, Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+        Storage.SignUrlOption.withExtHeaders(extensionHeaders),
+        Storage.SignUrlOption.withV4Signature);
+      println("url created: ", url)
+      url.toString;
     }
 
     def getUri(key: String): String = {
