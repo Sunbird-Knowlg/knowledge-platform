@@ -98,7 +98,13 @@ class StorageService {
       }
     }
 
-    def getGCPSignedURL(objectName: String, ttl: Long):  String = {
+  /**
+   * Method to get V4 Signed URL when storage is GCP
+   * @param objectName
+   * @param ttl
+   * @return
+   */
+    private def getGCPSignedURL(objectName: String, ttl: Long):  String = {
       val clientId = Platform.config.getString("gcloud_private_bucket_project_client_id")
       val clientEmail = Platform.config.getString("gcloud_client_key")
       val privateKeyPkcs8 = Platform.config.getString("gcloud_private_secret")
