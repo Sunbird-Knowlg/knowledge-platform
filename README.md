@@ -190,6 +190,7 @@ curl http://localhost:9000/health
 ```shell
 collection.keyspace = "dev_hierarchy_store"
 content.keyspace = "dev_content_store"
+```
 2. From Postman First we have to create License by using below command.The Header of the postman shoulbe Header Content-Type: application/json
 ```shell
 http://localhost:9000/license/v3/create
@@ -201,6 +202,8 @@ http://localhost:9000/license/v3/create
 	}
 	}
 }
+```
 3. Now create Content by using below command on postmen
 ```shell
 http://localhost:9000/content/v3/create
+```
