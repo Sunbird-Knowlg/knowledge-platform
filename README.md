@@ -186,7 +186,7 @@ mvn play2:run
 curl http://localhost:9000/health
 ```
 ### After Running All Category Service :
-1. Go to file path: /content-service/ conf/application.conf change the below lines.
+1. Go to file path: /content-api/content-service/conf/application.conf change the below lines.
 ```shell
 collection.keyspace = "dev_hierarchy_store"
 content.keyspace = "dev_content_store"
