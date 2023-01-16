@@ -29,7 +29,7 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>cloud-store-sdk</artifactId>
+            <artifactId>cloud-store-sdk_2.12</artifactId>
             <version>1.4.5</version>
         </dependency>
         <dependency>
