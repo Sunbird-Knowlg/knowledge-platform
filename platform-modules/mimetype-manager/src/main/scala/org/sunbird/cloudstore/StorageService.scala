@@ -22,7 +22,7 @@ class StorageService {
               val storageSecret = Platform.config.getString("cloud_storage_secret")
               // TODO: endPoint defined to support "cephs3". Make code changes after cloud-store-sdk 2.11 support it.
               val endPoint = if (Platform.config.hasPath("cloud_storage_endpoint")) Option(Platform.config.getString("cloud_storage_endpoint")) else None
-              storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret))
+              storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret,endPoint))
         }
         storageService
     }
