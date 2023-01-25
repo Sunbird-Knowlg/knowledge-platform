@@ -112,7 +112,7 @@ class StorageService {
     println("storage object created")
     val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
     extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
-    extensionHeaders.putAll(Map("x-goog-resumable" -> "start").asJava)
+    //extensionHeaders.putAll(Map("x-goog-resumable" -> "start").asJava)
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
     println("blob object created")
     val expiryTime = if(ttl > 7) 7 else ttl
