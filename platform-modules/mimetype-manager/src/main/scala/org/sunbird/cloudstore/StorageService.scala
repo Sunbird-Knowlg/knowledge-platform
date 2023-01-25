@@ -113,6 +113,7 @@ class StorageService {
     val extensionHeaders = new java.util.HashMap().asInstanceOf[java.util.Map[String, String]]
     extensionHeaders.putAll(Map(HttpHeaders.CONTENT_TYPE -> MimeTypes.OCTET_STREAM).asJava)
     //extensionHeaders.putAll(Map("x-goog-resumable" -> "start").asJava)
+    println("*** --- Changed code --- *******")
     val blobInfo = BlobInfo.newBuilder(BlobId.of(getContainerName, objectName)).build
     println("blob object created")
     val expiryTime = if(ttl > 7) 7 else ttl
@@ -120,7 +121,7 @@ class StorageService {
     val url = storage.signUrl(blobInfo, expiryTime, TimeUnit.DAYS, Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
       Storage.SignUrlOption.withExtHeaders(extensionHeaders),
       Storage.SignUrlOption.withV4Signature);
-    println("url created: ", url)
+    println("************* url created: ", url)
     url.toString;
   }
 
