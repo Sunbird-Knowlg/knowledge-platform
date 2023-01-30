@@ -27,14 +27,16 @@
     "medium",
     "subject",
     "gradeLevel",
-    "topic"
+    "topic",
+    "difficultyLevel"
   ],
   "orgFrameworkTerms": [
     "boardIds",
     "gradeLevelIds",
     "subjectIds",
     "mediumIds",
-    "topicsIds"
+    "topicsIds",
+    "difficultyLevelIds"
   ],
   "targetFrameworkTerms": [
     "targetFWIds",
@@ -42,7 +44,8 @@
     "targetGradeLevelIds",
     "targetSubjectIds",
     "targetMediumIds",
-    "targetTopicIds"
+    "targetTopicIds",
+    "difficultyLevelIds"
   ],
   "cacheEnabled": false,
   "schema_restrict_api": true,
