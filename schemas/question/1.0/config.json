@@ -17,9 +17,9 @@
   },
   "version": "enable",
   "versionCheckMode": "ON",
-  "frameworkCategories": ["board","medium","subject","gradeLevel","topic"],
-  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
-  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+  "frameworkCategories": ["board","medium","subject","gradeLevel","topic","difficultyLevel"],
+  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds","difficultyLevelIds"],
+  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds","targetDifficultyLevelIds"],
   "cacheEnabled": false,
   "schema_restrict_api": true,
   "external": {
