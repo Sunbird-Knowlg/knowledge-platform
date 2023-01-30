@@ -2,9 +2,9 @@ package org.sunbird.managers
 
 import java.util
 import java.util.concurrent.CompletionException
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResourceNotFoundException, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
@@ -25,16 +25,25 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object UpdateHierarchyManager {
     val neo4jCreateTypes: java.util.List[String] = Platform.getStringList("neo4j_objecttypes_enabled", List("Question").asJava)
+    val logger = LoggerFactory.getLogger(UpdateHierarchyManager.getClass)
 
     @throws[Exception]
     def updateHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+        logger.info("payload validation started")
         val (nodesModified, hierarchy) = validateRequest(request)
+        logger.info("validation passed")
         val rootId: String = getRootId(nodesModified, hierarchy)
+        logger.info("Root Id val : ", rootId)
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
+        logger.info("updating context with rootId and starting root node validation")
         getValidatedRootNode(rootId, request).map(node => {
+            logger.info("inside RNV: node data - ", node)
             getExistingHierarchy(request, node).map(existingHierarchy => {
+                logger.info("inside RNV: existing node hierarchy data")
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.HashMap[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+                logger.info("inside RNV: existing node hierarchy data", existingChildren)
                 val nodes = List(node)
+                logger.info("inside RNV: existing nodes data", nodes)
                 addChildNodesInNodeList(existingChildren, request, nodes).map(list => (existingHierarchy, list))
             }).flatMap(f => f)
               .map(result => {
@@ -112,6 +121,7 @@ object UpdateHierarchyManager {
     }
 
     private def getExistingHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.util.HashMap[String, AnyRef]] = {
+        logger.info("fetching existing node hierarchy")
         fetchHierarchy(request, rootNode).map(hierarchyString => {
             if (null != hierarchyString && !hierarchyString.asInstanceOf[String].isEmpty) {
                 JsonUtils.deserialize(hierarchyString.asInstanceOf[String], classOf[java.util.HashMap[String, AnyRef]])
