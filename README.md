@@ -291,6 +291,6 @@ curl https://github.com/project-sunbird/sunbird-community/discussions/543
 ```
 3.Now run the command and give path where you created conf file.
 ```shell
-java -Dconfig.file=./Application.conf -jar sync-tool-0.0.1-SNAPSHOT.jar sync --graph domain --objectType Content
+java -Dconfig.file=./application.conf -jar sync-tool-0.0.1-SNAPSHOT.jar sync --graph domain --objectType Content
 ```
 
