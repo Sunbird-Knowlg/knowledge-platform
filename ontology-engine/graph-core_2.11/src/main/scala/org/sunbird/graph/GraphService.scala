@@ -2,6 +2,7 @@ package org.sunbird.graph
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
+import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.service.operation.{GraphAsyncOperations, Neo4JBoltSearchOperations, NodeAsyncOperations, SearchAsyncOperations}
@@ -19,7 +20,7 @@ class GraphService {
             val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
             node.setMetadata(metadata)
         }
-        NodeAsyncOperations.addNode(graphId, node)
+        NodeAsyncOperations.addNode(graphId, node).map(resNode => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
     }
 
     def upsertNode(graphId: String, node: Node, request: Request): Future[Node] = {
@@ -27,7 +28,7 @@ class GraphService {
             val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
             node.setMetadata(metadata)
         }
-        NodeAsyncOperations.upsertNode(graphId, node, request)
+        NodeAsyncOperations.upsertNode(graphId, node, request).map(resNode => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
     }
 
     def upsertRootNode(graphId: String, request: Request): Future[Node] = {
@@ -55,13 +56,13 @@ class GraphService {
     }
 
     def readExternalProps(request: Request, fields: List[String]): Future[Response] = {
-        ExternalPropsManager.fetchProps(request, fields).map(res =>
-            if(isrRelativePathEnabled) {
-                val updatedResult = CSPMetaUtil.updateAbsolutePath(res.getResult)
+        ExternalPropsManager.fetchProps(request, fields).map(res => {
+            if(isrRelativePathEnabled && res.getResponseCode == ResponseCode.OK) {
+                val updatedResult = CSPMetaUtil.updateExternalAbsolutePath(res.getResult)
                 val response = ResponseHandler.OK()
                 response.putAll(updatedResult)
                 response
-            } else res)
+            } else res})
     }
 
     def saveExternalProps(request: Request): Future[Response] = {

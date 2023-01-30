@@ -78,7 +78,7 @@ object PublishManager {
 		}
 
 		//objectData
-		objectData.put(ContentConstants.ID, identifier)
+		objectData.put(ContentConstants.ID, identifier.replace(".img",""))
 		objectData.put(ContentConstants.VER, metadata.get(ContentConstants.VERSION_KEY))
 
 		//edata
@@ -91,7 +91,7 @@ object PublishManager {
 		instructionEventMetadata.put(ContentConstants.PACKAGE_VERSION, metadata.getOrDefault(ContentConstants.PACKAGE_VERSION,0.asInstanceOf[AnyRef]))
 		instructionEventMetadata.put(ContentConstants.MIME_TYPE, metadata.get(ContentConstants.MIME_TYPE))
 		instructionEventMetadata.put(ContentConstants.LAST_PUBLISHED_BY, metadata.get(ContentConstants.LAST_PUBLISHED_BY))
-		instructionEventMetadata.put(ContentConstants.IDENTIFIER, identifier)
+		instructionEventMetadata.put(ContentConstants.IDENTIFIER, identifier.replace(".img",""))
 		instructionEventMetadata.put(ContentConstants.OBJECT_TYPE, objectType)
 		edata.put(ContentConstants.METADATA, instructionEventMetadata)
 		edata.put(ContentConstants.ACTION, ContentConstants.PUBLISH)
