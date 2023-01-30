@@ -207,3 +207,90 @@ content.keyspace = "dev_content_store"
 ```shell
 curl http://localhost:9000/content/v3/create
 ```
+### Elastic Search setup steps :
+1. Create a docker-compose.yml file and put all content given below in it with given appropiate elasticsearch version you want.
+```shell
+version: '2.2'
+services:
+elasticsearch:
+image: docker.elastic.co/elasticsearch/elasticsearch:6.8.22
+container_name: elasticsearch
+environment:
+- cluster.name=docker-cluster
+- bootstrap.memory_lock=true
+- "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+ulimits:
+memlock:
+soft: -1
+hard: -1
+volumes:
+- esdata1:/usr/share/elasticsearch/data
+ports:
+- 9200:9200
+networks:
+- esnet
+volumes:
+esdata1:
+driver: local
+networks:
+esnet:
+```
+2. Now run the
+```shell
+docker-compose up
+```
+3. if you got error run below command
+```shell
+sysctl -w vm.max_map_count=262144
+```
+4. Again run the docker-compose up.
+5. We have to create index for elastic search by below command with index name compositesearch_v1.
+```shell
+curl -X PUT "localhost:9200/compositesearch_v1?pretty"
+```
+5. After creating index we have to create aliases by below command with aliases name compositesearch.
+```shell
+curl -X POST "localhost:9200/_aliases?pretty" -H 'Content-Type: application/json' -d'
+{
+"actions" : [
+{ "add" : { "index" : "compositesearch_v1", "alias" : "compositesearch" } }
+]
+}
+'
+```
+6.Create compositesearch.json and put all content of latest version from the given link.
+```shell
+curl https://github.com/keshavprasadms/sunbird-devops/blob/release-5.1.0/ansible/roles/es-mapping/files/indices/compositesearch.json
+
+curl  -X PUT http://localhost:9200/compositesearch_v1 -H 'Content-Type: application/json' -d @<path to compositesearch.json>
+```
+7.Create compositesearch-mapping.json and put all content of latest version from the given link.
+```shell
+curl https://github.com/keshavprasadms/sunbird-devops/blob/release-5.1.0/ansible/roles/es-mapping/files/mappings/compositesearch-mapping.json
+
+curl  -X PUT http://localhost:9200/compositesearch_v1/_mapping/cs -H 'Content-Type: application/json' -d @<path to compositesearch-mapping.json>
+```
+8.After that again restart the Run below command in knowledge-platform folder
+```shell
+mvn clean install -DskipTests
+```
+9.Now go to Search-api in that search-service folder and run to cheack elasticsearch is running.
+### To Run all the services in different Port.
+1.To change port of content, search and taxonomy service to run oon different port 
+```shell
+mvn play2:run -Dhttp.port=your port(9020)
+```
+### To Set-up Sync-Tool.
+1.From below link download synctool jar file and put into your project folder.
+```shell
+curl https://drive.google.com/file/d/1tucMlDaxkD3CpzikY3UzYGzm12E1Gg0v/view?usp=share_link
+```
+2.From below link create a Application.conf file in Knowldge-platform.
+```shell
+curl https://github.com/project-sunbird/sunbird-community/discussions/543
+```
+3.Now run the command and give path where you created conf file.
+```shell
+java -Dconfig.file=./Application.conf -jar sync-tool-0.0.1-SNAPSHOT.jar sync --graph domain --objectType Content
+```
+
