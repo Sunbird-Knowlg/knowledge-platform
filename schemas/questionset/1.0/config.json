@@ -45,7 +45,7 @@
     "targetSubjectIds",
     "targetMediumIds",
     "targetTopicIds",
-    "difficultyLevelIds"
+    "targetDifficultyLevelIds"
   ],
   "cacheEnabled": false,
   "schema_restrict_api": true,
