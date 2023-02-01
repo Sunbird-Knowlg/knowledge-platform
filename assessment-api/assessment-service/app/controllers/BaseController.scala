@@ -70,4 +70,23 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         request.setObjectType(objectType);
         request.getContext().putAll(contextMap)
     }
+
+    def getResponse(apiId: String, actor: ActorRef, request: org.sunbird.common.dto.Request): Future[AnyRef] = {
+        Patterns.ask(actor, request, 30000) recoverWith { case e: Exception => Future(ResponseHandler.getErrorResponse(e)) }
+    }
+
+    def commonHeaders(headers: Headers): java.util.Map[String, Object] = {
+        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId")
+        customHeaders.map(ch => {
+            val value = headers.get(ch._1)
+            if (value.isDefined && !value.isEmpty) {
+                collection.mutable.HashMap[String, Object](ch._2 -> value.get).asJava
+            } else {
+                collection.mutable.HashMap[String, Object]().asJava
+            }
+        }).reduce((a, b) => {
+            a.putAll(b)
+            return a
+        })
+    }
 }

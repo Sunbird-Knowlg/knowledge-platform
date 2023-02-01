@@ -184,5 +184,4 @@ mvn play2:run
 3. Using the below command we can verify whether the databases(neo4j,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
 ```shell
 curl http://localhost:9000/health
-// For test
 ```

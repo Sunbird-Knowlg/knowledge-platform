@@ -37,6 +37,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "listQuestions" => listQuestions(request)
 		case "rejectQuestion" => reject(request)
 		case "copyQuestion" => copy(request)
+		case "bulkUploadQuestion" => bulkUpload(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -136,5 +137,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 	def copy(request: Request): Future[Response] ={
 		RequestUtil.restrictProperties(request)
 		CopyManager.copy(request)
+	}
+
+	def bulkUpload(request: Request): Future[Response] = {
+		AssessmentManager.create(request, "ERR_QUESTION_CREATE")
 	}
 }

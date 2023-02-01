@@ -2,14 +2,17 @@ package controllers.v4
 
 import akka.actor.{ActorRef, ActorSystem}
 import controllers.BaseController
+import handlers.QuestionExcelParser
+import org.sunbird.common.dto.Response
 import org.sunbird.utils.AssessmentConstants
+import play.api.libs.json.Json
+import play.api.mvc.ControllerComponents
+import utils.{ActorNames, ApiId, JavaJsonUtils, QuestionOperations}
 
 import javax.inject.{Inject, Named}
-import play.api.mvc.ControllerComponents
-import utils.{ActorNames, ApiId, QuestionOperations}
-
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
@@ -142,5 +145,33 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		val questionRequest = getRequest(question, headers, QuestionOperations.copyQuestion.toString)
 		setRequestContext(questionRequest, version, objectType, schemaName)
 		getResult(ApiId.COPY_QUESTION, questionActor, questionRequest)
+	}
+
+	//Create question by uploading excel file
+	def uploadExcel() = Action(parse.multipartFormData) { implicit request =>
+		val questions = request.body
+			.file("file")
+			.map { filePart =>
+				val absolutePath = filePart.ref.path.toAbsolutePath
+				QuestionExcelParser.getQuestions(absolutePath.toFile)
+			}
+
+		val futures = questions.get.map(question => {
+			val headers = commonHeaders(request.headers)
+			question.putAll(headers)
+			val questionRequest = getRequest(question, headers, QuestionOperations.createQuestion.toString)
+			setRequestContext(questionRequest, version, objectType, schemaName)
+			getResponse(ApiId.CREATE_QUESTION, questionActor, questionRequest)
+		}
+		)
+
+		val f = Future.sequence(futures).map(results => results.map(_.asInstanceOf[Response]).groupBy(_.getResponseCode.toString).mapValues(listResult => {
+			listResult.map(result => {
+				setResponseEnvelope(result)
+				JavaJsonUtils.serialize(result.getResult)
+			})
+		})).map(f => Ok(Json.stringify(Json.toJson(f))).as("application/json"))
+
+		Await.result(f, Duration.apply("30s"))
 	}
 }
