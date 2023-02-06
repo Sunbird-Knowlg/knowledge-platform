@@ -124,7 +124,7 @@ kubectl port-forward <pod-name> 9000:9000 -n knowlg-api
 curl 'localhost:9000/health'
 ```
 
-#### ConfigMap for Content-Service
+### Define ConfigMap for Content-Service
 Use the below commands to load the configmap of content-Service.
 1. `content-config` - this has the application configuration. Please update the variables with respect to your context and load.
 2. `content-xml-config` - this has the logback configuration to handle the logs.
