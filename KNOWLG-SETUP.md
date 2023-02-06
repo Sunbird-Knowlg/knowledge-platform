@@ -123,3 +123,30 @@ Use Port Forwarding to access the application in the cluster from local.
 kubectl port-forward <pod-name> 9000:9000 -n knowlg-api
 curl 'localhost:9000/health'
 ```
+
+### Define ConfigMap for Content-Service
+Use the below commands to load the configmap of content-Service.
+1. `content-config` - this has the application configuration. Please update the variables with respect to your context and load.
+2. `content-xml-config` - this has the logback configuration to handle the logs.
+
+We have to update the below configurations in `content/templates/content-service_application` specific to your context.
+
+```shell
+cd kubernetes
+kubectl create configmap content-xml-config --from-file=content/content-service_logback.xml -n knowlg-api -o=yaml
+kubectl create configmap content-config --from-file=content/content-service_application.conf -n knowlg-api  -o=yaml
+```
+
+### Run Content-Service
+Use the `taxonomy` helm chart to run the Content-Service in local kubernetes cluster.
+
+```shell
+cd kubernetes
+helm install content content -n knowlg-api
+```
+Use Port Forwarding to access the application in the cluster from local.
+
+```shell
+kubectl port-forward <pod-name> 9000:9000 -n knowlg-api
+curl 'localhost:9000/health'
+```
