@@ -13,13 +13,15 @@ import javax.inject.{Inject, Named}
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
-
+import org.slf4j.{Logger, LoggerFactory}
+import org.sunbird.cache.impl.RedisCache
 class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
 	val objectType = "Question"
 	val schemaName: String = "question"
 	val version = "1.0"
 
+	private val logger: Logger = LoggerFactory.getLogger(RedisCache.getClass.getCanonicalName)
 	def create() = Action.async { implicit request =>
 		val headers = commonHeaders()
 		val body = requestBody()
@@ -149,29 +151,33 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 
 	//Create question by uploading excel file
 	def uploadExcel() = Action(parse.multipartFormData) { implicit request =>
+		logger.info("Inside upload excel")
 		val questions = request.body
 			.file("file")
 			.map { filePart =>
 				val absolutePath = filePart.ref.path.toAbsolutePath
 				QuestionExcelParser.getQuestions(absolutePath.toFile)
 			}
-
+		logger.info("questions after parsing "+questions)
 		val futures = questions.get.map(question => {
 			val headers = commonHeaders(request.headers)
 			question.putAll(headers)
+			logger.info("put headers  "+headers)
 			val questionRequest = getRequest(question, headers, QuestionOperations.createQuestion.toString)
+			logger.info("After the questionRequest")
 			setRequestContext(questionRequest, version, objectType, schemaName)
+			logger.info("After the setRequestContext")
 			getResponse(ApiId.CREATE_QUESTION, questionActor, questionRequest)
 		}
 		)
-
+		logger.info("After the getResponse")
 		val f = Future.sequence(futures).map(results => results.map(_.asInstanceOf[Response]).groupBy(_.getResponseCode.toString).mapValues(listResult => {
 			listResult.map(result => {
 				setResponseEnvelope(result)
 				JavaJsonUtils.serialize(result.getResult)
 			})
 		})).map(f => Ok(Json.stringify(Json.toJson(f))).as("application/json"))
-
+		logger.info("in Future sequence")
 		Await.result(f, Duration.apply("30s"))
 	}
 }

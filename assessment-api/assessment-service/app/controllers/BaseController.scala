@@ -12,9 +12,12 @@ import utils.JavaJsonUtils
 
 import collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import org.slf4j.{Logger, LoggerFactory}
+import org.sunbird.cache.impl.RedisCache
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
+    private val logger: Logger = LoggerFactory.getLogger(RedisCache.getClass.getCanonicalName)
     def requestBody()(implicit request: Request[AnyContent]) = {
         val body = request.body.asJson.getOrElse("{}").toString
         JavaJsonUtils.deserialize[java.util.Map[String, Object]](body).getOrDefault("request", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
@@ -77,6 +80,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     def commonHeaders(headers: Headers): java.util.Map[String, Object] = {
         val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId")
+        logger.info("Inside the common headers")
         customHeaders.map(ch => {
             val value = headers.get(ch._1)
             if (value.isDefined && !value.isEmpty) {
