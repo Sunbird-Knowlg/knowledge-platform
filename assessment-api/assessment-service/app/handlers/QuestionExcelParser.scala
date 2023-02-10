@@ -42,7 +42,7 @@ object QuestionExcelParser {
     defaultQuestion.put("code", "question")
     defaultQuestion.put("mimeType", "application/vnd.sunbird.question")
     defaultQuestion.put("objectType", "Question")
-    defaultQuestion.put("primaryCategory", "MCQ Question")
+    defaultQuestion.put("primaryCategory", "Multiple Choice Question")
     defaultQuestion.put("qType", "MCQ")
     defaultQuestion.put("name", "Question")
     defaultQuestion
