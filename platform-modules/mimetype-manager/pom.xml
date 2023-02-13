@@ -58,6 +58,11 @@
                 <version>31.1-jre</version>
             </dependency>
         <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.35.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.sunbird</groupId>
             <artifactId>url-manager</artifactId>
             <version>1.0-SNAPSHOT</version>
@@ -65,6 +70,10 @@
                 <exclusion>
                     <artifactId>google-http-client</artifactId>
                     <groupId>com.google.http-client</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>google-api-client</artifactId>
+                    <groupId>com.google.api-client</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
