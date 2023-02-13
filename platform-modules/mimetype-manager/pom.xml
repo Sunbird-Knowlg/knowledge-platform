@@ -9,6 +9,16 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mimetype-manager</artifactId>
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>cloud-store-sdk</id>-->
+<!--            <name>cloud-store-sdk</name>-->
+<!--            <url>https://oss.sonatype.org/content/repositories/orgsunbird-1149</url>-->
+<!--            <snapshots>-->
+<!--                <enabled>false</enabled>-->
+<!--            </snapshots>-->
+<!--        </repository>-->
+<!--    </repositories>-->
     <properties>
         <scala.major.version>2.11</scala.major.version>
         <play2.version>2.7.2</play2.version>
@@ -46,6 +56,16 @@
             <groupId>org.sunbird</groupId>
             <artifactId>url-manager</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>google-api-client</artifactId>
+                    <groupId>com.google.api-client</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>google-http-client</artifactId>
+                    <groupId>com.google.http-client</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

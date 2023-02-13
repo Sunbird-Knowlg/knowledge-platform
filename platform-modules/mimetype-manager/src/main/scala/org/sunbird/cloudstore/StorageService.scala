@@ -1,11 +1,10 @@
 package org.sunbird.cloudstore
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.tika.Tika
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
+import org.sunbird.common.{Platform, Slug}
 
 import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
@@ -67,9 +66,12 @@ class StorageService {
         getService.deleteObject(getContainerName, key, isDirectory)
     }
 
-    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-      getService.getPutSignedURL(getContainerName, key, ttl, permission)
-    }
+  def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
+    val additionalParams: Map[String, String] = Map("cloud_storage_client_id" -> (if (Platform.config.hasPath("cloud_storage_client_id")) Platform.config.getString("cloud_storage_client_id") else ""),
+      "cloud_storage_private_key_id" -> (if (Platform.config.hasPath("cloud_storage_private_key_id")) Platform.config.getString("cloud_storage_private_key_id") else ""),
+      "cloud_storage_project_id" -> (if (Platform.config.hasPath("cloud_storage_project_id")) Platform.config.getString("cloud_storage_project_id") else ""))
+    getService.getPutSignedURL(getContainerName, key, ttl, permission, additionalParams = Option.apply(additionalParams))
+  }
 
     def getUri(key: String): String = {
         try {
