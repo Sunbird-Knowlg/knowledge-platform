@@ -23,7 +23,7 @@ class StorageServiceTest extends AsyncFlatSpec with Matchers {
         assert(preSignedURL.contains(objectKey))
     }
 
-    "getUri" should "return the signed url" in {
+    "getUri" should "return the uri" in {
         val uri = ss.getUri("content/abc.json")
         assert(uri != null)
     }
