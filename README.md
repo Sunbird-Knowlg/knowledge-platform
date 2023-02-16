@@ -17,7 +17,7 @@ This readme file contains the instruction to set up and run the content-service 
 1. Go to Root folder (knowledge-platform)
 2. Run "local-setup.sh" file
 ``` shell
-sh ./local-setup.md
+sh ./local-setup.sh
 ```
  
  This will install all the requied dcoker images & local folders for DB mounting.
