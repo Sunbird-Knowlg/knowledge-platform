@@ -38,6 +38,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 		case "rejectQuestion" => reject(request)
 		case "copyQuestion" => copy(request)
 		case "bulkUploadQuestion" => bulkUpload(request)
+		case "bulkUploadFrameworkMapping" => bulkUploadFrameworkMapping(request)
 		case _ => ERROR(request.getOperation)
 	}
 
@@ -141,5 +142,9 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
 
 	def bulkUpload(request: Request): Future[Response] = {
 		AssessmentManager.create(request, "ERR_QUESTION_CREATE")
+	}
+
+	def bulkUploadFrameworkMapping(request: Request): Future[Response] = {
+		AssessmentManager.createMapping(request, "ERR_QUESTION_CREATE")
 	}
 }

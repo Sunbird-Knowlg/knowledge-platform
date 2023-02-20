@@ -180,4 +180,16 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		logger.info("in Future sequence")
 		Await.result(f, Duration.apply("30s"))
 	}
+
+	def createFrameworkMappingData() = Action.async { implicit request =>
+		val headers = commonHeaders()
+		val body = requestBody()
+		val question = body.getOrDefault("question", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+		question.putAll(headers)
+		val questionRequest = getRequest(question, headers, QuestionOperations.createFrameworkMapping.toString)
+		setRequestContext(questionRequest, version, "competency", "competency")
+		getResult(ApiId.FRAMEWORK_COMPETENCY_QUESTION, questionActor, questionRequest)
+	}
+
+
 }

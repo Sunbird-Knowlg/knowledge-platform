@@ -25,6 +25,7 @@ POST      /question/v4/list                       controllers.v4.QuestionControl
 POST      /question/v4/reject/:identifier         controllers.v4.QuestionController.reject(identifier:String)
 POST      /question/v4/copy/:identifier           controllers.v4.QuestionController.copy(identifier:String, mode:Option[String])
 POST      /question/v4/bulk/upload                controllers.v4.QuestionController.uploadExcel
+POST      /question/v4/bulk/upload/mapping        controllers.v4.QuestionController.createFrameworkMappingData
 
 # QuestionSet API's
 POST      /questionset/v4/create                     controllers.v4.QuestionSetController.create

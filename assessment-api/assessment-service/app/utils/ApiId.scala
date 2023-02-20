@@ -26,6 +26,7 @@ object ApiId {
 	val REJECT_QUESTION = "api.question.reject"
 	val COPY_QUESTION = "api.question.copy"
 	val BULK_UPLOAD_QUESTION = "api.question.bulk.upload"
+	val FRAMEWORK_COMPETENCY_QUESTION = "api.question.mapping"
 	//QuestionSet APIs
 	val CREATE_QUESTION_SET = "api.questionset.create"
 	val READ_QUESTION_SET = "api.questionset.read"

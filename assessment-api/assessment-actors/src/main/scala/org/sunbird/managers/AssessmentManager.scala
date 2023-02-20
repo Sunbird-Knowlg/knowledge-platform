@@ -221,4 +221,9 @@ object AssessmentManager {
 			}}
 		(actor, context, objData, eData)
 	}
+
+	def createMapping(request: Request, str: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+
+		oec.graphService.saveExternalProps(request)
+	}
 }
