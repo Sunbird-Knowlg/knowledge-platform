@@ -1,0 +1,46 @@
+{
+  "objectType": "competency",
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "cacheEnabled": false,
+  "schema_restrict_api": true,
+  "external": {
+    "tableName": "competency",
+    "properties": {
+      "function": {
+        "type": "string"
+      },
+      "competency_code": {
+        "type": "string"
+      },
+      "subject": {
+        "type": "string"
+      },
+      "competency_label": {
+        "type": "string"
+      },
+      "competency_description": {
+        "type": "string"
+      },
+      "competency_level_code": {
+        "type": "string"
+      },
+      "competency_level_label": {
+        "type": "string"
+      },
+      "competency_level_description": {
+        "type": "string"
+      },
+      "activity_code": {
+        "type": "string"
+      },
+      "activity_label": {
+      "type": "string"
+      },
+      "question_code": {
+      "type": "string"
+      }
+    },
+    "primaryKey": ["identifier"]
+  }
+}

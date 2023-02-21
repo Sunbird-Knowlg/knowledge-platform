@@ -2,7 +2,7 @@ package controllers.v4
 
 import akka.actor.{ActorRef, ActorSystem}
 import controllers.BaseController
-import handlers.QuestionExcelParser
+import handlers.{CompetencyExcelParser, QuestionExcelParser}
 import org.sunbird.common.dto.Response
 import org.sunbird.utils.AssessmentConstants
 import play.api.libs.json.Json
@@ -181,15 +181,28 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		Await.result(f, Duration.apply("30s"))
 	}
 
-	def createFrameworkMappingData() = Action.async { implicit request =>
-		val headers = commonHeaders()
-		val body = requestBody()
-		val question = body.getOrDefault("question", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
-		question.putAll(headers)
+	def createFrameworkMappingData() = Action(parse.multipartFormData)  { implicit request =>
+		val competency = request.body
+			.file("file")
+			.map { filePart =>
+				val absolutePath = filePart.ref.path.toAbsolutePath
+				CompetencyExcelParser.getCompetency(absolutePath.toFile)
+			}
+		val futures = competency.get.map(question => {
+			val headers = commonHeaders(request.headers)
+			question.putAll(headers)
+			logger.info("put headers  " + headers)
+			val questionRequest = getRequest(question, headers, QuestionOperations.createQuestion.toString)
+//		val headers = commonHeaders(request.headers)
+//		System.out.println("Headers is " + headers)
+//		val body = requestBody()
+//		System.out.println("body is " + body)
+//		val question = body.getOrDefault("competency", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+//		question.putAll(headers)
 		val questionRequest = getRequest(question, headers, QuestionOperations.bulkUploadFrameworkMapping.toString)
 		setRequestContext(questionRequest, version, "competency", "competency")
 		getResult(ApiId.FRAMEWORK_COMPETENCY_QUESTION, questionActor, questionRequest)
+	})
 	}
-
 
 }

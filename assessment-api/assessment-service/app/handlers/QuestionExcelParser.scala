@@ -70,7 +70,8 @@ object QuestionExcelParser {
     val question = buildDefaultQuestion()
 
 
-    val rowContent = (0 until xssFRow.getPhysicalNumberOfCells).map(colId => Option(xssFRow.getCell(colId)).getOrElse("").toString).toList
+    val rowContent = (0 until xssFRow.getPhysicalNumberOfCells)
+      .map(colId => Option(xssFRow.getCell(colId)).getOrElse("").toString).toList
 
     val questionText = rowContent.apply(4)
     val answer = rowContent.apply(6).trim
