@@ -186,7 +186,7 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 		val body = requestBody()
 		val question = body.getOrDefault("question", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
 		question.putAll(headers)
-		val questionRequest = getRequest(question, headers, QuestionOperations.createFrameworkMapping.toString)
+		val questionRequest = getRequest(question, headers, QuestionOperations.bulkUploadFrameworkMapping.toString)
 		setRequestContext(questionRequest, version, "competency", "competency")
 		getResult(ApiId.FRAMEWORK_COMPETENCY_QUESTION, questionActor, questionRequest)
 	}
