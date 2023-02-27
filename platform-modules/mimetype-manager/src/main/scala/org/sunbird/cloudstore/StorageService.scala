@@ -34,18 +34,29 @@ class StorageService {
         throw new ServerException("ERR_INVALID_CLOUD_STORAGE", "Cloud Storage Container name not configured.")
     }
 
+    def formatUrl(url: String) : String = {
+        if (storageType == "oci"){
+          val newHostname: String = if (Platform.config.hasPath("cloud_storage_proxy_host")) Platform.config.getString("cloud_storage_proxy_host") else ""
+          val regex = "(?<=://)([^/]+)".r
+          val replacedUrl = regex.replaceAllIn(url, newHostname)
+          replacedUrl
+        } else {
+          url
+        }
+    }
+
     def uploadFile(folderName: String, file: File, slug: Option[Boolean] = Option(true)): Array[String] = {
         val slugFile = if (slug.getOrElse(true)) Slug.createSlugFile(file) else file
         val objectKey = folderName + "/" + slugFile.getName
         val url = getService.upload(getContainerName, slugFile.getAbsolutePath, objectKey, Option.apply(false), Option.apply(1), Option.apply(5), Option.empty)
-        Array[String](objectKey, url)
+        Array[String](objectKey, formatUrl(url))
     }
 
     def uploadDirectory(folderName: String, directory: File, slug: Option[Boolean] = Option(true)): Array[String] = {
         val slugFile = if (slug.getOrElse(true)) Slug.createSlugFile(directory) else directory
         val objectKey = folderName + File.separator
         val url = getService.upload(getContainerName, slugFile.getAbsolutePath, objectKey, Option.apply(true), Option.apply(1), Option.apply(5), Option.empty)
-        Array[String](objectKey, url)
+        Array[String](objectKey, formatUrl(url))
     }
 
     def uploadDirectoryAsync(folderName: String, directory: File, slug: Option[Boolean] = Option(true))(implicit ec: ExecutionContext): Future[List[String]] = {
@@ -68,7 +79,7 @@ class StorageService {
     }
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-      getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
+      formatUrl(getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key))))
     }
 
     def getUri(key: String): String = {
