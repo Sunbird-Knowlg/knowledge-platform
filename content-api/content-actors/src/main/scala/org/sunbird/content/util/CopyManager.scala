@@ -38,7 +38,7 @@ object CopyManager {
     private val originMetadataKeys: util.List[String] = Platform.getStringList("content.copy.origin_data", new util.ArrayList[String]())
     private val internalHierarchyProps = List("identifier", "parent", "index", "depth")
     private val restrictedMimeTypesForUpload = List("application/vnd.ekstep.ecml-archive","application/vnd.ekstep.content-collection")
-
+    private val copyArtifactUrl = Platform.config.getBoolean("content.copy.is_copy_artifacturl")
     private var copySchemeMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
 
     def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext, ss: StorageService): Future[Response] = {
@@ -73,7 +73,11 @@ object CopyManager {
         val copyCreateReq: Future[Request] = getCopyRequest(node, request)
         copyCreateReq.map(req => {
             DataNode.create(req).map(copiedNode => {
-                artifactUpload(node, copiedNode, request)
+                if (copyArtifactUrl) {
+                    artifactUpload(node, copiedNode, request)
+                } else {
+                    Future(copiedNode)
+                }
             }).flatMap(f => f)
         }).flatMap(f => f)
     }
