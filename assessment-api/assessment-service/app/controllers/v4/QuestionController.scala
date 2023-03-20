@@ -1,9 +1,10 @@
 package controllers.v4
 
 import akka.actor.{ActorRef, ActorSystem}
+import com.twitter.util.Config.intoList
 import controllers.BaseController
 import handlers.{CompetencyExcelParser, QuestionExcelParser}
-import org.sunbird.common.dto.Response
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.utils.AssessmentConstants
 import play.api.libs.json.Json
 import play.api.mvc.ControllerComponents
@@ -152,6 +153,13 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 	//Create question by uploading excel file
 	def uploadExcel() = Action(parse.multipartFormData) { implicit request =>
 		logger.info("Inside upload excel")
+		val competency = request.body
+			.file("file")
+			.map { filePart =>
+				val absolutePath = filePart.ref.path.toAbsolutePath
+				CompetencyExcelParser.getCompetency(absolutePath.toFile)
+			}
+
 		val questions = request.body
 			.file("file")
 			.map { filePart =>
@@ -188,21 +196,27 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_ACTOR) questionAct
 				val absolutePath = filePart.ref.path.toAbsolutePath
 				CompetencyExcelParser.getCompetency(absolutePath.toFile)
 			}
-		val futures = competency.get.map(question => {
+		val futures = competency.get.map(competncy => {
 			val headers = commonHeaders(request.headers)
-			question.putAll(headers)
+			competncy.putAll(headers)
 			logger.info("put headers  " + headers)
-			val questionRequest = getRequest(question, headers, QuestionOperations.createQuestion.toString)
-//		val headers = commonHeaders(request.headers)
-//		System.out.println("Headers is " + headers)
-//		val body = requestBody()
-//		System.out.println("body is " + body)
-//		val question = body.getOrDefault("competency", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
-//		question.putAll(headers)
+			val questionRequest = getRequest(competncy, headers, QuestionOperations.createQuestion.toString)
+			logger.info("After the questionRequest")
+			setRequestContext(questionRequest, version, objectType, schemaName)
+			logger.info("After the setRequestContext")
+			getResponse(ApiId.CREATE_QUESTION, questionActor, questionRequest)
+		}
+		)
+		val headers = commonHeaders(request.headers)
+		System.out.println("Headers is " + headers)
+		val body = requestBody()
+		System.out.println("body is " + body)
+		val question = body.getOrDefault("competency", new java.util.HashMap()).asInstanceOf[java.util.Map[String, AnyRef]]
+		question.putAll(headers)
 		val questionRequest = getRequest(question, headers, QuestionOperations.bulkUploadFrameworkMapping.toString)
 		setRequestContext(questionRequest, version, "competency", "competency")
 		getResult(ApiId.FRAMEWORK_COMPETENCY_QUESTION, questionActor, questionRequest)
-	})
+		//[request.type]
 	}
 
 }
