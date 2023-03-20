@@ -10,7 +10,7 @@ import org.sunbird.common.exception.ResponseCode
 import play.api.mvc._
 import utils.JavaJsonUtils
 
-import scala.collection.JavaConversions._
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}

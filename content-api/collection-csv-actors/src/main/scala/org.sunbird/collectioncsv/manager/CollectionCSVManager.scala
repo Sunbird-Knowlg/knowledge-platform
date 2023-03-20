@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets
 import java.util
 import java.util.logging.Logger
 import scala.collection.immutable.{ListMap, Map}
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters.{asJavaIterableConverter, mapAsScalaMapConverter}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer

@@ -28,7 +28,7 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>graph-engine_2.11</artifactId>
+            <artifactId>graph-engine_2.12</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>

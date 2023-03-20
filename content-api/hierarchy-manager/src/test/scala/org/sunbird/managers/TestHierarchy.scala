@@ -8,7 +8,7 @@ import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class TestHierarchy extends BaseSpec {
 
