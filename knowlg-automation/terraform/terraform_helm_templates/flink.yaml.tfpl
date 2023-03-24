@@ -1,0 +1,3 @@
+checkpoint_store_type: ${checkpoint_store_type}
+s3_access_key: ${s3_access_key}
+s3_secret_key: ${s3_secret_key}

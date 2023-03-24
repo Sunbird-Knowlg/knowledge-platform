@@ -1,0 +1,29 @@
+# apiVersion: autoscaling/v2beta2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: "{{ .Release.Namespace }}-historicals"
+#   namespace: {{ .Values.namespace }} 
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: StatefulSet
+#     name: "{{ .Release.Namespace }}-{{ .Values.druid_env }}-historicals"
+#   # behavior:
+#   #   scaleUp:
+#   #     stabilizationWindowSeconds: 10
+#   #   scaleDown:
+#   #     stabilizationWindowSeconds: 20
+#   minReplicas: 1
+#   maxReplicas: 2
+#   metrics:
+#   - type: Object
+#     object:
+#       metric:
+#         name: pv_used_percentage
+#       describedObject:
+#         apiVersion: v1
+#         kind: persistentvolumeclaim
+#         name: "historical-volume-{{ .Release.Namespace }}-{{ .Values.druid_env }}-historicals-0"
+#       target:
+#         type: Utilization
+#         averageValue: 20

@@ -1,0 +1,10 @@
+druid_namespace: ${druid_namespace}
+druid_metadata_storage_connector_user: ${druid_user}
+druid_metadata_storage_connector_password: ${druid_password}
+druid_worker_capacity: ${druid_worker_capacity}
+druid_env: ${env}
+storageClass: ${kubernetes_storage_class}
+druid_deepstorage_type: ${druid_deepstorage_type}
+s3_bucket: ${s3_bucket}
+s3_access_key: ${s3_access_key}
+s3_secret_key: ${s3_secret_key}
