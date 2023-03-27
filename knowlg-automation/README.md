@@ -20,14 +20,14 @@ Run destroy shell script with option as "azure" and append --auto-approve to con
 Infra provision on local
 
 Pre-requisites:
-For local provision, kind provider is used to provision the cluster.
-Steps:
-Run shell script and provide option as "local"
-Create infra on local
-Steps:
-cd terraform
-sh create --auto-approve
-Destroy infra on local
-Steps:
-cd terraform
+For local provision, kind provider is used to provision the cluster.    
+Steps:Run shell script and provide option as "local"    
+Create infra on local   
+Steps:  
+cd terraform    
+sh create --auto-approve    
+
+Destroy infra on local  
+Steps:  
+cd terraform    
 sh destroy --auto-approve
