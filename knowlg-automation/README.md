@@ -23,7 +23,11 @@ Pre-requisites:
 For local provision, kind provider is used to provision the cluster.
 Steps:
 Run shell script and provide option as "local"
-
+Create infra on local
+Steps:
+cd terraform
+sh create --auto-approve
 Destroy infra on local
 Steps:
-Run destroy shell script and provide option as "local" append --auto-approve to continue without confirmation.
+cd terraform
+sh destroy --auto-approve
