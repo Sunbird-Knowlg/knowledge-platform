@@ -34,32 +34,6 @@ variable "STAGE" {
   default     = "dev"
 }
 
-#DRUID
-variable "DRUID_CLUSTER_CHART" {
-  description = "Druid Instance Running Namespace"
-  default     = "../../helm_charts/druid-cluster"
-}
-
-variable "DRUID_NAMESPACE" {
-  description = "Druid Instance Running Namespace"
-  default     = "druid-raw"
-}
-
-variable "DRUID_OPERATOR_CHART" {
-  description = "Druid Instance Running Namespace"
-  default     = "../../helm_charts/druid-operator"
-}
-
-variable "DRUID_MIDDLE_MANAGER_WORKER_CAPACITY" {
-  type    = number
-  default = 2
-}
-
-variable "DRUID_MIDDLE_MANAGER_PEON_HEAP" {
-  type    = string
-  default = "256M"
-}
-
 #KAFKA
 variable "KAFKA_CHART" {
   description = "Kafka Instance Running Namespace"
@@ -139,38 +113,7 @@ variable "TAXONOMY_CHART" {
 
 variable "TAXONOMY_NAMESPACE" {
   description = "Taxonomy Instance Running Namespace"
-  default     = "knowlg-api"
+  default     = "knowlg-db"
 }
 
-
-#SUPERSET
-
-variable "SUPERSET_NAMESPACE" {
-  type    = string
-  default = "superset"
-}
-
-variable "SUPERSET_ADMIN_USERNAME" {
-  type    = string
-  default = "admin"
-}
-variable "SUPERSET_ADMIN_FIRSTNAME" {
-  type    = string
-  default = "Superset"
-}
-
-variable "SUPERSET_ADMIN_LASTNAME" {
-  type    = string
-  default = "Admin"
-}
-
-variable "SUPERSET_ADMIN_PASSWORD" {
-  type    = string
-default   = "admin123"
-}
-
-variable "SUPERSET_ADMIN_EMAIL" {
-  type    = string
-  default = "admin@superset.com"
-}
 

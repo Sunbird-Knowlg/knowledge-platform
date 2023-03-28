@@ -1,12 +1,12 @@
 ### Default variable file for taxonomy-service ###
 
-namespace: knowlg-api
+namespace: knowlg-db
 
 env:
   javaoptions: -Xmx600m
 
 replicaCount: 1
-repository: taxonomy-service
+repository: docker.io/aimansharief/taxonomy-service
 image_tag: R5.2.0
 resources:
   requests:
@@ -22,7 +22,7 @@ strategy:
   type: RollingUpdate
   maxsurge: 25%
   maxunavailable: 25%
-
+serviceType: LoadBalancer
 
 
 
