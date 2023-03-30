@@ -69,7 +69,7 @@ object CompetencyExcelParser {
         row.getCell(5)
       if (cell != null && uniqueCompetencies.contains(cell.getStringCellValue)) {
         //if(row.getCell(1)!=null||row.getCell(2)!=null||row.getCell(2)!=null||row.getCell(4)!=null||row.getCell(5)!=null)
-        Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
+        parseCompetencyData(sheet.getRow(rowNum))
       } else {
         None
       }
@@ -81,7 +81,7 @@ object CompetencyExcelParser {
       val finalData: mutable.Map[String, List[Map[String, AnyRef]]] = mutable.Map.empty
       try {
         val workbook = new XSSFWorkbook(new FileInputStream(file))
-        (1 until workbook.getNumberOfSheets)
+        (0 until workbook.getNumberOfSheets)
           .foreach(index => {
            // if (index ==1) {
             getData = getCompetenciesData(workbook.getSheetAt(index))
@@ -112,7 +112,7 @@ object CompetencyExcelParser {
     val uniqueCompetencies = rows.flatMap(row => getCell(row, columnIdx)).map(cell => formatter.formatCellValue(cell)).toList
 
     rows.flatMap(row => {
-      getCell(row, columnIdx).filter(cell => uniqueCompetencies.contains(formatter.formatCellValue(cell))).map(row => Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)).flatten
+      getCell(row, columnIdx).filter(cell => uniqueCompetencies.contains(formatter.formatCellValue(cell))).map(row => parseCompetencyData(sheet.getRow(rowNum))).flatten
     }).toList
   }*/
 
@@ -136,29 +136,31 @@ object CompetencyExcelParser {
     val rows = sheet.asScala.drop(1)
     getData = rows.flatMap(row => {
       val rowValue = {
-        if (sheet.getWorkbook.getSheetIndex(sheet) == 1 || sheet.getWorkbook.getSheetIndex(sheet) == 8) {
-          if (!row.getCell(4).getStringCellValue.isEmpty)
+        if (sheet.getWorkbook.getSheetIndex(sheet) == 1) {
+          if (!row.getCell(4).getStringCellValue.isEmpty) {
             row.getCell(4)
-        } else if (!row.getCell(5).getStringCellValue.isEmpty)
+          }
+        } else if (!row.getCell(5).getStringCellValue.isEmpty) {
           row.getCell(5)
+        }
       }
-      if (sheet.getWorkbook.getSheetIndex(sheet) == 1 && rowValue != null)
+      if (sheet.getWorkbook.getSheetIndex(sheet) == 1 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 2 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 2 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 3 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 3 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 4 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 4 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 5 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 5 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 6 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 6 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 7 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 7 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 8 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 8 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
-      else if (sheet.getWorkbook.getSheetIndex(sheet) == 9 && rowValue != null)
+      else if (sheet.getWorkbook.getSheetIndex(sheet) == 9 && rowValue != null && !rowValue.toString.equals("()"))
         Option(sheet.getRow(row.getRowNum)).map(parseCompetencyData)
       else {
         None
