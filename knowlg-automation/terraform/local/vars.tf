@@ -113,7 +113,17 @@ variable "TAXONOMY_CHART" {
 
 variable "TAXONOMY_NAMESPACE" {
   description = "Taxonomy Instance Running Namespace"
-  default     = "knowlg-db"
+  default     = "knowlg-api"
 }
 
+#CONTENT
+variable "CONTENT_CHART" {
+  description = "Content Instance Running Namespace"
+  default     = "../../helm_charts/content"
+}
+
+variable "CONTENT_NAMESPACE" {
+  description = "Content Instance Running Namespace"
+  default     = "knowlg-api"
+}
 

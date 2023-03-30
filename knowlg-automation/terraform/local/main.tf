@@ -1,17 +1,3 @@
-# provider "docker" {
-#   host = "unix:///var/run/docker.sock"
-# }
-
-
-# # Create a docker image resource
-# resource "docker_image" "taxonomy-service" {
-#   name = "taxonomy-service"
-#   build {  
-#     tag        = ["taxonomy-service:R5.2.0"]
-#     path = "../taxonomy-service"
-#     dockerfile = "../taxonomy-service"
-#   }
-# }
 provider "kind" {
 }
 
@@ -63,20 +49,3 @@ resource "kind_cluster" "one-click" {
   }
 
 }
-
-
-
-# resource "docker_image" "taxonomy-service" {  
-#   name = "taxonomy-service"
-#   build {
-#     context = "https://github.com/Sunbird-Knowlg/knowledge-platform.git#master:build/taxonomy-service/Dockerfile"
-#     tag     = ["taxonomy-service:R5.2.0"]
-#     build_arg = {
-#       foo : "taxonomy-service"
-#     }
-#     label = {
-#       author : "taxonomy-service"
-#     }
-#   }
-# }
-

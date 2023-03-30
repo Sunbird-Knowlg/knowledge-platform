@@ -42,26 +42,26 @@ resource "helm_release" "kafka" {
   ]
 }
 
-# # data "kubernetes_service" "kafka" {
-# #   metadata {
-# #     namespace = "kafka"
-# #     name = "kafka"
-# #   }
-# #   depends_on = [kind_cluster.one-click, helm_release.kafka]
-# # }
+# data "kubernetes_service" "kafka" {
+#   metadata {
+#     namespace = "kafka"
+#     name = "kafka"
+#   }
+#   depends_on = [kind_cluster.one-click, helm_release.kafka]
+# }
 
-# # data "kubernetes_service" "zookeeper" {
-# #   metadata {
-# #     namespace = "kafka"
-# #     name = "kafka-zookeeper"
-# #   }
-# #   depends_on = [kind_cluster.one-click, helm_release.kafka]
-# # }
+# data "kubernetes_service" "zookeeper" {
+#   metadata {
+#     namespace = "kafka"
+#     name = "kafka-zookeeper"
+#   }
+#   depends_on = [kind_cluster.one-click, helm_release.kafka]
+# }
 
-# # output "kafka-service-ip" {
-# #   value     = data.kubernetes_service.kafka.spec.0.cluster_ip
-# # }
+# output "kafka-service-ip" {
+#   value     = data.kubernetes_service.kafka.spec.0.cluster_ip
+# }
 
-# # output "zookeeper-service-ip" {
-# #   value     = data.kubernetes_service.zookeeper.spec.0.cluster_ip
-# # }
+# output "zookeeper-service-ip" {
+#   value     = data.kubernetes_service.zookeeper.spec.0.cluster_ip
+# }
