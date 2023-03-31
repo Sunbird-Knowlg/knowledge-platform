@@ -1,4 +1,4 @@
-### Default variable file for taxonomy-service ###
+### Default variable file for search-service ###
 
 namespace: knowlg-api
 
@@ -6,7 +6,7 @@ env:
   javaoptions: -Xmx600m
 
 replicaCount: 1
-repository: docker.io/aimansharief/taxonomy-service
+repository: docker.io/aimansharief/search-service-modified
 image_tag: R5.2.0
 resources:
   requests:
@@ -22,7 +22,8 @@ strategy:
   type: RollingUpdate
   maxsurge: 25%
   maxunavailable: 25%
-serviceType: ClusterIP 
+serviceType: ClusterIP
+
 
 
 

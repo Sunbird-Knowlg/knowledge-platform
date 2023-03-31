@@ -127,3 +127,14 @@ variable "CONTENT_NAMESPACE" {
   default     = "knowlg-api"
 }
 
+#SEARCH
+variable "SEARCH_CHART" {
+  description = "Search Instance Running Namespace"
+  default     = "../../helm_charts/search"
+}
+
+variable "SEARCH_NAMESPACE" {
+  description = "Search Instance Running Namespace"
+  default     = "knowlg-api"
+}
+
