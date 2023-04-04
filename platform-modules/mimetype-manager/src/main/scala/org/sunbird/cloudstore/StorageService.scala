@@ -79,7 +79,7 @@ class StorageService {
     }
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-      formatUrl(getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key))))
+        getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
     }
 
     def getUri(key: String): String = {
