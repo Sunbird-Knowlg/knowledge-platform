@@ -1,4 +1,4 @@
-namespace: knowlg-db
+db_namespace: knowlg-db
 replicaCount: 1
 network:
   port: 9042

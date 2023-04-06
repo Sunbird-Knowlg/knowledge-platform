@@ -3,8 +3,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: {{ include "common.names.fullname" . }}
-  {{- if .Values.metrics.prometheusRule.namespace }}
-  namespace: {{ .Values.metrics.prometheusRule.namespace }}
+  {{- if .Values.metrics.prometheusRule.db_namespace }}
+  namespace: {{ .Values.metrics.prometheusRule.db_namespace }}
   {{- else }}
   namespace: {{ .Release.Namespace }}
   {{- end }}

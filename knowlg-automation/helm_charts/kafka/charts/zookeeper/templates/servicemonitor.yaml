@@ -3,8 +3,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ template "common.names.fullname" . }}
-  {{- if .Values.metrics.serviceMonitor.namespace }}
-  namespace: {{ .Values.metrics.serviceMonitor.namespace }}
+  {{- if .Values.metrics.serviceMonitor.db_namespace }}
+  namespace: {{ .Values.metrics.serviceMonitor.db_namespace }}
   {{- else }}
   namespace: {{ .Release.Namespace }}
   {{- end }}

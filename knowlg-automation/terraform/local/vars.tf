@@ -138,3 +138,14 @@ variable "SEARCH_NAMESPACE" {
   default     = "knowlg-api"
 }
 
+#LEARNING
+variable "LEARNING_CHART" {
+  description = "Learning Instance Running Namespace"
+  default     = "../../helm_charts/learning"
+}
+
+variable "LEARNING_NAMESPACE" {
+  description = "Learning Instance Running Namespace"
+  default     = "knowlg-api"
+}
+

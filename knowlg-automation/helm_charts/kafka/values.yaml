@@ -1426,7 +1426,7 @@ metrics:
     enabled: false
     ## @param metrics.serviceMonitor.namespace Namespace in which Prometheus is running
     ##
-    namespace: ""
+    db_namespace: "knowlg-db"
     ## @param metrics.serviceMonitor.interval Interval at which metrics should be scraped
     ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
     ##
@@ -1461,7 +1461,7 @@ metrics:
     enabled: false
     ## @param metrics.prometheusRule.namespace Namespace in which Prometheus is running
     ##
-    namespace: ""
+    db_namespace: "knowlg-db"
     ## @param metrics.prometheusRule.labels Additional labels that can be used so PrometheusRule will be discovered by Prometheus
     ##
     labels: {}

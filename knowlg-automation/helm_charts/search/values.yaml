@@ -1,6 +1,6 @@
 ### Default variable file for search-service ###
 
-namespace: knowlg-api
+api_namespace: knowlg-api
 
 env:
   javaoptions: -Xmx600m
@@ -23,7 +23,6 @@ strategy:
   maxsurge: 25%
   maxunavailable: 25%
 serviceType: ClusterIP
-
-
+es_connection: elasticsearch.knowlg-db.svc.cluster.local:9200
 
 

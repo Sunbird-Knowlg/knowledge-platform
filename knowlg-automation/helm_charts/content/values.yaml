@@ -1,4 +1,4 @@
-namespace: knowlg-api
+api_namespace: knowlg-api
 
 env:
   javaoptions: -Xmx600m
@@ -21,3 +21,22 @@ strategy:
   maxsurge: 25%
   maxunavailable: 25%
 serviceType: ClusterIP
+cassandra_connection: cassandra-db.knowlg-db.svc.cluster.local:9042
+redis_connection: redis-db.knowlg-db.svc.cluster.local
+neo4j_domain_connection: neo4j-db.knowlg-db.svc.cluster.local:7687
+neo4j_all_connection: neo4j-db.knowlg-db.svc.cluster.local:8687  
+kafka_connection: kafka.knowlg-db.svc.cluster.local:9092
+collection_keyspace: dev_hierarchy_store
+content_keyspace: dev_content_store
+cloud_storage_env: staging
+cloud_storage_content_folder: "content"
+cloud_storage_asset_folder: "assets"
+cloud_storage_artefact_folder: "artifact"
+cloud_storage_bundle_folder: "bundle"
+cloud_storage_media_folder: "media"
+cloud_storage_ecar_folder: "ecar_files"
+cloud_storage_upload_url_ttl: "54000"
+cloudstorage_relative_path_prefix_content: CONTENT_STORAGE_BASE_PATH
+cloudstorage_metadata_list: ["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
+cloudstorage_read_base_path: "https://sunbirddevbbpublic.blob.core.windows.net"
+cloudstorage_write_base_path: ["https://sunbirdstagingpublic.blob.core.windows.net", "https://sunbirddevbbpublic.blob.core.windows.net"]

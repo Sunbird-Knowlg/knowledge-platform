@@ -15,7 +15,7 @@ global:
   ##
   imagePullSecrets: []
   storageClass: ""
-
+db_namespace: knowlg-db
 ## @section Common parameters
 
 ## @param kubeVersion Force target Kubernetes version (using Helm capabilities if not set)

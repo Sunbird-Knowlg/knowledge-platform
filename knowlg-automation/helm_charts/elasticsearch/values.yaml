@@ -2022,11 +2022,11 @@ metrics:
     ## @param metrics.serviceMonitor.enabled Create ServiceMonitor Resource for scraping metrics using PrometheusOperator
     ##
     enabled: false
-    ## @param metrics.serviceMonitor.namespace Namespace which Prometheus is running in
+    ## @param metrics.serviceMonitor.db-namespace db-namespace which Prometheus is running in
     ## e.g:
-    ## namespace: monitoring
+    ## db-namespace: monitoring
     ##
-    namespace: knowlg-db
+    db_namespace: knowlg-db
     ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
     ##
     jobLabel: ""
@@ -2065,9 +2065,9 @@ metrics:
     ## @param metrics.prometheusRule.enabled Creates a Prometheus Operator PrometheusRule (also requires `metrics.enabled` to be `true` and `metrics.prometheusRule.rules`)
     ##
     enabled: false
-    ## @param metrics.prometheusRule.namespace Namespace for the PrometheusRule Resource (defaults to the Release Namespace)
+    ## @param metrics.prometheusRule.db-namespace db-namespace for the PrometheusRule Resource (defaults to the Release db-namespace)
     ##
-    namespace: knowlg-db
+    db_namespace: knowlg-db
     ## @param metrics.prometheusRule.additionalLabels Additional labels that can be used so PrometheusRule will be discovered by Prometheus
     ##
     additionalLabels: {}
