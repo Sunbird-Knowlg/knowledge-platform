@@ -26,7 +26,7 @@ public class YouTubeURLManagerImplTest {
 
 	@Test
 	public void testValidateUrlWithValidUrlValidCriteria() {
-		String videoUrl = "https://www.youtube.com/watch?v=owr198WQpM8";
+		String videoUrl = "https://www.youtube.com/watch?v=GHmQ8euNwv8";
 		Map<String, Object> result = youtubeMgr.validateURL(videoUrl, "license");
 		assertTrue(MapUtils.isNotEmpty(result));
 		assertTrue(result.size() == 2);
