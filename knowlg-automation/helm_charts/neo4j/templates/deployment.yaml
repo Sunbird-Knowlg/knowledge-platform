@@ -27,13 +27,34 @@ spec:
               name: bolt-port-1
             - containerPort: 8687
               name: bolt-port-2
-          
+          volumeMounts:
+            - name: shared-data
+              mountPath: /var/lib/neo4j/logs/plugins/txn-handler
+        - name: logstash
+          image: logstash:6.8.21
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: config-volume
+              mountPath: /usr/share/logstash/pipeline/logstash.conf
+              subPath: logstash.conf
+            - name: shared-data
+              mountPath: /txn-handler
+      volumes:
+      - name: config-volume
+        configMap:
+          name: logstash-config
+          items:
+          - key: logstash.conf
+            path: logstash.conf
+      - name: shared-data
+        emptyDir: {}
+              
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Chart.Name }}-db
-  namespace: {{ .Values.db_namespace }}
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Chart.Name }}
 spec:

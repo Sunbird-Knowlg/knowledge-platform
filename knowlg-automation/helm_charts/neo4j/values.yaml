@@ -1,6 +1,6 @@
 db_namespace: knowlg-db
 replicaCount: 1
-image: neo4j:3.3.0
+image: pallakartheekreddy/neo4j:3.3.0
 authEnabled: false
 network:
   port: 7474
@@ -16,3 +16,5 @@ volumes:
     defaultStorageClass:
       requests:
         storage: 2Gi
+kafka_connection: kafka-headless.knowlg-db.svc.cluster.local:9092
+input_topic: graph-events

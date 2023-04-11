@@ -93,17 +93,6 @@ variable "REDIS_NAMESPACE" {
   default     = "knowlg-db"
 }
 
-#LOGSTASH
-
-variable "LOGSTASH_CHART" {
-  description = "Redis Instance Running Namespace"
-  default = "../../helm_charts/logstash"
-}
-
-variable "LOGSTASH_NAMESPACE" {
-  description = "Logstash Instance Running Namespace"
-  default     = "knowlg-db"
-}
 
 #TAXONOMY
 variable "TAXONOMY_CHART" {
