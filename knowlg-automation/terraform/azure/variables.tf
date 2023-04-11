@@ -187,3 +187,15 @@ variable "LEARNING_NAMESPACE" {
   description = "Learning Instance Running Namespace"
   default     = "knowlg-api"
 }
+
+#DIAL
+variable "DIAL_CHART" {
+  description = "DIAL Instance Running Namespace"
+  default     = "../../helm_charts/dial"
+}
+
+variable "DIAL_NAMESPACE" {
+  description = "DIAL Instance Running Namespace"
+  default     = "knowlg-api"
+}
+

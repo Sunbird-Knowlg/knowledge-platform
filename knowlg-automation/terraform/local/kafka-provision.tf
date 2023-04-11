@@ -32,7 +32,7 @@ resource "helm_release" "kafka" {
         # zookeeper_enabled: true
         # zookeeper_heapsize: 256
         # zookeeper_replica_count: 1
-        content_publish_topic_topic = "dev.publish.job.request"
+        content_publish_topic = "dev.publish.job.request"
         content_postpublish_topic = "dev.content.postpublish.request"
         learning_job_request_topic = "dev.learning_job_request"
         learning_graph_events_topic = "dev.learning.graph.events"
