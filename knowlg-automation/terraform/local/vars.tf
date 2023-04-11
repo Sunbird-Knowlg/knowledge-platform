@@ -45,6 +45,28 @@ variable "KAFKA_NAMESPACE" {
   default     = "knowlg-db"
 }
 
+#NEO4J
+variable "NEO4J_CHART" {
+  description = "Neo4j Instance Running Namespace"
+  default = "../../helm_charts/neo4j"
+}
+
+variable "NEO4J_NAMESPACE" {
+  description = "NEO4J Instance Running Namespace"
+  default     = "knowlg-db"
+}
+
+#CASSANDRA
+variable "CASSANDRA_CHART" {
+  description = "Cassandra Instance Running Namespace"
+  default = "../../helm_charts/cassandra"
+}
+
+variable "CASSANDRA_NAMESPACE" {
+  description = "CASSANDRA Instance Running Namespace"
+  default     = "knowlg-db"
+}
+
 #ELASTICSEARCH
 variable "ELASTICSEARCH_CHART" {
   description = "Elasticsearch Instance Running Namespace"
@@ -56,33 +78,7 @@ variable "ELASTICSEARCH_NAMESPACE" {
   default     = "knowlg-db"
 }
 
-
-#CASSANDRA
-
-variable "CASSANDRA_CHART" {
-  description = "Cassandra Instance Running Namespace"
-  default = "../../helm_charts/cassandra"
-}
-
-variable "CASSANDRA_NAMESPACE" {
-  description = "CASSANDRA Instance Running Namespace"
-  default     = "knowlg-db"
-}
-
-#NEO4J
-
-variable "NEO4J_CHART" {
-  description = "Neo4j Instance Running Namespace"
-  default = "../../helm_charts/neo4j"
-}
-
-variable "NEO4J_NAMESPACE" {
-  description = "NEO4J Instance Running Namespace"
-  default     = "knowlg-db"
-}
-
 #REDIS
-
 variable "REDIS_CHART" {
   description = "Redis Instance Running Namespace"
   default = "../../helm_charts/redis"

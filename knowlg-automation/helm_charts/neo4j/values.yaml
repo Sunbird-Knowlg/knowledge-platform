@@ -17,4 +17,4 @@ volumes:
       requests:
         storage: 2Gi
 kafka_connection: kafka-headless.knowlg-db.svc.cluster.local:9092
-input_topic: graph-events
+learning_graph_events: dev.learning.graph.events

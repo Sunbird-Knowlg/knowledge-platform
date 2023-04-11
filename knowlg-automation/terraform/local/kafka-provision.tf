@@ -32,11 +32,16 @@ resource "helm_release" "kafka" {
         # zookeeper_enabled: true
         # zookeeper_heapsize: 256
         # zookeeper_replica_count: 1
-        input_topic = "dev.telemetry.denorm"
-        output_telemetry_route_topic = "dev.druid.events.telemetry"
-        output_summary_route_topic = "dev.druid.events.summary"
-        output_failed_topic = "dev.telemetry.failed"
-        output_duplicate_topic = "dev.telemetry.duplicate"
+        content_publish_topic_topic = "dev.publish.job.request"
+        content_postpublish_topic = "dev.content.postpublish.request"
+        learning_job_request_topic = "dev.learning_job_request"
+        learning_graph_events_topic = "dev.learning.graph.events"
+        learning_events_failed_topic = "dev.learning.events.failed"
+        search_indexer_group_topic = "dev.search-indexer-group"
+        qrimage_request_topic = "dev.qrimage.request"
+        telemetry_raw_topic = "dev.telemetry.raw"
+        dialcode_context_job_request_topic = "dev.dialcode.context.job.request"
+        dialcode_context_job_request_failed_topic = "dev.dialcode.context.job.request.failed"
       }
     )
   ]

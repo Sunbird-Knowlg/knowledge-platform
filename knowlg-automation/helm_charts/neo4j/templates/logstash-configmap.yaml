@@ -32,7 +32,7 @@ data:
             format => "%{message}"
         }
         message_key => "%{nodeUniqueId}"
-        topic_id => "{{ .Values.input_topic}}"
+        topic_id => "{{ .Values.learning_graph_events}}"
         retries => 20
         retry_backoff_ms => 180000
       }
