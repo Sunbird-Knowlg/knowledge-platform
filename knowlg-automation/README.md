@@ -1,33 +1,39 @@
 # sunbird-infra-provision
 
-Infra provision on Azure
+## Infra provision on azure
+### Pre-requisites:
+* Install azure cli(az) tool on local machine and login to azure account with "az login" command.
+* Create a azure service account to be used for the infra provision.
+* Replace the default values in infra-provision/azure/variables.tf .
 
-Pre-requisites:
-Install azure cli(az) tool on local machine and login to azure account with "az login" command.
-Create a azure service account to be used for the infra provision.
-Copy the ingestion spec to any folder and share the path in variables
-Replace the default values in infra-provision/azure/vars.tf .
+>*[ Go to the repository path: knowledge-platform/knowlg-automation/terraform ]*
+### Create Infra on azure:
+```shell   
+sh create    
+```
+> *provide option as "azure"*
+### Destroy Infra on azure: 
+***Note:** [append --auto-approve to continue without confirmation.]*
+```shell    
+sh destroy    
+```
+>*provide option as "azure"*    
 
-Steps:
-Run create shell script and provide option input as "azure" .
 
+## Infra provision on local
+### Pre-requisites:
+* Terraform to be installed .
+* For local provision, kind provider is used to provision the cluster.  
 
-Destroy infra on Azure
-Steps:
-Run destroy shell script with option as "azure" and append --auto-approve to continue without confirmation.
-
-
-Infra provision on local
-
-Pre-requisites:
-For local provision, kind provider is used to provision the cluster.    
-Steps:Run shell script and provide option as "local"    
-Create infra on local   
-Steps:  
-cd terraform    
-sh create --auto-approve    
-
-Destroy infra on local  
-Steps:  
-cd terraform    
-sh destroy --auto-approve
+>*[ Go to the repository path: knowledge-platform/knowlg-automation/terraform ]*
+### Create Infra on local:
+```shell   
+sh create    
+```
+> *provide option as "local"*
+### Destroy Infra on local: 
+***Note:** [append --auto-approve to continue without confirmation.]*
+```shell    
+sh destroy    
+```
+>*provide option as "local"*      
