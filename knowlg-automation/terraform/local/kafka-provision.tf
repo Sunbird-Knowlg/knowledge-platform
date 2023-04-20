@@ -8,7 +8,7 @@ provider "helm" {
 
 resource "helm_release" "kafka" {
   name             = "kafka"
-  chart              = var.KAFKA_CHART
+  chart            = var.KAFKA_CHART
   namespace        = var.KAFKA_NAMESPACE
   create_namespace = true
   dependency_update = true
@@ -42,6 +42,11 @@ resource "helm_release" "kafka" {
         telemetry_raw_topic = "dev.telemetry.raw"
         dialcode_context_job_request_topic = "dev.dialcode.context.job.request"
         dialcode_context_job_request_failed_topic = "dev.dialcode.context.job.request.failed"
+        input_topic = "sunbirddev.learning.graph.events"
+        output_telemetry_route_topic = "dev.druid.events.telemetry"
+        output_summary_route_topic = "dev.druid.events.summary"
+        error_topic = "sunbirddev.learning.events.failed"
+        output_duplicate_topic = "dev.telemetry.duplicate"
       }
     )
   ]

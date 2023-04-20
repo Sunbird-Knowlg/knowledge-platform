@@ -1,0 +1,651 @@
+namespace: "knowlg-job"
+imagepullsecrets: ""
+dockerhub: ""
+repository: "aimansharief/qrcode-image-generator-job"
+# image_tag: "1.0.0"
+image_tag: "latest"
+serviceMonitor:
+  enabled: false
+replicaCount: 1
+
+jobmanager:
+  rpc_port: 6123
+  blob_port: 6124
+  query_port: 6125
+  ui_port: 8081
+  prom_port: 9250
+  heap_memory: 1024
+
+rest_port: 80
+resttcp_port: 8081
+service:
+  type: ClusterIP
+
+taskmanager:
+  prom_port: 9251
+  rpc_port: 6122
+  heap_memory: 1024
+  replicas: 1
+  cpu_requests: 0.3
+
+checkpoint_store_type: ""
+
+# AWS S3 Details
+s3_access_key: ""
+s3_secret_key: ""
+s3_endpoint: ""
+s3_path_style_access: ""
+
+# Azure Container Details
+azure_account: ""
+azure_secret: ""
+
+
+log4j_console_properties: |
+  # This affects logging for both user code and Flink
+  rootLogger.level = INFO
+  rootLogger.appenderRef.console.ref = ConsoleAppender
+
+  # Uncomment this if you want to _only_ change Flink's logging
+  #logger.flink.name = org.apache.flink
+  #logger.flink.level = INFO
+
+  # The following lines keep the log level of common libraries/connectors on
+  # log level INFO. The root logger does not override this. You have to manually
+  # change the log levels here.
+  logger.akka.name = akka
+  logger.akka.level = ERROR
+  logger.kafka.name= org.apache.kafka
+  logger.kafka.level = ERROR
+  logger.hadoop.name = org.apache.hadoop
+  logger.hadoop.level = ERROR
+  logger.zookeeper.name = org.apache.zookeeper
+  logger.zookeeper.level = ERROR
+
+  # Log all infos to the console
+  appender.console.name = ConsoleAppender
+  appender.console.type = CONSOLE
+  appender.console.layout.type = PatternLayout
+  appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+
+  # Suppress the irrelevant (wrong) warnings from the Netty channel handler
+  logger.netty.name = org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline
+  logger.netty.level = OFF
+
+base_config: |
+  kafka {
+    broker-servers = "kafka-headless.knowlg-db.svc.cluster.local:9092"
+    producer.broker-servers = "kafka-headless.knowlg-db.svc.cluster.local:9092"
+    consumer.broker-servers = "kafka-headless.knowlg-db.svc.cluster.local:9092"
+    zookeeper = "kafka-zookeeper-headless.knowlg-db.svc.cluster.local:2181"
+    producer {
+      max-request-size = 1572864
+      batch.size = 98304
+      linger.ms = 10
+      compression = "snappy"
+    }
+    output.system.event.topic = "dev.system.events"
+  }
+  job {
+    env = "local"
+    enable.distributed.checkpointing = false
+    statebackend {
+      blob {
+        storage {
+          account = "blob.storage.account"
+          container = "kp-checkpoints"
+          checkpointing.dir = "flink-jobs"
+        }
+      }
+      base.url = ""
+    }
+  }
+  task {
+    parallelism = 1
+    consumer.parallelism = 1
+    checkpointing.compressed = true
+    checkpointing.interval = 10
+    checkpointing.pause.between.seconds = 3000
+    restart-strategy.attempts = 3
+    restart-strategy.delay = 30000 # in milli-seconds
+  }
+
+
+  redis {
+  host = redis-db.knowlg-db.svc.cluster.local
+  port = 6379
+  connection {
+    max = 2
+    idle.min = 1
+    idle.max = 2
+    minEvictableIdleTimeSeconds = 120
+    timeBetweenEvictionRunsSeconds = 300
+      }
+  }
+  lms-cassandra {
+  host = cassandra-db.knowlg-db.svc.cluster.local
+  port = "9042"
+  }
+
+  neo4j {
+  routePath = "bolt://neo4j-db.knowlg-db.svc.cluster.local:7687"
+  graph = "domain"
+  }
+
+  es {
+  basePath = "elasticsearch.knowlg-db.svc.cluster.local:9200"
+  }
+
+search-indexer:
+  search-indexer: |+
+    include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "sunbirddev"
+    }
+    kafka {
+      event.max.size = "1048576" # Max is only 1MB
+      input.topic = "sunbirddev.learning.graph.events"
+      error.topic = "sunbirddev.learning.events.failed"
+      groupId = "local-search-indexer-group"
+      producer {
+        max-request-size = 5242880
+      }
+    }
+    task {
+       consumer.parallelism = 1
+       router.parallelism = 1
+       compositeSearch.parallelism = 1
+       dialcodeIndexer.parallelism = 1
+       dialcodemetricsIndexer.parallelism = 1
+    }
+    compositesearch.index.name = "compositesearch"
+    nested.fields = ["badgeAssertions", "targets", "badgeAssociations", "plugins", "me_totalTimeSpent", "me_totalPlaySessionCount", "me_totalTimeSpentInSec", "batches", "trackable", "credentials", "discussionForum", "provider", "osMetadata", "actions"]
+    schema.definition_cache.expiry = 14400
+    restrict {
+      metadata.objectTypes = []
+      objectTypes = ["EventSet", "Questionnaire", "Misconception", "FrameworkType", "EventSet", "Event"]
+    }
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.relative_path_prefix= "CONTENT_STORAGE_BASE_PATH"
+    cloudstorage.read_base_path="https://sunbirddev.blob.core.windows.net"
+    cloudstorage.mecloudstorage.metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl", "streamingUrl", "toc_url"]
+    cloud_storage_container="sunbird-content-dev"
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.searchindexer.task.SearchIndexerStreamTask
+
+audit-event-generator:
+  audit-event-generator: |+
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+    input.topic = "sunbirddev.learning.graph.events"
+    output.topic = "sunbirddev.telemetry.raw"
+    groupId = "sunbirddev-audit-event-generator-group"
+    }
+
+    task {
+    consumer.parallelism = 1
+    parallelism = 1
+    producer.parallelism = 1
+    window.time = 60
+    }
+
+    schema {
+      basePath = "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local"
+    }
+
+    channel.default = "org.sunbird"
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.auditevent.task.AuditEventGeneratorStreamTask
+
+
+asset-enrichment:
+  asset-enrichment: |+
+    include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "sunbirddev"
+    }
+
+    kafka {
+      input.topic = "sunbirddev.learning.job.request"
+      groupId = "sunbirddev-asset-enrichment-group"
+      video_stream.topic = "sunbirddev.content.postpublish.request"
+    }
+
+    task {
+      consumer.parallelism = 1
+      router.parallelism = 1
+      videoEnrichment.parallelism = 1
+      imageEnrichment.parallelism = 1
+    }
+
+    content {
+      stream {
+        enabled = true
+        mimeType = ["video/mp4", "video/webm"]
+      }
+      youtube {
+        applicationName = "fetch-youtube-license"
+        regexPattern = ["\\?vi?=([^&]*)", "watch\\?.*v=([^&]*)", "(?:embed|vi?)/([^/?]*)", "^([A-Za-z0-9\\-\\_]*)"]
+      }
+      upload.context.driven = true
+      max.iteration.count = 2
+    }
+
+    thumbnail.max {
+      sample = 5
+      size.pixel = 150
+    }
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.relative_path_prefix= "CONTENT_STORAGE_BASE_PATH"
+    cloudstorage.read_base_path="https://sunbirddev.blob.core.windows.net"
+    cloudstorage.write_base_path=["https://sunbirddev.blob.core.windows.net","https://obj.dev.sunbird.org"]
+    cloudstorage.metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl", "streamingUrl", "toc_url"]
+
+    cloud_storage_type=""
+    cloud_storage_key=""
+    cloud_storage_secret=""
+    cloud_storage_container=""
+    cloud_storage_endpoint=""
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.assetenricment.task.AssetEnrichmentStreamTask
+
+
+post-publish-processor:
+  post-publish-processor: |+
+    include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "sunbirddev"
+    }
+
+    kafka {
+      input.topic = "sunbirddev.content.postpublish.request"
+      groupId = "local-post-publish-processor-group"
+      publish.topic = "sunbirddev.learning.job.request"
+      qrimage.topic = "sunbirddev.qrimage.request"
+      dialcode.context.topic = "sunbirddev.dialcode.context.job.request"
+    }
+
+    task {
+      consumer.parallelism = 1
+      router.parallelism = 1
+      shallow_copy.parallelism = 1
+      link_dialcode.parallelism = 1
+      batch_create.parallelism = 1
+      dialcode_context_updater.parallelism = 1
+    }
+
+    lms-cassandra {
+      keyspace = "sunbird_courses"
+      batchTable = "course_batch"
+    }
+
+    dialcode-cassandra {
+      keyspace = "dialcodes"
+      imageTable = "dialcode_images"
+    }
+
+    service {
+      search.basePath = "http://localhost:9000/search"
+      lms.basePath = "http://localhost:9000/lms"
+      learning_service.basePath = "http://localhost:8080/learning-service"
+      dial.basePath = "https://dev.sunbirded.org/dial/"
+    }
+
+    dialcode {
+      linkable.primaryCategory = ["Course"]
+    }
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.read_base_path="https://sunbirddev.blob.core.windows.net"
+    cloudstorage.write_base_path=["https://sunbirddev.blob.core.windows.net","https://obj.dev.sunbird.org"]
+    cloudstorage.metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl", "streamingUrl", "toc_url"]
+
+    cloud_storage_type="azure"
+    cloud_storage_key=""
+    cloud_storage_secret=""
+    cloud_storage_container=""
+    cloud_storage_endpoint=""
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.postpublish.task.PostPublishProcessorStreamTask  
+
+
+dialcode-context-updater:
+  dialcode-context-updater: |+
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+      input.topic = "sunbirddev.dialcode.context.job.request"
+      failed.topic = "sunbirddev.dialcode.context.job.request.failed"
+      groupId = "sunbirddev-dialcode-group"
+    }
+
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+      dialcode-context-updater.parallelism = 1
+    }
+
+    dialcode_context_updater {
+        actions="dialcode-context-update"
+        search_mode="Collection"
+        context_map_path = "https://raw.githubusercontent.com/project-sunbird/knowledge-platform-jobs/release-5.0.0/dialcode-context-updater/src/main/resources/contextMapping.json"
+        identifier_search_fields = ["identifier", "primaryCategory", "channel"]
+        dial_code_context_read_api_path = "/dialcode/v4/read/"
+        dial_code_context_update_api_path = "/dialcode/v4/update/"
+    }
+
+    service {
+      search.basePath = "http://11.2.6.6/search"
+      dial_service.basePath = "http://11.2.6.6/dial"
+    }
+
+    es_sync_wait_time = 5000
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.dialcodecontextupdater.task.DialcodeContextUpdaterStreamTask  
+
+
+qrcode-image-generator:
+  qrcode-image-generator: |+
+    include file("/data/flink/conf/base-config.conf")
+
+    job {
+      env = "sunbirddev"
+    }
+
+    kafka {
+      input.topic = "sunbirddev.qrimage.request"
+      groupId = "sunbirddev-qrcode-image-generator-group"
+    }
+
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+      window.time = 60
+    }
+
+    lp.tmp.file.location="/tmp"
+
+    qr.image {
+        imageFormat="png"
+        bottomMargin=0
+        margin=1
+    }
+
+    lms-cassandra {
+      keyspace = "dialcodes"
+      table {
+        image = "dialcode_images"
+        batch = "dialcode_batch"
+      }
+    }
+
+    # Default value is 120
+    max_allowed_character_for_file_name = 120
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.relative_path_prefix= "DIAL_STORAGE_BASE_PATH"
+    cloudstorage.read_base_path="https://sunbirddev.blob.core.windows.net"
+    cloudstorage.write_base_path=["https://sunbirddev.blob.core.windows.net/dial","https://obj.dev.sunbird.org/dial"]
+    cloudstorage.metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl", "streamingUrl", "toc_url"]
+
+    cloud_storage_type=""
+    cloud_storage_key=""
+    cloud_storage_secret=""
+    cloud_storage_container=""
+    cloud_storage_endpoint=""
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.qrimagegenerator.task.QRCodeImageGeneratorTask   
+
+video-stream-generator:
+  video-stream-generator: |+
+    include file("/data/flink/conf/base-config.conf")
+    
+    kafka {
+      input.topic = "sunbirddev.content.postpublish.request"
+      groupId = "sunbirddev-video-stream-generator-group"
+    }
+
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+      timer.duration = 60
+      max.retries = 10
+    }
+
+    lms-cassandra {
+      keyspace = "sunbirddev_platform_db"
+      table = "job_request"
+    }
+
+    service {
+      content {
+        basePath = "http://11.2.6.6/content"
+      }
+    }
+
+    # Azure Media Service Config
+    azure {
+      location = "centralindia"
+      tenant = "tenant"
+      subscription_id = "subscription id "
+
+      login {
+        endpoint="https://login.microsoftonline.com"
+      }
+
+      api {
+        endpoint="https://management.azure.com"
+        version = "2018-07-01"
+      }
+
+      account_name = "account name"
+      resource_group_name = "group name"
+
+      transform {
+        default = "media_transform_default"
+        hls = "media_transform_hls"
+      }
+
+      stream {
+        base_url = "https://sunbirdspikemedia-inct.streaming.media.azure.net"
+        endpoint_name = "default"
+        protocol = "Hls"
+        policy_name = "Predefined_ClearStreamingOnly"
+      }
+
+      token {
+        client_key = "client key"
+        client_secret = "client secret"
+      }
+    }
+
+    azure_tenant="tenant"
+    azure_subscription_id="subscription id"
+    azure_account_name="account name"
+    azure_resource_group_name="group name"
+    azure_token_client_key="client key"
+    azure_token_client_secret="client secret"
+
+    # CSP Name. e.g: aws or azure
+    media_service_type="aws"
+
+    #AWS Elemental Media Convert Config
+    aws {
+      region="ap-south-1"
+      content_bucket_name="awsmedia-spike"
+      token {
+        access_key="access key"
+        access_secret="access secret"
+      }
+      api {
+        endpoint="API Endpoint for media convert"
+        version="2017-08-29"
+      }
+      service {
+        name="mediaconvert"
+        queue="Media Convert Queue Id"
+        role="Media Convert Role Name"
+      }
+      stream {
+        protocol="Hls"
+      }
+    }
+
+    media_service_job_success_status=["FINISHED", "COMPLETE"]
+
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.videostream.task.VideoStreamGeneratorStreamTask     
+
+audit-history-indexer:
+  audit-history-indexer: |+
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+      input.topic = "sunbirddev.learning.graph.events"
+      groupId = "sunbirddev-audit-history-indexer-group"
+    }
+
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+      window.time = 60
+    }
+
+    timezone = "IST"
+
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  job_classname: org.sunbird.job.audithistory.task.AuditHistoryIndexerStreamTask       

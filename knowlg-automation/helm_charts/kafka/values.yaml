@@ -1549,7 +1549,7 @@ provisioning:
     config:
       max.message.bytes: 64000
       flush.messages: 1
-  - name: "${dialcode_context_job_request_failed_topic}"
+  - name: "${error_topic}"
     partitions: 1
     replicationFactor: 1
     # https://kafka.apache.org/documentation/#topicconfigs
