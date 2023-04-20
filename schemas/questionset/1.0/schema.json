@@ -711,6 +711,10 @@
     },
     "reviewStatus": {
       "type": "string"
+    },
+    "evaluable": {
+      "type": "boolean",
+      "default": false
     }
   },
   "additionalProperties": false
