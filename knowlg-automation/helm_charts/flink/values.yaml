@@ -1,7 +1,7 @@
 namespace: "knowlg-job"
 imagepullsecrets: ""
 dockerhub: ""
-repository: "aimansharief/qrcode-image-generator-job"
+repository: "aimansharief/kp-jobs"
 # image_tag: "1.0.0"
 image_tag: "latest"
 serviceMonitor:
@@ -140,13 +140,13 @@ search-indexer:
   search-indexer: |+
     include file("/data/flink/conf/base-config.conf")
     job {
-      env = "sunbirddev"
+      env = "dev"
     }
     kafka {
       event.max.size = "1048576" # Max is only 1MB
-      input.topic = "sunbirddev.learning.graph.events"
-      error.topic = "sunbirddev.learning.events.failed"
-      groupId = "local-search-indexer-group"
+      input.topic = "dev.learning.graph.events"
+      error.topic = "dev.learning.events.failed"
+      groupId = "dev-search-indexer-group"
       producer {
         max-request-size = 5242880
       }
@@ -192,10 +192,14 @@ search-indexer:
 audit-event-generator:
   audit-event-generator: |+
     include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "dev"
+    }
+
     kafka {
-    input.topic = "sunbirddev.learning.graph.events"
-    output.topic = "sunbirddev.telemetry.raw"
-    groupId = "sunbirddev-audit-event-generator-group"
+      input.topic = "dev.learning.graph.events"
+      output.topic = "dev.telemetry.raw"
+      groupId = "dev-audit-event-generator-group"
     }
 
     task {
@@ -210,7 +214,6 @@ audit-event-generator:
     }
 
     channel.default = "org.sunbird"
-
 
   flink-conf: |+
     jobmanager.memory.flink.size: 1024m
@@ -235,13 +238,13 @@ asset-enrichment:
   asset-enrichment: |+
     include file("/data/flink/conf/base-config.conf")
     job {
-      env = "sunbirddev"
+      env = "dev"
     }
 
     kafka {
-      input.topic = "sunbirddev.learning.job.request"
-      groupId = "sunbirddev-asset-enrichment-group"
-      video_stream.topic = "sunbirddev.content.postpublish.request"
+      input.topic = "dev.learning.job.request"
+      groupId = "dev-asset-enrichment-group"
+      video_stream.topic = "dev.content.postpublish.request"
     }
 
     task {
@@ -305,15 +308,15 @@ post-publish-processor:
   post-publish-processor: |+
     include file("/data/flink/conf/base-config.conf")
     job {
-      env = "sunbirddev"
+      env = "dev"
     }
 
     kafka {
-      input.topic = "sunbirddev.content.postpublish.request"
+      input.topic = "dev.content.postpublish.request"
       groupId = "local-post-publish-processor-group"
-      publish.topic = "sunbirddev.learning.job.request"
-      qrimage.topic = "sunbirddev.qrimage.request"
-      dialcode.context.topic = "sunbirddev.dialcode.context.job.request"
+      publish.topic = "dev.learning.job.request"
+      qrimage.topic = "dev.qrimage.request"
+      dialcode.context.topic = "dev.dialcode.context.job.request"
     }
 
     task {
@@ -380,10 +383,14 @@ post-publish-processor:
 dialcode-context-updater:
   dialcode-context-updater: |+
     include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "dev"
+    }
+
     kafka {
-      input.topic = "sunbirddev.dialcode.context.job.request"
-      failed.topic = "sunbirddev.dialcode.context.job.request.failed"
-      groupId = "sunbirddev-dialcode-group"
+      input.topic = "dev.dialcode.context.job.request"
+      failed.topic = "dev.dialcode.context.job.request.failed"
+      groupId = "dev-dialcode-group"
     }
 
     task {
@@ -431,14 +438,13 @@ dialcode-context-updater:
 qrcode-image-generator:
   qrcode-image-generator: |+
     include file("/data/flink/conf/base-config.conf")
-
     job {
-      env = "sunbirddev"
+      env = "dev"
     }
 
     kafka {
-      input.topic = "sunbirddev.qrimage.request"
-      groupId = "sunbirddev-qrcode-image-generator-group"
+      input.topic = "dev.qrimage.request"
+      groupId = "dev-qrcode-image-generator-group"
     }
 
     task {
@@ -500,10 +506,13 @@ qrcode-image-generator:
 video-stream-generator:
   video-stream-generator: |+
     include file("/data/flink/conf/base-config.conf")
-    
+    job {
+      env = "dev"
+    }
+
     kafka {
-      input.topic = "sunbirddev.content.postpublish.request"
-      groupId = "sunbirddev-video-stream-generator-group"
+      input.topic = "dev.content.postpublish.request"
+      groupId = "dev-video-stream-generator-group"
     }
 
     task {
@@ -514,7 +523,7 @@ video-stream-generator:
     }
 
     lms-cassandra {
-      keyspace = "sunbirddev_platform_db"
+      keyspace = "dev_platform_db"
       table = "job_request"
     }
 
@@ -594,8 +603,6 @@ video-stream-generator:
 
     media_service_job_success_status=["FINISHED", "COMPLETE"]
 
-
-
   flink-conf: |+
     jobmanager.memory.flink.size: 1024m
     taskmanager.memory.flink.size: 1024m
@@ -617,9 +624,13 @@ video-stream-generator:
 audit-history-indexer:
   audit-history-indexer: |+
     include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "dev"
+    }
+
     kafka {
-      input.topic = "sunbirddev.learning.graph.events"
-      groupId = "sunbirddev-audit-history-indexer-group"
+      input.topic = "dev.learning.graph.events"
+      groupId = "dev-audit-history-indexer-group"
     }
 
     task {
@@ -629,8 +640,6 @@ audit-history-indexer:
     }
 
     timezone = "IST"
-
-
 
   flink-conf: |+
     jobmanager.memory.flink.size: 1024m
