@@ -598,6 +598,10 @@
     "downloadUrl": {
       "type": "string",
       "format": "url"
+    },
+    "evaluable": {
+      "type": "boolean",
+      "default": false
     }
   },
   "additionalProperties": false
