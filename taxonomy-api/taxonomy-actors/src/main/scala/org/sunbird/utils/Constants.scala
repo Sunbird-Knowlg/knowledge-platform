@@ -24,4 +24,11 @@ object Constants {
     val CHANNEL = "channel";
     val TARGET_OBJECT_TYPE = "targetObjectType"
     val OBJECT_CATEGORY_DEFINITION: String = "objectCategoryDefinition"
+
+    // Constants For Framework
+    val FRAMEWORK: String = "framework";
+    val CREATE_FRAMEWORK: String = "createFramework";
+    val FRAMEWORK_SCHEMA_VERSION = "1.0";
+    val FRAMEWORK_SCHEMA_NAME="framework"
+    val CODE: String = "code";
 }
