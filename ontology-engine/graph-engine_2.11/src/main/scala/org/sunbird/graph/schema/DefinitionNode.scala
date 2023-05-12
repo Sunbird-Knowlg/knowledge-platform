@@ -5,6 +5,7 @@ import java.util.concurrent.CompletionException
 
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
@@ -15,16 +16,20 @@ import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
-
+  private[this] val logger = LoggerFactory.getLogger(getClass)
     def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+      logger.error("request:    " + request)
       val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+      logger.error("graphId    " +graphId )
       val version: String = request.getContext.get("version").asInstanceOf[String]
       val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
       val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
         schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
+      logger.error("definition:  " + definition)
       definition.validateRequest(request)
       val inputNode = definition.getNode(request.getRequest)
+      logger.error("inputNode:  " + inputNode)
 	  updateRelationMetadata(inputNode)
       definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause}
   }

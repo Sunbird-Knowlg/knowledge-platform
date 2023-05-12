@@ -10,5 +10,6 @@ object ApiId {
 	final val READ_OBJECT_CATEGORY_DEFINITION = "api.object.category.definition.read"
 	final val UPDATE_OBJECT_CATEGORY_DEFINITION = "api.object.category.definition.update"
 	final val CREATE_FRAMEWORK = "ekstep.learning.framework.create"
+	final val READ_FRAMEWORK = "ekstep.learning.framework.read"
 
 }

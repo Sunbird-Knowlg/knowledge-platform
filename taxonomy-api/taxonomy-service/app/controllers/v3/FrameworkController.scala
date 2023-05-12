@@ -3,6 +3,7 @@ package controllers.v3
 import akka.actor.{ActorRef, ActorSystem}
 import scala.concurrent.{ExecutionContext, Future}
 import controllers.BaseController
+import org.slf4j.LoggerFactory
 import javax.inject.{Inject, Named, Singleton}
 import org.sunbird.common.dto.ResponseHandler
 import org.sunbird.utils.Constants
@@ -14,10 +15,11 @@ import java.util
 class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) frameworkActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
     val objectType = "Framework"
-
+    private[this] val logger = LoggerFactory.getLogger(classOf[FrameworkController])
     def createFramework()= Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
+        logger.error("body    " + body)
         val framework = body.getOrDefault(Constants.FRAMEWORK, new util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         framework.putAll(headers)
         val frameworkRequest = getRequest(framework, headers, Constants.CREATE_FRAMEWORK)

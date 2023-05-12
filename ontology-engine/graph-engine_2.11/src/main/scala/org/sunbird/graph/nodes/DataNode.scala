@@ -5,6 +5,7 @@ import java.util.Optional
 import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
+import org.slf4j.LoggerFactory
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
@@ -20,13 +21,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object DataNode {
-
+  private[this] val logger = LoggerFactory.getLogger(getClass)
   private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
 
     @throws[Exception]
     def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.validate(request).map(node => {
             val response = oec.graphService.addNode(request.graphId, dataModifier(node))
+            logger.error("response     " + response)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),

@@ -31,4 +31,6 @@ object Constants {
     val FRAMEWORK_SCHEMA_VERSION = "1.0";
     val FRAMEWORK_SCHEMA_NAME="framework"
     val CODE: String = "code";
+    val CATEGORY: String = "category"
+    val READ_FRAMEWORK: String = "readFramework"
 }
