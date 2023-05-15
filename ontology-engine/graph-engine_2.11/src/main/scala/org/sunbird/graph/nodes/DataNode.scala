@@ -5,7 +5,6 @@ import java.util.Optional
 import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-import org.slf4j.LoggerFactory
 import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
