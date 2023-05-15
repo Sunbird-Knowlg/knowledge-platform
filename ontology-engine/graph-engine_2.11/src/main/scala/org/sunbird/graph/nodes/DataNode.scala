@@ -21,14 +21,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 object DataNode {
-  private[this] val logger = LoggerFactory.getLogger(getClass)
   private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
 
     @throws[Exception]
     def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.validate(request).map(node => {
             val response = oec.graphService.addNode(request.graphId, dataModifier(node))
-            logger.error("response     " + response)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
