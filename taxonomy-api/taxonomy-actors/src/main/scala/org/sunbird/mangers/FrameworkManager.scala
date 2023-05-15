@@ -1,14 +1,15 @@
 package org.sunbird.mangers
 
 import org.sunbird.common.Platform
-import org.sunbird.common.dto.ResponseHandler.checkError
-import org.sunbird.common.dto.{Request, Response}
+import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.validator.NodeValidator
-
 import java.util.Optional
 import java.util
 import scala.collection.JavaConverters.mapAsScalaMapConverter
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object FrameworkManager {
   def validateTranslations(request: Request) = {
@@ -21,5 +22,10 @@ object FrameworkManager {
     }
   }
 
-
+  def validateChannel(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext) ={
+    val channelList: util.List[String] = new util.ArrayList[String](1)
+    val channel = request.getRequest.getOrDefault("channel", "").asInstanceOf[String]
+    channelList.add(channel)
+    NodeValidator.validate(request.getContext.get("graph_id").asInstanceOf[String], channelList)
+  }
 }
