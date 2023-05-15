@@ -92,7 +92,7 @@ public class YouTubeUrlUtilTest {
 
 	@Test
 	public void testGetVideoListWithValidVideoId(){
-		String videoId = "owr198WQpM8";
+		String videoId = "GHmQ8euNwv8";
 		List<Video> videos = YouTubeUrlUtil.getVideoList(videoId,"status");
 		assertTrue(CollectionUtils.isNotEmpty(videos));
 	}
