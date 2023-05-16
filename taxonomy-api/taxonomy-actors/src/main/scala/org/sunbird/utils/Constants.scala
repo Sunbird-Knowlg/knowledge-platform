@@ -30,6 +30,7 @@ object Constants {
     val CREATE_FRAMEWORK: String = "createFramework";
     val READ_FRAMEWORK: String = "readFramework"
     val UPDATE_FRAMEWORK: String = "updateFramework";
+    val RETIRE_FRAMEWORK: String = "retireFramework";
     val FRAMEWORK_SCHEMA_VERSION = "1.0";
     val FRAMEWORK_SCHEMA_NAME="framework"
     val CODE: String = "code";

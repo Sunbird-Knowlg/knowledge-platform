@@ -61,4 +61,12 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
     })
   }
+
+  def retire(request: Request): Future[Response] = {
+    request.getRequest.put("status", "Retired")
+    DataNode.update(request).map(node => {
+      val identifier: String = node.getIdentifier
+      ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
+    })
+  }
 }

@@ -37,9 +37,14 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
     }
     
     def retire(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val framework = body.getOrDefault(Constants.FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        framework.putAll(headers)
+        val frameworkRequest = getRequest(framework, headers, Constants.RETIRE_FRAMEWORK)
+        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
+        frameworkRequest.getContext.put(Constants.IDENTIFIER, identifier)
+        getResult(ApiId.RETIRE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
     def updateFramework(identifier: String) = Action.async { implicit request =>
