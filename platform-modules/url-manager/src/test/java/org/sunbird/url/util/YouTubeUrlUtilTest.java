@@ -26,7 +26,7 @@ public class YouTubeUrlUtilTest {
 
 	@Test
 	public void testGetLicenseWithValidUrlPattern1() {
-		String videoUrl = "https://www.youtube.com/watch?v=owr198WQpM8";
+		String videoUrl = "https://www.youtube.com/watch?v=GHmQ8euNwv8";
 		String result = YouTubeUrlUtil.getLicense(videoUrl);
 		assertEquals("creativeCommon", result);
 	}
@@ -92,7 +92,7 @@ public class YouTubeUrlUtilTest {
 
 	@Test
 	public void testGetVideoListWithValidVideoId(){
-		String videoId = "owr198WQpM8";
+		String videoId = "GHmQ8euNwv8";
 		List<Video> videos = YouTubeUrlUtil.getVideoList(videoId,"status");
 		assertTrue(CollectionUtils.isNotEmpty(videos));
 	}
