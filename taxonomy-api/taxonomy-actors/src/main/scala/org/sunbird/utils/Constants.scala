@@ -28,9 +28,11 @@ object Constants {
     // Constants For Framework
     val FRAMEWORK: String = "framework";
     val CREATE_FRAMEWORK: String = "createFramework";
+    val READ_FRAMEWORK: String = "readFramework"
+    val UPDATE_FRAMEWORK: String = "updateFramework";
     val FRAMEWORK_SCHEMA_VERSION = "1.0";
     val FRAMEWORK_SCHEMA_NAME="framework"
     val CODE: String = "code";
-    val CATEGORY: String = "category"
-    val READ_FRAMEWORK: String = "readFramework"
+    val CATEGORIES: String = "categories"
+    val ROOT_ID: String = "rootId"
 }
