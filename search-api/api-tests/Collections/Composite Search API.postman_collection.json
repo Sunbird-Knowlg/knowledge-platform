@@ -21,10 +21,6 @@
 										"exec": [
 											"let jsonResponse = pm.response.json();",
 											"",
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"pm.test(\"Verify keys and data type of the response result\", () => {",
 											"    pm.expect(jsonResponse.result.content).to.be.a(\"array\");",
 											"});",
@@ -67,7 +63,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"status\": [\n                \"Live\"\n            ],\n            \"mimeType\": \"application/vnd.ekstep.ecml-archive\",\n            \"contentType\": \"Resource\",\n            \"objectType\": \"Content\"\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        }\n    }\n}"
+									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"status\": [\n                \"Live\"\n            ],\n            \"mimeType\": \"application/vnd.ekstep.ecml-archive\",\n            \"objectType\": \"Content\"\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        }\n    }\n}"
 								},
 								"url": {
 									"raw": "{{host}}/action/composite/v3/search",
@@ -308,7 +304,255 @@
 			"name": "Negative",
 			"item": [
 				{
-					"name": "400 - Search filters missing",
+					"name": "500 Server Error",
+					"item": [
+						{
+							"name": "500 - Property values are not in the right format",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"pm.test(\"Verify keys and data type of the response result\", () => {",
+											"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+											"});",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"ERR_SYSTEM_EXCEPTION\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"ERR_SYSTEM_EXCEPTION\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Unsupported operation\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Unsupported operation\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"type": "text",
+										"value": "{{channel_id}}",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"offset\": 1,\n            \"limit\": 5,\n            \"query\": \"\",\n            \"sort_by\": {\n                \"lastUpdatedOn\": \"desc\"\n            }\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/action/composite/v3/search",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"action",
+										"composite",
+										"v3",
+										"search"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "500 - Property values is violating the schema definition(max length, min length etc)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"ERR_SYSTEM_EXCEPTION\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"ERR_SYSTEM_EXCEPTION\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"Unsupported operation\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"Unsupported operation\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"type": "text",
+										"value": "{{channel_id}}",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"offset\": 1,\n            \"limit\": 5,\n            \"query\": \"\",\n            \"sort_by\": {\n                \"lastUpdatedOn\": \"desc\"\n            }\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/action/composite/v3/search",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"action",
+										"composite",
+										"v3",
+										"search"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						},
+						{
+							"name": "500 - parameter cannot be negative",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"let jsonResponse = pm.response.json()",
+											"",
+											"// Params",
+											"pm.test(\"params.err should be \\\"ERR_SYSTEM_EXCEPTION\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.err).to.eql(\"ERR_SYSTEM_EXCEPTION\");",
+											"});",
+											"pm.test(\"params.errmsg should be \\\"[size] parameter cannot be negative, found [-1]\\\"\", () => {",
+											"    pm.expect(jsonResponse.params.errmsg).to.eql(\"[size] parameter cannot be negative, found [-1]\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disabledSystemHeaders": {
+									"connection": true
+								}
+							},
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Authenticated-User-token",
+										"value": "{{keycloak_access_token}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}"
+									},
+									{
+										"key": "X-Channel-Id",
+										"type": "text",
+										"value": "{{channel_id}}",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"objectType\": [\n                \"AssessmentItem\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        },\n        \"limit\": -1\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/action/composite/v3/search",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"action",
+										"composite",
+										"v3",
+										"search"
+									]
+								},
+								"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
+							},
+							"response": []
+						}
+					],
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"let jsonResponse = pm.response.json()",
+									"",
+									"//Verification",
+									"pm.test(\"Status code is 500\", () => {",
+									"    pm.response.to.have.status(500)",
+									"});",
+									"",
+									"//Validation",
+									"// Response body",
+									"pm.test(\"responseCode should be \\\"SERVER_ERROR\\\"\", () => {",
+									"    pm.expect(jsonResponse.responseCode).to.eql(\"SERVER_ERROR\");",
+									"});",
+									"",
+									"pm.test(\"Verify keys and data type of the response result\", () => {",
+									"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
+									"});"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "400 - Mandatory fields missing",
 					"event": [
 						{
 							"listen": "test",
@@ -367,97 +611,14 @@
 							},
 							{
 								"key": "X-Channel-Id",
-								"value": "{{channel_id}}",
 								"type": "text",
+								"value": "{{channel_id}}",
 								"disabled": true
 							}
 						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"request\": {\n    }\n}"
-						},
-						"url": {
-							"raw": "{{host}}/action/composite/v3/search",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"action",
-								"composite",
-								"v3",
-								"search"
-							]
-						},
-						"description": "This API is associated with batch creation\nThe endpoint for Creates a Batch is /batch/create\nThe fields marked with an asterisk (*) are mandatory. They cannot be null or empty."
-					},
-					"response": []
-				},
-				{
-					"name": "500 - parameter cannot be negative",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"let jsonResponse = pm.response.json()",
-									"",
-									"//Verification",
-									"pm.test(\"Status code is 500\", () => {",
-									"    pm.response.to.have.status(500)",
-									"});",
-									"",
-									"pm.test(\"Verify keys and data type of the response result\", () => {",
-									"  pm.expect(jsonResponse.result).to.be.an(\"object\");",
-									"});",
-									"",
-									"//Validation",
-									"// Response body",
-									"pm.test(\"responseCode should be \\\"SERVER_ERROR\\\"\", () => {",
-									"    pm.expect(jsonResponse.responseCode).to.eql(\"SERVER_ERROR\");",
-									"});",
-									"",
-									"// Params",
-									"pm.test(\"params.err should be \\\"ERR_SYSTEM_EXCEPTION\\\"\", () => {",
-									"    pm.expect(jsonResponse.params.err).to.eql(\"ERR_SYSTEM_EXCEPTION\");",
-									"});",
-									"pm.test(\"params.errmsg should be \\\"[size] parameter cannot be negative, found [-1]\\\"\", () => {",
-									"    pm.expect(jsonResponse.params.errmsg).to.eql(\"[size] parameter cannot be negative, found [-1]\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {
-							"connection": true
-						}
-					},
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "X-Authenticated-User-token",
-								"value": "{{keycloak_access_token}}"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{kong_api_key}}"
-							},
-							{
-								"key": "X-Channel-Id",
-								"value": "{{channel_id}}",
-								"type": "text",
-								"disabled": true
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"objectType\": [\n                \"AssessmentItem\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        },\n        \"limit\": -1\n    }\n}"
 						},
 						"url": {
 							"raw": "{{host}}/action/composite/v3/search",
