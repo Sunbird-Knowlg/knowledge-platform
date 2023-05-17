@@ -45,4 +45,14 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
       ResponseHandler.OK.put("category", metadata)
     })
   }
+
+  def update(request: Request): Future[Response] = {
+    RequestUtil.restrictProperties(request)
+    if (request.getRequest.containsKey(Constants.CODE)) throw new ClientException("ERR_CATEGORY_UPDATE", "code updation is not allowed.")
+    RedisCache.delete("masterCategories")
+    CategoryManager.validateTranslationMap(request)
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
+    })
+  }
 }
