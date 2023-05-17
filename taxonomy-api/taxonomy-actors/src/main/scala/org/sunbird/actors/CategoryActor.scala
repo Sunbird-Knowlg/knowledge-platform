@@ -1,10 +1,10 @@
 package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
-
+import java.util
 import javax.inject.Inject
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.Slug
+import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
@@ -21,6 +21,7 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
       case Constants.CREATE_CATEGORY => create(request)
+      case Constants.READ_CATEGORY => read(request)
       case _ => ERROR(request.getOperation)
     }
   }
@@ -35,6 +36,13 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     CategoryManager.validateTranslationMap(request)
     DataNode.create(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
+    })
+  }
+
+  def read(request: Request): Future[Response] = {
+    DataNode.read(request).map(node => {
+      val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+      ResponseHandler.OK.put("category", metadata)
     })
   }
 }
