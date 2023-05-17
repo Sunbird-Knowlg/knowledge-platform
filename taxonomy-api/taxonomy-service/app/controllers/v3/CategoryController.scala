@@ -43,4 +43,15 @@ class CategoryController  @Inject()(@Named(ActorNames.CATEGORY_ACTOR) categoryAc
     categoryRequest.getContext.put("identifier", identifier);
     getResult(ApiId.UPDATE_CATEGORY, categoryActor, categoryRequest)
   }
+
+  def retireCategory(identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val category = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+    category.put(Constants.IDENTIFIER, identifier)
+    category.putAll(headers)
+    val categoryRequest = getRequest(category, headers, Constants.RETIRE_CATEGORY)
+    setRequestContext(categoryRequest, Constants.CATEGORY_SCHEMA_VERSION, objectType, Constants.CATEGORY_SCHEMA_NAME)
+    categoryRequest.getContext.put("identifier", identifier);
+    getResult(ApiId.RETIRE_CATEGORY, categoryActor, categoryRequest)
+  }
 }

@@ -16,6 +16,7 @@ POST      /framework/v3/publish/:identifier               controllers.v3.Framewo
 POST      /framework/v3/category/master/create                      controllers.v3.CategoryController.createCategory
 GET       /framework/v3/category/master/read/:identifier            controllers.v3.CategoryController.readCategory(identifier:String)
 POST      /framework/v3/category/master/update/:identifier          controllers.v3.CategoryController.updateCategory(identifier:String)
+DELETE    /framework/v3/category/master/retire/:identifier          controllers.v3.CategoryController.retireCategory(identifier:String)
 
 # Term API's
 

@@ -55,4 +55,12 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
   }
+
+  def retire(request: Request): Future[Response] = {
+    request.getRequest.put("status", "Retired")
+    DataNode.update(request).map(node => {
+      val identifier: String = node.getIdentifier
+      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
+    })
+  }
 }
