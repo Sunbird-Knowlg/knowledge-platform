@@ -10,4 +10,7 @@ object ApiId {
 	final val READ_OBJECT_CATEGORY_DEFINITION = "api.object.category.definition.read"
 	final val UPDATE_OBJECT_CATEGORY_DEFINITION = "api.object.category.definition.update"
 
+	final val CREATE_CATEGORY = "api.taxonomy.category.create"
+
+
 }

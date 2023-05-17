@@ -24,4 +24,16 @@ object Constants {
     val CHANNEL = "channel";
     val TARGET_OBJECT_TYPE = "targetObjectType"
     val OBJECT_CATEGORY_DEFINITION: String = "objectCategoryDefinition"
+
+    val CATEGORY: String = "category";
+    val CREATE_CATEGORY: String = "createCategory";
+    val READ_CATEGORY: String = "readCategory"
+    val UPDATE_CATEGORY: String = "updateCategory"
+    val RETIRE_CATEGORY: String = "retireCategory"
+    val CATEGORY_SCHEMA_VERSION = "1.0";
+    val CATEGORY_SCHEMA_NAME = "category"
+    val CODE: String = "code";
+
+
+
 }
