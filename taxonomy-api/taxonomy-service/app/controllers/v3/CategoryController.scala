@@ -16,10 +16,11 @@ class CategoryController  @Inject()(@Named(ActorNames.CATEGORY_ACTOR) createActo
   def createCategory() = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
-    val framework = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    framework.putAll(headers)
-    val frameworkRequest = getRequest(framework, headers, Constants.CREATE_CATEGORY)
-    setRequestContext(frameworkRequest, Constants.CATEGORY_SCHEMA_NAME, objectType, Constants.CATEGORY_SCHEMA_NAME)
-    getResult(ApiId.CREATE_CATEGORY, createActor, frameworkRequest)
+    val category = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    category.putAll(headers)
+    val categoryRequest = getRequest(category, headers, Constants.CREATE_CATEGORY)
+    setRequestContext(categoryRequest, Constants.CATEGORY_SCHEMA_NAME, objectType, Constants.CATEGORY_SCHEMA_NAME)
+    getResult(ApiId.CREATE_CATEGORY, createActor, categoryRequest)
   }
+
 }
