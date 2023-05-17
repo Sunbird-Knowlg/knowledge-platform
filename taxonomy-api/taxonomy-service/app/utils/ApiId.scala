@@ -13,4 +13,5 @@ object ApiId {
 	final val READ_FRAMEWORK = "ekstep.learning.framework.read"
 	final val UPDATE_FRAMEWORK = "ekstep.learning.framework.update"
 	final val RETIRE_FRAMEWORK = "api.taxonomy.framework.retire"
+	final val COPY_FRAMEWORK = "ekstep.learning.framework.copy"
 }
