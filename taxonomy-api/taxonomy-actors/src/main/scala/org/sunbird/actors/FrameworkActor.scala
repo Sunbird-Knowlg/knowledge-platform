@@ -60,4 +60,21 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
 
   }
+
+  @throws[Exception]
+  private def update(request: Request): Future[Response] = {
+    RequestUtil.restrictProperties(request)
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
+    })
+  }
+
+  def retire(request: Request): Future[Response] = {
+    request.getRequest.put("status", "Retired")
+    DataNode.update(request).map(node => {
+      val identifier: String = node.getIdentifier
+      ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
+    })
+  }
+  
 }
