@@ -2,6 +2,7 @@ package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
@@ -40,10 +41,11 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getCategoryReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getCategoryReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-        val categoryId = frameworkId + "_" + code;
+        val categoryId = Slug.makeSlug(frameworkId + "_" + code);
         request.getRequest.put(Constants.IDENTIFIER, categoryId)
         DataNode.create(request).map(node => {
           ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+            .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
         })
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatMap(f => f)

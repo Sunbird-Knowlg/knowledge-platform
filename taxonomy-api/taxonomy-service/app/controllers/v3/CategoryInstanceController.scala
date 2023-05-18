@@ -9,6 +9,7 @@ import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
 import javax.inject.{Inject, Named}
+import scala.collection.JavaConverters.asJavaIterableConverter
 import scala.concurrent.ExecutionContext
 
 class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_ACTOR) categoryInstanceActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
@@ -24,4 +25,5 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
     setRequestContext(categoryRequest, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
     getResult(ApiId.CREATE_CATEGORY_INSTANCE, categoryInstanceActor, categoryRequest)
   }
+
 }
