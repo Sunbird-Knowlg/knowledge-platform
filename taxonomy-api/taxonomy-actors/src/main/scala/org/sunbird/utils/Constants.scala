@@ -34,6 +34,26 @@ object Constants {
     val CATEGORY_SCHEMA_NAME = "category"
     val CODE: String = "code";
 
+    val CREATE_CATEGORY_INSTANCE: String = "createCategoryInstance";
+    val READ_CATEGORY_INSTANCE: String = "readCategoryInstance"
+    val UPDATE_CATEGORY_INSTANCE: String = "updateCategoryInstance"
+    val RETIRE_CATEGORY_INSTANCE: String = "retireCategoryInstance"
+    val CATEGORY_INSTANCE_SCHEMA_VERSION = "1.0";
+    val CATEGORY_INSTANCE_SCHEMA_NAME = "CategoryInstance"
+
+    // Constants For Framework
+    val FRAMEWORK: String = "framework";
+    val CREATE_FRAMEWORK: String = "createFramework";
+    val READ_FRAMEWORK: String = "readFramework"
+    val UPDATE_FRAMEWORK: String = "updateFramework";
+    val RETIRE_FRAMEWORK: String = "retireFramework";
+    val COPY_FRAMEWORK: String = "copyFramework";
+    val FRAMEWORK_SCHEMA_VERSION = "1.0";
+    val FRAMEWORK_SCHEMA_NAME = "framework"
+    val CATEGORIES: String = "categories"
+    val ROOT_ID: String = "rootId"
+
+
 
 
 }

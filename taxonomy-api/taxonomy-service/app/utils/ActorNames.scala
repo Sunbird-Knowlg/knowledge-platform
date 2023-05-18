@@ -7,5 +7,6 @@ object ActorNames {
     final val OBJECT_CATEGORY_DEFINITION_ACTOR = "objectCategoryDefinitionActor"
 
     final val CATEGORY_ACTOR = "categoryActor"
+    final val CATEGORY_INSTANCE_ACTOR = "categoryInstanceActor"
 
 }
