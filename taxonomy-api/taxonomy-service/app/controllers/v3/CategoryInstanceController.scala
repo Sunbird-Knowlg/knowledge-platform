@@ -26,4 +26,14 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
     getResult(ApiId.CREATE_CATEGORY_INSTANCE, categoryInstanceActor, categoryRequest)
   }
 
+  def readCategoryInstance(category: String, framework: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val categoryInstance = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+    categoryInstance.put(Constants.IDENTIFIER, category)
+    categoryInstance.put(Constants.FRAMEWORK, framework)
+    categoryInstance.putAll(headers)
+    val readCategoryRequest = getRequest(categoryInstance, headers, Constants.READ_CATEGORY_INSTANCE)
+    setRequestContext(readCategoryRequest, Constants.CATEGORY_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    getResult(ApiId.READ_CATEGORY_INSTANCE, categoryInstanceActor, readCategoryRequest)
+  }
 }
