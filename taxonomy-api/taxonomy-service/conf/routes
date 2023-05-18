@@ -19,10 +19,8 @@ PATCH     /framework/v3/category/master/update/:identifier          controllers.
 DELETE    /framework/v3/category/master/retire/:identifier          controllers.v3.CategoryController.retireCategory(identifier:String)
 
 # Framework Category API's
-POST      /framework/v3/category/create/:framework           controllers.v3.CategoryInstanceController.createCategoryInstance(framework: String)
-GET       /framework/v3/category/read/:identifier            controllers.v3.CategoryInstanceController.readCategoryInstance(identifier:String)
-PATCH     /framework/v3/category/update/:identifier          controllers.v3.CategoryInstanceController.updateCategoryInstance(identifier:String)
-DELETE    /framework/v3/category/retire/:identifier          controllers.v3.CategoryInstanceController.retireCategoryInstance(identifier:String)
+POST      /framework/v3/category/create                      controllers.v3.CategoryInstanceController.createCategoryInstance(framework: String)
+GET       /framework/v3/category/read/:identifier            controllers.v3.CategoryInstanceController.readCategoryInstance(identifier:String, framework: String)
 
 # Term API's
 
