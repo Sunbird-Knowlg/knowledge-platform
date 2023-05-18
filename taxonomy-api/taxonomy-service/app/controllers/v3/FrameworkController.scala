@@ -26,7 +26,6 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
     }
 
     def readFramework(identifier: String, categories: Option[String]) = Action.async { implicit request =>
-        //val returnCategories: List[String] = if (categories == null) List.empty[String] else categories.toList
         val headers = commonHeaders()
         val framework = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         framework.putAll(headers)
