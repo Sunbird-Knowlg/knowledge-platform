@@ -28,7 +28,8 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
 
   def readCategoryInstance(category: String, framework: String) = Action.async { implicit request =>
     val headers = commonHeaders()
-    val categoryInstance = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+    val body = requestBody()
+    val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     categoryInstance.put(Constants.IDENTIFIER, category)
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
@@ -39,8 +40,9 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
 
   def updateCategoryInstance(category: String, framework: String) = Action.async { implicit request =>
     val headers = commonHeaders()
-    val categoryInstance = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-    categoryInstance.put(Constants.IDENTIFIER, category)
+    val body = requestBody()
+    val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    categoryInstance.put(Constants.CATEGORY, category)
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
     val categoryInstanceRequest = getRequest(categoryInstance, headers, Constants.UPDATE_CATEGORY_INSTANCE)
@@ -51,8 +53,8 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
   def retireCategoryInstance(category: String, framework: String) = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
-    val categoryInstance = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-    categoryInstance.put(Constants.IDENTIFIER, category)
+    val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    categoryInstance.put(Constants.CATEGORY, category)
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
     val categoryInstanceRequest = getRequest(categoryInstance, headers, Constants.RETIRE_CATEGORY_INSTANCE)
