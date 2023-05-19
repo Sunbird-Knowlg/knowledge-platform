@@ -21,14 +21,14 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
       case Constants.CREATE_CATEGORY_INSTANCE => create(request)
-      case Constants.READ_CATEGORY => read(request)
-//      case Constants.UPDATE_CATEGORY => update(request)
-//      case Constants.RETIRE_CATEGORY => retire(request)
+      case Constants.READ_CATEGORY_INSTANCE => read(request)
+      case Constants.UPDATE_CATEGORY_INSTANCE => update(request)
+      case Constants.RETIRE_CATEGORY_INSTANCE => retire(request)
       case _ => ERROR(request.getOperation)
     }
   }
 
-  def create(request: Request): Future[Response] = {
+  private def create(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
@@ -52,7 +52,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     }).flatMap(f => f)
   }
 
-  def read(request: Request): Future[Response] = {
+  private def read(request: Request): Future[Response] = {
     val requestMethod = request.getRequest.getOrDefault("REQ_METHOD", "").asInstanceOf[String]
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
@@ -80,6 +80,31 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     } map (node => {
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
       ResponseHandler.OK.put("categoryInstance", metadata)
+    })
+  }
+  
+  private def update(request: Request): Future[Response] = {
+    RequestUtil.restrictProperties(request)
+    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
+    val categoryId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
+    if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
+    request.getRequest.put(Constants.IDENTIFIER, CategoryInstanceManager.generateIdentifier(frameworkId, categoryId))
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+    })
+  }
+
+  private def retire(request: Request): Future[Response] = {
+    RequestUtil.restrictProperties(request)
+    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
+    val categoryId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
+    if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
+    request.getRequest.put(Constants.IDENTIFIER, CategoryInstanceManager.generateIdentifier(frameworkId, categoryId))
+    request.getRequest.put("status", "Retired")
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
   }
 

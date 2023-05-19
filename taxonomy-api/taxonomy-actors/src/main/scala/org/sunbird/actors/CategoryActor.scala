@@ -41,14 +41,14 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     })
   }
 
-  def read(request: Request): Future[Response] = {
+  private def read(request: Request): Future[Response] = {
     DataNode.read(request).map(node => {
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
       ResponseHandler.OK.put("category", metadata)
     })
   }
 
-  def update(request: Request): Future[Response] = {
+  private def update(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
     if (request.getRequest.containsKey(Constants.CODE)) throw new ClientException("ERR_CATEGORY_UPDATE", "code updation is not allowed.")
     RedisCache.delete("masterCategories")
@@ -58,7 +58,7 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     })
   }
 
-  def retire(request: Request): Future[Response] = {
+  private def retire(request: Request): Future[Response] = {
     request.getRequest.put("status", "Retired")
     RedisCache.delete("masterCategories")
     DataNode.update(request).map(node => {
