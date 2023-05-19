@@ -82,17 +82,30 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
       ResponseHandler.OK.put("categoryInstance", metadata)
     })
   }
-  
+
   private def update(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     val categoryId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
-    request.getRequest.put(Constants.IDENTIFIER, CategoryInstanceManager.generateIdentifier(frameworkId, categoryId))
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
-    })
+    val categoryInstanceId = CategoryInstanceManager.generateIdentifier(frameworkId, categoryId)
+    val getCategoryReq = new Request()
+    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {{
+        putAll(request.getContext)
+    }})
+    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    getCategoryReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
+    getCategoryReq.put(Constants.IDENTIFIER, categoryInstanceId)
+    DataNode.read(getCategoryReq).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+        request.getRequest.put(Constants.IDENTIFIER, CategoryInstanceManager.generateIdentifier(frameworkId, categoryId))
+        DataNode.update(request).map(node => {
+          ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+            .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
+        })
+      } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
+    }).flatMap(f => f)
   }
 
   private def retire(request: Request): Future[Response] = {
@@ -101,11 +114,23 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     val categoryId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
-    request.getRequest.put(Constants.IDENTIFIER, CategoryInstanceManager.generateIdentifier(frameworkId, categoryId))
-    request.getRequest.put("status", "Retired")
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
-    })
+    val categoryInstanceId = CategoryInstanceManager.generateIdentifier(frameworkId, categoryId)
+    val getCategoryReq = new Request()
+    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {{
+        putAll(request.getContext)
+    }})
+    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    getCategoryReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
+    getCategoryReq.put(Constants.IDENTIFIER, categoryInstanceId)
+    DataNode.read(getCategoryReq).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+        request.getRequest.put(Constants.IDENTIFIER, CategoryInstanceManager.generateIdentifier(frameworkId, categoryId))
+        request.getRequest.put("status", "Retired")
+        DataNode.update(request).map(node => {
+          ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
+        })
+      } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
+    }).flatMap(f => f)
   }
 
 }
