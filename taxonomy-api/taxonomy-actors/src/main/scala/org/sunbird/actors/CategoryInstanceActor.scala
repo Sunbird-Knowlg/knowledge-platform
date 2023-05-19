@@ -115,7 +115,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
   private def retire(request: Request): Future[Response] = {
     val requestMethod = request.getRequest.getOrDefault("REQ_METHOD", "").asInstanceOf[String]
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
-    val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
+    val categoryId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
     val categoryInstanceId = CategoryInstanceManager.generateIdentifier(frameworkId, categoryId)

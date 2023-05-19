@@ -54,7 +54,7 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
     val headers = commonHeaders()
     val body = requestBody()
     val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    categoryInstance.put(Constants.CATEGORY, category)
+    categoryInstance.put(Constants.IDENTIFIER, category)
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
     val categoryInstanceRequest = getRequest(categoryInstance, headers, Constants.RETIRE_CATEGORY_INSTANCE)
