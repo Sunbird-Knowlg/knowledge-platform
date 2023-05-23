@@ -30,11 +30,11 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
     val headers = commonHeaders()
     val body = requestBody()
     val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    categoryInstance.put(Constants.IDENTIFIER, category)
+    categoryInstance.put(Constants.CATEGORY, category)
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
     val readCategoryRequest = getRequest(categoryInstance, headers, Constants.READ_CATEGORY_INSTANCE)
-    setRequestContext(readCategoryRequest, Constants.CATEGORY_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    setRequestContext(readCategoryRequest, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
     getResult(ApiId.READ_CATEGORY_INSTANCE, categoryInstanceActor, readCategoryRequest)
   }
 
@@ -46,7 +46,8 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
     val categoryInstanceRequest = getRequest(categoryInstance, headers, Constants.UPDATE_CATEGORY_INSTANCE)
-    setRequestContext(categoryInstanceRequest, Constants.CATEGORY_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    setRequestContext(categoryInstanceRequest, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    categoryInstanceRequest.getContext.put(Constants.CATEGORY, category)
     getResult(ApiId.UPDATE_CATEGORY_INSTANCE, categoryInstanceActor, categoryInstanceRequest)
   }
 
@@ -54,11 +55,12 @@ class CategoryInstanceController  @Inject()(@Named(ActorNames.CATEGORY_INSTANCE_
     val headers = commonHeaders()
     val body = requestBody()
     val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    categoryInstance.put(Constants.IDENTIFIER, category)
+    categoryInstance.put(Constants.CATEGORY, category)
     categoryInstance.put(Constants.FRAMEWORK, framework)
     categoryInstance.putAll(headers)
     val categoryInstanceRequest = getRequest(categoryInstance, headers, Constants.RETIRE_CATEGORY_INSTANCE)
-    setRequestContext(categoryInstanceRequest, Constants.CATEGORY_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    setRequestContext(categoryInstanceRequest, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION, objectType, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    categoryInstanceRequest.getContext.put(Constants.CATEGORY, category)
     getResult(ApiId.RETIRE_CATEGORY_INSTANCE, categoryInstanceActor, categoryInstanceRequest)
   }
 

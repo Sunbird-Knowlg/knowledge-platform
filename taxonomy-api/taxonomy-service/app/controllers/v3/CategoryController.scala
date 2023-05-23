@@ -38,7 +38,7 @@ class CategoryController  @Inject()(@Named(ActorNames.CATEGORY_ACTOR) categoryAc
     val body = requestBody()
     val category = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     category.putAll(headers)
-    val categoryRequest = getRequest(category, headers, Constants.CREATE_CATEGORY)
+    val categoryRequest = getRequest(category, headers, Constants.UPDATE_CATEGORY)
     setRequestContext(categoryRequest, Constants.CATEGORY_SCHEMA_VERSION, objectType, Constants.CATEGORY_SCHEMA_NAME)
     categoryRequest.getContext.put("identifier", identifier);
     getResult(ApiId.UPDATE_CATEGORY, categoryActor, categoryRequest)

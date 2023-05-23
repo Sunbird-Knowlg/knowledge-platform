@@ -62,7 +62,6 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     request.getRequest.put("status", "Retired")
     RedisCache.delete("masterCategories")
     DataNode.update(request).map(node => {
-      val identifier: String = node.getIdentifier
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
   }
