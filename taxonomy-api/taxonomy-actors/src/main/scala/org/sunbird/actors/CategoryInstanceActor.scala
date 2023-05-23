@@ -59,10 +59,10 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
   }
 
   private def update(request: Request): Future[Response] = {
-    val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String];
+    val categoryId = request.getContext.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String];
     RequestUtil.restrictProperties(request)
     validateCategoryInstanceObject(request)
-    request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], categoryId))
+    request.getContext.put(Constants.IDENTIFIER, generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], categoryId))
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
     })
@@ -70,7 +70,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
 
   private def retire(request: Request): Future[Response] = {
     validateCategoryInstanceObject(request)
-    request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]))
+    request.getContext.put(Constants.IDENTIFIER, generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]))
     request.getRequest.put("status", "Retired")
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
