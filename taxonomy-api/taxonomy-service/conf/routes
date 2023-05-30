@@ -25,10 +25,10 @@ PATCH     /framework/v3/category/update/:category            controllers.v3.Cate
 PATCH    /framework/v3/category/retire/:category            controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
 
 # Term API's
-POST      /framework/v3/term/create                      controllers.v3.CategoryInstanceController.createFrameworkTerm(framework: String, category: String)
-GET       /framework/v3/term/read/:termId                controllers.v3.CategoryInstanceController.readFrameworkTerm(termId: String, framework: String, category: String)
-PATCH     /framework/v3/term/update/:termId              controllers.v3.CategoryInstanceController.updateFrameworkTerm(termId: String, framework: String, category: String)
-PATCH     /framework/v3/term/retire/:termId              controllers.v3.CategoryInstanceController.retireFrameworkTerm(termId: String, framework: String, category: String)
+POST      /framework/v3/term/create                      controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
+GET       /framework/v3/term/read/:termId                controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
+PATCH     /framework/v3/term/update/:termId              controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
+PATCH     /framework/v3/term/retire/:termId              controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
 
 # Object Category API's
 POST      /object/category/v4/create                           controllers.v4.ObjectCategoryController.create
