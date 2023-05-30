@@ -20,4 +20,9 @@ object ApiId {
 	final val UPDATE_CATEGORY_INSTANCE = "api.taxonomy.category.instance.update"
 	final val RETIRE_CATEGORY_INSTANCE = "api.taxonomy.category.instance.retire"
 
+	final val CREATE_TERM = "api.taxonomy.term.create"
+	final val READ_TERM = "api.taxonomy.term.read"
+	final val UPDATE_TERM = "api.taxonomy.term.update"
+	final val RETIRE_TERM = "api.taxonomy.term.retire"
+
 }
