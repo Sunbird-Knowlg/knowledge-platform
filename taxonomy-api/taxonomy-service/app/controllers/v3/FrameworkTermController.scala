@@ -20,7 +20,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
     term.put(Constants.CATEGORY, category)
     term.putAll(headers)
     val termRequest = getRequest(term, headers, Constants.CREATE_TERM)
-    setRequestContext(termRequest, Constants.TERM_SCHEMA_NAME, objectType, Constants.TERM_SCHEMA_VERSION)
+    setRequestContext(termRequest, Constants.TERM_SCHEMA_VERSION, objectType, Constants.TERM_SCHEMA_NAME)
     getResult(ApiId.CREATE_TERM, termActor, termRequest)
   }
 
@@ -33,7 +33,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
     term.put(Constants.FRAMEWORK, framework)
     term.putAll(headers)
     val readTermRequest = getRequest(term, headers, Constants.READ_TERM)
-    setRequestContext(readTermRequest, Constants.TERM_SCHEMA_NAME, objectType, Constants.TERM_SCHEMA_NAME)
+    setRequestContext(readTermRequest, Constants.TERM_SCHEMA_VERSION, objectType, Constants.TERM_SCHEMA_NAME)
     getResult(ApiId.READ_TERM, termActor, readTermRequest)
   }
 

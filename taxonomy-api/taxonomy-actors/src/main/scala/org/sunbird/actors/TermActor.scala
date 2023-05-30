@@ -45,9 +45,8 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     } else {
       validateCategory(request)
     }
-    val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
-    val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
-    request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, code))
+    val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
+    request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
     DataNode.create(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
@@ -102,17 +101,17 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     val termId = request.getRequest.getOrDefault(Constants.TERM, "").asInstanceOf[String]
     if (termId.isEmpty()) throw new ClientException("ERR_INVALID_TERM_ID", s"Invalid TermId: '${termId}' for Term")
     val categoryInstanceId = generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
-    val getCategoryReq = new Request()
-    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {
+    val getTermReq = new Request()
+    getTermReq.setContext(new util.HashMap[String, AnyRef]() {
       {
         putAll(request.getContext)
       }
     })
-    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.TERM_SCHEMA_NAME)
-    getCategoryReq.getContext.put(Constants.VERSION, Constants.TERM_SCHEMA_VERSION)
-    getCategoryReq.put(Constants.IDENTIFIER, generateIdentifier(categoryInstanceId, termId))
-    DataNode.read(getCategoryReq)(oec, ec).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
+    getTermReq.getContext.put(Constants.SCHEMA_NAME, Constants.TERM_SCHEMA_NAME)
+    getTermReq.getContext.put(Constants.VERSION, Constants.TERM_SCHEMA_VERSION)
+    getTermReq.put(Constants.IDENTIFIER, generateIdentifier(categoryInstanceId, termId))
+    DataNode.read(getTermReq)(oec, ec).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, generateIdentifier(categoryInstanceId, termId))) node
       else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
     })(ec)
   }
@@ -123,16 +122,16 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Term ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for Term")
     val categoryInstanceId = generateIdentifier(frameworkId, categoryId)
-    val getCategoryReq = new Request()
-    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {
+    val getCategoryInstanceReq = new Request()
+    getCategoryInstanceReq.setContext(new util.HashMap[String, AnyRef]() {
       {
         putAll(request.getContext)
       }
     })
-    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
-    getCategoryReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
-    getCategoryReq.put(Constants.IDENTIFIER, categoryInstanceId)
-    DataNode.read(getCategoryReq)(oec, ec).map(node => {
+    getCategoryInstanceReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    getCategoryInstanceReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
+    getCategoryInstanceReq.put(Constants.IDENTIFIER, categoryInstanceId)
+    DataNode.read(getCategoryInstanceReq)(oec, ec).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
       else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
     })(ec)

@@ -48,7 +48,7 @@ object Constants {
     val UPDATE_TERM: String = "updateTerm"
     val RETIRE_TERM: String = "retireTerm"
     val TERM_SCHEMA_VERSION: String = "1.0";
-    val TERM_SCHEMA_NAME: String = "Term"
+    val TERM_SCHEMA_NAME: String = "term"
 
     // Constants For Framework
     val FRAMEWORK: String = "framework";
