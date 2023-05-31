@@ -35,7 +35,7 @@ class FrameworkSpec extends BaseSpec {
 
         "return success response for read framework API" in {
             val controller = app.injector.instanceOf[controllers.v3.FrameworkController]
-            val result = controller.readFramework("do_123", Option(""))(FakeRequest())
+            val result = controller.readFramework("do_123", Option(""),Option("") )(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }

@@ -25,11 +25,11 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
         getResult(ApiId.CREATE_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
-    def readFramework(identifier: String, categories: Option[String]) = Action.async { implicit request =>
+    def readFramework(identifier: String, fields: Option[String], categories: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val framework = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         framework.putAll(headers)
-        framework.putAll(Map(Constants.IDENTIFIER -> identifier, Constants.CATEGORIES -> categories.getOrElse("")).asJava )
+        framework.putAll(Map(Constants.IDENTIFIER -> identifier, Constants.FIELDS -> fields.getOrElse(""), Constants.CATEGORIES -> categories.getOrElse("")).asJava )
         val readRequest = getRequest(framework, headers, "readFramework")
         setRequestContext(readRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
         getResult(ApiId.READ_FRAMEWORK, frameworkActor, readRequest)
@@ -75,8 +75,14 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
     }
 
     def publish(identifier: String) = Action.async { implicit request =>
-        val result = ResponseHandler.OK()
-        val response = JavaJsonUtils.serialize(result)
-        Future(Ok(response).as("application/json"))
+        val headers = commonHeaders()
+        val body = requestBody()
+        val framework = body.getOrDefault(Constants.FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        framework.putAll(headers)
+        framework.putAll(Map("identifier" -> identifier).asJava)
+        val frameworkRequest = getRequest(framework, headers, Constants.PUBLISH_FRAMEWORK)
+        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
+        getResult(ApiId.PUBLISH_FRAMEWORK, frameworkActor, frameworkRequest)
+
     }
 }

@@ -13,7 +13,30 @@
       "identifier"
     ]
   },
-  "external": {},
+  "external": {
+    "tableName": "framework_data",
+    "properties": {
+      "body": {
+        "type": "blob"
+      },
+      "oldBody": {
+        "type": "blob"
+      },
+      "stageIcons": {
+        "type": "blob"
+      },
+      "screenshots": {
+        "type": "blob"
+      },
+      "last_updated_on": {
+        "type": "timestamp"
+      },
+      "externallink": {
+        "type": "text"
+      }
+    },
+    "primaryKey": ["framework_id"]
+  },
   "relations": {
     "channels": {
       "type": "hasSequenceMember",

@@ -32,9 +32,15 @@ object Constants {
     val UPDATE_FRAMEWORK: String = "updateFramework";
     val RETIRE_FRAMEWORK: String = "retireFramework";
     val COPY_FRAMEWORK: String = "copyFramework";
+    val PUBLISH_FRAMEWORK: String = "publishFramework";
     val FRAMEWORK_SCHEMA_VERSION = "1.0";
     val FRAMEWORK_SCHEMA_NAME="framework"
     val CODE: String = "code";
     val CATEGORIES: String = "categories"
     val ROOT_ID: String = "rootId"
+    val CHANNEL_SCHEMA_NAME="channel"
+    val CHANNEL_SCHEMA_VERSION = "1.0";
+    val PUBLISH_STATUS: String = "publishStatus"
+
+
 }
