@@ -13,10 +13,22 @@ POST      /framework/v3/copy/:identifier                  controllers.v3.Framewo
 POST      /framework/v3/publish/:identifier               controllers.v3.FrameworkController.publish(identifier:String)
 
 # Category API's
+POST      /framework/v3/category/master/create                      controllers.v3.CategoryController.createCategory
+GET       /framework/v3/category/master/read/:identifier            controllers.v3.CategoryController.readCategory(identifier:String)
+PATCH     /framework/v3/category/master/update/:identifier          controllers.v3.CategoryController.updateCategory(identifier:String)
+DELETE    /framework/v3/category/master/retire/:identifier          controllers.v3.CategoryController.retireCategory(identifier:String)
 
+# Framework Category API's
+POST      /framework/v3/category/create                      controllers.v3.CategoryInstanceController.createCategoryInstance(framework: String)
+GET       /framework/v3/category/read/:category              controllers.v3.CategoryInstanceController.readCategoryInstance(category:String, framework: String)
+PATCH     /framework/v3/category/update/:category            controllers.v3.CategoryInstanceController.updateCategoryInstance(category:String, framework: String)
+DELETE    /framework/v3/category/retire/:category            controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
 
 # Term API's
-
+POST      /framework/v3/term/create                      controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
+GET       /framework/v3/term/read/:termId                controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
+PATCH     /framework/v3/term/update/:termId              controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
+DELETE    /framework/v3/term/retire/:termId              controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
 
 # Object Category API's
 POST      /object/category/v4/create                           controllers.v4.ObjectCategoryController.create
