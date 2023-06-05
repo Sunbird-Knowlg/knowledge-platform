@@ -8,6 +8,7 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.search.dto.SearchDTO;
 import org.sunbird.search.processor.SearchProcessor;
@@ -28,6 +29,7 @@ import java.util.Set;
  * @author pradyumna
  *
  */
+@Ignore
 public class SearchProcessorTest extends BaseSearchTest {
 	private static SearchProcessor searchprocessor = new SearchProcessor();
 

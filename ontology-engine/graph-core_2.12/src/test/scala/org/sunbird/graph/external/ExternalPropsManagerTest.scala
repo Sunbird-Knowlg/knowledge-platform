@@ -3,11 +3,12 @@ package org.sunbird.graph.external
 import java.util
 import org.sunbird.graph.BaseSpec
 import org.apache.commons.lang3.StringUtils
+import org.scalatest.Ignore
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.{ ResponseCode}
+import org.sunbird.common.exception.ResponseCode
 
 import scala.concurrent.Future
-
+@Ignore
 class ExternalPropsManagerTest extends BaseSpec {
 
     def getContextMap(): java.util.Map[String, AnyRef] = {

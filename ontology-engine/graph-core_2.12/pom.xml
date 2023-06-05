@@ -94,7 +94,7 @@
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>4.4.0</version>
+                <version>3.2.2</version>
                 <configuration>
                     <scalaVersion>${scala.version}</scalaVersion>
                     <checkMultipleScalaVersions>false</checkMultipleScalaVersions>

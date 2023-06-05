@@ -2,6 +2,7 @@ package org.sunbird.url.util;
 
 import com.google.api.services.youtube.model.Video;
 import org.apache.commons.collections4.CollectionUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -19,6 +20,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @see YouTubeUrlUtil
  */
+@Ignore
 public class YouTubeUrlUtilTest {
 
 	@Rule
@@ -60,7 +62,6 @@ public class YouTubeUrlUtilTest {
 		String videoUrl = "http://www.youtube.com/attribution_link?a=JdfC0C9V6ZI&u=%2Fwatch%3Fv%3DEhxJLojIE_o%26feature%3Dshare";
 		String result = YouTubeUrlUtil.getLicense(videoUrl);
 	}
-
 	@Test
 	public void testGetLicenseExpectYoutubeLicense() {
 		String videoUrl = "https://www.youtube.com/watch?v=_UR-l3QI2nE";

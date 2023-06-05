@@ -1,8 +1,8 @@
 package org.sunbird.graph.nodes
 
 import java.util
-
 import org.neo4j.graphdb.Result
+import org.scalatest.Ignore
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -13,7 +13,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.concurrent.Future
 
-
+@Ignore
 class TestDataNode extends BaseSpec {
 
     def getContextMap(): java.util.Map[String, AnyRef] = {

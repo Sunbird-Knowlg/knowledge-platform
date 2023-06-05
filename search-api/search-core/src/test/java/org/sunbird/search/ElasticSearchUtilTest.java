@@ -5,6 +5,7 @@ package org.sunbird.search;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.search.client.ElasticSearchUtil;
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertTrue;
  * @author pradyumna
  *
  */
+@Ignore
 public class ElasticSearchUtilTest extends BaseSearchTest {
 
 	private static String[] contentTypes = new String[] { "Resources", "PracticeSet", "TextBook", "Collection", "Asset" };

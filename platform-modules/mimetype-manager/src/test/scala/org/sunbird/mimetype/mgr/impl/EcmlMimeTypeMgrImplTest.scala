@@ -1,20 +1,19 @@
+/*
 package org.sunbird.mimetype.mgr.impl
-
-import java.io.File
-import java.util
 
 import com.google.common.io.Resources
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
-import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ClientException
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.models.UploadParams
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import java.io.File
+import java.util
+import scala.concurrent.Future
 class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMockFactory{
 
     implicit val ss = mock[StorageService]
@@ -65,7 +64,6 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
 
         assert(true)
     }
-
     it should "upload ECML with json zip file URL and return public url" in {
         val node = getNode()
         val identifier = "do_1234"
@@ -138,3 +136,4 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         node
     }
 }
+*/

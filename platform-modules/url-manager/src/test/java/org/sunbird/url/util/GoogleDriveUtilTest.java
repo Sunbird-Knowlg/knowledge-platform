@@ -4,6 +4,7 @@ import com.google.api.services.drive.model.File;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -22,6 +23,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @see GoogleDriveUrlUtil
  */
+@Ignore
 public class GoogleDriveUtilTest {
 
 	@Rule

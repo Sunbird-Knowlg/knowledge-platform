@@ -37,7 +37,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
             InputStream stream = new URL( basePath + "schema.json").openStream();
             this.schema = readSchema(stream);
         }else {
-            Path schemaPath = new File( basePath + "schema.json").toPath();
+            Path schemaPath = new File( basePath + "config.json").toPath();
             this.schema = readSchema(schemaPath);
         }
     }

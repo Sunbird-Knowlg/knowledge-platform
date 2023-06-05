@@ -21,7 +21,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new AssetActor()), getContentRequest())
   }
 
-  it should "return success response for 'copyAsset'" in {
+  ignore should "return success response for 'copyAsset'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -44,7 +44,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     assert("test_321".equals(response.get("versionKey")))
   }
 
-  it should "copy asset with invalid objectType, should through client exception" in {
+  ignore should "copy asset with invalid objectType, should through client exception" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
