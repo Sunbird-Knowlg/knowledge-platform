@@ -9,17 +9,19 @@ import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.mangers.FrameworkManager
 import org.sunbird.utils.{CategoryCache, FrameworkCache}
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util
+import java.util.concurrent.CompletionException
 import javax.inject.Inject
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.collection.JavaConversions.mapAsJavaMap
 
 class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -69,30 +71,47 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
 
   @throws[Exception]
   private def read(request: Request): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
-    val returnCategories : util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.CATEGORIES).asInstanceOf[String].split(",").filter(categories => StringUtils.isNotBlank(categories) && !StringUtils.equalsIgnoreCase(categories, "null"))).asJava
     val frameworkId = request.get("identifier").asInstanceOf[String]
-    request.getRequest.put(Constants.FIELDS, fields)
-    request.getRequest.put(Constants.CATEGORIES, returnCategories)
-    var framework = FrameworkCache.get(frameworkId, returnCategories)
-    if (MapUtils.isNotEmpty(framework.asJava)) {
-      ResponseHandler.OK.put(Constants.FRAMEWORK, framework)
-    }
-    request.put(Constants.ROOT_ID, request.get(Constants.IDENTIFIER))
-    FrameworkHierarchyManager.getHierarchy(request).map(hierarchyResponse => {
-      if (!ResponseHandler.checkError(hierarchyResponse)) {
-        framework = hierarchyResponse.get(Constants.FRAMEWORK).asInstanceOf[Map[String, AnyRef]]
-      }})
-    if (MapUtils.isNotEmpty(framework.asJava)) {
-      FrameworkManager.filterFrameworkCategories(framework.asJava, returnCategories)
-      FrameworkCache.save(framework, returnCategories)
-      Future{ResponseHandler.OK.put(Constants.FRAMEWORK, framework)}
-    } else {
-      DataNode.read(request).map(node => {
-        val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
-        ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
+    println("READ framework => " + frameworkId)
+    if(StringUtils.isNotBlank(frameworkId)) {
+//      DataNode.read(request).map(node => {
+//        println("publish framework => " + node.getIdentifier)
+      val frameworkHierarchy =  FrameworkHierarchyManager.getFrameworkHierarchy(request)
+      frameworkHierarchy.map(hierarchyResponse => {
+//        if (!hierarchyResponse.isEmpty) {
+          val hierarchyMap = mapAsJavaMap(hierarchyResponse)
+          ResponseHandler.OK.put(Constants.FRAMEWORK, hierarchyMap)
+//        } else {
+//          DataNode.read(request).map(node => {
+//            if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+//              val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+//              ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
+//            } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
+//          }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+//        }
       })
-    }
+    } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
+    // var framework = FrameworkCache.get(frameworkId, returnCategories)
+//    println("READ framework => " + frameworkId)
+//    val frameworkHierarchy =  FrameworkHierarchyManager.getFrameworkHierarchy(request)
+//    println("frameworkHierarchy "+ frameworkHierarchy)
+//    frameworkHierarchy.flatMap(hierarchyResponse => {
+//      Future{ResponseHandler.OK.put(Constants.FRAMEWORK, hierarchyResponse)}
+//    })
+//    frameworkHierarchy.flatMap(hierarchyResponse => {
+////      if (MapUtils.isNotEmpty(hierarchyResponse.asJava)) {
+////        FrameworkCache.save(frameworkId, hierarchyResponse)
+//      println("hierarchyResponse "+ hierarchyResponse)
+//      ResponseHandler.OK.put(Constants.FRAMEWORK, hierarchyResponse)
+////      } else {
+////        DataNode.read(request).map(node => {
+////          if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+////            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+////            ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
+////          } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
+////        })
+////      }
+//    })
   }
 
   @throws[Exception]
@@ -142,10 +161,16 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
             getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
             getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
             DataNode.read(getFrameworkReq).map(node => {
-              generateFrameworkHierarchy(getFrameworkReq, node)
-              request.getContext.put("identifier", node.getIdentifier)
-              request.put("status", "Live")
-              DataNode.update(request).map(node => {
+              println("publish framework => " + node.getIdentifier)
+              println(" === getOutRelations === " + node.getOutRelations())
+              request.put(Constants.ROOT_ID, node.getIdentifier)
+              FrameworkHierarchyManager.generateFrameworkHierarchy(request).map(frameworkHierarchy => {
+                println("frameworkHierarchy  ==  " + frameworkHierarchy)
+                // CategoryCache.setFramework(node.getIdentifier, frameworkHierarchy.get("categories").asInstanceOf[Map[String, AnyRef]])
+                val req = new Request(request)
+                req.put("hierarchy", ScalaJsonUtils.serialize(frameworkHierarchy))
+                req.put("identifier", node.getIdentifier)
+                oec.graphService.saveExternalProps(req)
                 ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${node.getIdentifier}' is pushed Successfully!")
               })
             }).flatMap(f => f)
@@ -156,18 +181,18 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       }).flatMap(f => f)
     }
 
-    def generateFrameworkHierarchy(request: Request, node: Node): Future[Response] = {
-      val id = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
-      if (StringUtils.equalsIgnoreCase(node.getObjectType, "Framework")) {
-        FrameworkCache.delete(id)
-        updateRequestWithMode(request)
-        FrameworkHierarchyManager.getHierarchy(request).map(response =>{
-          val originHierarchy = response.getResult.getOrDefault(Constants.FRAMEWORK, new HashMap[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]]
-          CategoryCache.setFramework(node.getIdentifier, originHierarchy)
-          Future{response}
-        }).flatMap(f => f)
-      } else throw new ClientException(ResponseCode.CLIENT_ERROR.name, "The object with given identifier is not a framework: " +id )
-    }
+//    def generateFrameworkHierarchy(request: Request, node: Node): Future[Response] = {
+//      val id = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+//      if (StringUtils.equalsIgnoreCase(node.getObjectType, "Framework")) {
+//        FrameworkCache.delete(id)
+//        updateRequestWithMode(request)
+////        FrameworkHierarchyManager.getFremaeworkHierarchy(request).map(response =>{
+//////          val originHierarchy = response.getResult.getOrDefault(Constants.FRAMEWORK, new HashMap[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]]
+//////          CategoryCache.setFramework(node.getIdentifier, originHierarchy)
+////          Future{response}
+////        }).flatMap(f => f)
+//      } else throw new ClientException(ResponseCode.CLIENT_ERROR.name, "The object with given identifier is not a framework: " +id )
+//    }
 
   private def updateRequestWithMode(request: Request) {
     request.put("rootId", request.get(Constants.IDENTIFIER).asInstanceOf[String])

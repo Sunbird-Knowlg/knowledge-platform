@@ -398,7 +398,7 @@ object FrameworkUpdateHierarchyManager {
                         TelemetryManager.info(s"ObjectType for $parent is ${parentNode.getObjectType}...")
                         val parentMetadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(parentNode, new java.util.ArrayList[String](), parentNode.getObjectType.toLowerCase, "1.0")
                         val childMetadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(node, new java.util.ArrayList[String](), node.getObjectType.toLowerCase, "1.0")
-                        FrameworkHierarchyManager.validateLeafNodes(parentMetadata, childMetadata, request)
+//                        FrameworkHierarchyManager.validateLeafNodes(parentMetadata, childMetadata, request)
                         populateHierarchyRelatedData(node, depth, index, parent)
                         node.getMetadata.put(HierarchyConstants.VISIBILITY, HierarchyConstants.DEFAULT)
                         //TODO: Populate category mapping before updating for backward
