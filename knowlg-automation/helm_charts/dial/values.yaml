@@ -1,0 +1,34 @@
+api_namespace: knowlg-api
+
+env:
+  javaoptions: -Xmx600m
+
+replicaCount: 1
+repository: docker.io/aimansharief/dial-service
+image_tag: R5.2.0
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 1
+    memory: 1024Mi
+network:
+  port: 9000
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: 25%
+  maxunavailable: 25%
+serviceType: ClusterIP
+cassandra_connection: cassandra-db.knowlg-db.svc.cluster.local:9042
+redis_connection: redis-db.knowlg-db.svc.cluster.local
+es_connection: elasticsearch.knowlg-db.svc.cluster.local:9200
+dialcode_keyspace_name: dialcode_store
+dialcode_keyspace_table: dial_code
+systemconfig_keyspace_name: dialcode_store
+systemconfig_table: system_config
+publisher_keyspace_name: dialcode_store
+publisher_keyspace_table: publisher
+dialcode_object_type: DialCode
+graph_event: local.learning.graph.events

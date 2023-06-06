@@ -1,0 +1,5 @@
+db_namespace: knowlg-db
+replicaCount: 1
+network:
+  port: 6379
+  targetport: 6379
