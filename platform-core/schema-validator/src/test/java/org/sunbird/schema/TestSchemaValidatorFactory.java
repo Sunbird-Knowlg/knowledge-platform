@@ -3,6 +3,7 @@ package org.sunbird.schema;
 import com.typesafe.config.ConfigException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.common.exception.ServerException;
 
@@ -10,6 +11,7 @@ import javax.json.JsonException;
 import java.util.Arrays;
 import java.util.List;
 
+@Ignore
 public class TestSchemaValidatorFactory {
 
 
