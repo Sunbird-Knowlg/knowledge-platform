@@ -12,6 +12,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
@@ -25,7 +26,7 @@ object DefinitionNode {
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
       definition.validateRequest(request)
       val inputNode = definition.getNode(request.getRequest)
-	  updateRelationMetadata(inputNode)
+	    updateRelationMetadata(inputNode)
       definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause}
   }
 
@@ -186,16 +187,15 @@ object DefinitionNode {
 		var relOcr = new util.HashMap[String, Integer]()
 		val rels = node.getAddedRelations
 		for (rel <- rels) {
-			val relKey = rel.getStartNodeObjectType + rel.getRelationType + rel.getEndNodeObjectType
-			if (relOcr.containsKey(relKey))
-				relOcr.put(relKey, relOcr.get(relKey) + 1)
-			else relOcr.put(relKey, 1)
+        val relKey = rel.getStartNodeObjectType + rel.getRelationType + rel.getEndNodeObjectType
+        if (relOcr.containsKey(relKey))
+          relOcr.put(relKey, relOcr.get(relKey) + 1)
+        else relOcr.put(relKey, 1)
 
-			if (relKey.contains("hasSequenceMember")) {
-				rel.setMetadata(new util.HashMap[String, AnyRef]() {{
-						put("IL_SEQUENCE_INDEX", relOcr.get(relKey));
-					}})
-			} else rel.setMetadata(new util.HashMap[String, AnyRef]())
+        if (relKey.contains("hasSequenceMember")) {
+          val index = if (rel.getMetadata.containsKey("index")) rel.getMetadata.get("index").asInstanceOf[Integer] else relOcr.get(relKey)
+          rel.setMetadata(Map[String, AnyRef]("IL_SEQUENCE_INDEX" -> index).asJava)
+        } else rel.setMetadata(new util.HashMap[String, AnyRef]())
 		}
 		node.setAddedRelations(rels)
 	}

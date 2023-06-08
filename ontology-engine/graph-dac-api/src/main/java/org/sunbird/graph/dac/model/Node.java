@@ -112,7 +112,9 @@ public class Node implements Serializable {
     }
 
     public List<Relation> getOutRelations() {
-        return outRelations;
+        if (!CollectionUtils.isEmpty(outRelations))
+            return outRelations;
+        else return new ArrayList<>();
     }
 
     public void setOutRelations(List<Relation> outRelations) {
@@ -120,7 +122,9 @@ public class Node implements Serializable {
     }
 
     public List<Relation> getInRelations() {
-        return inRelations;
+        if (!CollectionUtils.isEmpty(inRelations))
+            return inRelations;
+        else return new ArrayList<>();
     }
 
     public void setInRelations(List<Relation> inRelations) {

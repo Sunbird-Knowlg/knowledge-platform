@@ -1,21 +1,23 @@
 package org.sunbird.actors
 
-import com.mashape.unirest.http.HttpClientHelper.request
+
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.enums.RelationTypes
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.mangers.CategoryManager
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util
 import java.util.Map
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
   implicit val ec: ExecutionContext = getContext().dispatcher
@@ -50,6 +52,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
         val frameworkList = new util.ArrayList[Map[String, AnyRef]]
         val relationMap = new util.HashMap[String, AnyRef]
         relationMap.put("identifier", frameworkId)
+        relationMap.put("index", getCategoryIndex(node))
         frameworkList.add(relationMap)
         request.put("frameworks", frameworkList)
 
@@ -60,6 +63,14 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
         })
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatMap(f => f)
+  }
+
+  private def getCategoryIndex(node: Node): Integer = {
+    val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType,RelationTypes.SEQUENCE_MEMBERSHIP.relationName())))
+      .map(relation => {
+        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
+      })
+    if (indexList.nonEmpty) indexList.max + 1 else 1
   }
 
   private def read(request: Request): Future[Response] = {
