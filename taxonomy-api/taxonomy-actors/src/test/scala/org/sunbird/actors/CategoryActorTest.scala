@@ -48,7 +48,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
           request.getRequest.put("name", "category_test")
           request.getRequest.put("code", "category_test")
           request.getRequest.put("status", "Live")
-          request.setOperation("createCategory")
+          request.setOperation(Constants.CREATE_CATEGORY)
           val response = callActor(request, Props(new CategoryActor()))
           assert("failed".equals(response.getParams.getStatus))
       }
@@ -57,7 +57,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
           implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
           val request = getCategoryRequest()
           request.getRequest.put("name", "category_test")
-          request.setOperation("createCategory")
+          request.setOperation(Constants.CREATE_CATEGORY)
           val response = callActor(request, Props(new CategoryActor()))
           assert("failed".equals(response.getParams.getStatus))
       }
@@ -87,11 +87,21 @@ class CategoryActorTest extends BaseSpec with MockFactory{
           (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
           val request = getCategoryRequest()
-          request.getContext.put(Constants.IDENTIFIER, "category_test")
           request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
           request.setOperation(Constants.UPDATE_CATEGORY)
           val response = callActor(request, Props(new CategoryActor()))
           assert("successful".equals(response.getParams.getStatus))
+      }
+
+      it should "throw an exception if identifier is sent in request" in {
+          implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+          val graphDB = mock[GraphService]
+          (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+          val request = getCategoryRequest()
+          request.putAll(mapAsJavaMap(Map("description" -> "test desc", "identifier"-> "category_test")))
+          request.setOperation(Constants.UPDATE_CATEGORY)
+          val response = callActor(request, Props(new CategoryActor()))
+          assert("failed".equals(response.getParams.getStatus))
       }
 
       it should "return success response for 'retireCategory' operation" in {
