@@ -31,8 +31,8 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
   @throws[Exception]
   private def create(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
-    if (!request.getRequest.containsKey("code")) throw new ClientException("ERR_CATEGORY_CODE_REQUIRED", "Unique code is mandatory for category")
     val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
+    if (!request.getRequest.containsKey("code") || code.isEmpty) throw new ClientException("ERR_CATEGORY_CODE_REQUIRED", "Unique code is mandatory for category")
     request.getRequest.put(Constants.IDENTIFIER, code)
     RedisCache.delete("masterCategories")
     // CategoryManager.validateTranslationMap(request)
