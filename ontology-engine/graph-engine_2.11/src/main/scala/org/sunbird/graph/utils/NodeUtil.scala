@@ -124,7 +124,7 @@ object NodeUtil {
         val outRelations:util.List[Relation] = { if (CollectionUtils.isEmpty(node.getOutRelations)) new util.ArrayList[Relation] else node.getOutRelations }
         val relMap = new util.HashMap[String, util.List[util.Map[String, AnyRef]]]
         for (rel <- inRelations.asScala) {
-            val relKey:String = rel.getRelationType + "_in_" + rel.getEndNodeObjectType
+            val relKey:String = rel.getRelationType + "_in_" + rel.getStartNodeObjectType
             if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "in"))
             else {
                 if(null != relationMap.get(relKey)) {
