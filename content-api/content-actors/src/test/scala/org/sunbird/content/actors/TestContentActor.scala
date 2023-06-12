@@ -25,7 +25,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         testUnknownOperation(Props(new ContentActor()), getContentRequest())
     }
 
-    ignore should "validate input before creating content" in {
+    it should "validate input before creating content" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
@@ -76,7 +76,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("versionKey") != null)
     }
 
-    ignore should "create a plugin node with invalid request, should through client exception" in {
+    it should "create a plugin node with invalid request, should through client exception" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -87,7 +87,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
-    ignore should "generate and return presigned url" in {
+    it should "generate and return presigned url" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -103,7 +103,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("url_expiry") != null)
     }
 
-    ignore should "discard node in draft state should return success" in {
+    it should "discard node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(2)
@@ -120,7 +120,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     }
 
-    ignore should "discard node in Live state should return client error" in {
+    it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(1)
@@ -133,7 +133,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
-    ignore should "return client error response for retireContent" in {
+    it should "return client error response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
@@ -214,7 +214,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         node
     }
 
-    ignore should "return success response for retireContent" in {
+    it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(2)
@@ -230,7 +230,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'readContent'" in {
+    it should "return success response for 'readContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -245,7 +245,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-   ignore should "return client error response for 'readContent' if visibility is 'Private" in {
+   it should "return client error response for 'readContent' if visibility is 'Private" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -265,7 +265,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
-   ignore should "return success response for 'readPrivateContent'" in {
+   it should "return success response for 'readPrivateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -287,7 +287,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return client error for 'readPrivateContent' if channel is 'blank'" in {
+    it should "return client error for 'readPrivateContent' if channel is 'blank'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -301,7 +301,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getParams.getErrmsg == "Please Provide Channel!")
     }
 
-    ignore should "return client error for 'readPrivateContent' if channel is mismatched" in {
+    it should "return client error for 'readPrivateContent' if channel is mismatched" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -325,7 +325,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getParams.getErrmsg == "Channel id is not matched")
     }
     
-    ignore should "return success response for 'updateContent'" in {
+    it should "return success response for 'updateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -347,7 +347,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("test_123".equals(response.get("versionKey")))
     }
 
-    ignore should "return client exception for 'updateContent' with invalid versionKey" in {
+    it should "return client exception for 'updateContent' with invalid versionKey" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -368,7 +368,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("Invalid version Key".equals(response.getParams.getErrmsg))
     }
 
-    ignore should "return client exception for 'updateContent' without versionKey" in {
+    it should "return client exception for 'updateContent' without versionKey" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
@@ -381,7 +381,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("Please Provide Version Key!".equals(response.getParams.getErrmsg))
     }
 
-    ignore should "return success response for 'copyContent'" in {
+    it should "return success response for 'copyContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -405,7 +405,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("test_321".equals(response.get("versionKey")))
     }
 
-    ignore should "send events to kafka topic" in {
+    it should "send events to kafka topic" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val kfClient = mock[KafkaClient]
@@ -438,8 +438,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-/*
-    ignore should "return success response for 'uploadContent' with jpeg asset"  {
+    /*ignore should "return success response for 'uploadContent' with jpeg asset"  {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -458,11 +457,9 @@ class TestContentActor extends BaseSpec with MockFactory {
         request.setOperation("uploadContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
-        0
     }
 */
-
-    ignore should "return success response for 'systemUpdateContent'" in {
+    it should "return success response for 'systemUpdateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -487,7 +484,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("success".equals(response.get("status")))
     }
 
-    ignore should "return success response for 'reviewContent' for document mimeType" in {
+    it should "return success response for 'reviewContent' for document mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -509,7 +506,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "through client exception for review operation if node is under processing" in {
+    it should "through client exception for review operation if node is under processing" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -550,7 +547,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         node
     }
 
-    ignore should "return success response for 'rejectContent'" in {
+    it should "return success response for 'rejectContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -567,7 +564,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return client exception for 'rejectContent' without status" in {
+    it should "return client exception for 'rejectContent' without status" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -587,7 +584,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("Content metadata error, status is blank for identifier:do_1234".equals(response.getParams.getErrmsg))
     }
 
-    ignore should "return success for 'rejectContent'" in {
+    it should "return success for 'rejectContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -628,7 +625,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         node
     }
 
-    ignore should "return success response for 'publishContent' for document mimeType" in {
+    it should "return success response for 'publishContent' for document mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -648,7 +645,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'publishContent' for youtube mimeType" in {
+    it should "return success response for 'publishContent' for youtube mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -668,7 +665,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'publishContent' for video mimeType" in {
+    it should "return success response for 'publishContent' for video mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -688,7 +685,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'publishContent' for HTML mimeType" in {
+    it should "return success response for 'publishContent' for HTML mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -708,7 +705,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'publishContent' for H5P mimeType" in {
+    it should "return success response for 'publishContent' for H5P mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -728,7 +725,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'publishContent' for Plugin mimeType" in {
+    it should "return success response for 'publishContent' for Plugin mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -748,7 +745,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'publishContent' for Collection mimeType" in {
+    it should "return success response for 'publishContent' for Collection mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -766,7 +763,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "through client exception for publish operation if node is under processing" in {
+    it should "through client exception for publish operation if node is under processing" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -787,7 +784,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getParams.getErrmsg == "Publish Operation Can't Be Applied On Node Under Processing State")
     }
 
-    ignore should "through client exception for publish operation if published by is not passed" in {
+    it should "through client exception for publish operation if published by is not passed" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]

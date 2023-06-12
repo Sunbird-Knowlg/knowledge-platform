@@ -1,25 +1,18 @@
 package org.sunbird.content.util
 
-import java.util
-import java.util.concurrent.CompletionException
-
-import akka.actor.Props
-import org.apache.commons.lang3.BooleanUtils
 import org.scalamock.scalatest.MockFactory
-import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.actors.BaseSpec
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
+import java.util
 import scala.collection.JavaConversions.mapAsJavaMap
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class DiscardManagerTest  extends BaseSpec with MockFactory  {
 
-    ignore should "discard node in Live state should return client error" in {
+    it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = new OntologyEngineContext
         val request = getContentRequest()
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "")))

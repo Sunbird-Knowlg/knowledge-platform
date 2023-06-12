@@ -18,7 +18,7 @@ class TestObjectActor extends BaseSpec with MockFactory{
     testUnknownOperation(Props(new ObjectActor()), getRequest())
   }
 
-  ignore should "return success response for 'readObject'" in {
+  it should "return success response for 'readObject'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)

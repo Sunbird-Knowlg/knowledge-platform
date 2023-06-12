@@ -23,7 +23,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         testUnknownOperation(Props(new CategoryActor()), getCategoryRequest())
     }
 
-    ignore should "create a categoryNode and store it in neo4j" in {
+    it should "create a categoryNode and store it in neo4j" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -40,7 +40,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         assert(response.get("identifier").equals("cat-do_1234"))
     }
 
-    ignore should "return exception for create categoryNode without name" in {
+    it should "return exception for create categoryNode without name" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getCategoryRequest()
@@ -50,7 +50,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         assert(StringUtils.equalsIgnoreCase(response.get("messages").asInstanceOf[util.ArrayList[String]].get(0).asInstanceOf[String], "Required Metadata name not set"))
     }
 
-    ignore should "return exception for categoryNode with identifier" in {
+    it should "return exception for categoryNode with identifier" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getCategoryRequest()
@@ -61,7 +61,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "name will be set as identifier"))
     }
 
-    ignore should "return success response for updateCategory" in {
+    it should "return success response for updateCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -81,7 +81,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
     }
 
 
-    ignore should "return success response for readCategory" in {
+    it should "return success response for readCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(1)

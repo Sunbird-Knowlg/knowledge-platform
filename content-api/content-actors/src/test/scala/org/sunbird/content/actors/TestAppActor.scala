@@ -23,7 +23,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new AppActor()), getRequest())
   }
 
-  ignore should "return success response for 'create' operation" in {
+  it should "return success response for 'create' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -47,7 +47,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
-  ignore should "throw client exception to have all the required properties for app register" in {
+  it should "throw client exception to have all the required properties for app register" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getRequest()
     request.getRequest.put("name", "Test Integration App")
@@ -57,7 +57,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     assert("failed".equals(response.getParams.getStatus))
   }
 
-  ignore should "return success response for update" in {
+  it should "return success response for update" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()//.repeated(2)
@@ -76,7 +76,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     assert(response.get("identifier").equals("android-org.test.sunbird.integration"))
   }
 
-  ignore should "return success response for read app" in {
+  it should "return success response for read app" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).repeated(1)

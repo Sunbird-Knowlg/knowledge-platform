@@ -22,7 +22,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new LicenseActor()), getLicenseRequest())
   }
 
-  ignore should "create a licenseNode and store it in neo4j" in {
+  it should "create a licenseNode and store it in neo4j" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
@@ -40,7 +40,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     assert(response.get("identifier").equals("do_1234"))
   }
 
-  ignore should "return exception for create license without name" in {
+  it should "return exception for create license without name" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getLicenseRequest()
@@ -50,7 +50,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     assert(StringUtils.equalsIgnoreCase(response.get("messages").asInstanceOf[util.ArrayList[String]].get(0).asInstanceOf[String], "Required Metadata name not set"))
   }
 
-  ignore should "return exception for licenseNode with identifier" in {
+  it should "return exception for licenseNode with identifier" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getLicenseRequest()
@@ -61,7 +61,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "name will be set as identifier"))
   }
 
-  ignore should "return success response for updateLicense" in {
+  it should "return success response for updateLicense" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -82,7 +82,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     assert(response.get("identifier").equals("do_1234"))
   }
 
-  ignore should "return success response for readLicense" in {
+  it should "return success response for readLicense" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).repeated(1)
@@ -98,7 +98,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     assert(StringUtils.equalsIgnoreCase(response.get("license").asInstanceOf[util.Map[String, AnyRef]].get("status").asInstanceOf[String], "Live"))
   }
 
-  ignore should "return success response for retireLicense" in {
+  it should "return success response for retireLicense" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()//.repeated(2)

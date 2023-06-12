@@ -22,7 +22,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		testUnknownOperation(Props(new ObjectCategoryDefinitionActor()), getCategoryDefintionRequest())
 	}
 
-	ignore should "create a categoryDefinition node and store it in neo4j" in {
+	it should "create a categoryDefinition node and store it in neo4j" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -54,7 +54,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert(response.get(Constants.IDENTIFIER).equals("obj-cat:1234_content_all"))
 	}
 
-	ignore should "should throw exception if get category node returns null" in {
+	it should "should throw exception if get category node returns null" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -67,7 +67,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "Please provide valid category identifier"))
 	}
 
-	ignore should "should throw exception for blank categoryId" in {
+	it should "should throw exception for blank categoryId" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val request = getCategoryDefintionRequest()
 		request.putAll(mapAsJavaMap(Map("tagetObjectType" -> "Content", "categoryId" -> "")))
@@ -77,7 +77,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "Invalid Request. Please Provide Required Properties!"))
 	}
 
-	ignore should "return success response for readCategoryDefinition" in {
+	it should "return success response for readCategoryDefinition" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -93,7 +93,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
 	}
 
-	ignore should "return success response for readCategoryDefinition with post request" in {
+	it should "return success response for readCategoryDefinition with post request" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -108,7 +108,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
 	}
 
-	ignore should "return success response for readCategoryDefinition with post request for global definition" in {
+	it should "return success response for readCategoryDefinition with post request for global definition" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -125,7 +125,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
 	}
 
-	ignore should "return success response for updateCategoryDefinition for valid input" in {
+	it should "return success response for updateCategoryDefinition for valid input" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -155,7 +155,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		assert("successful".equals(response.getParams.getStatus))
 	}
 
-	ignore should "return client exception response for updateCategoryDefinition for invalid input" in {
+	it should "return client exception response for updateCategoryDefinition for invalid input" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
