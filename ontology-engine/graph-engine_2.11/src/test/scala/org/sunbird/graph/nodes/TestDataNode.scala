@@ -732,6 +732,40 @@ class TestDataNode extends BaseSpec {
         recoverToSucceededIf[ClientException](DataNode.search(request))
     }
 
+    "update node with valid data and delete some unwanted data" should "update node" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "Learning Resource")
+        request.put("semanticVersion", "1.0")
+        request.put("programId", "test_prog")
+        val future: Future[Node] = DataNode.create(request)
+        future map { node => {
+            assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            val req = new Request(request)
+            req.getContext.put("identifier", node.getIdentifier)
+            request.getContext.put("removeProps", List("semanticVersion","programId"))
+            req.put("name", "updated name")
+            val updateFuture = DataNode.update(req)
+            updateFuture map { node => {
+                assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
+                assert(null == node.getMetadata.get("semanticVersion"))
+                assert(null == node.getMetadata.get("programId"))
+            }
+            }
+        }
+        } flatMap (f => f)
+    }
+
     def getHierarchy(request: Request) : Future[Response] = {
         val hierarchyString: String = "'{\"identifier\": \"do_11283193441064550414\"}'"
         val rootHierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])

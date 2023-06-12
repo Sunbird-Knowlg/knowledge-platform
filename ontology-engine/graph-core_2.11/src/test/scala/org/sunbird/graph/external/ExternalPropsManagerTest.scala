@@ -136,6 +136,33 @@ class ExternalPropsManagerTest extends BaseSpec {
         }
     }
 
+    "saveProps with object data" should "create a cassandra record successfully" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("objectType", "Content")
+                put("schemaName", "content")
+            }
+        })
+        request.put("identifier", "do_1234111")
+        request.put("body", new util.HashMap[String, AnyRef]() {
+            {
+                put("en", "test body in english language")
+                put("hi", "test body in hindi language")
+            }
+        })
+
+        val future: Future[Response] = ExternalPropsManager.saveProps(request)
+        future map { response => {
+            assert(null != response)
+            assert(response.getResponseCode == ResponseCode.OK)
+        }
+        }
+    }
+
 }
 
 

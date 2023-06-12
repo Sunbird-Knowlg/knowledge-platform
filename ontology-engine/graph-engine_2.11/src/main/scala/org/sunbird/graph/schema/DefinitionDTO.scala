@@ -1,7 +1,5 @@
 package org.sunbird.graph.schema
 
-import com.typesafe.config.Config
-
 import java.util
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
@@ -46,10 +44,6 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def fetchJsonProps(): List[String] = {
         val jsonProps = schemaValidator.getJsonProps.asScala
         jsonProps.toList
-    }
-
-    def getConfigObject(): Config = {
-        schemaValidator.getConfig
     }
 
     def getInRelations(): List[Map[String, AnyRef]] = {

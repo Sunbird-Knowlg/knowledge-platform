@@ -40,11 +40,6 @@ object DefinitionNode {
         definition.fetchJsonProps()
     }
 
-    def getSchemaConfig(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Config = {
-      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
-      definition.getConfigObject()
-    }
-
     def getInRelations(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Map[String, AnyRef]] = {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.getInRelations()
