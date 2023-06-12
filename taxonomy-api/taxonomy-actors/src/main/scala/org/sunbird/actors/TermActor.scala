@@ -7,6 +7,8 @@ import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.enums.RelationTypes
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.mangers.CategoryManager
@@ -17,7 +19,7 @@ import java.util.{ArrayList, List, Map}
 import javax.inject.Inject
 import scala.collection.JavaConverters._
 import scala.collection.JavaConverters.asScalaBufferConverter
-import scala.collection.immutable.{HashMap}
+import scala.collection.immutable.HashMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
@@ -40,33 +42,35 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
   //    if (TERM_CREATION_LIMIT < requestList.size) throw new ClientException("ERR_INVALID_TERM_REQUEST", "No. of request exceeded max limit of " + TERM_CREATION_LIMIT)
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
-    if (!frameworkId.isEmpty()) {
-      validateCategoryInstance(request)
-    } else {
-      validateCategory(request)
-    }
+    val CategoryData = validateCategoryInstance(request)
     val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
-    CategoryManager.setRelations(categoryId, request, "CategoryInstance")
-    request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
+    CategoryData.map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
+        val categoryList = new util.ArrayList[Map[String, AnyRef]]
+        val relationMap = new util.HashMap[String, AnyRef]
+        relationMap.put("identifier", categoryId)
+        relationMap.put("index", getIndex(node))
+        categoryList.add(relationMap)
+        request.put("categories", categoryList)
 
-    val categoryList = new util.ArrayList[Map[String, AnyRef]]
-    val relationMap = new util.HashMap[String, AnyRef]
-    relationMap.put("identifier", categoryId)
-    categoryList.add(relationMap)
-    request.put("categories", categoryList)
+        request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
+        DataNode.create(request).map(node => {
+          ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
+        })
+      } else throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Please provide valid category")
+    }).flatMap(f => f)
+  }
 
-    DataNode.create(request).map(node => {
-      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
-    })
+  private def getIndex(node: Node): Integer = {
+    val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType, RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))
+      .map(relation => {
+        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
+      })
+    if (indexList.nonEmpty) indexList.max + 1 else 1
   }
 
   private def read(request: Request): Future[Response] = {
-    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
-    if (!frameworkId.isEmpty()) {
-      validateCategoryInstance(request)
-    } else {
-      validateCategory(request)
-    }
+    validateCategoryInstance(request)
     validateTerm(request).map(node => {
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
       ResponseHandler.OK.put("term", metadata)
@@ -78,11 +82,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     RequestUtil.restrictProperties(request)
     val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
-    if (!frameworkId.isEmpty()) {
-      validateCategoryInstance(request)
-    } else {
-      validateCategory(request)
-    }
+    validateCategoryInstance(request)
     request.getContext.put(Constants.IDENTIFIER, generateIdentifier(categoryId, termId))
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
@@ -93,11 +93,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     val termId = request.getContext.getOrDefault(Constants.TERM, "").asInstanceOf[String];
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
-    if (!frameworkId.isEmpty()) {
-      validateCategoryInstance(request)
-    } else {
-      validateCategory(request)
-    }
+    validateCategoryInstance(request)
     request.getContext.put(Constants.IDENTIFIER, generateIdentifier(categoryId, termId))
     request.getRequest.put("status", "Retired")
     DataNode.update(request).map(node => {
@@ -142,24 +138,6 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     DataNode.read(getCategoryInstanceReq)(oec, ec).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
       else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
-    })(ec)
-  }
-
-  private def validateCategory(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-    val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
-    if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Please provide valid category. It should not be empty.")
-    val getCategoryReq = new Request()
-    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_SCHEMA_NAME)
-    getCategoryReq.getContext.put(Constants.VERSION, Constants.CATEGORY_SCHEMA_VERSION)
-    getCategoryReq.put(Constants.IDENTIFIER, categoryId)
-    DataNode.read(getCategoryReq)(oec, ec).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) node
-      else throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Please provide valid category")
     })(ec)
   }
 

@@ -158,22 +158,23 @@ object NodeUtil {
     }
 
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {
-      val relData = if("out".equalsIgnoreCase(direction)) {
+      if ("out".equalsIgnoreCase(direction)) {
         val objectType = rel.getEndNodeObjectType.replace("Image", "")
-        Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
+        val relData = Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
           "name" -> rel.getEndNodeName,
           "objectType" -> objectType,
           "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
+        val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
+        val completeRelData = relData ++ indexMap
+        mapAsJavaMap(completeRelData)
       } else {
         val objectType = rel.getStartNodeObjectType.replace("Image", "")
-        Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
+        val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
           "name" -> rel.getStartNodeName,
           "objectType" -> objectType,
           "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
-     }
-      val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
-      val completeRelData = relData ++ indexMap
-      mapAsJavaMap(completeRelData)
+        mapAsJavaMap(relData)
+      }
     }
 
     def getLanguageCodes(node: Node): util.List[String] = {
