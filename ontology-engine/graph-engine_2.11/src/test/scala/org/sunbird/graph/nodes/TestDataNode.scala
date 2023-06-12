@@ -751,9 +751,10 @@ class TestDataNode extends BaseSpec {
             assert(null != node)
             print(node)
             assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
-            val req = new Request(request)
+            val req = new Request()
+            req.setContext(getContextMap())
             req.getContext.put("identifier", node.getIdentifier)
-            request.getContext.put("removeProps", List("semanticVersion","programId"))
+            req.getContext.put("removeProps", List("semanticVersion","programId"))
             req.put("name", "updated name")
             val updateFuture = DataNode.update(req)
             updateFuture map { node => {
