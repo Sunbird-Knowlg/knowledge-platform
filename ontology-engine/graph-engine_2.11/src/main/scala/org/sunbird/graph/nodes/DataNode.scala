@@ -1,5 +1,7 @@
 package org.sunbird.graph.nodes
 
+import com.sun.tools.javac.util.StringUtils
+
 import java.util
 import java.util.Optional
 import java.util.concurrent.CompletionException
@@ -58,8 +60,8 @@ object DataNode {
             val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
             request.getContext.put("schemaName", schema)
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
-            val schemaVersion = node.getMetadata.getOrDefault("schemaVersion","0.0").asInstanceOf[String]
-            val version = if(schemaVersion.toDouble != 0.0) schemaVersion else request.getContext.get("version").asInstanceOf[String]
+            val schemaVersion:String = node.getMetadata.getOrDefault("schemaVersion","0.0").asInstanceOf[String]
+            val version = if(StringUtils.isNotBlank(schemaVersion) && schemaVersion.toDouble != 0.0) schemaVersion else request.getContext.get("version").asInstanceOf[String]
             val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], version, schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
