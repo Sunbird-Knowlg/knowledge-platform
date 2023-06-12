@@ -66,7 +66,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
   }
 
   private def getCategoryIndex(node: Node): Integer = {
-    val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType,RelationTypes.SEQUENCE_MEMBERSHIP.relationName())))
+    val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType,RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))
       .map(relation => {
         relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
       })
@@ -98,54 +98,6 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
     })
   }
-
-//  private def setRelations(frameworkId: String, request: Request, node: Node)
-//
-//  try {
-//
-//    val relations = new util.ArrayList[util.Map[String, String]]()
-//    //    val responseNode: Response = getDataNode(GRAPH_ID, scopeId)
-//    //    val dataNode: Node = responseNode.get(GraphDACParams.node.name).asInstanceOf[Node]
-//    val objectType: String = node.getMetadata.get('objectType
-//    ')
-//    val relationList: List[Map[String, AnyRef]] = new ArrayList[Map[String, AnyRef]]
-//    val relationMap: Map[String, AnyRef] = new HashMap[String, AnyRef]
-//    relationMap.put("identifier", node.getIdentifier)
-//    relationMap.put("relation", "hasSequenceMember")
-//    if (request.containsKey("index")) {
-//      relationMap.put("index", request.get("index"))
-//    }
-//    relationList.add(relationMap)
-//
-//    /**
-//     * TODO: Get the relationTitle from definition or from the calling method. For
-//     * now it is hardcoded as objectType suffixed with "s"
-//     */
-//    objectType.toLowerCase match {
-//      case "framework" =>
-//        request.put("frameworks", relationList)
-//
-//      case "category" =>
-//        request.put("categories", relationList)
-//
-//      case "categoryinstance" =>
-//        request.put("categories", relationList)
-//
-//      case "channel" =>
-//        request.put("channels", relationList)
-//
-//      case "term" =>
-//        request.put("terms", relationList)
-//
-//      case _ =>
-//
-//    }
-//  } catch {
-//    case e: Exception =>
-//      throw new ServerException("SERVER_ERROR", "Something went wrong while setting inRelations", e)
-//  }
-
-
 
   private def validateCategoryInstanceObject(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
