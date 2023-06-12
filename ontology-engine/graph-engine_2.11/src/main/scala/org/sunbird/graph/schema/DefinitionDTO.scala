@@ -1,7 +1,8 @@
 package org.sunbird.graph.schema
 
-import java.util
+import com.typesafe.config.Config
 
+import java.util
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
@@ -45,6 +46,10 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def fetchJsonProps(): List[String] = {
         val jsonProps = schemaValidator.getJsonProps.asScala
         jsonProps.toList
+    }
+
+    def getConfigObject(): Config = {
+        schemaValidator.getConfig
     }
 
     def getInRelations(): List[Map[String, AnyRef]] = {
@@ -125,6 +130,10 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
             if(null != invalidProps && !invalidProps.isEmpty)
                 throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid request", java.util.Arrays.asList("Invalid Props are : " + invalidProps.asJavaCollection))
         }
+    }
+
+    def fetchOneOfProps(): List[String] = {
+        schemaValidator.getConfig.getStringList("oneOfProps").asScala.toList
     }
 
 }

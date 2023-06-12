@@ -1,8 +1,9 @@
 package org.sunbird.graph.schema
 
+import com.typesafe.config.Config
+
 import java.util
 import java.util.concurrent.CompletionException
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
@@ -37,6 +38,11 @@ object DefinitionNode {
     def fetchJsonProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
         definition.fetchJsonProps()
+    }
+
+    def getSchemaConfig(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Config = {
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
+      definition.getConfigObject()
     }
 
     def getInRelations(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[Map[String, AnyRef]] = {
@@ -84,6 +90,7 @@ object DefinitionNode {
 	      val req:util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
         val skipValidation: Boolean = {if(request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false}
         val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+        val removeProps = request.getContext.getOrDefault("removeProps", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
         definition.getNode(identifier, "update", null, versioning).map(dbNode => {
             val schema = dbNode.getObjectType.toLowerCase.replace("image", "")
             val primaryCategory: String = if(null != dbNode.getMetadata) dbNode.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
@@ -105,10 +112,12 @@ object DefinitionNode {
                 else
                     dbNode.setExternalData(inputNode.getExternalData)
             }
-            
-            if (!skipValidation)
-                categoryDefinition.validate(dbNode, "update")
-            else Future (dbNode)
+            if(!removeProps.isEmpty) removeProps.toList.foreach(prop => dbNode.getMetadata.remove(prop))
+            val validatedNode = if (!skipValidation) categoryDefinition.validate(dbNode, "update") else Future (dbNode)
+            validatedNode.map(node => {
+              if(!removeProps.isEmpty) removeProps.toList.foreach(prop => dbNode.getMetadata.put(prop, null))
+              node
+            })
 
         }).flatMap(f => f)
     }
@@ -301,6 +310,10 @@ object DefinitionNode {
       if(StringUtils.isNotBlank(primaryCategory))
         ObjectCategoryDefinition(primaryCategory, objectType, channel)
       else ObjectCategoryDefinition()
+    }
+    def fetchOneOfProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
+      definition.fetchOneOfProps()
     }
 }
 
