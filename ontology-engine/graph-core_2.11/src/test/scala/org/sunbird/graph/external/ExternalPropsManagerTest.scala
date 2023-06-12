@@ -154,6 +154,7 @@ class ExternalPropsManagerTest extends BaseSpec {
                 put("hi", "test body in hindi language")
             }
         })
+        request.put("oldBody", "sample body text")
 
         val future: Future[Response] = ExternalPropsManager.saveProps(request)
         future map { response => {

@@ -127,7 +127,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     }
 
     def fetchOneOfProps(): List[String] = {
-        schemaValidator.getConfig.getStringList("oneOfProps").asScala.toList
+        if(schemaValidator.getConfig().hasPath("oneOfProps")) schemaValidator.getConfig.getStringList("oneOfProps").asScala.toList else List[String]()
     }
 
 }
