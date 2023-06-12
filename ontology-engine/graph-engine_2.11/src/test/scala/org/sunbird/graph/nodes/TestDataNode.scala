@@ -754,7 +754,11 @@ class TestDataNode extends BaseSpec {
             val req = new Request()
             req.setContext(getContextMap())
             req.getContext.put("identifier", node.getIdentifier)
-            req.getContext.put("removeProps", List("semanticVersion","programId"))
+            val propsList: util.List[String] = new util.ArrayList[String](){{
+                add("semanticVersion")
+                add("programId")
+            }}
+            req.getContext.put("removeProps", propsList)
             req.put("name", "updated name")
             val updateFuture = DataNode.update(req)
             updateFuture map { node => {
