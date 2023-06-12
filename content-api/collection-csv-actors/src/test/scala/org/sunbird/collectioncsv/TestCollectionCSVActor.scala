@@ -30,11 +30,10 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
     val currentDirectory: String = new java.io.File(".").getCanonicalPath
     val resourceDirectory: String = if(currentDirectory.contains("collection-csv-actors")) currentDirectory+"/src/test/resources/" else currentDirectory+"/content-api/collection-csv-actors/src/test/resources/"
 
-   /* "CollectionCSVActor" should "return failed response for 'unknown' operation" in {
+    "CollectionCSVActor" should "return failed response for 'unknown' operation" in {
         testUnknownOperation( Props(new CollectionCSVActor()), getCollectionRequest())
     }
-*/
-    ignore should "return client error on giving content Id with no children" in {
+    it should "return client error on giving content Id with no children" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
         val node = createNode()
@@ -50,7 +49,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getResponseCode === ResponseCode.CLIENT_ERROR)
     }
 
-    ignore should "return success response on giving valid content Id" in {
+    it should "return success response on giving valid content Id" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -70,7 +69,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(result.get("collection") != null)
     }
 
-    ignore should "return client error on input of blank csv" in {
+    it should "return client error on input of blank csv" in {
         val collectionID = "do_1132828073514926081518"
         val response = uploadFileToActor(collectionID, resourceDirectory + "Blank.csv")
         assert(response != null)
@@ -79,7 +78,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equals("INVALID_CSV_FILE"))
     }
 
-    ignore should "return client error on input of create csv with collection Id already having children" in {
+    it should "return client error on input of create csv with collection Id already having children" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = updateNode()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -94,7 +93,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("COLLECTION_CHILDREN_EXISTS"))
     }
 
-    ignore should "return client error on input of create csv with invalid sequence" in {
+    it should "return client error on input of create csv with invalid sequence" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -110,7 +109,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("INVALID_HEADER_SEQUENCE"))
     }
 
-    ignore should "return client error on input of create csv with missing column" in {
+    it should "return client error on input of create csv with missing column" in {
        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -126,7 +125,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("REQUIRED_HEADER_MISSING") || response.getParams.getErr.equalsIgnoreCase("MISSING_HEADERS"))
     }
 
-    ignore should "return client error on input of create csv with additional column" in {
+    it should "return client error on input of create csv with additional column" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -142,7 +141,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("ADDITIONAL_HEADER_FOUND"))
     }
 
-    ignore should "return client error on input of create csv with no records" in {
+    it should "return client error on input of create csv with no records" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -158,7 +157,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("BLANK_CSV_DATA"))
     }
 
-    ignore should "return client error on input of create csv with records exceeding maximum allowed rows" in {
+    it should "return client error on input of create csv with records exceeding maximum allowed rows" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -174,7 +173,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_ROWS_EXCEEDS"))
     }
 
-    ignore should "return client error on input of create csv with record having missing data in mandatory columns" in {
+    it should "return client error on input of create csv with record having missing data in mandatory columns" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -190,7 +189,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("REQUIRED_FIELD_MISSING"))
     }
 
-    ignore should "return client error on input of create csv with duplicate record rows" in {
+    it should "return client error on input of create csv with duplicate record rows" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -206,7 +205,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("DUPLICATE_ROWS"))
     }
 
-    ignore should "return client error on input of create csv with unit field data exceeding maximum length" in {
+    it should "return client error on input of create csv with unit field data exceeding maximum length" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -222,7 +221,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_FIELDS_LENGTH"))
     }
 
-    ignore should "return client error on input of create csv with Description field data exceeding maximum length" in {
+    it should "return client error on input of create csv with Description field data exceeding maximum length" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_113293355858984960134"
         val node = createNode()
@@ -238,7 +237,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_FIELDS_LENGTH"))
     }
 
-    ignore should "return client error on input of update csv with invalid QRCodeRequired and QRCode combination" in {
+    it should "return client error on input of update csv with invalid QRCodeRequired and QRCode combination" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -254,7 +253,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("ERROR_QR_CODE_ENTRY"))
     }
 
-    ignore should "return client error on input of update csv with duplicate QRCode entry" in {
+    it should "return client error on input of update csv with duplicate QRCode entry" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -270,7 +269,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("DUPLICATE_QR_CODE_ENTRY"))
     }
 
-    ignore should "return client error on input of update csv with linked content data missing" in {
+    it should "return client error on input of update csv with linked content data missing" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -286,7 +285,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("LINKED_CONTENTS_DATA_MISSING"))
     }
 
-    ignore should "return client error on input of update csv with invalid collection name" in {
+    it should "return client error on input of update csv with invalid collection name" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -302,7 +301,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_COLLECTION_NAME"))
     }
 
-    ignore should "return client error on input of update csv with invalid child nodes" in {
+    it should "return client error on input of update csv with invalid child nodes" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -318,7 +317,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_COLLECTION_NODE_ID"))
     }
 
-    ignore should "return client error on input of update csv with invalid QR Codes" in {
+    it should "return client error on input of update csv with invalid QR Codes" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -336,7 +335,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_DIAL_CODES"))
     }
 
-    ignore should "return client error on input of update csv with invalid Mapped Topics" in {
+    it should "return client error on input of update csv with invalid Mapped Topics" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -354,7 +353,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_MAPPED_TOPICS"))
     }
 
-    ignore should "return client error on input of update csv with invalid linked contents" in {
+    it should "return client error on input of update csv with invalid linked contents" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -373,7 +372,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getParams.getErr.equalsIgnoreCase("CSV_INVALID_LINKED_CONTENTS"))
     }
 
-    ignore should "return success response on input of valid update TOC csv" in {
+    it should "return success response on input of valid update TOC csv" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val collectionID = "do_1132828073514926081518"
         val node = updateNode()
@@ -395,7 +394,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
         assert(response.getResponseCode != ResponseCode.OK)
     }
 
-    ignore should "return success response on giving a valid create TOC csv" in {
+    it should "return success response on giving a valid create TOC csv" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = createNode()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()

@@ -24,7 +24,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         testUnknownOperation(Props(new EventSetActor()), getContentRequest())
     }
 
-    ignore should "validate input before creating event set" in {
+    it should "validate input before creating event set" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
@@ -44,7 +44,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         println("Response: " + JsonUtils.serialize(response))
     }
 
-    ignore should "create an eventset and store it in neo4j" in {
+    it should "create an eventset and store it in neo4j" in {
         val eventNode = getEventNode()
         val eventSetNode = getEventSetNode()
         enrichFrameworkMasterCategoryMap()
@@ -84,7 +84,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert(response.get("versionKey") != null)
     }
 
-    ignore should "update an eventset and store it in neo4j" in {
+    it should "update an eventset and store it in neo4j" in {
         val eventNode = getEventNode()
         val eventSetNode = getEventSetCollectionNode()
         enrichFrameworkMasterCategoryMap()
@@ -131,7 +131,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
     }
 
 
-    ignore should "discard node in draft state should return success" in {
+    it should "discard node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -148,7 +148,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     }
 
-    ignore should "publish node in draft state should return success" in {
+    it should "publish node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -167,7 +167,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert(response.get("identifier") == "do_12345")
     }
 
-    ignore should "discard node in Live state should return client error" in {
+    it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -183,7 +183,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
-    ignore should "return success response for retireContent" in {
+    it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -200,7 +200,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'readContent'" in {
+    it should "return success response for 'readContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)
@@ -215,7 +215,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for 'getHierarchy'" in {
+    it should "return success response for 'getHierarchy'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB)

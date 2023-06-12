@@ -1,4 +1,3 @@
-/*
 package org.sunbird.content.dial
 
 import org.scalamock.matchers.Matchers
@@ -645,4 +644,4 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 		val resString = "{\"id\": \"api.dialcode.generate\",\"ver\": \"1.0\",\"ts\": \"2022-07-05T09:47:26.000Z\",\"params\": {\"resmsgid\": \"79eb8b00-fc47-11ec-af25-0f53946b16ec\",\"msgid\": \"79be1260-fc47-11ec-8c03-63ca5ce41074\",\"status\": \"successful\",\"err\": null,\"errmsg\": null},\"responseCode\": \"OK\",\"result\": {\"dialcodes\": [\"K2C3R6\",\"H2E8F9\"],\"count\": 2,\"batchcode\": \"do_11357423520695910411\",\"publisher\": null}}"
 		JsonUtils.deserialize(resString, classOf[Response])
 	}
-}*/
+}

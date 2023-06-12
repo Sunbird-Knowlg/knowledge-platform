@@ -29,7 +29,7 @@ import java.util.Set;
  * @author pradyumna
  *
  */
-@Ignore
+
 public class SearchProcessorTest extends BaseSearchTest {
 	private static SearchProcessor searchprocessor = new SearchProcessor();
 
