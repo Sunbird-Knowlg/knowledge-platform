@@ -46,4 +46,34 @@ class BaseSpec extends FlatSpec with Matchers {
         })
         util.Arrays.asList(node)
     }
+
+    def getFrameworkNode(): util.List[Node] = {
+        val node = new Node()
+        node.setIdentifier("NCF")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("Framework")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "NCF")
+                put("objectType", "Framework")
+                put("name", "NCF")
+            }
+        })
+        util.Arrays.asList(node)
+    }
+
+    def getCategoryInstanceNode(): util.List[Node] = {
+        val node = new Node()
+        node.setIdentifier("ncf_board")
+        node.setNodeType("DATA_NODE")
+        node.setObjectType("CategoryInstance")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "ncf_board")
+                put("objectType", "CategoryInstance")
+                put("name", "ncf_board")
+            }
+        })
+        util.Arrays.asList(node)
+    }
 }

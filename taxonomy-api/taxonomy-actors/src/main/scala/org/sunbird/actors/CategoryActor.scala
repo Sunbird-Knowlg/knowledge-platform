@@ -32,10 +32,11 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
   private def create(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
     val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
-    if (!request.getRequest.containsKey("code") || code.isEmpty) throw new ClientException("ERR_CATEGORY_CODE_REQUIRED", "Unique code is mandatory for category")
+    if (!request.getRequest.containsKey("code")) throw new ClientException("ERR_CATEGORY_CODE_REQUIRED", "Unique code is mandatory for category")
     request.getRequest.put(Constants.IDENTIFIER, code)
     RedisCache.delete("masterCategories")
-    // CategoryManager.validateTranslationMap(request)
+    println("category - create request: "+request)
+    CategoryManager.validateTranslationMap(request)
     DataNode.create(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
@@ -52,7 +53,7 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     RequestUtil.restrictProperties(request)
     if (request.getRequest.containsKey(Constants.CODE)) throw new ClientException("ERR_CATEGORY_UPDATE", "code updation is not allowed.")
     RedisCache.delete("masterCategories")
-//    CategoryManager.validateTranslationMap(request)
+    CategoryManager.validateTranslationMap(request)
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
