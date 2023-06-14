@@ -1,0 +1,28 @@
+### Default variable file for search-service ###
+
+api_namespace: knowlg-api
+
+env:
+  javaoptions: -Xmx600m
+
+replicaCount: 1
+repository: docker.io/aimansharief/search-service-modified
+image_tag: R5.2.0
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 1
+    memory: 1024Mi
+network:
+  port: 9006
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: 25%
+  maxunavailable: 25%
+serviceType: ClusterIP
+es_connection: elasticsearch.knowlg-db.svc.cluster.local:9200
+
+
