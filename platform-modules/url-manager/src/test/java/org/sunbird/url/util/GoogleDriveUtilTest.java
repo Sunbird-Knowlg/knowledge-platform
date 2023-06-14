@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see GoogleDriveUrlUtil
  */
-@Ignore
 public class GoogleDriveUtilTest {
 
 	@Rule
@@ -43,9 +42,10 @@ public class GoogleDriveUtilTest {
 		assertEquals("", output);
 	}
 
+	@Ignore
 	@Test
 	public void testGetDriveFileWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view";
 		String fileId = GoogleDriveUrlUtil.getDriveFileId(driveUrl);
 		File driveFile = GoogleDriveUrlUtil.getDriveFile(fileId);
 		assertNotNull(driveFile);
@@ -70,6 +70,7 @@ public class GoogleDriveUtilTest {
 		assertEquals(null, driveFile);
 	}
 
+	@Ignore
 	@Test
 	public void testGetMetadataWithValidUrl() {
 		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
@@ -92,6 +93,7 @@ public class GoogleDriveUtilTest {
 		Map<String, Object> result = GoogleDriveUrlUtil.getMetadata(driveUrl);
 	}
 
+	@Ignore
 	@Test
 	public void testGetSizeWithValidUrl() {
 		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";

@@ -13,7 +13,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see URLFactoryManager
  */
-@Ignore
 public class URLFactoryManagerTest {
 
 	@Test

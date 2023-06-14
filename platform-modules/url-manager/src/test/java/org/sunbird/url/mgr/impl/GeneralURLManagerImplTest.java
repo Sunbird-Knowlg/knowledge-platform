@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see GeneralURLManagerImpl
  */
-@Ignore
 public class GeneralURLManagerImplTest {
 
 	private static IURLManager genMgr = URLFactoryManager.getUrlManager("general");

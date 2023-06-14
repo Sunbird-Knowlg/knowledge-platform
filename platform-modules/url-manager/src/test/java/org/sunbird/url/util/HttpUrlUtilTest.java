@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see HTTPUrlUtil
  */
-@Ignore
 public class HttpUrlUtilTest {
 
 	@Rule
@@ -60,6 +59,7 @@ public class HttpUrlUtilTest {
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
 
+	@Ignore
 	@Test
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";

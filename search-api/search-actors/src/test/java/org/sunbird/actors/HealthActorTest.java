@@ -20,7 +20,6 @@ import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.TimeUnit;
 
-@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HealthActor.class, ElasticSearchUtil.class})
 @PowerMockIgnore({"jdk.internal.reflect.*", "javax.management.*", "sun.security.ssl.*", "javax.net.ssl.*" , "javax.crypto.*"})

@@ -1,4 +1,3 @@
-/*
 package org.sunbird.mimetype.mgr.impl
 
 import com.google.common.io.Resources
@@ -80,7 +79,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         assert(true)
     }
 
-    it should "review ECML having json body and return result" in {
+    ignore should "review ECML having json body and return result" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -136,4 +135,3 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         node
     }
 }
-*/

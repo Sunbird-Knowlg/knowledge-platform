@@ -19,6 +19,7 @@ import org.sunbird.common.exception.ServerException;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import org.sunbird.url.common.URLErrorCodes;
 
+import java.awt.desktop.ScreenSleepEvent;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -37,7 +38,7 @@ public class GoogleDriveUrlUtil {
 	private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
 	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
-	private static final String GOOGLE_DRIVE_URL_REGEX = "[-\\w]{25,}";
+	private static final String GOOGLE_DRIVE_URL_REGEX = "[-\\w]{32,}";
 	private static final String DRIVE_FIELDS = "id, name, size";
 	private static final String APP_NAME = Platform.config.hasPath("learning.content.drive.application.name")
 			? Platform.config.getString("learning.content.drive.application.name") : "google-drive-url-validation";

@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see YouTubeUrlUtil
  */
-@Ignore
 public class YouTubeUrlUtilTest {
 
 	@Rule

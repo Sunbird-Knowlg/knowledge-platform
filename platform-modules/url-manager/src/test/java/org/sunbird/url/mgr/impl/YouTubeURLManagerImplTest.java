@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see YouTubeURLManagerImpl
  */
-@Ignore
 public class YouTubeURLManagerImplTest {
 
 	private static IURLManager youtubeMgr = URLFactoryManager.getUrlManager("youtube");
@@ -26,9 +25,10 @@ public class YouTubeURLManagerImplTest {
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
 
+	@Ignore
 	@Test
 	public void testValidateUrlWithValidUrlValidCriteria() {
-		String videoUrl = "https://www.youtube.com/watch?v=GHmQ8euNwv8";
+		String videoUrl = "https://www.youtube.com/wat	ch?v=GHmQ8euNwv8";
 		Map<String, Object> result = youtubeMgr.validateURL(videoUrl, "license");
 		assertTrue(MapUtils.isNotEmpty(result));
 		assertTrue(result.size() == 2);

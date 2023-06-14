@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
  *
  * @see GoogleDriveURLManagerImpl
  */
-@Ignore
 public class GoogleDriveURLManagerImplTest {
 
 	private static IURLManager gdMgr = URLFactoryManager.getUrlManager("googledrive");
@@ -27,6 +26,7 @@ public class GoogleDriveURLManagerImplTest {
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
 
+	@Ignore
 	@Test
 	public void testValidateUrlWithValidUrlValidCriteria() {
 		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
@@ -56,6 +56,7 @@ public class GoogleDriveURLManagerImplTest {
 		Map<String, Object> result = gdMgr.validateURL(driveUrl, "size");
 	}
 
+	@Ignore
 	@Test
 	public void testReadMetadataWithValidUrl() {
 		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
