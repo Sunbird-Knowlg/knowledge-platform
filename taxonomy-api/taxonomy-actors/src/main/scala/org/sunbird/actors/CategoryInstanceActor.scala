@@ -47,20 +47,19 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getFrameworkReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+        validateCategoryObject(request).map( node => {
         request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(frameworkId, code))
-
-        val frameworkList = new util.ArrayList[Map[String, AnyRef]]
-        val relationMap = new util.HashMap[String, AnyRef]
-        relationMap.put("identifier", frameworkId)
-        relationMap.put("index", getCategoryIndex(node))
-        frameworkList.add(relationMap)
-        request.put("frameworks", frameworkList)
-
-        //CategoryManager.setRelations(frameworkId, request, "Framework")
-        DataNode.create(request).map(node => {
-          ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
-            .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
-        })
+          val frameworkList = new util.ArrayList[Map[String, AnyRef]]
+          val relationMap = new util.HashMap[String, AnyRef]
+          relationMap.put("identifier", frameworkId)
+          relationMap.put("index", getCategoryIndex(node))
+          frameworkList.add(relationMap)
+          request.put("frameworks", frameworkList)
+          DataNode.create(request).map(node => {
+            ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+              .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
+          })
+        }).flatMap(f => f)
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatMap(f => f)
   }
@@ -116,7 +115,26 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getCategoryReq.put(Constants.IDENTIFIER, categoryInstanceId)
     DataNode.read(getCategoryReq)(oec, ec).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
-      else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
+      else throw new ClientException("ERR_CATEGORY_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
+    })(ec)
+  }
+
+  private def validateCategoryObject(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
+    if (code.isEmpty()) throw new ClientException("ERR_INVALID_CODE", s"Invalid Code: '${code}' for category")
+    val getCategoryReq = new Request()
+    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_SCHEMA_NAME)
+    getCategoryReq.getContext.put(Constants.VERSION, Constants.CATEGORY_SCHEMA_VERSION)
+    getCategoryReq.put(Constants.IDENTIFIER, code)
+    DataNode.read(getCategoryReq)(oec, ec).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, code)) node
+      else
+        throw new ClientException("ERR_CATEGORY_NOT_FOUND", s"Given category does not belong to master category data")
     })(ec)
   }
 
