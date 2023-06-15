@@ -27,7 +27,54 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("NCF")
-    node.setObjectType("CategoryInstance")
+    node.setObjectType("Framework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "NCF");
+        put("objectType", "Framework")
+        put("name", "NCF")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "NCF", *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val categoryNode = new Node()
+    categoryNode.setIdentifier("board")
+    categoryNode.setObjectType("Category")
+    categoryNode.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "board");
+        put("objectType", "Category")
+        put("name", "board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "board", *, *).returns(Future(categoryNode)).anyNumberOfTimes()
+    val categoryNodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(categoryNodes)).anyNumberOfTimes()
+
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryInstanceOfNode()))
+    val loopResult: util.Map[String, Object] = new util.HashMap[String, Object]()
+    loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
+    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
+    (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
+
+    val request = getCategoryInstanceRequest()
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF","code" -> "board" ,"name" -> "Board")))
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.get(Constants.IDENTIFIER) != null)
+    assert(response.get("versionKey") != null)
+  }
+
+  it should "throw error if category does not belong to master category" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("NCF")
+    node.setObjectType("Framework")
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "NCF");
@@ -37,22 +84,60 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     })
 
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-    val nodes: util.List[Node] = getFrameworkNode()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
-    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryInstanceOfNode()))
-    val loopResult: util.Map[String, Object] = new util.HashMap[String, Object]()
-    loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
-    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
-    (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF","code"->"board" ,"name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]")))
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "code" -> "board", "name" -> "Board")))
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
-    assert("successful".equals(response.getParams.getStatus))
-    assert(response.get(Constants.IDENTIFIER) != null)
-    assert(response.get("versionKey") != null)
-    assert(response.get(Constants.IDENTIFIER).equals("ncf_board"))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw error if code value is empty " in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("NCF")
+    node.setObjectType("Framework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "NCF");
+        put("objectType", "Framework")
+        put("name", "NCF")
+      }
+    })
+
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+
+    val request = getCategoryInstanceRequest()
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "code" -> "", "name" -> "Board")))
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throws exception if identifier is empty" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("")
+    node.setObjectType("Framework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "");
+        put("objectType", "Framework")
+        put("name", "NCF")
+      }
+    })
+
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+
+    val request = getCategoryInstanceRequest()
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "code" -> "board", "name" -> "Board")))
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("failed".equals(response.getParams.getStatus))
   }
 
   it should "throw exception if frameworkId is not sent in request" in {
@@ -60,11 +145,51 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
-    request.putAll(mapAsJavaMap(Map("code" -> "board", "name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]")))
+    request.putAll(mapAsJavaMap(Map("code" -> "board", "name" -> "Board")))
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
 
+  }
+
+  it should "throw exception if frameworkId is null " in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val request = getCategoryInstanceRequest()
+    request.putAll(mapAsJavaMap(Map("framework" -> "", "code" -> "board", "name" -> "Board")))
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("failed".equals(response.getParams.getStatus))
+
+  }
+
+  it should "throw exception if node id is empty for 'readCategoryInstance'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB)
+    val node = new Node()
+    node.setIdentifier("")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("CategoryInstance")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "")
+        put("objectType", "CategoryInstance")
+        put("name", "Board")
+        put("code", "board")
+        put("description", "Board")
+        put("versionKey", "1234")
+
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+    val request = getCategoryInstanceRequest()
+    request.getContext.put("identifier", "ncf_board")
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "board")))
+    request.setOperation("readCategoryInstance")
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("failed".equals(response.getParams.getStatus))
   }
 
   it should "throw exception if code is not sent in request" in {
@@ -105,6 +230,26 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     request.setOperation("readCategoryInstance")
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if  cateogry has null values for 'readCategoryInstance'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val request = getCategoryInstanceRequest()
+    request.getContext.put("identifier", "ncf_board")
+    request.putAll(mapAsJavaMap(Map("framework" -> "ncf", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "")))
+    request.setOperation("readCategoryInstance")
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if frameworkId has null values for 'readCategoryInstance'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val request = getCategoryInstanceRequest()
+    request.getContext.put("identifier", "ncf_board")
+    request.putAll(mapAsJavaMap(Map("framework" -> "", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "board")))
+    request.setOperation("readCategoryInstance")
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("failed".equals(response.getParams.getStatus))
   }
 
   it should "return success response for updateCategoryInstance" in {

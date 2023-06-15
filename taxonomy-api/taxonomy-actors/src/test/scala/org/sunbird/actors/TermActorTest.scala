@@ -27,6 +27,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
+    node.setObjectType("CategoryInstance")
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
@@ -54,6 +55,93 @@ class TermActorTest extends BaseSpec with MockFactory{
     assert(response.get(Constants.NODE_ID).equals("ncf_board_class1"))
   }
 
+  it should "throw exception if categoryId and identifier are same" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("ncf_board")
+    node.setObjectType("CategoryInstance")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "ncf_board");
+        put("objectType", "CategoryInstance")
+        put("name", "ncf_board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val request = getTermRequest()
+    request.putAll(mapAsJavaMap(Map("code"->"class1", "name"->"Class1", "description"->"Class1", "framework"->"NCF", "category"->"board", "channel"->"sunbird", "categories"-> "[{identifier=ncf_board}]", "identifier"->"ncf_board_class1")))
+    request.setOperation(Constants.CREATE_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if identifier is null" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("")
+    node.setObjectType("CategoryInstance")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "");
+        put("objectType", "CategoryInstance")
+        put("name", "ncf_board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val request = getTermRequest()
+    request.putAll(mapAsJavaMap(Map("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" -> "board", "channel" -> "sunbird", "categories" -> "[{identifier=ncf_board}]", "identifier" -> "ncf_board_class1")))
+    request.setOperation(Constants.CREATE_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if categoryId is null" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("ncf_board")
+    node.setObjectType("CategoryInstance")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "ncf_board");
+        put("objectType", "CategoryInstance")
+        put("name", "ncf_board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val request = getTermRequest()
+    request.putAll(mapAsJavaMap(Map("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" ->"", "channel" -> "sunbird", "categories" -> "[{identifier=ncf_board}]", "identifier" -> "ncf_board_class1")))
+    request.setOperation(Constants.CREATE_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if frameworkId is null" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("ncf_board")
+    node.setObjectType("CategoryInstance")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "ncf_board");
+        put("objectType", "CategoryInstance")
+        put("name", "ncf_board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val request = getTermRequest()
+    request.putAll(mapAsJavaMap(Map("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "", "category" -> "board", "channel" -> "sunbird", "categories" -> "[{identifier=ncf_board}]", "identifier" -> "ncf_board_class1")))
+    request.setOperation(Constants.CREATE_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
 
   it should "throw exception if code is not sent in the request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
@@ -61,6 +149,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
+    node.setObjectType("CategoryInstance")
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
@@ -94,6 +183,49 @@ class TermActorTest extends BaseSpec with MockFactory{
     request.setOperation(Constants.READ_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if identifier is empty for 'readTerm'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val categoryInstanceNode = getCategoryInstanceOfNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode))
+    val node = new Node()
+    node.setIdentifier("")
+    node.setGraphId("domain")
+    node.setNodeType("DATA_NODE")
+    node.setObjectType("Term")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("code", "ncf_board_class1")
+        put("objectType", "Term")
+        put("name", "ncf_board_class1")
+        put("channel", "sunbird")
+        put("category", "ncf_board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board_class1", *, *).returns(Future(node))
+    val request = getTermRequest()
+    request.getContext.put("identifier", "ncf_board_class1")
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "term" -> "class1", "category" -> "board", "channel" -> "sunbird")))
+    request.setOperation(Constants.READ_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if termId is empty for 'readTerm'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val categoryInstanceNode = getCategoryInstanceOfNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode))
+    val request = getTermRequest()
+    request.getContext.put("identifier", "ncf_board_class1")
+    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "term" -> "", "category" -> "board", "channel" -> "sunbird")))
+    request.setOperation(Constants.READ_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert("failed".equals(response.getParams.getStatus))
   }
 
 
