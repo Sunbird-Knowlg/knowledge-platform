@@ -7,8 +7,9 @@ import org.sunbird.managers.FrameworkHierarchyManager
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SubGraph}
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.path.DataSubGraph
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.mangers.FrameworkManager
 import org.sunbird.utils.{CategoryCache, FrameworkCache}
@@ -21,7 +22,7 @@ import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.collection.immutable.HashMap
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.collection.JavaConversions.{asScalaBuffer, mapAsJavaMap}
 
 class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -72,46 +73,22 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def read(request: Request): Future[Response] = {
     val frameworkId = request.get("identifier").asInstanceOf[String]
-    println("READ framework => " + frameworkId)
-    if(StringUtils.isNotBlank(frameworkId)) {
-//      DataNode.read(request).map(node => {
-//        println("publish framework => " + node.getIdentifier)
-      val frameworkHierarchy =  FrameworkHierarchyManager.getFrameworkHierarchy(request)
-      frameworkHierarchy.map(hierarchyResponse => {
-//        if (!hierarchyResponse.isEmpty) {
-          val hierarchyMap = mapAsJavaMap(hierarchyResponse)
-          ResponseHandler.OK.put(Constants.FRAMEWORK, hierarchyMap)
-//        } else {
-//          DataNode.read(request).map(node => {
-//            if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-//              val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
-//              ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
-//            } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
-//          }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
-//        }
+    request.put("depth", 4)
+    println("READ framework => " + frameworkId + request)
+
+    if (StringUtils.isNotBlank(frameworkId)) {
+      val subGraph: Future[SubGraph] = DataSubGraph.read(request)
+      subGraph.map(data => {
+        FrameworkManager.generateFrameworkHierarchy(frameworkId, data)
       })
-    } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
-    // var framework = FrameworkCache.get(frameworkId, returnCategories)
-//    println("READ framework => " + frameworkId)
-//    val frameworkHierarchy =  FrameworkHierarchyManager.getFrameworkHierarchy(request)
-//    println("frameworkHierarchy "+ frameworkHierarchy)
-//    frameworkHierarchy.flatMap(hierarchyResponse => {
-//      Future{ResponseHandler.OK.put(Constants.FRAMEWORK, hierarchyResponse)}
-//    })
-//    frameworkHierarchy.flatMap(hierarchyResponse => {
-////      if (MapUtils.isNotEmpty(hierarchyResponse.asJava)) {
-////        FrameworkCache.save(frameworkId, hierarchyResponse)
-//      println("hierarchyResponse "+ hierarchyResponse)
-//      ResponseHandler.OK.put(Constants.FRAMEWORK, hierarchyResponse)
-////      } else {
-////        DataNode.read(request).map(node => {
-////          if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-////            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
-////            ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
-////          } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
-////        })
-////      }
-//    })
+      DataNode.read(request).map(node => {
+        println("node read ", node.getMetadata + " getInRelations " + node.getInRelations + " getOutRelations " + node.getOutRelations)
+        if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+          val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+          ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
+        } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
+      })
+    } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
   }
 
   @throws[Exception]
