@@ -29,7 +29,7 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
         val headers = commonHeaders()
         val framework = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         framework.putAll(headers)
-        framework.putAll(Map(Constants.IDENTIFIER -> identifier, Constants.FIELDS -> fields.getOrElse(""), Constants.CATEGORIES -> categories.getOrElse("")).asJava )
+        framework.putAll(Map(Constants.IDENTIFIER -> identifier, Constants.CATEGORIES -> categories.getOrElse("")).asJava )
         val readRequest = getRequest(framework, headers, "readFramework")
         setRequestContext(readRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
         getResult(ApiId.READ_FRAMEWORK, frameworkActor, readRequest)

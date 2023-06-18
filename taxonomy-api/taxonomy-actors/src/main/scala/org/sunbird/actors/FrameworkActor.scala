@@ -1,11 +1,9 @@
 package org.sunbird.actors
 
-import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.managers.FrameworkHierarchyManager
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.common.exception.{ClientException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, SubGraph}
 import org.sunbird.graph.nodes.DataNode
@@ -16,13 +14,10 @@ import org.sunbird.utils.{CategoryCache, FrameworkCache}
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util
-import java.util.concurrent.CompletionException
 import javax.inject.Inject
-import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
-import scala.collection.immutable.HashMap
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.collection.JavaConversions.{asScalaBuffer, mapAsJavaMap}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.collection.JavaConversions.{mapAsJavaMap}
 
 class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -73,21 +68,26 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def read(request: Request): Future[Response] = {
     val frameworkId = request.get("identifier").asInstanceOf[String]
-    request.put("depth", 4)
+    val returnCategories: java.util.List[String] = seqAsJavaListConverter(request.get("categories").asInstanceOf[String].split(",").filter(category => StringUtils.isNotBlank(category) && !StringUtils.equalsIgnoreCase(category, "null"))).asJava
+    request.getRequest.put("categories", returnCategories)
     println("READ framework => " + frameworkId + request)
-
     if (StringUtils.isNotBlank(frameworkId)) {
-      val subGraph: Future[SubGraph] = DataSubGraph.read(request)
-      subGraph.map(data => {
-        FrameworkManager.generateFrameworkHierarchy(frameworkId, data)
-      })
-      DataNode.read(request).map(node => {
-        println("node read ", node.getMetadata + " getInRelations " + node.getInRelations + " getOutRelations " + node.getOutRelations)
-        if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-          val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
-          ResponseHandler.OK.put(Constants.FRAMEWORK, metadata)
-        } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
-      })
+      val frameworkData: Future[Map[String, AnyRef]] = FrameworkManager.getFrameworkHierarchy(request)
+      frameworkData.map(framework => {
+        if(framework.isEmpty){
+          DataNode.read(request).map(node => {
+            if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
+              val framework = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+              ResponseHandler.OK.put(Constants.FRAMEWORK, framework)
+            } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
+          })
+        } else {
+          Future{
+            FrameworkManager.filterFrameworkCategories(framework, returnCategories)
+            ResponseHandler.OK.put(Constants.FRAMEWORK, framework.asJava)
+          }
+        }
+      }).flatMap(f => f)
     } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
   }
 
@@ -137,39 +137,19 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
             getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
             getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
             getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
-            DataNode.read(getFrameworkReq).map(node => {
-              println("publish framework => " + node.getIdentifier)
-              println(" === getOutRelations === " + node.getOutRelations())
-              request.put(Constants.ROOT_ID, node.getIdentifier)
-              FrameworkHierarchyManager.generateFrameworkHierarchy(request).map(frameworkHierarchy => {
-                println("frameworkHierarchy  ==  " + frameworkHierarchy)
-                // CategoryCache.setFramework(node.getIdentifier, frameworkHierarchy.get("categories").asInstanceOf[Map[String, AnyRef]])
-                val req = new Request(request)
-                req.put("hierarchy", ScalaJsonUtils.serialize(frameworkHierarchy))
-                req.put("identifier", node.getIdentifier)
-                oec.graphService.saveExternalProps(req)
-                ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${node.getIdentifier}' is pushed Successfully!")
-              })
-            }).flatMap(f => f)
-          }
-          else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
-        }
-        else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+            val subGraph: Future[SubGraph] = DataSubGraph.read(request)
+            subGraph.map(data => {
+              val frameworkHierarchy = FrameworkManager.generateFrameworkHierarchy(frameworkId, data)
+              val req = new Request(request)
+              req.put("hierarchy", ScalaJsonUtils.serialize(frameworkHierarchy))
+              req.put("identifier", frameworkId)
+              oec.graphService.saveExternalProps(req)
+              ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${node.getIdentifier}' is pushed Successfully!")
+            })
+          } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
+        } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
       }).flatMap(f => f)
     }
-
-//    def generateFrameworkHierarchy(request: Request, node: Node): Future[Response] = {
-//      val id = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
-//      if (StringUtils.equalsIgnoreCase(node.getObjectType, "Framework")) {
-//        FrameworkCache.delete(id)
-//        updateRequestWithMode(request)
-////        FrameworkHierarchyManager.getFremaeworkHierarchy(request).map(response =>{
-//////          val originHierarchy = response.getResult.getOrDefault(Constants.FRAMEWORK, new HashMap[String, AnyRef]()).asInstanceOf[Map[String, AnyRef]]
-//////          CategoryCache.setFramework(node.getIdentifier, originHierarchy)
-////          Future{response}
-////        }).flatMap(f => f)
-//      } else throw new ClientException(ResponseCode.CLIENT_ERROR.name, "The object with given identifier is not a framework: " +id )
-//    }
 
   private def updateRequestWithMode(request: Request) {
     request.put("rootId", request.get(Constants.IDENTIFIER).asInstanceOf[String])
