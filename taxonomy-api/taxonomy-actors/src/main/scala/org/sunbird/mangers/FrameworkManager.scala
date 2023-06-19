@@ -8,6 +8,7 @@ import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
+import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.path.DataSubGraph
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
@@ -19,6 +20,9 @@ import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
+import org.sunbird.utils.{CategoryCache, Constants, FrameworkCache}
+
+import java.util.stream.Collectors
 
 object FrameworkManager {
   private val languageCodes = Platform.getStringList("platform.language.codes", new util.ArrayList[String]())
@@ -32,56 +36,66 @@ object FrameworkManager {
     }
   }
 
-
-  def filterFrameworkCategories(framework: util.Map[String, AnyRef], categoryNames: util.List[String]): Unit = {
-    val categories = framework.get("categories").asInstanceOf[util.List[Map[String, AnyRef]]]
+  def filterFrameworkCategories(framework: util.Map[String, AnyRef], categoryNames: util.List[String]): Map[String, AnyRef] = {
+    val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]]
     if (!categories.isEmpty && !categoryNames.isEmpty) {
-      val filteredCategories = categories.filter(p => {
-        val name = p.getOrElse("name", "").asInstanceOf[String]
+      val filteredCategories = categories.filter(category => {
+        val name = category.get("name").asInstanceOf[String]
         categoryNames.contains(name.toLowerCase())
       }).toList.asJava
-      framework.put("categories",filteredCategories)
-      removeAssociations(framework, categoryNames)
+      val filteredData = framework.-("categories") ++ Map("categories" -> filteredCategories)
+      val finalCategories = removeAssociations(filteredData.toMap, categoryNames)
+      (filteredData.-("categories") ++ Map("categories" -> finalCategories)).toMap
+    } else {
+      framework.toMap
     }
   }
 
-  private def removeAssociations(responseMap: util.Map[String, AnyRef], returnCategories: java.util.List[String]): Unit = {
-    val categories = responseMap.get("categories").asInstanceOf[util.List[Map[String, AnyRef]]]
+  private def removeAssociations(responseMap: Map[String, AnyRef], returnCategories: java.util.List[String]): util.List[util.Map[String, AnyRef]] = {
+    val categories = responseMap.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]]
     categories.map( category => {
-      removeTermAssociations(category.getOrDefault("terms", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[Map[String, AnyRef]]], returnCategories)
+      removeTermAssociations(category.getOrDefault("terms", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], returnCategories)
+    })
+    categories
+  }
+
+  private def removeTermAssociations(terms: util.List[util.Map[String, AnyRef]], returnCategories: java.util.List[String]): Unit = {
+    terms.map(term => {
+      val associations = term.getOrDefault("associations", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+      if (associations.nonEmpty) {
+        val filteredAssociations = associations.filter(p => p != null && returnCategories.contains(p.get("category")))
+        term.put("associations", filteredAssociations)
+        if (filteredAssociations.isEmpty)
+          term.remove("associations")
+        removeTermAssociations(term.getOrDefault("children", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]], returnCategories)
+      }
     })
   }
 
-  private def removeTermAssociations(terms: util.List[Map[String, AnyRef]], returnCategories: java.util.List[String]): Unit = {
-    terms.foreach { term =>
-      val associations = term.get("associations").asInstanceOf[util.List[Map[String, AnyRef]]]
-      if (associations.nonEmpty) {
-        val filteredAssociations = associations.filter(p => p != null && returnCategories.contains(p.get("category")))
-        term.put("associations",filteredAssociations)
-        if (filteredAssociations.isEmpty)
-          term.remove("associations")
-        removeTermAssociations(term.get("children").asInstanceOf[List[Map[String, AnyRef]]], returnCategories)
-      }
-    }
-  }
-
-  def generateFrameworkHierarchy(rootId: String, subGraph: SubGraph)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef]  = {
-    val nodes =  subGraph.getNodes
+  def getCompleteMetadata(id: String, subGraph: SubGraph)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+    val nodes = subGraph.getNodes
     val relations = subGraph.getRelations
-    val rootNode = nodes.get(rootId)
-    val nodeMetadata = rootNode.getMetadata
+    val node = nodes.get(id)
+    val metadata = node.getMetadata
+    val objectType = node.getObjectType.toLowerCase().replace("image", "")
+    val channel = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]
+    val definition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
+    val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, objectType, definition)
+    val updatedMetadata: util.Map[String, AnyRef] = metadata.entrySet().asScala.filter(entry => null != entry.getValue)
+      .map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, null) -> convertJsonProperties(entry, jsonProps)).toMap ++
+      Map("objectType" -> node.getObjectType, "identifier" -> node.getIdentifier, "languageCode" -> NodeUtil.getLanguageCodes(node))
 
-    val objectType = rootNode.getObjectType.toLowerCase().replace("image", "")
-    val channel = rootNode.getMetadata.getOrDefault("channel", "all").asInstanceOf[String];
-    val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
-    val jsonProps = DefinitionNode.fetchJsonProps(rootNode.getGraphId, schemaVersion, objectType, objectCategoryDefinition)
-    val updatedMetadata: util.Map[String, AnyRef] = nodeMetadata.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, null) -> convertJsonProperties(entry, jsonProps)).toMap.asJava
-    val finalMetadata = updatedMetadata.asScala ++ Map("objectType" -> rootNode.getObjectType, "identifier" -> rootNode.getIdentifier, "languageCode" -> NodeUtil.getLanguageCodes(rootNode))
-
-    val definitionMap = DefinitionNode.getRelationDefinitionMap(rootNode.getGraphId, schemaVersion, objectType, objectCategoryDefinition)
-    val filterRelations = relations.filter((rel: Relation) => { StringUtils.equals(rel.getStartNodeId.toString(), rootNode.getIdentifier) }).toList
-    val relationMetadata = getRelationMap(definitionMap, filterRelations, "out")
-    (finalMetadata ++ relationMetadata).asJava
+    val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
+    val outRelations = relations.filter((rel: Relation) => {
+      StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
+    }).toList
+    val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
+    val childHierarchy = relMetadata.map(x => (x._1, x._2.map(a => {
+      val identifier = a.getOrElse("identifier", "")
+      val childNode = nodes.get(identifier)
+      getCompleteMetadata(childNode.getIdentifier, subGraph)
+    }).toList.asJava))
+    (updatedMetadata ++ childHierarchy).asJava
   }
 
   private def getNodeDefinition(node: Node, filterRelations: List[Relation])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
@@ -92,8 +106,7 @@ object FrameworkManager {
   }
 
 
-  private def getRelationMap(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
-
+  private def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
     relationMap.asScala.map(rel =>
     {
       val endObjectType = rel.getEndNodeObjectType.replace("Image", "")
@@ -140,5 +153,23 @@ object FrameworkManager {
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
+  def validateChannel(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
+    if (channel.isEmpty()) throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+    val getChannelReq = new Request()
+    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
+    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
+    getChannelReq.put(Constants.IDENTIFIER, channel)
+    DataNode.read(getChannelReq)(oec, ec).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) node
+      else
+        throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+    })(ec)
+  }
 
 }
