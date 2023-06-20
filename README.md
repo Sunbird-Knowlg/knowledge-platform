@@ -3,7 +3,7 @@
 Repository for Knowledge Platform - 2.0
 
 ## Knowledge-platform local setup 
-This readme file contains the instruction to set up and run the content-service in local machine.
+This readme file contains the instruction to set up and run the content service on the local machine.
 
 ### System Requirements:
 
@@ -20,7 +20,7 @@ This readme file contains the instruction to set up and run the content-service 
 sh ./local-setup.sh
 ```
  
- This will install all the requied dcoker images & local folders for DB mounting.
+ This will install all the required docker images & local folders for DB mounting.
  3. Follow the below manual setps of running content service 
   refer: [Running Content Service:](#running-content-service)
 
