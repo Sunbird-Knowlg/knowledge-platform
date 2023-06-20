@@ -74,7 +74,6 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     request.getRequest.put("categories", returnCategories)
     if (StringUtils.isNotBlank(frameworkId)) {
       val framework = FrameworkCache.get(frameworkId, returnCategories)
-      println("from redis: "+ framework)
       if(framework != null){
         Future {
           ResponseHandler.OK.put(Constants.FRAMEWORK, framework)
@@ -150,6 +149,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
           val subGraph: Future[SubGraph] = DataSubGraph.read(request)
           subGraph.map(data => {
             val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data)
+            CategoryCache.setFramework(frameworkId, frameworkHierarchy)
             val req = new Request(request)
             req.put("hierarchy", ScalaJsonUtils.serialize(frameworkHierarchy))
             req.put("identifier", frameworkId)
