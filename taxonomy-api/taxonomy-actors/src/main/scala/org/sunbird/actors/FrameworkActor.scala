@@ -2,8 +2,9 @@ package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, SubGraph}
 import org.sunbird.graph.nodes.DataNode
@@ -17,7 +18,7 @@ import java.util
 import javax.inject.Inject
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.JavaConversions.{mapAsJavaMap}
+import scala.collection.JavaConversions.mapAsJavaMap
 
 class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -163,31 +164,8 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
 
   //TODO:
   private def copy(request: Request): Future[Response] = {
-    val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
-    val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
-    if(StringUtils.isBlank(code))
-      throw new ClientException("ERR_FRAMEWORK_CODE_REQUIRED", "Unique code is mandatory for framework")
-
-    if (StringUtils.equals(frameworkId, code))
-      throw new ClientException("ERR_FRAMEWORKID_CODE_MATCHES", "FrameworkId and code should not be same.")
-
-    val getFrameworkReq = new Request()
-    getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
-    getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
-    getFrameworkReq.put(Constants.IDENTIFIER, code)
-    DataNode.read(getFrameworkReq).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, code)) {
-        throw new ClientException("ERR_FRAMEWORK_EXISTS", "Framework with code: " + code + ", already exists.")
-      } else {
-        FrameworkManager.validateChannel(request)
-        ResponseHandler.OK.put("node_id", node.getIdentifier)
-      }
-    })
+    RequestUtil.restrictProperties(request)
+    FrameworkManager.copyHierarchy(request)
   }
 
 }

@@ -47,19 +47,18 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getFrameworkReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-        validateCategoryObject(request).map( node => {
+        validateCategoryObject(request)
         request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(frameworkId, code))
-          val frameworkList = new util.ArrayList[Map[String, AnyRef]]
-          val relationMap = new util.HashMap[String, AnyRef]
-          relationMap.put("identifier", frameworkId)
-          relationMap.put("index", getCategoryIndex(node))
-          frameworkList.add(relationMap)
-          request.put("frameworks", frameworkList)
-          DataNode.create(request).map(node => {
-            ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
-              .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
-          })
-        }).flatMap(f => f)
+        val frameworkList = new util.ArrayList[Map[String, AnyRef]]
+        val relationMap = new util.HashMap[String, AnyRef]
+        relationMap.put("identifier", frameworkId)
+        relationMap.put("index", getCategoryIndex(node))
+        frameworkList.add(relationMap)
+        request.put("frameworks", frameworkList)
+        DataNode.create(request).map(node => {
+          ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
+            .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
+        })
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatMap(f => f)
   }

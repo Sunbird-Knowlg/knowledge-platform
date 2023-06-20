@@ -3,10 +3,11 @@ package org.sunbird.mangers
 import java.util
 import com.twitter.util.Config.intoOption
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.{JsonUtils, Platform}
-import org.sunbird.common.dto.{Request, ResponseHandler}
+import org.sunbird.common.{JsonUtils, Platform, Slug}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.path.DataSubGraph
@@ -21,8 +22,6 @@ import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.utils.{CategoryCache, Constants, FrameworkCache}
-
-import java.util.stream.Collectors
 
 object FrameworkManager {
   private val languageCodes = Platform.getStringList("platform.language.codes", new util.ArrayList[String]())
@@ -139,7 +138,6 @@ object FrameworkManager {
 
     val responseFuture = oec.graphService.readExternalProps(request, externalProps)
     responseFuture.map(response => {
-      println("response "+ response.toString)
       if (!ResponseHandler.checkError(response)) {
         val hierarchyString = response.getResult.toMap.getOrDefault("hierarchy", "").asInstanceOf[String]
         if (StringUtils.isNotEmpty(hierarchyString)) {
@@ -151,6 +149,107 @@ object FrameworkManager {
       else
         throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA", "Error while fetching hierarchy from cassandra")
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+  }
+
+  def copyHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
+    if (StringUtils.isBlank(code))
+      throw new ClientException("ERR_FRAMEWORK_CODE_REQUIRED", "Unique code is mandatory for framework copy")
+
+    if (StringUtils.equals(frameworkId, code))
+      throw new ClientException("ERR_FRAMEWORKID_CODE_MATCHES", "FrameworkId and code should not be same.")
+
+    val getFrameworkReq = new Request()
+    getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
+    getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
+    getFrameworkReq.getContext.put("frameworkId", code)
+    copyRelationHierarchy(getFrameworkReq, frameworkId, code)
+    Future{
+      ResponseHandler.OK.put("node_id", code)
+    }
+  }
+
+  private def copyRelationHierarchy(request: Request, oldId: String, newId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
+    request.put(Constants.IDENTIFIER, oldId)
+    DataNode.read(request).map(node => {
+      val schemaName = request.getContext.getOrDefault("schemaName", "framework").asInstanceOf[String]
+      val schemaVersion = request.getContext.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
+      val objectType = node.getObjectType.toLowerCase().replace("image", "")
+      val channel = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]
+      val definition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
+      val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
+      val frameworkId = request.getContext.getOrDefault("frameworkId", "").asInstanceOf[String]
+      val outRelations = node.getOutRelations.filter((rel: Relation) => {
+        StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
+      }).toList
+
+      node.setInRelations(null)
+      node.setOutRelations(null)
+      val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), schemaName, schemaVersion)
+      val requestMap = request.getRequest
+      if(metadata.get("framework").asInstanceOf[String] != null){
+        metadata.put("framework", frameworkId)
+      }
+      metadata.putAll(requestMap)
+
+      val req = getRequestMap(request, metadata, newId, relationDef)
+      DataNode.create(req).map(copiedNode => {
+        outRelations.map(rel => {
+          if(!rel.getMetadata.isEmpty){
+            val endObjectType = rel.getEndNodeObjectType.replace("Image", "")
+            val StartObjectType = rel.getStartNodeObjectType.replace("Image", "")
+            val relKey: String = rel.getRelationType + "_out_" + endObjectType
+            var endNodeId = rel.getEndNodeId()
+            endNodeId = endNodeId.replaceFirst(oldId.toLowerCase(), newId.toLowerCase())
+            if (relationDef.containsKey(relKey)) {
+              val relReq = new Request()
+              relReq.setContext(new util.HashMap[String, AnyRef]() {
+                {
+                  putAll(request.getContext)
+                }
+              })
+              relReq.getContext.put(Constants.SCHEMA_NAME, rel.getEndNodeObjectType)
+              relReq.getContext.put(Constants.VERSION, schemaVersion)
+              relReq.getContext.put("frameworkId", frameworkId)
+
+              val inRelKey: String = rel.getRelationType + "_in_" + StartObjectType
+              val relationMap: util.Map[String, Object] = new util.HashMap[String, Object]()
+              relationMap.put("identifier", newId)
+              val index: Integer = rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
+              relationMap.put("index", index)
+              relationMap.put("KEY", inRelKey)
+              relReq.getContext.put("relationMap", relationMap)
+
+              copyRelationHierarchy(relReq, rel.getEndNodeId, endNodeId)
+            }
+          }
+        })
+      })
+    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+  }
+
+  private def getRequestMap(request: Request, metadata: util.Map[String, AnyRef], objectId: String, relationDef: Map[String, AnyRef]): Request = {
+    val req = new Request(request)
+    req.setRequest(metadata)
+    req.put("identifier", objectId)
+    var relMap = request.getContext.getOrDefault("relationMap", new util.HashMap[String, Object]()).asInstanceOf[util.Map[String, Object]]
+    if (!relMap.isEmpty) {
+      val relKey = relMap.getOrDefault("KEY", "").asInstanceOf[String]
+      relMap = relMap.toMap.-("KEY")
+      if (!relationDef.getOrDefault(relKey, "").asInstanceOf[String].isEmpty) {
+        val tempArr = new util.ArrayList[util.Map[String, Object]]()
+        tempArr.add(relMap)
+        req.put(relationDef.getOrDefault(relKey, "").asInstanceOf[String], tempArr)
+      }
+    }
+    req.getContext.remove("relationMap")
+    req
   }
 
   def validateChannel(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
