@@ -40,7 +40,7 @@ object DataNode {
     def update(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
-            request.getContext().put("schemaName", node.getObjectType.toLowerCase.replace("image", ""))
+          request.getContext().put("schemaName", node.getObjectType.toLowerCase.replace("image", ""))
             val response = oec.graphService.upsertNode(request.graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
@@ -58,7 +58,12 @@ object DataNode {
             val objectType : String = request.getContext.get("objectType").asInstanceOf[String]
             request.getContext.put("schemaName", schema)
             val fields: List[String] = Optional.ofNullable(request.get("fields").asInstanceOf[util.List[String]]).orElse(new util.ArrayList[String]()).toList
-            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], schema)
+            val version: String = if (null != node && null != node.getMetadata) {
+              val schemaVersion: String = node.getMetadata.getOrDefault("schemaVersion", "0.0").asInstanceOf[String]
+              val scVer = if (StringUtils.isNotBlank(schemaVersion) && schemaVersion.toDouble != 0.0) schemaVersion else request.getContext.get("version").asInstanceOf[String]
+              scVer
+            } else request.getContext.get("version").asInstanceOf[String]
+            val extPropNameList = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], version, schema)
             if (CollectionUtils.isNotEmpty(extPropNameList) && null != fields && fields.exists(field => extPropNameList.contains(field)))
                 populateExternalProperties(fields, node, request, extPropNameList)
             else

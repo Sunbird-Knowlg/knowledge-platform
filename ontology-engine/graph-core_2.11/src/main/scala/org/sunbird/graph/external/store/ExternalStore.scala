@@ -28,7 +28,10 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         import scala.collection.JavaConverters._
         for ((key, value) <- request.asScala) {
             propsMapping.getOrElse(key, "") match {
-                case "blob" => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+                case "blob" => value match {
+                    case value: String => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+                    case _ => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", JsonUtils.serialize(value)))
+                }
                 case "string" => request.getOrDefault(key, "") match {
                     case value: String => insertQuery.value(key, value)
                     case _ => insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))

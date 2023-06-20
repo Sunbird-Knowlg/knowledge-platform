@@ -148,7 +148,7 @@
         },
         "compatibilityLevel": {
             "type": "number",
-            "default": 2
+            "default": 1
         },
         "minGenieVersion": {
             "type": "string"
@@ -1408,6 +1408,9 @@
             "items": {
                 "type": "object"
             }
+        },
+        "migrationVersion": {
+            "type": "number"
         }
     }
 }

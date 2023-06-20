@@ -27,8 +27,11 @@ object UpdateHierarchyManager {
     def updateHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
         val nodesModified: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[java.util.HashMap[String, AnyRef]]
+        TelemetryManager.info("UpdateHierarchyManager:: updateHierarchy:: nodesModified: " + nodesModified)
         val hierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
+        TelemetryManager.info("UpdateHierarchyManager:: updateHierarchy:: hierarchy: " + hierarchy)
         val rootId: String = getRootId(nodesModified, hierarchy)
+        TelemetryManager.info("UpdateHierarchyManager:: updateHierarchy:: rootId: " + rootId)
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
         getValidatedRootNode(rootId, request).map(node => {
             getExistingHierarchy(request, node).map(existingHierarchy => {

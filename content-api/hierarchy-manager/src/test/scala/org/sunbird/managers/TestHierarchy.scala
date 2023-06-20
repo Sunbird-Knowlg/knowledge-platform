@@ -53,7 +53,7 @@ class TestHierarchy extends BaseSpec {
         request.put("rootId", "do_11283193441064550414")
         request.put("unitId", "do_11283193463014195215")
         request.put("children", util.Arrays.asList("do_11340096165525094411"))
-        request.put("relationalMetadata",mapAsJavaMap(Map("do_11340096165525094411" -> Map("relName" -> "Test Name RM", "keywords" -> Array("Overwriting content Keywords") ))))
+        request.put("relationalMetadata",mapAsJavaMap(Map("do_11340096165525094411" -> Map("name" -> "Test Name RM", "keywords" -> Array("Overwriting content Keywords") ))))
         request.put("mode","edit")
         val future = HierarchyManager.addLeafNodesToHierarchy(request)
         future.map(response => {
