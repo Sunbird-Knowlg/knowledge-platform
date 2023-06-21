@@ -48,6 +48,49 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert(response.get(Constants.NODE_ID).equals("framework_test"))
   }
 
+  it should "throw exception if code is sent empty for 'createFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val request = getFrameworkRequest()
+    request.putAll(mapAsJavaMap(Map("name" -> "framework_test", "code" -> "", "description" -> "desc_test", "channel" -> "channel_test")))
+    request.setOperation(Constants.CREATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if channel is not sent in the request for 'createFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val request = getFrameworkRequest()
+    request.putAll(mapAsJavaMap(Map("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test")))
+    request.setOperation(Constants.CREATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if empty channel identifier is sent in the request 'createFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("")
+    node.setObjectType("Channel")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "channel_test");
+        put("objectType", "Channel")
+        put("name", "Channel")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val request = getFrameworkRequest()
+    request.putAll(mapAsJavaMap(Map("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test", "channel" -> "channel_test")))
+    request.setOperation(Constants.CREATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
 
   it should "return success response for updateFramework" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
