@@ -58,7 +58,6 @@ public class HttpUrlUtilTest {
 		String url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/";
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
-	@Ignore
 	@Test
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";

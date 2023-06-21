@@ -36,7 +36,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new ContentActor()))
     }
 
-    ignore should "create a node and store it in neo4j" in {
+    it should "create a node and store it in neo4j" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -58,7 +58,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("versionKey") != null)
     }
 
-    ignore should "create a plugin node and store it in neo4j" in {
+    it should "create a plugin node and store it in neo4j" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -325,7 +325,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getParams.getErrmsg == "Channel id is not matched")
     }
     
-    ignore should "return success response for 'updateContent'" in {
+    it should "return success response for 'updateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -347,7 +347,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("test_123".equals(response.get("versionKey")))
     }
 
-    ignore should "return client exception for 'updateContent' with invalid versionKey" in {
+    it should "return client exception for 'updateContent' with invalid versionKey" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -438,7 +438,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-    /*ignore should "return success response for 'uploadContent' with jpeg asset"  {
+    /*it should "return success response for 'uploadContent' with jpeg asset"  {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]

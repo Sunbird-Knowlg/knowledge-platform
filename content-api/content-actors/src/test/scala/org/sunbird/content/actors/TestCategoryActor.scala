@@ -96,7 +96,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    ignore should "return success response for retireCategory" in {
+    it should "return success response for retireCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()

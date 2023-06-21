@@ -35,7 +35,7 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
         })
     }
 
-    ignore should "return copied node identifier and safe hierarchy in cassandra when collection is copied" in {
+    it should "return copied node identifier and safe hierarchy in cassandra when collection is copied" in {
         assert(true)
     }
 
