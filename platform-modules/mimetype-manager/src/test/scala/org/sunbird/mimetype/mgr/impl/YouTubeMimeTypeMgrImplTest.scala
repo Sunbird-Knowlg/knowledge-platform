@@ -1,4 +1,3 @@
-/*
 package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
@@ -82,4 +81,3 @@ class YouTubeMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncM
 	}
 
 }
-*/

@@ -1,7 +1,6 @@
 package org.sunbird.url.mgr.impl;
 
 import org.apache.commons.collections4.MapUtils;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

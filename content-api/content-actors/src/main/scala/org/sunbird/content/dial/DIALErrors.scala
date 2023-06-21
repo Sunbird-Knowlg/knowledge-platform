@@ -30,7 +30,7 @@ object DIALErrors {
 	val ERR_CONTENT_BLANK_OBJECT_ID_MSG: String = "Content Id cannot be Blank."
 	val ERR_CONTENT_MIMETYPE_MSG: String = "Invalid mimeType."
 	val ERR_INVALID_COUNT_MSG: String = "Invalid dialcode count."
-	val ERR_INVALID_COUNT_RANGE_MSG: String = "Invalid dialcode count range. it should be between 1 to "
+	val ERR_INVALID_COUNT_RANGE_MSG: String = "Invalid dialcode count range. It should be between 1 to "
 	val ERR_DIAL_GEN_LIST_EMPTY_MSG: String = "Dialcode generated list is empty. Please Try Again After Sometime!"
 	val ERR_DIAL_GENERATION_MSG: String = "Error During generate Dialcode. Please Try Again After Sometime!"
 	val ERR_DIAL_INVALID_COUNT_RESPONSE = "No new DIAL Codes have been generated, as requested count is less or equal to existing reserved dialcode count."

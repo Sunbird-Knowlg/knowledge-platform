@@ -1,6 +1,5 @@
 package org.sunbird.url.mgr.impl;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.url.mgr.IURLManager;
