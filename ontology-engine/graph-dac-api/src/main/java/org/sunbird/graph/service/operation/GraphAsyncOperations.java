@@ -183,13 +183,5 @@ public class GraphAsyncOperations {
 				nodeMap.put(endNode.id(), endNode);
 			}
 		}
-//		if (null != relationMap) {
-//			Value relValue = record.get("relationMedata");
-//			if (null != relValue && StringUtils.equalsIgnoreCase("RELATIONSHIP", relValue.type().name())) {
-//				org.neo4j.driver.v1.types.Relationship relationship = record
-//						.get("relationMedata").asRelationship();
-//				relationMap.put(relationship.id(), relationship);
-//			}
-//		}
 	}
 }

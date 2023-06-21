@@ -170,12 +170,9 @@ object FrameworkManager {
     getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
     getFrameworkReq.getContext.put("frameworkId", code)
     copyRelationHierarchy(getFrameworkReq, frameworkId, code)
-    Future{
-      ResponseHandler.OK.put("node_id", code)
-    }
   }
 
-  private def copyRelationHierarchy(request: Request, oldId: String, newId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Unit = {
+  private def copyRelationHierarchy(request: Request, oldId: String, newId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     request.put(Constants.IDENTIFIER, oldId)
     DataNode.read(request).map(node => {
       val schemaName = request.getContext.getOrDefault("schemaName", "framework").asInstanceOf[String]
@@ -208,12 +205,7 @@ object FrameworkManager {
             var endNodeId = rel.getEndNodeId()
             endNodeId = endNodeId.replaceFirst(oldId.toLowerCase(), newId.toLowerCase())
             if (relationDef.containsKey(relKey)) {
-              val relReq = new Request()
-              relReq.setContext(new util.HashMap[String, AnyRef]() {
-                {
-                  putAll(request.getContext)
-                }
-              })
+              val relReq = new Request(request)
               relReq.getContext.put(Constants.SCHEMA_NAME, rel.getEndNodeObjectType)
               relReq.getContext.put(Constants.VERSION, schemaVersion)
               relReq.getContext.put("frameworkId", frameworkId)
@@ -230,6 +222,7 @@ object FrameworkManager {
             }
           }
         })
+        ResponseHandler.OK.put("node_id", frameworkId)
       })
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
@@ -238,6 +231,7 @@ object FrameworkManager {
     val req = new Request(request)
     req.setRequest(metadata)
     req.put("identifier", objectId)
+    req.put("code", objectId)
     var relMap = request.getContext.getOrDefault("relationMap", new util.HashMap[String, Object]()).asInstanceOf[util.Map[String, Object]]
     if (!relMap.isEmpty) {
       val relKey = relMap.getOrDefault("KEY", "").asInstanceOf[String]
