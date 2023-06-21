@@ -47,11 +47,6 @@ object DataSubGraph {
       println("subGraphData out " + sub)
       sub
     })
-
-//    subGraphData.map(sub => {
-//      println("subGraphData in map " + sub)
-//      sub
-//    }).flatMap(f => Future(f))
   }
 
   private def readSubGraphData(request: Request, dataMap: util.HashMap[String, AnyRef], relMap: util.HashMap[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.HashMap[String, AnyRef]] = {
@@ -86,60 +81,6 @@ object DataSubGraph {
         println("readSubGraphData "+ readSubGraphData(subReq, dataMap, relMap))
       }
     })
-
-
-//    node.map(n => {
-//      val finalMetadata = serialize(n, null, schemaName, schemaVersion, isRoot)
-////      if (!isRoot && !finalMetadata.isEmpty) {
-////        dataMap.put(n.getIdentifier, finalMetadata)
-////      } else {
-////        relMap.put(n.getIdentifier, finalMetadata)
-////        dataMap.put("relMap", relMap)
-////      }
-//
-//      val outRelations: util.List[Relation] = {
-//        if (CollectionUtils.isEmpty(n.getOutRelations)) new util.ArrayList[Relation] else n.getOutRelations
-//      }
-//      for (rel <- outRelations.asScala) {
-//        val subReq = new Request()
-//        val context = new util.HashMap[String, Object]()
-//        context.putAll(request.getContext)
-//        subReq.setContext(context)
-//        subReq.getContext.put("schemaName", rel.getEndNodeObjectType.toLowerCase())
-//        subReq.getContext.put("objectType", rel.getEndNodeObjectType)
-//        subReq.getContext.put("isRoot", "true")
-//        //          subReq.getContext.put("parentId", n.getIdentifier)
-//        //          subReq.getContext.put("parentRelationsMap", definition.getRelationsMap().keySet())
-//        subReq.put("identifier", rel.getEndNodeId)
-//        val xyz = readSubGraphData(subReq, dataMap, relMap)
-//        println("getIdentifier  ==== "+n.getIdentifier + " ==== rel.getEndNodeId ===== "+ rel.getEndNodeId)
-//        println("xyz  " + xyz )
-//      }
-//      println(" finalDataMap =====  " + dataMap)
-//      dataMap
-//      //      n.getOutRelations.asScala.map(relation => {
-//      //        if (StringUtils.equalsIgnoreCase(relation.getRelationType, "hasSequenceMember")) {
-//      //          val subReq = new Request()
-//      //          val context = new util.HashMap[String, Object]()
-//      //          context.putAll(request.getContext)
-//      //          subReq.setContext(context)
-//      //          subReq.getContext.put("schemaName", relation.getEndNodeObjectType.toLowerCase())
-//      //          subReq.getContext.put("objectType", relation.getEndNodeObjectType)
-//      //          subReq.getContext.put("isRoot", "true")
-//      //          //          subReq.getContext.put("parentId", n.getIdentifier)
-//      //          //          subReq.getContext.put("parentRelationsMap", definition.getRelationsMap().keySet())
-//      //          subReq.put("identifier", relation.getEndNodeId)
-//      //          val subMetaData = readSubGraphData(subReq, dataMap, relMap)
-//      //          println("subMetaData  " + subMetaData)
-//      //          if (isRoot && !subMetaData.isEmpty) {
-//      //            relMap.put(n.getIdentifier, subMetaData)
-//      //            finalDataMap.put("relMap", relMap)
-//      //          }
-//      //        }
-//      //        println(" finalDataMap =====  "+ finalDataMap)
-//      //        finalDataMap
-//      //      })
-//    })
     Future{finalDataMap}
   }
 
