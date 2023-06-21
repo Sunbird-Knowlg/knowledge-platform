@@ -25,7 +25,6 @@ public class YouTubeURLManagerImplTest {
 	@Rule
 	public final ExpectedException exception = ExpectedException.none();
 
-	@Ignore
 	@Test
 	public void testValidateUrlWithValidUrlValidCriteria() {
 		String videoUrl = "https://www.youtube.com/wat	ch?v=GHmQ8euNwv8";
