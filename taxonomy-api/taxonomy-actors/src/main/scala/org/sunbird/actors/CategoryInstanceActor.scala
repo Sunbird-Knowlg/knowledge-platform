@@ -47,8 +47,8 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getFrameworkReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-        validateCategoryObject(request).map( node => {
-        request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(frameworkId, code))
+        validateCategoryObject(request).map(catNode => {
+          request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(frameworkId, catNode.getIdentifier))
           val frameworkList = new util.ArrayList[Map[String, AnyRef]]
           val relationMap = new util.HashMap[String, AnyRef]
           relationMap.put("identifier", frameworkId)

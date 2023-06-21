@@ -14,28 +14,13 @@
     ]
   },
   "external": {
-    "tableName": "framework_data",
+    "tableName": "framework_hierarchy",
     "properties": {
-      "body": {
-        "type": "blob"
-      },
-      "oldBody": {
-        "type": "blob"
-      },
-      "stageIcons": {
-        "type": "blob"
-      },
-      "screenshots": {
-        "type": "blob"
-      },
-      "last_updated_on": {
-        "type": "timestamp"
-      },
-      "externallink": {
+      "hierarchy": {
         "type": "text"
       }
     },
-    "primaryKey": ["framework_id"]
+    "primaryKey": ["identifier"]
   },
   "relations": {
     "channels": {

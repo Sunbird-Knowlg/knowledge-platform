@@ -5,10 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.graph.util.ScalaJsonUtil
+import org.sunbird.graph.utils.ScalaJsonUtils
 
 import java.util
 import java.util.Collections
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions.{asJavaCollection, asScalaBuffer}
 import scala.collection.JavaConverters.seqAsJavaListConverter
 
@@ -25,23 +28,21 @@ object FrameworkCache{
         CACHE_PREFIX + identifier.toLowerCase + "_" + categoryNames.map(_.toLowerCase).mkString("_")
     }
 
-    def get(id: String, returnCategories: util.List[String]): Map[String, AnyRef] = {
+    def get(id: String, returnCategories: util.List[String]): util.Map[String, Object] = {
+      println("cacheEnabled "+ cacheEnabled)
         if (cacheEnabled) {
-            if (CollectionUtils.isNotEmpty(returnCategories)) {
+            if (returnCategories.nonEmpty) {
               val categories = new util.ArrayList[String](returnCategories)
                 Collections.sort(categories)
                  println("fwcachekey: " + getFwCacheKey(id, categories) )
                 val cachedCategories: String = RedisCache.get(getFwCacheKey(id, categories))
                 println("cachedCategories :" +cachedCategories)
-                if (StringUtils.isNotBlank(cachedCategories)) {
-                    return mapper.readValue(cachedCategories, new TypeReference[Map[String, AnyRef]](){})
-                }
-            }
-            else {
+                if (StringUtils.isNotBlank(cachedCategories))
+                  return JsonUtils.deserialize(cachedCategories, classOf[util.Map[String, Object]])
+            } else {
                 val frameworkMetadata: String = RedisCache.get(id)
-                if (StringUtils.isNotBlank(frameworkMetadata)) {
-                    return mapper.readValue(frameworkMetadata, new TypeReference[Map[String, AnyRef]](){})
-                }
+                if (StringUtils.isNotBlank(frameworkMetadata))
+                  return JsonUtils.deserialize(frameworkMetadata, classOf[util.Map[String, Object]])
             }
         }
         null
@@ -49,10 +50,12 @@ object FrameworkCache{
 
 
     def save(framework: Map[String, AnyRef], categoryNames: util.List[String]): Unit = {
-        if (cacheEnabled && MapUtils.isNotEmpty(framework.asInstanceOf[java.util.Map[String, Object]]) && StringUtils.isNotBlank(framework.get("identifier").asInstanceOf[String]) && CollectionUtils.isNotEmpty(categoryNames)) {
-            Collections.sort(categoryNames)
-            val key: String = getFwCacheKey(framework.get("identifier").asInstanceOf[String], categoryNames)
-            RedisCache.set(key, mapper.writeValueAsString(framework), cacheTtl)
+      val identifier = framework.getOrElse("identifier", "").asInstanceOf[String]
+        if (cacheEnabled && !framework.isEmpty && StringUtils.isNotBlank(identifier) && categoryNames.nonEmpty) {
+          val categories = new util.ArrayList[String](categoryNames)
+          Collections.sort(categories)
+          val key: String = getFwCacheKey(identifier, categories)
+          RedisCache.set(key, ScalaJsonUtil.serialize(framework), cacheTtl)
         }
     }
 
