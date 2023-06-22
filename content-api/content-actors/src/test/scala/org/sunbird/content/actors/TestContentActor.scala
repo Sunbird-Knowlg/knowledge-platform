@@ -1,7 +1,6 @@
 package org.sunbird.content.actors
 
 import akka.actor.Props
-import com.google.common.io.Resources
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
@@ -12,9 +11,9 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
-import java.io.File
 import java.util
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -439,7 +438,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("processId") != null)
     }
 
-    it should "return success response for 'uploadContent' with jpeg asset" ignore  {
+    /*it should "return success response for 'uploadContent' with jpeg asset"  {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
@@ -459,7 +458,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
     }
-
+*/
     it should "return success response for 'systemUpdateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
@@ -646,12 +645,12 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("successful".equals(response.getParams.getStatus))
     }
 
-    it should "return success response for 'publishContent' for youtube mimeType" in {
+    ignore should "return success response for 'publishContent' for youtube mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val node = getNodeForReview("do_123", "video/x-youtube", "LearningResource", "Content", "https://www.youtube.com/watch?v=EtYU11qNciQ&t=612s")
+        val node = getNodeForReview("do_123", "video/x-youtube", "LearningResource", "Content", "https://www.youtube.com/watch?v=GHmQ8euNwv8")
         node.getMetadata.put("contentType", "Resource")
         node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()

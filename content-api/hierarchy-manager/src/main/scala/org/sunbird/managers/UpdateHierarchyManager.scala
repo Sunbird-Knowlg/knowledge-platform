@@ -17,7 +17,8 @@ import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Map;
 
 public class DefinitionUtilTest {
-
     @Test
     public void testAddDocumentWithId() throws Exception {
         Map<String,Object> metadata = DefinitionUtil.getMetaData("content");

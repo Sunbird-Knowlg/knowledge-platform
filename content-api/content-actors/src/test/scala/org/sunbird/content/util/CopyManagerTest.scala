@@ -1,18 +1,16 @@
 package org.sunbird.content.util
 
-import java.util
-
-import org.apache.commons.collections.MapUtils
+import org.apache.commons.collections4.MapUtils
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
-import org.sunbird.cloud.storage.util.JSONUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
+import java.util
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.Future
 
@@ -87,7 +85,6 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
         CopyManager.updateToCopySchemeContentType(getValidCopyRequest_1(), "TextBook", metadata)
         assert(MapUtils.isNotEmpty(metadata))
     }
-
 
     private def getNode(): Node = {
         val node = new Node()

@@ -9,7 +9,7 @@ import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -64,7 +64,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     assert("failed".equals(response.getParams.getStatus))
   }
 
-  ignore should "return success response for 'readChannel' operation" in {
+  it should "return success response for 'readChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)

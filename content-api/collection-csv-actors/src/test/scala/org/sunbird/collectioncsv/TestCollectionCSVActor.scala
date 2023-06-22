@@ -33,7 +33,6 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
     "CollectionCSVActor" should "return failed response for 'unknown' operation" in {
         testUnknownOperation( Props(new CollectionCSVActor()), getCollectionRequest())
     }
-
     it should "return client error on giving content Id with no children" in {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 

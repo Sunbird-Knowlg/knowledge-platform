@@ -12,8 +12,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scoverage.plugin.version>1.4.1</scoverage.plugin.version>
-		<scala.maj.version>2.11</scala.maj.version>
-		<scala.version>2.11.12</scala.version>
+		<scala.maj.version>2.12</scala.maj.version>
+		<scala.version>2.12.11</scala.version>
 		<scalatest.version>3.0.8</scalatest.version>
 		<fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
 	</properties>

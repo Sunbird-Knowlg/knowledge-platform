@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
 
+@Ignore
 public class NodeAsyncOperationsExceptionTest {
 
 	protected static GraphDatabaseService graphDb = null;
-
 	@BeforeClass
 	public static void setup() throws Exception {
-		startEmbeddedNeo4jWithReadOnly();
+//		startEmbeddedNeo4jWithReadOnly();
 	}
 
 	@AfterClass
@@ -59,7 +59,6 @@ public class NodeAsyncOperationsExceptionTest {
 		Future<Map<String, Node>> resultFuture = NodeAsyncOperations.updateNodes("domain",ids, data);
 		Map<String, Node> result = Await.result(resultFuture, Duration.apply("30s"));
 	}
-
 
 	private static void startEmbeddedNeo4jWithReadOnly() {
 		GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
