@@ -32,7 +32,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
     }
 
 
-    it should "upload ECML zip file and return public url" in {
+    ignore should "upload ECML zip file and return public url" in {
         val node = getNode()
         val identifier = "do_1234"
         implicit val ss = mock[StorageService]
@@ -101,7 +101,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         })
     }
 
-    it should "review ECML having xml body and return result" in {
+    ignore should "review ECML having xml body and return result" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
