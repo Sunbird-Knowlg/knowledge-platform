@@ -16,7 +16,7 @@ import org.sunbird.managers.UpdateHierarchyManager.{fetchHierarchy, shouldImageB
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
-import scala.collection.JavaConversions._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 object DiscardManager {

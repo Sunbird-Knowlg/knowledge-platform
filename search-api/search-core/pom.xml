@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <akka.version>2.5.22</akka.version>
-        <scala.major.version>2.11</scala.major.version>
+        <scala.major.version>2.12</scala.major.version>
     </properties>
 
     <dependencies>
@@ -82,7 +82,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.5</version>
+                <version>0.8.8</version>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>

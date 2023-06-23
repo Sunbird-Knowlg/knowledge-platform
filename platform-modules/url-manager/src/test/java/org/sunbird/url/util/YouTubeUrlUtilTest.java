@@ -60,7 +60,6 @@ public class YouTubeUrlUtilTest {
 		String videoUrl = "http://www.youtube.com/attribution_link?a=JdfC0C9V6ZI&u=%2Fwatch%3Fv%3DEhxJLojIE_o%26feature%3Dshare";
 		String result = YouTubeUrlUtil.getLicense(videoUrl);
 	}
-
 	@Test
 	public void testGetLicenseExpectYoutubeLicense() {
 		String videoUrl = "https://www.youtube.com/watch?v=_UR-l3QI2nE";

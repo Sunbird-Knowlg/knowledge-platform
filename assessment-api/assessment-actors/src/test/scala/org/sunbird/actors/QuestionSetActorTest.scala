@@ -15,7 +15,7 @@ import org.sunbird.managers.CopyManager
 import org.sunbird.utils.{AssessmentConstants, BranchingUtil, JavaJsonUtils}
 
 import java.util
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

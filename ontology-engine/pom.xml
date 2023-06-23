@@ -13,8 +13,8 @@
     <modules>
         <module>graph-common</module>
         <module>graph-dac-api</module>
-        <module>graph-core_2.11</module>
-        <module>graph-engine_2.11</module>
+        <module>graph-core_2.12</module>
+        <module>graph-engine_2.12</module>
         <module>parseq</module>
 
   </modules>

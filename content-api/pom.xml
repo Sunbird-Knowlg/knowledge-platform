@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <scala.version>2.11.12</scala.version>
+        <scala.version>2.12.11</scala.version>
     </properties>
     <modules>
         <module>content-service</module>

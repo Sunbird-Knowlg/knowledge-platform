@@ -8,7 +8,7 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.utils.HierarchyConstants
 
-import scala.collection.JavaConversions._
+
 import scala.collection.JavaConverters._
 
 class HierarchyManagerTest extends BaseSpec {
