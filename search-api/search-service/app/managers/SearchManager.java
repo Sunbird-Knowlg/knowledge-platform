@@ -54,6 +54,12 @@ public class SearchManager {
         Future<Response> getRes = getSearchResponse(request, actor);
         return getRes;
     }
+
+    public Future<Response> getAuditHistory(Request request, ActorRef actor) {
+        request.setOperation(SearchOperations.SEARCH_OPERATION_AND.name());
+        Future<Response> getRes = getSearchResponse(request, actor);
+        return getRes;
+    }
     
     protected Future<Response> getSearchResponse(Request request, ActorRef actor) {
         Future<Response> res = null;
