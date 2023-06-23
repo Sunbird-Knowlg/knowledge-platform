@@ -129,6 +129,61 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
+  it should "return success response for 'copyFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getFrameworkOfNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFramwrokRequest()
+    request.putAll(mapAsJavaMap(Map("identifier" -> "NCF",
+      "createdBy" -> "username_1",
+      "code" -> "NCF_COPY")))
+    request.setOperation(Constants.COPY_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.getResult.containsKey("node_id"))
+  }
+
+  it should "throw exception if code not sent in the request 'copyFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getFrameworkOfNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFramwrokRequest()
+    request.putAll(mapAsJavaMap(Map("identifier" -> "NCF")))
+    request.setOperation(Constants.COPY_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert("ERR_FRAMEWORK_CODE_REQUIRED".equals(response.getParams.getErr))
+  }
+
+  it should "throw exception if code & identifier values same in the request 'copyFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getFrameworkOfNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFramwrokRequest()
+    request.putAll(mapAsJavaMap(Map("identifier" -> "NCF", "code" -> "NCF")))
+    request.setOperation(Constants.COPY_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert("ERR_FRAMEWORKID_CODE_MATCHES".equals(response.getParams.getErr))
+  }
 
 
   private def getFrameworkOfNode(): Node = {
@@ -142,6 +197,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
         put("objectType", "Framework")
         put("name", "framework_test")
         put("code", "framework_test")
+        put("X-Channel-Id", "channel_test")
       }
     })
     node
@@ -158,7 +214,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
         put("code", "framework_test")
         put("objectType", "Framework")
         put("name", "framework_test")
-        put("channel", "channel_test")
+        put("channel", "sunbird")
       }
     })
     node
@@ -178,6 +234,21 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
       put("schemaName", "framework")
 
     }
-
   }
+
+  private def getFramwrokRequest(): Request = {
+    val request = new Request()
+    request.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        put("graph_id", "domain")
+        put("version", "1.0")
+        put("objectType", "Framework")
+        put("schemaName", "framework")
+        put("channel", "sunbird")
+      }
+    })
+    request.setObjectType("Framework")
+    request
+  }
+
 }

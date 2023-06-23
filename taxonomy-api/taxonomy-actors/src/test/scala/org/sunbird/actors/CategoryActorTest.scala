@@ -25,7 +25,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
           val graphDB = mock[GraphService]
           (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
           val node = new Node("domain", "DATA_NODE", "Category")
-          node.setIdentifier("category_test")
+          node.setIdentifier("state")
           node.setObjectType("Category")
           (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node))
 
@@ -33,13 +33,17 @@ class CategoryActorTest extends BaseSpec with MockFactory{
           (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
           val request = getCategoryRequest()
-          request.getRequest.put("name", "category_test")
-          request.getRequest.put("code", "category_test")
+          request.getRequest.put("name", "State")
+          request.getRequest.put("code", "state")
+          request.getRequest.put("orgIdFieldName", "stateIds")
+          request.getRequest.put("targetIdFieldName", "targetStateIds")
+          request.getRequest.put("searchIdFieldName", "se_stateIds")
+          request.getRequest.put("searchLabelFieldName", "se_states")
           request.setOperation(Constants.CREATE_CATEGORY)
           val response = callActor(request, Props(new CategoryActor()))
           assert("successful".equals(response.getParams.getStatus))
-          assert(response.get(Constants.IDENTIFIER).equals("category_test"))
-          assert(response.get(Constants.NODE_ID).equals("category_test"))
+          assert(response.get(Constants.IDENTIFIER).equals("state"))
+          assert(response.get(Constants.NODE_ID).equals("state"))
       }
 
       it should "throw exception if status sent in request" in {
@@ -95,102 +99,103 @@ class CategoryActorTest extends BaseSpec with MockFactory{
     val response = callActor(request, Props(new CategoryActor()))
     assert("failed".equals(response.getParams.getStatus))
   }
-      it should "throw exception if code not sent in request" in {
-          implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-          val request = getCategoryRequest()
-          request.getRequest.put("name", "category_test")
-          request.setOperation(Constants.CREATE_CATEGORY)
-          val response = callActor(request, Props(new CategoryActor()))
-          assert("failed".equals(response.getParams.getStatus))
-      }
 
-      it should "return success response for 'readCategory'" in {
-          implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-          val graphDB = mock[GraphService]
-          (oec.graphService _).expects().returns(graphDB)
-          val node = getValidNode()
-          (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
-          val request = getCategoryRequest()
-          request.getContext.put("identifier", "category_test")
-          request.putAll(mapAsJavaMap(Map("identifier" -> "category_test")))
-          request.setOperation("readCategory")
-          val response = callActor(request, Props(new CategoryActor()))
-          assert("successful".equals(response.getParams.getStatus))
-      }
+  it should "throw exception if code not sent in request" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val request = getCategoryRequest()
+      request.getRequest.put("name", "category_test")
+      request.setOperation(Constants.CREATE_CATEGORY)
+      val response = callActor(request, Props(new CategoryActor()))
+      assert("failed".equals(response.getParams.getStatus))
+  }
 
-      it should "return success response for updateCategory" in {
-          implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-          val graphDB = mock[GraphService]
-          (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-          val node = getValidNode()
-          (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-          (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
-          val nodes: util.List[Node] = getCategoryNode()
-          (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+  it should "return success response for 'readCategory'" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB)
+      val node = getValidNode()
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+      val request = getCategoryRequest()
+      request.getContext.put("identifier", "category_test")
+      request.putAll(mapAsJavaMap(Map("identifier" -> "category_test")))
+      request.setOperation("readCategory")
+      val response = callActor(request, Props(new CategoryActor()))
+      assert("successful".equals(response.getParams.getStatus))
+  }
 
-          val request = getCategoryRequest()
-          request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
-          request.setOperation(Constants.UPDATE_CATEGORY)
-          val response = callActor(request, Props(new CategoryActor()))
-          assert("successful".equals(response.getParams.getStatus))
-      }
+  it should "return success response for updateCategory" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      val node = getValidNode()
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+      (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
+      val nodes: util.List[Node] = getCategoryNode()
+      (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
-      it should "throw an exception if identifier is sent in update request" in {
-          implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-          val graphDB = mock[GraphService]
-          (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-          val request = getCategoryRequest()
-          request.putAll(mapAsJavaMap(Map("description" -> "test desc", "identifier"-> "category_test")))
-          request.setOperation(Constants.UPDATE_CATEGORY)
-          val response = callActor(request, Props(new CategoryActor()))
-          assert("failed".equals(response.getParams.getStatus))
-      }
+      val request = getCategoryRequest()
+      request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+      request.setOperation(Constants.UPDATE_CATEGORY)
+      val response = callActor(request, Props(new CategoryActor()))
+      assert("successful".equals(response.getParams.getStatus))
+  }
 
-      it should "throw an exception if code is sent in update request" in {
-        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
-        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-        val request = getCategoryRequest()
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "code" -> "category_test")))
-        request.setOperation(Constants.UPDATE_CATEGORY)
-        val response = callActor(request, Props(new CategoryActor()))
-        assert("failed".equals(response.getParams.getStatus))
-      }
+  it should "throw an exception if identifier is sent in update request" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      val request = getCategoryRequest()
+      request.putAll(mapAsJavaMap(Map("description" -> "test desc", "identifier"-> "category_test")))
+      request.setOperation(Constants.UPDATE_CATEGORY)
+      val response = callActor(request, Props(new CategoryActor()))
+      assert("failed".equals(response.getParams.getStatus))
+  }
 
-      it should "return success response for 'retireCategory' operation" in {
-          implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-          val graphDB = mock[GraphService]
-          (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-          val node = getValidNode()
-          node.setObjectType("Category")
-          (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
-          (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+  it should "throw an exception if code is sent in update request" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val request = getCategoryRequest()
+    request.putAll(mapAsJavaMap(Map("description" -> "test desc", "code" -> "category_test")))
+    request.setOperation(Constants.UPDATE_CATEGORY)
+    val response = callActor(request, Props(new CategoryActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
 
-          val nodes: util.List[Node] = getCategoryNode()
-          (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+  it should "return success response for 'retireCategory' operation" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      val node = getValidNode()
+      node.setObjectType("Category")
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+      (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 
-          val request = getCategoryRequest()
-          request.getContext.put("identifier", "category_test");
-          request.getRequest.put("identifier", "category_test")
-          request.setOperation("retireCategory")
-          val response = callActor(request, Props(new CategoryActor()))
-          assert("successful".equals(response.getParams.getStatus))
-      }
+      val nodes: util.List[Node] = getCategoryNode()
+      (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
-      private def getCategoryRequest(): Request = {
-          val request = new Request()
-          request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-              put("graph_id", "domain")
-              put("version", "1.0")
-              put("objectType", "Category")
-              put("schemaName", "category")
+      val request = getCategoryRequest()
+      request.getContext.put("identifier", "category_test");
+      request.getRequest.put("identifier", "category_test")
+      request.setOperation("retireCategory")
+      val response = callActor(request, Props(new CategoryActor()))
+      assert("successful".equals(response.getParams.getStatus))
+  }
 
-            }
-          })
-          request.setObjectType("Category")
-          request
-      }
+  private def getCategoryRequest(): Request = {
+      val request = new Request()
+      request.setContext(new util.HashMap[String, AnyRef]() {
+        {
+          put("graph_id", "domain")
+          put("version", "1.0")
+          put("objectType", "Category")
+          put("schemaName", "category")
+
+        }
+      })
+      request.setObjectType("Category")
+      request
+  }
 
   private def getValidNode(): Node = {
       val node = new Node()
@@ -203,6 +208,10 @@ class CategoryActorTest extends BaseSpec with MockFactory{
           put("objectType", "Category")
           put("name", "category_test")
           put("code", "category_test")
+          put("orgIdFieldName", "stateIds")
+          put("targetIdFieldName", "targetStateIds")
+          put("searchIdFieldName", "se_stateIds")
+          put("searchLabelFieldName", "se_states")
         }
       })
       node
