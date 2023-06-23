@@ -28,13 +28,6 @@ object DataSubGraph {
     subGraph
   }
 
-
-  def readOld(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[SubGraph] = {
-    val identifier: String = request.get("identifier").asInstanceOf[String]
-    val depth: Int = request.getOrDefault("depth", 5).asInstanceOf[Int]
-    oec.graphService.getSubGraph(request.graphId, identifier, depth)
-  }
-
   def readSubGraph(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit]  = {
     val identifier: String = request.get("identifier").asInstanceOf[String]
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
