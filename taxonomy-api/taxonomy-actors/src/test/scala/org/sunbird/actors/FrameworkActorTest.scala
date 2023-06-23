@@ -1,15 +1,16 @@
 package org.sunbird.actors
 
 import java.util
-
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Request, Response, ResponseParams}
+import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
-import org.sunbird.graph.dac.model.{Node, SearchCriteria}
+import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
 import org.sunbird.utils.Constants
 
 import scala.collection.JavaConversions.mapAsJavaMap
+import scala.collection.immutable.List
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -185,6 +186,49 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("ERR_FRAMEWORKID_CODE_MATCHES".equals(response.getParams.getErr))
   }
 
+  it should "return success response for 'publishFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("sunbird")
+    node.setObjectType("Channel")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "sunbird");
+        put("objectType", "Channel")
+        put("name", "Channel")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val subGraph = getSubGraphData()
+    (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(subGraph)).anyNumberOfTimes()
+    (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+
+    val request = getFramwrokRequest()
+    request.getContext.put("identifier", "framework_test")
+    request.putAll(mapAsJavaMap(Map("identifier" -> "framework_test", "channel" -> "sunbird")))
+    request.setOperation(Constants.PUBLISH_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "return success response for 'readFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+    val node = getValidNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+
+    val request = getFramwrokRequest()
+    request.getContext.put("identifier", "framework_test")
+    request.putAll(mapAsJavaMap(Map("identifier" -> "framework_test", "channel" -> "sunbird", "categories" -> "")))
+    request.setOperation(Constants.READ_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
 
   private def getFrameworkOfNode(): Node = {
     val node = new Node()
@@ -249,6 +293,23 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     })
     request.setObjectType("Framework")
     request
+  }
+
+  def getSubGraphData(): SubGraph = {
+    val nodeMap: Map[String, Node] = Map("framework_test" -> getValidNode())
+    val relationsList: util.List[Relation] = new util.ArrayList[Relation]()
+    val subGraphFData = new SubGraph(nodeMap, relationsList)
+    subGraphFData
+  }
+
+  def getSuccessfulResponse(): Response = {
+    val response = new Response
+    response.setVer("3.0")
+    val responseParams = new ResponseParams
+    responseParams.setStatus("successful")
+    response.setParams(responseParams)
+    response.setResponseCode(ResponseCode.OK)
+    response
   }
 
 }
