@@ -13,7 +13,15 @@
       "identifier"
     ]
   },
-  "external": {},
+  "external": {
+    "tableName": "framework_hierarchy",
+    "properties": {
+      "hierarchy": {
+        "type": "text"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
   "relations": {
     "channels": {
       "type": "hasSequenceMember",

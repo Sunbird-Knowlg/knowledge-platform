@@ -74,10 +74,13 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
                             val relData = entry._2.asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                             relData.asScala.map(r => {
                                 val relation = {
-                                    if(StringUtils.equalsAnyIgnoreCase("out", direction))
+                                    if(StringUtils.equalsAnyIgnoreCase("out", direction)) {
                                         new Relation(node.getIdentifier, relSchema.get("type").get.asInstanceOf[String], r.get("identifier").asInstanceOf[String])
-                                    else
+                                          .updateMetadata((r.asScala - "identifier").asJava)
+                                    } else {
                                         new Relation(r.get("identifier").asInstanceOf[String], relSchema.get("type").get.asInstanceOf[String], node.getIdentifier)
+                                          .updateMetadata((r.asScala - "identifier").asJava)
+                                    }
                                 }
                                 relation
                             })

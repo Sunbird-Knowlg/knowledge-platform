@@ -14,6 +14,10 @@ class TestModule extends AbstractModule with AkkaGuiceSupport {
 		bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
 		bindActor(classOf[TestActor], ActorNames.OBJECT_CATEGORY_ACTOR)
 		bindActor(classOf[TestActor], ActorNames.OBJECT_CATEGORY_DEFINITION_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.FRAMEWORK_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.CATEGORY_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.CATEGORY_INSTANCE_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.TERM_ACTOR)
 		println("Test Module is initialized...")
 	}
 }

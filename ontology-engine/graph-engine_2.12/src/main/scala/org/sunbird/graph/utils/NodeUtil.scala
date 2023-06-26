@@ -123,7 +123,7 @@ object NodeUtil {
         val outRelations:util.List[Relation] = { if (CollectionUtils.isEmpty(node.getOutRelations)) new util.ArrayList[Relation] else node.getOutRelations }
         val relMap = new util.HashMap[String, util.List[util.Map[String, AnyRef]]]
         for (rel <- inRelations.asScala) {
-            val relKey:String = rel.getRelationType + "_in_" + rel.getEndNodeObjectType
+            val relKey:String = rel.getRelationType + "_in_" + rel.getStartNodeObjectType
             if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "in"))
             else {
                 if(null != relationMap.get(relKey)) {
@@ -157,21 +157,23 @@ object NodeUtil {
     }
 
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {
-        if("out".equalsIgnoreCase(direction)) {
-          val objectType = rel.getEndNodeObjectType.replace("Image", "")
-          val relData = Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
-            "name" -> rel.getEndNodeName,
-            "objectType" -> objectType,
-            "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
-          mapAsJavaMap(relData)
-        } else {
-          val objectType = rel.getStartNodeObjectType.replace("Image", "")
-          val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
-            "name" -> rel.getStartNodeName,
-            "objectType" -> objectType,
-            "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
-          mapAsJavaMap(relData)
-        }
+      if ("out".equalsIgnoreCase(direction)) {
+        val objectType = rel.getEndNodeObjectType.replace("Image", "")
+        val relData = Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
+          "name" -> rel.getEndNodeName,
+          "objectType" -> objectType,
+          "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
+        val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
+        val completeRelData = relData ++ indexMap
+        mapAsJavaMap(completeRelData)
+      } else {
+        val objectType = rel.getStartNodeObjectType.replace("Image", "")
+        val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
+          "name" -> rel.getStartNodeName,
+          "objectType" -> objectType,
+          "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
+        mapAsJavaMap(relData)
+      }
     }
 
     def getLanguageCodes(node: Node): util.List[String] = {
