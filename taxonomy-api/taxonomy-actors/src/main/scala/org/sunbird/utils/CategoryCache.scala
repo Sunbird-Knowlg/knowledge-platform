@@ -18,7 +18,6 @@ object CategoryCache{
   }
 
   def setFramework(id: String, framework: util.Map[String, AnyRef]): Unit = {
-    println("framework "+framework)
     if (null != framework && !framework.isEmpty) {
       val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].toList
       categories.map(category => {
