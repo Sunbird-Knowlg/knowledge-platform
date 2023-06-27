@@ -1,9 +1,7 @@
 package org.sunbird.actors;
 
 import akka.dispatch.Mapper;
-import akka.util.Timeout;
 import org.apache.commons.lang3.StringUtils;
-import org.glassfish.json.JsonUtil;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
@@ -15,18 +13,12 @@ import org.sunbird.search.processor.SearchProcessor;
 import org.sunbird.search.util.SearchConstants;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class AuditHistoryActor  extends SearchBaseActor {
 
 
-    private static Timeout WAIT_TIMEOUT = new Timeout(Duration.create(30000, TimeUnit.MILLISECONDS));
 
     @Override
     public Future<Response> onReceive(Request request) throws Throwable {
