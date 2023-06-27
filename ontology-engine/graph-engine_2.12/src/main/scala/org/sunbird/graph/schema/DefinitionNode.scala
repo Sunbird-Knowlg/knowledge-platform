@@ -13,6 +13,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
@@ -198,11 +199,8 @@ object DefinitionNode {
       else relOcr.put(relKey, 1)
 
       if (relKey.contains("hasSequenceMember")) {
-        rel.setMetadata(new util.HashMap[String, AnyRef]() {
-          {
-            put("IL_SEQUENCE_INDEX", relOcr.get(relKey));
-          }
-        })
+        val index = if (rel.getMetadata.containsKey("index")) rel.getMetadata.get("index").asInstanceOf[Integer] else relOcr.get(relKey)
+        rel.setMetadata(Map[String, AnyRef]("IL_SEQUENCE_INDEX" -> index).asJava)
       } else rel.setMetadata(new util.HashMap[String, AnyRef]())
     }
     node.setAddedRelations(rels)

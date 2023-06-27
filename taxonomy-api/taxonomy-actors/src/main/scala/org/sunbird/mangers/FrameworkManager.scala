@@ -92,6 +92,9 @@ object FrameworkManager {
     val childHierarchy = relMetadata.map(x => (x._1, x._2.map(a => {
       val identifier = a.getOrElse("identifier", "")
       val childNode = nodes.get(identifier)
+      val index = a.getOrElse("index", 1).asInstanceOf[Number]
+      val metaData = (childNode.getMetadata ++ Map("index" -> index)).asJava
+      childNode.setMetadata(metaData)
       getCompleteMetadata(childNode.getIdentifier, subGraph)
     }).toList.asJava))
     (updatedMetadata ++ childHierarchy).asJava
