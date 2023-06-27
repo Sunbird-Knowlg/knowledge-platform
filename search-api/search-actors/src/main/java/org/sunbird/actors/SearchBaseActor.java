@@ -438,7 +438,7 @@ public abstract class SearchBaseActor extends AbstractActor {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private List<Map<String, Object>> getSearchFilterProperties(Map<String, Object> filters, Boolean traversal, Request request)
+    public List<Map<String, Object>> getSearchFilterProperties(Map<String, Object> filters, Boolean traversal, Request request)
             throws Exception {
         List<Map<String, Object>> properties = new ArrayList<Map<String, Object>>();
         if (null == filters) filters = new HashMap<String, Object>();

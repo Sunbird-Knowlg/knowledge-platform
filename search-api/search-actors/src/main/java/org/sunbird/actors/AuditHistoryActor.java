@@ -3,10 +3,12 @@ package org.sunbird.actors;
 import akka.dispatch.Mapper;
 import akka.util.Timeout;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.json.JsonUtil;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.exception.ClientException;
+import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.AuditProperties;
 import org.sunbird.search.dto.SearchDTO;
 import org.sunbird.search.processor.SearchProcessor;
@@ -16,10 +18,10 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class AuditHistoryActor  extends SearchBaseActor {
 
@@ -38,13 +40,25 @@ public class AuditHistoryActor  extends SearchBaseActor {
                 return searchResult.map(new Mapper<Map<String, Object>, Response>() {
                     @Override
                     public Response apply(Map<String, Object> lstResult) {
-                        return OK(getCompositeSearchResponse(lstResult));
+                        List<Map<String, Object>> results = (List<Map<String, Object>>) lstResult.get("results");
+                        for (Map<String, Object> result : results) {
+                            if (result.containsKey("logRecord")) {
+                                String logRecordStr = (String) result.get("logRecord");
+                                if (logRecordStr != null && !logRecordStr.isEmpty()) {
+                                    try {
+                                        Map<String, Object> logRecord = JsonUtils.deserialize(logRecordStr, Map.class);
+                                        result.put("logRecord", logRecord);
+                                    } catch (Exception e) {
+                                        throw new ServerException("ERR_DATA_PARSER", "Unable to parse data! | Error is: " + e.getMessage());
+                                    }
+                                }
+                            }
+                        }
+                        return OK(AuditProperties.audit_history_record.name(), lstResult);
                     }
+
                 }, getContext().dispatcher());
-
-            }
-
-            else {
+            } else {
                 TelemetryManager.log("Unsupported operation: " + operation);
                 throw new ClientException(SearchConstants.ERR_INVALID_OPERATION,
                         "Unsupported operation: " + operation);
@@ -55,31 +69,5 @@ public class AuditHistoryActor  extends SearchBaseActor {
             return ERROR(operation, e);
         }
     }
-
-    public List<String> setSearchCriteria(String versionId) {
-        return setSearchCriteria(versionId, false);
-    }
-    public List<String> setSearchCriteria(String versionId, boolean returnAllFields) {
-        List<String> fields = new ArrayList<String>();
-        fields.add("audit_id");
-        fields.add("label");
-        fields.add("objectId");
-        fields.add("objectType");
-        fields.add("operation");
-        fields.add("requestId");
-        fields.add("userId");
-        fields.add("graphId");
-        fields.add("createdOn");
-        if (returnAllFields) {
-            fields.add("logRecord");
-            fields.add("summary");
-        } else {
-            if (StringUtils.equalsIgnoreCase("1.0", versionId))
-                fields.add("logRecord");
-            else
-                fields.add("summary");
-        }
-        TelemetryManager.log("returning the search criteria fields: " + fields.size());
-        return fields;
-    }
 }
+

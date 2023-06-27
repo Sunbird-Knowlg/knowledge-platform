@@ -20,19 +20,20 @@ import scala.concurrent.ExecutionContext
 class AuditHistoryController @Inject()(@Named(ActorNames.AUDIT_HISTORY_ACTOR) auditHistoryActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
 
   val apiVersion = "3.0"
-
+  val traversal = java.lang.Boolean.TRUE
   val mgr: SearchManager = new SearchManager()
 
   def readAuditHistory(objectId: String, graphId: String) = loggingAction.async { implicit request =>
     val internalReq = getRequest(ApiId.APPLICATION_AUDIT_HISTORY)
     setHeaderContext(internalReq)
     val sortBy = new util.HashMap[String, String]
-    sortBy.put(AuditProperties.createdOn.name, "desc")
-    sortBy.put("operation", "desc")
+    sortBy.put(AuditProperties.createdOn.name(), "desc")
+    sortBy.put(AuditProperties.operation.name(), "desc")
     val filters = internalReq.getRequest.getOrDefault(SearchConstants.filters, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    filters.putAll(Map("graphId" -> graphId , "objectId" -> objectId).asJava)
-    internalReq.getContext.put(SearchConstants.filters, filters)
-    internalReq.getContext.putAll(Map(SearchConstants.fields -> setSearchCriteria(apiVersion), SearchConstants.sort_by -> sortBy).asJava)
+    filters.putAll(Map(SearchConstants.graphId -> graphId , SearchConstants.objectId -> objectId).asJava)
+    internalReq.getRequest.put(SearchConstants.filters, filters)
+    internalReq.getRequest.putAll(Map(SearchConstants.fields -> setSearchCriteria(apiVersion), SearchConstants.sort_by -> sortBy ).asJava)
+    internalReq.getRequest.put(SearchConstants.traversal, traversal)
     getResult(mgr.getAuditHistory(internalReq, auditHistoryActor), ApiId.APPLICATION_AUDIT_HISTORY)
   }
 
@@ -52,7 +53,7 @@ class AuditHistoryController @Inject()(@Named(ActorNames.AUDIT_HISTORY_ACTOR) au
       fields.add("logRecord")
       fields.add("summary")
     }
-    else if (StringUtils.equalsIgnoreCase("1.0", versionId)) fields.add("logRecord")
+    else if (StringUtils.equalsIgnoreCase("3.0", versionId)) fields.add("logRecord")
     else fields.add("summary")
     TelemetryManager.log("returning the search criteria fields: " + fields.size)
     fields
