@@ -7,7 +7,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.DefinitionNode
 
 import scala.concurrent.ExecutionContext
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 
 object RequestUtil {
 

@@ -4,7 +4,12 @@
     "title": "Category",
     "type": "object",
     "required": [
-        "name"
+        "name",
+        "code",
+        "orgIdFieldName",
+        "targetIdFieldName",
+        "searchIdFieldName",
+        "searchLabelFieldName"
     ],
     "properties": {
         "name": {
@@ -31,6 +36,18 @@
         "trackable": {
             "type": "boolean",
             "default": false
+        },
+        "orgIdFieldName": {
+            "type": "string"
+        },
+        "targetIdFieldName": {
+            "type": "string"
+        },
+        "searchIdFieldName": {
+            "type": "string"
+        },
+        "searchLabelFieldName": {
+            "type": "string"
         }
     },
     "additionalProperties": true

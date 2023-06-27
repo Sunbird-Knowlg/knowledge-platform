@@ -34,6 +34,7 @@ public class YouTubeURLManagerImplTest {
 		assertTrue(result.containsKey("valid"));
 		assertTrue((Boolean) result.get("valid"));
 		assertEquals("creativeCommon", (String) result.get("value"));
+		//test
 	}
 
 	@Test

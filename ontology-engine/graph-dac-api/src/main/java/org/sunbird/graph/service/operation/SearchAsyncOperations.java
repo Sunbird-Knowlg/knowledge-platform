@@ -193,9 +193,7 @@ public class SearchAsyncOperations {
                                     node= Neo4jNodeUtil.getNode(graphId, (org.neo4j.driver.v1.types.Node) entry.getValue(), relationMap,
                                             startNodeMap, endNodeMap);
                             }
-                            if (StringUtils.equalsIgnoreCase("Concept", node.getObjectType())) {
-                                TelemetryManager.info("Saving concept to in-memory cache: "+node.getIdentifier());
-                            }
+
                             return node;
                         }).exceptionally(error -> {
                             if(error.getCause() instanceof NoSuchRecordException || error.getCause() instanceof ResourceNotFoundException)
