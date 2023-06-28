@@ -201,8 +201,10 @@ object DefinitionNode {
       if (relKey.contains("hasSequenceMember")) {
         val index = if (rel.getMetadata.containsKey("index")) rel.getMetadata.get("index").asInstanceOf[Integer] else relOcr.get(relKey)
         rel.setMetadata(Map[String, AnyRef]("IL_SEQUENCE_INDEX" -> index).asJava)
+        println("index "+ index)
       } else rel.setMetadata(new util.HashMap[String, AnyRef]())
     }
+    println("rels "+ rels.toString)
     node.setAddedRelations(rels)
   }
 
