@@ -58,7 +58,7 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
         Future{node}
     }
 
-    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
         val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
         node

@@ -44,6 +44,8 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     }})
     getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
     getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
+    val disableCache = Option(true)
+    getFrameworkReq.put("disableCache", disableCache)
     getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getFrameworkReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
