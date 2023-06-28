@@ -61,17 +61,19 @@ trait VersioningNode extends IDefinition {
                 }
             }
         } else {
-            if(!disableCache.isEmpty){
-                super.getNode(identifier, "read", mode)
+            if(disableCache.nonEmpty){
+                if(disableCache.get) super.getNode(identifier, "read", mode)
+                else getNodeFromCache(identifier)
             } else{
                 val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
-                if (Platform.getBoolean(cacheKey, false)) {
-                    val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
-                    getCachedNode(identifier, ttl)
-                } else
-                    super.getNode(identifier, "read", mode)
+                if (Platform.getBoolean(cacheKey, false)) getNodeFromCache(identifier)
+                else super.getNode(identifier, "read", mode)
             }
         }
+    }
+    private def getNodeFromCache(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]= {
+        val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
+        getCachedNode(identifier, ttl)
     }
 
     private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
