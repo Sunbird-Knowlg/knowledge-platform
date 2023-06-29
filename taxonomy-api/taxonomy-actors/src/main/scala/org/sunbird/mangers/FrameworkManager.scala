@@ -16,6 +16,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 
 import java.util
+import java.util.Collections
 import java.util.concurrent.{CompletionException, Executors}
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -87,7 +88,8 @@ object FrameworkManager {
     val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
     val outRelations = relations.filter((rel: Relation) => {
       StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
-    }).toList
+    }).sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList
+
     val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
     val childHierarchy = relMetadata.map(x => (x._1, x._2.map(a => {
       val identifier = a.getOrElse("identifier", "")
@@ -99,14 +101,6 @@ object FrameworkManager {
     }).toList.asJava))
     (updatedMetadata ++ childHierarchy).asJava
   }
-
-  private def getNodeDefinition(node: Node, filterRelations: List[Relation])(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-    val metadataMap = node.getMetadata
-    val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType.toLowerCase().replace("image", ""), node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
-    val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition).asJava
-    definitionMap
-  }
-
 
   private def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
     relationMap.asScala.map(rel =>
