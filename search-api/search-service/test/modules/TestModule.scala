@@ -14,6 +14,7 @@ class TestModule extends AbstractModule with AkkaGuiceSupport{
         super.configure()
         bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
         bindActor(classOf[TestActor], ActorNames.SEARCH_ACTOR)
+        bindActor(classOf[TestActor], ActorNames.AUDIT_HISTORY_ACTOR)
         println("Initialized application actors for search-service")
     }
 }
