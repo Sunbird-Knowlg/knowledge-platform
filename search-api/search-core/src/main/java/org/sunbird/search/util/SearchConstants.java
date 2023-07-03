@@ -4,7 +4,9 @@ import org.sunbird.common.Platform;
 
 public class SearchConstants {
     public static String COMPOSITE_SEARCH_INDEX = Platform.config.hasPath("compositesearch.index.name") ? Platform.config.getString("compositesearch.index.name"): "compositesearch";
+    public static String AUDIT_HISTORY_INDEX = Platform.config.hasPath("audit.index.name") ? Platform.config.getString("audit.index.name"): "kp_audit_log";
     public static final String COMPOSITE_SEARCH_INDEX_TYPE = "cs";
+    public static final String AUDIT_HISTORY_INDEX_TYPE = "ah";
     public static final String OPERATION_CREATE = "CREATE";
     public static final String OPERATION_UPDATE = "UPDATE";
     public static final String OPERATION_DELETE = "DELETE";
