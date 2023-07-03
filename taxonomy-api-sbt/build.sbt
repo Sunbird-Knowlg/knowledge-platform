@@ -6,6 +6,8 @@ name := "taxonomy-api-sbt"
 ThisBuild / organization := "org.sunbird"
 ThisBuild / scalaVersion := "2.12.8"
 
+lazy val scalaMajorVersion = "2.12"
+
 lazy val root = (project in file("."))
   .aggregate(taxonomyService, taxonomyActors)
   .dependsOn(taxonomyService, taxonomyActors)
@@ -24,7 +26,7 @@ lazy val taxonomyService = (project in file("taxonomy-service-sbt"))
       guice,
       "org.joda" % "joda-convert" % "2.1.2",
       "net.logstash.logback" % "logstash-logback-encoder" % "5.2",
-      "org.sunbird" % "taxonomy-actors-sbt_2.12" % "1.0-SNAPSHOT",
+      "org.sunbird" % ("taxonomy-actors-sbt_" + scalaMajorVersion) % "1.0-SNAPSHOT",
       "io.lemonlabs" %% "scala-uri" % "1.4.10",
       "net.codingwell" %% "scala-guice" % "4.2.5",
       "com.typesafe.play" %% "play-specs2" % "2.7.9",
@@ -33,7 +35,7 @@ lazy val taxonomyService = (project in file("taxonomy-service-sbt"))
     )
   )
   .settings(
-    libraryDependencies += ("org.sunbird" % "taxonomy-actors-sbt_2.12" % "1.0-SNAPSHOT")
+    libraryDependencies += ("org.sunbird" % ("taxonomy-actors-sbt_" + scalaMajorVersion) % "1.0-SNAPSHOT")
       .exclude("com.typesafe.akka","akka-actor_2.11")
       .exclude("org.scala-lang.modules","scala-java8-compat_2.11")
       .exclude("org.scala-lang.modules","scala-parser-combinators_2.11")
@@ -48,10 +50,10 @@ lazy val taxonomyActors = (project in file("taxonomy-actors-sbt"))
   libraryDependencies ++= Seq(
     "javax.inject" % "javax.inject" % "1",
     "org.sunbird" % "actor-core" % "1.0-SNAPSHOT",
-    "org.sunbird" % "graph-engine_2.12" % "1.0-SNAPSHOT",
-    "org.scalatest" % "scalatest_2.12" % "3.0.8",
-    "org.scalamock" % "scalamock_2.12" % "4.4.0" % Test,
-    "com.typesafe.akka" % "akka-testkit_2.12" % "2.5.22" % Test
+    "org.sunbird" % ("graph-engine_" + scalaMajorVersion) % "1.0-SNAPSHOT",
+    "org.scalatest" % ("scalatest_" + scalaMajorVersion) % "3.0.8",
+    "org.scalamock" % ("scalamock_" + scalaMajorVersion) % "4.4.0" % Test,
+    "com.typesafe.akka" % ("akka-testkit_" + scalaMajorVersion) % "2.5.22" % Test
   )
   )
 

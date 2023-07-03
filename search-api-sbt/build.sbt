@@ -6,9 +6,11 @@ name := "search-api-sbt"
 ThisBuild / organization := "org.sunbird"
 ThisBuild / scalaVersion := "2.12.8"
 
+lazy val scalaMajorVersion = "2.12"
+
 lazy val root = (project in file("."))
-  .aggregate(searchService, searchActors)
-  .dependsOn(searchService, searchActors)
+  .aggregate(searchService, searchActors, searchCore)
+  .dependsOn(searchService, searchActors, searchCore)
   .settings(
     coverageEnabled := true
   )
@@ -30,11 +32,11 @@ lazy val searchService = (project in file("search-service-sbt"))
       "com.typesafe.play" %% "play-specs2" % "2.7.9",
       "io.netty" % "netty-transport-native-epoll" % "4.1.60.Final",
       "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test,
-      "org.scalatest" % "scalatest_2.12" % "3.1.2" % Test
+      "org.scalatest" % ("scalatest_" + scalaMajorVersion) % "3.1.2" % Test
     )
   )
   .settings(
-    libraryDependencies += ("org.sunbird" % "search-actors-sbt_2.12" % "1.0-SNAPSHOT")
+    libraryDependencies += ("org.sunbird" % ("search-actors-sbt_" + scalaMajorVersion) % "1.0-SNAPSHOT")
       .exclude("com.typesafe.akka","akka-actor_2.11")
       .exclude("org.scala-lang.modules","scala-java8-compat_2.11")
       .exclude("org.scala-lang.modules","scala-parser-combinators_2.11")
@@ -49,10 +51,10 @@ lazy val searchActors = (project in file("search-actors-sbt"))
     libraryDependencies ++= Seq(
       "javax.inject" % "javax.inject" % "1",
       "org.sunbird" % "actor-core" % "1.0-SNAPSHOT",
-      "org.sunbird" % "search-core" % "1.0-SNAPSHOT",
-      "org.scalatest" % "scalatest_2.12" % "3.0.8",
-      "org.scalamock" % "scalamock_2.12" % "4.4.0" % Test,
-      "com.typesafe.akka" % "akka-testkit_2.12" % "2.5.22" % Test,
+      "org.sunbird" % ("search-core-sbt_" + scalaMajorVersion) % "1.0-SNAPSHOT",
+      "org.scalatest" % ("scalatest_" + scalaMajorVersion) % "3.0.8",
+      "org.scalamock" % ("scalamock_" + scalaMajorVersion) % "4.4.0" % Test,
+      "com.typesafe.akka" % ("akka-testkit_" + scalaMajorVersion) % "2.5.22" % Test,
       "org.javassist" % "javassist" % "3.24.0-GA" % Test,
       "junit" % "junit" % "4.13.1" % Test,
       "org.powermock" % "powermock-api-mockito2" % "2.0.9" % Test,
@@ -66,7 +68,7 @@ lazy val searchCore = (project in file("search-core-sbt"))
     version := "1.0-SNAPSHOT",
     commonSettings,
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" % "akka-actor_2.12" % "2.5.22",
+      "com.typesafe.akka" % ("akka-actor_" + scalaMajorVersion) % "2.5.22",
       "org.sunbird" % "platform-common" % "1.0-SNAPSHOT",
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.httpcomponents" % "httpclient" % "4.5.2",
