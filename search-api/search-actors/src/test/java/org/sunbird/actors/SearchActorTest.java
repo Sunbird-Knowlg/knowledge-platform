@@ -1,17 +1,30 @@
 package org.sunbird.actors;
 
-import org.apache.commons.collections.CollectionUtils;
 import akka.testkit.TestKit;
-import scala.concurrent.duration.Duration;
-import java.util.concurrent.TimeUnit;
-import org.junit.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.search.client.ElasticSearchUtil;
 import org.sunbird.search.util.SearchConstants;
+import scala.concurrent.duration.Duration;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class SearchActorTest extends SearchBaseActorTest {
 
@@ -27,6 +40,62 @@ public class SearchActorTest extends SearchBaseActorTest {
         ElasticSearchUtil.deleteIndex(SearchConstants.COMPOSITE_SEARCH_INDEX);
         TestKit.shutdownActorSystem(system, Duration.create(2, TimeUnit.SECONDS), true);
         system = null;
+    }
+
+    @Test
+    public void testSearchByQuery() {
+        Request request = getSearchRequest();
+        request.put("query", "हिन्दी");
+        Map<String, Object> filters = new HashMap<String, Object>();
+        List<String> objectTypes = new ArrayList<String>();
+        objectTypes.add("Content");
+        filters.put("objectType", objectTypes);
+        filters.put("status", new ArrayList<String>());
+        request.put("filters", filters);
+        // request.put("limit", 1);
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        List<Object> list = (List<Object>) result.get("results");
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.size() > 1);
+        boolean found = false;
+        for (Object obj : list) {
+            Map<String, Object> content = (Map<String, Object>) obj;
+            String desc = (String) content.get("description");
+            if (null != desc && desc.contains("हिन्दी"))
+                found = true;
+        }
+        Assert.assertTrue(found);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testSearchByQueryForNotEquals() {
+        Request request = getSearchRequest();
+        request.put("query", "हिन्दी");
+        Map<String, Object> filters = new HashMap<String, Object>();
+        List<String> objectTypes = new ArrayList<String>();
+        objectTypes.add("Content");
+        filters.put("objectType", objectTypes);
+        filters.put("status", new ArrayList<String>());
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("!=", "31 check name match");
+        filters.put("name", map);
+        request.put("filters", filters);
+        Response response = getSearchResponse(request);
+        Map<String, Object> result = response.getResult();
+        List<Object> list = (List<Object>) result.get("results");
+        Assert.assertNotNull(list);
+        Assert.assertTrue(list.size() > 0);
+        boolean found = false;
+        for (Object obj : list) {
+            Map<String, Object> content = (Map<String, Object>) obj;
+            String desc = (String) content.get("name");
+            if (null != desc && !StringUtils.equalsIgnoreCase("31 check name match", desc))
+                found = true;
+        }
+        Assert.assertTrue(found);
     }
 
     @SuppressWarnings("unchecked")
@@ -52,7 +121,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             String desc = (String) content.get("name");
-            if (null != desc && !org.apache.commons.lang.StringUtils.equalsIgnoreCase("31 check name match", desc))
+            if (null != desc && !StringUtils.equalsIgnoreCase("31 check name match", desc))
                 found = true;
         }
         Assert.assertTrue(found);
@@ -81,7 +150,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             String desc = (String) content.get("name");
-            if (null != desc && org.apache.commons.lang.StringUtils.equalsIgnoreCase("31 check name match", desc))
+            if (null != desc && StringUtils.equalsIgnoreCase("31 check name match", desc))
                 found = false;
         }
         Assert.assertTrue(found);
@@ -110,7 +179,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             String desc = (String) content.get("name");
-            if (null != desc && !org.apache.commons.lang.StringUtils.equalsIgnoreCase("31 check name match", desc))
+            if (null != desc && !StringUtils.equalsIgnoreCase("31 check name match", desc))
                 found = true;
         }
         Assert.assertTrue(found);
@@ -139,7 +208,7 @@ public class SearchActorTest extends SearchBaseActorTest {
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             String desc = (String) content.get("name");
-            if (null != desc && !org.apache.commons.lang.StringUtils.equalsIgnoreCase("31 check name match", desc))
+            if (null != desc && !StringUtils.equalsIgnoreCase("31 check name match", desc))
                 found = true;
         }
         Assert.assertTrue(found);
@@ -872,10 +941,10 @@ public class SearchActorTest extends SearchBaseActorTest {
         for (Object obj : list) {
             Map<String, Object> content = (Map<String, Object>) obj;
             List<String> relatedBoards = (List<String>) content.get("relatedBoards");
-            if (CollectionUtils.isNotEmpty(relatedBoards) && org.apache.commons.lang.StringUtils.equalsIgnoreCase("do_10000034", (String) content.get("identifier"))
+            if (CollectionUtils.isNotEmpty(relatedBoards) && StringUtils.equalsIgnoreCase("do_10000034", (String) content.get("identifier"))
                     && relatedBoards.contains("test-board1"))
                 found = true;
-            if (org.apache.commons.lang.StringUtils.equalsIgnoreCase("do_10000033", (String) content.get("identifier")) && org.apache.commons.lang.StringUtils.equalsIgnoreCase("test-board1", (String) content.get("board")))
+            if (StringUtils.equalsIgnoreCase("do_10000033", (String) content.get("identifier")) && StringUtils.equalsIgnoreCase("test-board1", (String) content.get("board")))
                 foundOriginal = true;
         }
         Assert.assertTrue(found);
@@ -1162,60 +1231,6 @@ public class SearchActorTest extends SearchBaseActorTest {
         }
         Assert.assertTrue(found);
     }
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testSearchByQueryForNotEquals() {
-        Request request = getSearchRequest();
-        request.put("query", "हिन्दी");
-        Map<String, Object> filters = new HashMap<String, Object>();
-        List<String> objectTypes = new ArrayList<String>();
-        objectTypes.add("Content");
-        filters.put("objectType", objectTypes);
-        filters.put("status", new ArrayList<String>());
-        Map<String,Object> map = new HashMap<String,Object>();
-        map.put("!=", "31 check name match");
-        filters.put("name", map);
-        request.put("filters", filters);
-        Response response = getSearchResponse(request);
-        Map<String, Object> result = response.getResult();
-        List<Object> list = (List<Object>) result.get("results");
-        Assert.assertNotNull(list);
-        Assert.assertTrue(list.size() > 0);
-        boolean found = false;
-        for (Object obj : list) {
-            Map<String, Object> content = (Map<String, Object>) obj;
-            String desc = (String) content.get("name");
-            if (null != desc && !org.apache.commons.lang.StringUtils.equalsIgnoreCase("31 check name match", desc))
-                found = true;
-        }
-        Assert.assertTrue(found);
-    }
-    @Test
-    public void testSearchByQuery() {
-        Request request = getSearchRequest();
-        request.put("query", "हिन्दी");
-        Map<String, Object> filters = new HashMap<String, Object>();
-        List<String> objectTypes = new ArrayList<String>();
-        objectTypes.add("Content");
-        filters.put("objectType", objectTypes);
-        filters.put("status", new ArrayList<String>());
-        request.put("filters", filters);
-        // request.put("limit", 1);
-        Response response = getSearchResponse(request);
-        Map<String, Object> result = response.getResult();
-        List<Object> list = (List<Object>) result.get("results");
-        Assert.assertNotNull(list);
-        Assert.assertTrue(list.size() > 1);
-        boolean found = false;
-        for (Object obj : list) {
-            Map<String, Object> content = (Map<String, Object>) obj;
-            String desc = (String) content.get("description");
-            if (null != desc && desc.contains("हिन्दी"))
-                found = true;
-        }
-        Assert.assertTrue(found);
-    }
-
 
     @SuppressWarnings("unchecked")
     @Test
