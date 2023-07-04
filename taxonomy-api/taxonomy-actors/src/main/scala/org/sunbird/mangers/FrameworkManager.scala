@@ -206,6 +206,7 @@ object FrameworkManager {
               relReq.getContext.put(Constants.SCHEMA_NAME, rel.getEndNodeObjectType)
               relReq.getContext.put(Constants.VERSION, schemaVersion)
               relReq.getContext.put("frameworkId", frameworkId)
+              relReq.put("disableCache", Option(true))
 
               val inRelKey: String = rel.getRelationType + "_in_" + StartObjectType
               val relationMap: util.Map[String, Object] = new util.HashMap[String, Object]()
