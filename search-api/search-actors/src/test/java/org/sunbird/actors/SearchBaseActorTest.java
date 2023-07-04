@@ -4,8 +4,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
-import akka.testkit.TestKit;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
@@ -181,31 +179,31 @@ public class SearchBaseActorTest {
 
 
     protected static void createAuditIndex() throws Exception {
-        SearchConstants.AUDIT_HISTORY_INDEX = "testauditindex";
-        ElasticSearchUtil.initialiseESClient(SearchConstants.AUDIT_HISTORY_INDEX,
+        SearchConstants.COMPOSITE_SEARCH_INDEX = "testauditindex";
+        ElasticSearchUtil.initialiseESClient(SearchConstants.COMPOSITE_SEARCH_INDEX,
                 Platform.config.getString("search.es_conn_info"));
-        System.out.println("creating index: " + SearchConstants.AUDIT_HISTORY_INDEX);
+        System.out.println("creating index: " + SearchConstants.COMPOSITE_SEARCH_INDEX);
         String settings = "{\"analysis\": {\"filter\": {\"mynGram\": {\"token_chars\": [\"letter\", \"digit\", \"whitespace\", \"punctuation\", \"symbol\"], \"min_gram\": \"1\", \"type\": \"nGram\", \"max_gram\": \"20\"}}, \"analyzer\": {\"ah_search_analyzer\": {\"filter\": [\"standard\", \"lowercase\"], \"type\": \"custom\", \"tokenizer\": \"standard\"}, \"keylower\": {\"filter\": \"lowercase\", \"tokenizer\": \"keyword\"}, \"ah_index_analyzer\": {\"filter\": [\"lowercase\", \"mynGram\"], \"type\": \"custom\", \"tokenizer\": \"standard\"}}}}";
         String mappings = "{\"dynamic_templates\": [{\"longs\": {\"mapping\": {\"type\": \"long\", \"fields\": {\"raw\": {\"type\": \"long\"}}}, \"match_mapping_type\": \"long\"}}, {\"booleans\": {\"mapping\": {\"type\": \"boolean\", \"fields\": {\"raw\": {\"type\": \"boolean\"}}}, \"match_mapping_type\": \"boolean\"}}, {\"doubles\": {\"mapping\": {\"type\": \"double\", \"fields\": {\"raw\": {\"type\": \"double\"}}}, \"match_mapping_type\": \"double\"}}, {\"dates\": {\"mapping\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\"}}}, \"match_mapping_type\": \"date\"}}, {\"strings\": {\"mapping\": {\"type\": \"text\", \"copy_to\": \"all_fields\", \"analyzer\": \"ah_index_analyzer\", \"search_analyzer\": \"ah_search_analyzer\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"match_mapping_type\": \"string\"}}], \"properties\": {\"@timestamp\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\", \"format\": \"strict_date_optional_time||epoch_millis\"}}}, \"@version\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"all_fields\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"audit_id\": {\"type\": \"long\", \"fields\": {\"raw\": {\"type\": \"long\"}}}, \"createdOn\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\", \"format\": \"strict_date_optional_time||epoch_millis\"}}}, \"graphId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"label\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"logRecord\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"objectId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"objectType\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"operation\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"requestId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"summary\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"userId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}}}";
-        ElasticSearchUtil.addIndex(SearchConstants.AUDIT_HISTORY_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE, settings, mappings);
-        insertAuditLogRecords(SearchConstants.AUDIT_HISTORY_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE);
+        ElasticSearchUtil.addIndex(SearchConstants.COMPOSITE_SEARCH_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE, settings, mappings);
+        insertAuditLogRecords(SearchConstants.COMPOSITE_SEARCH_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE);
     }
 
     private static void insertAuditLogRecords(String indexName, String indexType) throws Exception {
 
-        Map<String, Object> record1 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        Map<String, Object> record1 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
         addToIndex(indexName, indexType, "VD9N54gBVD187cnp9Nmo", record1);
 
-        Map<String, Object> record2 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        Map<String, Object> record2 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
         addToIndex(indexName, indexType, "YT-a54gBVD187cnpEtl_", record2);
 
-        Map<String, Object> record3 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        Map<String, Object> record3 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
         addToIndex(indexName, indexType, "VT9N54gBVD187cnp-Nlc", record3);
 
-        Map<String, Object> record4 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"name\":{\"nv\":\"new name\"},\"status\":{\"nv\":\"Live\"}}}", "UPDATE", 1687396488000L);
+        Map<String, Object> record4 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"name\":{\"nv\":\"new name\"},\"status\":{\"nv\":\"Live\"}}}", "UPDATE", 1687396488000L);
         addToIndex(indexName, indexType, "Vz9O54gBVD187cnpQdmx", record4);
 
-        Map<String, Object> record5 = getAuditLogRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"do_113807000868651008130\"}}}", "CREATE", 1687397870000L);
+        Map<String, Object> record5 = getAuditRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"do_113807000868651008130\"}}}", "CREATE", 1687397870000L);
         addToIndex(indexName, indexType, "WT9O54gBVD187cnpf9nQ", record5);
     }
 
@@ -214,7 +212,7 @@ public class SearchBaseActorTest {
         ElasticSearchUtil.addDocumentWithId(indexName, indexType, uniqueId, jsonIndexDocument);
     }
 
-    private static Map<String, Object> getAuditLogRecord(String objectId, String objectType, String label, String graphId, String userId, String requestId, String logRecord, String operation, long createdOn) {
+    private static Map<String, Object> getAuditRecord(String objectId, String objectType, String label, String graphId, String userId, String requestId, String logRecord, String operation, long createdOn) {
         Map<String, Object> record = new HashMap<>();
         record.put("objectId", objectId);
         record.put("objectType", objectType);

@@ -1,17 +1,12 @@
 package org.sunbird.actors;
 
 import akka.testkit.TestKit;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
-import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.search.client.ElasticSearchUtil;
 import org.sunbird.search.util.SearchConstants;
 import scala.concurrent.duration.Duration;
@@ -30,8 +25,8 @@ public class AuditHistoryActorTest extends SearchBaseActorTest{
 
     @AfterClass
     public static void after() throws Exception {
-        System.out.println("deleting index: " + SearchConstants.AUDIT_HISTORY_INDEX);
-        ElasticSearchUtil.deleteIndex(SearchConstants.AUDIT_HISTORY_INDEX);
+        System.out.println("deleting index: " + SearchConstants.COMPOSITE_SEARCH_INDEX);
+        ElasticSearchUtil.deleteIndex(SearchConstants.COMPOSITE_SEARCH_INDEX);
         TestKit.shutdownActorSystem(system, Duration.create(2, TimeUnit.SECONDS), true);
         system = null;
     }
@@ -65,7 +60,6 @@ public class AuditHistoryActorTest extends SearchBaseActorTest{
         request.put("ACTOR","learning.platform");
         request.getContext().put("CHANNEL_ID","in.ekstep");
         request.getContext().put( "ENV","search");
-        System.out.println("request: "+request);
         Response response = getAuditResponse(request);
         Map<String, Object> result = response.getResult();
         Map<String, Object> auditHistoryRecord = (Map<String, Object>) result.get("audit_history_record");
