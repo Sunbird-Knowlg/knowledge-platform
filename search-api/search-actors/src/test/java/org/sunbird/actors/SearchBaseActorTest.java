@@ -188,107 +188,44 @@ public class SearchBaseActorTest {
         String settings = "{\"analysis\": {\"filter\": {\"mynGram\": {\"token_chars\": [\"letter\", \"digit\", \"whitespace\", \"punctuation\", \"symbol\"], \"min_gram\": \"1\", \"type\": \"nGram\", \"max_gram\": \"20\"}}, \"analyzer\": {\"ah_search_analyzer\": {\"filter\": [\"standard\", \"lowercase\"], \"type\": \"custom\", \"tokenizer\": \"standard\"}, \"keylower\": {\"filter\": \"lowercase\", \"tokenizer\": \"keyword\"}, \"ah_index_analyzer\": {\"filter\": [\"lowercase\", \"mynGram\"], \"type\": \"custom\", \"tokenizer\": \"standard\"}}}}";
         String mappings = "{\"dynamic_templates\": [{\"longs\": {\"mapping\": {\"type\": \"long\", \"fields\": {\"raw\": {\"type\": \"long\"}}}, \"match_mapping_type\": \"long\"}}, {\"booleans\": {\"mapping\": {\"type\": \"boolean\", \"fields\": {\"raw\": {\"type\": \"boolean\"}}}, \"match_mapping_type\": \"boolean\"}}, {\"doubles\": {\"mapping\": {\"type\": \"double\", \"fields\": {\"raw\": {\"type\": \"double\"}}}, \"match_mapping_type\": \"double\"}}, {\"dates\": {\"mapping\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\"}}}, \"match_mapping_type\": \"date\"}}, {\"strings\": {\"mapping\": {\"type\": \"text\", \"copy_to\": \"all_fields\", \"analyzer\": \"ah_index_analyzer\", \"search_analyzer\": \"ah_search_analyzer\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"match_mapping_type\": \"string\"}}], \"properties\": {\"@timestamp\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\", \"format\": \"strict_date_optional_time||epoch_millis\"}}}, \"@version\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"all_fields\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"audit_id\": {\"type\": \"long\", \"fields\": {\"raw\": {\"type\": \"long\"}}}, \"createdOn\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\", \"format\": \"strict_date_optional_time||epoch_millis\"}}}, \"graphId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"label\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"logRecord\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"objectId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"objectType\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"operation\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"requestId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"summary\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"userId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}}}";
         ElasticSearchUtil.addIndex(SearchConstants.AUDIT_HISTORY_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE, settings, mappings);
-        insertAuditTestRecords();
+        insertAuditLogRecords(SearchConstants.AUDIT_HISTORY_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE);
     }
 
-    protected static void insertAuditTestDoc() throws Exception {
-        SearchConstants.AUDIT_HISTORY_INDEX = "testauditindex";
-        ElasticSearchUtil.initialiseESClient(SearchConstants.AUDIT_HISTORY_INDEX, Platform.config.getString("search.es_conn_info"));
-        String[] requestData = {
-                "{\"objectId\":\"1234\",\"objectType\":\"Content\",\"label\":\"\",\"graphId\":\"domain\",\"userId\":\"ANONYMOUS\",\"requestId\":\"\",\"logRecord\":\"{\\\"properties\\\":{\\\"IL_FUNC_OBJECT_TYPE\\\":{\\\"nv\\\":\\\"Content\\\"},\\\"IL_UNIQUE_ID\\\":{\\\"nv\\\":\\\"1234\\\"}}}\"}",
-                "{\"objectId\":\"1234\",\"objectType\":\"Content\",\"label\":\"new name\",\"graphId\":\"domain\",\"userId\":\"ANONYMOUS\",\"requestId\":\"\",\"logRecord\":\"{\\\"properties\\\":{\\\"name\\\":{\\\"nv\\\":\\\"new name\\\"},\\\"status\\\":{\\\"nv\\\":\\\"Live\\\"}}}\"}",
-                "{\"objectId\":\"do_113807000868651008130\",\"objectType\":\"Content\",\"label\":\"Test Content3\",\"graphId\":\"domain\",\"userId\":\"ANONYMOUS\",\"requestId\":\"\",\"logRecord\":\"{\\\"properties\\\":{\\\"name\\\":{\\\"nv\\\":\\\"Test Content3\\\"},\\\"channel\\\":{\\\"nv\\\":\\\"sunbird\\\"},\\\"mimeType\\\":{\\\"nv\\\":\\\"application/vnd.ekstep.h5p-archive\\\"},\\\"code\\\":{\\\"nv\\\":\\\"1\\\"},\\\"status\\\":{\\\"nv\\\":\\\"Draft\\\"}}}\"}"
-        };
-        for (String json : requestData) {
-            Map<String, Object> jsonMap = JsonUtils.deserialize(json, Map.class);
-            String logRecordStr = (String) jsonMap.get("logRecord");
-            jsonMap.put("logRecord", logRecordStr);
-            System.out.println("jsonMap: " + jsonMap);
-            ElasticSearchUtil.addDocument(SearchConstants.AUDIT_HISTORY_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE, jsonMap.toString());
-        }
+    private static void insertAuditLogRecords(String indexName, String indexType) throws Exception {
+
+        Map<String, Object> record1 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        addToIndex(indexName, indexType, "VD9N54gBVD187cnp9Nmo", record1);
+
+        Map<String, Object> record2 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        addToIndex(indexName, indexType, "YT-a54gBVD187cnpEtl_", record2);
+
+        Map<String, Object> record3 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        addToIndex(indexName, indexType, "VT9N54gBVD187cnp-Nlc", record3);
+
+        Map<String, Object> record4 = getAuditLogRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"name\":{\"nv\":\"new name\"},\"status\":{\"nv\":\"Live\"}}}", "UPDATE", 1687396488000L);
+        addToIndex(indexName, indexType, "Vz9O54gBVD187cnpQdmx", record4);
+
+        Map<String, Object> record5 = getAuditLogRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"do_113807000868651008130\"}}}", "CREATE", 1687397870000L);
+        addToIndex(indexName, indexType, "WT9O54gBVD187cnpf9nQ", record5);
     }
 
-    private static void insertAuditTestRecords() throws Exception {
-        for (int i=1; i<=30; i++) {
-            Map<String, Object> content = getAuditContentTestRecord(null, i, null);
-            String id = (String) content.get("identifier");
-            addToAuditIndex(id, content);
-        }
-        Map<String, Object> content = getAuditContentTestRecord("do_10000031", 31, null);
-        content.put("name", "31 check name match");
-        content.put("description", "हिन्दी description");
-        content.put("subject", Arrays.asList("English", "Hindi"));
-        content.put("medium", Arrays.asList("English", "Hindi"));
-        addToAuditIndex("do_10000031", content);
-
-        content = getAuditContentTestRecord("do_10000032", 32, null);
-        content.put("name", "check ends with value32");
-        addToAuditIndex("do_10000032", content);
-
-        content = getAuditContentTestRecord("do_10000033", 33, "test-board1");
-        content.put("name", "Content To Test Consumption");
-        addToAuditIndex("10000033", content);
-
-        content = getAuditContentTestRecord("do_10000034", 34, "test-board3");
-        content.put("name", "Textbook-10000034");
-        content.put("description", "Textbook for other tenant");
-        content.put("status","Live");
-        content.put("subject", Arrays.asList("Maths", "Science"));
-        content.put("medium", Arrays.asList("English", "Hindi"));
-        content.put("relatedBoards", new ArrayList<String>(){{
-            add("test-board1");
-            add("test-board2");
-        }});
-        addToAuditIndex("10000034", content);
-
-        content = getAuditContentTestRecord("do_10000035", 35, "test-board4");
-        content.put("name", "Test Course - TrainingCourse");
-        content.put("description", "Test Course - TrainingCourse");
-        content.put("status","Live");
-        content.put("mimeType", "application/vnd.ekstep.content-collection");
-        content.put("contentType", "Course");
-        content.put("courseType", "TrainingCourse");
-        addToAuditIndex("10000035", content);
-    }
-
-    private static void addToAuditIndex(String uniqueId, Map<String, Object> doc) throws Exception {
+    private static void addToIndex(String indexName, String indexType, String uniqueId, Map<String, Object> doc) throws Exception {
         String jsonIndexDocument = JsonUtils.serialize(doc);
-        ElasticSearchUtil.addDocumentWithId(SearchConstants.AUDIT_HISTORY_INDEX,
-                SearchConstants.AUDIT_HISTORY_INDEX_TYPE, uniqueId, jsonIndexDocument);
+        ElasticSearchUtil.addDocumentWithId(indexName, indexType, uniqueId, jsonIndexDocument);
     }
 
-    private static Map<String, Object> getAuditContentTestRecord(String id, int index, String board) {
-        String objectType = "Content";
-        Date d = new Date();
-        Map<String, Object> map = getTestRecord(id, index, "do", objectType);
-        map.put("name", "Content_" + System.currentTimeMillis() + "_name");
-        map.put("code", "code_" + System.currentTimeMillis());
-        map.put("contentType", getContentType());
-        map.put("createdOn", new Date());
-        map.put("lastUpdatedOn", new Date());
-        if(StringUtils.isNotBlank(board))
-            map.put("board",board);
-        Set<String> ageList = getAgeGroup();
-        if (null != ageList && !ageList.isEmpty())
-            map.put("ageGroup", ageList);
-        Set<String> grades = getGradeLevel();
-        if (null != grades && !grades.isEmpty())
-            map.put("gradeLevel", grades);
-        if (index % 5 == 0) {
-            map.put("lastPublishedOn", d.toString());
-            map.put("status", "Live");
-            map.put("size", 1000432);
-        } else {
-            map.put("status", "Draft");
-            if (index % 3 == 0)
-                map.put("size", 564738);
-        }
-        Set<String> tagList = getTags();
-        if (null != tagList && !tagList.isEmpty() && index % 7 != 0)
-            map.put("keywords", tagList);
-        map.put("downloads", index);
-        map.put("visibility", "Default");
-        return map;
+    private static Map<String, Object> getAuditLogRecord(String objectId, String objectType, String label, String graphId, String userId, String requestId, String logRecord, String operation, long createdOn) {
+        Map<String, Object> record = new HashMap<>();
+        record.put("objectId", objectId);
+        record.put("objectType", objectType);
+        record.put("label", label);
+        record.put("graphId", graphId);
+        record.put("userId", userId);
+        record.put("requestId", requestId);
+        record.put("logRecord", logRecord);
+        record.put("operation", operation);
+        record.put("createdOn", createdOn);
+        return record;
     }
 
     private static Map<String, Object> getContentTestRecord(String id, int index, String board) {

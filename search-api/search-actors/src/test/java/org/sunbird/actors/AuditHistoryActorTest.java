@@ -15,22 +15,16 @@ import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.search.client.ElasticSearchUtil;
 import org.sunbird.search.util.SearchConstants;
 import scala.concurrent.duration.Duration;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 public class AuditHistoryActorTest extends SearchBaseActorTest{
 
     @BeforeClass
     public static void before() throws Exception {
         createAuditIndex();
-        insertAuditTestDoc();
         Thread.sleep(3000);
     }
 
@@ -74,9 +68,12 @@ public class AuditHistoryActorTest extends SearchBaseActorTest{
         System.out.println("request: "+request);
         Response response = getAuditResponse(request);
         Map<String, Object> result = response.getResult();
-        List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("results");
-        System.out.println("result: "+result);
-        Assert.assertNull(list);
+        Map<String, Object> auditHistoryRecord = (Map<String, Object>) result.get("audit_history_record");
+        Assert.assertNotNull(auditHistoryRecord);
+        int count = (int) auditHistoryRecord.get("count");
+        Assert.assertTrue(count > 1);
+        List<Map<String, Object>> results = (List<Map<String, Object>>) auditHistoryRecord.get("results");
+        Assert.assertNotNull(results);
     }
 
     @SuppressWarnings("unchecked")
@@ -104,10 +101,11 @@ public class AuditHistoryActorTest extends SearchBaseActorTest{
         request.put("sort_by", sort);
         request.put("traversal", traversal);
         request.put("fields", fields);
+        request.put("ACTOR","learning.platform");
+        request.getContext().put("CHANNEL_ID","in.ekstep");
+        request.getContext().put( "ENV","search");
         Response response = getAuditResponse(request);
         Map<String, Object> result = response.getResult();
-        //List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("results");
-        //Assert.assertNull(list);
         String message = (String) result.get("messages");
         Assert.assertTrue(message.contains("Unsupported operation"));
     }
