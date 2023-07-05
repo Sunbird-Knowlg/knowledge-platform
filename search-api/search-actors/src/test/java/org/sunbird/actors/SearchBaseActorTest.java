@@ -205,6 +205,9 @@ public class SearchBaseActorTest {
 
         Map<String, Object> record5 = getAuditRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "invalidLogRecord", "CREATE", 1687397870000L);
         addToIndex(indexName, indexType, "WT9O54gBVD187cnpf9nQ", record5);
+
+        Map<String, Object> record6 = getAuditRecord("do_113807000868651008131", "Content", "", "domain", "ANONYMOUS", "", "", "UPDATE", 1687396488000L);
+        addToIndex(indexName, indexType, "Vz9O54gBVD187cnpQdmx", record6);
     }
 
     private static void addToIndex(String indexName, String indexType, String uniqueId, Map<String, Object> doc) throws Exception {
