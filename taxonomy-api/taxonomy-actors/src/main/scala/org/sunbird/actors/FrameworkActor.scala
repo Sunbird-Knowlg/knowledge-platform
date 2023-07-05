@@ -55,11 +55,8 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       getChannelReq.put(Constants.IDENTIFIER, channel)
       DataNode.read(getChannelReq).map(node => {
         if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
-          val name = node.getMetadata.getOrDefault("name", "").asInstanceOf[String]
-          val description = node.getMetadata.getOrDefault("description", "").asInstanceOf[String]
-          request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
-          DataNode.create(request).map(node => {
-            ResponseHandler.OK.put(Constants.NODE_ID, node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
+         DataNode.create(request).map(frameNode => {
+            ResponseHandler.OK.put(Constants.NODE_ID, frameNode.getIdentifier).put("versionKey", frameNode.getMetadata.get("versionKey"))
           })
         } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
       }).flatMap(f => f)
