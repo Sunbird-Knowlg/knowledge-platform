@@ -72,6 +72,40 @@ public class AuditHistoryActorTest extends SearchBaseActorTest{
 
     @SuppressWarnings("unchecked")
     @Test
+    public void testInvalidLogRecord(){
+        Request request = getAuditRequest();
+        Map<String, Object> filters = new HashMap<String, Object>();
+        Map<String, Object> sort = new HashMap<String, Object>();
+        sort.put("createdOn", "desc");
+        sort.put("operation", "desc");
+        List<String> fields = new ArrayList<String>();
+        fields.add("audit_id");
+        fields.add("label");
+        fields.add("objectId");
+        fields.add("objectType");
+        fields.add("operation");
+        fields.add("requestId");
+        fields.add("userId");
+        fields.add("graphId");
+        fields.add("createdOn");
+        fields.add("logRecord");
+        filters.put("graphId","domain");
+        filters.put("objectId","do_113807000868651008130");
+        request.put("filters", filters);
+        request.put("sort_by", sort);
+        request.put("traversal", traversal);
+        request.put("fields", fields);
+        request.put("ACTOR","learning.platform");
+        request.getContext().put("CHANNEL_ID","in.ekstep");
+        request.getContext().put( "ENV","search");
+        Response response = getAuditResponse(request);
+        Map<String, Object> result = response.getResult();
+        String message = (String) result.get("messages");
+        Assert.assertTrue(message.contains("Unable to parse data! | Error is:"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
     public void testInvalidOperation(){
         Request request = nullOperationRequest();
         Map<String, Object> filters = new HashMap<String, Object>();

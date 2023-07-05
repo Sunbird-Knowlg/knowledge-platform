@@ -203,7 +203,7 @@ public class SearchBaseActorTest {
         Map<String, Object> record4 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"name\":{\"nv\":\"new name\"},\"status\":{\"nv\":\"Live\"}}}", "UPDATE", 1687396488000L);
         addToIndex(indexName, indexType, "Vz9O54gBVD187cnpQdmx", record4);
 
-        Map<String, Object> record5 = getAuditRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"do_113807000868651008130\"}}}", "CREATE", 1687397870000L);
+        Map<String, Object> record5 = getAuditRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "invalidLogRecord", "CREATE", 1687397870000L);
         addToIndex(indexName, indexType, "WT9O54gBVD187cnpf9nQ", record5);
     }
 
