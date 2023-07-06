@@ -1,7 +1,6 @@
 package org.sunbird.mangers
 
 import java.util
-import com.twitter.util.Config.intoOption
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{JsonUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -16,7 +15,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 
 import java.util
-import java.util.Collections
+import java.util.{Collections, Optional}
 import java.util.concurrent.{CompletionException, Executors}
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -25,12 +24,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.utils.{CategoryCache, Constants, FrameworkCache}
 
 object FrameworkManager {
-  private val languageCodes = Platform.getStringList("platform.language.codes", new util.ArrayList[String]())
   val schemaVersion: String = "1.0"
   def validateTranslationMap(request: Request) = {
-    val translations: util.Map[String, AnyRef] = request.getOrElse("translations", "").asInstanceOf[util.HashMap[String, AnyRef]]
+    val translations: util.Map[String, AnyRef] = Optional.ofNullable(request.get("translations").asInstanceOf[util.HashMap[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
     if (translations.isEmpty) request.getRequest.remove("translations")
     else {
+      val languageCodes = Platform.getStringList("platform.language.codes", new util.ArrayList[String]())
       if (translations.asScala.exists(entry => !languageCodes.contains(entry._1)))
         throw new ClientException("ERR_INVALID_LANGUAGE_CODE", "Please Provide Valid Language Code For translations. Valid Language Codes are : " + languageCodes)
     }

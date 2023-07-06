@@ -2,6 +2,7 @@ package org.sunbird.actors
 
 import java.util
 import akka.actor.Props
+import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.common.exception.ResponseCode
@@ -69,6 +70,35 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     request.setOperation(Constants.CREATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
+  }
+
+  it should "throw exception if invalid translations sent in the request 'createFramework'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("channel_test")
+    node.setObjectType("Channel")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "channel_test");
+        put("objectType", "Channel")
+        put("name", "Channel")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+    val translations = new java.util.HashMap[String, String]()
+    translations.put("sta", "trnm")
+    val request = getFrameworkRequest()
+    request.put("translations", translations)
+    request.putAll(mapAsJavaMap(Map("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test", "channel" -> "channel_test")))
+    request.setOperation(Constants.CREATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert(StringUtils.equalsIgnoreCase(response.getParams.getErrmsg, "Please Provide Valid Language Code For translations. Valid Language Codes are : [as, bn, en, gu, hi, hoc, jun, ka, mai, mr, unx, or, san, sat, ta, te, urd, pj]"))
+
   }
 
   it should "throw exception if empty channel identifier is sent in the request 'createFramework' operation" in {
