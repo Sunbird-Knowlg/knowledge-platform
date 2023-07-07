@@ -1,14 +1,11 @@
 package org.sunbird.graph.schema.validator
 
-import org.scalatest.Ignore
-
-import java.util
 import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.DefinitionFactory
 
+import java.util
 import scala.concurrent.Future
-@Ignore
 class TestSchemaValidator extends BaseSpec {
 
   /*"check health api" should "return true" in {
