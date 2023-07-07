@@ -4,6 +4,8 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
     steps:
       - checkout
       - restore_cache:
