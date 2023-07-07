@@ -1,5 +1,8 @@
 #!/bin/bash
 sudo apt update
+sudo apt-get install -y docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
 sudo apt install redis-server -y
 curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.22.deb
 sudo dpkg -i elasticsearch-6.8.22.deb
