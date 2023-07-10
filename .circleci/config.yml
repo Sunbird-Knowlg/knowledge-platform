@@ -1,7 +1,12 @@
 version: 2.1
 executorType: machine
+executors:
+  docker-executor:
+    docker:
+      - image: circleci/docker:2.2.0
 jobs:
   build:
+    executor: docker-executor
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
     steps:
@@ -22,6 +27,7 @@ jobs:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
     parallelism: 1
+    executor: docker-executor
     steps:
       - checkout
       - restore_cache:
