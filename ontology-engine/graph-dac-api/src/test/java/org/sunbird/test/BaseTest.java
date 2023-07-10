@@ -75,7 +75,8 @@ public class BaseTest {
 			neo4jContainer.waitingFor(Wait.forListeningPort());
 			neo4jContainer.start();
 
-			Thread.sleep(20000);
+			System.out.println(" container info :"+ neo4jContainer.getContainerInfo().getState());
+			Thread.sleep(60000);
 
 			String boltAddress = "bolt://localhost:" + hostBoltPort;
 
