@@ -1,5 +1,5 @@
 version: 2.1
-executorType: machine
+executorType: docker
 executors:
   docker-executor:
     docker:
