@@ -74,11 +74,10 @@ public class BaseTest {
 			neo4jContainer.withStartupTimeout(java.time.Duration.ofSeconds(60));
 			neo4jContainer.waitingFor(Wait.forListeningPort());
 			neo4jContainer.start();
-
+			System.out.println(" neo4j host "+ neo4jContainer.getHost());
 			System.out.println(" container info :"+ neo4jContainer.getContainerInfo().getState());
-			Thread.sleep(60000);
-
-			String boltAddress = "bolt://localhost:" + hostBoltPort;
+			Thread.sleep(20000);
+			String boltAddress = "bolt://"+ neo4jContainer.getHost() + ":" + hostBoltPort;
 
 			Config config = Config.builder()
 					.withConnectionTimeout(30, TimeUnit.SECONDS)
