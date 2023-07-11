@@ -13,22 +13,19 @@ jobs:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
     steps:
       - checkout
-      - restore_cache:
-          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
-      - run:
-          name: Add CircleCI to Docker group
-          command: sudo usermod -aG docker circleci
       - run:
           name: Bind Docker Socket
           command: |
             sudo mkdir -p /var/run/docker.sock
             sudo chmod 777 /var/run/docker.sock
-            sudo mount --bind /var/run/docker.sock /var/run/docker.sock
+            sudo mount -v /var/run/docker.sock:/var/run/docker.sock
       - run:
           name: Set Docker Host
           command: |
-              echo 'export DOCKER_HOST=unix:///var/run/docker.sock' >> $BASH_ENV
-              source $BASH_ENV
+            echo 'export DOCKER_HOST=unix:///var/run/docker.sock' >> $BASH_ENV
+            source $BASH_ENV
+      - restore_cache:
+          key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
       - run:
           name: Run build
           command: |
@@ -39,11 +36,10 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
+    executor: docker-executor
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
-    parallelism: 1
-    executor: docker-executor
     steps:
       - checkout
       - setup_remote_docker:
@@ -69,8 +65,8 @@ jobs:
 workflows:
   version: 2.1
   build-then-test:
-      jobs:
-        - build
-        - unit-tests:
-            requires:
-              - build
+    jobs:
+      - build
+      - unit-tests:
+          requires:
+            - build
