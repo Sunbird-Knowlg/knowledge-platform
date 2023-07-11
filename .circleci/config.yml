@@ -30,6 +30,8 @@ jobs:
     executor: docker-executor
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.7
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
       - run:
