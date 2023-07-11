@@ -4,6 +4,8 @@ executors:
   docker-executor:
     docker:
       - image: circleci/docker:2.2.0
+services:
+  - docker
 jobs:
   build:
     executor: docker-executor
@@ -13,6 +15,17 @@ jobs:
       - checkout
       - restore_cache:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
+      - run:
+          name: Bind Docker Socket
+          command: |
+            sudo mkdir -p /var/run/docker.sock
+            sudo chmod 777 /var/run/docker.sock
+            sudo mount --bind /var/run/docker.sock /var/run/docker.sock
+      - run:
+          name: Set Docker Host
+          command: |
+              echo 'export DOCKER_HOST=unix:///var/run/docker.sock' >> $BASH_ENV
+              source $BASH_ENV
       - run:
           name: Run build
           command: |
