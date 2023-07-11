@@ -18,7 +18,7 @@ jobs:
           command: |
             sudo mkdir -p /var/run/docker.sock
             sudo chmod 777 /var/run/docker.sock
-            sudo mount -v /var/run/docker.sock:/var/run/docker.sock
+            sudo mount -v --bind /var/run/docker.sock /var/run/docker.sock
       - run:
           name: Set Docker Host
           command: |
