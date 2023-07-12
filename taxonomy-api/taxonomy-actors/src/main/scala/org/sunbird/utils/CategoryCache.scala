@@ -12,7 +12,7 @@ object CategoryCache{
     if (null != framework && !framework.isEmpty) {
       val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].toList
       categories.map(category => {
-        val catName = category.get("name").asInstanceOf[String]
+        val catName = category.get("code").asInstanceOf[String]
         val terms = getTerms(category, "terms")
         if (terms.nonEmpty) {
           val key = getKey(id, catName)
