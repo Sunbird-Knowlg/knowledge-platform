@@ -479,7 +479,9 @@ object DIALManager {
 	def getDIALReserveUpdateResponse(response: Response, count: Integer, contentId: String, node: Node): Response = {
 		response.getResult.put(DIALConstants.COUNT, count)
 		response.getResult.put(ContentConstants.NODE_ID, contentId)
-		response.getResult.put(DIALConstants.RESERVED_DIALCODES, node.getMetadata.get(DIALConstants.RESERVED_DIALCODES))
+		val reservDialCodes = node.getMetadata.get(DIALConstants.RESERVED_DIALCODES)
+		println("RESERVED_DIALCODES " + reservDialCodes)
+		response.getResult.put(DIALConstants.RESERVED_DIALCODES, ScalaJsonUtils.deserialize[Map[String, Integer]](reservDialCodes.asInstanceOf[String]))
 		println("response   "+ response)
 		response
 	}
