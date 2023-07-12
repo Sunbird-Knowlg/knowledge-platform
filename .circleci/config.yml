@@ -1,12 +1,7 @@
 version: 2.1
-executorType: docker
-executors:
-  docker-executor:
-    docker:
-      - image: circleci/docker:2.2.0
+executorType: machine
 jobs:
   build:
-    executor: docker-executor
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
     steps:
@@ -27,13 +22,13 @@ jobs:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
     parallelism: 1
-    executor: docker-executor
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.7
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
       - run:
           name: Setup environment and run tests
           command: bash vmsetup.sh
