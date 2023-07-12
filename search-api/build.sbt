@@ -2,7 +2,7 @@ import sbt._
 import play.sbt.PlaySettings
 import scoverage.ScoverageSbtPlugin._
 
-name := "search-api-sbt"
+name := "search-api"
 ThisBuild / organization := "org.sunbird"
 ThisBuild / scalaVersion := "2.12.8"
 
@@ -12,14 +12,14 @@ lazy val root = (project in file("."))
   .aggregate(searchService, searchActors, searchCore)
   .dependsOn(searchService, searchActors, searchCore)
   .settings(
-    coverageEnabled := true
+    commonSettings
   )
 
-lazy val searchService = (project in file("search-service-sbt"))
+lazy val searchService = (project in file("search-service"))
   .enablePlugins(PlayScala, PlayNettyServer)
   .disablePlugins(PlayAkkaHttpServer)
   .settings(
-    name := "search-service-sbt",
+    name := "search-service",
     version := "1.0-SNAPSHOT",
     commonSettings,
     libraryDependencies ++= Seq(
@@ -36,22 +36,22 @@ lazy val searchService = (project in file("search-service-sbt"))
     )
   )
   .settings(
-    libraryDependencies += ("org.sunbird" % ("search-actors-sbt_" + scalaMajorVersion) % "1.0-SNAPSHOT")
+    libraryDependencies += ("org.sunbird" % ("search-actors") % "1.0-SNAPSHOT")
       .exclude("com.typesafe.akka","akka-actor_2.11")
       .exclude("org.scala-lang.modules","scala-java8-compat_2.11")
       .exclude("org.scala-lang.modules","scala-parser-combinators_2.11")
       .exclude("com.typesafe.akka","akka-slf4j_2.11")
   ).dependsOn(searchActors)
 
-lazy val searchActors = (project in file("search-actors-sbt"))
+lazy val searchActors = (project in file("search-actors"))
   .settings(
-    name := "search-actors-sbt",
+    name := "search-actors",
     version := "1.0-SNAPSHOT",
     commonSettings,
     libraryDependencies ++= Seq(
       "javax.inject" % "javax.inject" % "1",
       "org.sunbird" % "actor-core" % "1.0-SNAPSHOT",
-      "org.sunbird" % ("search-core-sbt_" + scalaMajorVersion) % "1.0-SNAPSHOT",
+      "org.sunbird" % ("search-core") % "1.0-SNAPSHOT",
       "org.scalatest" % ("scalatest_" + scalaMajorVersion) % "3.0.8",
       "org.scalamock" % ("scalamock_" + scalaMajorVersion) % "4.4.0" % Test,
       "com.typesafe.akka" % ("akka-testkit_" + scalaMajorVersion) % "2.5.22" % Test,
@@ -62,9 +62,9 @@ lazy val searchActors = (project in file("search-actors-sbt"))
     )
   ).dependsOn(searchCore)
 
-lazy val searchCore = (project in file("search-core-sbt"))
+lazy val searchCore = (project in file("search-core"))
   .settings(
-    name := "search-core-sbt",
+    name := "search-core",
     version := "1.0-SNAPSHOT",
     commonSettings,
     libraryDependencies ++= Seq(
@@ -84,5 +84,7 @@ lazy val searchCore = (project in file("search-core-sbt"))
 
 lazy val commonSettings = Seq(
   javacOptions ++= Seq("-source", "11", "-target", "11"),
+  crossPaths := false,
+  coverageEnabled := true,
   resolvers ++= Seq("Local Maven Repository" at "file:///"+Path.userHome+"/.m2/repository")
 )
