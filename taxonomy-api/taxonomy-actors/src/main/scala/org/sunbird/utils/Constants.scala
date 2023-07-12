@@ -36,7 +36,6 @@ object Constants {
     val FRAMEWORK_SCHEMA_VERSION = "1.0";
     val FRAMEWORK_SCHEMA_NAME="framework"
     val CATEGORIES: String = "categories"
-    val ROOT_ID: String = "rootId"
     val CHANNEL_SCHEMA_NAME="channel"
     val CHANNEL_SCHEMA_VERSION = "1.0";
     val PUBLISH_STATUS: String = "publishStatus"

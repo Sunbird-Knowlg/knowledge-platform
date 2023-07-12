@@ -4,14 +4,13 @@ import java.util
 import akka.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
 import org.sunbird.utils.Constants
-
 import scala.collection.JavaConversions.mapAsJavaMap
-import scala.collection.immutable.List
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -155,7 +154,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val request = getFrameworkRequest()
     request.getContext.put("identifier", "framework_test");
     request.getRequest.put("identifier", "framework_test")
-    request.setOperation("retireFramework")
+    request.setOperation(Constants.RETIRE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
   }
@@ -170,14 +169,12 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val nodes: util.List[Node] = getCategoryNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
-    val request = getFramwrokRequest()
-    request.putAll(mapAsJavaMap(Map("identifier" -> "NCF",
-      "createdBy" -> "username_1",
-      "code" -> "NCF_COPY")))
+    val request = getFrameworkRequest()
+    request.putAll(mapAsJavaMap(Map(Constants.IDENTIFIER -> "NCF", "createdBy" -> "username_1", Constants.CODE -> "NCF_COPY")))
     request.setOperation(Constants.COPY_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
-    assert(response.getResult.containsKey("node_id"))
+    assert(response.getResult.containsKey(Constants.NODE_ID))
   }
 
   it should "throw exception if code not sent in the request 'copyFramework' operation" in {
@@ -190,8 +187,8 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val nodes: util.List[Node] = getCategoryNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
-    val request = getFramwrokRequest()
-    request.putAll(mapAsJavaMap(Map("identifier" -> "NCF")))
+    val request = getFrameworkRequest()
+    request.putAll(mapAsJavaMap(Map(Constants.IDENTIFIER -> "NCF")))
     request.setOperation(Constants.COPY_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -208,8 +205,8 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val nodes: util.List[Node] = getCategoryNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
-    val request = getFramwrokRequest()
-    request.putAll(mapAsJavaMap(Map("identifier" -> "NCF", "code" -> "NCF")))
+    val request = getFrameworkRequest()
+    request.putAll(mapAsJavaMap(Map(Constants.IDENTIFIER -> "NCF", Constants.CODE -> "NCF")))
     request.setOperation(Constants.COPY_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -235,9 +232,9 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(subGraph)).anyNumberOfTimes()
     (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
 
-    val request = getFramwrokRequest()
-    request.getContext.put("identifier", "framework_test")
-    request.putAll(mapAsJavaMap(Map("identifier" -> "framework_test", "channel" -> "sunbird")))
+    val request = getFrameworkRequest()
+    request.getContext.put(Constants.IDENTIFIER, "framework_test")
+    request.putAll(mapAsJavaMap(Map(Constants.IDENTIFIER -> "framework_test", "channel" -> "sunbird")))
     request.setOperation(Constants.PUBLISH_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -250,10 +247,12 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
-
-    val request = getFramwrokRequest()
-    request.getContext.put("identifier", "framework_test")
-    request.putAll(mapAsJavaMap(Map("identifier" -> "framework_test", "channel" -> "sunbird", "categories" -> "")))
+//    val frameworkMetadata = """{"name":"Framework1"}"""
+//    val cacheKey = "fw_framework_test_categories_test"
+//    RedisCache.set(cacheKey, frameworkMetadata)
+    val request = getFrameworkRequest()
+    request.getContext.put("identifier", "frameworkTest")
+    request.putAll(mapAsJavaMap(Map("identifier" -> "framework_test", "channel" -> "sunbird", Constants.CATEGORIES -> "")))
     request.setOperation(Constants.READ_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -271,7 +270,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
         put("objectType", "Framework")
         put("name", "framework_test")
         put("code", "framework_test")
-        put("X-Channel-Id", "channel_test")
+        put("channel", "channel_test")
       }
     })
     node

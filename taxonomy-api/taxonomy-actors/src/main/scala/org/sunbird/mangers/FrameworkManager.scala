@@ -101,7 +101,7 @@ object FrameworkManager {
     (updatedMetadata ++ childHierarchy).asJava
   }
 
-  private def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
+   def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
     relationMap.asScala.map(rel =>
     {
       val endObjectType = rel.getEndNodeObjectType.replace("Image", "")
@@ -243,23 +243,5 @@ object FrameworkManager {
     req
   }
 
-  def validateChannel(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
-    if (channel.isEmpty()) throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    val getChannelReq = new Request()
-    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
-    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
-    getChannelReq.put(Constants.IDENTIFIER, channel)
-    DataNode.read(getChannelReq)(oec, ec).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) node
-      else
-        throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    })(ec)
-  }
 
 }
