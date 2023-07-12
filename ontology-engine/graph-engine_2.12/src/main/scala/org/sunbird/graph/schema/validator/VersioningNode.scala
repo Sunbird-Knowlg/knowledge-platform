@@ -28,11 +28,11 @@ trait VersioningNode extends IDefinition {
     val COLLECTION_MIME_TYPE = "application/vnd.ekstep.content-collection"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String = "read", versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read", versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         operation match {
             case "update" => getNodeToUpdate(identifier, versioning);
-            case "read" => getNodeToRead(identifier, mode)
-            case _ => getNodeToRead(identifier, mode)
+            case "read" => getNodeToRead(identifier, mode, disableCache)
+            case _ => getNodeToRead(identifier, mode, disableCache)
         }
     }
 
@@ -49,7 +49,7 @@ trait VersioningNode extends IDefinition {
         }).flatMap(f => f)
     }
 
-    private def getNodeToRead(identifier: String, mode: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    private def getNodeToRead(identifier: String, mode: String, disableCache: Option[Boolean])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         if ("edit".equalsIgnoreCase(mode)) {
             val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
             imageNode recoverWith {
@@ -61,13 +61,19 @@ trait VersioningNode extends IDefinition {
                 }
             }
         } else {
-            val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
-            if (Platform.getBoolean(cacheKey, false)) {
-                val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
-                getCachedNode(identifier, ttl)
-            } else
-                super.getNode(identifier, "read", mode)
+            if(disableCache.nonEmpty){
+                if(disableCache.get) super.getNode(identifier, "read", mode)
+                else getNodeFromCache(identifier)
+            } else{
+                val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
+                if (Platform.getBoolean(cacheKey, false)) getNodeFromCache(identifier)
+                else super.getNode(identifier, "read", mode)
+            }
         }
+    }
+    private def getNodeFromCache(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]= {
+        val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
+        getCachedNode(identifier, ttl)
     }
 
     private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {

@@ -35,7 +35,6 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     if (!request.getRequest.containsKey("code")) throw new ClientException("ERR_CATEGORY_CODE_REQUIRED", "Unique code is mandatory for category")
     request.getRequest.put(Constants.IDENTIFIER, code)
     RedisCache.delete("masterCategories")
-    println("category - create request: "+request)
     CategoryManager.validateTranslationMap(request)
     DataNode.create(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
