@@ -292,8 +292,10 @@ object DIALManager {
 		validateContentStatus(contentMetadata)
 
 		val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
+		println("reservedDialCodes "+ reservedDialCodes)
 		val updateDialCodes  = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
-
+		println("reservedDialCodes "+ reservedDialCodes + "  reservedDialCodes.size "+ reservedDialCodes.size)
+		println("updateDialCodes "+ updateDialCodes + " updateDialCodes.size"+ updateDialCodes.size)
 		if(updateDialCodes.size > reservedDialCodes.size) {
 			val updateReq = getDIALReserveUpdateRequest(request, rootNode, updateDialCodes)
 			DataNode.update(updateReq).map(updatedNode => {
@@ -476,8 +478,8 @@ object DIALManager {
 	def getDIALReserveUpdateResponse(response: Response, count: Integer, contentId: String, node: Node): Response = {
 		response.getResult.put(DIALConstants.COUNT, count)
 		response.getResult.put(ContentConstants.NODE_ID, contentId)
-		response.getResult.put(DIALConstants.RESERVED_DIALCODES, node.getMetadata.get(DIALConstants.RESERVED_DIALCODES))
-
+		response.getResult.put(DIALConstants.RESERVED_DIALCODES, ScalaJsonUtils.deserialize[Map[String, Integer]](node.getMetadata.get(DIALConstants.RESERVED_DIALCODES)))
+		println("response   "+ response)
 		response
 	}
 }
