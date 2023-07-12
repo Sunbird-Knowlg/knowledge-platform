@@ -301,6 +301,7 @@ object DIALManager {
 			DataNode.update(updateReq).map(updatedNode => {
 				val response = ResponseHandler.OK()
 				val updatedSuccessResponse = getDIALReserveUpdateResponse(response, updateDialCodes.size.asInstanceOf[Integer], contentId, updatedNode)
+				println("updatedSuccessResponse "+ updatedSuccessResponse)
 				updatedSuccessResponse.getResult.put(DIALConstants.VERSION_KEY, updatedNode.getMetadata.get(DIALConstants.VERSION_KEY))
 				updatedSuccessResponse
 			})
@@ -478,7 +479,7 @@ object DIALManager {
 	def getDIALReserveUpdateResponse(response: Response, count: Integer, contentId: String, node: Node): Response = {
 		response.getResult.put(DIALConstants.COUNT, count)
 		response.getResult.put(ContentConstants.NODE_ID, contentId)
-		response.getResult.put(DIALConstants.RESERVED_DIALCODES, ScalaJsonUtils.deserialize[Map[String, Integer]](node.getMetadata.get(DIALConstants.RESERVED_DIALCODES)))
+		response.getResult.put(DIALConstants.RESERVED_DIALCODES, node.getMetadata.get(DIALConstants.RESERVED_DIALCODES))
 		println("response   "+ response)
 		response
 	}
