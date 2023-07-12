@@ -115,7 +115,6 @@ public class GraphAsyncOperations {
 		Driver driver = DriverUtil.getDriver(graphId, GraphOperation.WRITE);
 		TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]");
 		String query = GraphQueryGenerationUtil.generateSubGraphCypherQuery(graphId, nodeId, depth);
-		System.out.println("Query:  "+query);
 		try (Session session = driver.session()) {
 			CompletionStage cs = session.runAsync(query)
 					.thenCompose(fn -> fn.listAsync()).thenApply(records -> {

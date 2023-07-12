@@ -29,14 +29,11 @@ object FrameworkCache{
     }
 
     def get(id: String, returnCategories: util.List[String]): util.Map[String, Object] = {
-      println("cacheEnabled "+ cacheEnabled)
         if (cacheEnabled) {
             if (returnCategories.nonEmpty) {
               val categories = new util.ArrayList[String](returnCategories)
                 Collections.sort(categories)
-                 println("fwcachekey: " + getFwCacheKey(id, categories) )
                 val cachedCategories: String = RedisCache.get(getFwCacheKey(id, categories))
-                println("cachedCategories :" +cachedCategories)
                 if (StringUtils.isNotBlank(cachedCategories))
                   return JsonUtils.deserialize(cachedCategories, classOf[util.Map[String, Object]])
             } else {

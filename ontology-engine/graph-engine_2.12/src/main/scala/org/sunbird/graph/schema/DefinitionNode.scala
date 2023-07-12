@@ -13,6 +13,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
@@ -72,7 +73,8 @@ object DefinitionNode {
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
       , schemaName, request.getContext.get("version").asInstanceOf[String])
-    definition.getNode(request.get("identifier").asInstanceOf[String], "read", if (request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read")
+    val disableCache: Option[Boolean] = if (request.getRequest.containsKey("disableCache")) request.get("disableCache").asInstanceOf[Option[Boolean]] else None
+    definition.getNode(request.get("identifier").asInstanceOf[String], "read", if (request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read", None, disableCache)
   }
 
   @throws[Exception]
@@ -88,7 +90,7 @@ object DefinitionNode {
     }
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
     val removeProps = request.getContext.getOrDefault("removeProps", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
-    definition.getNode(identifier, "update", null, versioning).map(dbNode => {
+    definition.getNode(identifier, "update", null, versioning, None).map(dbNode => {
       val schema = dbNode.getObjectType.toLowerCase.replace("image", "")
       val primaryCategory: String = if (null != dbNode.getMetadata) dbNode.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
       val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
@@ -196,13 +198,9 @@ object DefinitionNode {
       if (relOcr.containsKey(relKey))
         relOcr.put(relKey, relOcr.get(relKey) + 1)
       else relOcr.put(relKey, 1)
-
       if (relKey.contains("hasSequenceMember")) {
-        rel.setMetadata(new util.HashMap[String, AnyRef]() {
-          {
-            put("IL_SEQUENCE_INDEX", relOcr.get(relKey));
-          }
-        })
+        val index = if (rel.getMetadata.containsKey("index")) rel.getMetadata.get("index").asInstanceOf[Integer] else relOcr.get(relKey)
+        rel.setMetadata(Map[String, AnyRef]("IL_SEQUENCE_INDEX" -> index).asJava)
       } else rel.setMetadata(new util.HashMap[String, AnyRef]())
     }
     node.setAddedRelations(rels)
