@@ -1,7 +1,7 @@
 package org.sunbird.content.dial
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
 import org.sunbird.content.util.ContentConstants
@@ -481,7 +481,7 @@ object DIALManager {
 		response.getResult.put(ContentConstants.NODE_ID, contentId)
 		val reservDialCodes = node.getMetadata.get(DIALConstants.RESERVED_DIALCODES)
 		println("RESERVED_DIALCODES " + reservDialCodes)
-		response.getResult.put(DIALConstants.RESERVED_DIALCODES, ScalaJsonUtils.deserialize[Map[String, Integer]](reservDialCodes.asInstanceOf[String]))
+		response.getResult.put(DIALConstants.RESERVED_DIALCODES, JsonUtils.deserialize(reservDialCodes.asInstanceOf[String], classOf[Map[_, _]]))
 		println("response   "+ response)
 		response
 	}
