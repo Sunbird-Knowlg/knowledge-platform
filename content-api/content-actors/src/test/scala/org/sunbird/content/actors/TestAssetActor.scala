@@ -57,6 +57,18 @@ class TestAssetActor extends BaseSpec with MockFactory {
     assert(response.getParams.getErrmsg == "Only asset can be copied")
   }
 
+  it should "return success response for 'validateLicense'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss = mock[StorageService]
+    val request = getContentRequest()
+    request.put("field", "license")
+    request.put("provider", "youtube")
+    request.put("url", "https://www.youtube.com/watch?v=GHmQ8euNwv8")
+    request.setOperation("validateLicense")
+    val response = callActor(request, Props(new AssetActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
   private def getNode(): Node = {
     val node = new Node()
     node.setIdentifier("do_1234")

@@ -103,4 +103,16 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.COPY_ASSET, assetActor, contentRequest, version = apiVersion)
     }
+
+    def licenceValidate(field: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val asset = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        println("asset in controller: "+ asset )
+        asset.putAll(headers)
+        asset.putAll(Map("field" -> field.getOrElse("")).asJava)
+        val assetRequest = getRequest(asset, headers, "validateLicense")
+        setRequestContext(assetRequest, version, objectType, schemaName)
+        getResult(ApiId.ASSET_LICENSE_VALIDATE, assetActor, assetRequest, version = apiVersion)
+    }
 }
