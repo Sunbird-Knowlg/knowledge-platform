@@ -352,6 +352,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 		println("ContentActor::protectedContentRead::userPayload:: " + userPayload)
 
+		if(userPayload.isEmpty) {
+			throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ")
+		}
+
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")

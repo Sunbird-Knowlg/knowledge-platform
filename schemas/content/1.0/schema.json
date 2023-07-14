@@ -166,7 +166,10 @@
       "type": "object"
     },
     "accessRules": {
-      "type": "object"
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
     },
     "config": {
       "type": "object"

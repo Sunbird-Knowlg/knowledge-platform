@@ -25,7 +25,7 @@ public class AccessTokenValidator {
 
     String channel = (String) requestContext.getOrDefault("channel", "");
 
-    if(StringUtils.isEmpty(channel)) return Collections.EMPTY_MAP;
+    if(StringUtils.isEmpty(channel) || KeyManager.getPublicKey(channel) == null ) return Collections.EMPTY_MAP;
 
     boolean isValid =
         CryptoUtil.verifyRSASign(
