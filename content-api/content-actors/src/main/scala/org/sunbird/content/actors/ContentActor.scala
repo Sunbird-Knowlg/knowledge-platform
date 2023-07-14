@@ -342,19 +342,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def protectedContentRead(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
-		val accessToken = request.getRequest.getOrDefault("consumerId","").asInstanceOf[String]
-
-		if(StringUtils.isEmpty(accessToken)) {
-			throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ")
-		}
-
-		val userPayload: Map[String, AnyRef] = AccessTokenValidator.verifyUserToken(accessToken, request.getContext).asScala.toMap[String, AnyRef]
-
-		println("ContentActor::protectedContentRead::userPayload:: " + userPayload)
-
-		if(userPayload.isEmpty) {
-			throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ")
-		}
 
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
@@ -364,18 +351,32 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 			if(metadata.containsKey("accessRules")) {
-				val accessRules: Map[String, AnyRef] = metadata.get("accessRules").asInstanceOf[Map[String, AnyRef]]
-
-				accessRules.map(rec => {
-
-
-				})
+				val accessRules: List[AnyRef] = metadata.get("accessRules").asInstanceOf[java.util.ArrayList[java.util.HashMap[String, AnyRef]]].asScala.toList.asInstanceOf[List[AnyRef]]
+				val isAccessAllowed = checkAccess(accessRules, request)
+				println("ContentActor::protectedContentRead:: isAccessAllowed:: " + isAccessAllowed)
 			}
 
 			if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
 
 			response
 		})
+	}
+
+	private def checkAccess(accessRules: List[AnyRef], request: Request): Boolean = {
+		val accessToken = request.getRequest.getOrDefault("consumerId","").asInstanceOf[String]
+		if(StringUtils.isEmpty(accessToken)) throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ")
+
+		val userPayload: Map[String, AnyRef] = AccessTokenValidator.verifyUserToken(accessToken, request.getContext).asScala.toMap[String, AnyRef]
+
+		val passedRules = accessRules.filter(accessCondition => {
+			val convertedAccessCondition = accessCondition.asInstanceOf[java.util.HashMap[String, AnyRef]].asScala.toMap[String, AnyRef]
+			val passedConditions =	convertedAccessCondition.filter(record => {
+				userPayload.contains(record._1) && record._2.asInstanceOf[util.ArrayList[String]].asScala.toList.contains(userPayload.getOrElse(record._1,"").asInstanceOf[String])
+			})
+			if(passedConditions.size == convertedAccessCondition.size) true else false
+		})
+
+		if(passedRules.nonEmpty) true else false
 	}
 
 }

@@ -1,13 +1,12 @@
 package org.sunbird.auth.verifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.sunbird.common.JsonKey;
 import org.sunbird.common.LoggerUtil;
+import org.sunbird.common.exception.ClientException;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.Map;
 
 public class AccessTokenValidator {
@@ -23,15 +22,11 @@ public class AccessTokenValidator {
     String signature = tokenElements[2];
     String payLoad = header + JsonKey.DOT_SEPARATOR + body;
 
-    String channel = (String) requestContext.getOrDefault("channel", "");
-
-    if(StringUtils.isEmpty(channel) || KeyManager.getPublicKey(channel) == null ) return Collections.EMPTY_MAP;
-
     boolean isValid =
         CryptoUtil.verifyRSASign(
             payLoad,
             decodeFromBase64(signature),
-            KeyManager.getPublicKey(channel).getPublicKey(),
+            KeyManager.getPublicKey("publickey").getPublicKey(),
             JsonKey.SHA_256_WITH_RSA,
             requestContext);
     if (isValid) {
@@ -40,11 +35,11 @@ public class AccessTokenValidator {
       boolean isExp = isExpired((Long) tokenBody.get("exp"));
       if (isExp) {
         logger.info("Token is expired " + token + ", request context data :" + requestContext);
-        return Collections.EMPTY_MAP;
+        throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
       }
       return tokenBody;
     }
-    return Collections.EMPTY_MAP;
+    throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
   }
 
   public static Map<String, Object>  verifyUserToken(String token, Map<String, Object> requestContext) {
