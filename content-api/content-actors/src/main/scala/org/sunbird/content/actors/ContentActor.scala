@@ -370,12 +370,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 
 				})
+			}
 
+			if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
 
-				response
-			} else response
-
-
+			response
 		})
 	}
 
