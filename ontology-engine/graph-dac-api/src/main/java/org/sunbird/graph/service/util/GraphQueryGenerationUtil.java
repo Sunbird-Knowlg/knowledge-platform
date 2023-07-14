@@ -834,4 +834,11 @@ public class GraphQueryGenerationUtil extends BaseQueryGenerationUtil {
 		return query.toString();
 	}
 
+	public static String generateSubGraphCypherQuery(String graphId, String nodeId, Integer depth) {
+		StringBuilder query = new StringBuilder();
+		query.append("MATCH p=(n:"+graphId+" {"+SystemProperties.IL_UNIQUE_ID.name()+":'"+nodeId+"'})-[r1*0.."+depth+"]->(m)-[r2]->(l)");
+		query.append(" with p, m as startNode, l as endNode, collect(r2) as r unwind r as relation return type(relation) as relationName, relation as relationMedatadata, startNode , endNode;");
+		return query.toString();
+	}
+
 }

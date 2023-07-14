@@ -58,7 +58,7 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
         Future{node}
     }
 
-    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
         val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
         node
@@ -74,10 +74,13 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
                             val relData = entry._2.asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                             relData.asScala.map(r => {
                                 val relation = {
-                                    if(StringUtils.equalsAnyIgnoreCase("out", direction))
+                                    if(StringUtils.equalsAnyIgnoreCase("out", direction)) {
                                         new Relation(node.getIdentifier, relSchema.get("type").get.asInstanceOf[String], r.get("identifier").asInstanceOf[String])
-                                    else
+                                          .updateMetadata((r.asScala - "identifier").asJava)
+                                    } else {
                                         new Relation(r.get("identifier").asInstanceOf[String], relSchema.get("type").get.asInstanceOf[String], node.getIdentifier)
+                                          .updateMetadata((r.asScala - "identifier").asJava)
+                                    }
                                 }
                                 relation
                             })

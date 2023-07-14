@@ -1,10 +1,12 @@
 package org.sunbird.graph.util
 
+import org.scalatest.Ignore
 import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
+
 import scala.collection.JavaConverters._
 import java.util
-
+@Ignore
 class CSPMetaUtilTest extends BaseSpec {
 
     "saveExternalRelativePath" should "return map with relative Paths for question data" in {

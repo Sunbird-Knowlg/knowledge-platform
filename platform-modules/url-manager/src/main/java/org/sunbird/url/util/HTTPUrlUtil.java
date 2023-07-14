@@ -8,10 +8,7 @@ import org.sunbird.telemetry.logger.TelemetryManager;
 import org.sunbird.url.common.URLErrorCodes;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +43,8 @@ public class HTTPUrlUtil {
 			throw new ClientException(URLErrorCodes.ERR_INVALID_URL.name(), "Please Provide Valid Url.");
 		} catch (FileNotFoundException e) {
 			throw new ClientException(URLErrorCodes.ERR_FILE_NOT_FOUND.name(), "File Not Found.");
+		} catch (ConnectException e) {
+			throw new ClientException(URLErrorCodes.ERR_INVALID_URL.name(), "Please Provide Valid Url.");
 		} catch (Exception e) {
 			throw new ServerException(URLErrorCodes.SYSTEM_ERROR.name(),
 					"Something Went Wrong While Processing Your Request. Please Try Again After Sometime!");

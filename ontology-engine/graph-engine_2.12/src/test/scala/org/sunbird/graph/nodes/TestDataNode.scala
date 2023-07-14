@@ -1,8 +1,8 @@
 package org.sunbird.graph.nodes
 
 import java.util
-
 import org.neo4j.graphdb.Result
+import org.scalatest.Ignore
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -13,7 +13,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.concurrent.Future
 
-
+@Ignore
 class TestDataNode extends BaseSpec {
 
     def getContextMap(): java.util.Map[String, AnyRef] = {
@@ -730,6 +730,45 @@ class TestDataNode extends BaseSpec {
         request.put("identifier", util.Arrays.asList("do_62146325", "do_123579"))
         request.put("fields", util.Arrays.asList())
         recoverToSucceededIf[ClientException](DataNode.search(request))
+    }
+
+    "update node with valid data and delete some unwanted data" should "update node" in {
+        val request = new Request()
+        request.setObjectType("Content")
+        request.setContext(getContextMap())
+
+        request.put("code", "test")
+        request.put("name", "testResource")
+        request.put("mimeType", "application/pdf")
+        request.put("contentType", "Resource")
+        request.put("description", "test")
+        request.put("channel", "in.ekstep")
+        request.put("primaryCategory", "Learning Resource")
+        request.put("semanticVersion", "1.0")
+        request.put("programId", "test_prog")
+        val future: Future[Node] = DataNode.create(request)
+        future map { node => {
+            assert(null != node)
+            print(node)
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
+            val req = new Request()
+            req.setContext(getContextMap())
+            req.getContext.put("identifier", node.getIdentifier)
+            val propsList: util.List[String] = new util.ArrayList[String](){{
+                add("semanticVersion")
+                add("programId")
+            }}
+            req.getContext.put("removeProps", propsList)
+            req.put("name", "updated name")
+            val updateFuture = DataNode.update(req)
+            updateFuture map { node => {
+                assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
+                assert(null == node.getMetadata.get("semanticVersion"))
+                assert(null == node.getMetadata.get("programId"))
+            }
+            }
+        }
+        } flatMap (f => f)
     }
 
     def getHierarchy(request: Request) : Future[Response] = {

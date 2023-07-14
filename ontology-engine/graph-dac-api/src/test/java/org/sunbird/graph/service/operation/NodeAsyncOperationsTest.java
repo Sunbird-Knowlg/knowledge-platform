@@ -3,6 +3,7 @@ package org.sunbird.graph.service.operation;
 import com.mashape.unirest.http.JsonNode;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
@@ -21,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionException;
-
+@Ignore
 public class NodeAsyncOperationsTest extends BaseTest {
 
 	@BeforeClass

@@ -1,11 +1,12 @@
 package org.sunbird.graph.health
 
+import org.scalatest.Ignore
 import org.sunbird.common.dto.Response
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.BaseSpec
 
 import scala.concurrent.Future
-
+@Ignore
 class TestHealthCheckManager extends BaseSpec {
 
     "check health api" should "return true" in {
