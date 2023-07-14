@@ -9,6 +9,7 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.auth.verifier.AccessTokenValidator
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
@@ -58,6 +59,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case "publishContent" => publishContent(request)
+			case "protectedContentRead" => protectedContentRead(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -336,6 +338,41 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 			})
 		}).flatMap(f => f)
+	}
+
+	def protectedContentRead(request: Request): Future[Response] = {
+		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
+		val accessToken = request.getRequest.getOrDefault("consumerId","").asInstanceOf[String]
+
+		if(StringUtils.isEmpty(accessToken)) {
+			throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ")
+		}
+
+		val userPayload: Map[String, AnyRef] = AccessTokenValidator.verifyUserToken(accessToken, request.getContext).asScala.toMap[String, AnyRef]
+
+		println("ContentActor::protectedContentRead::userPayload:: " + userPayload)
+
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		request.getRequest.put("fields", fields)
+		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
+		DataNode.read(request).map(node => {
+			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
+			val response: Response = ResponseHandler.OK
+			if(metadata.containsKey("accessRules")) {
+				val accessRules: Map[String, AnyRef] = metadata.get("accessRules").asInstanceOf[Map[String, AnyRef]]
+
+				accessRules.map(rec => {
+
+
+				})
+
+
+				response
+			} else response
+
+
+		})
 	}
 
 }

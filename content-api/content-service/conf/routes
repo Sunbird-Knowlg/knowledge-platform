@@ -83,6 +83,9 @@ POST     /collection/v4/reject/:identifier          controllers.v4.CollectionCon
 POST     /collection/v4/publish/:identifier         controllers.v4.CollectionController.publish(identifier:String)
 POST     /collection/v4/unlisted/publish/:identifier  controllers.v4.CollectionController.publishUnlisted(identifier:String)
 
+# Protected Content APIs
+GET       /content/v4/protected/read/:identifier             controllers.v4.ContentController.protectedContentRead(identifier:String, mode:Option[String], fields:Option[String])
+
 # Content v4 APIs
 POST      /content/v4/create                       controllers.v4.ContentController.create
 PATCH     /content/v4/update/:identifier           controllers.v4.ContentController.update(identifier:String)

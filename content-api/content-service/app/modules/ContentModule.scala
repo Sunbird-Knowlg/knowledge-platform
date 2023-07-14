@@ -1,6 +1,7 @@
 package modules
 
 import com.google.inject.AbstractModule
+import org.sunbird.auth.verifier.KeyManager
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
 import org.sunbird.content.actors.{AppActor, AssetActor, CategoryActor, CollectionActor, ContentActor, EventActor, EventSetActor, HealthActor, LicenseActor, ObjectActor}
@@ -24,6 +25,7 @@ class ContentModule extends AbstractModule with AkkaGuiceSupport {
         bindActor(classOf[AppActor], ActorNames.APP_ACTOR)
         bindActor(classOf[ObjectActor], ActorNames.OBJECT_ACTOR)
         bindActor(classOf[CollectionCSVActor], ActorNames.COLLECTION_CSV_ACTOR)
+        KeyManager.init()
         println("Initialized application actors...")
         // $COVERAGE-ON
     }

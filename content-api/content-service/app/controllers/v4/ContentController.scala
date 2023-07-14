@@ -252,4 +252,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.PUBLISH_CONTENT_UNLSTED, contentActor, contentRequest, version = apiVersion)
     }
 
+    def protectedContentRead(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
+        val readRequest = getRequest(content, headers, "protectedContentRead")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        getResult(ApiId.READ_PROTECTED_CONTENT, contentActor, readRequest, version = apiVersion)
+    }
 }

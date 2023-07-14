@@ -165,6 +165,9 @@
     "variants": {
       "type": "object"
     },
+    "accessRules": {
+      "type": "object"
+    },
     "config": {
       "type": "object"
     },
