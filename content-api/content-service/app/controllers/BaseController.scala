@@ -121,7 +121,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             request.setObjectType(Constants.COLLECTION_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {
                 {
-                    if(accessRules != null) put("graph_id", "private") else put("graph_id", "domain")
+                    put("graph_id", "domain")
                     put("version", Constants.COLLECTION_VERSION)
                     put("objectType", Constants.COLLECTION_OBJECT_TYPE)
                     put("schemaName", Constants.COLLECTION_SCHEMA_NAME)
@@ -132,7 +132,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             request.setObjectType(Constants.ASSET_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {
                 {
-                    if(accessRules != null) put("graph_id", "private") else put("graph_id", "domain")
+                    put("graph_id", "domain")
                     put("version", Constants.ASSET_VERSION)
                     put("objectType", Constants.ASSET_OBJECT_TYPE)
                     put("schemaName", Constants.ASSET_SCHEMA_NAME)
@@ -142,7 +142,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             request.setObjectType(objectType)
             new java.util.HashMap[String, AnyRef]() {
                 {
-                    if(accessRules != null) put("graph_id", "private") else put("graph_id", "domain")
+                    put("graph_id", "domain")
                     put("version", version)
                     put("objectType", objectType)
                     put("schemaName", schemaName)
