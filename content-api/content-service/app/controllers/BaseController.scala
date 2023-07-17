@@ -114,13 +114,14 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
 
     def setRequestContext(request: org.sunbird.common.dto.Request, version: String, objectType: String, schemaName: String): Unit = {
         val mimeType = request.getRequest.getOrDefault("mimeType", "").asInstanceOf[String]
+        val accessRules = request.getRequest.getOrDefault("accessRules", null)
         val contentType = request.getRequest.getOrDefault("contentType", "").asInstanceOf[String]
         val primaryCategory = request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String]
         val contextMap: java.util.Map[String, AnyRef] = if (StringUtils.isNotBlank(mimeType) && StringUtils.equalsIgnoreCase(mimeType, Constants.COLLECTION_MIME_TYPE)) {
             request.setObjectType(Constants.COLLECTION_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {
                 {
-                    put("graph_id", "domain")
+                    if(accessRules != null) put("graph_id", "private") else put("graph_id", "domain")
                     put("version", Constants.COLLECTION_VERSION)
                     put("objectType", Constants.COLLECTION_OBJECT_TYPE)
                     put("schemaName", Constants.COLLECTION_SCHEMA_NAME)
@@ -131,7 +132,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             request.setObjectType(Constants.ASSET_OBJECT_TYPE)
             new java.util.HashMap[String, AnyRef]() {
                 {
-                    put("graph_id", "domain")
+                    if(accessRules != null) put("graph_id", "private") else put("graph_id", "domain")
                     put("version", Constants.ASSET_VERSION)
                     put("objectType", Constants.ASSET_OBJECT_TYPE)
                     put("schemaName", Constants.ASSET_SCHEMA_NAME)
@@ -141,7 +142,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             request.setObjectType(objectType)
             new java.util.HashMap[String, AnyRef]() {
                 {
-                    put("graph_id", "domain")
+                    if(accessRules != null) put("graph_id", "private") else put("graph_id", "domain")
                     put("version", version)
                     put("objectType", objectType)
                     put("schemaName", schemaName)
