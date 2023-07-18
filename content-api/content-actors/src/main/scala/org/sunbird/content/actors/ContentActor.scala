@@ -9,7 +9,7 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.auth.verifier.AccessTokenValidator
+import org.sunbird.auth.verifier.{AccessTokenValidator, AssetAccessTokenGenerator}
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
@@ -37,6 +37,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	implicit val ec: ExecutionContext = getContext().dispatcher
 	private lazy val importConfig = getImportConfig()
 	private lazy val importMgr = new ImportManager(importConfig)
+	private val accessAttributes = Platform.getStringList("protected_attributes", java.util.Arrays.asList("downloadUrl", "appIcon", "artifactUrl", "content_url")).asScala.toList
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
@@ -354,10 +355,15 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				val accessRules: List[AnyRef] = metadata.get("accessRules").asInstanceOf[java.util.ArrayList[java.util.HashMap[String, AnyRef]]].asScala.toList.asInstanceOf[List[AnyRef]]
 				val isAccessAllowed = checkAccess(accessRules, request)
 				println("ContentActor::protectedContentRead:: isAccessAllowed:: " + isAccessAllowed)
+				if(isAccessAllowed) {
+					val strJWS = AssetAccessTokenGenerator.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
+					accessAttributes.map(acsAtrbt => {
+						if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
+					})
+				}
 			}
 
 			if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
-
 			response
 		})
 	}
