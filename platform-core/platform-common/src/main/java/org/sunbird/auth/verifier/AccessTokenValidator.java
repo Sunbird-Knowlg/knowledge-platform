@@ -1,11 +1,21 @@
 package org.sunbird.auth.verifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import org.sunbird.common.LoggerUtil;
+import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ClientException;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.ZonedDateTime;
+import java.util.Base64;
 import java.util.Map;
 
 public class AccessTokenValidator {
@@ -15,23 +25,26 @@ public class AccessTokenValidator {
 
   private static Map<String, Object> validateToken(String token, Map<String, Object> requestContext)
           throws IOException {
-    String[] tokenElements = token.split("\\.");
-    String header = tokenElements[0];
-    String body = tokenElements[1];
-    String signature = tokenElements[2];
-    String payLoad = header + "." + body;
+    boolean isValid = false;
 
-    boolean isValid =
-        CryptoUtil.verifyRSASign(
-            payLoad,
-            decodeFromBase64(signature),
-            KeyManager.getPublicKey("publickey").getPublicKey(),
-                "SHA256withRSA",
-            requestContext);
+    Jws<Claims> jwspayload = null;
+    try{
+      RSAPublicKey publicKey = readPublicKey();
+      jwspayload = Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token);
+      if(jwspayload!=null) isValid = true;
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      logger.error(
+              "Exception in verifyUserAccessToken: Token via JJWT: "
+                      + token
+                      + ", request context data : "
+                      + requestContext,
+              ex);
+    }
+
     if (isValid) {
-      Map<String, Object> tokenBody =
-          mapper.readValue(new String(decodeFromBase64(body)), Map.class);
-      boolean isExp = isExpired((Long) tokenBody.get("exp"));
+      Map<String, Object> tokenBody =  mapper.readValue(new String(decodeFromBase64(token.split("\\.")[1])), Map.class);
+      boolean isExp = isExpired(jwspayload.getBody().getExpiration().getTime());
       if (isExp) {
         logger.info("Token is expired " + token + ", request context data :" + requestContext);
         throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
@@ -41,7 +54,7 @@ public class AccessTokenValidator {
     throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
   }
 
-  public static Map<String, Object>  verifyUserToken(String token, Map<String, Object> requestContext) {
+  public static Map<String, Object>  verifyUserToken(String token, Map<String, Object> requestContext) throws IOException {
     Map<String, Object> payload = null;
     try {
       payload = validateToken(token, requestContext);
@@ -57,6 +70,7 @@ public class AccessTokenValidator {
               + ", request context data : "
               + requestContext,
           ex);
+      throw ex;
     }
 
     return payload;
@@ -68,5 +82,24 @@ public class AccessTokenValidator {
 
   private static byte[] decodeFromBase64(String data) {
     return Base64Util.decode(data, 11);
+  }
+
+  private static RSAPublicKey readPublicKey() {
+    String basePath = Platform.config.getString("publickey.basepath");
+    try {
+      KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+      String publicKeyContent = new String(Files.readAllBytes(Paths.get(basePath, "publickey")));
+      publicKeyContent = publicKeyContent
+              .replaceAll(System.lineSeparator(), "")
+              .replace("-----BEGIN PUBLIC KEY-----", "")
+              .replace("-----END PUBLIC KEY-----", "");
+
+      X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
+      return (RSAPublicKey) keyFactory.generatePublic(keySpec);
+    } catch (Exception e) {
+      logger.info("Failed reading public key from :: " + basePath + "/publickey");
+      return null;
+    }
   }
 }
