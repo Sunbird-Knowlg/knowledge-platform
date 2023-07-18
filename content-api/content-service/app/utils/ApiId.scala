@@ -9,7 +9,6 @@ object ApiId {
 	val CREATE_CONTENT = "api.content.create"
 	val READ_CONTENT = "api.content.read"
 	val READ_PRIVATE_CONTENT = "api.content.private.read"
-	val READ_PROTECTED_CONTENT = "api.content.protected.read"
 	val UPDATE_CONTENT = "api.content.update"
 	val UPLOAD_CONTENT = "api.content.upload"
 	val RETIRE_CONTENT = "api.content.retire"
