@@ -1,6 +1,5 @@
 package org.sunbird.auth.verifier;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -16,15 +15,14 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 public class AccessTokenValidator {
   private static final LoggerUtil logger = new LoggerUtil(AccessTokenValidator.class);
-  private static final ObjectMapper mapper = new ObjectMapper();
-  private static Integer offset  = ZonedDateTime.now().getOffset().getTotalSeconds();
+  private static final Integer offset  = ZonedDateTime.now().getOffset().getTotalSeconds();
 
-  private static Map<String, Object> validateToken(String token, Map<String, Object> requestContext)
-          throws IOException {
+  private static Map<String, Object> validateToken(String token, Map<String, Object> requestContext) {
     boolean isValid = false;
 
     Jws<Claims> jwspayload = null;
@@ -43,12 +41,12 @@ public class AccessTokenValidator {
     }
 
     if (isValid) {
-      Map<String, Object> tokenBody =  mapper.readValue(new String(decodeFromBase64(token.split("\\.")[1])), Map.class);
       boolean isExp = isExpired(jwspayload.getBody().getExpiration().getTime());
       if (isExp) {
         logger.info("Token is expired " + token + ", request context data :" + requestContext);
         throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
       }
+      Map<String, Object> tokenBody =  new HashMap<>(jwspayload.getBody());
       return tokenBody;
     }
     throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
@@ -78,10 +76,6 @@ public class AccessTokenValidator {
 
   private static boolean isExpired(Long expiration) {
     return ((System.currentTimeMillis() / 1000L) + offset > expiration);
-  }
-
-  private static byte[] decodeFromBase64(String data) {
-    return Base64Util.decode(data, 11);
   }
 
   private static RSAPublicKey readPublicKey() {
