@@ -1,33 +1,32 @@
 package org.sunbird.content.actors
 
-import java.util
-import java.util.concurrent.CompletionException
-import java.io.File
 import org.apache.commons.io.FilenameUtils
-
-import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.auth.verifier.{AccessTokenValidator, AssetAccessTokenGenerator}
+import org.sunbird.auth.verifier.AssetAccessTokenGenerator
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
-import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
+import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
+import org.sunbird.util.{AccessVerifierUtil, RequestUtil}
 
+import java.io.File
+import java.util
+import java.util.concurrent.CompletionException
+import javax.inject.Inject
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,7 +59,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case "publishContent" => publishContent(request)
-			case "protectedContentRead" => protectedContentRead(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -82,13 +80,20 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
-      if (responseSchemaName.isEmpty) {
-        response.put("content", metadata)
-      }
-      else {
-        response.put(responseSchemaName, metadata)
-      }
+
 			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
+				if(metadata.containsKey("accessRules")) {
+					val accessRules: List[AnyRef] = metadata.get("accessRules").asInstanceOf[java.util.ArrayList[java.util.HashMap[String, AnyRef]]].asScala.toList.asInstanceOf[List[AnyRef]]
+					val isAccessAllowed = AccessVerifierUtil.checkAccess(accessRules, request)
+					if(isAccessAllowed) {
+						val strJWS = AssetAccessTokenGenerator.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
+						accessAttributes.map(acsAtrbt => {
+							if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
+						})
+					}
+				}
+
+				if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
 				response
 			}
 			else {
@@ -339,50 +344,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 			})
 		}).flatMap(f => f)
-	}
-
-	def protectedContentRead(request: Request): Future[Response] = {
-		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
-
-		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
-		request.getRequest.put("fields", fields)
-		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
-		DataNode.read(request).map(node => {
-			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
-			val response: Response = ResponseHandler.OK
-			if(metadata.containsKey("accessRules")) {
-				val accessRules: List[AnyRef] = metadata.get("accessRules").asInstanceOf[java.util.ArrayList[java.util.HashMap[String, AnyRef]]].asScala.toList.asInstanceOf[List[AnyRef]]
-				val isAccessAllowed = checkAccess(accessRules, request)
-				println("ContentActor::protectedContentRead:: isAccessAllowed:: " + isAccessAllowed)
-				if(isAccessAllowed) {
-					val strJWS = AssetAccessTokenGenerator.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
-					accessAttributes.map(acsAtrbt => {
-						if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
-					})
-				}
-			}
-
-			if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
-			response
-		})
-	}
-
-	private def checkAccess(accessRules: List[AnyRef], request: Request): Boolean = {
-		val accessToken = request.getRequest.getOrDefault("consumerId","").asInstanceOf[String]
-		if(StringUtils.isEmpty(accessToken)) throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ")
-
-		val userPayload: Map[String, AnyRef] = AccessTokenValidator.verifyUserToken(accessToken, request.getContext).asScala.toMap[String, AnyRef]
-
-		val passedRules = accessRules.filter(accessCondition => {
-			val convertedAccessCondition = accessCondition.asInstanceOf[java.util.HashMap[String, AnyRef]].asScala.toMap[String, AnyRef]
-			val passedConditions =	convertedAccessCondition.filter(record => {
-				userPayload.contains(record._1) && record._2.asInstanceOf[util.ArrayList[String]].asScala.toList.contains(userPayload.getOrElse(record._1,"").asInstanceOf[String])
-			})
-			if(passedConditions.size == convertedAccessCondition.size) true else false
-		})
-
-		if(passedRules.nonEmpty) true else false
 	}
 
 }
