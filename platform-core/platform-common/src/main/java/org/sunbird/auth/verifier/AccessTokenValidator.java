@@ -1,7 +1,6 @@
 package org.sunbird.auth.verifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.sunbird.common.JsonKey;
 import org.sunbird.common.LoggerUtil;
 import org.sunbird.common.exception.ClientException;
 
@@ -20,14 +19,14 @@ public class AccessTokenValidator {
     String header = tokenElements[0];
     String body = tokenElements[1];
     String signature = tokenElements[2];
-    String payLoad = header + JsonKey.DOT_SEPARATOR + body;
+    String payLoad = header + "." + body;
 
     boolean isValid =
         CryptoUtil.verifyRSASign(
             payLoad,
             decodeFromBase64(signature),
             KeyManager.getPublicKey("publickey").getPublicKey(),
-            JsonKey.SHA_256_WITH_RSA,
+                "SHA256withRSA",
             requestContext);
     if (isValid) {
       Map<String, Object> tokenBody =
