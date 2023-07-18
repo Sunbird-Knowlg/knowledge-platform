@@ -57,7 +57,7 @@ public class AccessTokenValidator {
     try {
       payload = validateToken(token, requestContext);
       logger.info(
-          "learner access token validateToken() :"
+          "content access token validateToken() :"
               + payload.toString()
               + ", request context data : "
               + requestContext);

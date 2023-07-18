@@ -90,7 +90,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 						accessAttributes.map(acsAtrbt => {
 							if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
 						})
-					}
+					} else throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "You are not permitted to view this content!")
 				}
 
 				if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
