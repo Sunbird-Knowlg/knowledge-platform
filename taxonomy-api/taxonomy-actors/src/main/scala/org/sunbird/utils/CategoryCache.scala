@@ -21,7 +21,7 @@ object CategoryCache{
     if (null != framework && !framework.isEmpty) {
       val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].toList
       categories.map(category => {
-        val catName = category.get("name").asInstanceOf[String]
+        val catName = category.get("code").asInstanceOf[String]
         val terms = getTerms(category, "terms")
         if (terms.nonEmpty) {
           val key = getKey(id, catName)
@@ -33,20 +33,6 @@ object CategoryCache{
   }
 
   private def getKey(framework: String, category: String) = "cat_" + framework + category
-
-  private def setFramework(framework: String, categories: List[Map[String, AnyRef]]): Unit = {
-    if (null != categories && categories.isEmpty) {
-      categories.map(category =>{
-        val catName = category.get("code").asInstanceOf[String]
-        val terms = getTerms(category, "terms")
-        if (terms.nonEmpty) {
-          val key = getKey(framework, catName)
-          TelemetryManager.info("Setting framework category cache with key: " + key)
-          RedisCache.saveList(key, terms)
-        }
-      })
-    }
-  }
 
   private def getTerms(category: util.Map[String, AnyRef], key: String): List[String] = {
     val returnTerms = new util.ArrayList[String]
