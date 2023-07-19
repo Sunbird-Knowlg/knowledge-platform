@@ -21,7 +21,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
-import org.sunbird.util.{AccessVerifierUtil, RequestUtil}
+import org.sunbird.util.RequestUtil
 
 import java.io.File
 import java.util
@@ -81,12 +81,12 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 
-				if(metadata.containsKey("accessRules")) {
-					val accessRules: List[AnyRef] = metadata.get("accessRules").asInstanceOf[java.util.ArrayList[java.util.HashMap[String, AnyRef]]].asScala.toList.asInstanceOf[List[AnyRef]]
-					val userPayload = request.getRequest.getOrDefault("consumerId", Map.empty[String, AnyRef]).asInstanceOf[Map[String, AnyRef]]
-					val isAccessAllowed = AccessVerifierUtil.checkAccess(accessRules, userPayload)
-					if(!isAccessAllowed) throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "You are not permitted to view this content!")
-				}
+				/*
+					1. Check if content metadata has "accessRules"
+					2. Fetch userPayload from request (consumerId)
+					3. Compare user payload data against "accessRules" in content metadata to verify if user is allowed access to view content details
+					4. if user is not allowed access to content, throw ClientException
+				 */
 
 				val strJWS = AccessTokenUtil.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
 				accessAttributes.map(acsAtrbt => {
@@ -339,6 +339,18 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 			})
 		}).flatMap(f => f)
+	}
+
+	private def checkAccess(accessRules: List[AnyRef], userPayload: Map[String, AnyRef]): Boolean = {
+		val passedRules = accessRules.filter(accessCondition => {
+			val convertedAccessCondition = accessCondition.asInstanceOf[java.util.HashMap[String, AnyRef]].asScala.toMap[String, AnyRef]
+			val passedConditions =	convertedAccessCondition.filter(record => {
+				userPayload.contains(record._1) && record._2.asInstanceOf[util.ArrayList[String]].asScala.toList.contains(userPayload.getOrElse(record._1,"").asInstanceOf[String])
+			})
+			if(passedConditions.size == convertedAccessCondition.size) true else false
+		})
+
+		if(passedRules.nonEmpty) true else false
 	}
 
 }
