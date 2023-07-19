@@ -12,7 +12,6 @@
     "external": { },
     "version": "enable",
     "versionCheckMode": "ON",
-    "frameworkCategories": ["category1","category2","category3","category4", "genre", "language", "certification", "format"],
     "edge": {
         "properties": {
             "license": "License"
