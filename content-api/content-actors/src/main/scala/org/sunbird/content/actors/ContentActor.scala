@@ -4,7 +4,7 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.auth.verifier.AssetAccessTokenGenerator
+import org.sunbird.auth.verifier.AccessTokenUtil
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -81,24 +81,19 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 
-			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
 				if(metadata.containsKey("accessRules")) {
 					val accessRules: List[AnyRef] = metadata.get("accessRules").asInstanceOf[java.util.ArrayList[java.util.HashMap[String, AnyRef]]].asScala.toList.asInstanceOf[List[AnyRef]]
-					val isAccessAllowed = AccessVerifierUtil.checkAccess(accessRules, request)
-					if(isAccessAllowed) {
-						val strJWS = AssetAccessTokenGenerator.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
-						accessAttributes.map(acsAtrbt => {
-							if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
-						})
-					} else throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "You are not permitted to view this content!")
+					val userPayload = request.getRequest.getOrDefault("consumerId", Map.empty[String, AnyRef]).asInstanceOf[Map[String, AnyRef]]
+					val isAccessAllowed = AccessVerifierUtil.checkAccess(accessRules, userPayload)
+					if(!isAccessAllowed) throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "You are not permitted to view this content!")
 				}
 
+				val strJWS = AccessTokenUtil.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
+				accessAttributes.map(acsAtrbt => {
+					if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
+				})
+
 				if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
-				response
-			}
-			else {
-				throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
-			}
 		})
 	}
 

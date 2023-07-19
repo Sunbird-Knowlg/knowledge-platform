@@ -3,11 +3,13 @@ package org.sunbird.auth.verifier;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.apache.commons.lang3.StringUtils;
 import org.sunbird.common.LoggerUtil;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ClientException;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -15,14 +17,15 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AccessTokenValidator {
-  private static final LoggerUtil logger = new LoggerUtil(AccessTokenValidator.class);
+public class AccessTokenUtil {
+  private static final LoggerUtil logger = new LoggerUtil(AccessTokenUtil.class);
   private static final Integer offset  = ZonedDateTime.now().getOffset().getTotalSeconds();
 
-  private static Map<String, Object> validateToken(String token, Map<String, Object> requestContext) {
+  private static Map<String, Object> validateToken(String token) {
     boolean isValid = false;
 
     Jws<Claims> jwspayload = null;
@@ -32,18 +35,14 @@ public class AccessTokenValidator {
       if(jwspayload!=null) isValid = true;
     } catch (Exception ex) {
       ex.printStackTrace();
-      logger.error(
-              "Exception in verifyUserAccessToken: Token via JJWT: "
-                      + token
-                      + ", request context data : "
-                      + requestContext,
-              ex);
+      logger.error("Exception in verifyUserAccessToken: Token via JJWT: " + token, ex);
     }
 
     if (isValid) {
-      boolean isExp = isExpired(jwspayload.getBody().getExpiration().getTime());
+      boolean isExp = true;
+      if(jwspayload.getBody().getExpiration() != null) isExp = isExpired(jwspayload.getBody().getExpiration().getTime());
       if (isExp) {
-        logger.info("Token is expired " + token + ", request context data :" + requestContext);
+        logger.info("Token is expired " + token);
         throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
       }
       Map<String, Object> tokenBody =  new HashMap<>(jwspayload.getBody());
@@ -52,22 +51,13 @@ public class AccessTokenValidator {
     throw new ClientException("ERR_CONTENT_ACCESS_RESTRICTED", "Please provide valid user token ");
   }
 
-  public static Map<String, Object>  verifyUserToken(String token, Map<String, Object> requestContext) throws IOException {
+  public static Map<String, Object>  verifyUserToken(String token) {
     Map<String, Object> payload = null;
     try {
-      payload = validateToken(token, requestContext);
-      logger.info(
-          "content access token validateToken() :"
-              + payload.toString()
-              + ", request context data : "
-              + requestContext);
+      payload = validateToken(token);
+      logger.info("content access token validateToken() :" + payload);
     } catch (Exception ex) {
-      logger.error(
-          "Exception in verifyUserAccessToken: Token : "
-              + token
-              + ", request context data : "
-              + requestContext,
-          ex);
+      logger.error("Exception in verifyUserAccessToken: Token : " + token, ex);
       throw ex;
     }
 
@@ -95,5 +85,16 @@ public class AccessTokenValidator {
       logger.info("Failed reading public key from :: " + basePath + "/publickey");
       return null;
     }
+  }
+
+  public static String generateAssetAccessToken(String contentId) {
+    logger.info("Private container access token generation request for contentId " + contentId);
+    String accessSecret = Platform.config.getString("protected_content_key");
+
+    if(accessSecret == null || StringUtils.isEmpty(accessSecret)) throw new ClientException("BLOB_ACCESS_KEY_MISSING", "Please configure cloud access key for private container");
+
+    String jws = Jwts.builder().claim("contentid",contentId).setHeaderParam("typ","JWT").setIssuedAt(new Date()).signWith(SignatureAlgorithm.HS256,accessSecret.getBytes(StandardCharsets.UTF_8)).compact();
+
+    return jws;
   }
 }
