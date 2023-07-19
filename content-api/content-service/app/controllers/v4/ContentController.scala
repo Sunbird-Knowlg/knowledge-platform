@@ -3,14 +3,15 @@ package controllers.v4
 import akka.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
-import javax.inject.{Inject, Named}
+import org.apache.commons.lang3.StringUtils
+import org.sunbird.auth.verifier.AccessTokenUtil
 import org.sunbird.models.UploadParams
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
+import javax.inject.{Inject, Named}
 import scala.collection.JavaConverters._
-
-import scala.concurrent.{ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
@@ -49,12 +50,22 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
       */
     def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
-        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-        content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
-        val readRequest = getRequest(content, headers, "readContent")
-        setRequestContext(readRequest, version, objectType, schemaName)
-        getResult(ApiId.READ_CONTENT, contentActor, readRequest, version = apiVersion)
+        val accessToken = headers.getOrDefault("consumerId","").asInstanceOf[String]
+        if(StringUtils.isEmpty(accessToken)) getErrorResponse(ApiId.READ_CONTENT, apiVersion, "ERR_CONTENT_ACCESS_RESTRICTED", "User access token (X-Consumer-Id) mandatory. You are not permitted to view this content!")
+
+        try {
+            val userPayload = AccessTokenUtil.verifyUserToken(accessToken).asScala.toMap[String, AnyRef]
+            headers.put("consumerId", userPayload)
+
+            val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+            content.putAll(headers)
+            content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
+            val readRequest = getRequest(content, headers, "readContent")
+            setRequestContext(readRequest, version, objectType, schemaName)
+            getResult(ApiId.READ_CONTENT, contentActor, readRequest, version = apiVersion)
+        } catch {
+            case e: Exception => getErrorResponse(ApiId.READ_CONTENT, apiVersion, "ERR_CONTENT_ACCESS_RESTRICTED", "Invalid User access token (X-Consumer-Id)! You are not permitted to view this content!")
+        }
     }
 
     def privateRead(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>

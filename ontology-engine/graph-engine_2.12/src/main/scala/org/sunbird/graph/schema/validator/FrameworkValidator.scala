@@ -24,7 +24,7 @@ trait FrameworkValidator extends IDefinition {
 
   @throws[Exception]
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
-    val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
+    val fwCategories: List[String] = Platform.getStringList("frameworkCategories", new util.ArrayList[String]()).asScala.toList
     val graphId: String = if(StringUtils.isNotBlank(node.getGraphId)) node.getGraphId else "domain"
     val orgAndTargetFWData: Future[(List[String], List[String])] = if(StringUtils.equalsIgnoreCase(Platform.getString("master.category.validation.enabled", "Yes"), "Yes")) getOrgAndTargetFWData(graphId, "Category") else Future(List(), List())
 

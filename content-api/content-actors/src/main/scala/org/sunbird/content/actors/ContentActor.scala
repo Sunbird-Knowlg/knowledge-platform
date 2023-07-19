@@ -1,32 +1,32 @@
 package org.sunbird.content.actors
 
-import java.util
-import java.util.concurrent.CompletionException
-import java.io.File
 import org.apache.commons.io.FilenameUtils
-
-import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.auth.verifier.AccessTokenUtil
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
-import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
+import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
+import org.sunbird.util.RequestUtil
 
+import java.io.File
+import java.util
+import java.util.concurrent.CompletionException
+import javax.inject.Inject
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,6 +36,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	implicit val ec: ExecutionContext = getContext().dispatcher
 	private lazy val importConfig = getImportConfig()
 	private lazy val importMgr = new ImportManager(importConfig)
+	private val accessAttributes = Platform.getStringList("protected_attributes", java.util.Arrays.asList("downloadUrl", "appIcon", "artifactUrl", "content_url")).asScala.toList
 
 	override def onReceive(request: Request): Future[Response] = {
 		request.getOperation match {
@@ -79,18 +80,20 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
-      if (responseSchemaName.isEmpty) {
-        response.put("content", metadata)
-      }
-      else {
-        response.put(responseSchemaName, metadata)
-      }
-			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
-				response
-			}
-			else {
-				throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
-			}
+
+				/*
+					1. Check if content metadata has "accessRules"
+					2. Fetch userPayload from request (consumerId)
+					3. Compare user payload data against "accessRules" in content metadata to verify if user is allowed access to view content details
+					4. if user is not allowed access to content, throw ClientException
+				 */
+
+				val strJWS = AccessTokenUtil.generateAssetAccessToken(node.getIdentifier.replace(".img", ""))
+				accessAttributes.map(acsAtrbt => {
+					if(metadata.containsKey(acsAtrbt)) metadata.put(acsAtrbt, metadata.get(acsAtrbt).toString+"?key="+strJWS)
+				})
+
+				if (responseSchemaName.isEmpty) response.put("content", metadata) else response.put(responseSchemaName, metadata)
 		})
 	}
 
