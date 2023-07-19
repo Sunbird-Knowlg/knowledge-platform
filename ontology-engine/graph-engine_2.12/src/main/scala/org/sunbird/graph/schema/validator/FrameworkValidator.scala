@@ -13,7 +13,7 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model._
 import org.sunbird.graph.schema.{FrameworkMasterCategoryMap, IDefinition}
 
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters._
 import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
@@ -155,13 +155,13 @@ trait FrameworkValidator extends IDefinition {
 
   private def getValidatedTerms(node: Node, validationList: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     val ids: List[String] = node.getMetadata.asScala
-      .filter(entry => validationList.contains(entry._1))
-      .flatMap(entry => entry._2 match {
-        case e: String => List(e)
-        case e: util.List[String] => e.asScala
-        case e: Array[String] => e.toList
-        case _ => List()
-      }).toList
+        .filter(entry => validationList.contains(entry._1))
+        .flatMap(entry => entry._2 match {
+          case e: String => List(e)
+          case e: util.List[String] => e.asScala
+          case e: Array[String] => e.toList
+          case _ => List()
+        }).toList
     if (ids.nonEmpty) {
       val mc: MetadataCriterion = MetadataCriterion.create(new util.ArrayList[Filter]() {
         {
