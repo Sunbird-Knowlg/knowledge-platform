@@ -1,0 +1,39 @@
+{
+  "$id": "crop-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Crop",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "status"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "code": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Live",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  }
+}
