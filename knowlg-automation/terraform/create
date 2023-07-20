@@ -1,4 +1,4 @@
-echo "Enter the environment to deploy in: [Options azure/local]"
+echo "Enter the environment to deploy in: [Options azure/local/aws]"
 read x
 echo "Deploying in $x"
 terraform -chdir=$x  init
@@ -13,4 +13,10 @@ echo "$(terraform -chdir=$x output kube_config)" > $PWD/aks.yaml
 sed -i '' '1d; $d' $PWD/aks.yaml
 export KUBECONFIG=$PWD/aks.yaml
 export KUBE_CONFIG_PATH=$PWD/aks.yaml
+terraform -chdir=$x apply --auto-approve
+
+echo "$(terraform -chdir=$x output kube_config)" > $PWD/eks.yaml
+sed -i '' '1d; $d' $PWD/eks.yaml
+export KUBECONFIG=$PWD/eks.yaml
+export KUBE_CONFIG_PATH=$PWD/eks.yaml
 terraform -chdir=$x apply --auto-approve
