@@ -33,7 +33,29 @@ source '/mnt/backups/cassandra_backup/db_schema.cql';
 7. Press `ctrl + z` to get out of cypher shell and stay in cassandra container shell.
 8. Now, run the following commands to load the data into earlier created tables.
 ```shell
-sstableloader -d 127.0.0.1 /mnt/backups/cassandra_backup/data/dev_category_store/category_definition_data-fc4c9690c2bc11eb91450f9648eeaf0a
-sstableloader -d 127.0.0.1 /mnt/backups/cassandra_backup/data/dev_hierarchy_store/content_hierarchy-ea2f4a20c2bc11eb91450f9648eeaf0a
+sstableloader -d 127.0.0.1 /mnt/backups/cassandra_backup/data/dev_category_store/category_definition_data-06a22d204ecc11edb1bb6d2c86545d91
+sstableloader -d 127.0.0.1 /mnt/backups/cassandra_backup/data/dev_hierarchy_store/framework_hierarchy-0637f9a04ecc11edb1bb6d2c86545d91
 sstableloader -d 127.0.0.1 /mnt/backups/cassandra_backup/data/sunbirddev_dialcode_store/system_config-1970bbe0c2c011eb91450f9648eeaf0a
+```
+
+## Loading seed data to redis database
+1. Download [redis dump.rdb file](../master-data/redis-dump.zip) and extract it.
+2. Run a Redis container (if not already running)
+```shell
+docker run --name sunbird_redis -d -p 6379:6379 redis:6.0.8
+```   
+3. Connect to redis-cli
+```shell
+docker exec -it sunbird_redis redis-cli
+```
+4. Stop the Redis server
+```shell
+SHUTDOWN NOSAVE
+```
+5. Load the RDB file
+```shell
+CONFIG SET appendonly no
+CONFIG SET save ""
+CONFIG SET appendonly yes
+BGSAVE
 ```

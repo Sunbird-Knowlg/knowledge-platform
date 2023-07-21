@@ -211,32 +211,8 @@
     "language": {
       "type": "array",
       "items": {
-        "type": "string",
-        "enum": [
-          "English",
-          "Hindi",
-          "Assamese",
-          "Bengali",
-          "Gujarati",
-          "Kannada",
-          "Malayalam",
-          "Marathi",
-          "Nepali",
-          "Odia",
-          "Punjabi",
-          "Tamil",
-          "Telugu",
-          "Urdu",
-          "Sanskrit",
-          "Maithili",
-          "Munda",
-          "Santali",
-          "Juang",
-          "Ho",
-          "Other"
-        ]
-      },
-      "default": ["English"]
+        "type": "string"
+      }
     },
     "languageCode": {
       "type": "array"
@@ -282,7 +258,7 @@
     },
     "framework": {
       "type": "string",
-      "default": "NCF"
+      "default": "OTT"
     },
     "lastStatusChangedOn": {
       "type": "string"
@@ -369,25 +345,19 @@
         "type": "string"
       }
     },
-    "category1": {
+    "genre": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "category2": {
+    "certification": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "category3": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "category4": {
+    "format": {
       "type": "array",
       "items": {
         "type": "string"

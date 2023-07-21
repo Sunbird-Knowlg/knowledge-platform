@@ -12,6 +12,7 @@
     "external": { },
     "version": "enable",
     "versionCheckMode": "ON",
+    "frameworkCategories": ["genre", "language", "certification", "format"],
     "edge": {
         "properties": {
             "license": "License"
@@ -19,7 +20,13 @@
     },
     "cacheEnabled": true,
     "searchProps": {
-        "status": ["Live"]
+        "status": ["Live"],
+        "softConstraints": {
+            "genre": 15,
+            "language": 15,
+            "certification": 1,
+            "format": 7
+        }
     },
     "schema_restrict_api": false
 }
