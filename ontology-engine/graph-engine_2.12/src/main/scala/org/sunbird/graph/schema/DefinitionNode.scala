@@ -36,6 +36,11 @@ object DefinitionNode {
     definition.getExternalProps()
   }
 
+  def getTransitionProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Map[String, AnyRef] = {
+    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
+    definition.getTransitionProps()
+  }
+
   def fetchJsonProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
     definition.fetchJsonProps()

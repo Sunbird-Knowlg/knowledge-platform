@@ -30,7 +30,7 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     content.putAll(headers)
     val createRequest = getRequest(content, headers, "createObject", true)
     setRequestContext(createRequest, version, schema.capitalize, schema)
-    getResult(ApiId.CREATE_CONTENT, objectActor, createRequest, version = apiVersion)
+    getResult(ApiId.CREATE_OBJECT, objectActor, createRequest, version = apiVersion)
   }
 
   def update(schema: String, identifier: String) = Action.async { implicit request =>
@@ -41,18 +41,29 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     val updateRequest = getRequest(content, headers, "updateObject")
     setRequestContext(updateRequest, version, schema.capitalize, schema)
     updateRequest.getContext.put("identifier", identifier);
-    getResult(ApiId.UPDATE_CONTENT, objectActor, updateRequest, version = apiVersion)
+    getResult(ApiId.UPDATE_OBJECT, objectActor, updateRequest, version = apiVersion)
   }
 
   def retire(schema: String, identifier: String) = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
     val content = body.getOrDefault(schema, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    content.put("identifier", identifier)
     content.putAll(headers)
     val retireRequest = getRequest(content, headers, "retireObject")
     setRequestContext(retireRequest, version, schema.capitalize, schema)
-    getResult(ApiId.RETIRE_CONTENT, objectActor, retireRequest, version = apiVersion)
+    retireRequest.getContext.put("identifier", identifier);
+    getResult(ApiId.RETIRE_OBJECT, objectActor, retireRequest, version = apiVersion)
+  }
+
+  def transition(schema: String, transition: String, identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    val content = body.getOrDefault(schema, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    content.putAll(headers)
+    val transitionRequest = getRequest(content, headers, transition)
+    setRequestContext(transitionRequest, version, schema.capitalize, schema)
+    transitionRequest.getContext.put("identifier", identifier);
+    getResult(ApiId.TRANSITION_OBJECT, objectActor, transitionRequest, version = apiVersion)
   }
 
 

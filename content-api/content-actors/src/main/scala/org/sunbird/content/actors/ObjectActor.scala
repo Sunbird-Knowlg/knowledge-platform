@@ -5,15 +5,18 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode, ServerException}
+import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.util.RequestUtil
 
 import java.util
 import javax.inject.Inject
 import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
@@ -26,7 +29,7 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
       case "createObject" => create(request)
       case "updateObject" => update(request)
       case "retireObject" => retire(request)
-      case _ => ERROR(request.getOperation)
+      case _ => handleDefault(request) //ERROR(request.getOperation)
     }
   }
 
@@ -34,6 +37,7 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
   private def read(request: Request): Future[Response] = {
     val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
     request.getRequest.put("fields", fields)
+    println("request "+ request)
     DataNode.read(request).map(node => {
       if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "Object not found with identifier: " + node.getIdentifier)
       val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields,null, request.getContext.get("version").asInstanceOf[String])
@@ -49,7 +53,7 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
           .put("versionKey", node.getMetadata.get("versionKey"))
       })
     } catch {
-      case e: Exception => throw new ClientException("SERVER_ERROR", "The schema does not exist for the provided object.")
+      case e: Exception => throw new ClientException("INVALID_OBJECT", "The schema does not exist for the provided object.")
     }
   }
 
@@ -58,13 +62,14 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
     if (StringUtils.isBlank(request.getRequest.getOrDefault("versionKey", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_REQUEST", "Please Provide Version Key!")
     try {
       RequestUtil.restrictProperties(request)
+      println("request  "+ request)
       DataNode.update(request).map(node => {
         val identifier: String = node.getIdentifier.replace(".img", "")
         ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
           .put("versionKey", node.getMetadata.get("versionKey"))
       })
     } catch {
-      case e: Exception => throw new ClientException("SERVER_ERROR", "The schema does not exist for the provided object.")
+      case e: Exception => throw new ClientException("INVALID_OBJECT", "The schema does not exist for the provided object.")
     }
   }
 
@@ -77,7 +82,42 @@ class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSer
           .put("identifier", node.getIdentifier)
       })
     } catch {
-      case e: Exception => throw new ClientException("SERVER_ERROR", "The schema does not exist for the provided object.")
+      case e: Exception => throw new ClientException("INVALID_OBJECT", "The schema does not exist for the provided object.")
+    }
+  }
+
+  private def handleDefault(request: Request): Future[Response] = {
+    val req = new Request(request)
+    val graph_id = req.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
+    val schemaName = req.getContext.getOrDefault("schemaName", "framework").asInstanceOf[String]
+    val schemaVersion = req.getContext.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
+    try {
+      val transitionProps = DefinitionNode.getTransitionProps(graph_id, schemaVersion, schemaName)
+      val operation = request.getOperation
+      if(transitionProps.contains(operation)){
+        val transitionData = transitionProps.asJava.get(operation).asInstanceOf[util.Map[String, AnyRef]]
+        val fromStatus = transitionData.get("from").asInstanceOf[util.List[String]]
+        val identifier = request.getContext.get("identifier").asInstanceOf[String]
+        val readReq = new Request();
+        readReq.setContext(request.getContext)
+        readReq.put("identifier", identifier)
+        DataNode.read(readReq).map(node => {
+          if (!fromStatus.contains(node.getMetadata.get("status").toString)) {
+            throw new ClientException(ContentConstants.ERR_CONTENT_NOT_DRAFT, "Transition not allowed! "+ schemaName.capitalize +" Object status should be one of :" + fromStatus.toString())
+          }
+          val toStatus = transitionData.get("to").asInstanceOf[String]
+          request.getRequest.put("status", toStatus)
+          DataNode.update(request).map(updateNode => {
+            ResponseHandler.OK.put("transition", s"Transition of the object is successful!")
+          })
+        }).flatMap(f => f)
+      } else {
+        ERROR(request.getOperation)
+      }
+    } catch {
+      case e: Exception => {
+        throw new ClientException("INVALID_OBJECT", "The schema does not exist for the provided object.")
+      }
     }
   }
 

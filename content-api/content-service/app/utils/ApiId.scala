@@ -99,6 +99,10 @@ object ApiId {
 
 	//Object APIs
 	val READ_OBJECT = "api.object.read"
+	val CREATE_OBJECT = "api.object.create"
+	val UPDATE_OBJECT = "api.object.update"
+	val RETIRE_OBJECT = "api.object.retire"
+	val TRANSITION_OBJECT = "api.object.transition"
 
 	//Collection CSV APIs
 	val IMPORT_CSV = "api.collection.import"

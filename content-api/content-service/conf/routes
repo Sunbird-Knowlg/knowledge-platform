@@ -132,6 +132,7 @@ GET     /:schema/v4/read/:identifier             controllers.v4.ObjectController
 POST    /:schema/v4/create                       controllers.v4.ObjectController.create(schema:String)
 PATCH   /:schema/v4/update/:identifier           controllers.v4.ObjectController.update(schema:String, identifier:String)
 DELETE  /:schema/v4/retire/:identifier           controllers.v4.ObjectController.retire(schema:String, identifier:String)
+PATCH   /:schema/v4/:transition/:identifier      controllers.v4.ObjectController.transition(schema: String, transition: String, identifier:String)
 
 # Collection V4 APIs
 POST   /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
