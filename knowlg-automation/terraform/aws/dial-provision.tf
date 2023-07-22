@@ -1,4 +1,4 @@
-resource "helm_release" "dial" {
+/*resource "helm_release" "dial" {
   name              = "dial"
   chart             = var.DIAL_CHART
   namespace         = var.DIAL_NAMESPACE
@@ -7,4 +7,4 @@ resource "helm_release" "dial" {
   depends_on        = [helm_release.learning]
   wait_for_jobs     = true
 
-}
+}*/

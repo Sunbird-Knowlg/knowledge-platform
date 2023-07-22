@@ -1,4 +1,4 @@
-resource "helm_release" "learning" {
+/*resource "helm_release" "learning" {
   name              = "learning"
   chart             = var.LEARNING_CHART
   namespace         = var.LEARNING_NAMESPACE
@@ -8,3 +8,4 @@ resource "helm_release" "learning" {
   wait_for_jobs     = true
 
 }
+*/

@@ -1,4 +1,4 @@
-resource "helm_release" "content" {
+/*resource "helm_release" "content" {
   name              = "content"
   chart             = var.CONTENT_CHART
   namespace         = var.CONTENT_NAMESPACE
@@ -7,5 +7,5 @@ resource "helm_release" "content" {
   depends_on        = [helm_release.redis]
   wait_for_jobs     = true
 
-}
+}*/
  

@@ -14,6 +14,14 @@ variable "additional_tags" {
     description = "Additional tags for the resources. These tags will be applied to all the resources."
     default     = {}
 }
+variable "region" {
+  description = "AWS region for resources"
+  default     = "us-west-2"  # Replace with your desired AWS region
+}
+variable "cluster_name" {
+  description = "Name of the EKS cluster"
+  default     = "my-eks-cluster"  # Replace with your desired cluster name
+}
 #ELASTICSEARCH
 variable "ELASTICSEARCH_CHART" {
   description = "Elasticsearch Instance Running Namespace"
