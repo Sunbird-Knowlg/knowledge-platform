@@ -1,4 +1,4 @@
-/*resource "helm_release" "search" {
+resource "helm_release" "search" {
   name              = "search"
   chart             = var.SEARCH_CHART
   namespace         = var.SEARCH_NAMESPACE
@@ -7,4 +7,4 @@
   depends_on        = [helm_release.content]
   wait_for_jobs     = true
 
-}*/
+}

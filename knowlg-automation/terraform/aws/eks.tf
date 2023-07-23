@@ -1,6 +1,5 @@
 resource "aws_eks_cluster" "eks_cluster" {
   name  = var.cluster_name
-  //dns_prefix  = "${local.environment_name}"
   role_arn = aws_iam_role.eks.arn
 
 

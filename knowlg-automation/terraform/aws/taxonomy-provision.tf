@@ -1,4 +1,4 @@
-/*resource "helm_release" "taxonomy" {
+resource "helm_release" "taxonomy" {
   name              = "taxonomy"
   chart             = var.TAXONOMY_CHART
   namespace         = var.TAXONOMY_NAMESPACE
@@ -7,5 +7,5 @@
   depends_on        = [helm_release.search]
   wait_for_jobs     = true
 
-}*/
+}
  
