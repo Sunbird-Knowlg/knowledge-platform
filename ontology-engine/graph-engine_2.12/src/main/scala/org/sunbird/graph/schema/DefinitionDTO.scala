@@ -44,7 +44,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getTransitionProps(): Map[String, AnyRef] = {
         if (schemaValidator.getConfig.hasPath("transitions")) {
             val transitions = schemaValidator.getConfig.getAnyRefList("transitions").asInstanceOf[util.List[Object]]
-            val transitionsMap = transitions.asScala.groupBy(x => x.asInstanceOf[java.util.Map[String, AnyRef]].get("api").asInstanceOf[String]).mapValues(t => t.toList.head)
+            val transitionsMap = transitions.asScala.groupBy(x => x.asInstanceOf[java.util.Map[String, AnyRef]].get("action").asInstanceOf[String]).mapValues(t => t.toList.head)
             transitionsMap
         }
         else

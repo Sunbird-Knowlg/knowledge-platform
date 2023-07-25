@@ -20,7 +20,7 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     app.putAll(Map("identifier" -> identifier, "mode" -> "read", "fields" -> fields.getOrElse("")).asJava)
     val readRequest = getRequest(app, headers, "readObject")
     setRequestContext(readRequest, version, schema.capitalize, schema)
-    getResult(ApiId.READ_OBJECT, objectActor, readRequest, version = apiVersion)
+    getResult(s"api.$schema.read", objectActor, readRequest, version = apiVersion)
   }
 
   def create(schema: String) = Action.async { implicit request =>
@@ -30,7 +30,7 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     content.putAll(headers)
     val createRequest = getRequest(content, headers, "createObject", true)
     setRequestContext(createRequest, version, schema.capitalize, schema)
-    getResult(ApiId.CREATE_OBJECT, objectActor, createRequest, version = apiVersion)
+    getResult(s"api.$schema.create", objectActor, createRequest, version = apiVersion)
   }
 
   def update(schema: String, identifier: String) = Action.async { implicit request =>
@@ -41,7 +41,7 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     val updateRequest = getRequest(content, headers, "updateObject")
     setRequestContext(updateRequest, version, schema.capitalize, schema)
     updateRequest.getContext.put("identifier", identifier);
-    getResult(ApiId.UPDATE_OBJECT, objectActor, updateRequest, version = apiVersion)
+    getResult(s"api.$schema.update", objectActor, updateRequest, version = apiVersion)
   }
 
   def retire(schema: String, identifier: String) = Action.async { implicit request =>
@@ -52,7 +52,7 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     val retireRequest = getRequest(content, headers, "retireObject")
     setRequestContext(retireRequest, version, schema.capitalize, schema)
     retireRequest.getContext.put("identifier", identifier);
-    getResult(ApiId.RETIRE_OBJECT, objectActor, retireRequest, version = apiVersion)
+    getResult(s"api.$schema.retire", objectActor, retireRequest, version = apiVersion)
   }
 
   def transition(schema: String, transition: String, identifier: String) = Action.async { implicit request =>
@@ -63,7 +63,7 @@ class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: A
     val transitionRequest = getRequest(content, headers, transition)
     setRequestContext(transitionRequest, version, schema.capitalize, schema)
     transitionRequest.getContext.put("identifier", identifier);
-    getResult(ApiId.TRANSITION_OBJECT, objectActor, transitionRequest, version = apiVersion)
+    getResult(s"api.$schema.transition", objectActor, transitionRequest, version = apiVersion)
   }
 
 
