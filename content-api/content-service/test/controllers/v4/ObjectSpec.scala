@@ -13,7 +13,7 @@ class ObjectSpec extends BaseSpec {
   "Object controller" should {
     "return success response for read API" in {
       val controller = app.injector.instanceOf[controllers.v4.ObjectController]
-      val result = controller.read("crop","do_1234", None)(FakeRequest())
+      val result = controller.read("content","do_1234", None)(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
