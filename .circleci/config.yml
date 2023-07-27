@@ -1,8 +1,8 @@
 version: 2.1
-executorType: machine
+executorType: machine_executor_amd64
 jobs:
   build:
-    docker:
+    machine:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
     steps:
       - checkout
@@ -18,7 +18,6 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    executor: machine_executor_amd64
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
@@ -27,9 +26,6 @@ jobs:
       - checkout
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
-      - setup_remote_docker:
-          version: 20.10.14
-          docker_layer_caching: true
       - run:
           name: Setup environment and run tests
           command: bash vmsetup.sh
