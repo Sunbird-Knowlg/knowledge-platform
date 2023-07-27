@@ -18,6 +18,7 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
+    executor: machine_executor_amd64
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
