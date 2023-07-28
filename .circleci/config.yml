@@ -4,6 +4,7 @@ executors:
   machine-executor-amd64:
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+      - image: circleci/redis:latest
     environment:
       TZ: "UTC"
       MAVEN_OPTS: "-Xmx2048m -XX:MaxPermSize=512m"
