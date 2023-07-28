@@ -1,7 +1,7 @@
 version: 2.1
 
 executors:
-  virtual_machine_executor:
+  virtual_machine_with_docker:
     machine:
       image: ubuntu-2204:2022.04.2
     environment:
@@ -9,9 +9,10 @@ executors:
       platform: "linux/amd64"
     docker:
       - image: docker:20.10.10
+
 jobs:
   build:
-    executor: virtual_machine_executor
+    executor: virtual_machine_with_docker
     steps:
       - checkout
       - restore_cache:
@@ -26,7 +27,7 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    executor: virtual_machine_executor
+    executor: virtual_machine_with_docker
     steps:
       - checkout
       - restore_cache:
