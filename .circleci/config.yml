@@ -1,6 +1,5 @@
 version: 2.1
-executorType: machine_executor_amd64
-
+executorType: machine
 jobs:
   build:
     docker:
@@ -19,15 +18,15 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    machine:
-      image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
-      environment:
-        REDIS_PORT: 6379
+    docker:
+      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+      - image: circleci/redis:latest
     parallelism: 1
     steps:
       - checkout
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+
       - run:
           name: Setup environment and run tests
           command: bash vmsetup.sh
