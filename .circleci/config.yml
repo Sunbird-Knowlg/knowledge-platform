@@ -1,7 +1,15 @@
 version: 2.1
-executorType: machine_executor_amd64
+executors:
+  machine_executor_amd64:
+    machine:
+      image: ubuntu-2204:2022.04.2
+    environment:
+      architecture: "amd64"
+      platform: "linux/amd64"
+
 jobs:
   build:
+    executor: machine_executor_amd64
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
     steps:
@@ -18,6 +26,7 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
+    executor: machine_executor_amd64
     docker:
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
       - image: circleci/redis:latest
