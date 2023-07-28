@@ -6,6 +6,5 @@ resource "helm_release" "cassandra" {
   dependency_update = true
   depends_on       = [helm_release.neo4j]
   wait_for_jobs    = true
-  
 }
  

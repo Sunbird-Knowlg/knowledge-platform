@@ -16,7 +16,7 @@ variable "additional_tags" {
 }
 variable "region" {
   description = "AWS region for resources"
-  default     = "us-west-2" # Replace with your desired AWS region
+  default     = "us-west-1" # Replace with your desired AWS region
 }
 variable "cluster_name" {
   description = "Name of the EKS cluster"
@@ -70,11 +70,7 @@ variable "vpc_cidr" {
   description = "AWS vpc CIDR range."
   default     = "10.0.0.0/16"
 }
-variable "subnet_cidr" {
-  type        = string
-  description = "AWS subnet CIDR range."
-  default     = "10.0.0.0/22"
-}
+
 variable "destination_cidr" {
   type        = string
   description = "destination cider for route"
@@ -95,15 +91,11 @@ variable "desired_count" {
   description = "AKS node count."
   default     = 1
 }
-variable "storage_s3" {
-  type    = string
-  default = "S3"
 
-}
 variable "inst_type" {
     type        = list(string)
     description = "instance types"
-    default     = ["t2.mciro", "t3.micro"]
+    default     = ["t3.micro"]
 }
 variable "eks_addons" {
   type = list(object({

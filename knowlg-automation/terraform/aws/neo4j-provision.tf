@@ -6,5 +6,4 @@ resource "helm_release" "neo4j" {
   dependency_update = true
   depends_on       = [helm_release.kafka]
   wait_for_jobs    = true
-  
 }

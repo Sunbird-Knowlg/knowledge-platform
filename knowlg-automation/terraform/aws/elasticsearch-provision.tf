@@ -1,4 +1,3 @@
-
 resource "helm_release" "elasticsearch" {
   name             = "elasticsearch"
   chart            = var.ELASTICSEARCH_CHART
