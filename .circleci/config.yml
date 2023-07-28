@@ -26,7 +26,9 @@ jobs:
       - checkout
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
-
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
       - run:
           name: Setup environment and run tests
           command: bash vmsetup.sh
