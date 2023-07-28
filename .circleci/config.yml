@@ -1,19 +1,16 @@
 version: 2.1
 
 executors:
-  virtual_machine_with_docker:
-    machine:
-      image: ubuntu-2204:2022.04.2
-    environment:
-      architecture: "amd64"
-      platform: "linux/amd64"
+  machine-executor-amd64:
     docker:
-      - image: docker:20.10.10
+      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+    environment:
+      TZ: "UTC"
+      MAVEN_OPTS: "-Xmx2048m -XX:MaxPermSize=512m"
 
 jobs:
   build:
-    executor:
-      name: virtual_machine_with_docker
+    executor: machine-executor-amd64
     steps:
       - checkout
       - restore_cache:
@@ -28,8 +25,7 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    executor:
-      name: virtual_machine_with_docker
+    executor: machine-executor-amd64
     steps:
       - checkout
       - restore_cache:
