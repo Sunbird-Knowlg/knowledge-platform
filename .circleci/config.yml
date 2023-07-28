@@ -12,7 +12,8 @@ executors:
 
 jobs:
   build:
-    executor: virtual_machine_with_docker
+    executor:
+      name: virtual_machine_with_docker
     steps:
       - checkout
       - restore_cache:
@@ -27,7 +28,8 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    executor: virtual_machine_with_docker
+    executor:
+      name: virtual_machine_with_docker
     steps:
       - checkout
       - restore_cache:
