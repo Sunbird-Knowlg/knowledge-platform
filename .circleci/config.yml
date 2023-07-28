@@ -1,5 +1,5 @@
 version: 2.1
-executorType: machine
+executorType: machine_executor_amd64
 jobs:
   build:
     docker:
