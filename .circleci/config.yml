@@ -1,17 +1,9 @@
 version: 2.1
-
-executors:
-  machine-executor-amd64:
-    docker:
-      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
-      - image: circleci/redis:latest
-    environment:
-      TZ: "UTC"
-      MAVEN_OPTS: "-Xmx2048m -XX:MaxPermSize=512m"
-
+executorType: machine
 jobs:
   build:
-    executor: machine-executor-amd64
+    machine:
+      - image: ubuntu-2004:2022.07.1
     steps:
       - checkout
       - restore_cache:
@@ -26,11 +18,12 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    executor: machine-executor-amd64
+    docker:
+      - image: ubuntu-2004:2022.07.1
+      - image: circleci/redis:latest
+    parallelism: 1
     steps:
       - checkout
-      - setup_remote_docker: # This sets up Docker within the build environment
-          version: 20.10.14
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
       - run:
