@@ -4,7 +4,6 @@ jobs:
   build:
     machine:
        image: ubuntu-2004:202201-02
-       docker_layer_caching: true
     steps:
       - checkout
       - restore_cache:
@@ -22,6 +21,7 @@ jobs:
     machine:
        image: ubuntu-2004:202201-02
        redis_image: circleci/redis:latest
+       docker_layer_caching: true
     parallelism: 1
     steps:
       - checkout
