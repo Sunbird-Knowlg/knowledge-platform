@@ -3,7 +3,7 @@ executorType: machine
 jobs:
   build:
     machine:
-      - image: ubuntu-2004:2022.07.1
+      - image: ubuntu-2004:202201-02
     steps:
       - checkout
       - restore_cache:
@@ -19,7 +19,7 @@ jobs:
 
   unit-tests:
     docker:
-      - image: ubuntu-2004:2022.07.1
+      - image: ubuntu-2004:202201-02
       - image: circleci/redis:latest
     parallelism: 1
     steps:
