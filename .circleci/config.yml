@@ -3,8 +3,8 @@ executorType: machine
 jobs:
   build:
     machine:
-      - image: ubuntu-2004:202201-02
-      - docker_layer_caching: true
+       image: ubuntu-2004:202201-02
+       docker_layer_caching: true
     steps:
       - checkout
       - restore_cache:
@@ -19,7 +19,7 @@ jobs:
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    docker:
+    machine:
       - image: ubuntu-2004:202201-02
       - image: circleci/redis:latest
     parallelism: 1
