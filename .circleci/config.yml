@@ -20,8 +20,8 @@ jobs:
 
   unit-tests:
     machine:
-      - image: ubuntu-2004:202201-02
-      - image: circleci/redis:latest
+       image: ubuntu-2004:202201-02
+       redis-image: circleci/redis:latest
     parallelism: 1
     steps:
       - checkout
