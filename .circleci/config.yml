@@ -29,8 +29,8 @@ jobs:
       - run:
           name: Check Environment Variables
           command: |
-              export learning_content_youtube_apikey
-              export learning_content_drive_apiKey
+              export learning_content_youtube_apikey=$learning_content_youtube_apikey
+              export learning_content_drive_apiKey=$learning_content_drive_apiKey
 
       - run:
           name: Setup environment and run tests
