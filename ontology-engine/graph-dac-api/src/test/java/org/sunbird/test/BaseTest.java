@@ -39,7 +39,8 @@ public class BaseTest {
 
 	@AfterClass
 	public static void afterTest() throws Exception {
-		tearEmbeddedNeo4JSetup();
+//		tearEmbeddedNeo4JSetup();
+		neo4jContainer.stop();
 		DriverUtil.closeDrivers();
 	}
 
@@ -77,18 +78,6 @@ public class BaseTest {
 			neo4jContainer.waitingFor(Wait.forListeningPort());
 			neo4jContainer.start();
 
-/*
-			container.withEnv("NEO4J_dbms_directories_data", graphDirectory);
-			container.withEnv("NEO4J_dbms_security_auth__enabled", "false");
-			container.withCommand("neo4j", "console");
-			container.withStartupTimeout(java.time.Duration.ofSeconds(60));
-			container.waitingFor(Wait.forListeningPort());
-			container.start();
-*/
-
-//			System.out.println(" neo4j host "+ 			neo4jContainer.getContainerIpAddress());
-//			System.out.println(" container info :"+ neo4jContainer.getContainerInfo().getState());
-
 			Thread.sleep(20000);
 			String boltAddress = "bolt://"+ "127.0.0.1" + ":" + hostBoltPort; //container.getBoltUrl();
 			Config config = Config.builder()
@@ -100,18 +89,6 @@ public class BaseTest {
 			graphDb = driver.session();
 		}
 	}
-
-	/*private static void setupEmbeddedNeo4J() throws Exception {
-		if (graphDb == null) {
-			//BoltConnector bolt = new BoltConnector("0");
-			GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-			graphDb = new GraphDatabaseFactory()
-					.newEmbeddedDatabaseBuilder(new File(Platform.config.getString(GRAPH_DIRECTORY_PROPERTY_KEY)))
-					.setConfig(bolt.type, "BOLT").setConfig(bolt.enabled, BOLT_ENABLED)
-					.setConfig(bolt.address, NEO4J_SERVER_ADDRESS).newGraphDatabase();
-			registerShutdownHook(graphDb);
-		}
-	}*/
 
 	private static void tearEmbeddedNeo4JSetup() throws Exception {
 		if (null != graphDb)
