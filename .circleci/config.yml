@@ -11,7 +11,7 @@ jobs:
       - run:
           name: Run build
           command: |
-            mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID="" -DCLOUD_STORE_ARTIFACT_ID="" -DCLOUD_STORE_VERSION=""
+            mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=$CLOUD_STORE_GROUP_ID -DCLOUD_STORE_ARTIFACT_ID=$CLOUD_STORE_ARTIFACT_ID -DCLOUD_STORE_VERSION=$CLOUD_STORE_VERSION
       - save_cache:
           paths:
             - ~/.m2
