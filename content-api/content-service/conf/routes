@@ -127,9 +127,18 @@ GET     /eventset/v4/read/:identifier            controllers.v4.EventSetControll
 DELETE  /eventset/v4/discard/:identifier         controllers.v4.EventSetController.discard(identifier:String)
 DELETE  /private/eventset/v4/retire/:identifier  controllers.v4.EventSetController.retire(identifier:String)
 
-# Object v4 Api's
-GET     /object/v4/read/:identifier              controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
+# Schema APIs
+POST      /schema/v1/create                     controllers.v4.SchemaController.create
+GET       /schema/v1/read/:identifier           controllers.v4.SchemaController.read(identifier:String, fields:Option[String])
+# PATCH   /schema/v1/update/:identifier         controllers.v4.SchemaController.update(identifier:String)
+POST      /schema/v1/upload/:identifier         controllers.v4.SchemaController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 
+# Object v4 Api's
+GET     /:schema/v1/read/:identifier             controllers.v4.ObjectController.read(schema:String, identifier:String, fields:Option[String])
+POST    /:schema/v1/create                       controllers.v4.ObjectController.create(schema:String)
+PATCH   /:schema/v1/update/:identifier           controllers.v4.ObjectController.update(schema:String, identifier:String)
+DELETE  /:schema/v1/retire/:identifier           controllers.v4.ObjectController.retire(schema:String, identifier:String)
+POST    /:schema/v1/:transition/:identifier      controllers.v4.ObjectController.transition(schema: String, transition: String, identifier:String)
 
 # Collection V4 APIs
 POST   /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
