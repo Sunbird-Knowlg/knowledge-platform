@@ -122,3 +122,58 @@ variable "eks_addons" {
     }
   ]
 }
+
+#CONTENT
+variable "CONTENT_CHART" {
+  description = "Content Instance Running Namespace"
+  default     = "../../helm_charts/content"
+}
+
+variable "CONTENT_NAMESPACE" {
+  description = "Content Instance Running Namespace"
+  default     = "knowlg-api"
+}
+
+#SEARCH
+variable "SEARCH_CHART" {
+  description = "Search Instance Running Namespace"
+  default     = "../../helm_charts/search"
+}
+
+variable "SEARCH_NAMESPACE" {
+  description = "Search Instance Running Namespace"
+  default     = "knowlg-api"
+}
+
+#TAXONOMY
+variable "TAXONOMY_CHART" {
+  description = "Taxonomy Instance Running Namespace"
+  default     = "../../helm_charts/taxonomy"
+}
+
+variable "TAXONOMY_NAMESPACE" {
+  description = "Taxonomy Instance Running Namespace"
+  default     = "knowlg-api"
+}
+
+#LEARNING
+variable "LEARNING_CHART" {
+  description = "Learning Instance Running Namespace"
+  default     = "../../helm_charts/learning"
+}
+
+variable "LEARNING_NAMESPACE" {
+  description = "Learning Instance Running Namespace"
+  default     = "knowlg-api"
+}
+
+#DIAL
+variable "DIAL_CHART" {
+  description = "DIAL Instance Running Namespace"
+  default     = "../../helm_charts/dial"
+}
+
+variable "DIAL_NAMESPACE" {
+  description = "DIAL Instance Running Namespace"
+  default     = "knowlg-api"
+}
