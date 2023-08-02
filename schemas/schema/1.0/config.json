@@ -1,0 +1,29 @@
+{
+  "objectType": "Schema",
+  "restrictProps": {
+    "create" : [
+      "status", "slug"
+    ],
+    "copy" : [
+      "status"
+    ],
+    "update": []
+  },
+  "relations": {
+  },
+  "version": "disable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "edge": {
+    "properties": {
+      "license": "License"
+    }
+  },
+  "copy": {},
+  "cacheEnabled": true,
+  "searchProps": {},
+  "variants": {},
+  "schema_restrict_api": false
+}
