@@ -4,6 +4,6 @@ locals {
       BuildingBlock = "${var.building_block}"
     }
     environment_name = "${var.building_block}-${var.env}"
-    storagename = "s3bucket"
+    storagename = "mystorage"
 
 }

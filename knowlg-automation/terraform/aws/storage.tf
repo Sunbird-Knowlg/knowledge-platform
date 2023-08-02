@@ -1,4 +1,4 @@
-resource "aws_s3_bucket" "s3bucket" {
+resource "aws_s3_bucket" "mybucket" {
   bucket = local.storagename
   tags = merge(
     local.common_tags,
