@@ -40,3 +40,7 @@ POST      /object/category/definition/v4/create                controllers.v4.Ob
 GET       /object/category/definition/v4/read/:identifier      controllers.v4.ObjectCategoryDefinitionController.read(identifier:String, fields:Option[String])
 PATCH     /object/category/definition/v4/update/:identifier    controllers.v4.ObjectCategoryDefinitionController.update(identifier:String)
 POST       /object/category/definition/v4/read                 controllers.v4.ObjectCategoryDefinitionController.readCategoryDefinition(fields:Option[String])
+
+# Lock API's
+POST        /v1/lock/create                                     controllers.v3.LockController.createLock
+PATCH       /v1/lock/refresh                                    controllers.v3.LockController.refreshLock

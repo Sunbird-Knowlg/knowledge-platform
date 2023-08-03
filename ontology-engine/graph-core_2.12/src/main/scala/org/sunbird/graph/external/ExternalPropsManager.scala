@@ -20,6 +20,16 @@ object ExternalPropsManager {
         store.insert(request.getRequest, getPropsDataType(schemaName, version))
     }
 
+    def savePropsWithTtl(request: Request, ttl: Int)(implicit ec: ExecutionContext): Future[Response] = {
+        val objectType: String = request.getObjectType
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
+        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
+        println("Request in external props manager: "+request)
+        store.insertWithTtl(request.getRequest, getPropsDataType(schemaName, version), ttl)
+    }
+
     def fetchProps(request: Request, fields: List[String])(implicit ec: ExecutionContext): Future[Response] = {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
