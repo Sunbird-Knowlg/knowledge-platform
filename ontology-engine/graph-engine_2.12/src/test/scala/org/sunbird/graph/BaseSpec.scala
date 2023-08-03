@@ -116,7 +116,6 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
   }
 
   override def beforeAll(): Unit = {
-//    tearEmbeddedNeo4JSetup()
     setUpEmbeddedNeo4j()
     setUpEmbeddedCassandra()
     executeNeo4jQuery("UNWIND [{IL_UNIQUE_ID: \"board\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"board\",orgIdFieldName: \"boardIds\",targetIdFieldName: \"targetBoardIds\",searchIdFieldName: \"se_boardIds\",searchLabelFieldName: \"se_boards\",status: \"Live\"},{IL_UNIQUE_ID: \"subject\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"subject\",orgIdFieldName: \"subjectIds\",targetIdFieldName: \"targetSubjectIds\",searchIdFieldName: \"se_subjectIds\",searchLabelFieldName: \"se_subjects\",status: \"Live\"},{IL_UNIQUE_ID: \"gradeLevel\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"gradeLevel\",orgIdFieldName: \"gradeLevelIds\",targetIdFieldName: \"targetGradeLevelIds\",searchIdFieldName: \"se_gradeLevelIds\",searchLabelFieldName: \"se_gradeLevels\",status: \"Live\"},{IL_UNIQUE_ID: \"medium\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"medium\",orgIdFieldName: \"mediumIds\",targetIdFieldName: \"targetMediumIds\",searchIdFieldName: \"se_mediumIds\",searchLabelFieldName: \"se_mediums\",status: \"Live\"}" +

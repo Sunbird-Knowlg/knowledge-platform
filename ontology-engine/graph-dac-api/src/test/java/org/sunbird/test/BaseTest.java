@@ -6,18 +6,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.neo4j.driver.v1.*;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-//import org.neo4j.kernel.configuration.BoltConnector;
 import org.sunbird.common.Platform;
 import org.sunbird.graph.service.util.DriverUtil;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 
@@ -30,16 +25,12 @@ public class BaseTest {
 	private static int hostHttpPort = 7474;
 	private static int hostBoltPort = 7687;
 	private static FixedHostPortGenericContainer<?> neo4jContainer = new FixedHostPortGenericContainer<>("neo4j:3.5.0");
-//	private static Neo4jContainer<?> container = new Neo4jContainer<>("neo4j:3.5.0");
 	protected static Session graphDb = null;
 
-	private static String NEO4J_SERVER_ADDRESS = "localhost:7687";
 	private static String GRAPH_DIRECTORY_PROPERTY_KEY = "graph.dir";
-	private static String BOLT_ENABLED = "true";
 
 	@AfterClass
 	public static void afterTest() throws Exception {
-//		tearEmbeddedNeo4JSetup();
 		neo4jContainer.stop();
 		DriverUtil.closeDrivers();
 	}

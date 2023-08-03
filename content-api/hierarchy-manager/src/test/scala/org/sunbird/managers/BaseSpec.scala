@@ -7,9 +7,6 @@ import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.neo4j.driver.v1.{Config, Driver, GraphDatabase, Session}
 import org.neo4j.graphdb.GraphDatabaseService
-import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.factory.GraphDatabaseSettings.Connector.ConnectorType
-import org.neo4j.kernel.configuration.BoltConnector
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.sunbird.cassandra.CassandraConnector
@@ -74,16 +71,6 @@ class BaseSpec extends AsyncFlatSpec with BeforeAndAfterAll with BeforeAndAfterE
       graphDb = driver.session()
     }
   }
-  /*def setUpEmbeddedNeo4j(): Unit = {
-      if(null == graphDb) {
-          val bolt: BoltConnector = new BoltConnector("0")
-          graphDb = new GraphDatabaseFactory()
-                          .newEmbeddedDatabaseBuilder(new File(Platform.config.getString("graph.dir")))
-                          .setConfig(bolt.`type`, ConnectorType.BOLT.name())
-                  .setConfig(bolt.enabled, "true").setConfig(bolt.listen_address, "localhost:7687").newGraphDatabase
-          registerShutdownHook(graphDb)
-      }
-  }*/
 
   private def registerShutdownHook(graphDb: GraphDatabaseService): Unit = {
     Runtime.getRuntime.addShutdownHook(new Thread() {

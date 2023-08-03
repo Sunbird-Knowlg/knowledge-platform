@@ -73,17 +73,6 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         }
     }
 
-   /* def setUpEmbeddedNeo4j(): Unit = {
-        if(null == graphDb) {
-            val bolt: BoltConnector = new BoltConnector("0")
-            graphDb = new GraphDatabaseFactory()
-                            .newEmbeddedDatabaseBuilder(new File(Platform.config.getString("graph.dir")))
-                            .setConfig(bolt.`type`, ConnectorType.BOLT.name())
-                    .setConfig(bolt.enabled, "true").setConfig(bolt.listen_address, "localhost:7687").newGraphDatabase
-            registerShutdownHook(graphDb)
-        }
-    }*/
-
     private def registerShutdownHook(graphDb: GraphDatabaseService): Unit = {
         Runtime.getRuntime.addShutdownHook(new Thread() {
             override def run(): Unit = {
@@ -130,8 +119,6 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
     }
 
     override def afterAll(): Unit = {
-//        tearEmbeddedNeo4JSetup()
-
         if (neo4jContainer != null) {
             neo4jContainer.stop()
         }
