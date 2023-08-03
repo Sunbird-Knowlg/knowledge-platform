@@ -22,6 +22,15 @@ public class SchemaValidatorFactory {
         }
     }
 
+    public static ISchemaValidator getInstance(String path) throws Exception {
+        String key = getKey(path);
+        if (schemaMap.containsKey(key)) {
+            return schemaMap.get(key);
+        } else {
+            return initSchema(path);
+        }
+    }
+
     public static ISchemaValidator getInstance(String name, String version, String fallback) throws Exception {
         String key = getKey(name, version);
         key += ":" + fallback;
@@ -57,6 +66,12 @@ public class SchemaValidatorFactory {
         return schema;
     }
 
+    private static ISchemaValidator initSchema(String path) throws Exception {
+        ISchemaValidator schema = new JsonSchemaValidator(path);
+        schemaMap.put("schema", schema);
+        return schema;
+    }
+
     private static String getKey(String name, String version) {
         return StringUtils.joinWith(":", name, version);
     }
@@ -64,4 +79,12 @@ public class SchemaValidatorFactory {
     private static String getKey(String name, String version, String fallback) {
         return StringUtils.joinWith(":", name, version, fallback);
     }
+
+    private static String getKey(String path) {
+        String[] pathComponents = path.split("/");
+        String version = pathComponents[pathComponents.length - 1];
+        String name = pathComponents[pathComponents.length - 2];
+        return getKey(name, version);
+    }
+
 }
