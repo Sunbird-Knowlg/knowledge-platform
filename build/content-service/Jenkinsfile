@@ -25,10 +25,6 @@ node('build-slave') {
                 cloud_store_artifact_id = params.CLOUD_STORE_ARTIFACT_ID
                 cloud_store_version = params.CLOUD_STORE_VERSION
 
-                echo "params.CLOUD_STORE_GROUP_ID: " + params.CLOUD_STORE_GROUP_ID
-                echo "params.CLOUD_STORE_ARTIFACT_ID: " + cloud_store_artifact_id
-                echo "params.CLOUD_STORE_VERSION: " + cloud_store_version
-
                 stage('Build') {
                     env.NODE_ENV = "build"
                     print "Environment will be : ${env.NODE_ENV}"
