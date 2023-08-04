@@ -132,6 +132,7 @@ POST      /schema/v1/create                     controllers.v4.SchemaController.
 GET       /schema/v1/read/:identifier           controllers.v4.SchemaController.read(identifier:String, fields:Option[String])
 # PATCH   /schema/v1/update/:identifier         controllers.v4.SchemaController.update(identifier:String)
 POST      /schema/v1/upload/:identifier         controllers.v4.SchemaController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /schema/v1/publish/:identifier        controllers.v4.SchemaController.publish(identifier:String)
 
 # Object v4 Api's
 GET     /:schema/v1/read/:identifier             controllers.v4.ObjectController.read(schema:String, identifier:String, fields:Option[String])

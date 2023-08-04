@@ -107,4 +107,5 @@ object ApiId {
 	val READ_SCHEMA = "api.schema.read"
 	val UPDATE_SCHEMA = "api.schema.update"
 	val UPLOAD_SCHEMA = "api.schema.upload"
+	val PUBLISH_SCHEMA = "api.schema.publish"
 }

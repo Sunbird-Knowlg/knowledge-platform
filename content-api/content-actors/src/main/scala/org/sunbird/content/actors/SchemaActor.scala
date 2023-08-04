@@ -26,6 +26,7 @@ class SchemaActor @Inject()(implicit oec: OntologyEngineContext) extends BaseAct
       case "createSchema" => create(request)
       case "readSchema" => read(request)
       case "uploadSchema" => upload(request)
+      case "publishSchema" => publish(request)
       case _ => ERROR(request.getOperation)
     }
   }
@@ -64,6 +65,14 @@ class SchemaActor @Inject()(implicit oec: OntologyEngineContext) extends BaseAct
         request.getContext.put(SchemaConstants.SCHEMA, node.getObjectType.toLowerCase())
       SchemaUploadManager.upload(request, node)
     }).flatMap(f => f)
+  }
+
+  @throws[Exception]
+  private def publish(request: Request): Future[Response] = {
+    request.getRequest.put("status", "Live")
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put("publishStatus", s"Schema '${node.getIdentifier}' published Successfully!")
+    })
   }
 
 }

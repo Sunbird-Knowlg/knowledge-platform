@@ -50,6 +50,17 @@ class SchemaController @Inject()(@Named(ActorNames.SCHEMA_ACTOR) schemaActor: Ac
     getResult(ApiId.UPDATE_SCHEMA, schemaActor, uploadRequest)
   }
 
+  def publish(schema: String, identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    val content = body.getOrDefault(schema, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+    content.putAll(headers)
+    val publishRequest = getRequest(content, headers, SchemaConstants.PUBLISH_SCHEMA)
+    setRequestContext(publishRequest, SchemaConstants.SCHEMA_VERSION, objectType, "schema")
+    publishRequest.getContext.put("identifier", identifier);
+    getResult(ApiId.PUBLISH_SCHEMA, schemaActor, publishRequest, version = apiVersion)
+  }
+
   private def requestSchemaFormData(identifier: String)(implicit request: Request[AnyContent]) = {
     val reqMap = new util.HashMap[String, AnyRef]()
     if (!request.body.asMultipartFormData.isEmpty) {
