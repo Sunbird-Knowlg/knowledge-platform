@@ -61,7 +61,7 @@ public class HttpUrlUtilTest {
 	@Test
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
-		String driveUrl = "https://dockpreprodall.blob.core.windows.net/dock-content-preprod/content/do_21334055220373913611129/artifact/screenshot-520.thumb.png";
+		String driveUrl = "https://sunbirddevbbpublic.blob.core.windows.net/sunbird-content-staging/content/assets/do_2137327580080128001217/gateway-of-india.jpg";
 		java.io.File appIconFile = HTTPUrlUtil.downloadFile(driveUrl,downloadFolder);
 		assertTrue(appIconFile.exists());
 		try {FileUtils.deleteDirectory(appIconFile.getParentFile().getParentFile());} catch(IOException io) {}
