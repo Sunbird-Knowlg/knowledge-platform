@@ -63,7 +63,7 @@
     "deviceid": {
       "type": "string"
     },
-    "expiresAt": {
+    "expiresat": {
       "type": "string"
     },
     "lastStatusChangedOn": {

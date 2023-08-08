@@ -44,3 +44,5 @@ POST       /object/category/definition/v4/read                 controllers.v4.Ob
 # Lock API's
 POST        /v1/lock/create                                     controllers.v3.LockController.createLock
 PATCH       /v1/lock/refresh                                    controllers.v3.LockController.refreshLock
+DELETE      /v1/lock/retire                                     controllers.v3.LockController.retireLock
+POST        /v1/lock/list                                       controllers.v3.LockController.listLock

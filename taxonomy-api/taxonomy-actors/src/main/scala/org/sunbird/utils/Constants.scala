@@ -70,6 +70,8 @@ object Constants {
     val LOCK: String = "lock";
     val CREATE_LOCK: String = "createLock";
     val REFRESH_LOCK: String = "refreshLock";
+    val RETIRE_LOCK: String = "retireLock";
+    val LIST_LOCK: String = "listLock";
     val LOCK_SCHEMA_VERSION = "1.0";
     val LOCK_SCHEMA_NAME="lock"
     val X_DEVICE_ID="deviceId"

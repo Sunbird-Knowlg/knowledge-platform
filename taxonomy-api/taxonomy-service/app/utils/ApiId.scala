@@ -33,7 +33,8 @@ object ApiId {
 
 	final val CREATE_LOCK = "api.taxonomy.lock.create"
 	final val REFRESH_LOCK = "api.taxonomy.lock.refresh"
-
+	final val RETIRE_LOCK = "api.taxonomy.lock.retire"
+	final val LIST_LOCK = "api.taxonomy.lock.list"
 
 
 }

@@ -33,4 +33,24 @@ class LockController @Inject()(@Named(ActorNames.LOCK_ACTOR) lockActor: ActorRef
     getResult(ApiId.REFRESH_LOCK, lockActor, lockRequest)
   }
 
+  def retireLock() = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    body.putAll(headers)
+    val lockRequest = getRequest(body, headers, Constants.RETIRE_LOCK)
+    println("lockRequest: " + lockRequest + " headers: " + headers)
+    setRequestContext(lockRequest, Constants.LOCK_SCHEMA_VERSION, objectType, Constants.LOCK_SCHEMA_NAME)
+    getResult(ApiId.RETIRE_LOCK, lockActor, lockRequest)
+  }
+
+  def listLock() = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    body.putAll(headers)
+    val lockRequest = getRequest(body, headers, Constants.LIST_LOCK)
+    println("lockRequest: " + lockRequest + " headers: " + headers)
+    setRequestContext(lockRequest, Constants.LOCK_SCHEMA_VERSION, objectType, Constants.LOCK_SCHEMA_NAME)
+    getResult(ApiId.LIST_LOCK, lockActor, lockRequest)
+  }
+
 }
