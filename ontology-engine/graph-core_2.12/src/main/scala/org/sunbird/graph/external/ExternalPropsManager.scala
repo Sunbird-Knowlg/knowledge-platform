@@ -56,6 +56,15 @@ object ExternalPropsManager {
             request.get("values").asInstanceOf[List[java.util.Map[String, AnyRef]]], getPropsDataType(schemaName, version))
     }
 
+    def updateWithTtl(request: Request, ttl: Int)(implicit ec: ExecutionContext): Future[Response] = {
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
+        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
+        store.updateWithTtl(request.get("identifier").asInstanceOf[String], request.get("fields").asInstanceOf[List[String]],
+            request.get("values").asInstanceOf[List[java.util.Map[String, AnyRef]]], getPropsDataType(schemaName, version), ttl)
+    }
+
     def getPropsDataType(schemaName: String, version: String) = {
         val propTypes: Map[String, String] = SchemaValidatorFactory.getInstance(schemaName, version).getConfig.getAnyRef("external.properties")
                 .asInstanceOf[java.util.HashMap[String, AnyRef]].asScala
