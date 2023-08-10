@@ -4,10 +4,9 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.graph.OntologyEngineContext
 import org.apache.commons.lang3.StringUtils
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.sql.Timestamp
 import java.util
-import java.util.{Date, TimeZone, UUID}
+import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import org.sunbird.common.{JsonUtils, Platform}
@@ -17,8 +16,6 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.schema.SchemaValidatorFactory
 import org.sunbird.utils.Constants
-
-import java.time.{Instant, LocalDateTime, ZoneOffset, ZonedDateTime}
 import java.util.concurrent.CompletionException
 import javax.inject.Inject
 import scala.collection.immutable.{List, Map}
@@ -137,7 +134,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
               request.put("values", List(newDateObj))
               oec.graphService.updateExternalPropsWithTtl(request, defaultLockExpiryTime).flatMap { response =>
                 if (ResponseHandler.checkError(response))
-                  throw new ServerException("ERR_WHILE_UPDAING_TO_CASSANDRA", "Error while saving external props to Cassandra")
+                  throw new ServerException("ERR_WHILE_UPDAING_TO_CASSANDRA", "Error while updating external props to Cassandra")
                 else {
                   Future {
                     ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", newDateObj.toString).put("expiresIn", defaultLockExpiryTime / 60)
@@ -218,7 +215,6 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     contentUpdateReq.put("versionKey", versionKey)
     contentUpdateReq.put("lockKey", lockId.toString)
     contentUpdateReq.put("channel", channel)
-    println("updateContentReq ---> "+contentUpdateReq)
     DataNode.update(contentUpdateReq).recoverWith { case e: CompletionException => throw e.getCause }
   }
 

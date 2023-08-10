@@ -77,6 +77,10 @@ object Constants {
     val X_DEVICE_ID="deviceId"
     val X_AUTHENTICATED_USER_ID="userId"
     val RESOURCE_ID="resourceId"
+    val RESOURCE_TYPE= "resourceType"
+    val RESOURCE_INFO= "resourceInfo"
+    val CREATOR_INFO= "creatorInfo"
+    val CREATED_BY= "createdBy"
 
 
 
