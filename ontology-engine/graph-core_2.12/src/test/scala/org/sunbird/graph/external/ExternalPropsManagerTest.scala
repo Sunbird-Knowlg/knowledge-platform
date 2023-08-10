@@ -49,6 +49,28 @@ class ExternalPropsManagerTest extends BaseSpec {
         }
     }
 
+    "savePropsWithTtl" should "create a cassandra record with ttl successfully" in {
+        val request = new Request()
+        request.setObjectType("Lock")
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("objectType", "Lock")
+                put("schemaName", "lock")
+            }
+        })
+        request.put("identifier", "do_123")
+
+
+        val future: Future[Response] = ExternalPropsManager.savePropsWithTtl(request, 60)
+        future map { response => {
+            assert(null != response)
+            assert(response.getResponseCode == ResponseCode.OK)
+        }
+        }
+    }
+
     "fetchProps" should "read a cassandra record successfully" in {
         val request = new Request()
         request.setObjectType("ObjectCategoryDefinition")
@@ -129,6 +151,29 @@ class ExternalPropsManagerTest extends BaseSpec {
         request.put("identifier", "obj-cat:course_collection_all")
         request.put("fields", List("objectMetadata"))
         request.put("values", List(objectMetadata))
+        val future: Future[Response] = ExternalPropsManager.update(request)
+        future map { response => {
+            assert(null != response)
+            assert(response.getResponseCode == ResponseCode.OK)
+        }
+        }
+    }
+
+    "updateWithTtl" should "update a cassandra record with ttl successfully" in {
+        val request = new Request()
+        request.setObjectType("Lock")
+        request.setContext(new util.HashMap[String, AnyRef]() {
+            {
+                put("graph_id", "domain")
+                put("version", "1.0")
+                put("objectType", "Lock")
+                put("schemaName", "lock")
+            }
+        })
+
+        request.put("identifier", "do_123")
+        request.put("fields", List("expiresat"))
+        request.put("values", List("2023-08-09 17:49:26.554000+0000"))
         val future: Future[Response] = ExternalPropsManager.update(request)
         future map { response => {
             assert(null != response)

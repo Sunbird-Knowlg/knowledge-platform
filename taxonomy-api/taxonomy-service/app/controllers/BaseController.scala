@@ -22,16 +22,19 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         JavaJsonUtils.deserialize[java.util.Map[String, Object]](body).getOrDefault("request", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
     }
 
-    def commonHeaders()(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
-        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId", "x-device-id" -> "deviceId", "x-authenticated-userid" -> "userId")
-        val headersMap = customHeaders.foldLeft(collection.mutable.HashMap[String, Object]()) { (acc, ch) =>
+    def commonHeaders(ignoreHeaders: Option[List[String]] = Option(List()))(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
+        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId").filterKeys(key => !ignoreHeaders.getOrElse(List()).contains(key))
+        customHeaders.map(ch => {
             val value = request.headers.get(ch._1)
-            value.foreach { v =>
-                acc.put(ch._2, v)
+            if (value.isDefined && !value.isEmpty) {
+                collection.mutable.HashMap[String, Object](ch._2 -> value.get).asJava
+            } else {
+                collection.mutable.HashMap[String, Object]().asJava
             }
-            acc
-        }
-        headersMap.asJava
+        }).reduce((a, b) => {
+            a.putAll(b)
+            return a
+        })
     }
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {

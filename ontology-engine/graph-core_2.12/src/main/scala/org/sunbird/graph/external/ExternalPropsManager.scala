@@ -26,7 +26,6 @@ object ExternalPropsManager {
         val version: String = request.getContext.get("version").asInstanceOf[String]
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
-        println("Request in external props manager: "+request)
         store.insertWithTtl(request.getRequest, getPropsDataType(schemaName, version), ttl)
     }
 
