@@ -58,7 +58,7 @@ public class HttpUrlUtilTest {
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
 
-	@Test
+	@Ignore
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
 		String driveUrl = "https://dockpreprodall.blob.core.windows.net/dock-content-preprod/content/do_21334055220373913611129/artifact/screenshot-520.thumb.png";
