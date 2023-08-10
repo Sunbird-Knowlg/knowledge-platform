@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "fb7f316f-8f4d-4ebf-a358-e1cc9ba3e8ed",
-		"name": "License API(s)",
+		"name": "Sunbird License API(s)",
 		"description": "The License API allows you to create licenses which can be tagged to content based on your requirements over the sunbird platform. Each endpoint serves a different purpose, so based on your requirement you can do the following: \n- The operations include CRUD (Create, Update, Read and Delete) operations\n- The URL for Sunbird License API(s) is `/license/v3`\n- The backend URL for the same is `/license/v3`. \n\n\nContact Support:\n Email: info@sunbird.org",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},

@@ -1,11 +1,10 @@
 package org.sunbird.cloudstore
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.tika.Tika
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
-import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
+import org.sunbird.common.{Platform, Slug}
 
 import java.io.File
 import scala.concurrent.{ExecutionContext, Future}

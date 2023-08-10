@@ -9,6 +9,16 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mimetype-manager</artifactId>
+    <repositories>
+        <repository>
+            <id>cloud-store-sdk</id>
+            <name>cloud-store-sdk</name>
+            <url>https://oss.sonatype.org/content/repositories/orgsunbird-1150</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <properties>
         <scala.major.version>2.11</scala.major.version>
         <play2.version>2.7.2</play2.version>
@@ -41,6 +51,16 @@
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
             <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.35.2</version>
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
