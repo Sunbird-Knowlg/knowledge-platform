@@ -174,7 +174,7 @@ class ExternalPropsManagerTest extends BaseSpec {
         request.put("identifier", "do_123")
         request.put("fields", List("expiresat"))
         request.put("values", List("2023-08-09 17:49:26.554000+0000"))
-        val future: Future[Response] = ExternalPropsManager.update(request)
+        val future: Future[Response] = ExternalPropsManager.updateWithTtl(request, 60)
         future map { response => {
             assert(null != response)
             assert(response.getResponseCode == ResponseCode.OK)
