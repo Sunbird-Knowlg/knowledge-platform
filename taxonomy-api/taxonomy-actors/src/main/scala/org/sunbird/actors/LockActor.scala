@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils
 import org.json.JSONObject
 import java.sql.Timestamp
 import java.util
-import java.util.{Date, UUID}
+import java.util.{Date, TimeZone, UUID}
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import org.sunbird.common.{JsonUtils, Platform}
@@ -16,6 +16,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.schema.SchemaValidatorFactory
 import org.sunbird.utils.Constants
+import java.text.SimpleDateFormat
 import java.util.concurrent.CompletionException
 import javax.inject.Inject
 import scala.collection.immutable.{List, Map}
@@ -60,7 +61,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
                 request.getRequest.get("deviceId") == response.getResult.toMap.getOrDefault("deviceid", "") &&
                 request.getRequest.get("resourceType") == response.getResult.toMap.getOrDefault("resourcetype", "")){
                     Future {
-                      ResponseHandler.OK.put("lockKey", response.getResult.toMap.getOrDefault("lockid", "")).put("expiresAt", response.getResult.toMap.getOrDefault("expiresat", "").toString).put("expiresIn", defaultLockExpiryTime / 60)
+                      ResponseHandler.OK.put("lockKey", response.getResult.toMap.getOrDefault("lockid", "")).put("expiresAt", formatExpiryDate(response.getResult.toMap.getOrDefault("expiresat", "").asInstanceOf[Date])).put("expiresIn", defaultLockExpiryTime / 60)
                     }
               }
               else if (request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", ""))
@@ -86,7 +87,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
                 else {
                       updateContent(request, channel, res.getGraphId, res.getObjectType, resourceId, versionKey, lockId)
                       Future {
-                        ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", newDateObj.toString).put("expiresIn", defaultLockExpiryTime / 60)
+                        ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", formatExpiryDate(newDateObj)).put("expiresIn", defaultLockExpiryTime / 60)
                       }
                 }
               }
@@ -137,7 +138,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
                   throw new ServerException("ERR_WHILE_UPDAING_TO_CASSANDRA", "Error while updating external props to Cassandra")
                 else {
                   Future {
-                    ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", newDateObj.toString).put("expiresIn", defaultLockExpiryTime / 60)
+                    ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", formatExpiryDate(newDateObj)).put("expiresIn", defaultLockExpiryTime / 60)
                   }
                 }
               }
@@ -241,5 +242,12 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     val expiryTimeMillis = System.currentTimeMillis() + (defaultLockExpiryTime * 1000)
     new Date(expiryTimeMillis)
   }
+
+  def formatExpiryDate(date: Date): String = {
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
+    dateFormat.format(date)
+  }
+
 
 }
