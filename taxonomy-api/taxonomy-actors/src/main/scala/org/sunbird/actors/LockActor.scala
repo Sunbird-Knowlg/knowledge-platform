@@ -193,7 +193,12 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     oec.graphService.readExternalProps(request, externalProps).map(response => {
       if (!ResponseHandler.checkError(response)) {
         Future {
-          ResponseHandler.OK.put("count",  response.getResult.size()).put("data", response.getResult.values())
+          val formattedLockDataList = response.getResult.values().asScala.map { lockData =>
+            val lockDataMap = lockData.asInstanceOf[java.util.Map[String, AnyRef]].asScala
+            val formattedLockData = lockDataMap + ("createdon" -> formatExpiryDate(lockDataMap("createdon").asInstanceOf[Date])) + ("expiresat" -> formatExpiryDate(lockDataMap("expiresat").asInstanceOf[Date]))
+            formattedLockData.asJava
+          }.toList.asJava
+          ResponseHandler.OK.put("count", response.getResult.size()).put("data", formattedLockDataList)
         }
       }
       else throw new ClientException("ERR_LOCK_LISTING_FAILED","error while fetching lock list data from db")
@@ -215,7 +220,6 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     contentUpdateReq.getContext.put(Constants.IDENTIFIER, resourceId)
     contentUpdateReq.put("versionKey", versionKey)
     contentUpdateReq.put("lockKey", lockId.toString)
-    contentUpdateReq.put("channel", channel)
     DataNode.update(contentUpdateReq).recoverWith { case e: CompletionException => throw e.getCause }
   }
 
