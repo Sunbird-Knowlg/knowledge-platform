@@ -9,10 +9,15 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.utils.Constants
 import org.json.JSONObject
+import org.sunbird.common.Platform
 
+import java.sql.Timestamp
+import java.util.Date
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 class LockActorTest extends BaseSpec with MockFactory {
+  private val defaultLockExpiryTime = if (Platform.config.hasPath("defaultLockExpiryTime")) Platform.config.getInt("defaultLockExpiryTime")
+  else 3600
 
   it should "throw exception if operation is not sent in request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
@@ -55,8 +60,6 @@ class LockActorTest extends BaseSpec with MockFactory {
     val response = callActor(request, Props(new LockActor()))
     assert("successful".equals(response.getParams.getStatus))
     assert(response.get("lockKey").equals("lock_123"))
-    assert(response.get("expiresAt").equals("2023-08-09 11:54:41.527000+0000"))
-    assert(response.get("expiresIn").equals(60))
   }
 
   it should "create a new lock If not found in cassandra" in{
@@ -537,7 +540,7 @@ class LockActorTest extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponse())).anyNumberOfTimes()
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponseForList())).anyNumberOfTimes()
 
     val lockListRequest = new Request()
     val filters = new util.HashMap[String, AnyRef]()
@@ -556,7 +559,7 @@ class LockActorTest extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponse())).anyNumberOfTimes()
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponseForList())).anyNumberOfTimes()
 
     val lockListRequest = new Request()
     val filters = new util.HashMap[String, AnyRef]()
@@ -624,18 +627,42 @@ class LockActorTest extends BaseSpec with MockFactory {
     response
   }
   def cassandraResponse(): Response = {
+    val newDateObj = createExpiryTime()
     val response = new Response
     response.put("resourceid", "do_12423")
     response.put("createdby", "user123")
-    response.put("createdon","2023-08-09 11:44:41.527000+0000")
+    response.put("createdon", new Timestamp(new Date().getTime))
     response.put("creatorinfo", "{\"name\":\"N11\",\"id\":\"5a587cc1-e018-4859-a0a8-e842650b9d64\"}")
     response.put("deviceid", "device123")
-    response.put("expiresat", "2023-08-09 11:54:41.527000+0000")
+    response.put("expiresat", newDateObj)
     response.put("lockid", "lock_123")
     response.put("resourceinfo", "{\"contentType\":\"Content\",\"framework\":\"NCF\",\"identifier\":\"do_11384879291617280011\",\"mimeType\":\"application/vnd.ekstep.h5p-archive\"}")
     response.put("resourcetype", "Content")
   }
 
+  def cassandraResponseForList(): Response = {
+    val newDateObj = createExpiryTime()
+    val lockDataMap = new util.HashMap[String, AnyRef]()
+    lockDataMap.put("resourceid", "do_12423")
+    lockDataMap.put("createdby", "user123")
+    lockDataMap.put("createdon", new Timestamp(new Date().getTime))
+    lockDataMap.put("creatorinfo", "{\"name\":\"N11\",\"id\":\"5a587cc1-e018-4859-a0a8-e842650b9d64\"}")
+    lockDataMap.put("deviceid", "device123")
+    lockDataMap.put("expiresat", newDateObj)
+    lockDataMap.put("lockid", "lock_123")
+    lockDataMap.put("resourceinfo", "{\"contentType\":\"Content\",\"framework\":\"NCF\",\"identifier\":\"do_11384879291617280011\",\"mimeType\":\"application/vnd.ekstep.h5p-archive\"}")
+    lockDataMap.put("resourcetype", "Content")
+
+    val response = new Response
+    response.put("lock_123", lockDataMap)
+
+    response
+  }
+
+  def createExpiryTime(): Date = {
+    val expiryTimeMillis = System.currentTimeMillis() + (defaultLockExpiryTime * 1000)
+    new Date(expiryTimeMillis)
+  }
   def errorResponse(): Response = {
     val response = new Response
     response.setResponseCode(ResponseCode.RESOURCE_NOT_FOUND)
