@@ -44,7 +44,7 @@ class PluginMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMo
     it should "upload Invalid plugin zip file url and Throw Client Exception" in {
         implicit val ss = new StorageService
         val exception = intercept[ClientException] {
-            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/content/do_11218758555843788817/artifact/akshara_kan_1487743191313.zip", None, UploadParams())
+            new PluginMimeTypeMgrImpl().upload("org.ekstep.video", new Node(), "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11218758555843788817/artifact/akshara_kan_1487743191313.zip", None, UploadParams())
         }
         exception.getMessage shouldEqual "Error !Invalid Content Package File Structure. | [manifest.json should be at root location]"
     }

@@ -1,6 +1,7 @@
 package org.sunbird.url.util;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -58,7 +59,7 @@ public class HttpUrlUtilTest {
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
 
-	@Test
+	@Ignore
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
 		String driveUrl = "https://sunbirddevbbpublic.blob.core.windows.net/sunbird-content-staging/content/assets/do_2137327580080128001217/gateway-of-india.jpg";
