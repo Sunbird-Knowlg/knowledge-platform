@@ -108,7 +108,6 @@ class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: 
         val headers = commonHeaders()
         val body = requestBody()
         val asset = body.getOrDefault("asset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        println("asset in controller: "+ asset )
         asset.putAll(headers)
         asset.putAll(Map("field" -> field.getOrElse("")).asJava)
         val assetRequest = getRequest(asset, headers, "validateLicense")

@@ -8,18 +8,14 @@ import scala.concurrent.{ExecutionContext, Future}
 object AssetLicenseValidateManager {
 
   def urlValidate(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-    val field = request.getRequest.getOrDefault("field", "").asInstanceOf[String]
-    val provider = request.getRequest.getOrDefault("provider", "").asInstanceOf[String]
-    val url = request.getRequest.getOrDefault("url", "").asInstanceOf[String]
+    val field = request.getRequestString("field", "")
+    val provider = request.getRequestString("provider", "")
+    val url = request.getRequestString("url", "")
     val urlMgr = URLFactoryManager.getUrlManager(getProvider(provider).toLowerCase)
     val data: java.util.Map[String, AnyRef] = urlMgr.validateURL(getUrl(url), field)
     if (!data.getOrDefault("valid", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
       throw new ClientException("INVALID_MEDIA_LICENSE", s"Please Provide Asset With Valid License For : $provider | Url : $url")
-    Future {
-      val response = ResponseHandler.OK()
-      response.put(field, data)
-      response
-    }
+    Future(ResponseHandler.OK().put(field, data))
   }
 
   def getProvider(provider: String): String = {
