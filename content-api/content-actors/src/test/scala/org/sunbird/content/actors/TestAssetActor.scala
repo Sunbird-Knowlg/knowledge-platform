@@ -69,6 +69,56 @@ class TestAssetActor extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
+  it should "throw exception if null url passed in 'validateLicense'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss = mock[StorageService]
+    val request = getContentRequest()
+    request.put("field", "license")
+    request.put("provider", "youtube")
+    request.put("url", "")
+    request.setOperation("validateLicense")
+    val response = callActor(request, Props(new AssetActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert(response.getParams.getErrmsg == "Please Provide Valid YouTube URL!")
+  }
+
+  it should "throw exception if null provider passed in 'validateLicense'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss = mock[StorageService]
+    val request = getContentRequest()
+    request.put("field", "license")
+    request.put("provider", "")
+    request.put("url", "https://www.youtube.com/watch?v=GHmQ8euNwv8")
+    request.setOperation("validateLicense")
+    val response = callActor(request, Props(new AssetActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert(response.getParams.getErrmsg == "Please Provide Valid Provider")
+  }
+
+  it should "throw exception if null license passed in 'validateLicense'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss = mock[StorageService]
+    val request = getContentRequest()
+    request.put("field", "")
+    request.put("provider", "youtube")
+    request.put("url", "https://www.youtube.com/watch?v=GHmQ8euNwv8")
+    request.setOperation("validateLicense")
+    val response = callActor(request, Props(new AssetActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert(response.getParams.getErrmsg == "Please Provide Valid Criteria For Validation. Supported Criteria : [license]")
+  }
+
+  it should "throw exception if null operation passed in 'validateLicense'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss = mock[StorageService]
+    val request = getContentRequest()
+    request.put("field", "license")
+    request.put("provider", "youtube")
+    request.put("url", "https://www.youtube.com/watch?v=GHmQ8euNwv8")
+    request.setOperation("")
+    val response = callActor(request, Props(new AssetActor()))
+    assert("failed".equals(response.getParams.getStatus))
+  }
   private def getNode(): Node = {
     val node = new Node()
     node.setIdentifier("do_1234")
