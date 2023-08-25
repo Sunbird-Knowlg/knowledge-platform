@@ -9,7 +9,7 @@ public class RequestTest {
         String key = "testKey";
         String value = "testValue";
         request.put(key, value);
-        String result = request.getRequestString(key, "defaultValue");
+        String result = request.getRequestString(key, "");
         Assert.assertEquals(value, result);
     }
 
