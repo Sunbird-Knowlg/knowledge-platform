@@ -15,7 +15,7 @@ class CategoryCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll wi
     val frameworkId = "framework_id"
     val framework = new util.HashMap[String, AnyRef]()
     val category1 = new util.HashMap[String, AnyRef]()
-    category1.put("name", "Category1")
+    category1.put("code", "Category1")
     val term1 = new util.HashMap[String, AnyRef]()
     term1.put("name", "Term1")
     val term2 = new util.HashMap[String, AnyRef]()
