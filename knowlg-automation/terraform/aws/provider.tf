@@ -14,12 +14,17 @@ data "aws_availability_zones" "zones_available" {}
 data "aws_eks_cluster" "eks_cluster" {
   name = aws_eks_cluster.eks_cluster.name
 }
+data "aws_eks_cluster_auth" "cluster_auth" {
+  name = "cluster_auth"
+}
 output "endpoint" {
   value = data.aws_eks_cluster.eks_cluster.endpoint
 }
 provider "helm" {
   kubernetes {
+    config_path = "~/.kube/config"
      host                   = data.aws_eks_cluster.eks_cluster.endpoint
+     token                  = data.aws_eks_cluster_auth.cluster_auth.token
      cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks_cluster.certificate_authority.0.data)
      exec {
       api_version = "client.authentication.k8s.io/v1beta1"
