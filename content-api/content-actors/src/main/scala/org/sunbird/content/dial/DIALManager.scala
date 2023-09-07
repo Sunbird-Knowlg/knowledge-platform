@@ -1,7 +1,7 @@
 package org.sunbird.content.dial
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
 import org.sunbird.content.util.ContentConstants
@@ -476,7 +476,9 @@ object DIALManager {
 	def getDIALReserveUpdateResponse(response: Response, count: Integer, contentId: String, node: Node): Response = {
 		response.getResult.put(DIALConstants.COUNT, count)
 		response.getResult.put(ContentConstants.NODE_ID, contentId)
-		response.getResult.put(DIALConstants.RESERVED_DIALCODES, node.getMetadata.get(DIALConstants.RESERVED_DIALCODES))
+		val reservDialCodes: String = node.getMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]
+		if(StringUtils.isNotBlank(reservDialCodes))
+			response.getResult.put(DIALConstants.RESERVED_DIALCODES, JsonUtils.deserialize(reservDialCodes, classOf[util.Map[String, Integer]]))
 
 		response
 	}

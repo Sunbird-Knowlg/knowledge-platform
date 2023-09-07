@@ -2,7 +2,6 @@ package org.sunbird.managers
 
 import java.util
 import java.util.concurrent.CompletionException
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -18,8 +17,8 @@ import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
 
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 

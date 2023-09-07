@@ -26,7 +26,7 @@ public class HttpUrlUtilTest {
 
 	@Test
 	public void testGetMetadataWithValidUrl() {
-		String url = "https://ekstep-public-prod.s3-ap-south-1.amazonaws.com/content/do_31225266105597952011502/artifact/2246d6bdafaeae551d93e245fa484cc9_1495686214370.jpeg";
+		String url = "https://sunbirddevbbpublic.blob.core.windows.net/sunbird-content-staging/content/assets/do_2137327580080128001217/gateway-of-india.jpg";
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 		assertTrue(result.size() == 2);
 		assertTrue(result.containsKey("size"));
@@ -59,7 +59,7 @@ public class HttpUrlUtilTest {
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
 
-	@Ignore
+	@Test
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
 		String driveUrl = "https://sunbirddevbbpublic.blob.core.windows.net/sunbird-content-staging/content/assets/do_2137327580080128001217/gateway-of-india.jpg";

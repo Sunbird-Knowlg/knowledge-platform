@@ -32,7 +32,7 @@
         <play2.version>2.7.2</play2.version>
         <play2.plugin.version>1.0.0-rc5</play2.plugin.version>
         <sbt-compiler.plugin.version>1.0.0</sbt-compiler.plugin.version>
-        <scala.major.version>2.11</scala.major.version>
+        <scala.major.version>2.12</scala.major.version>
     </properties>
 
     <dependencies>
@@ -104,6 +104,10 @@
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-module-scala_2.12.0-RC1</artifactId>
+                    <groupId>com.fasterxml.jackson.module</groupId>
                 </exclusion>
             </exclusions>
         </dependency>

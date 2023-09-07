@@ -245,6 +245,12 @@ public class Relation implements Serializable {
 			return new HashMap<String, Object>();
 	}
 
+	public Relation updateMetadata(Map<String, Object> metadata) {
+		if (!MapUtils.isEmpty(metadata))
+			this.metadata = metadata;
+		return this;
+	}
+
 	public void setMetadata(Map<String, Object> metadata) {
 		this.metadata = metadata;
 	}

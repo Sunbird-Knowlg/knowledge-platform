@@ -17,7 +17,7 @@ Please describe the tests that you ran to verify your changes in the below check
 - [ ] Ran Test B
 
 **Test Configuration**:
-* Software versions: Java 11, scala-2.11, play-2.7.2
+* Software versions: Java 11, scala-2.12, play-2.7.2
 * Hardware versions: 2 CPU/ 4GB RAM
 
 ### Checklist:

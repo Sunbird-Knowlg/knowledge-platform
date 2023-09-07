@@ -11,7 +11,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global

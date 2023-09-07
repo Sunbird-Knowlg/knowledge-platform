@@ -13,7 +13,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters._
 import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
