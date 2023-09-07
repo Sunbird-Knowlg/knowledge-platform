@@ -36,4 +36,24 @@ sh create
 ```shell    
 sh destroy    
 ```
->*provide option as "local"*      
+>*provide option as "local"*
+
+
+## Infra provision on aws
+### Pre-requisites:
+* Install aws cli tool on local machine and login to aws account.
+* Create a aws account to be used for the infra provision or also can use sso profile too (depends on usecase).
+* Replace the default values in infra-provision/azure/variables.tf .
+
+>*[ Go to the repository path: knowledge-platform/knowlg-automation/terraform ]*
+### Create Infra on aws:
+```shell   
+sh create    
+```
+> *provide option as "aws"*
+### Destroy Infra on aws: 
+***Note:** [append --auto-approve to continue without confirmation.]*
+```shell    
+sh destroy    
+```
+>*provide option as "aws"* 
