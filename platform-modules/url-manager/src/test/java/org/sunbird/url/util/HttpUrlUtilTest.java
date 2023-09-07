@@ -1,6 +1,7 @@
 package org.sunbird.url.util;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -57,6 +58,7 @@ public class HttpUrlUtilTest {
 		String url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/";
 		Map<String, Object> result = HTTPUrlUtil.getMetadata(url);
 	}
+
 	@Test
 	public void testDownloadFileWithValidUrl() {
 		String downloadFolder = "/tmp/content/" + System.currentTimeMillis() + "_temp/do_123";
