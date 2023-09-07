@@ -20,7 +20,7 @@ variable "region" {
 }
 variable "cluster_name" {
   description = "Name of the EKS cluster"
-  default     = "my-eks-cluster" # Replace with your desired cluster name
+  default     = "Eks" # Replace with your desired cluster name
 }
 #ELASTICSEARCH
 variable "ELASTICSEARCH_CHART" {

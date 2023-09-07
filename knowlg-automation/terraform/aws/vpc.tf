@@ -36,7 +36,7 @@ resource "aws_route_table" "route_table_private" {
   vpc_id = aws_vpc.vpc.id
   route {
     cidr_block = var.destination_cidr
-    gateway_id = aws_internet_gateway.gateway.id
+    nat_gateway_id = aws_nat_gateway.nat.id
   }
   tags = merge(
     local.common_tags,

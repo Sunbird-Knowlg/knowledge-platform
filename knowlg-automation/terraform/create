@@ -1,16 +1,34 @@
-echo "Enter the environment to deploy in: [Options azure/local]"
-read x
-echo "Deploying in $x"
-terraform -chdir=$x  init
-terraform -chdir=$x apply --auto-approve
-# if [ $x == "azure" ]
-# then
-#     echo "$(terraform -chdir=$x output kube_config)" > $PWD/aks.yaml
-#     sed -i '' '1d; $d' $PWD/aks.yaml
+#!/bin/bash
 
-# fi
-echo "$(terraform -chdir=$x output kube_config)" > $PWD/aks.yaml
-sed -i '' '1d; $d' $PWD/aks.yaml
-export KUBECONFIG=$PWD/aks.yaml
-export KUBE_CONFIG_PATH=$PWD/aks.yaml
-terraform -chdir=$x apply --auto-approve
+# Prompt user for the environment to deploy in: Azure, AWS, or Local
+echo "Enter the environment to deploy in: [Options: azure/aws/local]"
+read environment
+
+# Initialize and apply Terraform configuration based on the environment
+echo "Deploying in $environment"
+terraform -chdir=$environment init
+terraform -chdir=$environment apply --auto-approve
+
+# Handle kubectl configuration for Azure AKS
+if [ "$environment" == "azure" ]; then
+    echo "$(terraform -chdir=$environment output kube_config)" > $PWD/aks.yaml
+    sed -i '' '1d; $d' $PWD/aks.yaml
+    export KUBECONFIG=$PWD/aks.yaml
+    export KUBE_CONFIG_PATH=$PWD/aks.yaml
+
+# Handle kubectl configuration for AWS EKS
+elif [ "$environment" == "aws" ]; then
+    echo "$(terraform -chdir=$environment output kubeconfig)" > $PWD/eks.yaml
+    export KUBECONFIG=$PWD/eks.yaml
+    export KUBE_CONFIG_PATH=$PWD/eks.yaml
+
+# No kubectl configuration for local
+elif [ "$environment" == "local" ]; then
+    echo "Local environment - no kubectl config needed."
+else
+    echo "Invalid option. Please choose between 'azure', 'aws', or 'local'."
+    exit 1
+fi
+
+# Apply the final Terraform configuration
+terraform -chdir=$environment apply --auto-approve
