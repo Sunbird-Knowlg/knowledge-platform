@@ -1,0 +1,1179 @@
+{
+	"info": {
+		"_postman_id": "8ca47646-464a-411a-b9be-7d741055618b",
+		"name": "Sunbird Asset Management API(s)",
+		"description": "The Asset Management API allows you to manage asset over the sunbird platform.Apis perform operations related to all the _Asset_ on the Sunbird Platform.  - Each of the endpoints serve a different purpose, so which one to use depends on what you want to do - The operations include CRUD (Create, Update, Read and Upload) operations and other operations such as upload etc.  - The URL for Sunbird Asset API(s) is `asset/v1`  - [TestCases](https://www.getpostman.com/collections/fd62845fa723c00658ae)\n\nContact Support:\n Email: info@sunbird.org",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1419050"
+	},
+	"item": [
+		{
+			"name": "asset",
+			"item": [
+				{
+					"name": "v1",
+					"item": [
+						{
+							"name": "Asset Create",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"et qui officia non\",\n      \"code\": \"tempor nostrud esse\",\n      \"createdBy\": \"conseq\",\n      \"creator\": \"in enim\",\n      \"keywords\": \"occaecat ea\",\n      \"language\": [\n        \"proident id aliquip\",\n        \"dolor\"\n      ],\n      \"mediaType\": \"dolore dolore sint dolor\",\n      \"mimeType\": \"dolor irure\",\n      \"name\": \"consequat in aute irure\",\n      \"primaryCategory\": \"dolor pariatur\"\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/asset/v1/create",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"v1",
+										"create"
+									]
+								},
+								"description": "This API is associated with creating asset on the Sunbird Platform.\n  - The endpoint for **Create Asset** is `/asset/v1/create`\n  - It points to knowledge-mw-service - `/v1/asset/create`\n  - It is mandatory to provide values for parameters marked with *\n  - Mandatory fields cannot be null or empty."
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"eiusmod est ullamco dolor\",\n      \"code\": \"officia incididunt culpa commodo\",\n      \"createdBy\": \"ea sit laboris cupidatat\",\n      \"creator\": \"et anim deserunt sint\",\n      \"keywords\": \"dolore cill\",\n      \"language\": [\n        \"magna\",\n        \"esse Excepteur cillum\"\n      ],\n      \"mediaType\": \"Duis proident id elit\",\n      \"mimeType\": \"Lorem in aute nisi\",\n      \"name\": \"sunt non proident Duis\",\n      \"primaryCategory\": \"esse reprehenderit\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/create",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"create"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.create\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T09:20:03ZZ\",\n  \"params\": {\n    \"resmsgid\": \"bc3f02f5-d550-42b0-904e-38eb671248ef\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"identifier\": \"do_113441184591495168151\",\n    \"node_id\": \"do_113441184591495168151\",\n    \"versionKey\": \"1640769603462\"\n  }\n}"
+								},
+								{
+									"name": "Bad Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"eiusmod est ullamco dolor\",\n      \"code\": \"officia incididunt culpa commodo\",\n      \"createdBy\": \"ea sit laboris cupidatat\",\n      \"creator\": \"et anim deserunt sint\",\n      \"keywords\": \"dolore cill\",\n      \"language\": [\n        \"magna\",\n        \"esse Excepteur cillum\"\n      ],\n      \"mediaType\": \"Duis proident id elit\",\n      \"mimeType\": \"Lorem in aute nisi\",\n      \"name\": \"sunt non proident Duis\",\n      \"primaryCategory\": \"esse reprehenderit\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/create",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"create"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.create\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T09:36:28ZZ\",\n  \"params\": {\n    \"resmsgid\": \"c2a8542a-3ed3-4b69-8a76-f2cc782191ed\",\n    \"err\": \"CLIENT_ERROR\",\n    \"status\": \"failed\",\n    \"errmsg\": \"Validation Errors\"\n  },\n  \"responseCode\": \"CLIENT_ERROR\",\n  \"result\": {\n    \"messages\": [\n      \"Required Metadata code not set\"\n    ]\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Asset Update",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"name\": \"test asset\",\n      \"versionKey\": \"1640774434453\"\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/asset/v1/update/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"v1",
+										"update",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								},
+								"description": "This API is associated with updating Asset on the Sunbird Platform .\n  - **_/Update/_** endpoint executes the \"Update Asset\" request based on parameters provided as metadata in the request body.\n  - The endpoint for **Update Asset** is `/asset/v1/update`\n  - It points to knowledge-mw-service - `/v1/asset/update`\n  - {...}refers to a section of review endpoint URL path that needs to be replaced by appropriate Id.\n  - It is mandatory to provide values for parameters marked with *.\n  - Mandatory fields cannot be null or empty."
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"name\": \"test asset\",\n      \"versionKey\": \"1640774434453\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/update/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"update",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.update\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T09:24:27ZZ\",\n  \"params\": {\n    \"resmsgid\": \"7302823d-669f-449e-a903-d03b5e3c307d\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"identifier\": \"do_113441184591495168151\",\n    \"node_id\": \"do_113441184591495168151\",\n    \"versionKey\": \"1640769867533\"\n  }\n}"
+								},
+								{
+									"name": "Bad Request",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"name\": \"test asset\",\n      \"versionKey\": \"1640774434453\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/update/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"update",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.update\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T09:38:42ZZ\",\n  \"params\": {\n    \"resmsgid\": \"63da1ede-b594-473d-abd3-70ca45bce86c\",\n    \"err\": \"CLIENT_ERROR\",\n    \"status\": \"failed\",\n    \"errmsg\": \"Invalid version Key\"\n  },\n  \"responseCode\": \"CLIENT_ERROR\",\n  \"result\": {}\n}"
+								}
+							]
+						},
+						{
+							"name": "Asset Read",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/asset/v1/read/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"v1",
+										"read",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								},
+								"description": "This API is associated with viewing and reading out the asset on the Sunbird Platform .\n  - The **_/read/{asset Id}_** endpoint executes request for fetching the asset to be viewed and read.\n  - The endpoint for **Read Asset** is `/asset/v1/read`\n  - It points to knowledge-mw-service - `/v1/asset/read`\n  - {...}refers to a section of reject endpoint URL path that needs to be replaced by appropriate Id.\n  - You need to provide a valid asset Id value in {Asset Id} field of API URL.\n  - It is mandatory to provide values for parameters marked with *. \n  - Mandatory fields cannot be null or empty."
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/read/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"read",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.read\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T10:22:50ZZ\",\n  \"params\": {\n    \"resmsgid\": \"30114c34-e044-4e49-ad5e-89075ae503ce\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"content\": {\n      \"ownershipType\": [\n        \"createdBy\"\n      ],\n      \"code\": \"f2f41233-1c34-cf28-7bf8-0987a1eee420\",\n      \"keywords\": \"\",\n      \"channel\": 1309282781705830400,\n      \"downloadUrl\": \"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/assets/do_113441146415767552142/file_example_mp4_640_3mg.mp4\",\n      \"language\": [\n        \"English\"\n      ],\n      \"mimeType\": \"video/mp4\",\n      \"idealScreenSize\": \"normal\",\n      \"createdOn\": \"2021-12-29T08:02:23.340+0000\",\n      \"objectType\": \"Asset\",\n      \"primaryCategory\": \"asset\",\n      \"contentDisposition\": \"inline\",\n      \"lastUpdatedOn\": \"2021-12-29T08:02:24.755+0000\",\n      \"contentEncoding\": \"identity\",\n      \"artifactUrl\": \"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/assets/do_113441146415767552142/file_example_mp4_640_3mg.mp4\",\n      \"contentType\": \"Resource\",\n      \"dialcodeRequired\": false,\n      \"identifier\": \"do_113441146415767552142\",\n      \"lastStatusChangedOn\": \"2021-12-29T08:02:23.340+0000\",\n      \"audience\": [\n        \"Student\"\n      ],\n      \"creator\": \"N11\",\n      \"os\": [\n        \"All\"\n      ],\n      \"visibility\": \"Default\",\n      \"consumerId\": \"bfe5883f-ac66-4744-a064-3ed88d986eba\",\n      \"mediaType\": \"video\",\n      \"osId\": \"org.ekstep.quiz.app\",\n      \"languageCode\": [\n        \"en\"\n      ],\n      \"version\": 2,\n      \"versionKey\": \"1640764944755\",\n      \"license\": \"CC BY 4.0\",\n      \"idealScreenDensity\": \"hdpi\",\n      \"framework\": \"NCF\",\n      \"size\": 3114374,\n      \"createdBy\": \"5a587cc1-e018-4859-a0a8-e842650b9d64\",\n      \"compatibilityLevel\": 1,\n      \"name\": \"file_example_MP4_640_3MG\",\n      \"status\": \"Processing\"\n    }\n  }\n}"
+								}
+							]
+						},
+						{
+							"name": "Asset Upload",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/asset/v1/upload/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"v1",
+										"upload",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								},
+								"description": "This API is associated with uploading asset on the Sunbird Platform .\n   - The**_/upload/{Asset Id}_** endpoint executes \"Upload Asset\" request based on parameters provided as metadata in the request body.\n   - The endpoint for **Upload Asset** is `/asset/v1/upload`\n  - It points to knowledge-mw-service - `/v1/asset/upload`\n  - {...}refers to a section of upload endpoint URL path that needs to be replaced by appropriate Id.\n   - You need to provide a valid asset Id value in {Asset Id} field of API URL.\n   - It is mandatory to provide values for parameters marked with *. \n   - Mandatory fields cannot be null or empty."
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/upload/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"upload",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.upload\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-28T12:18:32ZZ\",\n  \"params\": {\n    \"resmsgid\": \"1ee721a1-deb7-4e9c-8e7e-777a376f7844\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"identifier\": \"do_1134405639859486721110\",\n    \"artifactUrl\": \"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_1134405639859486721110/image1.jpeg\",\n    \"content_url\": \"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_1134405639859486721110/image1.jpeg\",\n    \"node_id\": \"do_1134405639859486721110\",\n    \"versionKey\": \"1640693912866\"\n  }\n}"
+								},
+								{
+									"name": "Bad Request",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/upload/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"upload",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json:"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								},
+								{
+									"name": "Internal Server Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/upload/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"upload",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "Internal Server Error",
+									"code": 500,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json:"
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "Asset Copy",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"publisher\": \"API_DOC_PUBLISHER\",\n      \"lastPublishedBy\": \"API_DOC_PUBLISHER\",\n      \"publishComment\": \"OK\",\n      \"publishChecklist\": []\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}/asset/v1/copy/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"v1",
+										"copy",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								},
+								"description": "This API is associated with copying a asset on the Sunbird Platform .\n  - The **_/copy/_**endpoint executes request for copy asset, if asset is found appropriate.\n  - The endpoint for **Copy Asset** is `/asset/v1/copy`\n  - It points to knowledge-mw-service - `/v1/asset/copy`\n  - It is mandatory to provide values for parameters marked with *.\n  - Mandatory fields cannot be null or empty.."
+							},
+							"response": [
+								{
+									"name": "OK",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"content\": {\n      \"lastPublishedBy\": \"sit culpa\",\n      \"publishChecklist\": [\n        \"ullamco\",\n        \"consequat do ullamco esse labore\"\n      ],\n      \"publishComment\": \"anim amet consequat exercitation\",\n      \"publisher\": \"mollit veniam est do\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/copy/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"copy",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.copy\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-30T11:42:05ZZ\",\n  \"params\": {\n    \"resmsgid\": \"ab112c9f-bbb0-4493-a32d-040243b14a09\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"node_id\": {\n      \"do_1134418461689282561147\": \"do_1134419621916180481174\"\n    },\n    \"versionKey\": \"1640864525352\"\n  }\n}"
+								},
+								{
+									"name": "Not Found",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "reprehenderit aliquip"
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "reprehenderit aliquip"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"content\": {\n      \"lastPublishedBy\": \"sit culpa\",\n      \"publishChecklist\": [\n        \"ullamco\",\n        \"consequat do ullamco esse labore\"\n      ],\n      \"publishComment\": \"anim amet consequat exercitation\",\n      \"publisher\": \"mollit veniam est do\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/copy/:Asset_Id",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"copy",
+												":Asset_Id"
+											],
+											"variable": [
+												{
+													"key": "Asset_Id",
+													"value": "reprehenderit aliquip",
+													"description": "(Required) Please append a valid Asset Id To the Request URL"
+												}
+											]
+										}
+									},
+									"status": "Not Found",
+									"code": 404,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										}
+									],
+									"cookie": [],
+									"body": "{\n  \"id\": \"api.asset.copy\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-30T11:42:58ZZ\",\n  \"params\": {\n    \"resmsgid\": \"0a0c203d-4d8f-4a78-be67-1365fad3407e\",\n    \"err\": \"NOT_FOUND\",\n    \"status\": \"failed\",\n    \"errmsg\": \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_1134418461689282561142\"\n  },\n  \"responseCode\": \"RESOURCE_NOT_FOUND\",\n  \"result\": {}\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Asset Upload Url",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+								"key": "Authorization",
+								"value": "reprehenderit aliquip"
+							},
+							{
+								"description": "The Content Type entity is the media type of the resource.Possible",
+								"key": "Content-Type",
+								"value": "reprehenderit aliquip"
+							},
+							{
+								"description": "(Required) Represents the authorized User ID to execute the API",
+								"key": "x-authenticated-user-token",
+								"value": "reprehenderit aliquip"
+							},
+							{
+								"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+								"key": "X-Channel-ID",
+								"value": "reprehenderit aliquip"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"fileName\": \"flower6.jpeg\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/asset/upload/url/:Asset_Id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"asset",
+								"upload",
+								"url",
+								":Asset_Id"
+							],
+							"variable": [
+								{
+									"key": "Asset_Id",
+									"value": "reprehenderit aliquip",
+									"description": "(Required) Please append a valid Asset Id To the Request URL"
+								}
+							]
+						},
+						"description": "This API is associated with uploading asset on the Sunbird Platform .\n   - The**_/upload/url/{Asset Id}_** endpoint executes \"Upload Asset URL\" request based on parameters provided as metadata in the request body.\n   - The endpoint for **Upload Asset URL** is `/asset/v1/upload/url`\n  - It points to knowledge-mw-service - `/v1/asset/upload/url`\n  - {...}refers to a section of upload endpoint URL path that needs to be replaced by appropriate Id.\n   - You need to provide a valid asset Id value in {Asset Id} field of API URL.\n   - On Success api returns pre-signed-url link with come configured ttl against which file can be uploaded.\n   - It is mandatory to provide values for parameters marked with *. \n   - Mandatory fields cannot be null or empty."
+					},
+					"response": [
+						{
+							"name": "OK",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"fileName\": \"flower6.jpeg\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/asset/upload/url/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"upload",
+										"url",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": \"api.asset.upload.url\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2021-12-30T07:57:47ZZ\",\n  \"params\": {\n    \"resmsgid\": \"df673ca8-7d2c-46c9-b9e5-77e5602f9454\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"identifier\": \"do_1134418461689282561147\",\n    \"url_expiry\": \"54000\",\n    \"pre_signed_url\": \"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_1134418461689282561147/flower6.jpeg?sv=2017-04-17&se=2021-12-30T22%3A57%3A47Z&sr=b&sp=w&sig=2pow25YLNLIM0hrMwVx4uy3aDu3BTNNbNdLI8X9Yt4M%3D\"\n  }\n}"
+						},
+						{
+							"name": "Bad Request",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"fileName\": \"flower6.jpeg\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/asset/upload/url/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"upload",
+										"url",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": \"api.asset.upload.url\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2021-12-30T07:47:32ZZ\",\n  \"params\": {\n    \"resmsgid\": \"9b18aedd-c6d3-43bf-b967-d787e2054b60\",\n    \"err\": \"ERR_CONTENT_BLANK_FILE_NAME\",\n    \"status\": \"failed\",\n    \"errmsg\": \"File name is blank\"\n  },\n  \"responseCode\": \"CLIENT_ERROR\",\n  \"result\": {}\n}"
+						},
+						{
+							"name": "Not Found",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+										"key": "Authorization",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "The Content Type entity is the media type of the resource.Possible",
+										"key": "Content-Type",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents the authorized User ID to execute the API",
+										"key": "x-authenticated-user-token",
+										"value": "reprehenderit aliquip"
+									},
+									{
+										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+										"key": "X-Channel-ID",
+										"value": "reprehenderit aliquip"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"fileName\": \"flower6.jpeg\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/asset/upload/url/:Asset_Id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"asset",
+										"upload",
+										"url",
+										":Asset_Id"
+									],
+									"variable": [
+										{
+											"key": "Asset_Id",
+											"value": "reprehenderit aliquip",
+											"description": "(Required) Please append a valid Asset Id To the Request URL"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"id\": \"api.asset.upload.url\",\n  \"ver\": \"3.0\",\n  \"ts\": \"2021-12-30T07:59:12ZZ\",\n  \"params\": {\n    \"resmsgid\": \"256bbf94-1ddb-4f44-ab48-ffd04bd8c8a9\",\n    \"err\": \"NOT_FOUND\",\n    \"status\": \"failed\",\n    \"errmsg\": \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_1134418461689282561149\"\n  },\n  \"responseCode\": \"RESOURCE_NOT_FOUND\",\n  \"result\": {}\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://staging.sunbirded.org/api",
+			"type": "string"
+		}
+	]
+}

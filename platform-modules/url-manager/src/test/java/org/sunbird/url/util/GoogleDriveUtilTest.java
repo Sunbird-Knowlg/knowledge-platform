@@ -2,15 +2,11 @@ package org.sunbird.url.util;
 
 import com.google.api.services.drive.model.File;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.sunbird.common.exception.ClientException;
-import org.sunbird.common.exception.ServerException;
-
-import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -43,7 +39,7 @@ public class GoogleDriveUtilTest {
 
 	@Test
 	public void testGetDriveFileWithValidUrl() {
-		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view?usp=sharing";
+		String driveUrl = "https://drive.google.com/file/d/1ZUSXrODwNK52pzDJZ_fuNKK9lXBzxCsS/view";
 		String fileId = GoogleDriveUrlUtil.getDriveFileId(driveUrl);
 		File driveFile = GoogleDriveUrlUtil.getDriveFile(fileId);
 		assertNotNull(driveFile);

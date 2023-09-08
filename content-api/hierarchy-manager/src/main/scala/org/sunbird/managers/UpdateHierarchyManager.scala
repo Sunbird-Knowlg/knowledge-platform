@@ -17,7 +17,8 @@ import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -27,8 +28,11 @@ object UpdateHierarchyManager {
     def updateHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
         val nodesModified: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[java.util.HashMap[String, AnyRef]]
+        TelemetryManager.info("UpdateHierarchyManager:: updateHierarchy:: nodesModified: " + nodesModified)
         val hierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
+        TelemetryManager.info("UpdateHierarchyManager:: updateHierarchy:: hierarchy: " + hierarchy)
         val rootId: String = getRootId(nodesModified, hierarchy)
+        TelemetryManager.info("UpdateHierarchyManager:: updateHierarchy:: rootId: " + rootId)
         request.getContext.put(HierarchyConstants.ROOT_ID, rootId)
         getValidatedRootNode(rootId, request).map(node => {
             getExistingHierarchy(request, node).map(existingHierarchy => {

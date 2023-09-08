@@ -2,13 +2,32 @@
 
 Repository for Knowledge Platform - 2.0
 
-## Knowledge-platform local setup
+## Knowledge-platform local setup 
 This readme file contains the instruction to set up and run the content-service in local machine.
 
 ### System Requirements:
 
 ### Prerequisites:
 * Java 11
+* Docker, Docker Compose
+
+
+## One step installation 
+
+1. Go to Root folder (knowledge-platform)
+2. Run "local-setup.sh" file
+``` shell
+sh ./local-setup.sh
+```
+ 
+ This will install all the requied dcoker images & local folders for DB mounting.
+ 3. Follow the below manual setps of running content service 
+  refer: [Running Content Service:](#running-content-service)
+
+
+
+## Manual steps to install all the dependents
+Please follow the manual steps in [One step installation](#one-step-installation) is failed.
 
 ### Prepare folders for database data and logs
 
@@ -114,7 +133,7 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:2181     
     
   kafka:
-    image: 'wurstmeister/kafka:2.11-1.0.1'
+    image: 'wurstmeister/kafka:2.12-1.0.1'
     container_name: kafka
     ports:
       - "9092:9092"

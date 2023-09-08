@@ -23,16 +23,21 @@ import java.nio.charset.StandardCharsets
 import java.util
 import java.util.logging.Logger
 import scala.collection.immutable.{ListMap, Map}
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters.{asJavaIterableConverter, mapAsScalaMapConverter}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
+import scala.collection.JavaConverters._
+
 object CollectionCSVManager extends CollectionInputFileReader  {
 
   private val CONTENT_FOLDER = "cloud_storage.content.folder"
   val logger = Logger.getLogger("CollectionCSVManager")
+  val categoryMap: java.util.Map[String, AnyRef] = Platform.getAnyRef("contentTypeToPrimaryCategory",
+    new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+
   def getCode(code: String): String = {DigestUtils.md5Hex(code)}
 
   def validateInputData(inputFileExtension: String, csvRecords: util.List[CSVRecord], mode: String, collectionHierarchy: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): List[Map[String, AnyRef]] = {
@@ -323,9 +328,9 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       else
         try {
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
-             |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)},
+             |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "primaryCategory": "${getPrimaryCategory(collectionUnitType)}",
              |"description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
-             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": "${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}",
+             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": ["${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}"],
              |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
              |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
               nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].map(keyword=>JsonUtils.serialize(keyword)).mkString("[",",","]") else "[]"},
@@ -500,5 +505,13 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     })
   }
 
+  private def getPrimaryCategory(contentType: String): String ={
+    val primaryCategory = categoryMap.get(contentType)
+    if(primaryCategory.isInstanceOf[String])
+      primaryCategory.asInstanceOf[String]
+    else
+      primaryCategory.asInstanceOf[util.List[String]].asScala.headOption.getOrElse("Learning Resource")
+
+  }
 
 }

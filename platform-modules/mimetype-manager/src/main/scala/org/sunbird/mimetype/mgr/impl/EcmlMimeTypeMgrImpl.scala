@@ -18,7 +18,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import org.xml.sax.{InputSource, SAXException}
 
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {

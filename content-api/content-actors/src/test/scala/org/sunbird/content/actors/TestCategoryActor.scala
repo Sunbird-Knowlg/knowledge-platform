@@ -33,7 +33,11 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
         val request = getCategoryRequest()
-        request.putAll(mapAsJavaMap(Map("name" -> "do_1234")))
+        request.getRequest.put("orgIdFieldName", "stateIds")
+        request.getRequest.put("targetIdFieldName", "targetStateIds")
+        request.getRequest.put("searchIdFieldName", "se_stateIds")
+        request.getRequest.put("searchLabelFieldName", "se_states")
+        request.putAll(mapAsJavaMap(Map("name" -> "do_1234", "code" -> "do_1234")))
         request.setOperation("createCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.get("identifier") != null)
@@ -45,6 +49,11 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getCategoryRequest()
         request.setOperation("createCategory")
+        request.getRequest.put("orgIdFieldName", "stateIds")
+        request.getRequest.put("targetIdFieldName", "targetStateIds")
+        request.getRequest.put("searchIdFieldName", "se_stateIds")
+        request.getRequest.put("searchLabelFieldName", "se_states")
+        request.putAll(mapAsJavaMap(Map("code" -> "do_1234")))
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
         assert(StringUtils.equalsIgnoreCase(response.get("messages").asInstanceOf[util.ArrayList[String]].get(0).asInstanceOf[String], "Required Metadata name not set"))
@@ -54,7 +63,11 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getCategoryRequest()
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getRequest.put("orgIdFieldName", "stateIds")
+        request.getRequest.put("targetIdFieldName", "targetStateIds")
+        request.getRequest.put("searchIdFieldName", "se_stateIds")
+        request.getRequest.put("searchLabelFieldName", "se_states")
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "code" -> "do_1234")))
         request.setOperation("createCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -74,7 +87,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val ss = mock[StorageService]
         val request = getCategoryRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "code" -> "do_1234")))
         request.setOperation("updateCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -109,7 +122,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val ss = mock[StorageService]
         val request = getCategoryRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "code" -> "do_1234")))
         request.setOperation("retireCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -142,6 +155,10 @@ class TestCategoryActor extends BaseSpec with MockFactory{
                 put("status", "Live")
                 put("name", "do_1234")
                 put("versionKey", "1878141")
+                put("orgIdFieldName", "stateIds")
+                put("targetIdFieldName", "targetStateIds")
+                put("searchIdFieldName", "se_stateIds")
+                put("searchLabelFieldName", "se_states")
             }
         })
         node

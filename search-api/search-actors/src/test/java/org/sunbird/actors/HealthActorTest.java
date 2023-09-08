@@ -4,7 +4,6 @@ import akka.actor.Props;
 import akka.testkit.TestKit;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -20,7 +19,6 @@ import scala.concurrent.duration.Duration;
 
 import java.util.concurrent.TimeUnit;
 
-@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HealthActor.class, ElasticSearchUtil.class})
 @PowerMockIgnore({"jdk.internal.reflect.*", "javax.management.*", "sun.security.ssl.*", "javax.net.ssl.*" , "javax.crypto.*"})

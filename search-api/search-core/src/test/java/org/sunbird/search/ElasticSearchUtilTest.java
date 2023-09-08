@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
  * @author pradyumna
  *
  */
+
 public class ElasticSearchUtilTest extends BaseSearchTest {
 
 	private static String[] contentTypes = new String[] { "Resources", "PracticeSet", "TextBook", "Collection", "Asset" };

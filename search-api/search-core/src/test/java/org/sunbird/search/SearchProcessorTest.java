@@ -14,7 +14,6 @@ import org.sunbird.search.processor.SearchProcessor;
 import org.sunbird.search.util.SearchConstants;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -28,6 +27,7 @@ import java.util.Set;
  * @author pradyumna
  *
  */
+
 public class SearchProcessorTest extends BaseSearchTest {
 	private static SearchProcessor searchprocessor = new SearchProcessor();
 

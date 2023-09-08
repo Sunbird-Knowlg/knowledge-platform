@@ -18,36 +18,30 @@ class StorageService {
     @throws[Exception]
     def getService: BaseStorageService = {
         if (null == storageService) {
-            if (StringUtils.equalsIgnoreCase(storageType, "azure")) {
-                val storageKey = Platform.config.getString("azure_storage_key")
-                val storageSecret = Platform.config.getString("azure_storage_secret")
-                storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
-            } else if (StringUtils.equalsIgnoreCase(storageType, "aws")) {
-                val storageKey = Platform.config.getString("aws_storage_key")
-                val storageSecret = Platform.config.getString("aws_storage_secret")
-                storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
-            } else if (StringUtils.equalsIgnoreCase(storageType, "gcloud")) {
-                val storageKey = Platform.config.getString("gcloud_client_key")
-                val storageSecret = Platform.config.getString("gcloud_private_secret")
-                storageService = StorageServiceFactory.getStorageService(StorageConfig(storageType, storageKey, storageSecret))
-            }
-//            else if (StringUtils.equalsIgnoreCase(storageType, "cephs3")) {
-//                val storageKey = Platform.config.getString("cephs3_storage_key")
-//                val storageSecret = Platform.config.getString("cephs3_storage_secret")
-//                val endpoint = Platform.config.getString("cephs3_storage_endpoint")
-//                storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret, Option(endpoint)))
-//            }
-            else throw new ServerException("ERR_INVALID_CLOUD_STORAGE", "Error while initialising cloud storage")
+              val storageKey = Platform.config.getString("cloud_storage_key")
+              val storageSecret = Platform.config.getString("cloud_storage_secret")
+              // TODO: endPoint defined to support "cephs3". Make code changes after cloud-store-sdk 2.11 support it.
+              val endPoint = if (Platform.config.hasPath("cloud_storage_endpoint")) Option(Platform.config.getString("cloud_storage_endpoint")) else None
+              storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret, endPoint))
         }
         storageService
     }
 
     def getContainerName: String = {
-      storageType match {
-        case "azure" => Platform.config.getString("azure_storage_container")
-        case "aws" => Platform.config.getString("aws_storage_container")
-        case "gcloud" => Platform.config.getString("gcloud_storage_bucket")
-        case _ => throw new ServerException("ERR_INVALID_CLOUD_STORAGE", "Container name not configured.")
+      if(Platform.config.hasPath("cloud_storage_container"))
+        Platform.config.getString("cloud_storage_container")
+      else
+        throw new ServerException("ERR_INVALID_CLOUD_STORAGE", "Cloud Storage Container name not configured.")
+    }
+
+    def formatUrl(url: String): String = {
+      if (storageType == "oci") {
+        val newHostname: String = if (Platform.config.hasPath("cloud_storage_proxy_host")) Platform.config.getString("cloud_storage_proxy_host") else ""
+        val regex = "(?<=://)([^/]+)".r
+        val replacedUrl = regex.replaceAllIn(url, newHostname)
+        replacedUrl
+      } else {
+        url
       }
     }
 
@@ -55,14 +49,14 @@ class StorageService {
         val slugFile = if (slug.getOrElse(true)) Slug.createSlugFile(file) else file
         val objectKey = folderName + "/" + slugFile.getName
         val url = getService.upload(getContainerName, slugFile.getAbsolutePath, objectKey, Option.apply(false), Option.apply(1), Option.apply(5), Option.empty)
-        Array[String](objectKey, url)
+        Array[String](objectKey, formatUrl(url))
     }
 
     def uploadDirectory(folderName: String, directory: File, slug: Option[Boolean] = Option(true)): Array[String] = {
         val slugFile = if (slug.getOrElse(true)) Slug.createSlugFile(directory) else directory
         val objectKey = folderName + File.separator
         val url = getService.upload(getContainerName, slugFile.getAbsolutePath, objectKey, Option.apply(true), Option.apply(1), Option.apply(5), Option.empty)
-        Array[String](objectKey, url)
+        Array[String](objectKey, formatUrl(url))
     }
 
     def uploadDirectoryAsync(folderName: String, directory: File, slug: Option[Boolean] = Option(true))(implicit ec: ExecutionContext): Future[List[String]] = {
@@ -85,10 +79,7 @@ class StorageService {
     }
 
     def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-      storageType match {
-        case "gcloud" => getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
-        case _ => getService.getSignedURL (getContainerName, key, ttl, permission)
-      }
+      getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
     }
 
     def getUri(key: String): String = {

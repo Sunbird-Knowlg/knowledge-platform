@@ -16,7 +16,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.JavaConversions._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters._
 
 object FlagManager {
