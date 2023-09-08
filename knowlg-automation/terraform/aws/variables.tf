@@ -114,7 +114,7 @@ variable "eks_addons" {
     },
     {
       name    = "coredns"
-      version = "v1.8.7-eksbuild.3"
+      version = "v1.10.1-eksbuild.1"
     },
     {
       name    = "aws-ebs-csi-driver"
