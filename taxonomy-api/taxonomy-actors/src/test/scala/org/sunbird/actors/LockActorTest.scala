@@ -542,12 +542,11 @@ class LockActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponseForList())).anyNumberOfTimes()
 
-    val lockListRequest = new Request()
+    val lockListRequest = getLockRequest()
     val filters = new util.HashMap[String, AnyRef]()
     filters.put("resourceId", util.Arrays.asList("do_1231"))
     lockListRequest.put("filters", filters)
     lockListRequest.setOperation(Constants.LIST_LOCK)
-    lockListRequest.setContext(new util.HashMap[String, AnyRef]())
     lockListRequest.put(Constants.X_AUTHENTICATED_USER_ID, "user123")
     lockListRequest.put(Constants.X_DEVICE_ID, "device123")
 
@@ -561,12 +560,11 @@ class LockActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponseForList())).anyNumberOfTimes()
 
-    val lockListRequest = new Request()
+    val lockListRequest = getLockRequest()
     val filters = new util.HashMap[String, AnyRef]()
     filters.put("resourceId", "do_1231")
     lockListRequest.put("filters", filters)
     lockListRequest.setOperation(Constants.LIST_LOCK)
-    lockListRequest.setContext(new util.HashMap[String, AnyRef]())
     lockListRequest.put(Constants.X_AUTHENTICATED_USER_ID, "user123")
     lockListRequest.put(Constants.X_DEVICE_ID, "device123")
 
@@ -580,12 +578,11 @@ class LockActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(errorResponse())).anyNumberOfTimes()
 
-    val lockListRequest = new Request()
+    val lockListRequest = getLockRequest()
     val filters = new util.HashMap[String, AnyRef]()
     filters.put("resourceId", util.Arrays.asList("do_1231"))
     lockListRequest.put("filters", filters)
     lockListRequest.setOperation(Constants.LIST_LOCK)
-    lockListRequest.setContext(new util.HashMap[String, AnyRef]())
     lockListRequest.put(Constants.X_AUTHENTICATED_USER_ID, "user123")
     lockListRequest.put(Constants.X_DEVICE_ID, "device123")
 
@@ -600,12 +597,11 @@ class LockActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(errorResponse())).anyNumberOfTimes()
 
-    val lockListRequest = new Request()
+    val lockListRequest = getLockRequest()
     val filters = new util.HashMap[String, AnyRef]()
     filters.put("resourceId", util.Arrays.asList("do_1231"))
     lockListRequest.put("filters", filters)
     lockListRequest.setOperation(Constants.LIST_LOCK)
-    lockListRequest.setContext(new util.HashMap[String, AnyRef]())
     lockListRequest.put(Constants.X_AUTHENTICATED_USER_ID, "user123")
 
     val response = callActor(lockListRequest, Props(new LockActor()))
