@@ -22,7 +22,8 @@ public class CassandraConnector {
 	private static Map<String,Session> sessionMap=new HashMap<String, Session>();
 
 	static {
-		prepareSession("lp", getConsistencyLevel("lp"));
+		if (Platform.getBoolean("service.db.cassandra.enabled", true))
+			prepareSession("lp", getConsistencyLevel("lp"));
 	}
 
 	/**
