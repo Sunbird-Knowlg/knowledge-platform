@@ -3,7 +3,6 @@ package org.sunbird.actors
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.graph.OntologyEngineContext
 import org.apache.commons.lang3.StringUtils
-import org.json.JSONObject
 import java.sql.Timestamp
 import java.util
 import java.util.{Date, TimeZone, UUID}
@@ -54,7 +53,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       val versionKey: String = res.getMetadata.getOrDefault("versionKey","").asInstanceOf[String]
       val channel: String = res.getMetadata.getOrDefault("channel","").asInstanceOf[String]
       request.put("identifier", resourceId)
-      val externalProps = DefinitionNode.getExternalProps("domain", "1.0", "lock")
+      val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
       oec.graphService.readExternalProps(request, externalProps).map(response => {
         if (!ResponseHandler.checkError(response)) {
               if(request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", "") &&
@@ -105,16 +104,16 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     if (!(request.getRequest.containsKey("resourceType") && request.getRequest.containsKey("resourceId") &&
       request.getRequest.containsKey("lockId"))) throw new ClientException("ERR_LOCK_CREATION_FIELDS_MISSING", "Error due to required request is missing")
     validateResource(request).flatMap( res =>{
-          val contentLockId = res.getMetadata.get("lockKey")
-          if(request.getRequest.getOrDefault("lockId", " ") != contentLockId)
-            throw new ClientException("RESOURCE_LOCKED", "Lock key and request lock key does not match")
-          request.put("identifier", resourceId)
-          val externalProps = DefinitionNode.getExternalProps("domain", "1.0", "lock")
+      val contentLockId = res.getMetadata.get("lockKey")
+      if(request.getRequest.getOrDefault("lockId", " ") != contentLockId)
+        throw new ClientException("RESOURCE_LOCKED", "Lock key and request lock key does not match")
+      request.put("identifier", resourceId)
+      val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
       // TODO : update proper username
-      val creatorInfo = new JSONObject(Map("name" -> "username", "id" -> userId).asJava).toString()
-      val resourceInfo = new JSONObject(Map("contentType" -> res.getMetadata.getOrDefault("contentType", ""), "framework" -> res.getMetadata.getOrDefault("framework", ""),
-        "identifier" -> resourceId, "mimeType" -> res.getMetadata.getOrDefault("mimeType", "")).asJava).toString()
-          oec.graphService.readExternalProps(request, externalProps).map(response => {
+      val creatorInfo = JsonUtils.serialize(Map("name" -> "username", "id" -> userId).asJava)
+      val resourceInfo = JsonUtils.serialize(Map("contentType" -> res.getMetadata.getOrDefault("contentType", ""), "framework" -> res.getMetadata.getOrDefault("framework", ""),
+        "identifier" -> resourceId, "mimeType" -> res.getMetadata.getOrDefault("mimeType", "")).asJava)
+      oec.graphService.readExternalProps(request, externalProps).map(response => {
             if (ResponseHandler.checkError(response)) {
               val createLockReq = request
               createLockReq.put("resourceInfo", resourceInfo)
@@ -155,7 +154,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     if(!(request.getRequest.containsKey("resourceType") && request.getRequest.containsKey("resourceId"))) throw new ClientException("ERR_LOCK_CREATION_FIELDS_MISSING","Error due to required request is missing")
     validateResource(request).flatMap( res =>{
       request.put("identifier", resourceId)
-      val externalProps = DefinitionNode.getExternalProps("domain", "1.0", "lock")
+      val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
       oec.graphService.readExternalProps(request, externalProps).map(response => {
         if (!ResponseHandler.checkError(response)) {
           val createdBy = response.getResult.toMap.getOrDefault("createdby", "")
@@ -189,14 +188,15 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     else {
         request.getRequest.put("identifiers", resourceId.asInstanceOf[java.util.List[String]].toList)
       }
-    val externalProps = DefinitionNode.getExternalProps("domain", "1.0", "lock")
+    val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
     oec.graphService.readExternalProps(request, externalProps).map(response => {
       if (!ResponseHandler.checkError(response)) {
         Future {
           val formattedLockDataList = response.getResult.values().asScala.map { lockData =>
-            val lockDataMap = lockData.asInstanceOf[java.util.Map[String, AnyRef]].asScala
-            val formattedLockData = lockDataMap + ("createdon" -> formatExpiryDate(lockDataMap("createdon").asInstanceOf[Date])) + ("expiresat" -> formatExpiryDate(lockDataMap("expiresat").asInstanceOf[Date]))
-            formattedLockData.asJava
+            val lockDataMap = lockData.asInstanceOf[java.util.Map[String, AnyRef]].asScala.toMap
+            val updatedLockDataMap = lockDataMap.updated("createdon", formatExpiryDate(lockDataMap("createdon").asInstanceOf[Date]))
+              .updated("expiresat", formatExpiryDate(lockDataMap("expiresat").asInstanceOf[Date]))
+            updatedLockDataMap.asJava
           }.toList.asJava
           ResponseHandler.OK.put("count", response.getResult.size()).put("data", formattedLockDataList)
         }
