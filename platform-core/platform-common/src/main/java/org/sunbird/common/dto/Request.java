@@ -162,4 +162,8 @@ public class Request implements Serializable {
     public String graphId() {
         return (String) context.getOrDefault("graph_id", "");
     }
+
+    public String getRequestString(String key, String defaultVal) {
+        return (String) request.getOrDefault(key, defaultVal);
+    }
 }

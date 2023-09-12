@@ -103,9 +103,14 @@ object ApiId {
 	val RESERVE_DIAL_COLLECTION = "api.collection.dialcode.reserve"
 	val RELEASE_DIAL_COLLECTION = "api.collection.dialcode.release"
 
+  //Schema API
 	val CREATE_SCHEMA = "api.schema.create"
 	val READ_SCHEMA = "api.schema.read"
 	val UPDATE_SCHEMA = "api.schema.update"
 	val UPLOAD_SCHEMA = "api.schema.upload"
 	val PUBLISH_SCHEMA = "api.schema.publish"
+
+	//Asset License Validate API
+	val ASSET_LICENSE_VALIDATE = "asset.url.validate"
+  
 }

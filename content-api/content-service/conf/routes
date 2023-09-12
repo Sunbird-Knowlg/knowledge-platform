@@ -61,6 +61,7 @@ GET       /asset/v4/read/:identifier             controllers.v4.AssetController.
 POST      /asset/v4/upload/:identifier           controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 POST      /asset/v4/upload/url/:identifier       controllers.v4.AssetController.uploadPreSigned(identifier:String, type: Option[String])
 POST      /asset/v4/copy/:identifier             controllers.v4.AssetController.copy(identifier:String)
+POST      /asset/v4/validate                     controllers.v4.AssetController.licenceValidate(field:Option[String])
 
 # Collection v4 Api's
 POST     /collection/v4/create                     controllers.v4.CollectionController.create

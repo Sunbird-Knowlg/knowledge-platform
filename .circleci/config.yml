@@ -2,8 +2,8 @@ version: 2.1
 executorType: machine
 jobs:
   build:
-    docker:
-      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
+    machine:
+      image: ubuntu-2004:202201-02
     steps:
       - checkout
       - restore_cache:
@@ -11,21 +11,21 @@ jobs:
       - run:
           name: Run build
           command: |
-            mvn clean install -DskipTests
+            mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=$CLOUD_STORE_GROUP_ID -DCLOUD_STORE_ARTIFACT_ID=$CLOUD_STORE_ARTIFACT_ID -DCLOUD_STORE_VERSION=$CLOUD_STORE_VERSION
       - save_cache:
           paths:
             - ~/.m2
           key: kp-dependency-build-cache-{{ checksum "pom.xml" }}
 
   unit-tests:
-    docker:
-      - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
-      - image: circleci/redis:latest
+    machine:
+       image: ubuntu-2004:202201-02
     parallelism: 1
     steps:
       - checkout
       - restore_cache:
           key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+
       - run:
           name: Setup environment and run tests
           command: bash vmsetup.sh
@@ -45,8 +45,8 @@ jobs:
 workflows:
   version: 2.1
   build-then-test:
-      jobs:
-        - build
-        - unit-tests:
-            requires:
-              - build
+    jobs:
+      - build
+      - unit-tests:
+          requires:
+            - build
