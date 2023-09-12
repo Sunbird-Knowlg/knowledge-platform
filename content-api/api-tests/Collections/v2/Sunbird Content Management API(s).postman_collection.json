@@ -1389,7 +1389,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"H5P Content\",\n      \"code\": \"h5pcontent\",\n      \"mimeType\": \"application/vnd.ekstep.h5p-archive\",\n      \"primaryCategory\": \"Learning Resource\",\n      \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n      \"channel\": \"in.ekstep\"\n    }\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"pdf content\",\n      \"code\": \"pdf content\",\n      \"mimeType\": \"application/pdf\",\n      \"primaryCategory\": \"Learning Resource\",\n      \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n      \"channel\": \"sunbird\"\n    }\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -4777,7 +4777,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"filters\": {\n      \"resourceId\": [\n        \"do_11319479631000371211\",\n        \"do_11319851826161254418\",\n        \"do_113107812356022272164\",\n        \"do_1131983093687828481353\",\n        \"do_113197939102253056140\",\n        \"do_113197917149233152139\",\n        \"do_113197913444737024138\",\n        \"do_113197844509425664130\",\n        \"do_113197903995772928137\"\n      ]\n    }\n  }\n}",
+											"raw": "{   \n  \"request\": {\n    \"filters\": {\n      \"resourceId\": [\n        \"do_11319479631000371211\",\n        \"do_11319851826161254418\",\n        \"do_113107812356022272164\",\n        \"do_1131983093687828481353\",\n        \"do_113197939102253056140\",\n        \"do_113197917149233152139\",\n        \"do_113197913444737024138\",\n        \"do_113197844509425664130\",\n        \"do_113197903995772928137\"\n      ]\n    }\n  }\n}",
 											"options": {
 												"raw": {
 													"language": "json"

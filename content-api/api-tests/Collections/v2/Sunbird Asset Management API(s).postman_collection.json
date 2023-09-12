@@ -85,7 +85,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"et qui officia non\",\n      \"code\": \"tempor nostrud esse\",\n      \"createdBy\": \"conseq\",\n      \"creator\": \"in enim\",\n      \"keywords\": [\"hi, hello, neer\"],\n      \"language\": [\n        \"English\",\n        \"Telugu\"\n      ],\n      \"mediaType\": \"other\",\n      \"mimeType\": \"application/json\",\n      \"name\": \"consequat in aute irure\",\n      \"primaryCategory\": \"explanation-content-latests\"\n    }\n  }\n}",
+									"raw": "{\n    \"request\": {\n        \"asset\": {\n            \"channel\": \"sunbird\",\n            \"code\": \"tempor nostrud esse\",\n            \"createdBy\": \"conseq\",\n            \"creator\": \"unkown\",\n            \"keywords\": [\n                \"hi, hello, neer\"\n            ],\n            \"language\": [\n                \"English\",\n                \"Telugu\"\n            ],\n            \"mediaType\": \"image\",\n            \"mimeType\": \"image/png\",\n            \"name\": \"test image\",\n            \"primaryCategory\": \"asset\"\n        }\n    }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -632,6 +632,16 @@
 										"value": "application/json"
 									}
 								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": []
+										}
+									]
+								},
 								"url": {
 									"raw": "{{baseUrl}}/asset/v1/upload/{{assetId}}",
 									"host": [

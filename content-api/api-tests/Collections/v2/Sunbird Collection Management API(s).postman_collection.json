@@ -1696,12 +1696,7 @@
 									{
 										"description": "(Required) Specify authorization key (format: Bearer api-key) received from administrator when performing given API request.",
 										"key": "x-authenticated-user-token",
-										"value": "{{userToken}}"
-									},
-									{
-										"description": "(Required) Access token of registered user performing given API request.",
-										"key": "Authorization",
-										"value": "{{api-key}}",
+										"value": "{{userToken}}",
 										"disabled": true
 									},
 									{
