@@ -4,6 +4,7 @@ package org.sunbird.graph.health
 import com.datastax.driver.core.Session
 import org.sunbird.cache.util.RedisConnector
 import org.sunbird.cassandra.CassandraConnector
+import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.service.operation.NodeAsyncOperations
@@ -21,7 +22,10 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
 
     def checkAllSystemHealth()(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 
-        val allChecks: List[Map[String, Any]] = List(checkRedisHealth(), checkGraphHealth(), checkCassandraHealth())
+        val redisHealth: List[Map[String, Any]] = List(checkRedisHealth())
+        val graphHealth: List[Map[String, Any]] = List(checkGraphHealth())
+        val cassandraEnabled = Platform.getBoolean("service.db.cassandra.enabled", true)
+        val allChecks: List[Map[String, Any]] = redisHealth ++ graphHealth ++ (if (cassandraEnabled) List(checkCassandraHealth()) else List())
         val overAllHealth = allChecks.map(check => check.getOrElse("healthy",false).asInstanceOf[Boolean]).foldLeft(true)(_ && _)
         val response = ResponseHandler.OK()
         response.put("checks", allChecks.map(m => JavaConverters.mapAsJavaMapConverter(m).asJava).asJava)

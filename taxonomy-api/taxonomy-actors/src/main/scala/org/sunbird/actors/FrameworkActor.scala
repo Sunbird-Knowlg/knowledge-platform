@@ -2,7 +2,8 @@ package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.Slug
+import org.sunbird.cache.impl.RedisCache
+import org.sunbird.common.{JsonUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
@@ -18,7 +19,7 @@ import java.util
 import javax.inject.Inject
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.collection.JavaConversions._
 
 class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -78,7 +79,11 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
           ResponseHandler.OK.put(Constants.FRAMEWORK, framework)
         }
       } else {
-        val frameworkData: Future[Map[String, AnyRef]] = FrameworkManager.getFrameworkHierarchy(request)
+        val frameworkData: Future[Map[String, AnyRef]] = if (Platform.getBoolean("service.db.cassandra.enabled", true))
+          FrameworkManager.getFrameworkHierarchy(request) else {
+          val frameworkStr = RedisCache.get("fw:"+frameworkId, (key: String) => "{}")
+          Future(JsonUtils.deserialize(frameworkStr, classOf[java.util.Map[String, AnyRef]]).toMap)
+        }
         frameworkData.map(framework => {
           if (framework.isEmpty) {
             DataNode.read(request).map(node => {
@@ -149,11 +154,14 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
           subGraph.map(data => {
             val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data)
             CategoryCache.setFramework(frameworkId, frameworkHierarchy)
-            val req = new Request(request)
-            req.put("hierarchy", ScalaJsonUtils.serialize(frameworkHierarchy))
-            req.put("identifier", frameworkId)
-            oec.graphService.saveExternalProps(req)
-            ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '$frameworkId' is pushed Successfully!")
+            val hierarchy = ScalaJsonUtils.serialize(frameworkHierarchy)
+            if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
+              val req = new Request(request)
+              req.put("hierarchy", hierarchy)
+              req.put("identifier", frameworkId)
+              oec.graphService.saveExternalProps(req)
+            } else RedisCache.set("fw:"+frameworkId, hierarchy)
+            ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${frameworkId}' is pushed Successfully!")
           })
         } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
       } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
@@ -165,5 +173,4 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     RequestUtil.restrictProperties(request)
     FrameworkManager.copyHierarchy(request)
   }
-
 }

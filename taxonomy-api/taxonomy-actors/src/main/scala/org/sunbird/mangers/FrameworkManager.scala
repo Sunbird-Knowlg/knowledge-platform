@@ -2,14 +2,14 @@ package org.sunbird.mangers
 
 import java.util
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.{JsonUtils, Platform, Slug}
+import org.sunbird.cache.impl.RedisCache
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.enums.RelationTypes
-import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
+import org.sunbird.graph.dac.model.{Relation, SubGraph}
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.graph.path.DataSubGraph
+
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
@@ -21,7 +21,7 @@ import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
-import org.sunbird.utils.{CategoryCache, Constants, FrameworkCache}
+import org.sunbird.utils.Constants
 
 object FrameworkManager {
   val schemaVersion: String = "1.0"
@@ -179,7 +179,7 @@ object FrameworkManager {
       val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
       val frameworkId = request.getContext.getOrDefault("frameworkId", "").asInstanceOf[String]
       val outRelations = node.getOutRelations.filter((rel: Relation) => {
-        StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
+        StringUtils.equals(rel.getStartNodeId, node.getIdentifier)
       }).toList
 
       node.setInRelations(null)
