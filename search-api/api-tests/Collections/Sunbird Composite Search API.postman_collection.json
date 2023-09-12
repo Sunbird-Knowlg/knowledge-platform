@@ -90,14 +90,13 @@
 									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"status\": [\n                \"Live\"\n            ],\n            \"mimeType\": \"application/vnd.ekstep.ecml-archive\",\n            \"contentType\": \"Resource\",\n            \"objectType\": \"Content\"\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        }\n    }\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action/composite/v3/search",
+									"raw": "{{baseUrl}}/composite/v1/search",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"action",
 										"composite",
-										"v3",
+										"v1",
 										"search"
 									]
 								},
@@ -188,14 +187,13 @@
 									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"objectType\": [\n                \"AssessmentItem\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        },\n        \"limit\": 50\n    }\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action/composite/v3/search",
+									"raw": "{{baseUrl}}/composite/v1/search",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"action",
 										"composite",
-										"v3",
+										"v1",
 										"search"
 									]
 								}
@@ -285,14 +283,13 @@
 									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"mediaType\": [\n                \"image\"\n            ],\n            \"contentType\": [\n                \"Asset\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"limit\": 50,\n        \"offset\": 0\n    }\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/action/composite/v3/search",
+									"raw": "{{baseUrl}}/composite/v1/search",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
-										"action",
 										"composite",
-										"v3",
+										"v1",
 										"search"
 									]
 								}
@@ -452,14 +449,13 @@
 							"raw": "{\n    \"request\": {\n    }\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/action/composite/v3/search",
+							"raw": "{{baseUrl}}/composite/v1/search",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"action",
 								"composite",
-								"v3",
+								"v1",
 								"search"
 							]
 						},
@@ -547,17 +543,16 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"objectType\": [\n                \"AssessmentItem\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        },\n        \"limit\": -1\n    }\n}"
+							"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"objectType\": [\n                \"AssessmentItem\"\n            ],\n            \"status\": [\n                \"Live\"\n            ]\n        },\n        \"sort_by\": {\n            \"lastUpdatedOn\": \"desc\"\n        },\n        \"limit\": 1\n    }\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/action/composite/v3/search",
+							"raw": "{{baseUrl}}/composite/v1/search",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"action",
 								"composite",
-								"v3",
+								"v1",
 								"search"
 							]
 						},

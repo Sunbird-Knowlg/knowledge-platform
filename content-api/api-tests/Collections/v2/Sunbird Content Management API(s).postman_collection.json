@@ -1332,6 +1332,9 @@
 											"});",
 											"",
 											"pm.environment.set(\"contentId\", jsonData.result.identifier);",
+											"pm.environment.set(\"contentNodeId\", jsonData.result.node_id);",
+											"pm.environment.set(\"contentVersionKey\", jsonData.result.versionKey);",
+											"",
 											""
 										],
 										"type": "text/javascript"
@@ -1370,7 +1373,8 @@
 									{
 										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs.",
 										"key": "x-channel-id",
-										"value": "{{userChannelId}}"
+										"value": "{{userChannelId}}",
+										"disabled": true
 									},
 									{
 										"description": "(Required) Represents the authorized User ID to execute the API.",
@@ -1385,7 +1389,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"H5P Content\",\n      \"code\": \"h5pcontent\",\n      \"mimeType\": \"application/vnd.ekstep.h5p-archive\",\n      \"primaryCategory\": \"Learning Resource\",\n      \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\"\n    }\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"name\": \"H5P Content\",\n      \"code\": \"h5pcontent\",\n      \"mimeType\": \"application/vnd.ekstep.h5p-archive\",\n      \"primaryCategory\": \"Learning Resource\",\n      \"createdBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n      \"channel\": \"in.ekstep\"\n    }\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1602,6 +1606,26 @@
 						},
 						{
 							"name": "Update Content",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"content create success\", function () {",
+											"    pm.response.to.have.status(200); ",
+											"});",
+											"",
+											"pm.environment.set(\"contentId\", jsonData.result.identifier);",
+											"pm.environment.set(\"contentNodeId\", jsonData.result.identifier);",
+											"pm.environment.set(\"contentVersionKey\", jsonData.result.versionKey);",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "apikey",
@@ -1655,7 +1679,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"versionKey\": \"1694069775799\",\n      \"description\": \"description update\"\n    }\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"versionKey\": \"{{contentVersionKey}}\",\n      \"description\": \"description update\",\n      \"channel\": \"{{userChannelId}}\"\n    }\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -4278,12 +4302,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/content/v2/dialcode/link",
+									"raw": "{{baseUrl}}content/v2/dialcode/link",
 									"host": [
-										"{{baseUrl}}"
+										"{{baseUrl}}content"
 									],
 									"path": [
-										"content",
 										"v2",
 										"dialcode",
 										"link"
@@ -5049,6 +5072,11 @@
 											{
 												"key": "Accept",
 												"value": "application/json; charset=utf-8"
+											},
+											{
+												"key": "X-device-Id",
+												"value": "{{xDeviceId}}",
+												"type": "text"
 											}
 										],
 										"body": {
@@ -5368,17 +5396,12 @@
 									{
 										"description": "The Content Type entity is the media type of the resource.Possible media types can be:-\n  - Application/json",
 										"key": "Content-Type",
-										"value": "ea laborum"
+										"value": "application/json"
 									},
 									{
 										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs.",
 										"key": "x-channel-id",
-										"value": "ea laborum"
-									},
-									{
-										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
-										"key": "Authorization",
-										"value": "ea laborum"
+										"value": "{{userChannelId}}"
 									},
 									{
 										"key": "Accept",
@@ -5581,6 +5604,99 @@
 							]
 						},
 						{
+							"name": "Private Read Content",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "value",
+											"value": "Bearer {{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "key",
+											"value": "Authorization",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "x-channel-id",
+										"value": "{{userChannelId}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/content/v1/private/read/{{contentId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"content",
+										"v1",
+										"private",
+										"read",
+										"{{contentId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "v4",
+					"item": [
+						{
+							"name": "System Content Update",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "value",
+											"value": "Bearer {{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "key",
+											"value": "Authorization",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/content/v4/system/update/{{contentId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"content",
+										"v4",
+										"system",
+										"update",
+										"{{contentId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "Reject Flag",
 							"request": {
 								"auth": {
@@ -5608,17 +5724,20 @@
 									{
 										"description": "(Required) The Content Type entity is the media type of the resource.Possible media types can be:- \n  - Application/json",
 										"key": "Content-Type",
-										"value": "nisi amet "
+										"value": "nisi amet ",
+										"disabled": true
 									},
 									{
 										"description": "(Required) The Registered User ID to execute the API.",
 										"key": "X-Authenticated-User-token",
-										"value": "nisi amet "
+										"value": "nisi amet ",
+										"disabled": true
 									},
 									{
 										"description": "(Required) All content APIs require authorization for use. Specify the authorization key received from the administrator when placing the request for use of the API.",
 										"key": "Authorization",
-										"value": "nisi amet "
+										"value": "nisi amet ",
+										"disabled": true
 									},
 									{
 										"key": "Accept",
@@ -5635,13 +5754,13 @@
 									}
 								},
 								"url": {
-									"raw": "{{baseUrl}}/content/v1/flag/reject/{{contentId}}",
+									"raw": "{{baseUrl}}/content/v4/flag/reject/{{contentId}}",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
 										"content",
-										"v1",
+										"v4",
 										"flag",
 										"reject",
 										"{{contentId}}"
@@ -5923,93 +6042,6 @@
 									"body": "{\n  \"result\": {},\n  \"id\": \"voluptate culpa Excepteur minim\",\n  \"ver\": \"Duis\",\n  \"ts\": \"exercitation cupidatat aute repr\",\n  \"params\": {\n    \"resmsgid\": \"do Duis cupidatat nostrud\",\n    \"msgid\": \"laboris veniam \",\n    \"err\": \"ut ad pariatur adipisicing enim\",\n    \"status\": \"sit sunt aliqua\",\n    \"errmsg\": \"elit dolore irure\"\n  },\n  \"responseCode\": \"occaecat\"\n}"
 								}
 							]
-						},
-						{
-							"name": "Private Read Content",
-							"request": {
-								"auth": {
-									"type": "apikey",
-									"apikey": [
-										{
-											"key": "value",
-											"value": "Bearer {{apiKey}}",
-											"type": "string"
-										},
-										{
-											"key": "key",
-											"value": "Authorization",
-											"type": "string"
-										},
-										{
-											"key": "in",
-											"value": "header",
-											"type": "string"
-										}
-									]
-								},
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/content/v1/private/read/{{contentId}}",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"content",
-										"v1",
-										"private",
-										"read",
-										"{{contentId}}"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "v4",
-					"item": [
-						{
-							"name": "System Content Update",
-							"request": {
-								"auth": {
-									"type": "apikey",
-									"apikey": [
-										{
-											"key": "value",
-											"value": "Bearer {{apiKey}}",
-											"type": "string"
-										},
-										{
-											"key": "key",
-											"value": "Authorization",
-											"type": "string"
-										},
-										{
-											"key": "in",
-											"value": "header",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PATCH",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/content/v4/system/update/{{contentId}}",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"content",
-										"v4",
-										"system",
-										"update",
-										"{{contentId}}"
-									]
-								}
-							},
-							"response": []
 						}
 					]
 				}

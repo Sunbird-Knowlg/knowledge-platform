@@ -66,7 +66,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"flagReasons\": [\n      \"Copyright Violation\"\n    ],\n    \"flaggedBy\": \"API-DOC-Tester\",\n    \"versionKey\": \"{{versionKey}}\",\n    \"flags\": [\n      \"kp-flags\",\n      \"newKp-flags\"\n    ]\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"flagReasons\": [\n      \"Copyright Violation\"\n    ],\n    \"flaggedBy\": \"API-DOC-Tester\",\n    \"versionKey\": \"{{collectionVersionKey}}\",\n    \"flags\": [\n      \"kp-flags\",\n      \"newKp-flags\"\n    ]\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -990,7 +990,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"rootId\": \"do_1134445959309803521184\",\n    \"unitId\": \"do_1134445959318241281187\",\n    \"children\": [\n      \"do_1134455063866736641416\"\n    ]\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"rootId\": \"do_1134445959309803521184}\",\n    \"unitId\": \"do_1134445959318241281187\",\n    \"children\": [\n      \"do_1134455063866736641416\"\n    ]\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1283,12 +1283,14 @@
 									{
 										"description": "(Required) Represents the authorized User ID to execute the API",
 										"key": "x-authenticated-user-token",
-										"value": "{{userToken}}"
+										"value": "{{userToken}}",
+										"disabled": true
 									},
 									{
 										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
 										"key": "X-Channel-ID",
-										"value": "{{userChannelId}}"
+										"value": "{{userChannelId}}",
+										"disabled": true
 									},
 									{
 										"key": "Accept",
@@ -1296,13 +1298,13 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/collection/v4/hierarchy/{{collectionId}}/{{bookmarkId}}",
+									"raw": "{{baseUrl}}/collection/v1/hierarchy/{{collectionId}}/{{bookmarkId}}",
 									"host": [
 										"{{baseUrl}}"
 									],
 									"path": [
 										"collection",
-										"v4",
+										"v1",
 										"hierarchy",
 										"{{collectionId}}",
 										"{{bookmarkId}}"
@@ -1367,7 +1369,7 @@
 									"urlencoded": [
 										{
 											"key": "fileUrl",
-											"value": "id enim non est Ut",
+											"value": "{{collectionFileUrl}}",
 											"description": "(Required) File which user want to upload"
 										}
 									]
@@ -1975,7 +1977,8 @@
 									"});",
 									"",
 									"pm.environment.set(\"collectionId\", jsonData.result.identifier);",
-									"pm.environment.set(\"bookmarkId\", jsonData.result.identifier);"
+									"pm.environment.set(\"collectionVersionKey\", jsonData.result.versionKey);",
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -2005,26 +2008,21 @@
 						"method": "POST",
 						"header": [
 							{
-								"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
-								"key": "Authorization",
-								"value": "magna",
-								"disabled": true
-							},
-							{
 								"description": "The Asset Type entity is the media type of the resource.Possible",
 								"key": "Content-Type",
-								"value": "magna",
-								"disabled": true
+								"value": "application/json"
 							},
 							{
 								"description": "(Required) Represents the authorized User ID to execute the API",
 								"key": "x-authenticated-user-token",
-								"value": "{{userToken}}"
+								"value": "{{userToken}}",
+								"disabled": true
 							},
 							{
 								"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
 								"key": "X-Channel-ID",
-								"value": "{{userChannelId}}"
+								"value": "{{userChannelId}}",
+								"disabled": true
 							},
 							{
 								"key": "Accept",
@@ -2033,7 +2031,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"request\": {\n    \"collection\": {\n      \"contentType\": \"voluptate magna aute laboris mollit\",\n      \"createdBy\": \"ea dolor veni\",\n      \"createdFor\": [\n        \"irure sunt dolor ut\",\n        \"nos\"\n      ],\n      \"creator\": \"reprehenderit dolore labore tempor\",\n      \"description\": \"in aute dolore laborum e\",\n      \"framework\": \"laborum ex culpa voluptate\",\n      \"mimeType\": \"ad minim ullamco pariatur\",\n      \"name\": \"commodo\",\n      \"organisation\": [\n        \"sunt voluptate eiusmod Excepteur dolore\",\n        \"nulla\"\n      ],\n      \"primaryCategory\": \"eu pariatur occaecat sunt\",\n      \"resourceType\": \"culpa irure\"\n    }\n  }\n}",
+							"raw": "{\n  \"request\": {\n    \"collection\": {\n       \"code\": \"en\", \n       \"channel\": \"in.ekstep\",\n      \"createdBy\": \"ea dolor veni\",\n      \"createdFor\": [\n        \"irure sunt dolor ut\",\n        \"nos\"\n      ],\n      \"creator\": \"reprehenderit dolore labore tempor\",\n      \"description\": \"in aute dolore laborum e\",\n      \"framework\": \"laborum ex culpa voluptate\",\n      \"mimeType\": \"application/vnd.ekstep.content-collection\",\n      \"name\": \"commodo\",\n      \"organisation\": [\n        \"sunt voluptate eiusmod Excepteur dolore\",\n        \"nulla\"\n      ],\n      \"primaryCategory\": \"explanation-content-latests\",\n      \"resourceType\": \"Test\"\n    }\n  }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2303,6 +2301,9 @@
 				},
 				{
 					"name": "Collection Private Read",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"auth": {
 							"type": "apikey",
@@ -2335,12 +2336,14 @@
 							{
 								"description": "(Required) The Registered User ID used to execute the API.",
 								"key": "X-Authenticated-User-Token",
-								"value": "{{userToken}}"
+								"value": "{{userToken}}",
+								"disabled": true
 							},
 							{
 								"description": "The unique ID provided to the State to which the user belongs.",
 								"key": "X-Channel-id",
-								"value": "{{userChannelId}}"
+								"value": "{{userChannelId}}",
+								"disabled": true
 							},
 							{
 								"description": "(Required) All content APIs require authorization for use. Specify the authorization key received from the administrator when placing the request for use of the API.",
@@ -2352,6 +2355,15 @@
 								"value": "application/json"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
 							"raw": "{{baseUrl}}/collection/v1/private/read/{{collectionId}}",
 							"host": [
@@ -2490,6 +2502,23 @@
 				},
 				{
 					"name": "Collection Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"content create success\", function () {",
+									"    pm.response.to.have.status(200); ",
+									"});",
+									"",
+									"pm.environment.set(\"collectionVersionKey\", jsonData.result.versionKey);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "apikey",
@@ -2522,12 +2551,14 @@
 							{
 								"description": "(Required) The Registered User ID used to execute the API.",
 								"key": "X-Authenticated-User-Token",
-								"value": "{{userToken}}"
+								"value": "{{userToken}}",
+								"disabled": true
 							},
 							{
 								"description": "The unique ID provided to the State to which the user belongs.",
 								"key": "X-Channel-id",
-								"value": "{{userChannelId}}"
+								"value": "{{userChannelId}}",
+								"disabled": true
 							},
 							{
 								"description": "(Required) All content APIs require authorization for use. Specify the authorization key received from the administrator when placing the request for use of the API.",
@@ -2542,7 +2573,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"request\": {\n    \"collection\": {\n      \"versionKey\": \"{{versionKey}}\",\n      \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n      \"description\": \"dsd\",\n      \"name\": \"API DOCUMENTATION CONTENT\",\n      \"mimeType\": \"application/vnd.ekstep.content-collection\"\n    }\n  }\n}",
+							"raw": "{\n  \"request\": {\n    \"collection\": {\n      \"versionKey\": \"1694503154960\",\n      \"lastUpdatedBy\": \"874ed8a5-782e-4f6c-8f36-e0288455901e\",\n      \"description\": \"dsd\",\n      \"name\": \"API DOCUMENTATION CONTENT\",\n      \"mimeType\": \"application/vnd.ekstep.content-collection\",\n      \"channel\": \"in.ekstep\"\n    }\n  }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2667,12 +2698,14 @@
 							{
 								"description": "(Required) The Registered User ID used to execute the API.",
 								"key": "X-Authenticated-User-Token",
-								"value": "{{userToken}}"
+								"value": "{{userToken}}",
+								"disabled": true
 							},
 							{
 								"description": "The unique ID provided to the State to which the user belongs.",
 								"key": "X-Channel-id",
-								"value": "{{userChannelId}}"
+								"value": "{{userChannelId}}",
+								"disabled": true
 							},
 							{
 								"description": "(Required) All content APIs require authorization for use. Specify the authorization key received from the administrator when placing the request for use of the API.",
@@ -2687,7 +2720,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"request\": {\n    \"collection\": {\n      \"createdBy\": \"Test\",\n      \"createdFor\": [\n        \"Sunbird\"\n      ],\n      \"organisation\": [\n        \"Sunbird\"\n      ],\n      \"framework\": \"test\"\n    }\n  }\n}",
+							"raw": "{\n    \"request\": {\n        \"collection\": {\n            \"createdBy\": \"Test\",\n            \"createdFor\": [\n                \"Sunbird\"\n            ],\n            \"organisation\": [\n                \"Sunbird\"\n            ],\n            \"framework\": \"test\",\n            \"channel\": \"in.ekstep\"\n        }\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2879,12 +2912,14 @@
 							{
 								"description": "(Required) The Registered User ID used to execute the API.",
 								"key": "X-Authenticated-User-Token",
-								"value": "{{userToken}}"
+								"value": "{{userToken}}",
+								"disabled": true
 							},
 							{
 								"description": "The unique ID provided to the State to which the user belongs.",
 								"key": "X-Channel-id",
-								"value": "{{userChannelId}}"
+								"value": "{{userChannelId}}",
+								"disabled": true
 							},
 							{
 								"description": "(Required) All content APIs require authorization for use. Specify the authorization key received from the administrator when placing the request for use of the API.",
@@ -2899,7 +2934,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"request\": {\n    \"collection\": {\n      \"rejectComment\": \"Collection rejected\"\n    }\n  }\n}",
+							"raw": "{\n  \"request\": {\n    \"collection\": {\n      \"rejectComment\": \"Collection rejected\",\n      \"channel\": \"in.ekstep\"\n    }\n  }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -3349,14 +3384,13 @@
 							"raw": "{\n  \"request\": {\n    \"content\": {\n      \"lastPublishedBy\": \"User_ID\"\n    }\n  }\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/collection/v4/unlisted/publish/{{collectionId}}",
+							"raw": "{{baseUrl}}/collection/v1/unlisted/publish/{{collectionId}}",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"api",
 								"collection",
-								"v4",
+								"v1",
 								"unlisted",
 								"publish",
 								"{{collectionId}}"

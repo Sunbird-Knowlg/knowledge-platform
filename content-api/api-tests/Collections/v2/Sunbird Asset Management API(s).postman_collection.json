@@ -24,7 +24,9 @@
 											"    pm.response.to.have.status(200); ",
 											"});",
 											"",
-											"pm.environment.set(\"assetId\", jsonData.result.identifier);"
+											"pm.environment.set(\"assetId\", jsonData.result.identifier);",
+											"pm.environment.set(\"assetVersionKey\", jsonData.result.versionKey);",
+											"pm.environment.set(\"assetNodeId\", jsonData.result.node_id);"
 										],
 										"type": "text/javascript"
 									}
@@ -67,12 +69,14 @@
 									{
 										"description": "(Required) Represents the authorized User ID to execute the API",
 										"key": "x-authenticated-user-token",
-										"value": "{{userToken}}"
+										"value": "{{userToken}}",
+										"disabled": true
 									},
 									{
 										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
 										"key": "X-Channel-ID",
-										"value": "{{userChannelId}}"
+										"value": "{{userChannelId}}",
+										"disabled": true
 									},
 									{
 										"key": "Accept",
@@ -81,7 +85,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"et qui officia non\",\n      \"code\": \"tempor nostrud esse\",\n      \"createdBy\": \"conseq\",\n      \"creator\": \"in enim\",\n      \"keywords\": \"occaecat ea\",\n      \"language\": [\n        \"proident id aliquip\",\n        \"dolor\"\n      ],\n      \"mediaType\": \"dolore dolore sint dolor\",\n      \"mimeType\": \"dolor irure\",\n      \"name\": \"consequat in aute irure\",\n      \"primaryCategory\": \"dolor pariatur\"\n    }\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"et qui officia non\",\n      \"code\": \"tempor nostrud esse\",\n      \"createdBy\": \"conseq\",\n      \"creator\": \"in enim\",\n      \"keywords\": [\"hi, hello, neer\"],\n      \"language\": [\n        \"English\",\n        \"Telugu\"\n      ],\n      \"mediaType\": \"other\",\n      \"mimeType\": \"application/json\",\n      \"name\": \"consequat in aute irure\",\n      \"primaryCategory\": \"explanation-content-latests\"\n    }\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -224,6 +228,24 @@
 						},
 						{
 							"name": "Asset Update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"content create success\", function () {",
+											"    pm.response.to.have.status(200); ",
+											"});",
+											"",
+											"",
+											"pm.environment.set(\"assetVersionKey\", jsonData.result.versionKey);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"request": {
 								"auth": {
 									"type": "apikey",
@@ -248,26 +270,21 @@
 								"method": "PATCH",
 								"header": [
 									{
-										"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
-										"key": "Authorization",
-										"value": "reprehenderit aliquip",
-										"disabled": true
-									},
-									{
 										"description": "The Content Type entity is the media type of the resource.Possible",
 										"key": "Content-Type",
-										"value": "reprehenderit aliquip",
-										"disabled": true
+										"value": "application/json"
 									},
 									{
 										"description": "(Required) Represents the authorized User ID to execute the API",
 										"key": "x-authenticated-user-token",
-										"value": "{{userToken}}"
+										"value": "{{userToken}}",
+										"disabled": true
 									},
 									{
 										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
 										"key": "X-Channel-ID",
-										"value": "{{userChannelId}}"
+										"value": "{{userChannelId}}",
+										"disabled": true
 									},
 									{
 										"key": "Accept",
@@ -276,7 +293,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"name\": \"test asset\",\n      \"versionKey\": \"1640774434453\"\n    }\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"name\": \"explanation content latests\",\n      \"versionKey\": \"{{assetVersionKey}}\"\n    }\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -601,12 +618,14 @@
 									{
 										"description": "(Required) Represents the authorized User ID to execute the API",
 										"key": "x-authenticated-user-token",
-										"value": "{{userToken}}"
+										"value": "{{userToken}}",
+										"disabled": true
 									},
 									{
 										"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
 										"key": "X-Channel-ID",
-										"value": "{{userChannelId}}"
+										"value": "{{userChannelId}}",
+										"disabled": true
 									},
 									{
 										"key": "Accept",
@@ -1015,7 +1034,12 @@
 									"body": "{\n  \"id\": \"api.asset.copy\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-30T11:42:58ZZ\",\n  \"params\": {\n    \"resmsgid\": \"0a0c203d-4d8f-4a78-be67-1365fad3407e\",\n    \"err\": \"NOT_FOUND\",\n    \"status\": \"failed\",\n    \"errmsg\": \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_1134418461689282561142\"\n  },\n  \"responseCode\": \"RESOURCE_NOT_FOUND\",\n  \"result\": {}\n}"
 								}
 							]
-						},
+						}
+					]
+				},
+				{
+					"name": "v4",
+					"item": [
 						{
 							"name": "Asset Upload Url",
 							"request": {
@@ -1071,9 +1095,9 @@
 									"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"fileName\": \"flower6.jpeg\"\n    }\n  }\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/asset/upload/url/{{assetId}}",
+									"raw": "{{localUrl}}/asset/upload/url/{{assetId}}",
 									"host": [
-										"{{baseUrl}}"
+										"{{localUrl}}"
 									],
 									"path": [
 										"asset",

@@ -844,7 +844,9 @@
 													"});",
 													"",
 													"",
-													"pm.environment.set(\"frameworkId\", jsonData.result.node_id);"
+													"pm.environment.set(\"frameworkId\", jsonData.result.node_id);",
+													"pm.environment.set(\"frameworkVersionKey\", jsonData.result.versionKey);",
+													""
 												],
 												"type": "text/javascript"
 											}
@@ -889,7 +891,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"framework\": {\n      \"name\": \"Framework Name\",\n      \"code\": \"dummy_framework3\",\n      \"channels\": [\n        {\n          \"identifier\": \"in.ekstep\"\n        }\n      ]\n    }\n  }\n}",
+											"raw": "{\n  \"request\": {\n    \"framework\": {\n      \"name\": \"Framework Name\",\n      \"code\": \"dummy_framework7\",\n      \"channels\": [\n        {\n          \"identifier\": \"in.ekstep\"\n        }\n      ]\n    }\n  }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -1310,6 +1312,22 @@
 								},
 								{
 									"name": "Update Framework",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var jsonData = pm.response.json();",
+													"pm.test(\"content create success\", function () {",
+													"    pm.response.to.have.status(200); ",
+													"});",
+													"pm.environment.set(\"frameworkVersionKey\", jsonData.result.versionKey);",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
 									"request": {
 										"auth": {
 											"type": "apikey",
@@ -1908,6 +1926,220 @@
 									]
 								},
 								{
+									"name": "Asset Create Copy",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var jsonData = pm.response.json();",
+													"pm.test(\"content create success\", function () {",
+													"    pm.response.to.have.status(200); ",
+													"});",
+													"",
+													"pm.environment.set(\"assetId\", jsonData.result.identifier);",
+													"pm.environment.set(\"assetVersionKey\", jsonData.result.versionKey);",
+													"pm.environment.set(\"assetNodeId\", jsonData.result.node_id);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "value",
+													"value": "Bearer {{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "key",
+													"value": "Authorization",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+												"key": "Authorization",
+												"value": "reprehenderit aliquip",
+												"disabled": true
+											},
+											{
+												"description": "The Content Type entity is the media type of the resource.Possible",
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"description": "(Required) Represents the authorized User ID to execute the API",
+												"key": "x-authenticated-user-token",
+												"value": "{{userToken}}",
+												"disabled": true
+											},
+											{
+												"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+												"key": "X-Channel-ID",
+												"value": "{{userChannelId}}",
+												"disabled": true
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"et qui officia non\",\n      \"code\": \"tempor nostrud esse\",\n      \"createdBy\": \"conseq\",\n      \"creator\": \"in enim\",\n      \"keywords\": [\"hi, hello, neer\"],\n      \"language\": [\n        \"English\",\n        \"Telugu\"\n      ],\n      \"mediaType\": \"other\",\n      \"mimeType\": \"application/json\",\n      \"name\": \"consequat in aute irure\",\n      \"primaryCategory\": \"explanation-content-latests\"\n    }\n  }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/asset/v1/create",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"asset",
+												"v1",
+												"create"
+											]
+										},
+										"description": "This API is associated with creating asset on the Sunbird Platform.\n  - The endpoint for **Create Asset** is `/asset/v1/create`\n  - It points to knowledge-mw-service - `/v1/asset/create`\n  - It is mandatory to provide values for parameters marked with *\n  - Mandatory fields cannot be null or empty."
+									},
+									"response": [
+										{
+											"name": "OK",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+														"key": "Authorization",
+														"value": "reprehenderit aliquip"
+													},
+													{
+														"description": "The Content Type entity is the media type of the resource.Possible",
+														"key": "Content-Type",
+														"value": "reprehenderit aliquip"
+													},
+													{
+														"description": "(Required) Represents the authorized User ID to execute the API",
+														"key": "x-authenticated-user-token",
+														"value": "reprehenderit aliquip"
+													},
+													{
+														"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+														"key": "X-Channel-ID",
+														"value": "reprehenderit aliquip"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"eiusmod est ullamco dolor\",\n      \"code\": \"officia incididunt culpa commodo\",\n      \"createdBy\": \"ea sit laboris cupidatat\",\n      \"creator\": \"et anim deserunt sint\",\n      \"keywords\": \"dolore cill\",\n      \"language\": [\n        \"magna\",\n        \"esse Excepteur cillum\"\n      ],\n      \"mediaType\": \"Duis proident id elit\",\n      \"mimeType\": \"Lorem in aute nisi\",\n      \"name\": \"sunt non proident Duis\",\n      \"primaryCategory\": \"esse reprehenderit\"\n    }\n  }\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/asset/v1/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"asset",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"id\": \"api.asset.create\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T09:20:03ZZ\",\n  \"params\": {\n    \"resmsgid\": \"bc3f02f5-d550-42b0-904e-38eb671248ef\",\n    \"status\": \"successful\"\n  },\n  \"responseCode\": \"OK\",\n  \"result\": {\n    \"identifier\": \"do_113441184591495168151\",\n    \"node_id\": \"do_113441184591495168151\",\n    \"versionKey\": \"1640769603462\"\n  }\n}"
+										},
+										{
+											"name": "Bad Request",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"description": "(Required) To make use of the API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+														"key": "Authorization",
+														"value": "reprehenderit aliquip"
+													},
+													{
+														"description": "The Content Type entity is the media type of the resource.Possible",
+														"key": "Content-Type",
+														"value": "reprehenderit aliquip"
+													},
+													{
+														"description": "(Required) Represents the authorized User ID to execute the API",
+														"key": "x-authenticated-user-token",
+														"value": "reprehenderit aliquip"
+													},
+													{
+														"description": "(Required) Represents a physical location (e.g: state) uniquely to which the user belongs",
+														"key": "X-Channel-ID",
+														"value": "reprehenderit aliquip"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"request\": {\n    \"asset\": {\n      \"channel\": \"eiusmod est ullamco dolor\",\n      \"code\": \"officia incididunt culpa commodo\",\n      \"createdBy\": \"ea sit laboris cupidatat\",\n      \"creator\": \"et anim deserunt sint\",\n      \"keywords\": \"dolore cill\",\n      \"language\": [\n        \"magna\",\n        \"esse Excepteur cillum\"\n      ],\n      \"mediaType\": \"Duis proident id elit\",\n      \"mimeType\": \"Lorem in aute nisi\",\n      \"name\": \"sunt non proident Duis\",\n      \"primaryCategory\": \"esse reprehenderit\"\n    }\n  }\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/asset/v1/create",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"asset",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "Bad Request",
+											"code": 400,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"id\": \"api.asset.create\",\n  \"ver\": \"4.0\",\n  \"ts\": \"2021-12-29T09:36:28ZZ\",\n  \"params\": {\n    \"resmsgid\": \"c2a8542a-3ed3-4b69-8a76-f2cc782191ed\",\n    \"err\": \"CLIENT_ERROR\",\n    \"status\": \"failed\",\n    \"errmsg\": \"Validation Errors\"\n  },\n  \"responseCode\": \"CLIENT_ERROR\",\n  \"result\": {\n    \"messages\": [\n      \"Required Metadata code not set\"\n    ]\n  }\n}"
+										}
+									]
+								},
+								{
 									"name": "Copy Framework",
 									"request": {
 										"auth": {
@@ -1948,7 +2180,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"framework\": {\n      \"code\": \"NCERTCOPY11\"\n    }\n  }\n}",
+											"raw": "{\n  \"request\": {\n    \"framework\": {\n      \"code\": \"NCERTCOPY12\"\n    }\n  }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -2308,6 +2540,25 @@
 								},
 								{
 									"name": "Create Category",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"var jsonData = pm.response.json();",
+													"pm.test(\"content create success\", function () {",
+													"    pm.response.to.have.status(200); ",
+													"});",
+													"",
+													"",
+													"pm.environment.set(\"categoryId\", jsonData.result.identifier);",
+													"pm.environment.set(\"categoryVersionKey\", jsonData.result.versionKey);",
+													""
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
 									"request": {
 										"auth": {
 											"type": "apikey",
@@ -2342,7 +2593,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"category\": {\n      \"name\": \"Medium\",\n      \"code\": \"medium\"\n    }\n  }\n}",
+											"raw": "{\n    \"request\": {\n        \"category\": {\n            \"name\": \"{{categoryName}}\",\n            \"code\": \"{{categoryCode}}\"\n        }\n    }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -2585,7 +2836,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/framework/v1/category/read/:code?framework={{frameworkId}}",
+											"raw": "{{baseUrl}}/framework/v1/category/read/{{categoryCode}}?framework={{frameworkId}}",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -2594,20 +2845,12 @@
 												"v1",
 												"category",
 												"read",
-												":code"
+												"{{categoryCode}}"
 											],
 											"query": [
 												{
 													"key": "framework",
-													"value": "{{frameworkId}}",
-													"description": "(Required) Name of the framework under which category exists. Its an abstract data structure which serves as a template for categories and terms"
-												}
-											],
-											"variable": [
-												{
-													"key": "code",
-													"value": "subject",
-													"description": "(Required) The name/code of the category to be fetched"
+													"value": "{{frameworkId}}"
 												}
 											]
 										},
@@ -2840,7 +3083,7 @@
 											}
 										},
 										"url": {
-											"raw": "{{baseUrl}}/framework/v1/category/update/:code?framework={{frameworkId}}",
+											"raw": "{{baseUrl}}/framework/v1/category/update/{{categoryCode}}?framework={{frameworkId}}",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -2849,20 +3092,13 @@
 												"v1",
 												"category",
 												"update",
-												":code"
+												"{{categoryCode}}"
 											],
 											"query": [
 												{
 													"key": "framework",
 													"value": "{{frameworkId}}",
 													"description": "(Required) Represents the framework to which the category belongs"
-												}
-											],
-											"variable": [
-												{
-													"key": "code",
-													"value": "Subject",
-													"description": "(Required) The name/code of the category to be updated"
 												}
 											]
 										},
@@ -3180,7 +3416,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"term\": {\n      \"code\": \"english\",\n      \"name\": \"English\"\n    }\n  }\n}",
+											"raw": "{\n  \"request\": {\n    \"term\": {\n      \"code\": \"{{termCode}}\",\n      \"name\": \"{{termName}}\"\n    }\n  }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -3436,7 +3672,7 @@
 											}
 										],
 										"url": {
-											"raw": "{{baseUrl}}/framework/v1/term/read/:code?framework=Ut enim offici&category=Ut enim offici",
+											"raw": "{{baseUrl}}/framework/v1/term/read/{{termCode}}?framework={{frameworkId}}&category={{categoryId}}",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -3445,25 +3681,18 @@
 												"v1",
 												"term",
 												"read",
-												":code"
+												"{{termCode}}"
 											],
 											"query": [
 												{
 													"key": "framework",
-													"value": "Ut enim offici",
+													"value": "{{frameworkId}}",
 													"description": "(Required) Represents the framework id in which the term can be fetched"
 												},
 												{
 													"key": "category",
-													"value": "Ut enim offici",
+													"value": "{{categoryId}}",
 													"description": "(Required) Represents the category in which the term can be fetched"
-												}
-											],
-											"variable": [
-												{
-													"key": "code",
-													"value": "Ut enim offici",
-													"description": "(Required) The name/code of the term to be fetched"
 												}
 											]
 										},
@@ -3708,7 +3937,7 @@
 											}
 										},
 										"url": {
-											"raw": "{{baseUrl}}/framework/v1/term/update/{{code}}?framework=Ut enim offici&category=Ut enim offici",
+											"raw": "{{baseUrl}}/framework/v1/term/update/{{code}}?framework={{frameworkId}}&category={{categoryId}}",
 											"host": [
 												"{{baseUrl}}"
 											],
@@ -3722,12 +3951,12 @@
 											"query": [
 												{
 													"key": "framework",
-													"value": "Ut enim offici",
+													"value": "{{frameworkId}}",
 													"description": "(Required) Represents the framework in which the terms is to be updated"
 												},
 												{
 													"key": "category",
-													"value": "Ut enim offici",
+													"value": "{{categoryId}}",
 													"description": "(Required) Represents the category in which the term is to be updated"
 												}
 											]
@@ -3958,7 +4187,8 @@
 											"});",
 											"",
 											"",
-											"pm.environment.set(\"licenseId\", jsonData.result.identifier);"
+											"pm.environment.set(\"licenseId\", jsonData.result.identifier);",
+											"pm.environment.set(\"licenseNodeId\", jsonData.result.node_id);"
 										],
 										"type": "text/javascript"
 									}
@@ -3998,7 +4228,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"request\": {\n    \"license\": {\n      \"name\": \"CC BY 4.1\",\n      \"url\": \"www.url.com\"\n    }\n  }\n}",
+									"raw": "{\n  \"request\": {\n    \"license\": {\n      \"name\": \"CC BY 4.1.1\",\n      \"url\": \"www.url.com\"\n    }\n  }\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -5003,7 +5233,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"objectCategory\": {\n      \"name\": \"Explanation Content latest\",\n      \"description\": \"Content that can be used to Explain\"\n    }\n  }\n}",
+											"raw": "{\n  \"request\": {\n    \"objectCategory\": {\n      \"name\": \"Explanation Content latestest\",\n      \"description\": \"Content that can be used to Explain\"\n    }\n  }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
@@ -6271,7 +6501,7 @@
 										],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n  \"request\": {\n    \"objectCategoryDefinition\": {\n      \"categoryId\": \"obj-cat:practice-question-set\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {}\n      }\n    }\n  }\n}",
+											"raw": "{\n  \"request\": {\n    \"objectCategoryDefinition\": {\n      \"categoryId\": \"obj-cat:explanation-content-latestest\",\n      \"targetObjectType\": \"Collection\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {}\n      }\n    }\n  }\n}",
 											"options": {
 												"raw": {
 													"language": "json"
