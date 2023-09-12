@@ -11,3 +11,6 @@ POST    /v2/search/count				controllers.SearchController.count()
 POST    /v3/count						controllers.SearchController.count()
 #POST    /v2/metrics						controllers.MetricsController.search()
 #POST    /v3/metrics						controllers.MetricsController.search()
+
+# AuditHistory API
+GET     /v3/audit/:objectId    controllers.AuditHistoryController.readAuditHistory(objectId: String,graphId: String)

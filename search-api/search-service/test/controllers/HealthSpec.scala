@@ -10,7 +10,7 @@ class HealthSpec extends BaseSpec {
 
     "Application" should {
         "return api health status report - successful" in {
-            val controller = app.injector.instanceOf[HealthController]
+            lazy val controller = app.injector.instanceOf[HealthController]
             val result = controller.health()(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)

@@ -4,11 +4,9 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
-import akka.testkit.TestKit;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.*;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.Platform;
 import org.sunbird.common.dto.Request;
@@ -22,28 +20,23 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class SearchBaseActorTest {
 
     protected static ActorSystem system = null;
     protected static final String SEARCH_ACTOR = "SearchActor";
+    protected static final String AUDIT_HISTORY_ACTOR = "AuditHistoryActor";
     private static String[] keywords = new String[]{"hindi story", "NCERT", "Pratham", "एकस्टेप", "हिन्दी", "हाथी और भालू", "worksheet", "test"};
     private static String[] contentTypes = new String[]{"Resource", "Collection", "Asset"};
     private static String[] ageGroup = new String[]{"<5","5-6", "6-7", "7-8","8-10",">10","Other"};
     private static String[] gradeLevel = new String[]{"Kindergarten","Class 1", "Class 2", "Class 3", "Class 4","Class 5","Other"};
-    
+
     @BeforeClass
     public static void beforeTest() throws Exception {
         system = ActorSystem.create();
-        
+
     }
 
 
@@ -65,6 +58,12 @@ public class SearchBaseActorTest {
         return setSearchContext(request, SEARCH_ACTOR , "METRICS");
     }
 
+    protected Request getAuditRequest() {
+        Request request = new Request();
+        request.setContext(new HashMap<String, Object>());
+        return setSearchContext(request, AUDIT_HISTORY_ACTOR , "SEARCH_OPERATION_AND");
+    }
+
     protected Request getGroupSearchResultsRequest() {
         Request request = new Request();
         return setSearchContext(request, SEARCH_ACTOR , "GROUP_SEARCH_RESULT_BY_OBJECTTYPE");
@@ -74,7 +73,7 @@ public class SearchBaseActorTest {
         request.setOperation(operation);
         return request;
     }
-    
+
     protected Response getResponse(Request request, Props props){
         try{
             ActorRef searchMgr = system.actorOf(props);
@@ -94,6 +93,11 @@ public class SearchBaseActorTest {
 
     protected Response getSearchResponse(Request request) {
         final Props props = Props.create(SearchActor.class);
+        return getResponse(request, props);
+    }
+
+    protected Response getAuditResponse(Request request) {
+        final Props props = Props.create(AuditHistoryActor.class);
         return getResponse(request, props);
     }
 
@@ -173,6 +177,58 @@ public class SearchBaseActorTest {
                 SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, uniqueId, jsonIndexDocument);
     }
 
+
+    protected static void createAuditIndex() throws Exception {
+        SearchConstants.COMPOSITE_SEARCH_INDEX = "testauditindex";
+        ElasticSearchUtil.initialiseESClient(SearchConstants.COMPOSITE_SEARCH_INDEX,
+                Platform.config.getString("search.es_conn_info"));
+        System.out.println("creating index: " + SearchConstants.COMPOSITE_SEARCH_INDEX);
+        String settings = "{\"analysis\": {\"filter\": {\"mynGram\": {\"token_chars\": [\"letter\", \"digit\", \"whitespace\", \"punctuation\", \"symbol\"], \"min_gram\": \"1\", \"type\": \"nGram\", \"max_gram\": \"20\"}}, \"analyzer\": {\"ah_search_analyzer\": {\"filter\": [\"standard\", \"lowercase\"], \"type\": \"custom\", \"tokenizer\": \"standard\"}, \"keylower\": {\"filter\": \"lowercase\", \"tokenizer\": \"keyword\"}, \"ah_index_analyzer\": {\"filter\": [\"lowercase\", \"mynGram\"], \"type\": \"custom\", \"tokenizer\": \"standard\"}}}}";
+        String mappings = "{\"dynamic_templates\": [{\"longs\": {\"mapping\": {\"type\": \"long\", \"fields\": {\"raw\": {\"type\": \"long\"}}}, \"match_mapping_type\": \"long\"}}, {\"booleans\": {\"mapping\": {\"type\": \"boolean\", \"fields\": {\"raw\": {\"type\": \"boolean\"}}}, \"match_mapping_type\": \"boolean\"}}, {\"doubles\": {\"mapping\": {\"type\": \"double\", \"fields\": {\"raw\": {\"type\": \"double\"}}}, \"match_mapping_type\": \"double\"}}, {\"dates\": {\"mapping\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\"}}}, \"match_mapping_type\": \"date\"}}, {\"strings\": {\"mapping\": {\"type\": \"text\", \"copy_to\": \"all_fields\", \"analyzer\": \"ah_index_analyzer\", \"search_analyzer\": \"ah_search_analyzer\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"match_mapping_type\": \"string\"}}], \"properties\": {\"@timestamp\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\", \"format\": \"strict_date_optional_time||epoch_millis\"}}}, \"@version\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"all_fields\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"audit_id\": {\"type\": \"long\", \"fields\": {\"raw\": {\"type\": \"long\"}}}, \"createdOn\": {\"type\": \"date\", \"fields\": {\"raw\": {\"type\": \"date\", \"format\": \"strict_date_optional_time||epoch_millis\"}}}, \"graphId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"label\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"logRecord\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"objectId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"objectType\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"operation\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"requestId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"summary\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}, \"userId\": {\"type\": \"text\", \"fields\": {\"raw\": {\"type\": \"text\", \"fielddata\": true, \"analyzer\": \"keylower\"}}}}}";
+        ElasticSearchUtil.addIndex(SearchConstants.COMPOSITE_SEARCH_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE, settings, mappings);
+        insertAuditLogRecords(SearchConstants.COMPOSITE_SEARCH_INDEX, SearchConstants.AUDIT_HISTORY_INDEX_TYPE);
+    }
+
+    private static void insertAuditLogRecords(String indexName, String indexType) throws Exception {
+
+        Map<String, Object> record1 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        addToIndex(indexName, indexType, "VD9N54gBVD187cnp9Nmo", record1);
+
+        Map<String, Object> record2 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        addToIndex(indexName, indexType, "YT-a54gBVD187cnpEtl_", record2);
+
+        Map<String, Object> record3 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"IL_FUNC_OBJECT_TYPE\":{\"nv\":\"Content\"},\"IL_UNIQUE_ID\":{\"nv\":\"1234\"}}}", "CREATE", 1687396483000L);
+        addToIndex(indexName, indexType, "VT9N54gBVD187cnp-Nlc", record3);
+
+        Map<String, Object> record4 = getAuditRecord("1234", "Content", "", "domain", "ANONYMOUS", "", "{\"properties\":{\"name\":{\"nv\":\"new name\"},\"status\":{\"nv\":\"Live\"}}}", "UPDATE", 1687396488000L);
+        addToIndex(indexName, indexType, "Vz9O54gBVD187cnpQdmx", record4);
+
+        Map<String, Object> record5 = getAuditRecord("do_113807000868651008130", "Content", "", "domain", "ANONYMOUS", "", "invalidLogRecord", "CREATE", 1687397870000L);
+        addToIndex(indexName, indexType, "WT9O54gBVD187cnpf9nQ", record5);
+
+        Map<String, Object> record6 = getAuditRecord("do_113807000868651008131", "Content", "", "domain", "ANONYMOUS", "", "", "UPDATE", 1687396488000L);
+        addToIndex(indexName, indexType, "Vz9O54gBVD187cnpQdmx", record6);
+    }
+
+    private static void addToIndex(String indexName, String indexType, String uniqueId, Map<String, Object> doc) throws Exception {
+        String jsonIndexDocument = JsonUtils.serialize(doc);
+        ElasticSearchUtil.addDocumentWithId(indexName, indexType, uniqueId, jsonIndexDocument);
+    }
+
+    private static Map<String, Object> getAuditRecord(String objectId, String objectType, String label, String graphId, String userId, String requestId, String logRecord, String operation, long createdOn) {
+        Map<String, Object> record = new HashMap<>();
+        record.put("objectId", objectId);
+        record.put("objectType", objectType);
+        record.put("label", label);
+        record.put("graphId", graphId);
+        record.put("userId", userId);
+        record.put("requestId", requestId);
+        record.put("logRecord", logRecord);
+        record.put("operation", operation);
+        record.put("createdOn", createdOn);
+        return record;
+    }
+
     private static Map<String, Object> getContentTestRecord(String id, int index, String board) {
         String objectType = "Content";
         Date d = new Date();
@@ -240,7 +296,7 @@ public class SearchBaseActorTest {
         }
         return list;
     }
-    
+
     private static Set<String> getGradeLevel() {
         Set<String> list = new HashSet<String>();
         int count = RandomUtils.nextInt(2);
@@ -249,5 +305,5 @@ public class SearchBaseActorTest {
         }
         return list;
     }
-    
+
 }
