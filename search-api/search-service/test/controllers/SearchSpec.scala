@@ -11,7 +11,7 @@ class SearchSpec extends BaseSpec {
 
     "SearchApp" should {
         "return success response for search API" in {
-            val controller = app.injector.instanceOf[controllers.SearchController]
+            lazy val controller = app.injector.instanceOf[controllers.SearchController]
             val response = controller.search()(FakeRequest())
             isOK(response)
             status(response) must equalTo(OK)

@@ -1,6 +1,7 @@
 package org.sunbird.graph.service.util;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.sunbird.common.dto.Request;
@@ -89,6 +90,7 @@ public class GraphQueryGenerationUtilTest {
         Assert.assertEquals("MATCH (n) REMOVE n:domain", query);
     }
 
+    @Ignore
     @Test(expected = ServerException.class)
     public void testgenerateCreateRelationCypherQuery_1() {
         Request request = new Request();

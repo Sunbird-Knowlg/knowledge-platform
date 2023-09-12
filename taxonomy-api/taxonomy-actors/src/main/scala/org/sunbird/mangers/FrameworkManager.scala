@@ -1,7 +1,6 @@
 package org.sunbird.mangers
 
 import java.util
-import com.twitter.util.Config.intoOption
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{JsonUtils, Platform}
@@ -15,20 +14,22 @@ import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 
-
-import java.util.concurrent.CompletionException
+import java.util
+import java.util.{Collections, Optional}
+import java.util.concurrent.{CompletionException, Executors}
+import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.utils.Constants
 
 object FrameworkManager {
-  private val languageCodes = Platform.getStringList("platform.language.codes", new util.ArrayList[String]())
   val schemaVersion: String = "1.0"
   def validateTranslationMap(request: Request) = {
-    val translations: util.Map[String, AnyRef] = request.getOrElse("translations", "").asInstanceOf[util.HashMap[String, AnyRef]]
+    val translations: util.Map[String, AnyRef] = Optional.ofNullable(request.get("translations").asInstanceOf[util.HashMap[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
     if (translations.isEmpty) request.getRequest.remove("translations")
     else {
+      val languageCodes = Platform.getStringList("platform.language.codes", new util.ArrayList[String]())
       if (translations.asScala.exists(entry => !languageCodes.contains(entry._1)))
         throw new ClientException("ERR_INVALID_LANGUAGE_CODE", "Please Provide Valid Language Code For translations. Valid Language Codes are : " + languageCodes)
     }
@@ -100,7 +101,7 @@ object FrameworkManager {
     (updatedMetadata ++ childHierarchy).asJava
   }
 
-  private def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
+   def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
     relationMap.asScala.map(rel =>
     {
       val endObjectType = rel.getEndNodeObjectType.replace("Image", "")
@@ -242,23 +243,5 @@ object FrameworkManager {
     req
   }
 
-  def validateChannel(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
-    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
-    if (channel.isEmpty()) throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    val getChannelReq = new Request()
-    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
-    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
-    getChannelReq.put(Constants.IDENTIFIER, channel)
-    DataNode.read(getChannelReq)(oec, ec).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) node
-      else
-        throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    })(ec)
-  }
 
 }

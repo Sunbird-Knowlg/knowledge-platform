@@ -1,8 +1,6 @@
 package org.sunbird.graph.schema
 
-import org.scalatest.Ignore
 import org.sunbird.graph.BaseSpec
-@Ignore
 class TestObjectCategoryDefinitionMap extends BaseSpec {
 
   "CategoryDefinitionMap" should "store cache for given id and value" in {
@@ -17,7 +15,7 @@ class TestObjectCategoryDefinitionMap extends BaseSpec {
     ObjectCategoryDefinitionMap.cache.occupancy shouldBe(1)
     ObjectCategoryDefinitionMap.get(tempKey) shouldBe(tempValue)
     Thread.sleep(10000)
-    ObjectCategoryDefinitionMap.get(tempKey) shouldBe(null)
+    ObjectCategoryDefinitionMap.get(tempKey) shouldBe (null)
   }
 
 }

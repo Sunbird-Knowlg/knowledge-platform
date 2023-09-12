@@ -4,7 +4,7 @@ sudo apt install redis-server -y
 curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.22.deb
 sudo dpkg -i elasticsearch-6.8.22.deb
 sudo service elasticsearch start
-sudo service elasticsearch status
+#sudo service elasticsearch status
 # This should go to the test cases - Start
 redis-cli SADD edge_license "CC BY-NC-SA 4.0"
 redis-cli SADD edge_license "CC BY-NC 4.0"

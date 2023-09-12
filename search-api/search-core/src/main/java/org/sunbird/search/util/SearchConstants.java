@@ -5,6 +5,7 @@ import org.sunbird.common.Platform;
 public class SearchConstants {
     public static String COMPOSITE_SEARCH_INDEX = Platform.config.hasPath("compositesearch.index.name") ? Platform.config.getString("compositesearch.index.name"): "compositesearch";
     public static final String COMPOSITE_SEARCH_INDEX_TYPE = "cs";
+    public static final String AUDIT_HISTORY_INDEX_TYPE = "ah";
     public static final String OPERATION_CREATE = "CREATE";
     public static final String OPERATION_UPDATE = "UPDATE";
     public static final String OPERATION_DELETE = "DELETE";
@@ -114,4 +115,7 @@ public class SearchConstants {
     public static final String softConstraints = "softConstraints";
     public static final String setDefaultVisibility = "setDefaultVisibility";
     public static String soft = "soft";
+
+    public static final String objectId = "objectId";
+    public static final String traversal = "traversal";
 }

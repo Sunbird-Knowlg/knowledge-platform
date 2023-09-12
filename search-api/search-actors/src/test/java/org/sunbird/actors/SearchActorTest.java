@@ -27,13 +27,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class SearchActorTest extends SearchBaseActorTest {
-    
+
     @BeforeClass
     public static void before() throws Exception {
         createCompositeSearchIndex();
         Thread.sleep(3000);
     }
-    
+
     @AfterClass
     public static void after() throws Exception {
         System.out.println("deleting index: " + SearchConstants.COMPOSITE_SEARCH_INDEX);
