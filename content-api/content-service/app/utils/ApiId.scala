@@ -105,4 +105,7 @@ object ApiId {
 	val EXPORT_CSV = "api.collection.export"
 	val RESERVE_DIAL_COLLECTION = "api.collection.dialcode.reserve"
 	val RELEASE_DIAL_COLLECTION = "api.collection.dialcode.release"
+
+	//Asset License Validate API
+	val ASSET_LICENSE_VALIDATE = "asset.url.validate"
 }
