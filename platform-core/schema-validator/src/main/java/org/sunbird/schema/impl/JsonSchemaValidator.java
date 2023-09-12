@@ -30,6 +30,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
         loadSchema();
         loadConfig(name, version, configfallback);
     }
+
     private void loadSchema() throws Exception {
         if(basePath.startsWith("http")){
             InputStream stream = new URL( basePath + "schema.json").openStream();

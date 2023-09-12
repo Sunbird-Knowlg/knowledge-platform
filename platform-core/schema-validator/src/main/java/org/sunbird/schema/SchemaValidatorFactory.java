@@ -61,4 +61,7 @@ public class SchemaValidatorFactory {
         return StringUtils.joinWith(":", name, version);
     }
 
+    private static String getKey(String name, String version, String fallback) {
+        return StringUtils.joinWith(":", name, version, fallback);
+    }
 }
