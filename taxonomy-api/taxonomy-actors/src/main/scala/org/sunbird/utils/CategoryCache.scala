@@ -25,7 +25,6 @@ object CategoryCache{
 
   private def getKey(framework: String, category: String) = "cat_" + framework + category
 
-
   private def getTerms(category: util.Map[String, AnyRef], key: String): List[String] = {
     val returnTerms = new util.ArrayList[String]
     if (category != null && category.nonEmpty) {
