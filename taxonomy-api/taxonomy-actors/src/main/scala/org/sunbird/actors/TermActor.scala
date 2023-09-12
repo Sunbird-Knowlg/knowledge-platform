@@ -11,7 +11,6 @@ import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.mangers.CategoryManager
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util

@@ -54,7 +54,7 @@ class FrameworkSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
 
-        "return success response for list framework API" in {
+        "return success response for publish framework API" in {
             val controller = app.injector.instanceOf[controllers.v3.FrameworkController]
             val result = controller.publish("do_123")(FakeRequest())
             isOK(result)

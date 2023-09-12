@@ -1,6 +1,7 @@
 package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
+
 import java.util
 import javax.inject.Inject
 import org.sunbird.actor.core.BaseActor
@@ -10,7 +11,7 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.utils.{Constants, RequestUtil}
-import org.sunbird.mangers.CategoryManager
+import org.sunbird.mangers.FrameworkManager
 import org.sunbird.cache.impl.RedisCache
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +36,7 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     if (!request.getRequest.containsKey("code")) throw new ClientException("ERR_CATEGORY_CODE_REQUIRED", "Unique code is mandatory for category")
     request.getRequest.put(Constants.IDENTIFIER, code)
     RedisCache.delete("masterCategories")
-    CategoryManager.validateTranslationMap(request)
+    FrameworkManager.validateTranslationMap(request)
     DataNode.create(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
@@ -52,7 +53,7 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     RequestUtil.restrictProperties(request)
     if (request.getRequest.containsKey(Constants.CODE)) throw new ClientException("ERR_CATEGORY_UPDATE", "code updation is not allowed.")
     RedisCache.delete("masterCategories")
-    CategoryManager.validateTranslationMap(request)
+    FrameworkManager.validateTranslationMap(request)
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })

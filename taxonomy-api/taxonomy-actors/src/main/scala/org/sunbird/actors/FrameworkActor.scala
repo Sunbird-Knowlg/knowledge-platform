@@ -55,7 +55,8 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       getChannelReq.put(Constants.IDENTIFIER, channel)
       DataNode.read(getChannelReq).map(node => {
         if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
-         DataNode.create(request).map(frameNode => {
+          FrameworkManager.validateTranslationMap(request)
+          DataNode.create(request).map(frameNode => {
             ResponseHandler.OK.put(Constants.NODE_ID, frameNode.getIdentifier).put("versionKey", frameNode.getMetadata.get("versionKey"))
           })
         } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
@@ -152,7 +153,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
             req.put("hierarchy", ScalaJsonUtils.serialize(frameworkHierarchy))
             req.put("identifier", frameworkId)
             oec.graphService.saveExternalProps(req)
-            ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${node.getIdentifier}' is pushed Successfully!")
+            ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '$frameworkId' is pushed Successfully!")
           })
         } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
       } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")

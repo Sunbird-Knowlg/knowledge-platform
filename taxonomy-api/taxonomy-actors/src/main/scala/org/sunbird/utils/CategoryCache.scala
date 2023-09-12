@@ -3,19 +3,10 @@ package org.sunbird.utils
 import java.util
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.telemetry.logger.TelemetryManager
-
-import java.util.ArrayList
-import java.util.stream.Collectors
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
 
 
 object CategoryCache{
-  def getTerms(framework: String, category: String): List[String] = {
-    val key = getKey(framework, category)
-    RedisCache.getList(key)
-  }
 
   def setFramework(id: String, framework: util.Map[String, AnyRef]): Unit = {
     if (null != framework && !framework.isEmpty) {

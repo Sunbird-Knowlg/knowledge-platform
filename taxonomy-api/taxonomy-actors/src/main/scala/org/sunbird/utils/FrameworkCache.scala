@@ -1,29 +1,21 @@
 package org.sunbird.utils
 
-import com.fasterxml.jackson.core.`type`.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.util.ScalaJsonUtil
-import org.sunbird.graph.utils.ScalaJsonUtils
-
 import java.util
 import java.util.Collections
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions.{asJavaCollection, asScalaBuffer}
-import scala.collection.JavaConverters.seqAsJavaListConverter
+import scala.collection.JavaConversions.asScalaBuffer
 
 object FrameworkCache{
 
-    private val cacheTtl: Int = if (Platform.config.hasPath("framework.cache.ttl")) Platform.config.getInt("framework.cache.ttl") else 86400
-    protected var cacheEnabled: Boolean = if (Platform.config.hasPath("framework.cache.read")) Platform.config.getBoolean("framework.cache.read") else false
-    private val CACHE_PREFIX: String = "fw_"
-    protected var mapper: ObjectMapper = new ObjectMapper
+     val cacheTtl: Int = if (Platform.config.hasPath("framework.cache.ttl")) Platform.config.getInt("framework.cache.ttl") else 86400
+     var cacheEnabled: Boolean = if (Platform.config.hasPath("framework.cache.read")) Platform.config.getBoolean("framework.cache.read") else false
+     val CACHE_PREFIX: String = "fw_"
 
 
-    protected def getFwCacheKey(identifier: String, categoryNames: util.List[String]): String = {
+     def getFwCacheKey(identifier: String, categoryNames: util.List[String]): String = {
         Collections.sort(categoryNames)
         CACHE_PREFIX + identifier.toLowerCase + "_" + categoryNames.map(_.toLowerCase).mkString("_")
     }
