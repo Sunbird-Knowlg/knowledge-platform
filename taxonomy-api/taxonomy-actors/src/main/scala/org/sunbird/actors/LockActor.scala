@@ -23,9 +23,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor{
   implicit val ec: ExecutionContext = getContext().dispatcher
-  private val basePath = if (Platform.config.hasPath("lockSchema.base_path")) Platform.config.getString("lockSchema.base_path")
-  else "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/"
-
   private val defaultLockExpiryTime = if (Platform.config.hasPath("defaultLockExpiryTime")) Platform.config.getInt("defaultLockExpiryTime")
   else 3600
   val version = "1.0"
@@ -47,7 +44,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     if(!request.getRequest.containsKey(Constants.X_DEVICE_ID)) throw new ClientException("ERR_LOCK_CREATION_FAILED", "X-device-Id is missing in headers")
     if(!request.getRequest.containsKey(Constants.X_AUTHENTICATED_USER_ID)) throw new ClientException("ERR_LOCK_CREATION_FAILED", "You are not authorized to lock this resource")
     if(request.getRequest.isEmpty) throw new ClientException("ERR_LOCK_CREATION_FIELDS_MISSING","Error due to required request is missing")
-    val schemaValidator = SchemaValidatorFactory.getInstance(basePath)
+    val schemaValidator = SchemaValidatorFactory.getInstance(request.getContext.get("schemaName").asInstanceOf[String],request.getContext.get("version").asInstanceOf[String])
     schemaValidator.validate(request.getRequest)
     validateResource(request).flatMap( res =>{
       val versionKey: String = res.getMetadata.getOrDefault("versionKey","").asInstanceOf[String]
@@ -56,40 +53,40 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
       oec.graphService.readExternalProps(request, externalProps).map(response => {
         if (!ResponseHandler.checkError(response)) {
-              if(request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", "") &&
-                request.getRequest.get("deviceId") == response.getResult.toMap.getOrDefault("deviceid", "") &&
-                request.getRequest.get("resourceType") == response.getResult.toMap.getOrDefault("resourcetype", "")){
-                    Future {
-                      ResponseHandler.OK.put("lockKey", response.getResult.toMap.getOrDefault("lockid", "")).put("expiresAt", formatExpiryDate(response.getResult.toMap.getOrDefault("expiresat", "").asInstanceOf[Date])).put("expiresIn", defaultLockExpiryTime / 60)
-                    }
-              }
-              else if (request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", ""))
-                    throw new ClientException("RESOURCE_SELF_LOCKED", "Error due to self lock , Resource already locked by user ")
-              else {
-                val creatorInfoStr = response.getResult.get("creatorinfo").asInstanceOf[String]
-                val creatorInfoMap = JsonUtils.convertJSONString(creatorInfoStr).asInstanceOf[java.util.Map[String, String]]
-                val userName = Option(creatorInfoMap.get("name")).getOrElse("another user")
-                throw new ClientException("RESOURCE_LOCKED", s"The resource is already locked by $userName ")
-              }
+            if(request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", "") &&
+              request.getRequest.get("deviceId") == response.getResult.toMap.getOrDefault("deviceid", "") &&
+              request.getRequest.get("resourceType") == response.getResult.toMap.getOrDefault("resourcetype", "")){
+                  Future {
+                    ResponseHandler.OK.put("lockKey", response.getResult.toMap.getOrDefault("lockid", "")).put("expiresAt", formatExpiryDate(response.getResult.toMap.getOrDefault("expiresat", "").asInstanceOf[Date])).put("expiresIn", defaultLockExpiryTime / 60)
+                  }
+            }
+            else if (request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", ""))
+                  throw new ClientException("RESOURCE_SELF_LOCKED", "Error due to self lock , Resource already locked by user ")
+            else {
+              val creatorInfoStr = response.getResult.get("creatorinfo").asInstanceOf[String]
+              val creatorInfoMap = JsonUtils.convertJSONString(creatorInfoStr).asInstanceOf[java.util.Map[String, String]]
+              val userName = Option(creatorInfoMap.get("name")).getOrElse("another user")
+              throw new ClientException("RESOURCE_LOCKED", s"The resource is already locked by $userName ")
+            }
         }
         else {
-              val lockId = UUID.randomUUID()
-              request.getRequest.remove("resourceId")
-              request.getRequest.remove("userId")
-              request.put("lockid", lockId)
-              request.put("expiresat", newDateObj)
-              request.put("createdon", new Timestamp(new Date().getTime))
-              oec.graphService.saveExternalPropsWithTtl(request, defaultLockExpiryTime).flatMap { response =>
-                if (ResponseHandler.checkError(response)) {
-                      throw new ServerException("ERR_WHILE_SAVING_TO_CASSANDRA", "Error while saving external props to Cassandra")
-                }
-                else {
-                      updateContent(request, channel, res.getGraphId, res.getObjectType, resourceId, versionKey, lockId)
-                      Future {
-                        ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", formatExpiryDate(newDateObj)).put("expiresIn", defaultLockExpiryTime / 60)
-                      }
-                }
-              }
+          val lockId = UUID.randomUUID()
+          request.getRequest.remove("resourceId")
+          request.getRequest.remove("userId")
+          request.put("lockid", lockId)
+          request.put("expiresat", newDateObj)
+          request.put("createdon", new Timestamp(new Date().getTime))
+          oec.graphService.saveExternalPropsWithTtl(request, defaultLockExpiryTime).flatMap { response =>
+            if (ResponseHandler.checkError(response)) {
+                  throw new ServerException("ERR_WHILE_SAVING_TO_CASSANDRA", "Error while saving external props to Cassandra")
+            }
+            else {
+                  updateContent(request, channel, res.getGraphId, res.getObjectType, resourceId, versionKey, lockId)
+                  Future {
+                    ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", formatExpiryDate(newDateObj)).put("expiresIn", defaultLockExpiryTime / 60)
+                  }
+            }
+          }
         }
       }).flatMap( f => f).recoverWith { case e: CompletionException => throw e.getCause }
     })
@@ -114,35 +111,35 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       val resourceInfo = JsonUtils.serialize(Map("contentType" -> res.getMetadata.getOrDefault("contentType", ""), "framework" -> res.getMetadata.getOrDefault("framework", ""),
         "identifier" -> resourceId, "mimeType" -> res.getMetadata.getOrDefault("mimeType", "")).asJava)
       oec.graphService.readExternalProps(request, externalProps).map(response => {
-            if (ResponseHandler.checkError(response)) {
-              val createLockReq = request
-              createLockReq.put("resourceInfo", resourceInfo)
-              createLockReq.put("creatorInfo", creatorInfo)
-              createLockReq.put("createdBy", userId)
-              if (contentLockId == request.getRequest.getOrDefault("lockId", "")) {
-                createLockReq.getRequest.remove("lockId")
-                create(createLockReq)
-              }
-              else throw new ClientException("ERR_LOCK_REFRESHING_FAILED", "no data found from db for refreshing lock")
-            }
+        if (ResponseHandler.checkError(response)) {
+          val createLockReq = request
+          createLockReq.put("resourceInfo", resourceInfo)
+          createLockReq.put("creatorInfo", creatorInfo)
+          createLockReq.put("createdBy", userId)
+          if (contentLockId == request.getRequest.getOrDefault("lockId", "")) {
+            createLockReq.getRequest.remove("lockId")
+            create(createLockReq)
+          }
+          else throw new ClientException("ERR_LOCK_REFRESHING_FAILED", "no data found from db for refreshing lock")
+        }
+        else {
+          val lockId = response.getResult.toMap.getOrDefault("lockid", "")
+          val createdBy = response.getResult.toMap.getOrDefault("createdby", "")
+          if (createdBy != userId)
+            throw new ClientException("ERR_LOCK_REFRESHING_FAILED", "Unauthorized to refresh this lock")
+          request.put("fields", List("expiresat"))
+          request.put("values", List(newDateObj))
+          oec.graphService.updateExternalPropsWithTtl(request, defaultLockExpiryTime).flatMap { response =>
+            if (ResponseHandler.checkError(response))
+              throw new ServerException("ERR_WHILE_UPDAING_TO_CASSANDRA", "Error while updating external props to Cassandra")
             else {
-              val lockId = response.getResult.toMap.getOrDefault("lockid", "")
-              val createdBy = response.getResult.toMap.getOrDefault("createdby", "")
-              if (createdBy != userId)
-                throw new ClientException("ERR_LOCK_REFRESHING_FAILED", "Unauthorized to refresh this lock")
-              request.put("fields", List("expiresat"))
-              request.put("values", List(newDateObj))
-              oec.graphService.updateExternalPropsWithTtl(request, defaultLockExpiryTime).flatMap { response =>
-                if (ResponseHandler.checkError(response))
-                  throw new ServerException("ERR_WHILE_UPDAING_TO_CASSANDRA", "Error while updating external props to Cassandra")
-                else {
-                  Future {
-                    ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", formatExpiryDate(newDateObj)).put("expiresIn", defaultLockExpiryTime / 60)
-                  }
-                }
+              Future {
+                ResponseHandler.OK.put("lockKey", lockId).put("expiresAt", formatExpiryDate(newDateObj)).put("expiresIn", defaultLockExpiryTime / 60)
               }
             }
-          }).flatMap( f => f).recoverWith { case e: CompletionException => throw e.getCause }
+          }
+        }
+      }).flatMap( f => f).recoverWith { case e: CompletionException => throw e.getCause }
     }).recoverWith { case e: CompletionException => throw e.getCause }
   }
 

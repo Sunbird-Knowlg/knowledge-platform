@@ -23,11 +23,6 @@ public class TestSchemaValidatorFactory {
         Assert.assertNotNull(SchemaValidatorFactory.getInstance("content", "1.0"));
     }
 
-    @Test
-    public void testGetInstanceUsingPath() throws Exception {
-        Assert.assertNotNull(SchemaValidatorFactory.getInstance("../../schemas/lock/1.0/"));
-    }
-
     @Test (expected = JsonException.class)
     public void testGetInstanceInvalidSchema() throws Exception {
         SchemaValidatorFactory.getInstance("content", "2.0");
