@@ -30,4 +30,11 @@ object ApiId {
 	final val READ_TERM = "api.taxonomy.term.read"
 	final val UPDATE_TERM = "api.taxonomy.term.update"
 	final val RETIRE_TERM = "api.taxonomy.term.retire"
+
+	final val CREATE_LOCK = "api.taxonomy.lock.create"
+	final val REFRESH_LOCK = "api.taxonomy.lock.refresh"
+	final val RETIRE_LOCK = "api.taxonomy.lock.retire"
+	final val LIST_LOCK = "api.taxonomy.lock.list"
+
+
 }

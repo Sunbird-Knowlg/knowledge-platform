@@ -32,7 +32,6 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
     }
 
     private void loadSchema() throws Exception {
-        System.out.println("Schema path: " + basePath + "schema.json");
         if(basePath.startsWith("http")){
             InputStream stream = new URL( basePath + "schema.json").openStream();
             this.schema = readSchema(stream);

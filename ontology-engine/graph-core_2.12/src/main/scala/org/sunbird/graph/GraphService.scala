@@ -72,11 +72,24 @@ class GraphService {
         ExternalPropsManager.saveProps(request)
     }
 
+    def saveExternalPropsWithTtl(request: Request, ttl: Int): Future[Response] = {
+        val externalProps: java.util.Map[String, AnyRef] = request.getRequest
+        val updatedExternalProps = if (isrRelativePathEnabled) CSPMetaUtil.saveExternalRelativePath(externalProps) else externalProps
+        request.setRequest(updatedExternalProps)
+        ExternalPropsManager.savePropsWithTtl(request, ttl)
+    }
     def updateExternalProps(request: Request): Future[Response] = {
         val externalProps: java.util.Map[String, AnyRef] = request.getRequest
         val updatedExternalProps = if (isrRelativePathEnabled) CSPMetaUtil.updateExternalRelativePath(externalProps) else externalProps
         request.setRequest(updatedExternalProps)
         ExternalPropsManager.update(request)
+    }
+
+    def updateExternalPropsWithTtl(request: Request, ttl: Int): Future[Response] = {
+        val externalProps: java.util.Map[String, AnyRef] = request.getRequest
+        val updatedExternalProps = if (isrRelativePathEnabled) CSPMetaUtil.updateExternalRelativePath(externalProps) else externalProps
+        request.setRequest(updatedExternalProps)
+        ExternalPropsManager.updateWithTtl(request, ttl)
     }
 
     def deleteExternalProps(request: Request): Future[Response] = {

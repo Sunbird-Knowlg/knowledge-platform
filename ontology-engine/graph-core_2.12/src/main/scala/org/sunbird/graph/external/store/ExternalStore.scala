@@ -52,6 +52,43 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
     }
 
+
+    def insertWithTtl(request: util.Map[String, AnyRef], propsMapping: Map[String, String], ttl : Int)(implicit ec: ExecutionContext): Future[Response] = {
+        val insertQuery: Insert = QueryBuilder.insertInto(keySpace, table)
+        val identifier = request.get("identifier")
+        insertQuery.value(primaryKey.get(0), identifier)
+        request.remove("identifier")
+        request.remove("last_updated_on")
+        if (propsMapping.keySet.contains("last_updated_on"))
+            insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
+        import scala.collection.JavaConverters._
+        insertQuery.using(QueryBuilder.ttl(ttl))
+        for ((key, value) <- request.asScala) {
+            propsMapping.getOrElse(key, "") match {
+                case "blob" => value match {
+                    case value: String => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
+                    case _ => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", JsonUtils.serialize(value)))
+                }
+                case "string" => request.getOrDefault(key, "") match {
+                    case value: String => insertQuery.value(key, value)
+                    case _ => insertQuery.value(key, JsonUtils.serialize(request.getOrDefault(key, "")))
+                }
+                case _ => insertQuery.value(key, value)
+            }
+        }
+        try {
+            val session: Session = CassandraConnector.getSession
+            session.executeAsync(insertQuery).asScala.map(resultset => {
+                ResponseHandler.OK()
+            })
+        } catch {
+            case e: Exception =>
+                e.printStackTrace()
+                TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
+        }
+    }
+
     /**
       * Fetching properties which are stored in an external database
       * @param identifier
@@ -176,6 +213,39 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         try {
             val session: Session = CassandraConnector.getSession
             session.executeAsync(update).asScala.map( resultset => {
+                ResponseHandler.OK()
+            })
+        } catch {
+            case e: Exception =>
+                e.printStackTrace()
+                TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
+                throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
+        }
+    }
+
+    def updateWithTtl(identifier: String, columns: List[String], values: List[AnyRef], propsMapping: Map[String, String], ttl: Int)(implicit ec: ExecutionContext): Future[Response] = {
+        val update = QueryBuilder.update(keySpace, table)
+        val clause: Clause = QueryBuilder.eq(primaryKey.get(0), identifier)
+        update.where.and(clause)
+        //        if(propsMapping.keySet.contains("last_updated_on"))
+        //            update.`with`(QueryBuilder.add("last_updated_on", new Timestamp(new Date().getTime)))
+
+        for ((column, index) <- columns.view.zipWithIndex) {
+            propsMapping.getOrElse(column, "").toLowerCase match {
+                case "blob" => update.`with`(QueryBuilder.set(column, QueryBuilder.fcall("textAsBlob", values(index))))
+                case "object" => update.`with`(QueryBuilder.putAll(column, values(index).asInstanceOf[java.util.Map[String, AnyRef]]))
+                case "array" => update.`with`(QueryBuilder.appendAll(column, values(index).asInstanceOf[java.util.List[String]]))
+                case "string" => values(index) match {
+                    case value: String => update.`with`(QueryBuilder.set(column, values(index)))
+                    case _ => update.`with`(QueryBuilder.set(column, JsonUtils.serialize(values(index))))
+                }
+                case _ => update.`with`(QueryBuilder.set(column, values(index)))
+            }
+        }
+        update.using(QueryBuilder.ttl(ttl))
+        try {
+            val session: Session = CassandraConnector.getSession
+            session.executeAsync(update).asScala.map(resultset => {
                 ResponseHandler.OK()
             })
         } catch {

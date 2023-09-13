@@ -8,6 +8,7 @@ object ActorNames {
     final val FRAMEWORK_ACTOR = "frameworkActor"
     final val CATEGORY_ACTOR = "categoryActor"
     final val CATEGORY_INSTANCE_ACTOR = "categoryInstanceActor"
-    final val TERM_ACTOR = "TermActor"
+    final val TERM_ACTOR = "termActor"
+    final val LOCK_ACTOR = "lockActor"
 
 }

@@ -65,5 +65,23 @@ object Constants {
     val TERM_SCHEMA_VERSION: String = "1.0";
     val TERM_SCHEMA_NAME: String = "term"
 
+    // Constants For Lock
+    val LOCK: String = "lock";
+    val CREATE_LOCK: String = "createLock";
+    val REFRESH_LOCK: String = "refreshLock";
+    val RETIRE_LOCK: String = "retireLock";
+    val LIST_LOCK: String = "listLock";
+    val LOCK_SCHEMA_VERSION = "1.0";
+    val LOCK_SCHEMA_NAME="lock"
+    val X_DEVICE_ID="deviceId"
+    val X_AUTHENTICATED_USER_ID="userId"
+    val RESOURCE_ID="resourceId"
+    val RESOURCE_TYPE= "resourceType"
+    val RESOURCE_INFO= "resourceInfo"
+    val CREATOR_INFO= "creatorInfo"
+    val CREATED_BY= "createdBy"
+
+
+
 
 }

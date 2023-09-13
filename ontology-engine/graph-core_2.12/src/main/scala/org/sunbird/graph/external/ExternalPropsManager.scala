@@ -20,6 +20,15 @@ object ExternalPropsManager {
         store.insert(request.getRequest, getPropsDataType(schemaName, version))
     }
 
+    def savePropsWithTtl(request: Request, ttl: Int)(implicit ec: ExecutionContext): Future[Response] = {
+        val objectType: String = request.getObjectType
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
+        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
+        store.insertWithTtl(request.getRequest, getPropsDataType(schemaName, version), ttl)
+    }
+
     def fetchProps(request: Request, fields: List[String])(implicit ec: ExecutionContext): Future[Response] = {
         val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
         val version: String = request.getContext.get("version").asInstanceOf[String]
@@ -44,6 +53,15 @@ object ExternalPropsManager {
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
         store.update(request.get("identifier").asInstanceOf[String], request.get("fields").asInstanceOf[List[String]],
             request.get("values").asInstanceOf[List[java.util.Map[String, AnyRef]]], getPropsDataType(schemaName, version))
+    }
+
+    def updateWithTtl(request: Request, ttl: Int)(implicit ec: ExecutionContext): Future[Response] = {
+        val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+        val version: String = request.getContext.get("version").asInstanceOf[String]
+        val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
+        val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
+        store.updateWithTtl(request.get("identifier").asInstanceOf[String], request.get("fields").asInstanceOf[List[String]],
+            request.get("values").asInstanceOf[List[java.util.Map[String, AnyRef]]], getPropsDataType(schemaName, version), ttl)
     }
 
     def getPropsDataType(schemaName: String, version: String) = {

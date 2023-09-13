@@ -1,7 +1,7 @@
 package modules
 
 import com.google.inject.AbstractModule
-import org.sunbird.actors.{CategoryActor, CategoryInstanceActor, HealthActor, ObjectCategoryActor, ObjectCategoryDefinitionActor, FrameworkActor, TermActor}
+import org.sunbird.actors.{CategoryActor, CategoryInstanceActor, FrameworkActor, HealthActor, LockActor, ObjectCategoryActor, ObjectCategoryDefinitionActor, TermActor}
 import play.libs.akka.AkkaGuiceSupport
 import utils.ActorNames
 
@@ -16,6 +16,7 @@ class TaxonomyModule extends AbstractModule with AkkaGuiceSupport {
         bindActor(classOf[CategoryActor], ActorNames.CATEGORY_ACTOR)
         bindActor(classOf[CategoryInstanceActor], ActorNames.CATEGORY_INSTANCE_ACTOR)
         bindActor(classOf[TermActor], ActorNames.TERM_ACTOR)
+        bindActor(classOf[LockActor], ActorNames.LOCK_ACTOR)
         println("Initialized application actors for taxonomy service")
     }
 }

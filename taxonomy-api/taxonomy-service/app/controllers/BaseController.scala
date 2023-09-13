@@ -23,7 +23,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     }
 
     def commonHeaders()(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
-        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId")
+        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId", "x-device-id" -> "deviceId", "x-authenticated-userid" -> "userId")
         customHeaders.map(ch => {
             val value = request.headers.get(ch._1)
             if (value.isDefined && !value.isEmpty) {
@@ -33,7 +33,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
             }
         }).reduce((a, b) => {
             a.putAll(b)
-            return a
+            a
         })
     }
 

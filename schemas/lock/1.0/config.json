@@ -1,0 +1,47 @@
+{
+  "objectType": "Lock",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier"
+    ]
+  },
+  "external": {
+    "tableName": "lock",
+    "properties": {
+      "lockid": {
+        "type": "uuid"
+      },
+      "resourceid": {
+        "type": "string"
+      },
+      "resourcetype": {
+        "type": "string"
+      },
+      "resourceinfo": {
+        "type": "string"
+      },
+      "creatorinfo": {
+        "type": "string"
+      },
+      "createdby": {
+        "type": "string"
+      },
+      "deviceid": {
+        "type": "string"
+      },
+      "expiresat": {
+        "type": "timestamp"
+      },
+      "createdon": {
+        "type": "timestamp"
+      }
+    },
+    "primaryKey": ["resourceid"]
+  },
+  "schema_restrict_api": false
+}
