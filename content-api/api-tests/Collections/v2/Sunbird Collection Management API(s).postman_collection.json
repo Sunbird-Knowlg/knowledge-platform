@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "f544aa3c-d317-40c6-b0e7-48279bf4a4ca",
 		"name": "Sunbird Collection Management API(s)",
+		"description": "The Collection Management API allows you to manage collection over the sunbird platform.Apis perform operations related to all the _Collection_ on the Sunbird Platform.\n\n- Each of the endpoints serve a different purpose, so which one to use depends on what you want to do\n    \n- The operations include CRUD (Create, Update, Read) operations and other operations such as copy, flag, link Dialcode, etc.\n    \n- The URL for Sunbird Content API(s) is `collection/v1`\n    \n- [TestCases](https://www.getpostman.com/collections/40dde03073826216533a)\n    \n\nContact Support:  \nEmail: [info@sunbird.org](https://mailto:info@sunbird.org)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},

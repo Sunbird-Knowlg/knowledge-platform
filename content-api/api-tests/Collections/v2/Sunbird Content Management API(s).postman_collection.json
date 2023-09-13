@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "f28fdc02-a8c3-4561-b61e-aa93823d0ff5",
 		"name": "Sunbird Content Management API(s)",
+		"description": "The Content Management API allows you to manage content over the sunbird platform.Apis perform operations related to all the _Content_ on the Sunbird Platform.\n\n- Each of the endpoints serve a different purpose, so which one to use depends on what you want to do\n    \n- The operations include CRUD (Create, Update, Read and Delete) operations and other operations such as upload, publish, flag, link Dialcode, etc.\n    \n- The URL for Sunbird Content API(s) is `content/v2`\n    \n- [TestCases](https://www.getpostman.com/collections/3c1817fcb4606ae53b9a)\n    \n\nContact Support:  \nEmail: [info@sunbird.org](https://mailto:info@sunbird.org)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},
@@ -5656,47 +5657,6 @@
 					"name": "v4",
 					"item": [
 						{
-							"name": "System Content Update",
-							"request": {
-								"auth": {
-									"type": "apikey",
-									"apikey": [
-										{
-											"key": "value",
-											"value": "Bearer {{apiKey}}",
-											"type": "string"
-										},
-										{
-											"key": "key",
-											"value": "Authorization",
-											"type": "string"
-										},
-										{
-											"key": "in",
-											"value": "header",
-											"type": "string"
-										}
-									]
-								},
-								"method": "PATCH",
-								"header": [],
-								"url": {
-									"raw": "{{baseUrl}}/content/v4/system/update/{{contentId}}",
-									"host": [
-										"{{baseUrl}}"
-									],
-									"path": [
-										"content",
-										"v4",
-										"system",
-										"update",
-										"{{contentId}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Reject Flag",
 							"request": {
 								"auth": {
@@ -6042,6 +6002,47 @@
 									"body": "{\n  \"result\": {},\n  \"id\": \"voluptate culpa Excepteur minim\",\n  \"ver\": \"Duis\",\n  \"ts\": \"exercitation cupidatat aute repr\",\n  \"params\": {\n    \"resmsgid\": \"do Duis cupidatat nostrud\",\n    \"msgid\": \"laboris veniam \",\n    \"err\": \"ut ad pariatur adipisicing enim\",\n    \"status\": \"sit sunt aliqua\",\n    \"errmsg\": \"elit dolore irure\"\n  },\n  \"responseCode\": \"occaecat\"\n}"
 								}
 							]
+						},
+						{
+							"name": "System Content Update",
+							"request": {
+								"auth": {
+									"type": "apikey",
+									"apikey": [
+										{
+											"key": "value",
+											"value": "Bearer {{apiKey}}",
+											"type": "string"
+										},
+										{
+											"key": "key",
+											"value": "Authorization",
+											"type": "string"
+										},
+										{
+											"key": "in",
+											"value": "header",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/content/v4/system/update/{{contentId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"content",
+										"v4",
+										"system",
+										"update",
+										"{{contentId}}"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				}
