@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "aa155ac9-58cd-4ace-be52-3af79c675d43",
 		"name": "Sunbird Composite Search API",
+		"description": "The Composite Search APIs allow you to search the Content, assets and Assesment on the Sunbird platform.\n\nThe URL for Composite Search API(s) is /composite/v3/search.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},

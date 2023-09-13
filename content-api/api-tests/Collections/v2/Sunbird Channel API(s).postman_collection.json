@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "33210e28-535e-42e8-a3a8-8ce6352bb680",
 		"name": "Sunbird Channel API(s)",
+		"description": "The Channel API is an interface that allows users to manage channels. Channels are objects that represent different types of content and resources within a system. The API provides operations such as creating, reading, updating, and deleting channels.  \n. - The URL for Sunbird channel API(s) is `channel/v1` - [TestCases](https://www.getpostman.com/collections/fd62845fa723c00658ae)\n\nContact Support:  \nEmail: [info@sunbird.org](https://mailto:info@sunbird.org)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},

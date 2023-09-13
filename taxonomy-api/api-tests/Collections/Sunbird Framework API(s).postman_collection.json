@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "6a148b8e-30ec-4a61-aa84-5ed088def6a1",
 		"name": "Sunbird Framework API(s)",
+		"description": "The Framework API resources is basically a supporting data structure which serves as a template\n\n- It can be used in places where the structure remains the same but only the usage changes as per the requirement.\n    \n- These resources are used to create, update, read, search, the objects like channels, frameworks, catergories, terms\n    \n- The Hierarchy is as: FrameworkCategoryTerms\n    \n    - Category: An abstract classification of the terms partitioned according to requirement\n        \n    - Terms: Refers to a keyword or a phrase to descibe a Concept\n        \n- [TestCases](https://www.getpostman.com/collections/10a84f4c27c0b45f690b)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},

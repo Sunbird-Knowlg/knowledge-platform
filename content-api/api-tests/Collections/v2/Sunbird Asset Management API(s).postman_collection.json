@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "6b69ad47-9ce2-441c-92fc-a92cc9579371",
 		"name": "Sunbird Asset Management API(s)",
+		"description": "The Asset Management API allows you to manage asset over the sunbird platform.Apis perform operations related to all the _Asset_ on the Sunbird Platform. - Each of the endpoints serve a different purpose, so which one to use depends on what you want to do - The operations include CRUD (Create, Update, Read and Upload) operations and other operations such as upload etc. - The URL for Sunbird Asset API(s) is `asset/v1` - [TestCases](https://www.getpostman.com/collections/fd62845fa723c00658ae)\n\nContact Support:  \nEmail: [info@sunbird.org](https://mailto:info@sunbird.org)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},

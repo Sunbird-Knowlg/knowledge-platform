@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "372717a7-08ea-4fde-b888-57cc9171f1f7",
 		"name": "Sunbird Object Category API(s)",
+		"description": "The Object Category Definition API is an API that allows you to create and define object categories. It enables you to configure specific set of properties and behaviors for a category of objects. This API allows you to create, update, and fetch object category definitions. With this API, you can define metadata fields, their attributes, and their validation rules for different categories of objects.\n\nContact Support:  \nEmail: [info@sunbird.org](https://mailto:info@sunbird.org)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "20672544"
 	},
