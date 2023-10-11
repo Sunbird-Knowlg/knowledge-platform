@@ -1,7 +1,5 @@
 package org.sunbird.content.dial
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
@@ -22,6 +20,8 @@ import scala.collection.mutable.{Map => Mmap}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.parsing.json.JSON
 
+
+
 object DIALManager {
 
   val DIAL_SEARCH_API_URL: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.search")
@@ -30,8 +30,6 @@ object DIALManager {
   val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
   val batchModelProperties: util.List[String] = util.Arrays.asList("processid", "dialcodes", "config", "status", "channel", "publisher")
   private val kfClient = new KafkaClient
-  val mapper = new ObjectMapper().registerModule(DefaultScalaModule)
-
   def link(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val linkType: String = request.getContext.getOrDefault(DIALConstants.LINK_TYPE, DIALConstants.CONTENT).asInstanceOf[String]
     val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
@@ -101,8 +99,7 @@ object DIALManager {
         }
       }
       val headerParam = new util.HashMap[String, String] {
-        put(DIALConstants.X_CHANNEL_ID, channelId);
-        put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);
+        put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);
       }
       val searchResponse = oec.httpUtil.post(DIAL_SEARCH_API_URL, reqMap, headerParam)
       if (searchResponse.getResponseCode.toString == ContentConstants.OK_RESPONSE_CODE) {
@@ -350,7 +347,7 @@ object DIALManager {
     "imageBorderSize" -> 1
   )
 
-//    val mergedConfig: Mmap[String, Any] = defaultConfig ++ config
+  //    val mergedConfig: Mmap[String, Any] = defaultConfig ++ config
 
   def configToString(mergedConfig: Mmap[String, Any]): Mmap[String, String] = {
     val stringMap = Mmap.empty[String, String]
@@ -382,13 +379,13 @@ object DIALManager {
     val processId = UUID.randomUUID
     val dialcodes = dialCodesMap.map(_("text")).toList.asJava
     rspObj.getResult.put(DIALConstants.PROCESS_ID, processId)
-    pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap,config)
+    pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap, config)
 
     val batch = new java.util.HashMap[String, AnyRef]()
     batch.put("identifier", processId)
     batch.put("dialcodes", dialcodes)
     batch.put("config", config.asJava)
-    batch.put("status", Int.box(0) )
+    batch.put("status", Int.box(0))
     batch.put("channel", channel)
     batch.put("publisher", "publisher")
 
@@ -399,17 +396,17 @@ object DIALManager {
     updateReq.setContext(context)
     updateReq.getContext.put("schemaName", "dialcode")
     updateReq.getContext.put("objectType", "content")
-//    updateReq.getContext.put("identifier",rspObj.get("node_id") )
+    //    updateReq.getContext.put("identifier",rspObj.get("node_id") )
     val updateMap = new util.HashMap[String, AnyRef]()
     updateMap.put("identifier", rspObj.get("node_id"))
-    updateMap.put("status",Int.box(0) )
+    updateMap.put("status", Int.box(0))
     updateReq.setRequest(updateMap)
     updateReq.putAll(batch)
 
     oec.graphService.saveExternalProps(updateReq)
   }
 
-  def pushDialEvent (processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes:  Iterable[Map[String, String]], config: Mmap[String, String] ) ={
+  def pushDialEvent(processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes: Iterable[Map[String, String]], config: Mmap[String, String]) = {
     val event = new util.HashMap[String, Any]()
 
     event.put("eid", "BE_QR_IMAGE_GENERATOR")
@@ -422,12 +419,11 @@ object DIALManager {
     storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
     event.put("storage", storageMap)
     event.put("config", config.toMap.asJava)
-    val topic: String = Platform.getString(DIALConstants.KAFKA_DIAL_TOPIC,"sunbirddev.qrimage.request")
+    val topic: String = Platform.getString(DIALConstants.KAFKA_DIAL_TOPIC, "sunbirddev.qrimage.request")
     val dialEvent = ScalaJsonUtils.serialize(event)
     if (StringUtils.isBlank(dialEvent)) throw new ClientException("DIAL_REQUEST_EXCEPTION", "Event is not generated properly.")
     kfClient.send(dialEvent, topic)
   }
-
 
   def release(request: Request, contentId: String, rootNode: Node, contentMetadata: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val reservedDialCodes = if (contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String])
@@ -575,8 +571,7 @@ object DIALManager {
     }
 
     val headerParam = new util.HashMap[String, String] {
-      put(DIALConstants.X_CHANNEL_ID, channelId);
-      put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);
+      put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);
     }
     val generateResponse = oec.httpUtil.post(DIALCODE_GENERATE_URI, requestMap, headerParam)
     if (generateResponse.getResponseCode == ResponseCode.OK || generateResponse.getResponseCode == ResponseCode.PARTIAL_SUCCESS) {
@@ -608,6 +603,7 @@ object DIALManager {
     val reservDialCodes: String = node.getMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]
     if (StringUtils.isNotBlank(reservDialCodes))
       response.getResult.put(DIALConstants.RESERVED_DIALCODES, JsonUtils.deserialize(reservDialCodes, classOf[util.Map[String, Integer]]))
+
     response
   }
 }
