@@ -28,6 +28,7 @@ object DIALManager {
   val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate")
   val DIAL_API_AUTH_KEY: String = ContentConstants.BEARER + Platform.config.getString("dial_service.api.auth_key")
   val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
+  val DIALTOPIC: String = Platform.config.getString("kafka.dial.request.topic")
   val batchModelProperties: util.List[String] = util.Arrays.asList("processid", "dialcodes", "config", "status", "channel", "publisher")
   private val kfClient = new KafkaClient
   def link(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -419,7 +420,7 @@ object DIALManager {
     storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
     event.put("storage", storageMap)
     event.put("config", config.toMap.asJava)
-    val topic: String = Platform.getString(DIALConstants.KAFKA_DIAL_TOPIC, "sunbirddev.qrimage.request")
+    val topic: String = DIALTOPIC
     val dialEvent = ScalaJsonUtils.serialize(event)
     if (StringUtils.isBlank(dialEvent)) throw new ClientException("DIAL_REQUEST_EXCEPTION", "Event is not generated properly.")
     kfClient.send(dialEvent, topic)
