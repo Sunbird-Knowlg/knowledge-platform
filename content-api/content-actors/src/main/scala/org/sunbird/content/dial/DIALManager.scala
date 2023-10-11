@@ -606,11 +606,8 @@ object DIALManager {
     response.getResult.put(DIALConstants.COUNT, count)
     response.getResult.put(ContentConstants.NODE_ID, contentId)
     val reservDialCodes: String = node.getMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]
-    println(" response from getreservedUpdateResponse ", response.getResult, " ", response.getParams)
-    println(" node data from get reserved update response ", node.getMetadata, " ", node.getIdentifier)
     if (StringUtils.isNotBlank(reservDialCodes))
       response.getResult.put(DIALConstants.RESERVED_DIALCODES, JsonUtils.deserialize(reservDialCodes, classOf[util.Map[String, Integer]]))
-    println(" response ready ", response.getResult)
     response
   }
 }
