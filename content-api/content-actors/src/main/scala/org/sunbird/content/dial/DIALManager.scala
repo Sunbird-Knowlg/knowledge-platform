@@ -399,7 +399,7 @@ object DIALManager {
 	def pushDialEvent (processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes:  Iterable[Map[String, String]], config: Mmap[String, String] ) ={
 		val event = new util.HashMap[String, Any]()
 
-		event.put("eid", "BE_QR_IMAGE_GENERATOR")
+		event.put("eid", DIALConstants.DIAL_EID)
 		event.put("processId", processId)
 		event.put("objectId", Option(rspObj.get("node_id")).getOrElse(channel))
 		event.put("dialcodes", dialCodes)
