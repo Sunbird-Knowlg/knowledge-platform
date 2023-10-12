@@ -35,7 +35,7 @@
       "url": {
         "type": "string"
       },
-      "createdon": {
+      "created_on": {
         "type": "timestamp"
       }
     },
