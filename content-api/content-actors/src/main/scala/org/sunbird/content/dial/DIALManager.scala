@@ -29,6 +29,17 @@ object DIALManager {
 	val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
 	private val kfClient = new KafkaClient
 	val DIALTOPIC: String = Platform.config.getString("kafka.dial.request.topic")
+	val defaultConfig: Mmap[String, Any] = Mmap(
+		"errorCorrectionLevel" -> "H",
+		"pixelsPerBlock" -> 2,
+		"qrCodeMargin" -> 3,
+		"textFontName" -> "Verdana",
+		"textFontSize" -> 11,
+		"textCharacterSpacing" -> 0.1,
+		"imageFormat" -> "png",
+		"colourModel" -> "Grayscale",
+		"imageBorderSize" -> 1
+	)
 	def link(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val linkType: String = request.getContext.getOrDefault(DIALConstants.LINK_TYPE, DIALConstants.CONTENT).asInstanceOf[String]
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
@@ -324,17 +335,7 @@ object DIALManager {
   * prepare qr data
   * */
 
-	val defaultConfig: Mmap[String, Any] = Mmap(
-		"errorCorrectionLevel" -> "H",
-		"pixelsPerBlock" -> 2,
-		"qrCodeMargin" -> 3,
-		"textFontName" -> "Verdana",
-		"textFontSize" -> 11,
-		"textCharacterSpacing" -> 0.1,
-		"imageFormat" -> "png",
-		"colourModel" -> "Grayscale",
-		"imageBorderSize" -> 1
-	)
+
 
 	//    val mergedConfig: Mmap[String, Any] = defaultConfig ++ config
 
