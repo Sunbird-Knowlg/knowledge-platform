@@ -7,7 +7,7 @@ import javax.inject.{Inject, Named}
 import org.sunbird.models.UploadParams
 import org.sunbird.common.dto.ResponseHandler
 import play.api.mvc.ControllerComponents
-import utils.{ActorNames, ApiId, JavaJsonUtils}
+import utils.{ActorNames, ApiId, Constants, JavaJsonUtils}
 
 import scala.collection.JavaConverters._
 
@@ -283,6 +283,17 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         val contentRequest = getRequest(body, headers, "importContent")
         setRequestContext(contentRequest, version, objectType, schemaName)
         getResult(ApiId.IMPORT_CONTENT, contentActor, contentRequest)
+    }
+
+    def updateCollaborator(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map(Constants.IDENTIFIER -> identifier, "mode" -> "edit").asJava)
+        val contentRequest = getRequest(content, headers, "updateCollaborator")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        getResult(ApiId.UPDATE_COLLABORATOR, contentActor, contentRequest)
     }
 
 }
