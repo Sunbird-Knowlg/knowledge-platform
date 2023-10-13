@@ -335,18 +335,6 @@ object DIALManager {
   * prepare qr data
   * */
 
-
-
-	//    val mergedConfig: Mmap[String, Any] = defaultConfig ++ config
-
-	def configToString(mergedConfig: Mmap[String, Any]): Mmap[String, String] = {
-		val stringMap = Mmap.empty[String, String]
-		mergedConfig.foreach { case (k, v) =>
-			stringMap += (k -> v.toString)
-		}
-		stringMap
-	}
-
 	def createRequest(data: Map[String, AnyRef], channel: String, publisher: Option[String], rspObj: Response, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
 
 		val dialCodesMap = data.map { case (dialcode, index) =>
@@ -365,16 +353,15 @@ object DIALManager {
 			case _ => Map.empty[String, Any]
 		}
 		val mergedConfig: Mmap[String, Any] = defaultConfig.++(qrCodeSpec)
-		val config = configToString(mergedConfig)
 		val processId = UUID.randomUUID
 		val dialcodes = dialCodesMap.map(_("text")).toList.asJava
 		rspObj.getResult.put(DIALConstants.PROCESS_ID, processId)
-		pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap,config)
+		pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap,mergedConfig)
 
 		val batch = new java.util.HashMap[String, AnyRef]()
 		batch.put("identifier", processId)
 		batch.put("dialcodes", dialcodes)
-		batch.put("config", config.asJava)
+		batch.put("config", mergedConfig.asJava)
 		batch.put("status", Int.box(0) )
 		batch.put("channel", channel)
 		batch.put("publisher", "publisher")
@@ -396,7 +383,7 @@ object DIALManager {
 		oec.graphService.saveExternalProps(updateReq)
 	}
 
-	def pushDialEvent (processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes:  Iterable[Map[String, String]], config: Mmap[String, String] ) ={
+	def pushDialEvent (processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes:  Iterable[Map[String, String]], config: Mmap[String, Any] ) ={
 		val event = new util.HashMap[String, Any]()
 
 		event.put("eid", DIALConstants.DIAL_EID)
@@ -409,7 +396,7 @@ object DIALManager {
 		storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
 		event.put("storage", storageMap)
 		event.put("config", config.toMap.asJava)
-		val topic: String = Platform.getString(DIALTOPIC,"sunbirddev.qrimage.request")
+		val topic: String = DIALTOPIC
 		val dialEvent = ScalaJsonUtils.serialize(event)
 		if (StringUtils.isBlank(dialEvent)) throw new ClientException("DIAL_REQUEST_EXCEPTION", "Event is not generated properly.")
 		kfClient.send(dialEvent, topic)
@@ -530,10 +517,9 @@ object DIALManager {
 	}
 
 	def getUpdateDIALCodes(reservedDialCodes: Map[String, Integer], request: Request, channelId: String, contentId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Map[String, Integer] = {
-		val maxIndex: Integer = if (reservedDialCodes.nonEmpty) reservedDialCodes.max._2	else -1
+		val maxIndex: Integer = if (reservedDialCodes.nonEmpty) reservedDialCodes.toSeq.sortBy(_._2).last._2	else -1
 		val dialCodes = reservedDialCodes.keySet
 		val reqDialcodesCount = request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]].get(DIALConstants.COUNT).asInstanceOf[Integer]
-
 		if (dialCodes.size < reqDialcodesCount) {
 			val newDialcodes = generateDialCodes(channelId, contentId, reqDialcodesCount - dialCodes.size, request.get(DIALConstants.PUBLISHER).asInstanceOf[String])
 			val newDialCodesMap: Map[String, Integer] = newDialcodes.zipWithIndex.map { case (newDialCode, idx) =>
