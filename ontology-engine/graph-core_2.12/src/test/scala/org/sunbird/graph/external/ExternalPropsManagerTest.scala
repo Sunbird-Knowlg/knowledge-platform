@@ -49,22 +49,17 @@ class ExternalPropsManagerTest extends BaseSpec {
 
     "savePropsWithTtl" should "create a cassandra record with ttl successfully" in {
         val request = new Request()
-        request.setObjectType("ObjectCategoryDefinition")
+        request.setObjectType("Lock")
         request.setContext(new util.HashMap[String, AnyRef]() {
             {
                 put("graph_id", "domain")
                 put("version", "1.0")
-                put("objectType", "ObjectCategoryDefinition")
-                put("schemaName", "objectcategorydefinition")
+                put("objectType", "Lock")
+                put("schemaName", "lock")
             }
         })
-        request.put("identifier", "obj-cat:test_content_all")
-        request.put("objectMetadata", new util.HashMap[String, AnyRef]() {
-            {
-                put("schema", "{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\",\"autoBatch\":\"Yes\"},\"additionalProperties\":false},\"monitorable\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"progress-report\",\"score-report\"]}},\"credentials\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\"},\"additionalProperties\":false},\"userConsent\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}}}")
-                put("config", "{}")
-            }
-        })
+        request.put("identifier", "do_123")
+
 
         val future: Future[Response] = ExternalPropsManager.savePropsWithTtl(request, 60)
         future map { response => {
@@ -164,24 +159,19 @@ class ExternalPropsManagerTest extends BaseSpec {
 
     "updateWithTtl" should "update a cassandra record with ttl successfully" in {
         val request = new Request()
-        request.setObjectType("ObjectCategoryDefinition")
+        request.setObjectType("Lock")
         request.setContext(new util.HashMap[String, AnyRef]() {
             {
                 put("graph_id", "domain")
                 put("version", "1.0")
-                put("objectType", "ObjectCategoryDefinition")
-                put("schemaName", "objectcategorydefinition")
+                put("objectType", "Lock")
+                put("schemaName", "lock")
             }
         })
-        val objectMetadata = new util.HashMap[String, AnyRef]() {
-            {
-                put("schema", "{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\",\"autoBatch\":\"Yes\"},\"additionalProperties\":false},\"monitorable\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"progress-report\",\"score-report\"]}},\"credentials\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\"},\"additionalProperties\":false},\"userConsent\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}}}")
-                put("config", "{}")
-            }
-        }
-        request.put("identifier", "obj-cat:course_collection_all")
-        request.put("fields", List("objectMetadata"))
-        request.put("values", List(objectMetadata))
+
+        request.put("identifier", "do_123")
+        request.put("fields", List("expiresat"))
+        request.put("values", List("2023-08-09 17:49:26.554000+0000"))
         val future: Future[Response] = ExternalPropsManager.updateWithTtl(request, 60)
         future map { response => {
             assert(null != response)
