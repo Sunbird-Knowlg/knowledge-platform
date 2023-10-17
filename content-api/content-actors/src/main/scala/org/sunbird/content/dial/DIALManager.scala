@@ -1,5 +1,6 @@
 package org.sunbird.content.dial
 
+import com.datastax.driver.core.DataType
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
@@ -311,6 +312,7 @@ object DIALManager {
 
 		val reservedDialCodes = if (contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
 		val updateDialCodes = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
+		val reqPublisher = request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]].get(DIALConstants.PUBLISHER).asInstanceOf[String]
 
 		if (updateDialCodes.size > reservedDialCodes.size) {
 			val updateReq = getDIALReserveUpdateRequest(request, rootNode, updateDialCodes)
@@ -318,13 +320,14 @@ object DIALManager {
 				val response = ResponseHandler.OK()
 				val updatedSuccessResponse = getDIALReserveUpdateResponse(response, updateDialCodes.size.asInstanceOf[Integer], contentId, updatedNode)
 				updatedSuccessResponse.getResult.put(DIALConstants.VERSION_KEY, updatedNode.getMetadata.get(DIALConstants.VERSION_KEY))
+				println(" publisher ", request.getRequest)
 				val dialcodes: Map[String, AnyRef] =
 					updatedSuccessResponse.getResult
 						.get("reservedDialcodes")
 						.asInstanceOf[java.util.Map[String, AnyRef]]
 						.asScala
 						.toMap
-				createRequest(dialcodes, channelId, Option(updatedSuccessResponse.get("publisher").asInstanceOf[String]), updatedSuccessResponse, request)
+				createRequest(dialcodes, channelId, Option(reqPublisher), updatedSuccessResponse, request)
 				updatedSuccessResponse
 			})
 		} else {
@@ -368,6 +371,7 @@ object DIALManager {
 		batch.put("status", Int.box(0) )
 		batch.put("channel", channel)
 		batch.put("publisher", "publisher")
+		batch.put("created_on", DataType.timestamp())
 
 		val updateReq = new Request()
 		val context = new util.HashMap[String, Object]()
@@ -589,7 +593,7 @@ object DIALManager {
 		val qrCodesBatch = oec.graphService.readExternalProps(request, externalProps)
 		qrCodesBatch.map { response =>
 			val updatedResponse = ResponseHandler.OK()
-			if (Platform.config.getBoolean("cloudstorage.metadata.replace_absolute_path")) response.getResult.replace("url",  Platform.config.getString("cloudstorage.read_base_path") + File.separator + Platform.config.getString("cloud_storage_container"))
+			if (Platform.config.getBoolean("cloudstorage.metadata.replace_absolute_path")) response.getResult.replace("url", Platform.config.getString("cloudstorage.relative_path_prefix"),  Platform.config.getString("cloudstorage.read_base_path") + File.separator + Platform.config.getString("cloud_storage_container"))
 			updatedResponse.getResult.put(DIALConstants.batchInfo, response.getResult)
 			updatedResponse
 		}.recover {
