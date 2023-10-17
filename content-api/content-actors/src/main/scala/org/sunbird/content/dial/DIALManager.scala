@@ -370,7 +370,7 @@ object DIALManager {
 		batch.put("config", mergedConfig.asJava)
 		batch.put("status", Int.box(0) )
 		batch.put("channel", channel)
-		batch.put("publisher", "publisher")
+		batch.put("publisher", publisher)
 		batch.put("created_on", DataType.timestamp())
 
 		val updateReq = new Request()
@@ -387,6 +387,7 @@ object DIALManager {
 		updateReq.setRequest(updateMap)
 		updateReq.putAll(batch)
 
+		println(" update req ", updateReq)
 		oec.graphService.saveExternalProps(updateReq)
 	}
 
