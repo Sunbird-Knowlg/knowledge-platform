@@ -1,10 +1,9 @@
 package org.sunbird.content.dial
 
-import com.datastax.driver.core.DataType
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
-import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -363,6 +362,7 @@ object DIALManager {
 		val dialcodes = dialCodesMap.map(_("text")).toList.asJava
 		rspObj.getResult.put(DIALConstants.PROCESS_ID, processId)
 		pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap,mergedConfig)
+		val currentDate = DateUtils.formatCurrentDate
 
 		val batch = new java.util.HashMap[String, AnyRef]()
 		batch.put("identifier", processId)
@@ -371,7 +371,7 @@ object DIALManager {
 		batch.put("status", Int.box(0) )
 		batch.put("channel", channel)
 		batch.put("publisher", publisher.get)
-		batch.put("created_on", DataType.timestamp())
+		batch.put("created_on", currentDate)
 
 		val updateReq = new Request()
 		val context = new util.HashMap[String, Object]()
@@ -400,7 +400,7 @@ object DIALManager {
 		event.put("dialcodes", dialCodes)
 		val storageMap = new util.HashMap[String, Any]()
 		storageMap.put("container", "dial")
-		storageMap.put("path", if (publisher.nonEmpty) s"$channel/$publisher/" else s"$channel/")
+		storageMap.put("path", if (publisher.nonEmpty) s"$channel/"+ publisher.get +"/" else s"$channel/")
 		storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
 		event.put("storage", storageMap)
 		event.put("config", config.toMap.asJava)
