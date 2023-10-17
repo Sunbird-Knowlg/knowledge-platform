@@ -8,10 +8,13 @@ import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.managers.HierarchyManager
+import org.sunbird.telemetry.logger.TelemetryManager
 
+import java.io.File
 import java.util
 import java.util.UUID
 import scala.collection.JavaConverters._
@@ -574,5 +577,32 @@ object DIALManager {
 			response.getResult.put(DIALConstants.RESERVED_DIALCODES, JsonUtils.deserialize(reservDialCodes, classOf[util.Map[String, Integer]]))
 
 		response
+	}
+
+	@throws[Exception]
+	def readQRCodesBatchInfo(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+		if (StringUtils.isBlank(request.get("processId").toString)) Future{ ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, DIALErrors.ERR_INVALID_PROCESS_ID_REQUEST, DIALErrors.ERR_INVALID_PROCESS_ID_REQUEST)}
+		 request.getContext.replace("schemaName", "dialcode")
+		request.put("identifier", UUID.fromString( request.get("processId").toString ))
+		request.getRequest.remove("channelId")
+		val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], "dialcode")
+		val qrCodesBatch = oec.graphService.readExternalProps(request, externalProps)
+		qrCodesBatch.map { response =>
+			val updatedResponse = ResponseHandler.OK()
+			if (Platform.config.getBoolean("cloudstorage.metadata.replace_absolute_path")) response.getResult.replace("url",  Platform.config.getString("cloudstorage.read_base_path") + File.separator + Platform.config.getString("cloud_storage_container"))
+			updatedResponse.getResult.put(DIALConstants.batchInfo, response.getResult)
+			updatedResponse
+		}.recover {
+			case ex: Exception =>
+				// Handle the exception here
+				TelemetryManager.error(s"An error occurred: ${ex.getMessage}", ex)
+				ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "An internal error occurred", ex.getMessage)
+		}
+		/*	val response = ResponseHandler.OK()
+		response.getResult.put(DIALConstants.batchInfo, "response test")
+		println(" qrCodesBatch ", qrCodesBatch)
+//		val resp = getSuccessResponse
+//		resp.put(DialCodeEnum.batchInfo.name, qrCodesBatch)
+		response*/
 	}
 }
