@@ -3,7 +3,7 @@ package org.sunbird.content.dial
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
-import org.sunbird.common.{DateUtils, JsonUtils, Platform}
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -326,8 +326,8 @@ object DIALManager {
 						.asInstanceOf[java.util.Map[String, AnyRef]]
 						.asScala
 						.toMap
-				createRequest(dialcodes, channelId, Option(reqPublisher), updatedSuccessResponse, request)
-				updatedSuccessResponse
+				val updatedResponse = createRequest(dialcodes, channelId, Option(reqPublisher), updatedSuccessResponse, request)
+				updatedResponse
 			})
 		} else {
 			val errorResponse = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, DIALErrors.ERR_INVALID_COUNT, DIALErrors.ERR_DIAL_INVALID_COUNT_RESPONSE)
@@ -362,7 +362,6 @@ object DIALManager {
 		val dialcodes = dialCodesMap.map(_("text")).toList.asJava
 		rspObj.getResult.put(DIALConstants.PROCESS_ID, processId)
 		pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap,mergedConfig)
-		val currentDate = DateUtils.formatCurrentDate
 
 		val batch = new java.util.HashMap[String, AnyRef]()
 		batch.put("identifier", processId)
@@ -371,7 +370,7 @@ object DIALManager {
 		batch.put("status", Int.box(0) )
 		batch.put("channel", channel)
 		batch.put("publisher", publisher.get)
-		batch.put("created_on", currentDate)
+		batch.put("created_on", Long.box(System.currentTimeMillis()))
 
 		val updateReq = new Request()
 		val context = new util.HashMap[String, Object]()
@@ -389,6 +388,9 @@ object DIALManager {
 
 		println(" update req ", updateReq)
 		oec.graphService.saveExternalProps(updateReq)
+
+		rspObj
+
 	}
 
 	def pushDialEvent (processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes:  Iterable[Map[String, String]], config: Mmap[String, Any] ) ={

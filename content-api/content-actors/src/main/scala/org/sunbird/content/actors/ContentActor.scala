@@ -73,7 +73,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def getProcessIdStatus(request: Request): Future[Response] = {
-		try {
 			val apiId: String = "sunbird.dialcode.batch.read"
 			val response: Future[Response] = DIALManager.readQRCodesBatchInfo(request)
 
@@ -87,12 +86,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 					TelemetryManager.error(s"An error occurred: ${ex.getMessage}", ex)
 					ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "An internal error occurred", ex.getMessage)
 			}
-		} catch {
-			case ex: Exception =>
-				// Handle the exception here
-				TelemetryManager.error(s"An error occurred: ${ex.getMessage}", ex)
-				Future.successful(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "An internal error occurred", ex.getMessage))
-		}
 	}
 
 	def read(request: Request): Future[Response] = {
