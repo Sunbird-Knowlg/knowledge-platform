@@ -387,8 +387,17 @@ object DIALManager {
 		updateReq.putAll(batch)
 
 		println(" update req ", updateReq)
-		oec.graphService.saveExternalProps(updateReq)
+		oec.dialgraphService.saveExternalProps(updateReq).map { resp =>
+			if (ResponseHandler.checkError(resp)) {
+				println("resp from manager if", resp.getResult)
+				throw new ServerException("ERR_WHILE_SAVING_TO_CASSANDRA", "Error while saving external props to Cassandra")
+			}
+			else {
+				println(" resp ", resp.getResult)
+				resp
+			}
 
+		}
 		rspObj
 
 	}
