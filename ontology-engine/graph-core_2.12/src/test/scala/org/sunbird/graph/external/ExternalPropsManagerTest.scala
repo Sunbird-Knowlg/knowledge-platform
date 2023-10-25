@@ -6,6 +6,7 @@ import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.BaseSpec
 
 import java.util
+import java.util.Date
 import scala.concurrent.Future
 class ExternalPropsManagerTest extends BaseSpec {
 
@@ -171,7 +172,7 @@ class ExternalPropsManagerTest extends BaseSpec {
 
         request.put("identifier", "do_123")
         request.put("fields", List("expiresat"))
-        request.put("values", List("2023-08-09 17:49:26.554000+0000"))
+        request.put("values", List(createExpiryTime()))
         val future: Future[Response] = ExternalPropsManager.updateWithTtl(request, 60)
         future map { response => {
             assert(null != response)
@@ -206,6 +207,11 @@ class ExternalPropsManagerTest extends BaseSpec {
             assert(response.getResponseCode == ResponseCode.OK)
         }
         }
+    }
+
+    def createExpiryTime(): Date = {
+        val expiryTimeMillis = System.currentTimeMillis() + 60000
+        new Date(expiryTimeMillis)
     }
 
 }
