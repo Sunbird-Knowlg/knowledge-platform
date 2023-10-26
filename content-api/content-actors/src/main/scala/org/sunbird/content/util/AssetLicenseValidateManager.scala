@@ -13,8 +13,6 @@ object AssetLicenseValidateManager {
     val url = request.getRequestString("url", "")
     val urlMgr = URLFactoryManager.getUrlManager(getProvider(provider).toLowerCase)
     val data: java.util.Map[String, AnyRef] = urlMgr.validateURL(getUrl(url), field)
-    if (!data.getOrDefault("valid", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
-      throw new ClientException("INVALID_MEDIA_LICENSE", s"Please Provide Asset With Valid License For : $provider | Url : $url")
     Future(ResponseHandler.OK().put(field, data))
   }
 

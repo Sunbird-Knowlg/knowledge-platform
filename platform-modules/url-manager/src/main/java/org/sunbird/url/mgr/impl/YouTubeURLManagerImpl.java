@@ -27,10 +27,8 @@ public class YouTubeURLManagerImpl implements IURLManager {
 			String license = YouTubeUrlUtil.getLicense(url);
 			boolean isValidLicense = YouTubeUrlUtil.isValidLicense(license);
 			Map<String, Object> result = new HashMap<>();
-			if (StringUtils.isNotBlank(license) && BooleanUtils.isTrue(isValidLicense)) {
-				result.put("value", license);
-				result.put("valid", isValidLicense);
-			}
+			result.put("value", license);
+			result.put("valid", isValidLicense);
 			return result;
 		} else throw new ClientException(ResponseCode.CLIENT_ERROR.name(), "Please Provide Valid Criteria For Validation. Supported Criteria : " + validCriteria);
 	}
