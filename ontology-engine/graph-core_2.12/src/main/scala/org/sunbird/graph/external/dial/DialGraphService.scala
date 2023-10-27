@@ -10,7 +10,7 @@ import org.sunbird.graph.util.CSPMetaUtil
 
 import java.lang
 import scala.concurrent.{ExecutionContext, Future}
-
+// $COVERAGE-OFF$ Disabling scoverage
 class DialGraphService {
   implicit val ec: ExecutionContext = ExecutionContext.global
   val isrRelativePathEnabled: lang.Boolean = Platform.getBoolean("cloudstorage.metadata.replace_absolute_path", false)

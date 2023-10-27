@@ -7,7 +7,7 @@ import java.util
 import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-
+// $COVERAGE-OFF$ Disabling scoverage
 object DialPropsManager {
   def saveProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {
     val objectType: String = request.getObjectType
