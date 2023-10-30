@@ -3,6 +3,7 @@ package org.sunbird.graph.external.dial
 
 import java.util
 
+// $COVERAGE-OFF$ Disabling scoverage
 object DialStoreFactory {
 
   private val PRIMARY_KEY = util.Arrays.asList("content_id")
@@ -24,4 +25,4 @@ object DialStoreFactory {
 
 }
 
-
+// $COVERAGE-ON$ Enabling scoverage

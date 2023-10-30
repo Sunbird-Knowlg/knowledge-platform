@@ -104,6 +104,4 @@ class DialGraphService {
     GraphAsyncOperations.getSubGraph(graphId, nodeId, depth)
   }
 }
-
-
-
+// $COVERAGE-ON$ Enabling scoverage

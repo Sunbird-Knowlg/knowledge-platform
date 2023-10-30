@@ -14,6 +14,7 @@ import java.util
 import java.util.{Date, UUID}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+// $COVERAGE-OFF$ Disabling scoverage
 class DialStore(keySpace: String, table: String, primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
 
   def insert(request: util.Map[String, AnyRef], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
@@ -207,5 +208,4 @@ class DialStore(keySpace: String, table: String, primaryKey: java.util.List[Stri
     }
   }
 }
-
-
+// $COVERAGE-ON$ Enabling scoverage

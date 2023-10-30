@@ -65,3 +65,4 @@ object DialPropsManager {
 
 }
 
+// $COVERAGE-ON$ Enabling scoverage
