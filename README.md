@@ -180,7 +180,7 @@ curl http://localhost:9000/health
 ### Running Assets/Composite Search Service:
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
-mvn clean install -DskipTests
+mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.12 -DCLOUD_STORE_VERSION=1.4.6
 ```
 2. Go to the path: /knowledge-platform/search-api/search-service and run the below maven command to run the netty server.
 ```shell
