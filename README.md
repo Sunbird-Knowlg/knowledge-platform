@@ -166,7 +166,7 @@ kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --par
 
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
-mvn clean install -DskipTests
+mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.12 -DCLOUD_STORE_VERSION=1.4.6
 ```
 2. Go to the path: /knowledge-platform/content-api/content-service and run the below maven command to run the netty server.
 ```shell
@@ -194,7 +194,7 @@ curl http://localhost:9000/health
 ### Running Object Category Service:
 1. Go to the path: /knowledge-platform and run the below maven command to build the application.
 ```shell
-mvn clean install -DskipTests
+mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.12 -DCLOUD_STORE_VERSION=1.4.6
 ```
 2. Go to the path: /knowledge-platform/taxonomy-api/taxonomy-service and run the below maven command to run the netty server.
 ```shell
