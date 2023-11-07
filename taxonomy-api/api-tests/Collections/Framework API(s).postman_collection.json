@@ -6336,6 +6336,1210 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "Master Data",
+			"item": [
+				{
+					"name": "Master Category",
+					"item": [
+						{
+							"name": "Create master categroy",
+							"item": [
+								{
+									"name": "Positive",
+									"item": [
+										{
+											"name": "Create a master category with valid mandatory fields",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"  pm.expect(jsonResponse.params.msgid).to.be.a(\"null\"); \r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"null\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has string \", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"successful\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.result).to.have.all.keys('identifier','node_id');\r",
+															"  pm.expect(jsonResponse.result.node_id).to.be.a('String');\r",
+															"  pm.expect(jsonResponse.result.identifier).to.be.a('String');\r",
+															"});\r",
+															"\r",
+															"pm.globals.set(\"node_id1\",jsonResponse.result.node_id);\r",
+															"console.log(pm.globals.get(\"node_id1\"));\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "",
+														"value": "",
+														"disabled": true
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"category\": {\n            \"name\": \"state\",\n            \"code\": \"state\",\n            \"targetIdFieldName\": \"targetstateIds\",\n            \"searchLabelFieldName\": \"se_state\",\n            \"searchIdFieldName\": \"se_state\",\n            \"orgIdFieldName\": \"stateIds\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"create"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Create a master category with all valid fields",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"  pm.expect(jsonResponse.params.msgid).to.be.a(\"null\"); \r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"null\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has string \", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"successful\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.result).to.have.all.keys('identifier','node_id');\r",
+															"  pm.expect(jsonResponse.result.node_id).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.result.identifier).to.be.a(\"string\");\r",
+															"});\r",
+															"\r",
+															"pm.globals.set(\"node_id\",jsonResponse.result.node_id);\r",
+															"console.log(pm.globals.get(\"node_id\"));\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "",
+														"value": ""
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"category\": {\n            \"name\": \"med\",\n            \"code\": \"med\",\n            \"description\": \"med category\",\n            \"targetIdFieldName\": \"targetmedIds\",\n            \"searchLabelFieldName\": \"se_med\",\n            \"searchIdFieldName\": \"se_med\",\n            \"orgIdFieldName\": \"medIds\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"create"
+													]
+												}
+											},
+											"response": []
+										}
+									],
+									"description": "1. Request body should be updated with unique value each time before creating master category"
+								},
+								{
+									"name": "Negative",
+									"item": [
+										{
+											"name": "Create a master category with invalid fields",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 400\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"    pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'messages'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"String\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"err has string: CLIENT_ERROR\", function () {\r",
+															"    pm.expect(jsonResponse.params.err).to.be.equal(\"CLIENT_ERROR\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has string: failed\", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"failed\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"errmsg has string: Validation Errors\", function () {\r",
+															"    pm.expect(jsonResponse.params.errmsg).to.be.equal(\"Validation Errors\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status code name has string: Bad Request\", function () {\r",
+															"    pm.response.to.have.status(\"Bad Request\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"ResponseCode has string: CLIENT_ERROR\", function () {\r",
+															"    pm.expect(jsonResponse.responseCode).to.be.equal(\"CLIENT_ERROR\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"    pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'messages'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.result.messages).to.be.an(\"array\").that.includes.members([\r",
+															"      \"Required Metadata orgIdFieldName not set\",\r",
+															"            \"Required Metadata code not set\"\r",
+															"    ]);\r",
+															"});\r",
+															"\r",
+															"\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "",
+														"value": "",
+														"disabled": true
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"category\": {\n            \"name\": \"class\",\n            \"code\": \"\",\n            \"description\": \"\",\n            \"targetIdFieldName\": \"targetclassIds\",\n            \"searchLabelFieldName\": \"se_class\",\n            \"searchIdFieldName\": \"se_class\",\n            \"orgIdFieldName\": \"\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"create"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Create master category with missing mandatory fields",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 400\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"    pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'messages'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"String\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"err has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.err).to.be.equal(\"CLIENT_ERROR\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"failed\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"errmsg has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.errmsg).to.be.equal(\"Validation Errors\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status code name has string: Bad Request\", function () {\r",
+															"    pm.response.to.have.status(\"Bad Request\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"ResponseCode has string: CLIENT_ERROR\", function () {\r",
+															"    pm.expect(jsonResponse.responseCode).to.be.equal(\"CLIENT_ERROR\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"    pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'messages'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.result.messages).to.be.an(\"array\").that.includes.members([\r",
+															"        \"Required Metadata searchLabelFieldName not set\",\r",
+															"        \"Required Metadata searchIdFieldName not set\",\r",
+															"        \"Required Metadata targetIdFieldName not set\",\r",
+															"        \"Required Metadata orgIdFieldName not set\"\r",
+															"    ]);\r",
+															"});\r",
+															"\r",
+															"\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "user-id",
+														"value": "rayuluv"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "in.ekstep"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer {{api_key}}"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"category\": {\n            \"name\": \"Class\",\n            \"code\": \"Class\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"create"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Create existing category",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 400\", function () {\r",
+															"    pm.response.to.have.status(400);\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"    pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'messages'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"String\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"err has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.err).to.be.equal(\"CONSTRAINT_VALIDATION_FAILED\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"failed\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"errmsg has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.errmsg).to.be.include(\"Object already exists with identifier:\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status code name has string: Bad Request\", function () {\r",
+															"    pm.response.to.have.status(\"Bad Request\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"ResponseCode has string: CLIENT_ERROR\", function () {\r",
+															"    pm.expect(jsonResponse.responseCode).to.be.equal(\"CLIENT_ERROR\");\r",
+															"});\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "user-id",
+														"value": "rayuluv"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "in.ekstep"
+													},
+													{
+														"key": "Authorization",
+														"value": "Bearer {{api_key}}"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"category\": {\n            \"name\": \"class\",\n            \"code\": \"class\",\n            \"description\": \"class description\",\n            \"targetIdFieldName\": \"targetclassIds\",\n            \"searchLabelFieldName\": \"se_class\",\n            \"searchIdFieldName\": \"se_class\",\n            \"orgIdFieldName\": \"se_class\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"create"
+													]
+												}
+											},
+											"response": []
+										}
+									],
+									"description": "1. Third scenario, existing details should be updated in request body"
+								}
+							]
+						},
+						{
+							"name": "Update Master category",
+							"item": [
+								{
+									"name": "Positive",
+									"item": [
+										{
+											"name": "Update details for existing master category with valid fields",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"  pm.expect(jsonResponse.params.msgid).to.be.a(\"null\"); \r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"null\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has string \", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"successful\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.result).to.have.all.keys('identifier','node_id');\r",
+															"  pm.expect(jsonResponse.result.node_id).to.be.a('String');\r",
+															"  pm.expect(jsonResponse.result.identifier).to.be.a('String');\r",
+															"});\r",
+															"\r",
+															"\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PATCH",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"request\": {\n      \"category\":{\n        \"Description\":\"Description of class category\"\n      }\n  }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/update/{{node_id1}}",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"update",
+														"{{node_id1}}"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative",
+									"item": [
+										{
+											"name": "Update details for invalid master category",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 404\", function () {\r",
+															"    pm.response.to.have.status(404);\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status code name has string\", function () {\r",
+															"    pm.response.to.have.status(\"Not Found\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','err','status','errmsg');\r",
+															"  pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"String\");\r",
+															"  });\r",
+															"\r",
+															"pm.test(\"Err has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.err).to.be.equal(\"NOT_FOUND\");\r",
+															"});\r",
+															"pm.test(\"Status has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"failed\");\r",
+															"});\r",
+															"pm.test(\"errmsg has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.errmsg).to.be.include(\"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: \");\r",
+															"});\r",
+															"pm.test(\"responseCode has string\", function () {\r",
+															"    pm.expect(jsonResponse.responseCode).to.be.equal(\"RESOURCE_NOT_FOUND\");\r",
+															"});\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"method": "PATCH",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "sunbird"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{auth_token}}"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"request\": {\n      \"category\":{\n        \"Description\":\"Description of class category\"\n      }\n  }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/update/abc",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"update",
+														"abc"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Delete Master category",
+							"item": [
+								{
+									"name": "Positive",
+									"item": [
+										{
+											"name": "Delete a valid master category",
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "DELETE",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/retire/{{node_id}}",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"retire",
+														"{{node_id}}"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative",
+									"item": [
+										{
+											"name": "Delete an invalid master category",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 404\", function () {\r",
+															"    pm.response.to.have.status(404);\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status code name has string\", function () {\r",
+															"    pm.response.to.have.status(\"Not Found\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','err','status','errmsg');\r",
+															"  pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"String\");\r",
+															"  });\r",
+															"\r",
+															"pm.test(\"Err has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.err).to.be.equal(\"NOT_FOUND\");\r",
+															"});\r",
+															"pm.test(\"Status has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"failed\");\r",
+															"});\r",
+															"pm.test(\"errmsg has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.errmsg).to.be.include(\"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: \");\r",
+															"});\r",
+															"pm.test(\"responseCode has string\", function () {\r",
+															"    pm.expect(jsonResponse.responseCode).to.be.equal(\"RESOURCE_NOT_FOUND\");\r",
+															"});\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "DELETE",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "",
+														"value": "",
+														"disabled": true
+													}
+												],
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/retire/abc",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"retire",
+														"abc"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "Get Master Category",
+							"item": [
+								{
+									"name": "Positive",
+									"item": [
+										{
+											"name": "Read a live master category",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"null\");\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'category'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.result.category).to.have.all.keys('trackable','identifier','lastStatusChangedOn', 'code','targetIdFieldName','channel','searchLabelFieldName','languageCode','createdOn','objectType','versionKey','name','lastUpdatedOn','searchIdFieldName','orgIdFieldName','status','description');\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has String: retired \", function () {\r",
+															"    pm.expect(jsonResponse.result.category.status).to.be.equal(\"Live\");\r",
+															"});"
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "",
+														"value": "",
+														"disabled": true
+													}
+												],
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/read/{{node_id}}",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"read",
+														"{{node_id}}"
+													]
+												}
+											},
+											"response": []
+										},
+										{
+											"name": "Read a retired master category",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 200\", function () {\r",
+															"    pm.response.to.have.status(200);\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','status', 'err','errmsg');\r",
+															"pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"null\");\r",
+															"});\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.result).to.be.an(\"object\").that.has.all.keys(\r",
+															"        'category'\r",
+															"    );\r",
+															"  pm.expect(jsonResponse.result.category).to.have.all.keys('trackable','identifier','lastStatusChangedOn', 'code','targetIdFieldName','channel','searchLabelFieldName','languageCode','createdOn','objectType','versionKey','name','lastUpdatedOn','searchIdFieldName','orgIdFieldName','status','description');\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status has String: retired \", function () {\r",
+															"    pm.expect(jsonResponse.result.category.status).to.be.equal(\"Retired\");\r",
+															"});"
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{auth_token}}"
+													}
+												],
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/read/{{node_id}}",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"read",
+														"{{node_id}}"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								},
+								{
+									"name": "Negative",
+									"item": [
+										{
+											"name": "Read an invalid master category",
+											"event": [
+												{
+													"listen": "test",
+													"script": {
+														"exec": [
+															"let jsonResponse = pm.response.json()\r",
+															"\r",
+															"pm.test(\"Status code is 404\", function () {\r",
+															"    pm.response.to.have.status(404);\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Status code name has string\", function () {\r",
+															"    pm.response.to.have.status(\"Not Found\");\r",
+															"});\r",
+															"\r",
+															"pm.test(\"Verify keys and data type of the response result\", () => {\r",
+															"  pm.expect(jsonResponse.params).to.have.all.keys('resmsgid','msgid','err','status','errmsg');\r",
+															"  pm.expect(jsonResponse.params.resmsgid).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.msgid).to.be.a(\"null\");\r",
+															"  pm.expect(jsonResponse.params.err).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.status).to.be.a(\"String\");\r",
+															"  pm.expect(jsonResponse.params.errmsg).to.be.a(\"String\");\r",
+															"  });\r",
+															"\r",
+															"pm.test(\"Err has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.err).to.be.equal(\"NOT_FOUND\");\r",
+															"});\r",
+															"pm.test(\"Status has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.status).to.be.equal(\"failed\");\r",
+															"});\r",
+															"pm.test(\"errmsg has string\", function () {\r",
+															"    pm.expect(jsonResponse.params.errmsg).to.be.include(\"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: \");\r",
+															"});\r",
+															"pm.test(\"responseCode has string\", function () {\r",
+															"    pm.expect(jsonResponse.responseCode).to.be.equal(\"RESOURCE_NOT_FOUND\");\r",
+															"});\r",
+															"\r",
+															""
+														],
+														"type": "text/javascript"
+													}
+												}
+											],
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "value",
+															"value": "{{auth_token}}",
+															"type": "string"
+														},
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "X-Channel-Id",
+														"value": "sunbird"
+													},
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "X-Channel-Id",
+														"value": "{{X-Channel-Id}}"
+													}
+												],
+												"url": {
+													"raw": "{{host}}/framework/v3/category/master/read/abc",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"framework",
+														"v3",
+														"category",
+														"master",
+														"read",
+														"abc"
+													]
+												}
+											},
+											"response": []
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
 		}
 	],
 	"variable": [
