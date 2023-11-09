@@ -1,7 +1,7 @@
 package org.sunbird.content.actors
 
 import akka.actor.Props
-import org.apache.hadoop.util.StringUtils
+import org.apache.commons.lang3.StringUtils;
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request

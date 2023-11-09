@@ -3,7 +3,7 @@ package org.sunbird.content.util
 import java.util
 import java.util.concurrent.CompletionException
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException

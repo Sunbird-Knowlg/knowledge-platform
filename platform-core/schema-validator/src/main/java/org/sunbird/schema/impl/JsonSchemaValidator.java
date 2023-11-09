@@ -4,6 +4,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
+import org.leadpony.justify.api.JsonSchemaReader;
+import org.leadpony.justify.api.JsonSchemaReaderFactory;
 import org.sunbird.common.Platform;
 
 import java.io.File;
@@ -17,6 +19,16 @@ import java.nio.file.Paths;
 public class JsonSchemaValidator extends BaseSchemaValidator {
 
     private String basePath = Platform.config.hasPath("schema.base_path") ? Platform.config.getString("schema.base_path") : "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/schemas/local/";
+//
+//    public static void main(String[] args) throws Exception{
+//        System.out.println("Working...");
+//
+//        InputStream stream = new URL( "https://objectstorage.ap-hyderabad-1.oraclecloud.com/n/ax2cel5zyviy/b/sunbird-content-dev/o/schemas%2Flocal%2Fcontent%2F1.0%2Fschema.json").openStream();
+//        JsonSchemaReaderFactory schemaReaderFactory = service.createSchemaReaderFactoryBuilder().build();
+//        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(stream)) {
+//            reader.read();
+//        }
+//    }
 
     public JsonSchemaValidator(String name, String version) throws Exception {
         super(name, version);
