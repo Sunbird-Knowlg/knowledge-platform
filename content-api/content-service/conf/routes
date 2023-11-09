@@ -54,6 +54,9 @@ GET     /category/v3/read/:identifier            controllers.v3.CategoryControll
 PATCH   /category/v3/update/:identifier          controllers.v3.CategoryController.update(identifier: String)
 DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryController.retire(identifier: String)
 
+#Asset V3 Api's
+POST      /asset/v3/validate                     controllers.v4.AssetController.licenceValidate(field:Option[String])
+
 #Asset V4 Api's
 POST      /asset/v4/create                       controllers.v4.AssetController.create
 PATCH     /asset/v4/update/:identifier           controllers.v4.AssetController.update(identifier:String)
