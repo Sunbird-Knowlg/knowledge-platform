@@ -28,7 +28,18 @@
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
 			<version>1.7.5</version>
+			<exclusions>
+				<exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec</artifactId>
+                </exclusion>
+			</exclusions>
 		</dependency>
+		<dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec</artifactId>
+            <version>4.1.68.Final</version>
+        </dependency> 
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>
 			<artifactId>scala-java8-compat_${scala.maj.version}</artifactId>

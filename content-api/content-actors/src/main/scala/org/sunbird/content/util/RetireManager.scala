@@ -4,7 +4,7 @@ import java.util
 import java.util.{Date, UUID}
 
 import org.apache.commons.collections4.CollectionUtils
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}

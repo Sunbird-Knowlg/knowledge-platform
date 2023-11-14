@@ -5,7 +5,7 @@ import java.util
 
 import com.google.common.io.Resources
 import org.apache.commons.io.FileUtils
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import org.sunbird.cloudstore.StorageService
