@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <akka.version>2.5.22</akka.version>
+        <akka.version>2.8.5</akka.version>
         <scala.major.version>2.12</scala.major.version>
     </properties>
 
