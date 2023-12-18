@@ -170,7 +170,7 @@ mvn clean install -DskipTests
 ```
 2. Go to the path: /knowledge-platform/content-api/content-service and run the below maven command to run the netty server.
 ```shell
-mvn play2:run
+mvn play2:run 
 ```
 3. Using the below command we can verify whether the databases(neo4j,redis & cassandra) connection is established or not. If all connections are good, health is shown as 'true' otherwise it will be 'false'.
 ```shell
