@@ -29,7 +29,7 @@
         </pluginRepository>
     </pluginRepositories>
     <properties>
-        <play2.version>2.8.20</play2.version>
+        <play2.version>2.7.2</play2.version>
         <play2.plugin.version>1.0.0-rc5</play2.plugin.version>
         <sbt-compiler.plugin.version>1.0.0</sbt-compiler.plugin.version>
         <scala.major.version>2.12</scala.major.version>
@@ -55,7 +55,7 @@
             <groupId>com.typesafe.play</groupId>
             <artifactId>play_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
-            <!-- <exclusions>
+            <exclusions>
                 <exclusion>
                     <artifactId>guava</artifactId>
                     <groupId>com.google.guava</groupId>
@@ -80,7 +80,7 @@
                     <groupId>com.fasterxml.jackson.dataformat</groupId>
                     <artifactId>jackson-dataformat-cbor</artifactId>
                 </exclusion>
-            </exclusions> -->
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.typesafe.play</groupId>
