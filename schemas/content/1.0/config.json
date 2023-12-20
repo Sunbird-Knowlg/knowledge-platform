@@ -102,5 +102,11 @@
             "relatedBoards": 4
         }
     },
+    "PII_Fields": {
+        "user": {
+            "createdBy": ["creator"]
+        },
+        "org": {
+        },
     "schema_restrict_api": false
 }
