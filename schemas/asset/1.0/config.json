@@ -106,6 +106,7 @@
             "createdBy": ["creator"]
         },
         "org": {
-        },
+        }
+    },
     "schema_restrict_api": false
 }
