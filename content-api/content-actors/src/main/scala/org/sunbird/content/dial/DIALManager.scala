@@ -379,21 +379,17 @@ object DIALManager {
 		updateReq.setContext(context)
 		updateReq.getContext.put("schemaName", "dialcode")
 		updateReq.getContext.put("objectType", "content")
-		//    updateReq.getContext.put("identifier",rspObj.get("node_id") )
 		val updateMap = new util.HashMap[String, AnyRef]()
 		updateMap.put("identifier", rspObj.get("node_id"))
 		updateMap.put("status",Int.box(0) )
 		updateReq.setRequest(updateMap)
 		updateReq.putAll(batch)
 
-		println(" update req ", updateReq)
 		oec.dialgraphService.saveExternalProps(updateReq).map { resp =>
 			if (ResponseHandler.checkError(resp)) {
-				println("resp from manager if", resp.getResult)
 				throw new ServerException("ERR_WHILE_SAVING_TO_CASSANDRA", "Error while saving external props to Cassandra")
 			}
 			else {
-				println(" resp ", resp.getResult)
 				resp
 			}
 
