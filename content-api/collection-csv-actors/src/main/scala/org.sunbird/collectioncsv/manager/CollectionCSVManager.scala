@@ -287,7 +287,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
                   .equalsIgnoreCase(CollectionTOCConstants.YES)) CollectionTOCConstants.YES else CollectionTOCConstants.NO
 
                 val dialCode = if(csvRecordMap(CollectionTOCConstants.QR_CODE).nonEmpty) csvRecordMap(CollectionTOCConstants.QR_CODE).trim else ""
-
+                println(s"dial codes get from file = $dialCode")
                 val csvLinkedContentsList: Seq[String] = csvRecord.toMap.asScala.toMap.map(colData => {
                   if(linkedContentHdrColumnsList.contains(colData._1) && colData._2.nonEmpty) colData._2.trim.toLowerCase() else ""
                 }).filter(msg => msg.nonEmpty).toSeq
