@@ -23,6 +23,8 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         insertQuery.value(primaryKey.get(0), identifier)
         request.remove("identifier")
         request.remove("last_updated_on")
+        println(s"cassandra request = $request")
+        println(s"cassandra propsMapping = $propsMapping")
         if(propsMapping.keySet.contains("last_updated_on"))
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         import scala.collection.JavaConverters._
@@ -38,8 +40,10 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
         try {
             val session: Session = CassandraConnector.getSession
-            println(s"casandra keyspace = ${insertQuery.getKeyspace} == cassandra query = ${insertQuery.getOutgoingPayload}")
+            println(s"casandra keyspace = ${insertQuery.getKeyspace} == cassandra query = ${insertQuery}")
             session.executeAsync(insertQuery).asScala.map( resultset => {
+                println("------------ query result ------------")
+                resultset.asScala.foreach(println(_))
                 ResponseHandler.OK()
             })
         } catch {
