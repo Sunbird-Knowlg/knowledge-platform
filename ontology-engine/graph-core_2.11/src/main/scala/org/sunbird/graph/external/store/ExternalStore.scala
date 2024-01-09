@@ -38,6 +38,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         }
         try {
             val session: Session = CassandraConnector.getSession
+            println(s"casandra keyspace = ${insertQuery.getKeyspace} == cassandra query = ${insertQuery.getQueryString}")
             session.executeAsync(insertQuery).asScala.map( resultset => {
                 ResponseHandler.OK()
             })
