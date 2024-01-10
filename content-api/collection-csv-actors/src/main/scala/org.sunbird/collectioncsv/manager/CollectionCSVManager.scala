@@ -77,14 +77,17 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     val updateHierarchyResponse = UpdateHierarchyManager.updateHierarchy(getUpdateHierarchyRequest(nodesMetadata, hierarchyMetadata))
     TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> after invoking updateHierarchyManager: " + updateHierarchyResponse)
 
-    // Invoke DIAL code linking if mode=UPDATE
-    if(mode.equals(CollectionTOCConstants.UPDATE)) {
+//    // Invoke DIAL code linking if mode=UPDATE
+//    if(mode.equals(CollectionTOCConstants.UPDATE)) {
+//      linkDIALCodes(folderInfoMap, collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
+//    }
+    updateHierarchyResponse.map{x => if(mode.equals(CollectionTOCConstants.UPDATE)) {
       linkDIALCodes(folderInfoMap, collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
+       x
+     } else x
     }
-
-    updateHierarchyResponse
   }
-
+  
   def createCSVFileAndStore(collectionHierarchy: Map[String, AnyRef], collectionTocFileName: String)(implicit ss: StorageService): String = {
     val collectionName = collectionHierarchy(CollectionTOCConstants.NAME).toString
     val collectionType = collectionHierarchy.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString
