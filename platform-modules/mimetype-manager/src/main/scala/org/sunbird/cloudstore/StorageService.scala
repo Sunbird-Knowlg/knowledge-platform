@@ -39,8 +39,10 @@ class StorageService {
           val newHostname: String = if (Platform.config.hasPath("cloud_storage_proxy_host")) Platform.config.getString("cloud_storage_proxy_host") else ""
           val regex = "(?<=://)([^/]+)".r
           val replacedUrl = regex.replaceAllIn(url, newHostname)
+          println(s"replace format url = $replacedUrl")
           replacedUrl
         } else {
+          println(s"else format url = $url")
           url
         }
     }

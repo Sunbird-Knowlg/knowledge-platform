@@ -165,8 +165,10 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       csvPrinter.flush()
 
       val folder = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString.toLowerCase + "/toc"
+      println("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
       TelemetryManager.info("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
       val csvURL = ss.uploadFile(folder, csvFile)
+      println("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
       TelemetryManager.info("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
 
       csvURL(1)
