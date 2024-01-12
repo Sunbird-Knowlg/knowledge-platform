@@ -78,13 +78,10 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     TelemetryManager.info(s"CollectionCSVManager:updateCollection --> identifier: ${collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString} -> after invoking updateHierarchyManager: " + updateHierarchyResponse)
 
 //    // Invoke DIAL code linking if mode=UPDATE
-//    if(mode.equals(CollectionTOCConstants.UPDATE)) {
-//      linkDIALCodes(folderInfoMap, collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
-//    }
-    updateHierarchyResponse.map{x => if(mode.equals(CollectionTOCConstants.UPDATE)) {
+    updateHierarchyResponse.map{ res => if(mode.equals(CollectionTOCConstants.UPDATE)) {
       linkDIALCodes(folderInfoMap, collectionHierarchy(CollectionTOCConstants.CHANNEL).toString, collectionHierarchy(CollectionTOCConstants.IDENTIFIER).toString)
-       x
-     } else x
+       res
+      } else res
     }
   }
   
@@ -165,10 +162,8 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       csvPrinter.flush()
 
       val folder = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString.toLowerCase + "/toc"
-      println("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
       TelemetryManager.info("CollectionCSVManager:createFileAndStore -> Writing CSV to Cloud Folder: " + folder)
       val csvURL = ss.uploadFile(folder, csvFile)
-      println("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
       TelemetryManager.info("CollectionCSVManager:createFileAndStore -> csvURL: " + csvURL.mkString("Array(", ", ", ")"))
 
       csvURL(1)
@@ -292,7 +287,6 @@ object CollectionCSVManager extends CollectionInputFileReader  {
                   .equalsIgnoreCase(CollectionTOCConstants.YES)) CollectionTOCConstants.YES else CollectionTOCConstants.NO
 
                 val dialCode = if(csvRecordMap(CollectionTOCConstants.QR_CODE).nonEmpty) csvRecordMap(CollectionTOCConstants.QR_CODE).trim else ""
-                println(s"dial codes get from file = $dialCode")
                 val csvLinkedContentsList: Seq[String] = csvRecord.toMap.asScala.toMap.map(colData => {
                   if(linkedContentHdrColumnsList.contains(colData._1) && colData._2.nonEmpty) colData._2.trim.toLowerCase() else ""
                 }).filter(msg => msg.nonEmpty).toSeq

@@ -57,7 +57,6 @@ trait CollectionInputFileReader {
     val prefix = Platform.getString(CONTENT_FOLDER, "content") + "/" + collectionHierarchy(CollectionTOCConstants.CONTENT_TYPE).toString.toLowerCase + "/toc/" + collectionTocFileName + fileExtension
     TelemetryManager.log("CollectionCSVManager --> getCloudPath --> invoke getUri using prefix: " + prefix)
     val path = ss.getUri(prefix)
-    println("CollectionCSVManager --> getCloudPath --> path: " + path)
     TelemetryManager.log("CollectionCSVManager --> getCloudPath --> path: " + path)
     if (path == null || path.isEmpty || path.isBlank) {
       fileExtension match {
