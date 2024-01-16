@@ -1,10 +1,10 @@
-FROM sunbird/openjdk-java11-alpine:latest
-RUN apk update \
-    && apk add  unzip \
-    && apk add curl \
-    && adduser -u 1001 -h /home/sunbird/ -D sunbird \
-    && mkdir -p /home/sunbird
-RUN chown -R sunbird:sunbird /home/sunbird
+FROM --platform=linux/x86_64 eclipse-temurin:11.0.20.1_1-jdk-focal
+RUN apt-get update \
+    && apt-get install unzip \
+    && apt-get install curl \
+    && adduser --uid 1001 --home /home/sunbird/ --disabled-login sunbird \
+    && mkdir -p /home/sunbird \
+    && chown -R sunbird:sunbird /home/sunbird
 USER sunbird
 COPY ./search-api/search-service/target/search-service-1.0-SNAPSHOT-dist.zip /home/sunbird/
 RUN unzip /home/sunbird/search-service-1.0-SNAPSHOT-dist.zip -d /home/sunbird/
