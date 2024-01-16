@@ -44,5 +44,14 @@
       ]
     }
   },
-  "schema_restrict_api": false
+  "schema_restrict_api": false,
+  "metadataFields":[
+    "identifier",
+    "name",
+    "code",
+    "description",
+    "status",
+    "translations",
+    "index"
+  ]
 }
