@@ -130,4 +130,8 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         if(schemaValidator.getConfig().hasPath("oneOfProps")) schemaValidator.getConfig.getStringList("oneOfProps").asScala.toList else List[String]()
     }
 
+    def getMetadataFields(): List[String] = {
+        if (schemaValidator.getConfig().hasPath("metadataFields")) schemaValidator.getConfig.getStringList("metadataFields").asScala.toList else List[String]()
+    }
+
 }
