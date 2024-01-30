@@ -32,12 +32,16 @@ public class Identifier {
 	}
 	
 	public static String getIdentifier(String graphId, String id) {
+		return getIdentifier(graphId, id, 2);
+	}
+
+	public static String getIdentifier(String graphId, String id, int length) {
 		if (StringUtils.isBlank(graphId))
 			throw new ServerException("INVALID_",
 					"Graph Id is required to generate an identifier");
 		String prefix = "";
-		if (graphId.length() >= 2)
-			prefix = graphId.substring(0, 2);
+		if (graphId.length() >= length)
+			prefix = graphId.substring(0, length);
 		else
 			prefix = graphId;
 		String identifier = prefix + "_" + id;
