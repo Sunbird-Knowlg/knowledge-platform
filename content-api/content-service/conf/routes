@@ -141,3 +141,6 @@ GET    /collection/v4/export/:collectionId          controllers.v4.CollectionCon
 POST   /collection/v4/review/:identifier            controllers.v4.CollectionController.review(identifier:String)
 POST   /collection/v4/dialcode/reserve/:identifier  controllers.v4.CollectionController.reserveDialCode(identifier:String)
 POST   /collection/v4/dialcode/release/:identifier  controllers.v4.CollectionController.releaseDialCode(identifier:String)
+
+# Collaboration V3 APIs
+PATCH  /collaborator/update/:contentId               controllers.v3.ContentController.updateCollaborator(contentId:String)

@@ -15,4 +15,5 @@ object Constants {
     val CONTENT_OBJECT_TYPE: String = "Content"
     val COLLECTION_OBJECT_TYPE: String = "Collection"
     val ASSET_OBJECT_TYPE: String = "Asset"
+    val IDENTIFIER: String = "identifier"
 }

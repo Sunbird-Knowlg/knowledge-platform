@@ -14,7 +14,7 @@ import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManage
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
@@ -58,6 +58,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case "publishContent" => publishContent(request)
+			case "updateCollaborator" => updateCollaborators(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -337,5 +338,33 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			})
 		}).flatMap(f => f)
 	}
+
+	def updateCollaborators(request: Request): Future[Response] = {
+		DataNode.read(request).map(node => {
+			if(node.getMetadata.get("status") != "Draft"){
+				val responseCode = if (NodeUtil.isRetired(node)) ResponseCode.RESOURCE_NOT_FOUND else ResponseCode.FORBIDDEN
+				ResponseHandler.ERROR(responseCode, "ERR_CONTENT_COLLABORATORS_UPDATE_FAILED", "Update collaborators failed")
+			}
+			val contentVersionKey = node.getMetadata.get("versionKey")
+			val distinctCollaborators = request.getRequest.getOrDefault("collaborators", new util.ArrayList[AnyRef]()).asInstanceOf[util.List[AnyRef]].asScala.toList.distinct.asJava
+			request.put("collaborators", distinctCollaborators)
+			request.put("versionKey", contentVersionKey)
+			compareCollaborators(request, node.getMetadata.get("collaborators").asInstanceOf[Array[AnyRef]].toList.asJava, distinctCollaborators)
+			val updateRequest = new Request(request)
+			updateRequest.putAll(Map("versionKey" -> contentVersionKey ,"collaborators" -> distinctCollaborators.toArray).asJava)
+			updateRequest.setContext(request.getContext)
+			updateRequest.getContext.put("identifier", request.getRequest.getOrDefault("identifier",""))
+			DataNode.update(updateRequest).map(updatedNode => {
+				ResponseHandler.OK.put("metadata", updatedNode.getMetadata)
+			})
+		}).flatMap(f => f)
+	}
+
+	def compareCollaborators(request: Request, oldCollaborators:util.List[AnyRef], newCollaborators:util.List[AnyRef]): Unit = {
+		val addedCollaborators = oldCollaborators.asScala.diff(newCollaborators.asScala)
+		val removedCollaborators = newCollaborators.asScala.diff(oldCollaborators.asScala)
+
+	}
+
 
 }

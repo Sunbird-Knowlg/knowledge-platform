@@ -108,4 +108,7 @@ object ApiId {
 
 	//Asset License Validate API
 	val ASSET_LICENSE_VALIDATE = "asset.url.validate"
+
+	//Update Collaborator API
+	val UPDATE_COLLABORATOR = "api.content.collaborator.create"
 }
