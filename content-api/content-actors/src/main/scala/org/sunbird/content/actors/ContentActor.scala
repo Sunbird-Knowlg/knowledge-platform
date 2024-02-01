@@ -26,6 +26,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
@@ -75,15 +76,22 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
+		TelemetryManager.info(s"fields: " + request)
 		DataNode.read(request).map(node => {
+			TelemetryManager.info(s"check node: " + node)
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			TelemetryManager.info(s"metadata: " + metadata)
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
+			TelemetryManager.info(s"metadata img: " + metadata)
 			val response: Response = ResponseHandler.OK
+			TelemetryManager.info(s"response: " + response)
       if (responseSchemaName.isEmpty) {
         response.put("content", metadata)
+		TelemetryManager.info(s"response if: " + response)
       }
       else {
         response.put(responseSchemaName, metadata)
+		TelemetryManager.info(s"response else: " + response)
       }
 			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
 				response
