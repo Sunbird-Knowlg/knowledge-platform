@@ -1,0 +1,6894 @@
+{
+	"id": "d718f90f-e2a2-4599-8f85-3fbadee05706",
+	"name": "Sunbird Content Management API(s)_V1",
+	"timestamp": "2024-01-11T06:30:30.992Z",
+	"collection_id": "19432603-3a33b6a7-0451-41d4-a2e2-b7233c507254",
+	"folder_id": 0,
+	"environment_id": "19432603-1f803966-ff65-4348-b719-1dddf67c3688",
+	"totalPass": 734,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2024-01-11T06:30:10.411Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "e0531555-5b64-4dba-8914-c94cf6efa641",
+			"name": "Create content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 171,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				171
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "2417a770-1de7-42f5-8c0f-a65e44fabfd0",
+			"name": "Upload Content with valid file",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669881759252481164",
+			"time": 312,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				312
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "76ba37f5-a562-4f7d-a57f-b81c950a9797",
+			"name": "Upload Content with invalid file",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669881759252481164",
+			"time": 122,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				122
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b443e65f-d76b-4028-8288-6d3d3dd1a237",
+			"name": "Create content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 99,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				99
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true
+				}
+			]
+		},
+		{
+			"id": "f27343cb-3121-4c6e-9da3-bd101c144435",
+			"name": "Upload URL",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669881823150081165",
+			"time": 99,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				99
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "49fc6d78-a868-44f7-a119-764dc783fdcf",
+			"name": "Upload file to the URL",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A12Z&sr=b&sp=w&sig=HKBuhg2xvj2IlO3e38I7HpSUw3g3md3/hix/QohJbyY%3D",
+			"time": 382,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				382
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "e8410bfe-e9b0-4a37-9223-efd544d9de44",
+			"name": "Update the content with valid URL and mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669881823150081165",
+			"time": 181,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+				"identifier should be: do_2139669881823150081165": true,
+				"node_id should be: do_2139669881823150081165": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669881823150081165": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669881823150081165": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				181
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+					"identifier should be: do_2139669881823150081165": true,
+					"node_id should be: do_2139669881823150081165": true
+				}
+			]
+		},
+		{
+			"id": "d8fd3947-5059-40ae-b7d1-aceca4f27b6e",
+			"name": "Upload the content with Valid url and no mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_21396570071209574418",
+			"time": 148,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+				"identifier should be: do_21396570071209574418": true,
+				"node_id should be: do_21396570071209574418": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_21396570071209574418": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_21396570071209574418": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				148
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669881823150081165/test.pdf": true,
+					"identifier should be: do_21396570071209574418": true,
+					"node_id should be: do_21396570071209574418": true
+				}
+			]
+		},
+		{
+			"id": "d32f4f4e-dafd-4822-bf0d-499a9ab87b53",
+			"name": "Upload the content with invalid url and valid mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_21396570071209574418",
+			"time": 118,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Status code name has string Bad Request": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"err is ERR_INVALID_FILE_URL": true,
+				"errmsg: Please Provide Valid File Url!": true,
+				"Status is failed": true,
+				"ResponseCode is CLIENT_ERROR": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"err is ERR_INVALID_FILE_URL": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Please Provide Valid File Url!": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				118
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Status code name has string Bad Request": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"err is ERR_INVALID_FILE_URL": true,
+					"errmsg: Please Provide Valid File Url!": true,
+					"Status is failed": true,
+					"ResponseCode is CLIENT_ERROR": true
+				}
+			]
+		},
+		{
+			"id": "75e013e1-87e9-4d3d-afd4-570900130b12",
+			"name": "Create content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 157,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				157
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true
+				}
+			]
+		},
+		{
+			"id": "752bde5f-efd7-4bf0-ae58-f1bdd9da8524",
+			"name": "Flag valid Content",
+			"url": "http://20.207.120.49/content/v2/flag/do_2139669881958973441166",
+			"time": 104,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				104
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "4076be5e-bbbf-4269-96c9-8eaf16a00586",
+			"name": "Flag invalid Content",
+			"url": "http://20.207.120.49/content/v2/flag/dummy",
+			"time": 75,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				75
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "816b8cf6-e7a1-480f-8bdd-f36c354f7807",
+			"name": "Create content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 124,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				124
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true
+				}
+			]
+		},
+		{
+			"id": "90cdd04f-9edb-4b69-aa48-8e51062e3f36",
+			"name": "Flag valid Content Copy",
+			"url": "http://20.207.120.49/content/v2/flag/do_2139669882002472961167",
+			"time": 67,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				67
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b6bc2732-db0e-42fb-ab05-2cb1619c4540",
+			"name": "Flag accept valid content id",
+			"url": "http://20.207.120.49/content/v2/flag/accept/do_2139669882002472961167",
+			"time": 60,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				60
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d8915731-839c-4887-9c17-5cb2f9736bf8",
+			"name": "Flag accept invalid content id",
+			"url": "http://20.207.120.49/content/v2/flag/accept/do_2139669882002472961167",
+			"time": 75,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				75
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "4919a05c-945f-45b6-b4ea-349884bba956",
+			"name": "Create content with minimal required attribute",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 117,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id , versionKey": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				117
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id , versionKey": true
+				}
+			]
+		},
+		{
+			"id": "e2c6b0a4-5d6a-4dcc-b27a-9300c5d7aeb5",
+			"name": "Create content with identifier",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 102,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id , versionKey": true,
+				"identifier should be equal to some_identifier07": true,
+				"node_id should be equal to some_identifier07": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to some_identifier07": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be equal to some_identifier07": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				102
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id , versionKey": true,
+					"identifier should be equal to some_identifier07": true,
+					"node_id should be equal to some_identifier07": true
+				}
+			]
+		},
+		{
+			"id": "763df56d-b2f0-4edb-9641-b29217a70f76",
+			"name": "Create content with external fields",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 121,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id , versionKey": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				121
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id , versionKey": true
+				}
+			]
+		},
+		{
+			"id": "5d8cd160-7d8d-48e4-b5d2-1c0be422cdfa",
+			"name": "Create content with Special character in name",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 200,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id , versionKey": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				200
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id , versionKey": true
+				}
+			]
+		},
+		{
+			"id": "59bb505f-7868-4ab8-9e7b-81e47815c2c8",
+			"name": "Create content with missing channel",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 79,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata channel not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata channel not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				79
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata channel not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "540ca9e4-56fe-4b10-b18b-b9950b15ec03",
+			"name": "Create content with empty channel",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 90,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata channel not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata channel not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				90
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata channel not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "f49a6769-b1d0-417b-abd4-ae6430e738df",
+			"name": "Create content with missing name",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 81,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata name not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata name not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				81
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata name not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "cee864fa-a405-4b52-ade5-9160b6bc0f2c",
+			"name": "Create content with name: invalid datatype",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 139,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Metadata name should be a/an String value\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Metadata name should be a/an String value\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				139
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Metadata name should be a/an String value\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "a02d4ea1-b38b-49a6-9a79-a17fbf73554a",
+			"name": "Create content with name empty",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 72,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata name not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata name not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				72
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata name not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "07d3cb60-e883-40ce-a0b6-d187e70a64be",
+			"name": "Create content with missing code",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 77,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata code not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata code not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				77
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata code not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "e8ad383b-903b-4a5e-8f5d-ae8f32cc2a6f",
+			"name": "Create content with missing mimeType",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 124,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata mimeType not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata mimeType not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				124
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata mimeType not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "37ba844e-63fa-43cb-9a6e-c126eb783508",
+			"name": "Create content with invalid mimeType",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 118,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				118
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Metadata mimeType should be one of: [application/vnd.ekstep.ecml-archive, application/vnd.ekstep.html-archive, application/vnd.android.package-archive, application/vnd.ekstep.content-archive, application/vnd.ekstep.content-collection, application/vnd.ekstep.plugin-archive, application/vnd.ekstep.h5p-archive, application/epub, text/x-url, video/x-youtube, application/octet-stream, application/msword, application/pdf, image/jpeg, image/jpg, image/png, image/tiff, image/bmp, image/gif, image/svg+xml, video/avi, video/mpeg, video/quicktime, video/3gpp, video/mp4, video/ogg, video/webm, audio/mp3, audio/mp4, audio/mpeg, audio/ogg, audio/webm, audio/x-wav, audio/wav, application/json, application/quiz]\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "684c3d80-d6ae-45d5-9ff0-61f4477546e6",
+			"name": "Create content with primaryCategory",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 93,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"VALIDATION_ERROR\"": true,
+				"params.errmsg should be \"primaryCategory is a mandatory parameter\"": true,
+				"result body should be empty": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"VALIDATION_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"primaryCategory is a mandatory parameter\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should be empty": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				93
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"VALIDATION_ERROR\"": true,
+					"params.errmsg should be \"primaryCategory is a mandatory parameter\"": true,
+					"result body should be empty": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "e7b12704-f8fa-4519-94a8-74c05e81ab55",
+			"name": "Create content with Invalid subject",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 81,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors.\"": true,
+				"result body should include messages \"subject range data is empty from the given framework.\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors.\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"subject range data is empty from the given framework.\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				81
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors.\"": true,
+					"result body should include messages \"subject range data is empty from the given framework.\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "0eb6396c-43b8-427f-aaec-cf4439dd5689",
+			"name": "Create content with Invalid primaryCategory",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 126,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"404\"": true,
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier:: obj-cat:aabaa_content_all {}\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"404\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier:: obj-cat:aabaa_content_all {}\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				126
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"404\"": true,
+					"params.errmsg should be \"Entry is not found in cassandra for content with identifier:: obj-cat:aabaa_content_all {}\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "9c3e71db-a08e-4bbb-aec9-225df9e91b73",
+			"name": "Create content which already exists",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 106,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Status code name has string Bad Request": true,
+				"id should be api.content.create": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"err is CONSTRAINT_VALIDATION_FAILED": true,
+				"errmsg: Object already exists with identifier: some_identifier07": true,
+				"Status is failed": true,
+				"ResponseCode is CLIENT_ERROR": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.create": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"err is CONSTRAINT_VALIDATION_FAILED": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Object already exists with identifier: some_identifier07": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				106
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Status code name has string Bad Request": true,
+					"id should be api.content.create": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"err is CONSTRAINT_VALIDATION_FAILED": true,
+					"errmsg: Object already exists with identifier: some_identifier07": true,
+					"Status is failed": true,
+					"ResponseCode is CLIENT_ERROR": true
+				}
+			]
+		},
+		{
+			"id": "c59ba53c-cfb6-46bf-bdaa-aca28f3380ac",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 110,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				110
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "c6da426a-cfec-4535-a8ec-baa2d837f3b6",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 100,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				100
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "6f1b65ae-d56f-4bd2-9f44-28a1b690ca92",
+			"name": "Create Content for invalid primaryCategory",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 121,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				121
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ad83e2ed-019c-4cf6-ad27-ab2719e6d6fa",
+			"name": "Update existing data or add new data",
+			"url": "http://20.207.120.49/content/v4/update/do_2139669882303037441182",
+			"time": 135,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id , versionKey": true,
+				"identifier should be equal to do_2139669882303037441182": true,
+				"node_id should be equal to do_2139669882303037441182": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2139669882303037441182": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be equal to do_2139669882303037441182": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				135
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id , versionKey": true,
+					"identifier should be equal to do_2139669882303037441182": true,
+					"node_id should be equal to do_2139669882303037441182": true
+				}
+			]
+		},
+		{
+			"id": "4c302c74-b349-4f58-b08f-48b90c4010a9",
+			"name": "Update special character in name",
+			"url": "http://20.207.120.49/content/v4/update/do_2139669882318028801183",
+			"time": 145,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.update": true,
+				"ver should be 4.0": true,
+				"Result has keys: identifier , node_id , versionKey": true,
+				"identifier should be equal to do_2139669882318028801183": true,
+				"node_id should be equal to do_2139669882318028801183": true
+			},
+			"testPassFailCounts": {
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2139669882318028801183": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be equal to do_2139669882318028801183": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				145
+			],
+			"allTests": [
+				{
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.update": true,
+					"ver should be 4.0": true,
+					"Result has keys: identifier , node_id , versionKey": true,
+					"identifier should be equal to do_2139669882318028801183": true,
+					"node_id should be equal to do_2139669882318028801183": true
+				}
+			]
+		},
+		{
+			"id": "ad37ce29-bb18-494c-b03f-820743f4d02e",
+			"name": "Update content Invalid versionKey",
+			"url": "http://20.207.120.49/content/v4/update/do_2139669882303037441182",
+			"time": 80,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"id should be api.content.update": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"ver should be 4.0": true,
+				"Content-Encoding header should not present": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be CLIENT_ERROR": true,
+				"params.status should be failed": true,
+				"params.errmsg should be \"Invalid version Key\"": true,
+				"messages should be null": true,
+				"Status code name has string Bad Request": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Content-Encoding header should not present": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Invalid version Key\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				80
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"id should be api.content.update": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"ver should be 4.0": true,
+					"Content-Encoding header should not present": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be CLIENT_ERROR": true,
+					"params.status should be failed": true,
+					"params.errmsg should be \"Invalid version Key\"": true,
+					"messages should be null": true,
+					"Status code name has string Bad Request": true
+				}
+			]
+		},
+		{
+			"id": "cce4163f-828d-465d-9075-d2290bd5d4e3",
+			"name": "Update content with Empty name",
+			"url": "http://20.207.120.49/content/v4/update/do_2139669882303037441182",
+			"time": 92,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"ver should be 4.0": true,
+				"id should be api.content.update": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be \"CLIENT_ERROR\"": true,
+				"params.err should be \"CLIENT_ERROR\"": true,
+				"params.errmsg should be \"Validation Errors\"": true,
+				"result body should include messages \"Required Metadata name not set\"": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"CLIENT_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Validation Errors\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"result body should include messages \"Required Metadata name not set\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				92
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"ver should be 4.0": true,
+					"id should be api.content.update": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be \"CLIENT_ERROR\"": true,
+					"params.err should be \"CLIENT_ERROR\"": true,
+					"params.errmsg should be \"Validation Errors\"": true,
+					"result body should include messages \"Required Metadata name not set\"": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "fc71ffa7-b858-4933-9cbf-9e3301fe01fb",
+			"name": "Update content with Invalid content id",
+			"url": "http://20.207.120.49/content/v4/update/do_21357909972698726412211",
+			"time": 75,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"ver should be 4.0": true,
+				"id should be api.content.update": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be NOT_FOUND": true,
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_21357909972698726412211\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_21357909972698726412211\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				75
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"ver should be 4.0": true,
+					"id should be api.content.update": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be NOT_FOUND": true,
+					"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_21357909972698726412211\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "776e4fd6-a040-4820-85ff-4140fb062833",
+			"name": "Update content with Invalid primaryCategory",
+			"url": "http://20.207.120.49/content/v4/update/do_2139669882333921281184",
+			"time": 152,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"ver should be 4.0": true,
+				"id should be api.content.update": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Verify keys and data type of the response result": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"404\"": true,
+				"params.status should be \"failed\"": true,
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.update": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"404\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				152
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"ver should be 4.0": true,
+					"id should be api.content.update": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Verify keys and data type of the response result": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"404\"": true,
+					"params.status should be \"failed\"": true,
+					"params.errmsg should be \"Entry is not found in cassandra for content with identifier: obj-cat:abcd_content_all {}\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "9c358cd1-39a1-40ef-832a-5e58b061b586",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 93,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				93
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "ae9c5dba-9bbe-4fa7-9d77-b85bf7595e0f",
+			"name": "Read all data except external data",
+			"url": "http://20.207.120.49/content/v4/read/do_2139669882441318401185",
+			"time": 60,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Verify keys and data type of the response result": true,
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.read": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to do_2139669882441318401185": true,
+				"objectType should be Content": true,
+				"visibility should be Default": true,
+				"compatibilityLevel should be 1": true,
+				"status should be Draft": true
+			},
+			"testPassFailCounts": {
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.read": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2139669882441318401185": {
+					"pass": 1,
+					"fail": 0
+				},
+				"objectType should be Content": {
+					"pass": 1,
+					"fail": 0
+				},
+				"visibility should be Default": {
+					"pass": 1,
+					"fail": 0
+				},
+				"compatibilityLevel should be 1": {
+					"pass": 1,
+					"fail": 0
+				},
+				"status should be Draft": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				60
+			],
+			"allTests": [
+				{
+					"Verify keys and data type of the response result": true,
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.read": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to do_2139669882441318401185": true,
+					"objectType should be Content": true,
+					"visibility should be Default": true,
+					"compatibilityLevel should be 1": true,
+					"status should be Draft": true
+				}
+			]
+		},
+		{
+			"id": "efbe493a-7190-4a89-b021-a6197772b127",
+			"name": "Read specific attributes by sending fields query params",
+			"url": "http://20.207.120.49/content/v4/read/do_2139669882441318401185?fields=name,primaryCategory,body",
+			"time": 63,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"Verify keys and data type of the response result": true,
+				"id should be api.content.read": true,
+				"ver should be 4.0": true,
+				"identifier should be equal to do_2139669882441318401185": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.read": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be equal to do_2139669882441318401185": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				63
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"Verify keys and data type of the response result": true,
+					"id should be api.content.read": true,
+					"ver should be 4.0": true,
+					"identifier should be equal to do_2139669882441318401185": true
+				}
+			]
+		},
+		{
+			"id": "f0f49c82-729d-4b4a-9fb4-83f7146f61a2",
+			"name": "Read invalid content",
+			"url": "http://20.207.120.49/content/v4/read/do_42353245436534",
+			"time": 57,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.read": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_42353245436534\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.read": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_42353245436534\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				57
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.read": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"params.errmsg should be \"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_42353245436534\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "013a26b0-e16f-48ca-b4d0-4b35813ef2eb",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 118,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				118
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "61a70f42-5935-4ee5-b2b5-d953bc1504b9",
+			"name": "Upload URL Copy",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669882491289601186",
+			"time": 98,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				98
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "edba766e-ffb2-40fc-9e6e-3298c7ee1b41",
+			"name": "Upload file to the URL Copy",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A20Z&sr=b&sp=w&sig=32/WsORWPaypAOrOZ7vA92jkJK0yE8Fw1ohkJRKHtTE%3D",
+			"time": 42,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				42
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "1dfb22f6-3508-439a-891f-c51af43b099b",
+			"name": "Update the content with valid URL and mime type Copy",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669882491289601186",
+			"time": 148,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf": true,
+				"identifier should be: do_2139669882491289601186": true,
+				"node_id should be: do_2139669882491289601186": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882491289601186": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669882491289601186": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				148
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882491289601186/test.pdf": true,
+					"identifier should be: do_2139669882491289601186": true,
+					"node_id should be: do_2139669882491289601186": true
+				}
+			]
+		},
+		{
+			"id": "d27d3ffc-1893-42c3-9f8d-2e84e49a9772",
+			"name": "Create content for negative scenario",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 95,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				95
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "dd04a728-de9d-4d3f-bd66-d694fc39bc16",
+			"name": "Submit for Review",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669882491289601186",
+			"time": 146,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , versionKey": true,
+				"identifier should be: do_2139669882491289601186": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882491289601186": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				146
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , versionKey": true,
+					"identifier should be: do_2139669882491289601186": true
+				}
+			]
+		},
+		{
+			"id": "c7b73ea9-144a-4a10-83e0-a95be30efa1b",
+			"name": "Submit invalid content for review",
+			"url": "http://20.207.120.49/content/v4/review/dummy",
+			"time": 73,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				73
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "bed4440b-ee2f-4275-ad8b-8ff8e49e4510",
+			"name": "Submit content for review without artifactr URL",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669882549944321187",
+			"time": 82,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be \"VALIDATOR_ERROR\"": true,
+				"params.status should be \"failed\"": true,
+				"Error! Missing One or More Required Fields in Object. | [Either artifactUrl is missing or invalid!]\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"VALIDATOR_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Error! Missing One or More Required Fields in Object. | [Either artifactUrl is missing or invalid!]\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				82
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be \"VALIDATOR_ERROR\"": true,
+					"params.status should be \"failed\"": true,
+					"Error! Missing One or More Required Fields in Object. | [Either artifactUrl is missing or invalid!]\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "0484a859-d4d4-4bd0-8c2c-9fe53ed0d76c",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 102,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				102
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "fe83f146-ec9a-4ee0-9560-b6538557b330",
+			"name": "Upload URL",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669882608599041188",
+			"time": 79,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				79
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "432905a8-2546-4d1d-a85b-6ada019ee1b0",
+			"name": "Upload file to the URL",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A21Z&sr=b&sp=w&sig=zjfQq%2Bg5YMAdIc0HtE61NoPK%2B7F1WCUItGb5rvyqsUA%3D",
+			"time": 40,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				40
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "ac6cbb41-03e8-43ec-9197-4ac621b07f19",
+			"name": "Update the content with URL and mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669882608599041188",
+			"time": 148,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf": true,
+				"identifier should be: do_2139669882608599041188": true,
+				"node_id should be: do_2139669882608599041188": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882608599041188": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669882608599041188": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				148
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882608599041188/test.pdf": true,
+					"identifier should be: do_2139669882608599041188": true,
+					"node_id should be: do_2139669882608599041188": true
+				}
+			]
+		},
+		{
+			"id": "918e5534-c19c-4ed4-a373-fdecf602f12f",
+			"name": "Submit for Review",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669882608599041188",
+			"time": 141,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , versionKey": true,
+				"identifier should be: do_2139669882608599041188": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882608599041188": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				141
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , versionKey": true,
+					"identifier should be: do_2139669882608599041188": true
+				}
+			]
+		},
+		{
+			"id": "96c68536-10b7-4302-8bc9-383716adee26",
+			"name": "Create content for negative scenario",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 97,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				97
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "86b6590f-2362-44a2-94d6-b4466f67f5c8",
+			"name": "Publish Content",
+			"url": "http://20.207.120.49/content/v4/publish/do_2139669882608599041188",
+			"time": 85,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"id has string - api.content.publish.public ": true,
+				"Version is 4.0 ": true,
+				"Verify keys and data type of the response result": true,
+				"Status is successful ": true,
+				"ResponseCode is OK ": true,
+				"node should be equal to do_2139669882608599041188": true,
+				"publishStatus should be equal to Publish Event for Content Id do_2139669882608599041188 is pushed Successfully!": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.publish.public ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node should be equal to do_2139669882608599041188": {
+					"pass": 1,
+					"fail": 0
+				},
+				"publishStatus should be equal to Publish Event for Content Id do_2139669882608599041188 is pushed Successfully!": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				85
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"id has string - api.content.publish.public ": true,
+					"Version is 4.0 ": true,
+					"Verify keys and data type of the response result": true,
+					"Status is successful ": true,
+					"ResponseCode is OK ": true,
+					"node should be equal to do_2139669882608599041188": true,
+					"publishStatus should be equal to Publish Event for Content Id do_2139669882608599041188 is pushed Successfully!": true
+				}
+			]
+		},
+		{
+			"id": "a076a6c7-4c84-4508-9964-2c204c989028",
+			"name": "Publish content without artifact URL",
+			"url": "http://20.207.120.49/content/v4/publish/do_2139669882682490881189",
+			"time": 89,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.publish.public": true,
+				"ver should be 4.0": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be \"VALIDATOR_ERROR\"": true,
+				"params.status should be \"failed\"": true,
+				"Error! Missing One or More Required Fields in Object. | [Either artifactUrl is missing or invalid!]\"": true,
+				"messages should be null": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.publish.public": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"VALIDATOR_ERROR\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Error! Missing One or More Required Fields in Object. | [Either artifactUrl is missing or invalid!]\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				89
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.publish.public": true,
+					"ver should be 4.0": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be \"VALIDATOR_ERROR\"": true,
+					"params.status should be \"failed\"": true,
+					"Error! Missing One or More Required Fields in Object. | [Either artifactUrl is missing or invalid!]\"": true,
+					"messages should be null": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "8a6ad455-3fa6-4d75-8202-d08037a5c2d7",
+			"name": "Publish invalid content",
+			"url": "http://20.207.120.49/content/v4/publish/dummy",
+			"time": 77,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.publish.public": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.publish.public": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				77
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.publish.public": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "d5bdbe0a-5865-4a5d-9844-b6e1fd142a9f",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 119,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				119
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b28e70ae-388f-40e8-852c-db8521375ca0",
+			"name": "Upload URL",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669882739671041190",
+			"time": 100,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				100
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "d1fd2b59-37de-47ac-9825-bfb04a6c27a3",
+			"name": "Upload file to the URL",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A23Z&sr=b&sp=w&sig=KhIVsW7DBDMK7CFwf8aCPRy%2BV1U%2B8YJt6/14SiF3Y2U%3D",
+			"time": 42,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				42
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "6f40dae4-e936-48ae-83a3-c8235cce07e4",
+			"name": "Update the content with URL and mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669882739671041190",
+			"time": 166,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf": true,
+				"identifier should be: do_2139669882739671041190": true,
+				"node_id should be: do_2139669882739671041190": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882739671041190": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669882739671041190": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				166
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882739671041190/test.pdf": true,
+					"identifier should be: do_2139669882739671041190": true,
+					"node_id should be: do_2139669882739671041190": true
+				}
+			]
+		},
+		{
+			"id": "f3bd2d5f-0f13-461b-b67f-3a6bb6b7c305",
+			"name": "Submit for Review Copy",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669882739671041190",
+			"time": 159,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , versionKey": true,
+				"identifier should be: do_2139669882739671041190": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882739671041190": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				159
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , versionKey": true,
+					"identifier should be: do_2139669882739671041190": true
+				}
+			]
+		},
+		{
+			"id": "2c4d97c8-c6aa-49db-af55-ab0db27f6c02",
+			"name": "Reject Valid Content during review",
+			"url": "http://20.207.120.49/content/v4/reject/do_2139669882739671041190",
+			"time": 145,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review.reject": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id ": true,
+				"identifier should be: do_2139669882739671041190": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review.reject": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882739671041190": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				145
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review.reject": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id ": true,
+					"identifier should be: do_2139669882739671041190": true
+				}
+			]
+		},
+		{
+			"id": "e07165a3-a4dd-45bc-ada9-59f88190a15d",
+			"name": "Reject invalid Content during review",
+			"url": "http://20.207.120.49/content/v4/reject/dummy",
+			"time": 83,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.review.reject": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review.reject": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				83
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.review.reject": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "b62e502e-e0c9-4092-a967-4097b2ed9bae",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 108,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				108
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "3da36533-9fb1-4881-ae9d-c45a8c21da48",
+			"name": "Upload URL",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669882851328001191",
+			"time": 106,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				106
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "6aba0498-231a-46f7-bbdc-a76070be8a14",
+			"name": "Upload file to the URL",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A24Z&sr=b&sp=w&sig=vqV95O7QnK80qFdQgIkPCcAWDg3jw/LzGq/klfYBLu8%3D",
+			"time": 43,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				43
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "e99174e8-45a3-4a06-bc14-b0b35ee21fbd",
+			"name": "Update the content with URL and mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669882851328001191",
+			"time": 198,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf": true,
+				"identifier should be: do_2139669882851328001191": true,
+				"node_id should be: do_2139669882851328001191": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882851328001191": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669882851328001191": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				198
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669882851328001191/test.pdf": true,
+					"identifier should be: do_2139669882851328001191": true,
+					"node_id should be: do_2139669882851328001191": true
+				}
+			]
+		},
+		{
+			"id": "d6847c1b-2446-4c49-aae1-79e173910ee3",
+			"name": "Submit for Review",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669882851328001191",
+			"time": 161,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , versionKey": true,
+				"identifier should be: do_2139669882851328001191": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882851328001191": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				161
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , versionKey": true,
+					"identifier should be: do_2139669882851328001191": true
+				}
+			]
+		},
+		{
+			"id": "0dd80703-93ff-408e-84cc-530cded60e59",
+			"name": "Publish Content",
+			"url": "http://20.207.120.49/content/v4/publish/do_2139669882851328001191",
+			"time": 90,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"id has string - api.content.publish.public ": true,
+				"Version is 4.0 ": true,
+				"Verify keys and data type of the response result": true,
+				"Status is successful ": true,
+				"ResponseCode is OK ": true,
+				"node should be equal to do_2139669882851328001191": true,
+				"publishStatus should be equal to Publish Event for Content Id do_2139669882851328001191 is pushed Successfully!": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.publish.public ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node should be equal to do_2139669882851328001191": {
+					"pass": 1,
+					"fail": 0
+				},
+				"publishStatus should be equal to Publish Event for Content Id do_2139669882851328001191 is pushed Successfully!": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				90
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"id has string - api.content.publish.public ": true,
+					"Version is 4.0 ": true,
+					"Verify keys and data type of the response result": true,
+					"Status is successful ": true,
+					"ResponseCode is OK ": true,
+					"node should be equal to do_2139669882851328001191": true,
+					"publishStatus should be equal to Publish Event for Content Id do_2139669882851328001191 is pushed Successfully!": true
+				}
+			]
+		},
+		{
+			"id": "335eb63f-e70f-4722-9e5d-68f8afce4000",
+			"name": "Create content for negative scenario",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 156,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				156
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "c2843d38-1d66-4307-86ce-15bbda40af1a",
+			"name": "Retire a Live Content",
+			"url": "http://20.207.120.49/content/v4/retire/do_2139669882851328001191",
+			"time": 63,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.retire": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id ": true,
+				"identifier should be: do_2139669882851328001191": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.retire": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882851328001191": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				63
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.retire": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id ": true,
+					"identifier should be: do_2139669882851328001191": true
+				}
+			]
+		},
+		{
+			"id": "fb65e4e6-1ae3-4cbb-91e3-95f039a4ccd7",
+			"name": "Retire a draft Content",
+			"url": "http://20.207.120.49/content/v4/retire/do_2139669882946027521192",
+			"time": 69,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.retire": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id ": true,
+				"identifier should be: do_2139669882946027521192": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.retire": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669882946027521192": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				69
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.retire": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id ": true,
+					"identifier should be: do_2139669882946027521192": true
+				}
+			]
+		},
+		{
+			"id": "f975b7b2-1e7e-4848-9af7-83908a94076d",
+			"name": "Retire Content which is already retired",
+			"url": "http://20.207.120.49/content/v4/retire/do_2139669882851328001191",
+			"time": 50,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.retire": true,
+				"ver should be 4.0": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be \"ERR_CONTENT_RETIRE\"": true,
+				"params.status should be \"failed\"": true,
+				"errmsg: Content with Identifier do_2139669882851328001191 is already Retired.": true,
+				"messages should be null": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.retire": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"ERR_CONTENT_RETIRE\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Content with Identifier do_2139669882851328001191 is already Retired.": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				50
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.retire": true,
+					"ver should be 4.0": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be \"ERR_CONTENT_RETIRE\"": true,
+					"params.status should be \"failed\"": true,
+					"errmsg: Content with Identifier do_2139669882851328001191 is already Retired.": true,
+					"messages should be null": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "d28cdd62-9094-449b-88d8-2b183318ec39",
+			"name": "Retire an invalid content",
+			"url": "http://20.207.120.49/content/v4/retire/dummy",
+			"time": 52,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.retire": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.retire": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				52
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.retire": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "cb4495f7-94a5-4654-9fed-8ab70868eb23",
+			"name": "Create draft content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 109,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				109
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "7e8a3f2d-c2e6-4f93-8667-66fe7b805d52",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 105,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				105
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "2fc50dc9-8c17-4fd7-bc29-77e6dd6d307d",
+			"name": "Upload URL",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669883022458881194",
+			"time": 88,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				88
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "d7f392a9-45a5-4785-a194-ab65c547ca6f",
+			"name": "Upload file to the URL",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A26Z&sr=b&sp=w&sig=1cHVj%2B1opc%2Bh3K8tlXSBTk7wrTSnRhlgFQl0TxULygo%3D",
+			"time": 72,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				72
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "7fdf72c2-dc74-4e0a-8aa6-13123b9392f0",
+			"name": "Update the content with URL and mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669883022458881194",
+			"time": 193,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf": true,
+				"identifier should be: do_2139669883022458881194": true,
+				"node_id should be: do_2139669883022458881194": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669883022458881194": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669883022458881194": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				193
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883022458881194/test.pdf": true,
+					"identifier should be: do_2139669883022458881194": true,
+					"node_id should be: do_2139669883022458881194": true
+				}
+			]
+		},
+		{
+			"id": "a6d8e9a5-4188-4f3d-8b79-ef7ae040ebcf",
+			"name": "Submit for Review",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669883022458881194",
+			"time": 157,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , versionKey": true,
+				"identifier should be: do_2139669883022458881194": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669883022458881194": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				157
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , versionKey": true,
+					"identifier should be: do_2139669883022458881194": true
+				}
+			]
+		},
+		{
+			"id": "adebec16-a988-4eeb-88b3-3df5b808b498",
+			"name": "Publish Content",
+			"url": "http://20.207.120.49/content/v4/publish/do_2139669883022458881194",
+			"time": 77,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"id has string - api.content.publish.public ": true,
+				"Version is 4.0 ": true,
+				"Verify keys and data type of the response result": true,
+				"Status is successful ": true,
+				"ResponseCode is OK ": true,
+				"node should be equal to do_2139669883022458881194": true,
+				"publishStatus should be equal to Publish Event for Content Id do_2139669883022458881194 is pushed Successfully!": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.publish.public ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node should be equal to do_2139669883022458881194": {
+					"pass": 1,
+					"fail": 0
+				},
+				"publishStatus should be equal to Publish Event for Content Id do_2139669883022458881194 is pushed Successfully!": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				77
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"id has string - api.content.publish.public ": true,
+					"Version is 4.0 ": true,
+					"Verify keys and data type of the response result": true,
+					"Status is successful ": true,
+					"ResponseCode is OK ": true,
+					"node should be equal to do_2139669883022458881194": true,
+					"publishStatus should be equal to Publish Event for Content Id do_2139669883022458881194 is pushed Successfully!": true
+				}
+			]
+		},
+		{
+			"id": "77973bf5-c861-4005-8701-1746c00c6ae5",
+			"name": "Discard a Draft content",
+			"url": "http://20.207.120.49/content/v4/discard/do_2139669883006894081193",
+			"time": 99,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"id has string - api.content.discard ": true,
+				"Version is 4.0 ": true,
+				"Verify keys and data type of the response result": true,
+				"Status is successful ": true,
+				"ResponseCode is OK ": true,
+				"message: Draft version of the content with id : do_2139669883006894081193 is discarded": true,
+				"identifier should be: do_2139669883006894081193": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.discard ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"message: Draft version of the content with id : do_2139669883006894081193 is discarded": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669883006894081193": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				99
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"id has string - api.content.discard ": true,
+					"Version is 4.0 ": true,
+					"Verify keys and data type of the response result": true,
+					"Status is successful ": true,
+					"ResponseCode is OK ": true,
+					"message: Draft version of the content with id : do_2139669883006894081193 is discarded": true,
+					"identifier should be: do_2139669883006894081193": true
+				}
+			]
+		},
+		{
+			"id": "b3bd39a7-3cb0-4bcd-88e5-1bee67d3be22",
+			"name": "Discard a Live content",
+			"url": "http://20.207.120.49/content/v4/discard/do_2139669883022458881194",
+			"time": 60,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.discard": true,
+				"ver should be 4.0": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be \"ERR_CONTENT_NOT_DRAFT\"": true,
+				"params.status should be \"failed\"": true,
+				"errmsg: No changes to discard for content with content id: do_2139669883022458881194 since content status isnt draft": true,
+				"messages should be null": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.discard": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"ERR_CONTENT_NOT_DRAFT\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: No changes to discard for content with content id: do_2139669883022458881194 since content status isnt draft": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				60
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.discard": true,
+					"ver should be 4.0": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be \"ERR_CONTENT_NOT_DRAFT\"": true,
+					"params.status should be \"failed\"": true,
+					"errmsg: No changes to discard for content with content id: do_2139669883022458881194 since content status isnt draft": true,
+					"messages should be null": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "81729479-8cc5-413b-be18-def081a4ac69",
+			"name": "Discard a discarded content",
+			"url": "http://20.207.120.49/content/v4/discard/do_2139669883006894081193",
+			"time": 55,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.discard": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_2139669883006894081193": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.discard": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_2139669883006894081193": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				55
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.discard": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: do_2139669883006894081193": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "1c3b68d2-9ca6-405b-8c93-4980b4d8709b",
+			"name": "Discard an invalid content",
+			"url": "http://20.207.120.49/content/v4/discard/dummy",
+			"time": 51,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.discard": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.discard": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				51
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.discard": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "e5e5833e-ad36-4f81-935d-679588d5c3d5",
+			"name": "Create Content",
+			"url": "http://20.207.120.49/content/v4/create",
+			"time": 203,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				203
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "d1b3fdb0-7352-418d-8a60-b587b3e24f19",
+			"name": "Upload URL",
+			"url": "http://20.207.120.49/content/v4/upload/url/do_2139669883165655041195",
+			"time": 102,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload.url": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Verify keys and data type of the response result": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload.url": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				102
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload.url": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Verify keys and data type of the response result": true
+				}
+			]
+		},
+		{
+			"id": "44aac33c-e0c7-4389-bb25-6cd343d58e3e",
+			"name": "Upload file to the URL",
+			"url": "https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf?sv=2017-04-17&se=2024-01-11T21%3A30%3A28Z&sr=b&sp=w&sig=GZWnywokpRykLs0ctvQIzRmUXhQJIjzZJuoPiWNm6QM%3D",
+			"time": 50,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status code is 201": true
+			},
+			"testPassFailCounts": {
+				"Status code is 201": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				50
+			],
+			"allTests": [
+				{
+					"Status code is 201": true
+				}
+			]
+		},
+		{
+			"id": "2546c25d-c5a7-4a95-a823-0f95eb352191",
+			"name": "Update the content with URL and mime type",
+			"url": "http://20.207.120.49/content/v4/upload/do_2139669883165655041195",
+			"time": 169,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.upload": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf": true,
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf": true,
+				"identifier should be: do_2139669883165655041195": true,
+				"node_id should be: do_2139669883165655041195": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.upload": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669883165655041195": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node_id should be: do_2139669883165655041195": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				169
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.upload": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , artifactUrl , content_url , node_id , versionKey ": true,
+					"artifactUrl should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf": true,
+					"content_url should be: https://knowlgdevbad2564c.blob.core.windows.net/sunbird-content-staging-knowlg/content/assets/do_2139669883165655041195/test.pdf": true,
+					"identifier should be: do_2139669883165655041195": true,
+					"node_id should be: do_2139669883165655041195": true
+				}
+			]
+		},
+		{
+			"id": "a460684e-426f-46dc-acf5-9b9c58e471f6",
+			"name": "Submit for Review",
+			"url": "http://20.207.120.49/content/v4/review/do_2139669883165655041195",
+			"time": 178,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.review": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , versionKey": true,
+				"identifier should be: do_2139669883165655041195": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.review": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"identifier should be: do_2139669883165655041195": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				178
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.review": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , versionKey": true,
+					"identifier should be: do_2139669883165655041195": true
+				}
+			]
+		},
+		{
+			"id": "e5f248f9-10d9-4284-8c23-26f428133c5d",
+			"name": "Publish Content",
+			"url": "http://20.207.120.49/content/v4/publish/do_2139669883165655041195",
+			"time": 75,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"id has string - api.content.publish.public ": true,
+				"Version is 4.0 ": true,
+				"Verify keys and data type of the response result": true,
+				"Status is successful ": true,
+				"ResponseCode is OK ": true,
+				"node should be equal to do_2139669883165655041195": true,
+				"publishStatus should be equal to Publish Event for Content Id do_2139669883165655041195 is pushed Successfully!": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.publish.public ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"node should be equal to do_2139669883165655041195": {
+					"pass": 1,
+					"fail": 0
+				},
+				"publishStatus should be equal to Publish Event for Content Id do_2139669883165655041195 is pushed Successfully!": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				75
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"id has string - api.content.publish.public ": true,
+					"Version is 4.0 ": true,
+					"Verify keys and data type of the response result": true,
+					"Status is successful ": true,
+					"ResponseCode is OK ": true,
+					"node should be equal to do_2139669883165655041195": true,
+					"publishStatus should be equal to Publish Event for Content Id do_2139669883165655041195 is pushed Successfully!": true
+				}
+			]
+		},
+		{
+			"id": "e8bea0d9-37e3-4d20-8714-5172c5e6230c",
+			"name": "Copy Valid Content",
+			"url": "http://20.207.120.49/content/v4/copy/do_2139669883165655041195",
+			"time": 242,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"Status code name has string OK": true,
+				"id should be api.content.copy": true,
+				"ver should be 4.0": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Status is successful": true,
+				"ResponseCode is OK": true,
+				"Result has keys: identifier , node_id , versionKey": true,
+				"[object Object]": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.copy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Result has keys: identifier , node_id , versionKey": {
+					"pass": 1,
+					"fail": 0
+				},
+				"[object Object]": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				242
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"Status code name has string OK": true,
+					"id should be api.content.copy": true,
+					"ver should be 4.0": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Status is successful": true,
+					"ResponseCode is OK": true,
+					"Result has keys: identifier , node_id , versionKey": true,
+					"[object Object]": true
+				}
+			]
+		},
+		{
+			"id": "4eb62051-c0c0-481d-87d0-47d5fa7e9f51",
+			"name": "Copy invalid Content",
+			"url": "http://20.207.120.49/content/v4/copy/dummy",
+			"time": 99,
+			"responseCode": {
+				"code": 404,
+				"name": "Not Found"
+			},
+			"tests": {
+				"Status code is 404": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.copy": true,
+				"ver should be 4.0": true,
+				"responseCode should be RESOURCE_NOT_FOUND": true,
+				"params.err should be \"NOT_FOUND\"": true,
+				"params.status should be \"failed\"": true,
+				"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+				"messages should be null": true,
+				"Status code name has string \"Not Found\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 404": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.copy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be RESOURCE_NOT_FOUND": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"NOT_FOUND\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Not Found\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				99
+			],
+			"allTests": [
+				{
+					"Status code is 404": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.copy": true,
+					"ver should be 4.0": true,
+					"responseCode should be RESOURCE_NOT_FOUND": true,
+					"params.err should be \"NOT_FOUND\"": true,
+					"params.status should be \"failed\"": true,
+					"errmsg: Error! Node(s) doesn't Exists. | [Invalid Node Id.]: dummy": true,
+					"messages should be null": true,
+					"Status code name has string \"Not Found\"": true
+				}
+			]
+		},
+		{
+			"id": "5a568218-c94c-439e-b76f-20c60d6b530c",
+			"name": "Copy Valid Content with missing fields",
+			"url": "http://20.207.120.49/content/v4/copy/do_2139669883165655041195",
+			"time": 71,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"Test data type of the response and keys": true,
+				"id should be api.content.copy": true,
+				"ver should be 4.0": true,
+				"responseCode should be CLIENT_ERROR": true,
+				"params.err should be \"ERR_INVALID_REQUEST\"": true,
+				"params.status should be \"failed\"": true,
+				"errmsg: Please provide valid value for List(createdBy, createdFor, organisation, framework)": true,
+				"messages should be null": true,
+				"Status code name has string \"Bad Request\"": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Test data type of the response and keys": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id should be api.content.copy": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ver should be 4.0": {
+					"pass": 1,
+					"fail": 0
+				},
+				"responseCode should be CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.err should be \"ERR_INVALID_REQUEST\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"params.status should be \"failed\"": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Please provide valid value for List(createdBy, createdFor, organisation, framework)": {
+					"pass": 1,
+					"fail": 0
+				},
+				"messages should be null": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string \"Bad Request\"": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				71
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"Test data type of the response and keys": true,
+					"id should be api.content.copy": true,
+					"ver should be 4.0": true,
+					"responseCode should be CLIENT_ERROR": true,
+					"params.err should be \"ERR_INVALID_REQUEST\"": true,
+					"params.status should be \"failed\"": true,
+					"errmsg: Please provide valid value for List(createdBy, createdFor, organisation, framework)": true,
+					"messages should be null": true,
+					"Status code name has string \"Bad Request\"": true
+				}
+			]
+		},
+		{
+			"id": "8b258be8-91f2-4d14-8072-def18e7f8500",
+			"name": "Import Valid Content",
+			"url": "http://20.207.120.49/content/v4/import",
+			"time": 82,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"id has string - api.content.import": true,
+				"Version is 4.0 ": true,
+				"Verify keys and data type of the response result": true,
+				"Status is successful ": true,
+				"ResponseCode is OK ": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.import": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Verify keys and data type of the response result": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is successful ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is OK ": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				82
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"id has string - api.content.import": true,
+					"Version is 4.0 ": true,
+					"Verify keys and data type of the response result": true,
+					"Status is successful ": true,
+					"ResponseCode is OK ": true
+				}
+			]
+		},
+		{
+			"id": "7b62a38b-b1a7-462c-b456-df2c49635f37",
+			"name": "Import Content with missing mandatory fields",
+			"url": "http://20.207.120.49/content/v4/import",
+			"time": 74,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Status code name has string Bad Request": true,
+				"id has string - api.content.import": true,
+				"Version is 4.0 ": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"err is ERR_REQUIRED_PROPS_VALIDATION": true,
+				"errmsg: Validation Failed! Mandatory Properties Are [\"name\",\"code\",\"mimeType\",\"primaryCategory\",\"artifactUrl\",\"framework\"]": true,
+				"Status is failed": true,
+				"ResponseCode is CLIENT_ERROR": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.import": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"err is ERR_REQUIRED_PROPS_VALIDATION": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Validation Failed! Mandatory Properties Are [\"name\",\"code\",\"mimeType\",\"primaryCategory\",\"artifactUrl\",\"framework\"]": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				74
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Status code name has string Bad Request": true,
+					"id has string - api.content.import": true,
+					"Version is 4.0 ": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"err is ERR_REQUIRED_PROPS_VALIDATION": true,
+					"errmsg: Validation Failed! Mandatory Properties Are [\"name\",\"code\",\"mimeType\",\"primaryCategory\",\"artifactUrl\",\"framework\"]": true,
+					"Status is failed": true,
+					"ResponseCode is CLIENT_ERROR": true
+				}
+			]
+		},
+		{
+			"id": "bd19ca27-13fc-45a5-975c-2c3007c1f2d2",
+			"name": "Import Content with missing Artifact URL",
+			"url": "http://20.207.120.49/content/v4/import",
+			"time": 88,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Status code name has string Bad Request": true,
+				"id has string - api.content.import": true,
+				"Version is 4.0 ": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"err is ERR_REQUIRED_PROPS_VALIDATION": true,
+				"errmsg: Validation Failed! Mandatory Properties Are [\"name\",\"code\",\"mimeType\",\"primaryCategory\",\"artifactUrl\",\"framework\"] | Required Property's Missing For": true,
+				"Status is failed": true,
+				"ResponseCode is CLIENT_ERROR": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.import": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"err is ERR_REQUIRED_PROPS_VALIDATION": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Validation Failed! Mandatory Properties Are [\"name\",\"code\",\"mimeType\",\"primaryCategory\",\"artifactUrl\",\"framework\"] | Required Property's Missing For": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				88
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Status code name has string Bad Request": true,
+					"id has string - api.content.import": true,
+					"Version is 4.0 ": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"err is ERR_REQUIRED_PROPS_VALIDATION": true,
+					"errmsg: Validation Failed! Mandatory Properties Are [\"name\",\"code\",\"mimeType\",\"primaryCategory\",\"artifactUrl\",\"framework\"] | Required Property's Missing For": true,
+					"Status is failed": true,
+					"ResponseCode is CLIENT_ERROR": true
+				}
+			]
+		},
+		{
+			"id": "796de2f2-15aa-4bf5-a158-dac13094efe9",
+			"name": "Import Content with missing Artifact URL Copy",
+			"url": "http://20.207.120.49/content/v4/import",
+			"time": 77,
+			"responseCode": {
+				"code": 400,
+				"name": "Bad Request"
+			},
+			"tests": {
+				"Status code is 400": true,
+				"Status code name has string Bad Request": true,
+				"id has string - api.content.import": true,
+				"Version is 4.0 ": true,
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+				"err is ERR_INVALID_IMPORT_REQUEST": true,
+				"errmsg: Invalid Request! Please Provide Valid Request.": true,
+				"Status is failed": true,
+				"ResponseCode is CLIENT_ERROR": true
+			},
+			"testPassFailCounts": {
+				"Status code is 400": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status code name has string Bad Request": {
+					"pass": 1,
+					"fail": 0
+				},
+				"id has string - api.content.import": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Version is 4.0 ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Params has keys: resmsgid , msgid , err , status , errmsg ": {
+					"pass": 1,
+					"fail": 0
+				},
+				"err is ERR_INVALID_IMPORT_REQUEST": {
+					"pass": 1,
+					"fail": 0
+				},
+				"errmsg: Invalid Request! Please Provide Valid Request.": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Status is failed": {
+					"pass": 1,
+					"fail": 0
+				},
+				"ResponseCode is CLIENT_ERROR": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				77
+			],
+			"allTests": [
+				{
+					"Status code is 400": true,
+					"Status code name has string Bad Request": true,
+					"id has string - api.content.import": true,
+					"Version is 4.0 ": true,
+					"Params has keys: resmsgid , msgid , err , status , errmsg ": true,
+					"err is ERR_INVALID_IMPORT_REQUEST": true,
+					"errmsg: Invalid Request! Please Provide Valid Request.": true,
+					"Status is failed": true,
+					"ResponseCode is CLIENT_ERROR": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 11449,
+	"collection": {
+		"requests": [
+			{
+				"id": "e0531555-5b64-4dba-8914-c94cf6efa641",
+				"method": "POST"
+			},
+			{
+				"id": "2417a770-1de7-42f5-8c0f-a65e44fabfd0",
+				"method": "POST"
+			},
+			{
+				"id": "76ba37f5-a562-4f7d-a57f-b81c950a9797",
+				"method": "POST"
+			},
+			{
+				"id": "b443e65f-d76b-4028-8288-6d3d3dd1a237",
+				"method": "POST"
+			},
+			{
+				"id": "f27343cb-3121-4c6e-9da3-bd101c144435",
+				"method": "POST"
+			},
+			{
+				"id": "49fc6d78-a868-44f7-a119-764dc783fdcf",
+				"method": "PUT"
+			},
+			{
+				"id": "e8410bfe-e9b0-4a37-9223-efd544d9de44",
+				"method": "POST"
+			},
+			{
+				"id": "d8fd3947-5059-40ae-b7d1-aceca4f27b6e",
+				"method": "POST"
+			},
+			{
+				"id": "d32f4f4e-dafd-4822-bf0d-499a9ab87b53",
+				"method": "POST"
+			},
+			{
+				"id": "75e013e1-87e9-4d3d-afd4-570900130b12",
+				"method": "POST"
+			},
+			{
+				"id": "752bde5f-efd7-4bf0-ae58-f1bdd9da8524",
+				"method": "POST"
+			},
+			{
+				"id": "4076be5e-bbbf-4269-96c9-8eaf16a00586",
+				"method": "POST"
+			},
+			{
+				"id": "816b8cf6-e7a1-480f-8bdd-f36c354f7807",
+				"method": "POST"
+			},
+			{
+				"id": "90cdd04f-9edb-4b69-aa48-8e51062e3f36",
+				"method": "POST"
+			},
+			{
+				"id": "b6bc2732-db0e-42fb-ab05-2cb1619c4540",
+				"method": "POST"
+			},
+			{
+				"id": "d8915731-839c-4887-9c17-5cb2f9736bf8",
+				"method": "POST"
+			},
+			{
+				"id": "4919a05c-945f-45b6-b4ea-349884bba956",
+				"method": "POST"
+			},
+			{
+				"id": "e2c6b0a4-5d6a-4dcc-b27a-9300c5d7aeb5",
+				"method": "POST"
+			},
+			{
+				"id": "763df56d-b2f0-4edb-9641-b29217a70f76",
+				"method": "POST"
+			},
+			{
+				"id": "5d8cd160-7d8d-48e4-b5d2-1c0be422cdfa",
+				"method": "POST"
+			},
+			{
+				"id": "59bb505f-7868-4ab8-9e7b-81e47815c2c8",
+				"method": "POST"
+			},
+			{
+				"id": "540ca9e4-56fe-4b10-b18b-b9950b15ec03",
+				"method": "POST"
+			},
+			{
+				"id": "f49a6769-b1d0-417b-abd4-ae6430e738df",
+				"method": "POST"
+			},
+			{
+				"id": "cee864fa-a405-4b52-ade5-9160b6bc0f2c",
+				"method": "POST"
+			},
+			{
+				"id": "a02d4ea1-b38b-49a6-9a79-a17fbf73554a",
+				"method": "POST"
+			},
+			{
+				"id": "07d3cb60-e883-40ce-a0b6-d187e70a64be",
+				"method": "POST"
+			},
+			{
+				"id": "e8ad383b-903b-4a5e-8f5d-ae8f32cc2a6f",
+				"method": "POST"
+			},
+			{
+				"id": "37ba844e-63fa-43cb-9a6e-c126eb783508",
+				"method": "POST"
+			},
+			{
+				"id": "684c3d80-d6ae-45d5-9ff0-61f4477546e6",
+				"method": "POST"
+			},
+			{
+				"id": "e7b12704-f8fa-4519-94a8-74c05e81ab55",
+				"method": "POST"
+			},
+			{
+				"id": "0eb6396c-43b8-427f-aaec-cf4439dd5689",
+				"method": "POST"
+			},
+			{
+				"id": "9c3e71db-a08e-4bbb-aec9-225df9e91b73",
+				"method": "POST"
+			},
+			{
+				"id": "c59ba53c-cfb6-46bf-bdaa-aca28f3380ac",
+				"method": "POST"
+			},
+			{
+				"id": "c6da426a-cfec-4535-a8ec-baa2d837f3b6",
+				"method": "POST"
+			},
+			{
+				"id": "6f1b65ae-d56f-4bd2-9f44-28a1b690ca92",
+				"method": "POST"
+			},
+			{
+				"id": "ad83e2ed-019c-4cf6-ad27-ab2719e6d6fa",
+				"method": "PATCH"
+			},
+			{
+				"id": "4c302c74-b349-4f58-b08f-48b90c4010a9",
+				"method": "PATCH"
+			},
+			{
+				"id": "ad37ce29-bb18-494c-b03f-820743f4d02e",
+				"method": "PATCH"
+			},
+			{
+				"id": "cce4163f-828d-465d-9075-d2290bd5d4e3",
+				"method": "PATCH"
+			},
+			{
+				"id": "fc71ffa7-b858-4933-9cbf-9e3301fe01fb",
+				"method": "PATCH"
+			},
+			{
+				"id": "776e4fd6-a040-4820-85ff-4140fb062833",
+				"method": "PATCH"
+			},
+			{
+				"id": "9c358cd1-39a1-40ef-832a-5e58b061b586",
+				"method": "POST"
+			},
+			{
+				"id": "ae9c5dba-9bbe-4fa7-9d77-b85bf7595e0f",
+				"method": "GET"
+			},
+			{
+				"id": "efbe493a-7190-4a89-b021-a6197772b127",
+				"method": "GET"
+			},
+			{
+				"id": "f0f49c82-729d-4b4a-9fb4-83f7146f61a2",
+				"method": "GET"
+			},
+			{
+				"id": "013a26b0-e16f-48ca-b4d0-4b35813ef2eb",
+				"method": "POST"
+			},
+			{
+				"id": "61a70f42-5935-4ee5-b2b5-d953bc1504b9",
+				"method": "POST"
+			},
+			{
+				"id": "edba766e-ffb2-40fc-9e6e-3298c7ee1b41",
+				"method": "PUT"
+			},
+			{
+				"id": "1dfb22f6-3508-439a-891f-c51af43b099b",
+				"method": "POST"
+			},
+			{
+				"id": "d27d3ffc-1893-42c3-9f8d-2e84e49a9772",
+				"method": "POST"
+			},
+			{
+				"id": "dd04a728-de9d-4d3f-bd66-d694fc39bc16",
+				"method": "POST"
+			},
+			{
+				"id": "c7b73ea9-144a-4a10-83e0-a95be30efa1b",
+				"method": "POST"
+			},
+			{
+				"id": "bed4440b-ee2f-4275-ad8b-8ff8e49e4510",
+				"method": "POST"
+			},
+			{
+				"id": "0484a859-d4d4-4bd0-8c2c-9fe53ed0d76c",
+				"method": "POST"
+			},
+			{
+				"id": "fe83f146-ec9a-4ee0-9560-b6538557b330",
+				"method": "POST"
+			},
+			{
+				"id": "432905a8-2546-4d1d-a85b-6ada019ee1b0",
+				"method": "PUT"
+			},
+			{
+				"id": "ac6cbb41-03e8-43ec-9197-4ac621b07f19",
+				"method": "POST"
+			},
+			{
+				"id": "918e5534-c19c-4ed4-a373-fdecf602f12f",
+				"method": "POST"
+			},
+			{
+				"id": "96c68536-10b7-4302-8bc9-383716adee26",
+				"method": "POST"
+			},
+			{
+				"id": "86b6590f-2362-44a2-94d6-b4466f67f5c8",
+				"method": "POST"
+			},
+			{
+				"id": "a076a6c7-4c84-4508-9964-2c204c989028",
+				"method": "POST"
+			},
+			{
+				"id": "8a6ad455-3fa6-4d75-8202-d08037a5c2d7",
+				"method": "POST"
+			},
+			{
+				"id": "d5bdbe0a-5865-4a5d-9844-b6e1fd142a9f",
+				"method": "POST"
+			},
+			{
+				"id": "b28e70ae-388f-40e8-852c-db8521375ca0",
+				"method": "POST"
+			},
+			{
+				"id": "d1fd2b59-37de-47ac-9825-bfb04a6c27a3",
+				"method": "PUT"
+			},
+			{
+				"id": "6f40dae4-e936-48ae-83a3-c8235cce07e4",
+				"method": "POST"
+			},
+			{
+				"id": "f3bd2d5f-0f13-461b-b67f-3a6bb6b7c305",
+				"method": "POST"
+			},
+			{
+				"id": "2c4d97c8-c6aa-49db-af55-ab0db27f6c02",
+				"method": "POST"
+			},
+			{
+				"id": "e07165a3-a4dd-45bc-ada9-59f88190a15d",
+				"method": "POST"
+			},
+			{
+				"id": "b62e502e-e0c9-4092-a967-4097b2ed9bae",
+				"method": "POST"
+			},
+			{
+				"id": "3da36533-9fb1-4881-ae9d-c45a8c21da48",
+				"method": "POST"
+			},
+			{
+				"id": "6aba0498-231a-46f7-bbdc-a76070be8a14",
+				"method": "PUT"
+			},
+			{
+				"id": "e99174e8-45a3-4a06-bc14-b0b35ee21fbd",
+				"method": "POST"
+			},
+			{
+				"id": "d6847c1b-2446-4c49-aae1-79e173910ee3",
+				"method": "POST"
+			},
+			{
+				"id": "0dd80703-93ff-408e-84cc-530cded60e59",
+				"method": "POST"
+			},
+			{
+				"id": "335eb63f-e70f-4722-9e5d-68f8afce4000",
+				"method": "POST"
+			},
+			{
+				"id": "c2843d38-1d66-4307-86ce-15bbda40af1a",
+				"method": "DELETE"
+			},
+			{
+				"id": "fb65e4e6-1ae3-4cbb-91e3-95f039a4ccd7",
+				"method": "DELETE"
+			},
+			{
+				"id": "f975b7b2-1e7e-4848-9af7-83908a94076d",
+				"method": "DELETE"
+			},
+			{
+				"id": "d28cdd62-9094-449b-88d8-2b183318ec39",
+				"method": "DELETE"
+			},
+			{
+				"id": "cb4495f7-94a5-4654-9fed-8ab70868eb23",
+				"method": "POST"
+			},
+			{
+				"id": "7e8a3f2d-c2e6-4f93-8667-66fe7b805d52",
+				"method": "POST"
+			},
+			{
+				"id": "2fc50dc9-8c17-4fd7-bc29-77e6dd6d307d",
+				"method": "POST"
+			},
+			{
+				"id": "d7f392a9-45a5-4785-a194-ab65c547ca6f",
+				"method": "PUT"
+			},
+			{
+				"id": "7fdf72c2-dc74-4e0a-8aa6-13123b9392f0",
+				"method": "POST"
+			},
+			{
+				"id": "a6d8e9a5-4188-4f3d-8b79-ef7ae040ebcf",
+				"method": "POST"
+			},
+			{
+				"id": "adebec16-a988-4eeb-88b3-3df5b808b498",
+				"method": "POST"
+			},
+			{
+				"id": "77973bf5-c861-4005-8701-1746c00c6ae5",
+				"method": "DELETE"
+			},
+			{
+				"id": "b3bd39a7-3cb0-4bcd-88e5-1bee67d3be22",
+				"method": "DELETE"
+			},
+			{
+				"id": "81729479-8cc5-413b-be18-def081a4ac69",
+				"method": "DELETE"
+			},
+			{
+				"id": "1c3b68d2-9ca6-405b-8c93-4980b4d8709b",
+				"method": "DELETE"
+			},
+			{
+				"id": "e5e5833e-ad36-4f81-935d-679588d5c3d5",
+				"method": "POST"
+			},
+			{
+				"id": "d1b3fdb0-7352-418d-8a60-b587b3e24f19",
+				"method": "POST"
+			},
+			{
+				"id": "44aac33c-e0c7-4389-bb25-6cd343d58e3e",
+				"method": "PUT"
+			},
+			{
+				"id": "2546c25d-c5a7-4a95-a823-0f95eb352191",
+				"method": "POST"
+			},
+			{
+				"id": "a460684e-426f-46dc-acf5-9b9c58e471f6",
+				"method": "POST"
+			},
+			{
+				"id": "e5f248f9-10d9-4284-8c23-26f428133c5d",
+				"method": "POST"
+			},
+			{
+				"id": "e8bea0d9-37e3-4d20-8714-5172c5e6230c",
+				"method": "POST"
+			},
+			{
+				"id": "4eb62051-c0c0-481d-87d0-47d5fa7e9f51",
+				"method": "POST"
+			},
+			{
+				"id": "5a568218-c94c-439e-b76f-20c60d6b530c",
+				"method": "POST"
+			},
+			{
+				"id": "8b258be8-91f2-4d14-8072-def18e7f8500",
+				"method": "POST"
+			},
+			{
+				"id": "7b62a38b-b1a7-462c-b456-df2c49635f37",
+				"method": "POST"
+			},
+			{
+				"id": "bd19ca27-13fc-45a5-975c-2c3007c1f2d2",
+				"method": "POST"
+			},
+			{
+				"id": "796de2f2-15aa-4bf5-a158-dac13094efe9",
+				"method": "POST"
+			}
+		]
+	}
+}
