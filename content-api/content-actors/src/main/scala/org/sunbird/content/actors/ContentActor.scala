@@ -26,14 +26,14 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
-import org.sunbird.telemetry.logger.TelemetryManager
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
-
+  private[this] val logger = LoggerFactory.getLogger(classOf[ContentActor])
 	implicit val ec: ExecutionContext = getContext().dispatcher
 	private lazy val importConfig = getImportConfig()
 	private lazy val importMgr = new ImportManager(importConfig)
@@ -76,22 +76,22 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
-		TelemetryManager.info(s"fields: " + request)
+		logger.info("fields:::::::::::::::::::::::: " + request)
 		DataNode.read(request).map(node => {
-			TelemetryManager.info(s"check node: " + node)
+			logger.info("check node::::::::::::: " + node)
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
-			TelemetryManager.info(s"metadata: " + metadata)
+			logger.info("metadata------------------------- " + metadata)
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
-			TelemetryManager.info(s"metadata img: " + metadata)
+			logger.info("metadata img:::::::::::::::::::::::::: " + metadata)
 			val response: Response = ResponseHandler.OK
-			TelemetryManager.info(s"response: " + response)
+			logger.info("response::::::::::::::::::::: " + response)
       if (responseSchemaName.isEmpty) {
         response.put("content", metadata)
-		TelemetryManager.info(s"response if: " + response)
+		logger.info("response if::::::::::::::::::: " + response)
       }
       else {
         response.put(responseSchemaName, metadata)
-		TelemetryManager.info(s"response else: " + response)
+		logger.info("response else::::::::::::::::::: " + response)
       }
 			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
 				response
