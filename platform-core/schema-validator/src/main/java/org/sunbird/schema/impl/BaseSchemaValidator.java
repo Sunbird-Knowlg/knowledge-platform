@@ -176,7 +176,24 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
         }
         return new ArrayList<>();
     }
-    
+
+    /**
+     * Fetch all the properties with their type
+     * @return Map<String, Object>
+     */
+    public Map<String, Object> getAllPropsType() {
+        try {
+            Map<String, Object> propertyType = new HashMap<>();
+            Map<String, Object> properties = (Map<String, Object>) (new ObjectMapper().readValue(((BasicJsonSchema)schema).get("properties")
+                    .getValueAsJson().asJsonObject().toString(), Map.class));
+            properties.entrySet().forEach(property -> {propertyType.put(property.getKey(), ((Map<String, Object>)property.getValue()).get("type"));});
+            return propertyType;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new HashMap<String, Object>();
+    }
+
     public List<String> getAllProps() {
         List<String> propsList = new ArrayList<>();
         try {
