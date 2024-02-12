@@ -51,7 +51,6 @@ trait FrameworkValidator extends IDefinition {
                 case value: Array[String] => value.forall(term => list.contains(term))
                 case _ => throw new ClientException("CLIENT_ERROR", "Validation Errors.", util.Arrays.asList("Please provide correct value for [" + cat + "]"))
               }
-
               if (!result) {
                 if (list.isEmpty) {
                   errors.add(cat + " range data is empty from the given framework.")
@@ -70,13 +69,21 @@ trait FrameworkValidator extends IDefinition {
   }
 
   private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String], masterCategories: List[Map[String, AnyRef]])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+    val jsonPropsType = schemaValidator.getAllPropsType.asScala
     getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
      masterCategories.map(masterCategory => {
       val orgIdFieldName = masterCategory.getOrDefault("orgIdFieldName", "").asInstanceOf[String]
       val code = masterCategory.getOrDefault("code", "").asInstanceOf[String]
       if(StringUtils.isNotBlank(orgIdFieldName)){
         val categoryData = fetchValidatedList(getList(orgIdFieldName, node), orgTermMap)
-        if (CollectionUtils.isNotEmpty(categoryData) && StringUtils.isNotBlank(code)) node.getMetadata.put(code, categoryData.get(0))
+        if (CollectionUtils.isNotEmpty(categoryData) && StringUtils.isNotBlank(code)) {
+          val typeInfo = jsonPropsType.getOrDefault(code, "").asInstanceOf[String]
+          if(StringUtils.isNotBlank(typeInfo) && typeInfo == "array"){
+            node.getMetadata.put(code, categoryData)
+          } else {
+            node.getMetadata.put(code, categoryData.get(0))
+          }
+        }
       }
      })
      getValidatedTerms(node, targetFwTerms)
