@@ -40,8 +40,8 @@ object FrameworkManager {
     val newCategoryNames = categoryNames.map(_.toLowerCase)
     if (!categories.isEmpty && !newCategoryNames.isEmpty) {
       val filteredCategories = categories.filter(category => {
-        val name = category.get("name").asInstanceOf[String]
-        newCategoryNames.contains(name.toLowerCase())
+        val code = category.get("code").asInstanceOf[String]
+        newCategoryNames.contains(code.toLowerCase())
       }).toList.asJava
       val filteredData = framework.-("categories") ++ Map("categories" -> filteredCategories)
       val finalCategories = removeAssociations(filteredData.toMap, newCategoryNames)
