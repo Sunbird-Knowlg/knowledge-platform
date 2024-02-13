@@ -37,13 +37,14 @@ object FrameworkManager {
 
   def filterFrameworkCategories(framework: util.Map[String, AnyRef], categoryNames: util.List[String]): Map[String, AnyRef] = {
     val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-    if (!categories.isEmpty && !categoryNames.isEmpty) {
+    val newCategoryNames = categoryNames.map(_.toLowerCase)
+    if (!categories.isEmpty && !newCategoryNames.isEmpty) {
       val filteredCategories = categories.filter(category => {
         val name = category.get("name").asInstanceOf[String]
-        categoryNames.contains(name.toLowerCase())
+        newCategoryNames.contains(name.toLowerCase())
       }).toList.asJava
       val filteredData = framework.-("categories") ++ Map("categories" -> filteredCategories)
-      val finalCategories = removeAssociations(filteredData.toMap, categoryNames)
+      val finalCategories = removeAssociations(filteredData.toMap, newCategoryNames)
       (filteredData.-("categories") ++ Map("categories" -> finalCategories)).toMap
     } else {
       framework.toMap
