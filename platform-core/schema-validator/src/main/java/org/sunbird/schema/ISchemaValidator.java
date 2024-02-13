@@ -14,6 +14,8 @@ public interface ISchemaValidator {
 
     Config getConfig();
 
+    Map<String, Object> getAllPropsType();
+
     List<String> getJsonProps();
     
     List<String> getAllProps();

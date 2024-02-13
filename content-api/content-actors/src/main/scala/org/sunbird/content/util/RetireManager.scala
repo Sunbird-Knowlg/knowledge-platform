@@ -1,8 +1,10 @@
 package org.sunbird.content.util
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.mashape.unirest.http.{HttpResponse, Unirest}
+
 import java.util
 import java.util.{Date, UUID}
-
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang.StringUtils
 import org.sunbird.cache.impl.RedisCache
@@ -31,15 +33,20 @@ object RetireManager {
     def retire(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         validateRequest(request)
         getNodeToRetire(request).flatMap(node => {
-            val updateMetadataMap = Map(ContentConstants.STATUS -> "Retired", HierarchyConstants.LAST_UPDATED_ON -> DateUtils.formatCurrentDate, HierarchyConstants.LAST_STATUS_CHANGED_ON -> DateUtils.formatCurrentDate)
-            val futureList = Task.parallel[Response](
-                handleCollectionToRetire(node, request, updateMetadataMap),
-                updateNodesToRetire(request, mapAsJavaMap[String,AnyRef](updateMetadataMap)))
-            futureList.map(f => {
-                val response = ResponseHandler.OK()
-                response.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
-                response.put("node_id", request.get(ContentConstants.IDENTIFIER))
-            })
+            val shallowIds = getShallowCopiedIds(node.getIdentifier)
+            if(CollectionUtils.isNotEmpty(shallowIds)){
+                throw new ClientException(ContentConstants.ERR_CONTENT_RETIRE, s"Content With Identifier [" + request.get(ContentConstants.IDENTIFIER) + "] Can Not Be Retired. It Has Been Adopted By Other Users.")
+            } else { 
+                val updateMetadataMap = Map(ContentConstants.STATUS -> "Retired", HierarchyConstants.LAST_UPDATED_ON -> DateUtils.formatCurrentDate, HierarchyConstants.LAST_STATUS_CHANGED_ON -> DateUtils.formatCurrentDate)
+                val futureList = Task.parallel[Response](
+                    handleCollectionToRetire(node, request, updateMetadataMap),
+                    updateNodesToRetire(request, mapAsJavaMap[String,AnyRef](updateMetadataMap)))
+                futureList.map(f => {
+                    val response = ResponseHandler.OK()
+                    response.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
+                    response.put("node_id", request.get(ContentConstants.IDENTIFIER))
+                })
+            }
         })
     }
 
@@ -89,6 +96,47 @@ object RetireManager {
                 throw new ServerException("ERR_CONTENT_RETIRE", "Unable to fetch Hierarchy for Root Node: [" + node.getIdentifier + "]")
             }
         } else Future(ResponseHandler.OK())
+    }
+
+    def getShallowCopiedIds(rootId: String)(implicit ec: ExecutionContext) = {
+        val result = new util.ArrayList[String]()
+        val mapper: ObjectMapper = new ObjectMapper()
+        val searchRequest: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]() {
+            put("request", new util.HashMap[String, AnyRef]() {
+                put("filters", new util.HashMap[String, AnyRef]() {
+                    put("objectType", "Content")
+                    put("status", new util.ArrayList[String]())
+                    put("origin", rootId)
+                })
+                put("fields", new util.ArrayList[String]() {
+                    add("identifier")
+                    add("originData")
+                    add("status")
+                })
+                put("exists", new util.ArrayList[String]() {
+                    add("originData")
+                })
+            })
+        }
+        val url: String = if (Platform.config.hasPath("composite.search.url")) Platform.config.getString("composite.search.url") else "https://dev.sunbirded.org/action/composite/v3/search"
+        val httpResponse: HttpResponse[String] = Unirest.post(url).header("Content-Type", "application/json").body(mapper.writeValueAsString(searchRequest)).asString
+        if (httpResponse.getStatus == 200) {
+            val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
+            if(response.get("count").asInstanceOf[Integer] > 0){
+                response.get("content").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].map(content => {
+                    val originData = ScalaJsonUtils.deserialize[Map[String, AnyRef]](content.get("originData").asInstanceOf[String])
+                    val copyType = originData.getOrDefault("copyType", "").asInstanceOf[String]
+                    if(StringUtils.isNotBlank(copyType) && StringUtils.equalsIgnoreCase(copyType , "shallow")){
+                        result.add(content.get("identifier").asInstanceOf[String])
+                    } else { 
+                        Future(new util.HashMap[String, AnyRef]()) 
+                    }
+                })
+            }
+        } else {
+            throw new ServerException("SERVER_ERROR", "Recevied Invalid Search Response For Shallow Copy.")
+        }
+        result
     }
 
 
