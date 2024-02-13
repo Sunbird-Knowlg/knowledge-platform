@@ -30,8 +30,10 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
 
     val category1 = new util.HashMap[String, AnyRef]()
     category1.put("name", "Subject")
+    category1.put("code", "subject")
     val category2 = new util.HashMap[String, AnyRef]()
     category2.put("name", "Grade")
+    category2.put("code", "grade")
     val categories = new util.ArrayList[util.Map[String, AnyRef]]()
     categories.add(category1)
     categories.add(category2)
@@ -42,6 +44,7 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
 
     val term1 = new util.HashMap[String, AnyRef]()
     term1.put("name", "Term1")
+    term1.put("code", "term1")
     val associations1 = new util.ArrayList[util.Map[String, AnyRef]]()
     val association1 = new util.HashMap[String, AnyRef]()
     association1.put("category", "Category1")
@@ -50,6 +53,7 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
 
     val term2 = new util.HashMap[String, AnyRef]()
     term2.put("name", "Term2")
+    term2.put("code", "term2")
     val associations2 = new util.ArrayList[util.Map[String, AnyRef]]()
     val association2 = new util.HashMap[String, AnyRef]()
     association2.put("category", "Category2")
