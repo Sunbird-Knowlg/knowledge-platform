@@ -111,6 +111,14 @@ public class ResponseHandler {
         return response;
     }
 
+    public static Response ERROR(ResponseCode responseCode, String errorCode, String errorMessage, String responseIdentifier, Object vo) {
+        Response response = new Response();
+        response.put(responseIdentifier, vo);
+        response.setParams(getErrorStatus(errorCode, errorMessage));
+        response.setResponseCode(responseCode);
+        return response;
+    }
+
     private static ResponseParams getErrorStatus(String errorCode, String errorMessage) {
         ResponseParams params = new ResponseParams();
         params.setErr(errorCode);
