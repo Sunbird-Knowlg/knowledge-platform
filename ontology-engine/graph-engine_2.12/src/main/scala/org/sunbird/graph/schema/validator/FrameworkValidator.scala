@@ -71,12 +71,20 @@ trait FrameworkValidator extends IDefinition {
 
   private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String], masterCategories: List[Map[String, AnyRef]])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
+     val jsonPropsType = schemaValidator.getAllPropsType.asScala 
      masterCategories.map(masterCategory => {
       val orgIdFieldName = masterCategory.getOrDefault("orgIdFieldName", "").asInstanceOf[String]
       val code = masterCategory.getOrDefault("code", "").asInstanceOf[String]
       if(StringUtils.isNotBlank(orgIdFieldName)){
         val categoryData = fetchValidatedList(getList(orgIdFieldName, node), orgTermMap)
-        if (CollectionUtils.isNotEmpty(categoryData) && StringUtils.isNotBlank(code)) node.getMetadata.put(code, categoryData.get(0))
+        if (CollectionUtils.isNotEmpty(categoryData) && StringUtils.isNotBlank(code)) {
+          val typeInfo = jsonPropsType.getOrDefault(code, "").asInstanceOf[String]
+          if(StringUtils.isNotBlank(typeInfo) && typeInfo == "array"){
+            node.getMetadata.put(code, categoryData)
+          } else {
+            node.getMetadata.put(code, categoryData.get(0))
+          }
+        }
       }
      })
      getValidatedTerms(node, targetFwTerms)

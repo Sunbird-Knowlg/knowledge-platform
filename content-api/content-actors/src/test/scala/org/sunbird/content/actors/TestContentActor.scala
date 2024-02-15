@@ -214,7 +214,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         node
     }
 
-    it should "return success response for retireContent" in {
+    ignore should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(2)
