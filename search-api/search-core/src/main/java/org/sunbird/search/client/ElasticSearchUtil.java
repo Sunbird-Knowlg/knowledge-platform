@@ -35,7 +35,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -458,7 +458,7 @@ public class ElasticSearchUtil {
 	public static int count(String indexName, SearchSourceBuilder searchSourceBuilder) throws IOException {
 		SearchResponse response = getClient(indexName)
 				.search(new SearchRequest().indices(indexName).source(searchSourceBuilder), RequestOptions.DEFAULT);
-		return (int) response.getHits().getTotalHits();
+		return (int) response.getHits().getTotalHits().value;
 
 	}
 
