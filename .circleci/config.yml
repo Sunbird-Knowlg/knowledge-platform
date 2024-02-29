@@ -19,7 +19,7 @@ jobs:
 
   unit-tests:
     machine:
-       image: ubuntu-2004:202201-02
+      image: ubuntu-2004:202201-02
     parallelism: 1
     steps:
       - checkout
@@ -42,6 +42,30 @@ jobs:
       - store_test_results:
           path: ~/test-results
 
+  sonar-analysis:
+    machine:
+      image: ubuntu-2004:202201-02
+    steps:
+      - checkout
+      - restore_cache:
+          key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+      - run:
+          name: Setup environment and run SonarQube analysis
+          command: bash sonar-analysis.sh
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: kp-dependency-test-cache-{{ checksum "pom.xml" }}
+
+  deploy-sonarqube:
+    machine:
+      image: ubuntu-2004:202201-02
+    steps:
+      - run:
+          name: Deploy SonarQube
+          command: |
+            docker run -d --name sonarqube -p 9000:9000 sonarqube:latest
+
 workflows:
   version: 2.1
   build-then-test:
@@ -50,3 +74,9 @@ workflows:
       - unit-tests:
           requires:
             - build
+      - sonar-analysis:
+          requires:
+            - unit-tests
+      - deploy-sonarqube:
+          requires:
+            - sonar-analysis
