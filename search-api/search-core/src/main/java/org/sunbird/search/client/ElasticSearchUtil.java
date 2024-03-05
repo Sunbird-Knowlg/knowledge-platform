@@ -165,7 +165,7 @@ public class ElasticSearchUtil {
 			if (StringUtils.isNotBlank(settings))
 				createRequest.settings(Settings.builder().loadFromSource(settings, XContentType.JSON));
 			if (StringUtils.isNotBlank(mappings))
-				createRequest.mapping( mappings, XContentType.JSON);
+				createRequest.mapping(mapper.readValue(mappings, new TypeReference<Map<String, Object>>() {}));
 			CreateIndexResponse createIndexResponse = client.indices().create(createRequest, RequestOptions.DEFAULT);
 
 			response = createIndexResponse.isAcknowledged();
