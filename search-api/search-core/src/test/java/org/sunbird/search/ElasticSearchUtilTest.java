@@ -3,7 +3,7 @@
  */
 package org.sunbird.search;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 import org.sunbird.common.JsonUtils;

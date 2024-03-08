@@ -15,11 +15,10 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
   def createFrameworkTerm(framework: String, category: String) = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
-    val term = body.getOrDefault(Constants.TERM, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-    term.put(Constants.FRAMEWORK, framework)
-    term.put(Constants.CATEGORY, category)
-    term.putAll(headers)
-    val termRequest = getRequest(term, headers, Constants.CREATE_TERM)
+    body.put(Constants.FRAMEWORK, framework)
+    body.put(Constants.CATEGORY, category)
+    body.putAll(headers)
+    val termRequest = getRequest(body, headers, Constants.CREATE_TERM)
     setRequestContext(termRequest, Constants.TERM_SCHEMA_VERSION, objectType, Constants.TERM_SCHEMA_NAME)
     getResult(ApiId.CREATE_TERM, termActor, termRequest)
   }

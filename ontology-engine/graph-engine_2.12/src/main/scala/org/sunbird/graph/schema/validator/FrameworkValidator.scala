@@ -26,13 +26,13 @@ trait FrameworkValidator extends IDefinition {
   abstract override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val fwCategories: List[String] = schemaValidator.getConfig.getStringList("frameworkCategories").asScala.toList
     val graphId: String = if(StringUtils.isNotBlank(node.getGraphId)) node.getGraphId else "domain"
-    val orgAndTargetFWData: Future[(List[String], List[String])] = if(StringUtils.equalsIgnoreCase(Platform.getString("master.category.validation.enabled", "Yes"), "Yes")) getOrgAndTargetFWData(graphId, "Category") else Future(List(), List())
-
+    val orgAndTargetFWData: Future[(List[String], List[String], List[Map[String, AnyRef]])] = if(StringUtils.equalsIgnoreCase(Platform.getString("master.category.validation.enabled", "Yes"), "Yes")) getOrgAndTargetFWData(graphId, "Category") else Future(List(), List(), List())
     orgAndTargetFWData.map(orgAndTargetTouple => {
       val orgFwTerms = orgAndTargetTouple._1
       val targetFwTerms = orgAndTargetTouple._2
+      val masterCategories = orgAndTargetTouple._3
 
-      validateAndSetMultiFrameworks(node, orgFwTerms, targetFwTerms).map(_ => {
+      validateAndSetMultiFrameworks(node, orgFwTerms, targetFwTerms, masterCategories).map(_ => {
         val framework: String = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
         if (null != fwCategories && fwCategories.nonEmpty && framework.nonEmpty) {
           //prepare data for validation
@@ -69,19 +69,25 @@ trait FrameworkValidator extends IDefinition {
     }).flatMap(f => f)
   }
 
-  private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+  private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String], masterCategories: List[Map[String, AnyRef]])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
     getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
-      val boards = fetchValidatedList(getList("boardIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(boards)) node.getMetadata.put("board", boards.get(0))
-      val mediums = fetchValidatedList(getList("mediumIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(mediums)) node.getMetadata.put("medium", mediums)
-      val subjects = fetchValidatedList(getList("subjectIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(subjects)) node.getMetadata.put("subject", subjects)
-      val grades = fetchValidatedList(getList("gradeLevelIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(grades)) node.getMetadata.put("gradeLevel", grades)
-      val topics = fetchValidatedList(getList("topicsIds", node), orgTermMap)
-      if (CollectionUtils.isNotEmpty(topics)) node.getMetadata.put("topic", topics)
-      getValidatedTerms(node, targetFwTerms)
+     val jsonPropsType = schemaValidator.getAllPropsType.asScala 
+     masterCategories.map(masterCategory => {
+      val orgIdFieldName = masterCategory.getOrDefault("orgIdFieldName", "").asInstanceOf[String]
+      val code = masterCategory.getOrDefault("code", "").asInstanceOf[String]
+      if(StringUtils.isNotBlank(orgIdFieldName)){
+        val categoryData = fetchValidatedList(getList(orgIdFieldName, node), orgTermMap)
+        if (CollectionUtils.isNotEmpty(categoryData) && StringUtils.isNotBlank(code)) {
+          val typeInfo = jsonPropsType.getOrDefault(code, "").asInstanceOf[String]
+          if(StringUtils.isNotBlank(typeInfo) && typeInfo == "array"){
+            node.getMetadata.put(code, categoryData)
+          } else {
+            node.getMetadata.put(code, categoryData.get(0))
+          }
+        }
+      }
+     })
+     getValidatedTerms(node, targetFwTerms)
     }).flatMap(f => f)
   }
 
@@ -95,11 +101,11 @@ trait FrameworkValidator extends IDefinition {
     }
   }
 
-  private def getOrgAndTargetFWData(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext):Future[(List[String], List[String])] = {
+  private def getOrgAndTargetFWData(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext):Future[(List[String], List[String],List[Map[String, AnyRef]])] = {
     val masterCategories: Future[List[Map[String, AnyRef]]] = getMasterCategory(graphId, objectType)
     masterCategories.map(result => {
       (result.map(cat => cat.getOrDefault("orgIdFieldName", "").asInstanceOf[String]),
-        result.map(cat => cat.getOrDefault("targetIdFieldName", "").asInstanceOf[String]))
+        result.map(cat => cat.getOrDefault("targetIdFieldName", "").asInstanceOf[String]), result.map(cat => cat.asInstanceOf[Map[String, AnyRef]]))
     })
   }
 

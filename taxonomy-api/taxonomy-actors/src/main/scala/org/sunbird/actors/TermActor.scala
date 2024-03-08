@@ -5,7 +5,7 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResponseCode }
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.Node
@@ -37,13 +37,13 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
 
   @throws[Exception]
   private def create(request: Request): Future[Response] = {
-  //    val requestList: util.List[util.Map[String, AnyRef]] = getRequestData(request)
-  //    if (TERM_CREATION_LIMIT < requestList.size) throw new ClientException("ERR_INVALID_TERM_REQUEST", "No. of request exceeded max limit of " + TERM_CREATION_LIMIT)
+    val requestList: util.List[util.Map[String, AnyRef]] = getRequestData(request)
+    if (TERM_CREATION_LIMIT < requestList.size) throw new ClientException("ERR_INVALID_TERM_REQUEST", "No. of request exceeded max limit of " + TERM_CREATION_LIMIT)
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     val CategoryData = validateCategoryInstance(request)
     val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
-    CategoryData.map(node => {
+    CategoryData.flatMap(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
         val categoryList = new util.ArrayList[Map[String, AnyRef]]
         val relationMap = new util.HashMap[String, AnyRef]
@@ -51,14 +51,52 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
         relationMap.put("index", getIndex(node))
         categoryList.add(relationMap)
         request.put("categories", categoryList)
-
-        request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
-        DataNode.create(request).map(node => {
-          ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
+        val identifier = new util.ArrayList[String]
+        var codeError = 0
+        var serverError = 0
+        val future = requestList.asScala.map(req => {
+          request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, req.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
+          request.getRequest.putAll(req)
+          DataNode.create(request).map(termNode =>
+            identifier.add(termNode.getIdentifier)
+          ) recover {
+            case e: ClientException =>
+              codeError += 1
+            case e: Exception =>
+              serverError += 1
+          }
         })
-      } else throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Please provide valid category")
-    }).flatMap(f => f)
+        Future.sequence(future).flatMap { _ =>
+        createResponse(codeError, serverError, identifier, requestList.size)
+        }
+      } else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category")
+    })
   }
+
+  private def createResponse(codeError: Int, serverError: Int, identifiers: util.ArrayList[String], size: Int): Future[Response] = {
+    if (codeError == 0 && serverError == 0) {
+      Future(ResponseHandler.OK.put(Constants.NODE_ID, identifiers))
+    }
+    else if (codeError > 0 && serverError == 0) {
+      if (codeError == size) {
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term"))
+      } else {
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term", Constants.NODE_ID, identifiers))
+      }
+    } else if (codeError == 0 && serverError > 0) {
+      if (serverError == size) {
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name, "Internal Server Error"))
+      } else {
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, ResponseCode.PARTIAL_SUCCESS.name, "Partial Success with Internal Error", Constants.NODE_ID, identifiers))
+      }
+    } else {
+      if ((codeError + serverError) == size) {
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name, "Internal Server Error and also Invalid Request"))
+      } else {
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, ResponseCode.PARTIAL_SUCCESS.name, "Internal Server Error and also Invalid Request", Constants.NODE_ID, identifiers))
+      }
+    }
+}
 
   private def getIndex(node: Node): Integer = {
     val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType, RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))

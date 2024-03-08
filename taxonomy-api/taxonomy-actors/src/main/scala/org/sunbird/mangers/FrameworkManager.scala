@@ -37,13 +37,14 @@ object FrameworkManager {
 
   def filterFrameworkCategories(framework: util.Map[String, AnyRef], categoryNames: util.List[String]): Map[String, AnyRef] = {
     val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-    if (!categories.isEmpty && !categoryNames.isEmpty) {
+    val newCategoryNames = categoryNames.map(_.toLowerCase)
+    if (!categories.isEmpty && !newCategoryNames.isEmpty) {
       val filteredCategories = categories.filter(category => {
-        val name = category.get("name").asInstanceOf[String]
-        categoryNames.contains(name.toLowerCase())
+        val code = category.get("code").asInstanceOf[String]
+        newCategoryNames.contains(code.toLowerCase())
       }).toList.asJava
       val filteredData = framework.-("categories") ++ Map("categories" -> filteredCategories)
-      val finalCategories = removeAssociations(filteredData.toMap, categoryNames)
+      val finalCategories = removeAssociations(filteredData.toMap, newCategoryNames)
       (filteredData.-("categories") ++ Map("categories" -> finalCategories)).toMap
     } else {
       framework.toMap
@@ -71,7 +72,7 @@ object FrameworkManager {
     })
   }
 
-  def getCompleteMetadata(id: String, subGraph: SubGraph)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+  def getCompleteMetadata(id: String, subGraph: SubGraph, includeRelations: Boolean)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
     val nodes = subGraph.getNodes
     val relations = subGraph.getRelations
     val node = nodes.get(id)
@@ -84,21 +85,32 @@ object FrameworkManager {
       .map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, null) -> convertJsonProperties(entry, jsonProps)).toMap ++
       Map("objectType" -> node.getObjectType, "identifier" -> node.getIdentifier, "languageCode" -> NodeUtil.getLanguageCodes(node))
 
+    val fields =DefinitionNode.getMetadataFields(node.getGraphId, schemaVersion, objectType, definition)
+    val filteredData: util.Map[String, AnyRef] = if(fields.nonEmpty) updatedMetadata.filterKeys(key => fields.contains(key)) else updatedMetadata
+
     val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
     val outRelations = relations.filter((rel: Relation) => {
       StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
     }).sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList
 
-    val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
-    val childHierarchy = relMetadata.map(x => (x._1, x._2.map(a => {
-      val identifier = a.getOrElse("identifier", "")
-      val childNode = nodes.get(identifier)
-      val index = a.getOrElse("index", 1).asInstanceOf[Number]
-      val metaData = (childNode.getMetadata ++ Map("index" -> index)).asJava
-      childNode.setMetadata(metaData)
-      getCompleteMetadata(childNode.getIdentifier, subGraph)
-    }).toList.asJava))
-    (updatedMetadata ++ childHierarchy).asJava
+    if(includeRelations){
+      val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
+      val childHierarchy = relMetadata.map(x => (x._1, x._2.map(a => {
+        val identifier = a.getOrElse("identifier", "")
+        val childNode = nodes.get(identifier)
+        val index = a.getOrElse("index", 1).asInstanceOf[Number]
+        val metaData = (childNode.getMetadata ++ Map("index" -> index)).asJava
+        childNode.setMetadata(metaData)
+        if("associations".equalsIgnoreCase(x._1)){
+          getCompleteMetadata(childNode.getIdentifier, subGraph, false)
+        } else {
+          getCompleteMetadata(childNode.getIdentifier, subGraph, true)
+        }
+      }).toList.asJava))
+      (filteredData ++ childHierarchy).asJava
+    } else {
+      filteredData
+    }
   }
 
    def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
@@ -121,7 +133,7 @@ object FrameworkManager {
       .map(x => (x._1, (x._2.toList.map(x => {
         x.-("KEY")
         x.-("IL_SEQUENCE_INDEX")
-      })).asJava ))
+      })).distinct.asJava ))
   }
 
   def getFrameworkHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
