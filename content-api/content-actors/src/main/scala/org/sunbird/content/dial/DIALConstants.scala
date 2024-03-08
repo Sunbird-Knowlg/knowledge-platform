@@ -25,4 +25,6 @@ object DIALConstants {
 	val BATCH_CODE: String = "batchCode"
 	val LIVE_STATUS: String = "Live"
 	val UNLISTED_STATUS: String = "Unlisted"
+	val KAFKA_DIAL_TOPIC: String = "kafka.dial.request.topic"
+
 }
