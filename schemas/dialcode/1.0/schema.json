@@ -1,0 +1,51 @@
+{
+  "$id": "dialcode-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dialcode Batch",
+  "type": "object",
+  "required": [
+    "processid",
+    "channel",
+    "publisher",
+    "created_on",
+    "dialcodes",
+    "config",
+    "status",
+    "url"
+  ],
+  "properties": {
+    "processid": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "created_on": {
+      "type": "string"
+    },
+    "dialcodes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "config": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_]+$": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "integer"
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}
