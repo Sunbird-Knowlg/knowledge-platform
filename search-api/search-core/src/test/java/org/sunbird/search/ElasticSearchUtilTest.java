@@ -43,8 +43,7 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 		Map<String, Object> content = getContentTestRecord();
 		String id = (String) content.get("identifier");
 		addToIndex(id, content);
-		String doc = ElasticSearchUtil.getDocumentAsStringById(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, id);
+		String doc = ElasticSearchUtil.getDocumentAsStringById(SearchConstants.COMPOSITE_SEARCH_INDEX, id);
 		assertTrue(StringUtils.contains(doc, id));
 	}
 
@@ -52,8 +51,7 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 	public void testAddDocumentWithOutId() throws Exception {
 		Map<String, Object> content = getContentTestRecord();
 		content.remove("identifier");
-		ElasticSearchUtil.addDocument(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, JsonUtils.serialize(content));
+		ElasticSearchUtil.addDocument(SearchConstants.COMPOSITE_SEARCH_INDEX, JsonUtils.serialize(content));
 	}
 
 	@Test
@@ -67,9 +65,9 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 			jsonObjects.put(id, content);
 		}
 		ElasticSearchUtil.bulkIndexWithIndexId(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, jsonObjects);
+				 jsonObjects);
 		List<String> resultDocs = ElasticSearchUtil.getMultiDocumentAsStringByIdList(
-				SearchConstants.COMPOSITE_SEARCH_INDEX, SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE,
+				SearchConstants.COMPOSITE_SEARCH_INDEX, 
 				ids);
 
 		assertNotNull(resultDocs);
@@ -86,7 +84,7 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 			jsonObjects.add(content);
 		}
 		ElasticSearchUtil.bulkIndexWithAutoGenerateIndexId(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, jsonObjects);
+				 jsonObjects);
 	}
 
 	@Test
@@ -95,10 +93,9 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 		String id = (String) content.get("identifier");
 		addToIndex(id, content);
 		content.put("name", "Content_" + System.currentTimeMillis() + "_name");
-		ElasticSearchUtil.updateDocument(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, JsonUtils.serialize(content), id);
+		ElasticSearchUtil.updateDocument(SearchConstants.COMPOSITE_SEARCH_INDEX, JsonUtils.serialize(content), id);
 		String doc = ElasticSearchUtil.getDocumentAsStringById(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, id);
+				 id);
 		assertTrue(StringUtils.contains(doc, id));
 	}
 
@@ -107,10 +104,9 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 		Map<String, Object> content = getContentTestRecord();
 		String id = (String) content.get("identifier");
 		addToIndex(id, content);
-		ElasticSearchUtil.deleteDocument(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, id);
+		ElasticSearchUtil.deleteDocument(SearchConstants.COMPOSITE_SEARCH_INDEX, id);
 		String doc = ElasticSearchUtil.getDocumentAsStringById(SearchConstants.COMPOSITE_SEARCH_INDEX,
-				SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, id);
+				 id);
 		assertFalse(StringUtils.contains(doc, id));
 	}
 
@@ -137,10 +133,10 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 		List<String> identifiers = createBulkTestRecord(100);
 		//For Negative Scenario, bulkDeleteDocumentById() should log failed identifiers.
 		//identifiers.add("TDOC_1");
-		ElasticSearchUtil.bulkDeleteDocumentById(SearchConstants.COMPOSITE_SEARCH_INDEX,SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE,identifiers);
+		ElasticSearchUtil.bulkDeleteDocumentById(SearchConstants.COMPOSITE_SEARCH_INDEX,identifiers);
 		for(String id : identifiers){
 			String doc = ElasticSearchUtil.getDocumentAsStringById(SearchConstants.COMPOSITE_SEARCH_INDEX,
-					SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, id);
+					 id);
 			assertFalse(StringUtils.contains(doc, id));
 		}
 	}
@@ -226,7 +222,7 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 			String id = (String) content.get("identifier");
 			addToIndex(id, content);
 			String doc = ElasticSearchUtil.getDocumentAsStringById(SearchConstants.COMPOSITE_SEARCH_INDEX,
-					SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, id);
+					 id);
 			if (StringUtils.contains(doc, id)) {
 				identifiers.add(id);
 			}

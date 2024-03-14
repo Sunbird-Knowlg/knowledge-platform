@@ -92,7 +92,7 @@ public class SearchProcessor {
 					}
 
 				}
-				resp.put("count", (int) searchResult.getHits().getTotalHits());
+				resp.put("count", (int) searchResult.getHits().getTotalHits().value);
 				return resp;
 			}
 		}, ExecutionContext.Implicits$.MODULE$.global());
@@ -124,8 +124,7 @@ public class SearchProcessor {
 		Map<String, Object> synsets = new HashMap<String, Object>();
 		if (synsetIds != null && synsetIds.size() > 0) {
 			List<String> resultList = ElasticSearchUtil.getMultiDocumentAsStringByIdList(
-					SearchConstants.COMPOSITE_SEARCH_INDEX,
-					SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, synsetIds);
+					SearchConstants.COMPOSITE_SEARCH_INDEX, synsetIds);
 			for (String synsetDoc : resultList) {
 				Map<String, Object> wordTranslationList = new HashMap<String, Object>();
 				Map<String, Object> indexDocument = new HashMap<String, Object>();
@@ -140,8 +139,7 @@ public class SearchProcessor {
 						List<String> wordIdList = (List<String>) words;
 						if (wordIdList != null && wordIdList.size() > 0) {
 							List<String> wordResultList = ElasticSearchUtil.getMultiDocumentAsStringByIdList(
-									SearchConstants.COMPOSITE_SEARCH_INDEX,
-									SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, wordIdList);
+									SearchConstants.COMPOSITE_SEARCH_INDEX, wordIdList);
 							for (String wordDoc : wordResultList) {
 								List<Map> synsetWordLangList = new ArrayList<Map>();
 								Map<String, Object> indexWordDocument = new HashMap<String, Object>();
@@ -187,8 +185,7 @@ public class SearchProcessor {
 		List<String> identifierList = new ArrayList<String>();
 		if (synsetIds != null && synsetIds.size() > 0) {
 			List<String> resultList = ElasticSearchUtil.getMultiDocumentAsStringByIdList(
-					SearchConstants.COMPOSITE_SEARCH_INDEX,
-					SearchConstants.COMPOSITE_SEARCH_INDEX_TYPE, synsetIds);
+					SearchConstants.COMPOSITE_SEARCH_INDEX, synsetIds);
 			for (String synsetDoc : resultList) {
 				Map<String, Object> indexDocument = new HashMap<String, Object>();
 				if (synsetDoc != null && !synsetDoc.isEmpty()) {
