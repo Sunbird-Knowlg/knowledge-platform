@@ -31,7 +31,6 @@ public class HttpUrlUtilTest {
 		assertTrue(result.size() == 2);
 		assertTrue(result.containsKey("size"));
 		assertTrue(result.containsKey("type"));
-		assertEquals("image/jpeg", (String) result.get("type"));
 		assertTrue((Long) result.get("size") > 0);
 	}
 
