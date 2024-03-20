@@ -2,11 +2,11 @@
 package org.sunbird.graph.external
 
 import java.util
-
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.external.store.ExternalStoreFactory
 import org.sunbird.schema.SchemaValidatorFactory
 
+import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,7 +35,16 @@ object ExternalPropsManager {
         val primaryKey: util.List[String] = SchemaValidatorFactory.getExternalPrimaryKey(schemaName, version)
         val store = ExternalStoreFactory.getExternalStore(SchemaValidatorFactory.getExternalStoreName(schemaName, version), primaryKey)
         if (request.get("identifiers") != null) store.read(request.get("identifiers").asInstanceOf[List[String]], fields, getPropsDataType(schemaName, version))
-        else store.read(request.get("identifier").asInstanceOf[String], fields, getPropsDataType(schemaName, version))
+        else {
+            val identifier: Any = request.get("identifier")
+            identifier match {
+                case str: String =>
+                    store.read(str, fields, getPropsDataType(schemaName, version))
+
+                case uuid: UUID =>
+                    store.read(uuid, fields, getPropsDataType(schemaName, version))
+            }
+    }
     }
 
     def deleteProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {

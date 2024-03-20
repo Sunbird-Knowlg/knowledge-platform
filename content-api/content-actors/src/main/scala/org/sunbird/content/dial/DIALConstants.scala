@@ -25,4 +25,7 @@ object DIALConstants {
 	val BATCH_CODE: String = "batchCode"
 	val LIVE_STATUS: String = "Live"
 	val UNLISTED_STATUS: String = "Unlisted"
+	val DIAL_EID: String = "BE_QR_IMAGE_GENERATOR"
+	val batchInfo: String = "batchInfo"
+
 }

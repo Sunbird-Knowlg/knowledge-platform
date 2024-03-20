@@ -1,9 +1,5 @@
 package org.sunbird.graph.external.store
 
-import java.sql.Timestamp
-import java.util
-import java.util.Date
-
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.{Clause, Insert, QueryBuilder}
 import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
@@ -13,6 +9,9 @@ import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.telemetry.logger.TelemetryManager
 
+import java.sql.Timestamp
+import java.util
+import java.util.Date
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 class ExternalStore(keySpace: String , table: String , primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
@@ -96,14 +95,15 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
       * @param ec
       * @return
       */
-    def read(identifier: String, extProps: List[String], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
+    def read[T](identifier: T, extProps: List[String], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
         val select = QueryBuilder.select()
         if(null != extProps && !extProps.isEmpty){
             extProps.foreach(prop => {
                 if("blob".equalsIgnoreCase(propsMapping.getOrElse(prop, "")))
                     select.fcall("blobAsText", QueryBuilder.column(prop)).as(prop)
-                else
+                else {
                     select.column(prop).as(prop)
+                }
             })
         }
         val selectQuery = select.from(keySpace, table)

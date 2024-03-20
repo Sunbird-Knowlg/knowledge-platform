@@ -27,6 +27,7 @@ POST     /content/v3/dialcode/reserve/:identifier controllers.v3.ContentControll
 PATCH    /content/v3/dialcode/release/:identifier controllers.v3.ContentController.releaseDialcodes(identifier:String)
 POST     /content/v3/reject/:identifier           controllers.v4.ContentController.reviewReject(identifier:String)
 POST     /content/v3/unlisted/publish/:identifier  controllers.v3.ContentController.publishUnlisted(identifier:String)
+GET      /content/v3/process/status/:processid     controllers.v3.ContentController.getProcessIdStatus(processid: String)
 
 # Collection APIs
 PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy
@@ -108,6 +109,7 @@ POST      /content/v4/dialcode/reserve/:identifier  controllers.v4.ContentContro
 POST      /content/v4/dialcode/release/:identifier  controllers.v4.ContentController.releaseDialCode(identifier:String)
 POST      /content/v4/publish/:identifier           controllers.v4.ContentController.publish(identifier:String)
 POST      /content/v4/unlisted/publish/:identifier  controllers.v4.ContentController.publishUnlisted(identifier:String)
+GET      /content/v4/process/status/:processid     controllers.v4.ContentController.getProcessIdStatus(processid: String)
 
 # App v4 APIs
 POST      /app/v4/register                          controllers.v4.AppController.register

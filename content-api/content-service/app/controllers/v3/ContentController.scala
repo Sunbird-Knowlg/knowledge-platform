@@ -52,6 +52,15 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.READ_CONTENT, contentActor, readRequest, true)
     }
 
+    def getProcessIdStatus(processId: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("processId" -> processId).asJava)
+        val readRequest = getRequest(content, headers, "processStatus")
+        setRequestContext(readRequest, version, objectType, schemaName)
+        getResult(ApiId.READ_CONTENT, contentActor, readRequest, true)
+    }
     def update(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
