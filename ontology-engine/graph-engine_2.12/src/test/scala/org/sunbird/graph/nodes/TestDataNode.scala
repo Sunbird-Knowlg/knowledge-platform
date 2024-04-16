@@ -665,13 +665,13 @@ class TestDataNode extends BaseSpec {
 
     "systemUpdate content with valid data" should "update node metadata" in {
         val request = new Request()
-        request.setObjectType("Content")
+        request.setObjectType("Collection")
         val context = new util.HashMap[String, AnyRef]() {
             {
                 put("graph_id", "domain")
                 put("version", "1.0")
-                put("objectType", "Content")
-                put("schemaName", "content")
+                put("objectType", "Collection")
+                put("schemaName", "collection")
             }
         }
         request.setContext(context)
