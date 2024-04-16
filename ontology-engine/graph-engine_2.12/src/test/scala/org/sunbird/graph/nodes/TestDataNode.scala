@@ -665,22 +665,22 @@ class TestDataNode extends BaseSpec {
 
     "systemUpdate content with valid data" should "update node metadata" in {
         val request = new Request()
-        request.setObjectType("question")
+        request.setObjectType("Content")
         val context = new util.HashMap[String, AnyRef]() {
             {
                 put("graph_id", "domain")
                 put("version", "1.0")
-                put("objectType", "Question")
-                put("schemaName", "question")
+                put("objectType", "Content")
+                put("schemaName", "content")
             }
         }
         request.setContext(context)
         request.put("code", "finemanfine")
         request.put("showFeedback", "Yes")
         request.put("showSolutions", "Yes")
-        request.put("mimeType", "application/vnd.sunbird.question")
-        request.put("primaryCategory", "Practice Question")
-        request.put("name", "Test Question")
+        request.put("mimeType", "application/pdf")
+        request.put("primaryCategory", "Learning Resource")
+        request.put("name", "Test Content")
         request.put("visibility", "Default")
         request.put("description", "hey")
 
@@ -688,7 +688,7 @@ class TestDataNode extends BaseSpec {
         future map { node => {
             assert(null != node)
             print(node)
-            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("Test Question"))
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("Test Content"))
             val req = new Request(request)
             req.getContext.put("identifier", node.getIdentifier)
             req.put("name", "updated name")
