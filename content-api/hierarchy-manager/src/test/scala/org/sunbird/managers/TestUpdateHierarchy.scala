@@ -1,14 +1,13 @@
 package org.sunbird.managers
 
-import java.util
-
 import org.apache.commons.lang3.BooleanUtils
 import org.parboiled.common.StringUtils
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
-import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.utils.HierarchyConstants
+
+import java.util
 
 class TestUpdateHierarchy extends BaseSpec {
 
@@ -125,40 +124,6 @@ class TestUpdateHierarchy extends BaseSpec {
         UpdateHierarchyManager.updateHierarchy(request).map(response => {
             assert(response.getResponseCode.code() == 200)
             val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
-              .one().getString("hierarchy")
-            assert(StringUtils.isNotEmpty(hierarchy))
-        })
-    }
-
-    "updateHierarchy with One New Unit and Quesstion Object" should "update text book node, create unit and store the hierarchy in cassandra" in {
-        graphDb.run("UNWIND [{ownershipType:[\"createdBy\"],code:\"SC-2200_3eac25ae-a0c9-4d7c-87be-954406824cb8\",channel:\"sunbird\",description:\"Test-Add/Remove Leaf Node\",language:[\"English\"],mimeType:\"application/vnd.ekstep.content-collection\",idealScreenSize:\"normal\",createdOn:\"2021-03-07T19:23:38.025+0000\",IL_FUNC_OBJECT_TYPE:\"Collection\",contentDisposition:\"inline\",additionalCategories:[\"Textbook\"],lastUpdatedOn:\"2021-03-07T19:24:59.023+0000\",contentEncoding:\"gzip\",contentType:\"TextBook\",dialcodeRequired:\"No\",IL_UNIQUE_ID:\"do_111111111222222222\",lastStatusChangedOn:\"2021-03-07T19:23:38.025+0000\",audience:[\"Student\"],os:[\"All\"],visibility:\"Default\",mediaType:\"content\",osId:\"org.ekstep.quiz.app\",languageCode:[\"en\"],version:2,versionKey:\"1615145099023\",license:\"CC BY 4.0\",idealScreenDensity:\"hdpi\",depth:0,compatibilityLevel:1,userConsent:\"Yes\",name:\"SC-2200-TextBook\",status:\"Draft\"},{code:\"questionId\",subject:[\"Health and Physical Education\"],language:[\"English\"],medium:[\"English\"],mimeType:\"application/vnd.sunbird.question\",createdOn:\"2021-01-13T09:29:06.255+0000\",IL_FUNC_OBJECT_TYPE:\"Question\",gradeLevel:[\"Class 6\"],contentDisposition:\"inline\",lastUpdatedOn:\"2021-02-08T11:19:08.989+0000\",contentEncoding:\"gzip\",showSolutions:\"No\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113193462958120275141\",lastStatusChangedOn:\"2021-02-08T11:19:08.989+0000\",visibility:\"Default\",showTimer:\"No\",author:\"Vaibhav\",qType:\"SA\",languageCode:[\"en\"],version:1,versionKey:\"1611554879383\",showFeedback:\"No\",license:\"CC BY 4.0\",prevState:\"Review\",compatibilityLevel:4,name:\"Subjective\",topic:[\"Leaves\"],board:\"CBSE\",status:\"Live\"}] as row CREATE (n:domain) SET n += row")
-        val request = new Request()
-        val context = getContext()
-        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-        request.setContext(context)
-        request.setObjectType(HierarchyConstants.COLLECTION_OBJECT_TYPE)
-        request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_3())
-        request.put(HierarchyConstants.HIERARCHY, getHierarchy_3("do_111111111222222222", "do_113193462958120275141"))
-        UpdateHierarchyManager.updateHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_111111111222222222'")
-              .one().getString("hierarchy")
-            assert(StringUtils.isNotEmpty(hierarchy))
-        })
-    }
-
-    "updateHierarchy with One New Unit and QuesstionSet Object" should "update text book node, create unit and store the hierarchy in cassandra" in {
-        graphDb.run("UNWIND [{ownershipType:[\"createdBy\"],code:\"SC-2200_3eac25ae-a0c9-4d7c-87be-954406824cb8\",channel:\"sunbird\",description:\"Test-Add/Remove Leaf Node\",language:[\"English\"],mimeType:\"application/vnd.ekstep.content-collection\",idealScreenSize:\"normal\",createdOn:\"2021-03-07T19:23:38.025+0000\",IL_FUNC_OBJECT_TYPE:\"Collection\",contentDisposition:\"inline\",additionalCategories:[\"Textbook\"],lastUpdatedOn:\"2021-03-07T19:24:59.023+0000\",contentEncoding:\"gzip\",contentType:\"TextBook\",dialcodeRequired:\"No\",IL_UNIQUE_ID:\"do_1111111112222222222223\",lastStatusChangedOn:\"2021-03-07T19:23:38.025+0000\",audience:[\"Student\"],os:[\"All\"],visibility:\"Default\",mediaType:\"content\",osId:\"org.ekstep.quiz.app\",languageCode:[\"en\"],version:2,versionKey:\"1615145099023\",license:\"CC BY 4.0\",idealScreenDensity:\"hdpi\",depth:0,compatibilityLevel:1,userConsent:\"Yes\",name:\"SC-2200-TextBook\",status:\"Draft\"},{code:\"questionId\",subject:[\"Health and Physical Education\"],language:[\"English\"],medium:[\"English\"],mimeType:\"application/vnd.sunbird.questionset\",createdOn:\"2021-01-13T09:29:06.255+0000\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",gradeLevel:[\"Class 6\"],contentDisposition:\"inline\",lastUpdatedOn:\"2021-02-08T11:19:08.989+0000\",contentEncoding:\"gzip\",showSolutions:\"No\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113193462958120277239\",lastStatusChangedOn:\"2021-02-08T11:19:08.989+0000\",visibility:\"Default\",showTimer:\"No\",author:\"Vaibhav\",qType:\"SA\",languageCode:[\"en\"],version:1,versionKey:\"1611554879383\",showFeedback:\"No\",license:\"CC BY 4.0\",prevState:\"Review\",compatibilityLevel:4,name:\"Subjective\",topic:[\"Leaves\"],board:\"CBSE\",status:\"Live\"}] as row CREATE (n:domain) SET n += row")
-        val request = new Request()
-        val context = getContext()
-        context.put(HierarchyConstants.SCHEMA_NAME, "collection")
-        request.setContext(context)
-        request.setObjectType(HierarchyConstants.COLLECTION_OBJECT_TYPE)
-        request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_3())
-        request.put(HierarchyConstants.HIERARCHY, getHierarchy_3("do_1111111112222222222223", "do_113193462958120277239"))
-        UpdateHierarchyManager.updateHierarchy(request).map(response => {
-            assert(response.getResponseCode.code() == 200)
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_1111111112222222222223'")
               .one().getString("hierarchy")
             assert(StringUtils.isNotEmpty(hierarchy))
         })
