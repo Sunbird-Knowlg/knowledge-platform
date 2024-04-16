@@ -676,11 +676,9 @@ class TestDataNode extends BaseSpec {
         }
         request.setContext(context)
         request.put("code", "finemanfine")
-        request.put("showFeedback", "Yes")
-        request.put("showSolutions", "Yes")
-        request.put("mimeType", "application/pdf")
-        request.put("primaryCategory", "Learning Resource")
-        request.put("name", "Test Content")
+        request.put("mimeType", "application/vnd.ekstep.content-collection")
+        request.put("primaryCategory", "Digital Textbook")
+        request.put("name", "Test TextBook")
         request.put("visibility", "Default")
         request.put("description", "hey")
 
@@ -688,7 +686,7 @@ class TestDataNode extends BaseSpec {
         future map { node => {
             assert(null != node)
             print(node)
-            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("Test Content"))
+            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("Test TextBook"))
             val req = new Request(request)
             req.getContext.put("identifier", node.getIdentifier)
             req.put("name", "updated name")
@@ -772,7 +770,7 @@ class TestDataNode extends BaseSpec {
     def getHierarchy(request: Request) : Future[Response] = {
         val hierarchyString: String = "'{\"identifier\": \"do_11283193441064550414\"}'"
         val rootHierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
-        Future(ResponseHandler.OK.put("questionSet", rootHierarchy))
+        Future(ResponseHandler.OK.put("collection", rootHierarchy))
     }
 
     def dataModifier(node: Node): Node = {
