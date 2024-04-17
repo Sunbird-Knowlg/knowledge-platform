@@ -153,102 +153,6 @@ class TestHierarchy extends BaseSpec {
         })
     }
 
-    "addLeafNodesToHierarchy for QuestionSet object" should "addLeafNodesToHierarchy" ignore {
-        executeCassandraQuery(script_3)
-        graphDb.run("UNWIND [{copyright:\"Hello\",code:\"do_113193433773948928111\",allowSkip:\"Yes\",keywords:[\"135\",\"666667\"],containsUserData:\"No\",subject:[\"Hindi\"],description:\"Hello\",language:[\"English\"],medium:[\"Hindi\"],mimeType:\"application/vnd.sunbird.questionset\",showHints:\"No\",createdOn:\"2021-01-13T08:29:43.736+0000\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",gradeLevel:[\"Class 7\"],contentDisposition:\"inline\",additionalCategories:[\"Classroom Teaching Video\",\"Concept Map\",\"Textbook\",\"Curiosity Question Set\"],lastUpdatedOn:\"2021-02-08T12:20:33.201+0000\",contentEncoding:\"gzip\",showSolutions:\"Yes\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113193433773948928111\",lastStatusChangedOn:\"2021-01-29T06:13:52.095+0000\",audience:[\"Teacher\"],requiresSubmit:\"Yes\",visibility:\"Default\",showTimer:\"Yes\",author:\"Hello\",summaryType:\"Complete\",consumerId:\"fa13b438-8a3d-41b1-8278-33b0c50210e4\",childNodes:[\"do_113193462958120960141\",\"do_113193463656955904143\",\"do_113197944463515648120\",\"do_113209072358883328150\",\"do_113193462438895616139\"],setType:\"materialised\",languageCode:[\"en\"],version:1,versionKey:\"1612786833201\",showFeedback:\"Yes\",license:\"CC BY 4.0\",prevState:\"Draft\",framework:\"ekstep_ncert_k-12\",depth:0,compatibilityLevel:4,name:\"u0926u0941u0903u0916 u0915u093E u0905u0927u093Fu0915u093Eu0930\",navigationMode:\"linear\",topic:[\"Leaves\",\"Water\"],shuffle:true,attributions:[\"Hello\"],board:\"CBSE\",status:\"Review\"}] as row CREATE (n:domain) SET n += row")
-        val request = new Request()
-        request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-                put("objectType", "Collection")
-                put("graph_id", "domain")
-                put("version", "1.0")
-                put("schemaName", "collection")
-                put("channel", "b00bc992ef25f1a9a8d63291e20efc8d")
-            }
-        })
-
-        request.put("rootId", "do_11283193441064550414")
-        request.put("unitId", "do_11283193463014195215")
-        request.put("children", util.Arrays.asList("do_113193433773948928111"))
-        request.put("mode","edit")
-        val future = HierarchyManager.addLeafNodesToHierarchy(request)
-        future.map(response => {
-            assert(response.getResponseCode.code() == 200)
-            assert(response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].containsAll(request.get("children").asInstanceOf[util.List[String]]))
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-              .one().getString("hierarchy")
-            assert(!response.getResult.get("do_11283193463014195215").asInstanceOf[util.List[String]].contains("do_11283193463014195215"))
-            assert(hierarchy.contains("do_113193433773948928111"))
-        })
-    }
-
-    ignore  should "remove Question object from hierarchy" in {
-        executeCassandraQuery(script_6)
-        graphDb.run("UNWIND [{ownershipType:[\"createdBy\"],code:\"SC-2200_3eac25ae-a0c9-4d7c-87be-954406824cb8\",channel:\"sunbird\",description:\"Test-Add/Remove Leaf Node\",language:[\"English\"],mimeType:\"application/vnd.ekstep.content-collection\",idealScreenSize:\"normal\",createdOn:\"2021-03-07T19:23:38.025+0000\",IL_FUNC_OBJECT_TYPE:\"Collection\",contentDisposition:\"inline\",additionalCategories:[\"Textbook\"],lastUpdatedOn:\"2021-03-07T19:24:59.023+0000\",contentEncoding:\"gzip\",contentType:\"TextBook\",dialcodeRequired:\"No\",IL_UNIQUE_ID:\"do_26543193441064550414\",lastStatusChangedOn:\"2021-03-07T19:23:38.025+0000\",audience:[\"Student\"],os:[\"All\"],visibility:\"Default\",childNodes:[\"do_11307457137049600011786\",\"do_11323126865092608011182\",\"do_113212597854404608111\",\"do_11323126865095065611184\"],mediaType:\"content\",osId:\"org.ekstep.quiz.app\",languageCode:[\"en\"],version:2,versionKey:\"1615145099023\",license:\"CC BY 4.0\",idealScreenDensity:\"hdpi\",depth:0,compatibilityLevel:1,userConsent:\"Yes\",name:\"SC-2200-TextBook\",status:\"Draft\"},{copyright:\"Hello\",code:\"do_113193433773948928111\",allowSkip:\"Yes\",keywords:[\"135\",\"666667\"],containsUserData:\"No\",subject:[\"Hindi\"],description:\"Hello\",language:[\"English\"],medium:[\"Hindi\"],mimeType:\"application/vnd.sunbird.questionset\",showHints:\"No\",createdOn:\"2021-01-13T08:29:43.736+0000\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",gradeLevel:[\"Class 7\"],contentDisposition:\"inline\",additionalCategories:[\"Classroom Teaching Video\",\"Concept Map\",\"Textbook\",\"Curiosity Question Set\"],lastUpdatedOn:\"2021-02-08T12:20:33.201+0000\",contentEncoding:\"gzip\",showSolutions:\"Yes\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113193433773948928111\",lastStatusChangedOn:\"2021-01-29T06:13:52.095+0000\",audience:[\"Teacher\"],requiresSubmit:\"Yes\",visibility:\"Default\",showTimer:\"Yes\",author:\"Hello\",summaryType:\"Complete\",consumerId:\"fa13b438-8a3d-41b1-8278-33b0c50210e4\",childNodes:[\"do_113193462958120960141\",\"do_113193463656955904143\",\"do_113197944463515648120\",\"do_113209072358883328150\",\"do_113193462438895616139\"],setType:\"materialised\",languageCode:[\"en\"],version:1,versionKey:\"1612786833201\",showFeedback:\"Yes\",license:\"CC BY 4.0\",prevState:\"Draft\",framework:\"ekstep_ncert_k-12\",depth:0,compatibilityLevel:4,name:\"u0926u0941u0903u0916 u0915u093E u0905u0927u093Fu0915u093Eu0930\",navigationMode:\"linear\",topic:[\"Leaves\",\"Water\"],shuffle:true,attributions:[\"Hello\"],board:\"CBSE\",status:\"Review\"}] as row CREATE (n:domain) SET n += row")
-        val request = new Request()
-        request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-                put("objectType", "Collection")
-                put("graph_id", "domain")
-                put("version", "1.0")
-                put("schemaName", "collection")
-                put("channel", "b00bc992ef25f1a9a8d63291e20efc8d")
-            }
-        })
-
-        request.put("rootId", "do_26543193441064550414")
-        request.put("unitId", "do_11283193463014195215")
-        request.put("children", util.Arrays.asList("do_113193433773948928111"))
-        request.put("mode","edit")
-        val future = HierarchyManager.addLeafNodesToHierarchy(request)
-        future.map(response => {
-            assert(response.getResponseCode.code() == 200)
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_26543193441064550414.img'")
-              .one().getString("hierarchy")
-            assert(hierarchy.contains("do_113193433773948928111"))
-            val removeFuture = HierarchyManager.removeLeafNodesFromHierarchy(request)
-            removeFuture.map(resp => {
-                assert(resp.getResponseCode.code() == 200)
-                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_26543193441064550414.img'")
-                  .one().getString("hierarchy")
-                assert(!hierarchy.contains("do_113193433773948928111"))
-            })
-        }).flatMap(f => f)
-    }
-
-    ignore should "removeLeafNodesToHierarchy" in {
-        executeCassandraQuery(script_3)
-        graphDb.run("UNWIND [{copyright:\"Hello\",code:\"do_113193433773948928111\",allowSkip:\"Yes\",keywords:[\"135\",\"666667\"],containsUserData:\"No\",subject:[\"Hindi\"],description:\"Hello\",language:[\"English\"],medium:[\"Hindi\"],mimeType:\"application/vnd.sunbird.questionset\",showHints:\"No\",createdOn:\"2021-01-13T08:29:43.736+0000\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",gradeLevel:[\"Class 7\"],contentDisposition:\"inline\",additionalCategories:[\"Classroom Teaching Video\",\"Concept Map\",\"Textbook\",\"Curiosity Question Set\"],lastUpdatedOn:\"2021-02-08T12:20:33.201+0000\",contentEncoding:\"gzip\",showSolutions:\"Yes\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113193433773948928111\",lastStatusChangedOn:\"2021-01-29T06:13:52.095+0000\",audience:[\"Teacher\"],requiresSubmit:\"Yes\",visibility:\"Default\",showTimer:\"Yes\",author:\"Hello\",summaryType:\"Complete\",consumerId:\"fa13b438-8a3d-41b1-8278-33b0c50210e4\",childNodes:[\"do_113193462958120960141\",\"do_113193463656955904143\",\"do_113197944463515648120\",\"do_113209072358883328150\",\"do_113193462438895616139\"],setType:\"materialised\",languageCode:[\"en\"],version:1,versionKey:\"1612786833201\",showFeedback:\"Yes\",license:\"CC BY 4.0\",prevState:\"Draft\",framework:\"ekstep_ncert_k-12\",depth:0,compatibilityLevel:4,name:\"u0926u0941u0903u0916 u0915u093E u0905u0927u093Fu0915u093Eu0930\",navigationMode:\"linear\",topic:[\"Leaves\",\"Water\"],shuffle:true,attributions:[\"Hello\"],board:\"CBSE\",status:\"Review\"}] as row CREATE (n:domain) SET n += row")
-        val request = new Request()
-        request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-                put("objectType", "Collection")
-                put("graph_id", "domain")
-                put("version", "1.0")
-                put("schemaName", "collection")
-                put("channel", "b00bc992ef25f1a9a8d63291e20efc8d")
-            }
-        })
-
-        request.put("rootId", "do_11283193441064550414")
-        request.put("unitId", "do_11283193463014195215")
-        request.put("children", util.Arrays.asList("do_113193462958120275141"))
-        request.put("mode","edit")
-        val future = HierarchyManager.addLeafNodesToHierarchy(request)
-        future.map(response => {
-            assert(response.getResponseCode.code() == 200)
-            val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-              .one().getString("hierarchy")
-            assert(hierarchy.contains("do_113193462958120275141"))
-            val removeFuture = HierarchyManager.removeLeafNodesFromHierarchy(request)
-            removeFuture.map(resp => {
-                assert(resp.getResponseCode.code() == 200)
-                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11283193441064550414.img'")
-                  .one().getString("hierarchy")
-                assert(!hierarchy.contains("do_113193462958120275141"))
-            })
-        }).flatMap(f => f)
-    }
 
     "removeLeafNodesToHierarchy" should "removeLeafNodesToHierarchy" in {
         executeCassandraQuery(script_3)
@@ -390,30 +294,6 @@ class TestHierarchy extends BaseSpec {
             assert(response.getResponseCode.code() == 200)
             assert(null != response.getResult.get("content"))
             assert(null != response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children"))
-        })
-    }
-
-    "getHierarchyWithEditMode having QuestionSet object" should "return the hierarchy" in {
-        val request = new Request()
-        executeCassandraQuery(script_5)
-        graphDb.run("UNWIND [{ownershipType:[\"createdBy\"],code:\"SC-2200_3eac25ae-a0c9-4d7c-87be-954406824cb8\",channel:\"sunbird\",description:\"Test-Add/Remove Leaf Node\",language:[\"English\"],mimeType:\"application/vnd.ekstep.content-collection\",idealScreenSize:\"normal\",createdOn:\"2021-03-07T19:23:38.025+0000\",IL_FUNC_OBJECT_TYPE:\"Collection\",contentDisposition:\"inline\",additionalCategories:[\"Textbook\"],lastUpdatedOn:\"2021-03-07T19:24:59.023+0000\",contentEncoding:\"gzip\",contentType:\"TextBook\",dialcodeRequired:\"No\",IL_UNIQUE_ID:\"do_11323126798764441611181\",lastStatusChangedOn:\"2021-03-07T19:23:38.025+0000\",audience:[\"Student\"],os:[\"All\"],visibility:\"Default\",childNodes:[\"do_11307457137049600011786\",\"do_11323126865092608011182\",\"do_113212597854404608111\",\"do_11323126865095065611184\"],mediaType:\"content\",osId:\"org.ekstep.quiz.app\",languageCode:[\"en\"],version:2,versionKey:\"1615145099023\",license:\"CC BY 4.0\",idealScreenDensity:\"hdpi\",depth:0,compatibilityLevel:1,userConsent:\"Yes\",name:\"SC-2200-TextBook\",status:\"Draft\"}] as row CREATE (n:domain) SET n += row")
-        graphDb.run("UNWIND [{ownershipType:[\"createdBy\"],copyright:\"Kerala State\",previewUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_11307457137049600011786/eng-presentation_1597086905822.pdf\",keywords:[\"By the Hands of the Nature\"],subject:[\"Geography\"],channel:\"0126202691023585280\",downloadUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/ecar_files/do_11307457137049600011786/by-the-hands-of-the-nature_1597087677810_do_11307457137049600011786_1.0.ecar\",organisation:[\"Kerala State\"],textbook_name:[\"Contemporary India - I\"],showNotification:true,language:[\"English\"],source:\"Kl 4\",mimeType:\"application/pdf\",IL_FUNC_OBJECT_TYPE:\"Content\",sourceURL:\"https://diksha.gov.in/play/content/do_312783564254150656111171\",gradeLevel:[\"Class 9\"],me_totalRatingsCount:36,appIcon:\"https://ntpproductionall.blob.core.windows.net/ntp-content-production/content/do_312783564254150656111171/artifact/screenshot-from-2019-06-14-11-59-39_1560493827569.thumb.png\",level2Name:[\"Physical Features of India\"],appId:\"prod.diksha.portal\",contentEncoding:\"identity\",artifactUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_11307457137049600011786/eng-presentation_1597086905822.pdf\",sYS_INTERNAL_LAST_UPDATED_ON:\"2020-08-10T19:27:58.911+0000\",contentType:\"Resource\",IL_UNIQUE_ID:\"do_11307457137049600011786\",audience:[\"Student\"],visibility:\"Default\",author:\"Kerala State\",consumerId:\"89490534-126f-4f0b-82ac-3ff3e49f3468\",mediaType:\"content\",osId:\"org.ekstep.quiz.app\",languageCode:[\"en\"],lastPublishedBy:\"ee2a003a-10a9-4152-8907-a905b9e1f943\",version:2,pragma:[\"external\"],license:\"CC BY 4.0\",prevState:\"Draft\",size:10005190,lastPublishedOn:\"2020-08-10T19:27:57.797+0000\",name:\"By the Hands of the Nature\",status:\"Live\",code:\"6633b233-bc5a-4936-a7a0-da37ebd33868\",prevStatus:\"Processing\",origin:\"do_312783564254150656111171\",streamingUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/content/assets/do_11307457137049600011786/eng-presentation_1597086905822.pdf\",medium:[\"English\"],posterImage:\"https://ntpproductionall.blob.core.windows.net/ntp-content-production/content/do_312783565429334016112815/artifact/screenshot-from-2019-06-14-11-59-39_1560493827569.png\",idealScreenSize:\"normal\",createdOn:\"2020-07-29T10:03:33.003+0000\",copyrightYear:2019,contentDisposition:\"inline\",lastUpdatedOn:\"2020-08-10T19:27:57.376+0000\",level1Concept:[\"Physical Features of India\"],dialcodeRequired:\"No\",owner:\"Kerala SCERT\",lastStatusChangedOn:\"2020-08-10T19:27:58.907+0000\",createdFor:[\"0126202691023585280\"],creator:\"SAJEEV THOMAS\",os:[\"All\"],level1Name:[\"Contemporary India - I\"],pkgVersion:1,versionKey:\"1597087677376\",idealScreenDensity:\"hdpi\",framework:\"kl_k-12\",s3Key:\"ecar_files/do_11307457137049600011786/by-the-hands-of-the-nature_1597087677810_do_11307457137049600011786_1.0.ecar\",me_averageRating:3,createdBy:\"f20a4bbf-df17-425b-8e43-bd3dd57bde83\",compatibilityLevel:4,ownedBy:\"0126202691023585280\",board:\"CBSE\",resourceType:\"Learn\"},{code:\"finemanfine\",previewUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/questionset/do_113212597854404608111/do_113212597854404608111_html_1612875515166.html\",allowSkip:\"Yes\",containsUserData:\"No\",downloadUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/questionset/do_113212597854404608111/test-question-set_1612875514981_do_113212597854404608111_5_SPINE.ecar\",description:\"Updated QS Description\",language:[\"English\"],mimeType:\"application/vnd.sunbird.questionset\",showHints:\"No\",createdOn:\"2021-02-09T10:19:09.026+0000\",IL_FUNC_OBJECT_TYPE:\"QuestionSet\",pdfUrl:\"https://dockstorage.blob.core.windows.net/sunbird-content-dock/questionset/do_113212597854404608111/do_113212597854404608111_pdf_1612875515932.pdf\",contentDisposition:\"inline\",lastUpdatedOn:\"2021-02-09T12:58:36.155+0000\",contentEncoding:\"gzip\",showSolutions:\"Yes\",allowAnonymousAccess:\"Yes\",IL_UNIQUE_ID:\"do_113212597854404608111\",lastStatusChangedOn:\"2021-02-09T12:58:36.155+0000\",requiresSubmit:\"Yes\",visibility:\"Default\",showTimer:\"No\",summaryType:\"Complete\",consumerId:\"fa13b438-8a3d-41b1-8278-33b0c50210e4\",childNodes:[\"do_113212598840246272112\",\"do_113212599692050432114\",\"do_113212600505057280116\"],setType:\"materialised\",languageCode:[\"en\"],version:1,pkgVersion:5,versionKey:\"1612875494848\",showFeedback:\"Yes\",license:\"CC BY 4.0\",depth:0,lastPublishedOn:\"2021-02-09T12:58:34.976+0000\",compatibilityLevel:5,name:\"Test Question Set\",navigationMode:\"linear\",shuffle:true,status:\"Live\"}] as row CREATE (n:domain) SET n += row")
-        request.setContext(new util.HashMap[String, AnyRef]() {
-            {
-                put("objectType", "Collection")
-                put("graph_id", "domain")
-                put("version", "1.0")
-                put("schemaName", "collection")
-            }
-        })
-        request.put("mode","edit")
-        request.put("rootId", "do_11323126798764441611181")
-        val future = HierarchyManager.getHierarchy(request)
-        future.map(response => {
-            assert(response.getResponseCode.code() == 200)
-            assert(null != response.getResult.get("content"))
-            val children = response.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]].get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-            assert(null!=children && !children.isEmpty)
         })
     }
 
