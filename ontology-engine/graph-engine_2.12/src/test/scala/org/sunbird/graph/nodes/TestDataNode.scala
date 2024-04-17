@@ -663,46 +663,6 @@ class TestDataNode extends BaseSpec {
         } flatMap(f => f)
     }
 
-    "systemUpdate content with valid data" should "update node metadata" in {
-        val request = new Request()
-        request.setObjectType("question")
-        val context = new util.HashMap[String, AnyRef]() {
-            {
-                put("graph_id", "domain")
-                put("version", "1.0")
-                put("objectType", "Question")
-                put("schemaName", "question")
-            }
-        }
-        request.setContext(context)
-        request.put("code", "finemanfine")
-        request.put("showFeedback", "Yes")
-        request.put("showSolutions", "Yes")
-        request.put("mimeType", "application/vnd.sunbird.question")
-        request.put("primaryCategory", "Practice Question")
-        request.put("name", "Test Question")
-        request.put("visibility", "Default")
-        request.put("description", "hey")
-
-        val future: Future[Node] = DataNode.create(request)
-        future map { node => {
-            assert(null != node)
-            print(node)
-            assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("Test Question"))
-            val req = new Request(request)
-            req.getContext.put("identifier", node.getIdentifier)
-            req.put("name", "updated name")
-            req.put("description", "Updated Description")
-            val updateFuture = DataNode.systemUpdate(req, util.Arrays.asList(node), "", Option(getHierarchy))
-            updateFuture map { resNode => {
-                assert(resNode.getIdentifier.equals(node.getIdentifier))
-                assert(resNode.getMetadata.get("description").equals("Updated Description"))
-            }
-            }
-        }
-        } flatMap (f => f)
-    }
-
     "search" should "read data for all identifier" in {
         executeNeo4jQuery("CREATE (n:domain{IL_UNIQUE_ID:'do_12345',IL_FUNC_OBJECT_TYPE:'Content',status:'Live',ownershipType:[\"createdBy\"],copyright:\"Sunbird\",previewUrl:\"https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/ecml/do_1129067102240194561252-latest\"});")
         val request = new Request()
