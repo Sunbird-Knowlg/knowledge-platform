@@ -289,7 +289,7 @@ object DIALManager {
 	}
 
 	def reserve(request: Request, channelId: String, contentId: String, rootNode: Node, contentMetadata: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-		validateContentStatus(contentMetadata)
+		// validateContentStatus(contentMetadata)
 
 		val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
 		val updateDialCodes  = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
