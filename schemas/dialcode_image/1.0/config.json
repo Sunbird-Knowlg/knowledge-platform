@@ -1,0 +1,47 @@
+{
+  "objectType": "dialcode_image",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "external": {
+    "tableName": "dialcode_images",
+    "properties": {
+      "filename": {
+        "type": "string"
+      },
+      "created_on": {
+        "type": "string"
+      },
+      "dialcode": {
+        "type": "string"
+      },
+      "channel": {
+        "type": "string"
+      },
+      "publisher": {
+        "type": "string"
+      },
+      "config": {
+        "type": "object",
+        "patternProperties": {
+          "^[a-zA-Z0-9_]+$": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "status": {
+        "type": "integer",
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "url": {
+        "type": "string"
+      }
+    },
+    "primaryKey": ["filename"]
+  },
+  "schema_restrict_api": false
+}
