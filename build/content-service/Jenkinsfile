@@ -34,7 +34,7 @@ node('build-slave') {
 
                 stage('Package') {
                     dir('content-api') {
-                        sh 'mvn play2:dist -pl content-service'
+                        sh 'mvn play2:dist -pl content-service -DCLOUD_STORE_GROUP_ID=' + cloud_store_group_id + ' -DCLOUD_STORE_ARTIFACT_ID=' + cloud_store_artifact_id + ' -DCLOUD_STORE_VERSION=' + cloud_store_version
                     }
                     sh('chmod 777 build/build.sh')
                     sh("build/build.sh ${build_tag} ${"content-service"} ${env.NODE_NAME} ${hub_org}")
