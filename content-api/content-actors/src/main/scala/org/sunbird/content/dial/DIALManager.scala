@@ -28,6 +28,8 @@ object DIALManager {
 
 	val DIAL_SEARCH_API_URL: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.search")
 	val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate")
+	val CLOUD_BASE_URL = Platform.getString("cloudstorage.read_base_path", "https://dev.knowlg.sunbird.org")
+	val DIAL_CONTAINER: String = Platform.getString("cloud_storage_dial_container", "dial")
 	val DIAL_API_AUTH_KEY: String = ContentConstants.BEARER + Platform.config.getString("dial_service.api.auth_key")
 	val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
 	private val kfClient = new KafkaClient
@@ -319,7 +321,6 @@ object DIALManager {
 				val response = ResponseHandler.OK()
 				val updatedSuccessResponse = getDIALReserveUpdateResponse(response, updateDialCodes.size.asInstanceOf[Integer], contentId, updatedNode)
 				updatedSuccessResponse.getResult.put(DIALConstants.VERSION_KEY, updatedNode.getMetadata.get(DIALConstants.VERSION_KEY))
-				println(" publisher ", request.getRequest)
 				val dialcodes: Map[String, AnyRef] =
 					updatedSuccessResponse.getResult
 						.get("reservedDialcodes")
@@ -340,17 +341,8 @@ object DIALManager {
   * prepare qr data
   * */
 
-	def createRequest(data: Map[String, AnyRef], channel: String, publisher: Option[String], rspObj: Response, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
 
-		val dialCodesMap = data.map { case (dialcode, index) =>
-			val fileName = s"$index" + "_" + s"$dialcode"
-			val dialData = Map(
-				"data" -> s"https://dev.knowlg.sunbird.org/dial/$dialcode",
-				"text" -> dialcode,
-				"id" -> fileName
-			)
-			dialData
-		}
+	def createRequest(data: Map[String, AnyRef], channel: String, publisher: Option[String], rspObj: Response, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
 
 		val qrCodeSpecString = request.getRequestString("qrcodespec", "") // Assuming this is a JSON string
 		val qrCodeSpec = JSON.parseFull(qrCodeSpecString) match {
@@ -358,6 +350,35 @@ object DIALManager {
 			case _ => Map.empty[String, Any]
 		}
 		val mergedConfig: Mmap[String, Any] = defaultConfig.++(qrCodeSpec)
+
+		val dialCodesMap = data.map { case (dialcode, index) =>
+			val fileName = s"$index" + "_" + s"$dialcode"
+			val dialData = Map(
+				"data" -> s"$CLOUD_BASE_URL/$DIAL_CONTAINER/$dialcode",
+				"text" -> dialcode,
+				"id" -> fileName
+			)
+			val imageData = new util.HashMap[String, AnyRef]()
+			imageData.put("dialcode", dialcode)
+			imageData.put("config", mergedConfig.mapValues(_.toString).asJava)
+			imageData.put("status", Int.box(0))
+			imageData.put("identifier", fileName)
+			imageData.put("channel", channel)
+			imageData.put("publisher", publisher.getOrElse(""))
+			val imageReq = new Request()
+			val imageContext = new util.HashMap[String, Object]()
+			imageContext.putAll(request.getContext)
+			imageReq.setContext(imageContext)
+			imageReq.getContext.put("schemaName", "dialcode_image")
+			imageReq.getContext.put("objectType", "content")
+			imageReq.putAll(imageData)
+
+			oec.dialgraphService.saveExternalProps(imageReq)
+
+			dialData
+		}
+
+
 		val processId = UUID.randomUUID
 		val dialcodes = dialCodesMap.map(_("text")).toList.asJava
 		rspObj.getResult.put(DIALConstants.PROCESS_ID, processId)
@@ -414,6 +435,7 @@ object DIALManager {
 		val topic: String = DIALTOPIC
 		val dialEvent = ScalaJsonUtils.serialize(event)
 		if (StringUtils.isBlank(dialEvent)) throw new ClientException("DIAL_REQUEST_EXCEPTION", "Event is not generated properly.")
+
 		kfClient.send(dialEvent, topic)
 	}
 
@@ -555,7 +577,6 @@ object DIALManager {
 				}})
 			}})
 		}}
-
 		val headerParam = new util.HashMap[String, String]{put(DIALConstants.X_CHANNEL_ID, channelId); put(DIALConstants.AUTHORIZATION, DIAL_API_AUTH_KEY);}
 		val generateResponse = oec.httpUtil.post(DIALCODE_GENERATE_URI, requestMap, headerParam)
 		if (generateResponse.getResponseCode == ResponseCode.OK || generateResponse.getResponseCode == ResponseCode.PARTIAL_SUCCESS) {

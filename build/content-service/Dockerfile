@@ -1,7 +1,6 @@
 FROM --platform=linux/x86_64 eclipse-temurin:11.0.20.1_1-jdk-focal
 RUN apt-get update \
-    && apt-get install unzip \
-    && apt-get install curl \
+    && apt-get install -y unzip curl \
     && adduser --uid 1001 --home /home/sunbird/ --disabled-login sunbird \
     && mkdir -p /home/sunbird \
     && chown -R sunbird:sunbird /home/sunbird
