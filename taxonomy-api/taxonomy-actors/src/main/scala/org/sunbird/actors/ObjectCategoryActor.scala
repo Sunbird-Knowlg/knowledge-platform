@@ -35,7 +35,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
         RequestUtil.restrictProperties(request)
         if (!request.getRequest.containsKey(Constants.NAME)) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
         request.getRequest.put(Constants.IDENTIFIER, Constants.CATEGORY_PREFIX + Slug.makeSlug(request.getRequest.get(Constants.NAME).asInstanceOf[String]))
-        DataNode.create(request).map(node => {
+        DataNode.creates(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }

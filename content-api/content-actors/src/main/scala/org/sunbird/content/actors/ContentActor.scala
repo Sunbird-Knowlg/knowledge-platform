@@ -15,7 +15,7 @@ import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, Vertex}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
@@ -66,7 +66,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
-		DataNode.create(request, dataModifier).map(node => {
+		DataNode.creates(request, vertexDataModifier).map(node => {
 			ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
 				.put("versionKey", node.getMetadata.get("versionKey"))
 		})
@@ -294,6 +294,20 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			node.getExternalData.put("relational_metadata", "{}")
 		}
 		node
+	}
+
+	def vertexDataModifier(vertex: Vertex): Vertex = {
+		if (vertex.getMetadata.containsKey("trackable") &&
+			vertex.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
+			"Yes".equalsIgnoreCase(vertex.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
+			vertex.getMetadata.put("contentType", "Course")
+		}
+
+		//TODO: Below fix to be reviewed when the fix for null to Stringify in ExternalStore.scala is implemented
+		if (vertex.getExternalData != null && vertex.getExternalData.containsKey("relational_metadata") && vertex.getExternalData.get("relational_metadata") == null) {
+			vertex.getExternalData.put("relational_metadata", "{}")
+		}
+		vertex
 	}
 
 	def getImportConfig(): ImportConfig = {

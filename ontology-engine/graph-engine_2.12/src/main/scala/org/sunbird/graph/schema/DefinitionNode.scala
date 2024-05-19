@@ -10,7 +10,7 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.dac.model.{Node, Relation, Vertex}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -29,6 +29,19 @@ object DefinitionNode {
     val inputNode = definition.getNode(request.getRequest)
     updateRelationMetadata(inputNode)
     definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
+  }
+
+  def validates(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex] = {
+    val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+    val version: String = request.getContext.get("version").asInstanceOf[String]
+    val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
+      schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
+    definition.validateRequest(request)
+    val inputNode = definition.getVertex(request.getRequest)
+    updateEdgeMetadata(inputNode)
+    definition.validates(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def getExternalProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
@@ -146,6 +159,31 @@ object DefinitionNode {
     node
   }
 
+  def postProcessor(request: Request, vertex: Vertex)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Vertex = {
+    val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+    val version: String = request.getContext.get("version").asInstanceOf[String]
+    val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+    val primaryCategory: String = if (null != vertex.getMetadata) vertex.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+    val categoryDefinition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
+    val edgeKey = categoryDefinition.getEdgeKey()
+    if (null != edgeKey && !edgeKey.isEmpty) {
+      val metadata = vertex.getMetadata
+      val cacheKey = "edge_" + request.getObjectType.toLowerCase()
+      val data = metadata.containsKey(edgeKey) match {
+        case true => List[String](metadata.get(edgeKey).asInstanceOf[String])
+        case _ => List[String]()
+      }
+      if (!data.isEmpty) {
+        metadata.get("status") match {
+          case "Live" => RedisCache.addToList(cacheKey, data)
+          case "Retired" => RedisCache.removeFromList(cacheKey, data)
+        }
+      }
+    }
+    vertex
+  }
+
   private def setRelationship(dbNode: Node, inputNode: Node, dbRels: util.Map[String, util.List[Relation]]): Unit = {
     var addRels: util.List[Relation] = new util.ArrayList[Relation]()
     var delRels: util.List[Relation] = new util.ArrayList[Relation]()
@@ -204,6 +242,22 @@ object DefinitionNode {
       } else rel.setMetadata(new util.HashMap[String, AnyRef]())
     }
     node.setAddedRelations(rels)
+  }
+
+  def updateEdgeMetadata(vertex: Vertex): Unit = {
+    var relOcr = new util.HashMap[String, Integer]()
+    val rels = vertex.getAddedRelations
+    for (rel <- rels) {
+      val relKey = rel.getStartNodeObjectType + rel.getRelationType + rel.getEndNodeObjectType
+      if (relOcr.containsKey(relKey))
+        relOcr.put(relKey, relOcr.get(relKey) + 1)
+      else relOcr.put(relKey, 1)
+      if (relKey.contains("hasSequenceMember")) {
+        val index = if (rel.getMetadata.containsKey("index")) rel.getMetadata.get("index").asInstanceOf[Integer] else relOcr.get(relKey)
+        rel.setMetadata(Map[String, AnyRef]("IL_SEQUENCE_INDEX" -> index).asJava)
+      } else rel.setMetadata(new util.HashMap[String, AnyRef]())
+    }
+    vertex.setAddedRelations(rels)
   }
 
   def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Node = {
