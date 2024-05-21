@@ -3,6 +3,7 @@ package org.sunbird.janus.service.util
 import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 import org.janusgraph.core.{JanusGraph, JanusGraphFactory}
+import org.sunbird.telemetry.logger.TelemetryManager
 class JanusConnectionUtil {
 
   var g: GraphTraversalSource = _
@@ -10,11 +11,18 @@ class JanusConnectionUtil {
 
   @throws[Exception]
   def initialiseGraphClient(): Unit = {
-    if (null == g) g = traversal.withRemote("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/src/conf/remote-graph.properties")
-    if (null == graph) graph = JanusGraphFactory.open("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/src/conf/janusgraph-inmemory.properties")
+    try {
+      if (null == g) g = traversal.withRemote("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/conf/remote-graph.properties")
+      if (null == graph) graph = JanusGraphFactory.open("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/conf/janusgraph-inmemory.properties")
 
-    println("GraphTraversalSource: " + g)
-    println("graph: " + graph)
+      println("GraphTraversalSource: " + g)
+      println("graph: " + graph)
+    }
+    catch {
+      case e: Exception =>
+        TelemetryManager.log("JanusConnectionUtil --> Exception: " + e.getCause)
+        e.printStackTrace()
+    }
   }
 
   @throws[Exception]

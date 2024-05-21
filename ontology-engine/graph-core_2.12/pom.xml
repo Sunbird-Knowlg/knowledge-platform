@@ -30,6 +30,18 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
+            <artifactId>graph-dac</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+            </exclusions>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
             <artifactId>schema-validator</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
