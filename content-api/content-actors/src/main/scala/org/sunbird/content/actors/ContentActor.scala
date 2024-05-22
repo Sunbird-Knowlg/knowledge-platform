@@ -17,6 +17,7 @@ import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Vertex}
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.vertex.DataVertex
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
@@ -66,7 +67,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request)
 		RequestUtil.restrictProperties(request)
-		DataNode.creates(request, vertexDataModifier).map(node => {
+		DataVertex.create(request, vertexDataModifier).map(node => {
 			ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
 				.put("versionKey", node.getMetadata.get("versionKey"))
 		})

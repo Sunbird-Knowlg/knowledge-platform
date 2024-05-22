@@ -15,10 +15,8 @@ abstract class IDefinition(graphId: String, schemaName: String, version: String 
     def getVertex(input: java.util.Map[String, AnyRef]): Vertex
     @throws[Exception]
     def validate(node: Node, operation: String = "update", setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node]
-
     @throws[Exception]
-    def validates(vertex: Vertex, operation: String = "update", setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex]
-
+    def validateVertex(vertex: Vertex, operation: String = "update", setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex]
     @throws[Exception]
     def getNode(identifier: String, operation: String = "read", mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]
 

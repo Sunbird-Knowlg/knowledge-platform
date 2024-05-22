@@ -54,17 +54,17 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
 
   override def getVertex(input: java.util.Map[String, Object]): Vertex = {
     val result = schemaValidator.getStructuredData(input)
-    val node = new Vertex(graphId, result.getMetadata)
+    val vertex = new Vertex(graphId, result.getMetadata)
     val objectType = schemaValidator.getConfig.getString("objectType")
-    node.setNodeType(SystemNodeTypes.DATA_NODE.name)
-    node.setObjectType(objectType)
-    node.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
+    vertex.setVertexType(SystemNodeTypes.DATA_NODE.name)
+    vertex.setObjectType(objectType)
+    vertex.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
     input.remove("identifier")
-    setEdges(node, result.getRelations)
-    if (CollectionUtils.isNotEmpty(node.getInRelations)) node.setAddedRelations(node.getInRelations)
-    if (CollectionUtils.isNotEmpty(node.getOutRelations)) node.setAddedRelations(node.getOutRelations)
-    node.setExternalData(result.getExternalData)
-    node
+    setEdges(vertex, result.getRelations)
+    if (CollectionUtils.isNotEmpty(vertex.getInEdges)) vertex.setAddedEdges(vertex.getInEdges)
+    if (CollectionUtils.isNotEmpty(vertex.getOutEdges)) vertex.setAddedEdges(vertex.getOutEdges)
+    vertex.setExternalData(result.getExternalData)
+    vertex
   }
 
     @throws[Exception]
@@ -73,7 +73,7 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
     }
 
   @throws[Exception]
-  override def validates(vertex: Vertex, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex] = {
+  override def validateVertex(vertex: Vertex, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex] = {
     Future {
       vertex
     }
@@ -137,9 +137,9 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
       }
 
       val inRelations = getEdges(inRelationsSchema, "in").asJava
-      vertex.setInRelations(inRelations)
+      vertex.setInEdges(inRelations)
       val outRelations = getEdges(outRelationsSchema, "out").asJava
-      vertex.setOutRelations(outRelations)
+      vertex.setOutEdges(outRelations)
     }
   }
 }

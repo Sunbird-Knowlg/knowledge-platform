@@ -36,19 +36,6 @@ object DataNode {
         }).flatMap(f => f)
     }
 
-  @throws[Exception]
-  def creates(request: Request, dataModifier: (Vertex) => Vertex = defaultVertexDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
-    DefinitionNode.validates(request).map(vertex => {
-      val response = oec.graphService.addVertex(request.graphId, dataModifier(vertex))
-      response.map(vertex => DefinitionNode.postProcessor(request, vertex)).map(result => {
-        val futureList = Task.parallel[Response](
-          saveExternalProperties(vertex.getIdentifier, vertex.getExternalData, request.getContext, request.getObjectType),
-          createEdges(request.graphId, vertex, request.getContext))
-        futureList.map(list => result)
-      }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
-    }).flatMap(f => f)
-  }
-
     @throws[Exception]
     def update(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
@@ -125,7 +112,7 @@ object DataNode {
         oec.graphService.deleteNode(request.graphId, identifier, request)
     }
 
-    private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+     def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)
             val request = new Request(context, externalProps, "", objectType)
@@ -153,15 +140,6 @@ object DataNode {
             Future(new Response)
         }
     }
-
-  private def createEdges(graphId: String, node: Vertex, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
-    val edges: util.List[Edges] = node.getAddedRelations
-    if (CollectionUtils.isNotEmpty(edges)) {
-      oec.graphService.createEdges(graphId, getEdgesMap(edges))
-    } else {
-      Future(new Response)
-    }
-  }
 
     private def populateExternalProperties(fields: List[String], node: Node, request: Request, externalProps: List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         if(StringUtils.equalsIgnoreCase(request.get("mode").asInstanceOf[String], "edit"))
@@ -208,30 +186,11 @@ object DataNode {
         list
     }
 
-  private def getEdgesMap(edges: util.List[Edges]): java.util.List[util.Map[String, AnyRef]] = {
-    val list = new util.ArrayList[util.Map[String, AnyRef]]
-    for (edge <- edges) {
-      if ((StringUtils.isNotBlank(edge.getStartNodeId) && StringUtils.isNotBlank(edge.getEndNodeId)) && StringUtils.isNotBlank(edge.getRelationType)) {
-        val map = new util.HashMap[String, AnyRef]
-        map.put("startNodeId", edge.getStartNodeId)
-        map.put("endNodeId", edge.getEndNodeId)
-        map.put("relation", edge.getRelationType)
-        if (MapUtils.isNotEmpty(edge.getMetadata)) map.put("relMetadata", edge.getMetadata)
-        else map.put("relMetadata", new util.HashMap[String, AnyRef]())
-        list.add(map)
-      }
-      else throw new ClientException("ERR_INVALID_RELATION_OBJECT", "Invalid Relation Object Found.")
-    }
-    list
-  }
     
     private def defaultDataModifier(node: Node) = {
         node
     }
 
-  private def defaultVertexDataModifier(vertex: Vertex) = {
-    vertex
-  }
 
   @throws[Exception]
   def systemUpdate(request: Request, nodeList: util.List[Node], hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {

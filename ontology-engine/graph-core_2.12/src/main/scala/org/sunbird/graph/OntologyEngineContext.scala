@@ -10,9 +10,13 @@ class OntologyEngineContext {
     private val dialGraphDB = new DialGraphService
     private val hUtil = new HttpUtil
     private lazy val kfClient = new KafkaClient
-
+    private lazy val janusGraphDB = new JanusGraphService
     def graphService = {
         graphDB
+    }
+
+    def janusGraphService = {
+        janusGraphDB
     }
 
     def dialgraphService = {

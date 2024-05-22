@@ -21,7 +21,7 @@ trait SchemaValidator extends IDefinition {
     }
 
   @throws[Exception]
-  abstract override def validates(vertex: Vertex, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex] = {
+  abstract override def validateVertex(vertex: Vertex, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex] = {
     if (setDefaultValue) {
       val result = schemaValidator.validate(vertex.getMetadata)
       if (setDefaultValue && operation.equalsIgnoreCase("create")) {
@@ -29,6 +29,7 @@ trait SchemaValidator extends IDefinition {
       }
     }
 
-    super.validates(vertex, operation)
+    super.validateVertex(vertex, operation)
   }
+
 }

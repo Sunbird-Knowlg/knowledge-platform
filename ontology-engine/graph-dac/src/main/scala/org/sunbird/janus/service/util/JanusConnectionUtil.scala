@@ -23,11 +23,12 @@ class JanusConnectionUtil {
   @throws[Exception]
   def initialiseGraphClient(): Unit = {
     try {
-      if (null == g) g = traversal.withRemote("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/src/main/conf/remote-graph.properties")
+      if (null == g) {
+        println("GraphTraversalSource: "+g)
+        g = traversal.withRemote("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/src/main/conf/remote-graph.properties")
+      }
       if (null == graph) graph = JanusGraphFactory.open("/Users/admin/Documents/workspace/knowledge-platform/ontology-engine/graph-dac/src/main/conf/janusgraph-inmemory.properties")
 
-      println("GraphTraversalSource: " + g)
-      println("graph: " + graph)
     }
     catch {
       case e: Exception =>
@@ -37,7 +38,7 @@ class JanusConnectionUtil {
   }
 
   @throws[Exception]
-  def getGts: GraphTraversalSource = g
+  def getGraphTraversalSource: GraphTraversalSource = g
 
   @throws[Exception]
   def getGraph: JanusGraph = graph

@@ -20,27 +20,27 @@ public class Edges implements Serializable {
     private static final long serialVersionUID = -7207054262120122453L;
     private String id;
     private String graphId;
-    private String relationType;
-    private String startNodeId;
-    private String endNodeId;
-    private String startNodeName;
-    private String endNodeName;
-    private String startNodeType;
-    private String endNodeType;
-    private String startNodeObjectType;
-    private String endNodeObjectType;
+    private String edgeType;
+    private String startVertexId;
+    private String endVertexId;
+    private String startVertexName;
+    private String endVertexName;
+    private String startVertexType;
+    private String endVertexType;
+    private String startVertexObjectType;
+    private String endVertexObjectType;
     private Map<String, Object> metadata;
-    private Map<String, Object> startNodeMetadata;
-    private Map<String, Object> endNodeMetadata;
+    private Map<String, Object> startVertexMetadata;
+    private Map<String, Object> endVertexMetadata;
 
     public Edges() {
 
     }
 
-    public Edges(String startNodeId, String relationType, String endNodeId) {
-        this.startNodeId = startNodeId;
-        this.endNodeId = endNodeId;
-        this.relationType = relationType;
+    public Edges(String startVertexId, String edgeType, String endVertexId) {
+        this.startVertexId = startVertexId;
+        this.endVertexId = endVertexId;
+        this.edgeType = edgeType;
     }
 
     public Edges(String graphId, Edge edge) {
@@ -49,20 +49,20 @@ public class Edges implements Serializable {
                     "Failed to create relation object. Relation from database is null.");
         this.graphId = graphId;
 
-        Vertex startNode = edge.outVertex();
-        Vertex endNode = edge.inVertex();
-        this.startNodeId = startNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
-        this.endNodeId = endNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
-        this.startNodeName = getName(startNode);
-        this.endNodeName = getName(endNode);
-        this.startNodeType = getNodeType(startNode);
-        this.endNodeType = getNodeType(endNode);
-        this.startNodeObjectType = getObjectType(startNode);
-        this.endNodeObjectType = getObjectType(endNode);
-        this.relationType = edge.label();
+        Vertex startVertex = edge.outVertex();
+        Vertex endVertex = edge.inVertex();
+        this.startVertexId = startVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
+        this.endVertexId = endVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
+        this.startVertexName = getName(startVertex);
+        this.endVertexName = getName(endVertex);
+        this.startVertexType = getVertexType(startVertex);
+        this.endVertexType = getVertexType(endVertex);
+        this.startVertexObjectType = getObjectType(startVertex);
+        this.endVertexObjectType = getObjectType(endVertex);
+        this.edgeType = edge.label();
         this.metadata = new HashMap<String, Object>();
-        this.startNodeMetadata = getNodeMetadata(edge.outVertex());
-        this.endNodeMetadata = getNodeMetadata(edge.inVertex());
+        this.startVertexMetadata = getNodeMetadata(edge.outVertex());
+        this.endVertexMetadata = getNodeMetadata(edge.inVertex());
         edge.keys().forEach(key -> this.metadata.put(key, edge.value(key)));
     }
 
@@ -74,18 +74,18 @@ public class Edges implements Serializable {
         this.graphId = graphId;
         Vertex startNode = startNodeMap.get(edge.outVertex().id());
         Vertex endNode = endNodeMap.get(edge.inVertex().id());
-        this.startNodeId = startNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
-        this.endNodeId = endNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
-        this.startNodeName = getName(startNode);
-        this.endNodeName = getName(endNode);
-        this.startNodeType = getNodeType(startNode);
-        this.endNodeType = getNodeType(endNode);
-        this.startNodeObjectType = getObjectType(startNode);
-        this.endNodeObjectType = getObjectType(endNode);
-        this.relationType = edge.label();
+        this.startVertexId = startNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
+        this.endVertexId = endNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
+        this.startVertexName = getName(startNode);
+        this.endVertexName = getName(endNode);
+        this.startVertexType = getVertexType(startNode);
+        this.endVertexType = getVertexType(endNode);
+        this.startVertexObjectType = getObjectType(startNode);
+        this.endVertexObjectType = getObjectType(endNode);
+        this.edgeType = edge.label();
         this.metadata = new HashMap<String, Object>();
-        this.startNodeMetadata = getNodeMetadata(startNode);
-        this.endNodeMetadata = getNodeMetadata(endNode);
+        this.startVertexMetadata = getNodeMetadata(startNode);
+        this.endVertexMetadata = getNodeMetadata(endNode);
         edge.keys().forEach(key -> {
             Object value = edge.value(key);
             if(null != value){
@@ -123,26 +123,26 @@ public class Edges implements Serializable {
         return name;
     }
 
-    private String getName(Vertex node) {
-        String name = node.property("name").isPresent() ? node.property("name").value().toString() : null;
+    private String getName(Vertex vertex) {
+        String name = vertex.property("name").isPresent() ? vertex.property("name").value().toString() : null;
         if (StringUtils.isBlank(name)) {
-            name = node.property("title").isPresent() ? node.property("title").value().toString() : null;
+            name = vertex.property("title").isPresent() ? vertex.property("title").value().toString() : null;
             if (StringUtils.isBlank(name)) {
-                name = node.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent() ? node.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString() : null;
+                name = vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent() ? vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString() : null;
                 if (StringUtils.isBlank(name))
-                    name = node.property(SystemProperties.IL_SYS_NODE_TYPE.name()).isPresent() ? node.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString() : null;
+                    name = vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name()).isPresent() ? vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString() : null;
             }
         }
         return name;
     }
 
 
-    private String getNodeType(Vertex node) {
-        return node.property(SystemProperties.IL_SYS_NODE_TYPE.name()).isPresent() ? node.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString() : null;
+    private String getVertexType(Vertex vertex) {
+        return vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name()).isPresent() ? vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString() : null;
     }
 
-    private String getObjectType(Vertex node) {
-        return node.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent() ? node.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString() : null;
+    private String getObjectType(Vertex vertex) {
+        return vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent() ? vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString() : null;
     }
 
     private Map<String, Object> getNodeMetadata(Vertex vertex) {
@@ -172,28 +172,28 @@ public class Edges implements Serializable {
         return metadata;
     }
 
-    public String getRelationType() {
-        return relationType;
+    public String getEdgeType() {
+        return edgeType;
     }
 
-    public void setRelationType(String relationType) {
-        this.relationType = relationType;
+    public void setEdgeType(String edgeType) {
+        this.edgeType = edgeType;
     }
 
-    public String getStartNodeId() {
-        return startNodeId;
+    public String getStartVertexId() {
+        return startVertexId;
     }
 
-    public void setStartNodeId(String startNodeId) {
-        this.startNodeId = startNodeId;
+    public void setStartVertexId(String startVertexId) {
+        this.startVertexId = startVertexId;
     }
 
-    public String getEndNodeId() {
-        return endNodeId;
+    public String getEndVertexId() {
+        return endVertexId;
     }
 
-    public void setEndNodeId(String endNodeId) {
-        this.endNodeId = endNodeId;
+    public void setEndVertexId(String endVertexId) {
+        this.endVertexId = endVertexId;
     }
 
     public Map<String, Object> getMetadata() {
@@ -229,72 +229,72 @@ public class Edges implements Serializable {
         this.id = id;
     }
 
-    public String getStartNodeName() {
-        return startNodeName;
+    public String getStartVertexName() {
+        return startVertexName;
     }
 
-    public void setStartNodeName(String startNodeName) {
-        this.startNodeName = startNodeName;
+    public void setStartVertexName(String startVertexName) {
+        this.startVertexName = startVertexName;
     }
 
-    public String getEndNodeName() {
-        return endNodeName;
+    public String getEndVertexName() {
+        return endVertexName;
     }
 
-    public void setEndNodeName(String endNodeName) {
-        this.endNodeName = endNodeName;
+    public void setEndVertexName(String endVertexName) {
+        this.endVertexName = endVertexName;
     }
 
-    public String getStartNodeType() {
-        return startNodeType;
+    public String getStartVertexType() {
+        return startVertexType;
     }
 
-    public void setStartNodeType(String startNodeType) {
-        this.startNodeType = startNodeType;
+    public void setStartVertexType(String startVertexType) {
+        this.startVertexType = startVertexType;
     }
 
-    public String getEndNodeType() {
-        return endNodeType;
+    public String getEndVertexType() {
+        return endVertexType;
     }
 
-    public void setEndNodeType(String endNodeType) {
-        this.endNodeType = endNodeType;
+    public void setEndVertexType(String endVertexType) {
+        this.endVertexType = endVertexType;
     }
 
-    public String getStartNodeObjectType() {
-        return startNodeObjectType;
+    public String getStartVertexObjectType() {
+        return startVertexObjectType;
     }
 
-    public void setStartNodeObjectType(String startNodeObjectType) {
-        this.startNodeObjectType = startNodeObjectType;
+    public void setStartVertexObjectType(String startVertexObjectType) {
+        this.startVertexObjectType = startVertexObjectType;
     }
 
-    public String getEndNodeObjectType() {
-        return endNodeObjectType;
+    public String getEndVertexObjectType() {
+        return endVertexObjectType;
     }
 
-    public void setEndNodeObjectType(String endNodeObjectType) {
-        this.endNodeObjectType = endNodeObjectType;
-    }
-
-    @JsonIgnore
-    public Map<String, Object> getStartNodeMetadata() {
-        return startNodeMetadata;
+    public void setEndVertexObjectType(String endVertexObjectType) {
+        this.endVertexObjectType = endVertexObjectType;
     }
 
     @JsonIgnore
-    public void setStartNodeMetadata(Map<String, Object> startNodeMetadata) {
-        this.startNodeMetadata = startNodeMetadata;
+    public Map<String, Object> getStartVertexMetadata() {
+        return startVertexMetadata;
     }
 
     @JsonIgnore
-    public Map<String, Object> getEndNodeMetadata() {
-        return endNodeMetadata;
+    public void setStartVertexMetadata(Map<String, Object> startVertexMetadata) {
+        this.startVertexMetadata = startVertexMetadata;
     }
 
     @JsonIgnore
-    public void setEndNodeMetadata(Map<String, Object> endNodeMetadata) {
-        this.endNodeMetadata = endNodeMetadata;
+    public Map<String, Object> getEndVertexMetadata() {
+        return endVertexMetadata;
+    }
+
+    @JsonIgnore
+    public void setEndVertexMetadata(Map<String, Object> endVertexMetadata) {
+        this.endVertexMetadata = endVertexMetadata;
     }
 
 }

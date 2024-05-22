@@ -17,27 +17,27 @@ public class Vertex implements Serializable {
     private long id;
     private String graphId;
     private String identifier;
-    private String nodeType;
+    private String vertexType;
     private String objectType;
     private Map<String, Object> metadata;
-    private List<Edges> outRelations;
-    private List<Edges> inRelations;
-    private List<Edges> addedRelations;
-    private List<Edges> deletedRelations;
-    private Map<String, Vertex> relationNodes;
+    private List<Edges> outEdges;
+    private List<Edges> inEdges;
+    private List<Edges> addedEdges;
+    private List<Edges> deletedEdges;
+    private Map<String, Vertex> edgeVertices;
     private Map<String, Object> externalData;
 
     public Vertex() {
-        addedRelations = new ArrayList<>();
-        deletedRelations = new ArrayList<>();
+        addedEdges = new ArrayList<>();
+        deletedEdges = new ArrayList<>();
     }
 
-    public Vertex(String identifier, String nodeType, String objectType) {
+    public Vertex(String identifier, String vertexType, String objectType) {
         this.identifier = identifier;
-        this.nodeType = nodeType;
+        this.vertexType = vertexType;
         this.objectType = objectType;
-        addedRelations = new ArrayList<>();
-        deletedRelations = new ArrayList<>();
+        addedEdges = new ArrayList<>();
+        deletedEdges = new ArrayList<>();
     }
 
     public Vertex(String graphId, Map<String, Object> metadata) {
@@ -47,12 +47,12 @@ public class Vertex implements Serializable {
             if (null != metadata.get(SystemProperties.IL_UNIQUE_ID.name()))
                 this.identifier = metadata.get(SystemProperties.IL_UNIQUE_ID.name()).toString();
             if (null != metadata.get(SystemProperties.IL_SYS_NODE_TYPE.name()))
-                this.nodeType = metadata.get(SystemProperties.IL_SYS_NODE_TYPE.name()).toString();
+                this.vertexType = metadata.get(SystemProperties.IL_SYS_NODE_TYPE.name()).toString();
             if (null != metadata.get(SystemProperties.IL_FUNC_OBJECT_TYPE.name()))
                 this.objectType = metadata.get(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).toString();
         }
-        addedRelations = new ArrayList<>();
-        deletedRelations = new ArrayList<>();
+        addedEdges = new ArrayList<>();
+        deletedEdges = new ArrayList<>();
     }
 
 
@@ -83,14 +83,14 @@ public class Vertex implements Serializable {
         this.identifier = identifier;
     }
 
-    public String getNodeType() {
-        if (StringUtils.isBlank(nodeType) && null != metadata)
-            this.nodeType = (String) metadata.get(SystemProperties.IL_SYS_NODE_TYPE.name());
-        return nodeType;
+    public String getVertexType() {
+        if (StringUtils.isBlank(vertexType) && null != metadata)
+            this.vertexType = (String) metadata.get(SystemProperties.IL_SYS_NODE_TYPE.name());
+        return vertexType;
     }
 
-    public void setNodeType(String nodeType) {
-        this.nodeType = nodeType;
+    public void setVertexType(String vertexType) {
+        this.vertexType = vertexType;
     }
 
     public String getObjectType() {
@@ -111,66 +111,66 @@ public class Vertex implements Serializable {
         this.metadata = metadata;
     }
 
-    public List<Edges> getOutRelations() {
-        if (!CollectionUtils.isEmpty(outRelations))
-            return outRelations;
+    public List<Edges> getOutEdges() {
+        if (!CollectionUtils.isEmpty(outEdges))
+            return outEdges;
         else return new ArrayList<>();
     }
 
-    public void setOutRelations(List<Edges> outRelations) {
-        this.outRelations = outRelations;
+    public void setOutEdges(List<Edges> outEdges) {
+        this.outEdges = outEdges;
     }
 
-    public List<Edges> getInRelations() {
-        if (!CollectionUtils.isEmpty(inRelations))
-            return inRelations;
+    public List<Edges> getInEdges() {
+        if (!CollectionUtils.isEmpty(inEdges))
+            return inEdges;
         else return new ArrayList<>();
     }
 
-    public void setInRelations(List<Edges> inRelations) {
-        this.inRelations = inRelations;
+    public void setInEdges(List<Edges> inEdges) {
+        this.inEdges = inEdges;
     }
 
-    public List<Edges> getAddedRelations() {
-        return addedRelations;
+    public List<Edges> getAddedEdges() {
+        return addedEdges;
     }
 
-    public void setAddedRelations(List<Edges> addedRelations) {
-        if(CollectionUtils.isEmpty(this.addedRelations))
-            this.addedRelations = new ArrayList<>();
-        this.addedRelations.addAll(addedRelations);
+    public void setAddedEdges(List<Edges> addedEdges) {
+        if(CollectionUtils.isEmpty(this.addedEdges))
+            this.addedEdges = new ArrayList<>();
+        this.addedEdges.addAll(addedEdges);
     }
 
-    public List<Edges> getDeletedRelations() {
-        return deletedRelations;
+    public List<Edges> getDeletedEdges() {
+        return deletedEdges;
     }
 
-    public void setDeletedRelations(List<Edges> deletedRelations) {
-        this.deletedRelations = deletedRelations;
+    public void setDeletedEdges(List<Edges> deletedEdges) {
+        this.deletedEdges = deletedEdges;
     }
 
     public Map<String, Object> getExternalData() {
         return externalData;
     }
 
-    public Map<String, Vertex> getRelationNodes() {
-        return relationNodes;
+    public Map<String, Vertex> getEdgeVertices() {
+        return edgeVertices;
     }
 
-    public void setRelationNodes(Map<String, Vertex> relationNodes) {
-        this.relationNodes = relationNodes;
+    public void setEdgeVertices(Map<String, Vertex> edgeVertices) {
+        this.edgeVertices = edgeVertices;
     }
 
     public void setExternalData(Map<String, Object> externalData) {
         this.externalData = externalData;
     }
 
-    public Vertex getNode() {
+    public Vertex getVertex() {
         return (Vertex) this;
     }
 
     public Vertex getRelationNode(String identifier) {
-        return relationNodes.get(identifier);
+        return edgeVertices.get(identifier);
     }
 
     public String getArtifactUrl() {

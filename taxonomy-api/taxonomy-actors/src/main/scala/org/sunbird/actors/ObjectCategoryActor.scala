@@ -1,7 +1,6 @@
 package org.sunbird.actors
 
 import java.util
-
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
@@ -11,6 +10,7 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.graph.vertex.DataVertex
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import scala.collection.JavaConverters
@@ -35,7 +35,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
         RequestUtil.restrictProperties(request)
         if (!request.getRequest.containsKey(Constants.NAME)) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
         request.getRequest.put(Constants.IDENTIFIER, Constants.CATEGORY_PREFIX + Slug.makeSlug(request.getRequest.get(Constants.NAME).asInstanceOf[String]))
-        DataNode.creates(request).map(node => {
+        DataVertex.create(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }

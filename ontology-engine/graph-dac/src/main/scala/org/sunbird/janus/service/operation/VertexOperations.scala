@@ -19,7 +19,7 @@ import scala.collection.convert.ImplicitConversions.`map AsScala`
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class GremlinOperations {
+class VertexOperations {
 
   val graphConnection = new JanusConnectionUtil
   def addVertex(graphId: String, vertex: Vertex): Future[Vertex] = {
@@ -38,33 +38,30 @@ class GremlinOperations {
       prepareMap(parameterMap)
 
       graphConnection.initialiseGraphClient()
-      val g: GraphTraversalSource = graphConnection.getGts
-      val graph: JanusGraph = graphConnection.getGraph
+      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
 
       val newVertex = g.addV(vertex.getGraphId)
       val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
 
       finalMap.foreach { case (key, value) => newVertex.property(key, value) }
-      newVertex.as("ee").next()
-      val retrieveVertex: Vertex = g.V().select("ee").by(valueMap()).next()
-      println(" vertex details found !" + retrieveVertex)
+      val retrieveVertex = newVertex.elementMap().next()
 
-      vertex.setGraphId("domain")
-      vertex.setIdentifier("do_12332409i")
-      vertex.getMetadata.put(GraphDACParams.versionKey.name, "1023535325")
+      vertex.setGraphId(graphId)
+      vertex.setIdentifier(retrieveVertex.get("IL_UNIQUE_ID"))
+      vertex.getMetadata.put(GraphDACParams.versionKey.name, retrieveVertex.get("versionKey"))
       vertex
     }
   }
 
   def prepareMap(parameterMap: util.Map[String, AnyRef]) = {
-    if(null != parameterMap){
-      println("parameterMap ==>"+parameterMap)
+    if (null != parameterMap) {
       val graphId = parameterMap.getOrDefault("graphId","").asInstanceOf[String]
+      val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Vertex]
+
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
           DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Create Node' Query Generation Failed.]")
 
-      val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Vertex]
       if (null == vertex)
         throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
           DACErrorMessageConstants.INVALID_NODE + " | [Create Node Query Generation Failed.]")
@@ -76,12 +73,13 @@ class GremlinOperations {
       val apMap :util.Map[String, AnyRef] = getAuditPropertyMap(vertex, date, false)
       val vpMap :util.Map[String, AnyRef] = getVersionPropertyMap(vertex, date)
 
-      parameterMap.put(GraphDACParams.paramValueMap.name, mpMap)
-      parameterMap.put(GraphDACParams.paramValueMap.name, spMap)
-      parameterMap.put(GraphDACParams.paramValueMap.name, apMap)
-      parameterMap.put(GraphDACParams.paramValueMap.name, vpMap)
+      val combinedMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
+      combinedMap.putAll(mpMap)
+      combinedMap.putAll(spMap)
+      combinedMap.putAll(apMap)
+      combinedMap.putAll(vpMap)
 
-      println("parameterMap  ->"+parameterMap)
+      parameterMap.put(GraphDACParams.paramValueMap.name, combinedMap)
     }
   }
 
@@ -92,13 +90,14 @@ class GremlinOperations {
     }
     metadataPropertyMap
   }
+
   def getSystemPropertyMap(node: Vertex, date: String): util.Map[String, AnyRef] = {
     val systemPropertyMap = new util.HashMap[String, AnyRef]
     if (null != node && StringUtils.isNotBlank(date)) {
       if (StringUtils.isBlank(node.getIdentifier))
         node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
       systemPropertyMap.put(SystemProperties.IL_UNIQUE_ID.name, node.getIdentifier)
-      systemPropertyMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getNodeType)
+      systemPropertyMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getVertexType)
       systemPropertyMap.put(SystemProperties.IL_FUNC_OBJECT_TYPE.name, node.getObjectType)
     }
     systemPropertyMap

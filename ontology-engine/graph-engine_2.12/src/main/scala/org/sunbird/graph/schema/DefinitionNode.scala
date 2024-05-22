@@ -41,7 +41,7 @@ object DefinitionNode {
     definition.validateRequest(request)
     val inputNode = definition.getVertex(request.getRequest)
     updateEdgeMetadata(inputNode)
-    definition.validates(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
+    definition.validateVertex(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def getExternalProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
@@ -246,9 +246,9 @@ object DefinitionNode {
 
   def updateEdgeMetadata(vertex: Vertex): Unit = {
     var relOcr = new util.HashMap[String, Integer]()
-    val rels = vertex.getAddedRelations
+    val rels = vertex.getAddedEdges
     for (rel <- rels) {
-      val relKey = rel.getStartNodeObjectType + rel.getRelationType + rel.getEndNodeObjectType
+      val relKey = rel.getStartVertexObjectType + rel.getEdgeType + rel.getEndVertexObjectType
       if (relOcr.containsKey(relKey))
         relOcr.put(relKey, relOcr.get(relKey) + 1)
       else relOcr.put(relKey, 1)
@@ -257,7 +257,7 @@ object DefinitionNode {
         rel.setMetadata(Map[String, AnyRef]("IL_SEQUENCE_INDEX" -> index).asJava)
       } else rel.setMetadata(new util.HashMap[String, AnyRef]())
     }
-    vertex.setAddedRelations(rels)
+    vertex.setAddedEdges(rels)
   }
 
   def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Node = {

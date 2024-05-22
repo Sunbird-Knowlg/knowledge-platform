@@ -18,26 +18,26 @@ import scala.concurrent.Future
 class EdgeOperations {
 
   val graphConnection = new JanusConnectionUtil
-  def createEdges(graphId: String, relationData: util.List[util.Map[String, AnyRef]]): Future[Response] = {
+  def createEdges(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Future[Response] = {
     Future{
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
           DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]")
-      if (CollectionUtils.isEmpty(relationData))
+
+      if (CollectionUtils.isEmpty(edgeData))
         throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name,
           DACErrorMessageConstants.INVALID_NODE + " | [Create Relation Operation Failed.]")
 
       graphConnection.initialiseGraphClient()
-      val g: GraphTraversalSource = graphConnection.getGts
-      val graph: JanusGraph = graphConnection.getGraph
+      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
 
-      createBulkRelations(g, graphId, relationData)
+      createBulkRelations(g, graphId, edgeData)
       ResponseHandler.OK()
     }
   }
 
-  def createBulkRelations(g: GraphTraversalSource, graphId: String, relationData: util.List[util.Map[String, AnyRef]]): Unit = {
-    for (row <- relationData.asScala) {
+  def createBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
+    for (row <- edgeData.asScala) {
       val startNodeId = row.get("startNodeId").toString
       val endNodeId = row.get("endNodeId").toString
       val relation = row.get("relation").toString

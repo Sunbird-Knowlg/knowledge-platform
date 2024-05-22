@@ -3,19 +3,16 @@ package org.sunbird.graph
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.dac.model.{Node, SearchCriteria, SubGraph, Vertex}
+import org.sunbird.graph.dac.model.{Node, SearchCriteria, SubGraph}
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.service.operation.{GraphAsyncOperations, Neo4JBoltSearchOperations, NodeAsyncOperations, SearchAsyncOperations}
 import org.sunbird.graph.util.CSPMetaUtil
-import org.sunbird.janus.service.operation.{EdgeOperations, GremlinOperations}
 
 import java.lang
 import scala.concurrent.{ExecutionContext, Future}
 
 class GraphService {
 
-    val gremlinOps = new GremlinOperations()
-    val edgeOps = new EdgeOperations()
     implicit  val ec: ExecutionContext = ExecutionContext.global
     val isrRelativePathEnabled: lang.Boolean = Platform.getBoolean("cloudstorage.metadata.replace_absolute_path", false)
 
@@ -25,15 +22,6 @@ class GraphService {
             node.setMetadata(metadata)
         }
         NodeAsyncOperations.addNode(graphId, node).map(resNode => if(isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
-    }
-
-    def addVertex(graphId: String, node: Vertex): Future[Vertex] = {
-        if (isrRelativePathEnabled) {
-            val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
-            node.setMetadata(metadata)
-        }
-        gremlinOps.addVertex(graphId, node).map(resNode => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
-
     }
 
     def upsertNode(graphId: String, node: Node, request: Request): Future[Node] = {
@@ -119,11 +107,6 @@ class GraphService {
     def createRelation(graphId: String, relationMap: java.util.List[java.util.Map[String, AnyRef]]) = {
         GraphAsyncOperations.createRelation(graphId, relationMap)
     }
-
-    def createEdges(graphId: String, relationMap: java.util.List[java.util.Map[String, AnyRef]]) = {
-        edgeOps.createEdges(graphId, relationMap)
-    }
-
 
     def getSubGraph(graphId: String, nodeId: String, depth: Int): Future[SubGraph] = {
         GraphAsyncOperations.getSubGraph(graphId, nodeId, depth)
