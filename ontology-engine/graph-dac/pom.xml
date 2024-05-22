@@ -32,11 +32,6 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.3.2</version>
-        </dependency>
-        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec</artifactId>
             <version>4.1.68.Final</version>
@@ -88,6 +83,11 @@
             <groupId>org.janusgraph</groupId>
             <artifactId>janusgraph-cql</artifactId>
             <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.9</version>
         </dependency>
     </dependencies>
 

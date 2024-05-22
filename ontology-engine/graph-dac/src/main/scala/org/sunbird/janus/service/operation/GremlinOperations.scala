@@ -1,7 +1,8 @@
 package org.sunbird.janus.service.operation
 
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
+import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.valueMap
 import org.janusgraph.core.JanusGraph
 import org.sunbird.common.exception.ClientException
@@ -21,40 +22,38 @@ import scala.concurrent.Future
 class GremlinOperations {
 
   val graphConnection = new JanusConnectionUtil
-  def addNode(graphId: String, vertex: Vertex): Future[Vertex] = { Future {
-    if (StringUtils.isBlank(graphId))
-      throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
-            DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]")
+  def addVertex(graphId: String, vertex: Vertex): Future[Vertex] = {
+    Future {
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+              DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]")
 
-    if (null == vertex)
-      throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
-            DACErrorMessageConstants.INVALID_NODE + " | [Create Node Operation Failed.]")
+      if (null == vertex)
+        throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
+              DACErrorMessageConstants.INVALID_NODE + " | [Create Node Operation Failed.]")
 
-    val parameterMap = new util.HashMap[String, AnyRef]
-    parameterMap.put(GraphDACParams.graphId.name, graphId)
-    parameterMap.put("vertex", setPrimitiveData(vertex))
-    prepareMap(parameterMap)
+      val parameterMap = new util.HashMap[String, AnyRef]
+      parameterMap.put(GraphDACParams.graphId.name, graphId)
+      parameterMap.put("vertex", setPrimitiveData(vertex))
+      prepareMap(parameterMap)
 
-    graphConnection.initialiseGraphClient()
-    val g: GraphTraversalSource = graphConnection.getGts
-    val graph: JanusGraph = graphConnection.getGraph
+      graphConnection.initialiseGraphClient()
+      val g: GraphTraversalSource = graphConnection.getGts
+      val graph: JanusGraph = graphConnection.getGraph
 
-    val newVertex = g.addV(vertex.getGraphId)
-    val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
+      val newVertex = g.addV(vertex.getGraphId)
+      val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
 
-    finalMap.foreach { case (key, value) => newVertex.property(key, value) }
-    newVertex.as("ee").next()
+      finalMap.foreach { case (key, value) => newVertex.property(key, value) }
+      newVertex.as("ee").next()
+      val retrieveVertex: Vertex = g.V().select("ee").by(valueMap()).next()
+      println(" vertex details found !" + retrieveVertex)
 
-    val retrieveVertex = g.V().select("ee").by(valueMap()).next()
-    println(" vertex details found !" + retrieveVertex)
-
-    vertex.setGraphId("domain")
-    vertex.setIdentifier("do_12332409i")
-    vertex.getMetadata.put(GraphDACParams.versionKey.name, "1023535325")
-
-    vertex
-  }
-
+      vertex.setGraphId("domain")
+      vertex.setIdentifier("do_12332409i")
+      vertex.getMetadata.put(GraphDACParams.versionKey.name, "1023535325")
+      vertex
+    }
   }
 
   def prepareMap(parameterMap: util.Map[String, AnyRef]) = {

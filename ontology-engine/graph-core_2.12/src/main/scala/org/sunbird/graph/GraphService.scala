@@ -32,7 +32,7 @@ class GraphService {
             val metadata = CSPMetaUtil.updateRelativePath(node.getMetadata)
             node.setMetadata(metadata)
         }
-        gremlinOps.addNode(graphId, node).map(resNode => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
+        gremlinOps.addVertex(graphId, node).map(resNode => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resNode) else resNode)
 
     }
 
