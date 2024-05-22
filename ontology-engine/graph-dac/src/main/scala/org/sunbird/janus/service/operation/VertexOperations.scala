@@ -5,7 +5,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.t
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.valueMap
 import org.janusgraph.core.JanusGraph
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
@@ -36,20 +36,32 @@ class VertexOperations {
       parameterMap.put(GraphDACParams.graphId.name, graphId)
       parameterMap.put("vertex", setPrimitiveData(vertex))
       prepareMap(parameterMap)
+      try{
+        graphConnection.initialiseGraphClient()
+        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
 
-      graphConnection.initialiseGraphClient()
-      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+        val newVertex = g.addV(vertex.getGraphId)
+        val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
 
-      val newVertex = g.addV(vertex.getGraphId)
-      val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
+        finalMap.foreach { case (key, value) => newVertex.property(key, value) }
+        val retrieveVertex = newVertex.elementMap().next()
 
-      finalMap.foreach { case (key, value) => newVertex.property(key, value) }
-      val retrieveVertex = newVertex.elementMap().next()
-
-      vertex.setGraphId(graphId)
-      vertex.setIdentifier(retrieveVertex.get("IL_UNIQUE_ID"))
-      vertex.getMetadata.put(GraphDACParams.versionKey.name, retrieveVertex.get("versionKey"))
-      vertex
+        vertex.setGraphId(graphId)
+        vertex.setIdentifier(retrieveVertex.get("IL_UNIQUE_ID"))
+        vertex.getMetadata.put(GraphDACParams.versionKey.name, retrieveVertex.get("versionKey"))
+        vertex
+      } catch {
+        case e: Throwable =>
+          e.getCause match {
+            case cause: org.apache.tinkerpop.gremlin.driver.exception.ResponseException =>
+              throw new ClientException(
+                DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(),
+                DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + vertex.getIdentifier
+              )
+            case cause =>
+              throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name, DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
+          }
+      }
     }
   }
 
