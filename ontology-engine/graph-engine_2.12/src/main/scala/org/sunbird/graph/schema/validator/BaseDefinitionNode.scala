@@ -52,20 +52,20 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
         node
     }
 
-  override def getVertex(input: java.util.Map[String, Object]): Vertex = {
-    val result = schemaValidator.getStructuredData(input)
-    val vertex = new Vertex(graphId, result.getMetadata)
-    val objectType = schemaValidator.getConfig.getString("objectType")
-    vertex.setVertexType(SystemNodeTypes.DATA_NODE.name)
-    vertex.setObjectType(objectType)
-    vertex.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
-    input.remove("identifier")
-    setEdges(vertex, result.getRelations)
-    if (CollectionUtils.isNotEmpty(vertex.getInEdges)) vertex.setAddedEdges(vertex.getInEdges)
-    if (CollectionUtils.isNotEmpty(vertex.getOutEdges)) vertex.setAddedEdges(vertex.getOutEdges)
-    vertex.setExternalData(result.getExternalData)
-    vertex
-  }
+    override def getVertex(input: java.util.Map[String, Object]): Vertex = {
+        val result = schemaValidator.getStructuredData(input)
+        val vertex = new Vertex(graphId, result.getMetadata)
+        val objectType = schemaValidator.getConfig.getString("objectType")
+        vertex.setVertexType(SystemNodeTypes.DATA_NODE.name)
+        vertex.setObjectType(objectType)
+        vertex.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
+        input.remove("identifier")
+        setEdges(vertex, result.getRelations)
+        if (CollectionUtils.isNotEmpty(vertex.getInEdges)) vertex.setAddedEdges(vertex.getInEdges)
+        if (CollectionUtils.isNotEmpty(vertex.getOutEdges)) vertex.setAddedEdges(vertex.getOutEdges)
+        vertex.setExternalData(result.getExternalData)
+        vertex
+    }
 
     @throws[Exception]
     override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -84,6 +84,12 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
         val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
         node
     }
+
+  override def getVertex(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
+    val request: Request = new Request()
+    val vertex: Future[Vertex] = oec.janusGraphService.getNodeByUniqueId(graphId, identifier, false, request)
+    vertex
+  }
 
 
     protected def setRelations(node: Node, relations: java.util.Map[String, AnyRef]): Unit = {

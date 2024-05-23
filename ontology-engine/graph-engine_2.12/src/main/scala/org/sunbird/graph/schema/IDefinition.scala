@@ -20,6 +20,8 @@ abstract class IDefinition(graphId: String, schemaName: String, version: String 
     @throws[Exception]
     def getNode(identifier: String, operation: String = "read", mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]
 
+    def getVertex(identifier: String, operation: String = "read", mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex]
+
     def getSchemaName(): String ={
         schemaName
     }

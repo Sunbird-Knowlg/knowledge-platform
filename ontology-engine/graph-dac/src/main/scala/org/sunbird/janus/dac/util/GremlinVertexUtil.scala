@@ -11,7 +11,7 @@ class GremlinVertexUtil {
 
   def getNode(graphId: String, gremlinVertex: org.apache.tinkerpop.gremlin.structure.Vertex, edgeMap: util.Map[Object, AnyRef],
               startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef]): Vertex = {
-
+    println("gremlinVertex ", gremlinVertex)
     if (null == gremlinVertex)
       throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
         "Failed to create node object. Node from database is null.")
@@ -22,7 +22,9 @@ class GremlinVertexUtil {
 
     val metadata = new util.HashMap[String, Object]()
     gremlinVertex.keys().forEach { key =>
+      println("key ", key)
       val value = gremlinVertex.property(key).value()
+      println("value ", value)
       if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name()))
         vertex.setIdentifier(value.asInstanceOf[String])
       else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name()))

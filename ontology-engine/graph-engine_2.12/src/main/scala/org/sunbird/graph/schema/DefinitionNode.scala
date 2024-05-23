@@ -90,6 +90,14 @@ object DefinitionNode {
     definition.getNode(request.get("identifier").asInstanceOf[String], "read", if (request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read", None, disableCache)
   }
 
+  def getVertex(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
+    val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
+    val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
+      , schemaName, request.getContext.get("version").asInstanceOf[String])
+    val disableCache: Option[Boolean] = if (request.getRequest.containsKey("disableCache")) request.get("disableCache").asInstanceOf[Option[Boolean]] else None
+    definition.getVertex(request.get("identifier").asInstanceOf[String], "read", if (request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read", None, disableCache)
+  }
+
   @throws[Exception]
   def validate(identifier: String, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]

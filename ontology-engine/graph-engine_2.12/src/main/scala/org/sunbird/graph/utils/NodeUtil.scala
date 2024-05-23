@@ -1,7 +1,6 @@
 package org.sunbird.graph.utils
 
 import java.util
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
@@ -9,7 +8,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
-import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.dac.model.{Edges, Node, Relation, Vertex}
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition, ObjectCategoryDefinitionMap}
 
 import scala.collection.JavaConverters
@@ -38,6 +37,26 @@ object NodeUtil {
         finalMetadata.put("identifier", node.getIdentifier)
         finalMetadata.put("languageCode", getLanguageCodes(node))
         finalMetadata
+    }
+
+    def serializeVertex(vertex: Vertex, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+      val metadataMap = vertex.getMetadata
+      val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(vertex.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], vertex.getObjectType.toLowerCase().replace("image", ""), vertex.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
+      val jsonProps = DefinitionNode.fetchJsonProps(vertex.getGraphId, schemaVersion, vertex.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition)
+      val updatedMetadataMap: util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) -> convertJsonProperties(entry, jsonProps)).toMap.asJava
+      val definitionMap = DefinitionNode.getRelationDefinitionMap(vertex.getGraphId, schemaVersion, vertex.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition).asJava
+      val finalMetadata = new util.HashMap[String, AnyRef]()
+      finalMetadata.put("objectType", vertex.getObjectType)
+      finalMetadata.putAll(updatedMetadataMap)
+      if (!withoutRelations) {
+        val relMap: util.Map[String, util.List[util.Map[String, AnyRef]]] = getRelationMap(vertex, updatedMetadataMap, definitionMap)
+        finalMetadata.putAll(relMap)
+      }
+      if (CollectionUtils.isNotEmpty(fields))
+        finalMetadata.keySet.retainAll(fields)
+      finalMetadata.put("identifier", vertex.getIdentifier)
+      finalMetadata.put("languageCode", getLanguageCodes(vertex))
+      finalMetadata
     }
 
 
@@ -93,6 +112,66 @@ object NodeUtil {
         node.setOutRelations(outRelations)
     }
 
+  def setEdges(vertex: Vertex, nodeMap: util.Map[String, AnyRef], relationMap: util.Map[String, AnyRef]) = {
+    val inRelations: util.List[Edges] = new util.ArrayList[Edges]()
+    val outRelations: util.List[Edges] = new util.ArrayList[Edges]()
+    relationMap.asScala.foreach(entry => {
+      if (nodeMap.containsKey(entry._1) && null != nodeMap.get(entry._1) && !nodeMap.get(entry._1).asInstanceOf[util.List[util.Map[String, AnyRef]]].isEmpty) {
+        nodeMap.get(entry._1).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.map(relMap => {
+          if ("in".equalsIgnoreCase(entry._2.asInstanceOf[util.Map[String, AnyRef]].get("direction").asInstanceOf[String])) {
+            val rel: Edges = new Edges(relMap.get("identifier").asInstanceOf[String], entry._2.asInstanceOf[util.Map[String, AnyRef]].get("type").asInstanceOf[String], vertex.getIdentifier)
+            rel.setStartVertexObjectType(relMap.get("objectType").asInstanceOf[String])
+            rel.setEndVertexObjectType(vertex.getObjectType)
+            rel.setStartVertexName(relMap.get("name").asInstanceOf[String])
+            rel.setStartVertexMetadata(new util.HashMap[String, AnyRef]() {
+              {
+                put("description", relMap.get("description"))
+                put("status", relMap.get("status"))
+              }
+            })
+            if (null != relMap.get("index") && 0 < relMap.get("index").asInstanceOf[Integer]) {
+              rel.setMetadata(new util.HashMap[String, AnyRef]() {
+                {
+                  put(SystemProperties.IL_SEQUENCE_INDEX.name(), relMap.get("index"))
+                }
+              })
+            }
+            inRelations.add(rel)
+          } else {
+            val rel: Edges = new Edges(vertex.getIdentifier, entry._2.asInstanceOf[util.Map[String, AnyRef]].get("type").asInstanceOf[String], relMap.get("identifier").asInstanceOf[String])
+            rel.setStartVertexObjectType(vertex.getObjectType)
+            rel.setEndVertexObjectType(relMap.get("objectType").asInstanceOf[String])
+            rel.setStartVertexName(relMap.get("name").asInstanceOf[String])
+            rel.setStartVertexMetadata(new util.HashMap[String, AnyRef]() {
+              {
+                put("description", relMap.get("description"))
+                put("status", relMap.get("status"))
+              }
+            })
+            val index: Integer = {
+              if (null != relMap.get("index")) {
+                if (relMap.get("index").isInstanceOf[String]) {
+                  Integer.parseInt(relMap.get("index").asInstanceOf[String])
+                } else relMap.get("index").asInstanceOf[Number].intValue()
+              } else
+                null
+            }
+            if (null != index && 0 < index) {
+              rel.setMetadata(new util.HashMap[String, AnyRef]() {
+                {
+                  put(SystemProperties.IL_SEQUENCE_INDEX.name(), relMap.get("index"))
+                }
+              })
+            }
+            outRelations.add(rel)
+          }
+        })
+      }
+    })
+    vertex.setInEdges(inRelations)
+    vertex.setOutEdges(outRelations)
+  }
+
     def deserialize(nodeMap: util.Map[String, AnyRef], schemaName: String, relationMap:util.Map[String, AnyRef]): Node = {
         val node: Node = new Node()
         if(MapUtils.isNotEmpty(nodeMap)) {
@@ -107,6 +186,22 @@ object NodeUtil {
             else entry
         })
         node
+    }
+
+    def deserializeVertex(nodeMap: util.Map[String, AnyRef], schemaName: String, relationMap: util.Map[String, AnyRef]): Vertex = {
+      val vertex: Vertex = new Vertex()
+      if (MapUtils.isNotEmpty(nodeMap)) {
+        vertex.setIdentifier(nodeMap.get("identifier").asInstanceOf[String])
+        vertex.setObjectType(nodeMap.get("objectType").asInstanceOf[String])
+        val filteredMetadata: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](JavaConverters.mapAsJavaMapConverter(nodeMap.asScala.filterNot(entry => relationMap.containsKey(entry._1)).toMap).asJava)
+        vertex.setMetadata(filteredMetadata)
+        setEdges(vertex, nodeMap, relationMap)
+      }
+      vertex.getMetadata.asScala.map(entry => {
+        if (entry._2.isInstanceOf[::[AnyRef]]) (entry._1 -> entry._2.asInstanceOf[::[AnyRef]].toArray.toList)
+        else entry
+      })
+      vertex
     }
 
 
@@ -142,6 +237,39 @@ object NodeUtil {
         }
         relMap
     }
+
+    def getRelationMap(vertex: Vertex, updatedMetadataMap: util.Map[String, AnyRef], relationMap: util.Map[String, AnyRef]): util.Map[String, util.List[util.Map[String, AnyRef]]] = {
+      val inRelations: util.List[Edges] = {
+        if (CollectionUtils.isEmpty(vertex.getInEdges)) new util.ArrayList[Edges] else vertex.getInEdges
+      }
+      val outRelations: util.List[Edges] = {
+        if (CollectionUtils.isEmpty(vertex.getOutEdges)) new util.ArrayList[Edges] else vertex.getOutEdges
+      }
+      val relMap = new util.HashMap[String, util.List[util.Map[String, AnyRef]]]
+      for (rel <- inRelations.asScala) {
+        val relKey: String = rel.getEdgeType + "_in_" + rel.getStartVertexObjectType
+        if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "in"))
+        else {
+          if (null != relationMap.get(relKey)) {
+            relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {
+              add(populateRelationMaps(rel, "in"))
+            })
+          }
+        }
+      }
+      for (rel <- outRelations.asScala) {
+        val relKey: String = rel.getEdgeType + "_out_" + rel.getEndVertexObjectType
+        if (relMap.containsKey(relationMap.get(relKey))) relMap.get(relationMap.get(relKey)).add(populateRelationMaps(rel, "out"))
+        else {
+          if (null != relationMap.get(relKey)) {
+            relMap.put(relationMap.get(relKey).asInstanceOf[String], new util.ArrayList[util.Map[String, AnyRef]]() {
+              add(populateRelationMaps(rel, "out"))
+            })
+          }
+        }
+      }
+      relMap
+    }
     
     def convertJsonProperties(entry: util.Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
         if(jsonProps.contains(entry.getKey)) {
@@ -176,6 +304,26 @@ object NodeUtil {
       }
     }
 
+  def populateRelationMaps(rel: Edges, direction: String): util.Map[String, AnyRef] = {
+    if ("out".equalsIgnoreCase(direction)) {
+      val objectType = rel.getEndVertexObjectType.replace("Image", "")
+      val relData = Map("identifier" -> rel.getEndVertexId.replace(".img", ""),
+        "name" -> rel.getEndVertexName,
+        "objectType" -> objectType,
+        "relation" -> rel.getEdgeType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndVertexMetadata.get(key))).toMap
+      val indexMap = if (rel.getEdgeType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
+      val completeRelData = relData ++ indexMap
+      mapAsJavaMap(completeRelData)
+    } else {
+      val objectType = rel.getStartVertexObjectType.replace("Image", "")
+      val relData = Map("identifier" -> rel.getStartVertexId.replace(".img", ""),
+        "name" -> rel.getStartVertexName,
+        "objectType" -> objectType,
+        "relation" -> rel.getEdgeType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartVertexMetadata.get(key))).toMap
+      mapAsJavaMap(relData)
+    }
+  }
+
     def getLanguageCodes(node: Node): util.List[String] = {
         val value = node.getMetadata.get("language")
         val languages:util.List[String] = value match {
@@ -189,6 +337,21 @@ object NodeUtil {
         }else{
             languages
         }
+    }
+
+    def getLanguageCodes(vertex: Vertex): util.List[String] = {
+      val value = vertex.getMetadata.get("language")
+      val languages: util.List[String] = value match {
+        case value: String => List(value).asJava
+        case value: util.List[String] => value
+        case value: Array[String] => value.filter((lng: String) => StringUtils.isNotBlank(lng)).toList.asJava
+        case _ => new util.ArrayList[String]()
+      }
+      if (CollectionUtils.isNotEmpty(languages)) {
+        JavaConverters.bufferAsJavaListConverter(languages.asScala.map(lang => if (Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "")).asJava
+      } else {
+        languages
+      }
     }
 
     def isRetired(node: Node): Boolean = StringUtils.equalsIgnoreCase(node.getMetadata.get("status").asInstanceOf[String], "Retired")

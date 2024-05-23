@@ -44,8 +44,8 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
     private def read(request: Request): Future[Response] = {
         val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
         request.getRequest.put(Constants.FIELDS, fields)
-        DataNode.read(request).map(node => {
-            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+        DataVertex.read(request).map(node => {
+            val metadata: util.Map[String, AnyRef] = NodeUtil.serializeVertex(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
             ResponseHandler.OK.put(Constants.OBJECT_CATEGORY, metadata)
         })
     }
