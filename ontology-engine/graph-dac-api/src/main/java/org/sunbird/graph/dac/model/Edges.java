@@ -18,7 +18,7 @@ import java.util.Map;
 public class Edges implements Serializable {
 
     private static final long serialVersionUID = -7207054262120122453L;
-    private String id;
+    private Object id;
     private String graphId;
     private String edgeType;
     private String startVertexId;
@@ -49,10 +49,10 @@ public class Edges implements Serializable {
                     "Failed to create relation object. Relation from database is null.");
         this.graphId = graphId;
 
-        Vertex startVertex = edge.outVertex();
-        Vertex endVertex = edge.inVertex();
-        this.startVertexId = startVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
-        this.endVertexId = endVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
+        Vertex startVertex = edge.inVertex();
+        Vertex endVertex = edge.outVertex();
+        this.startVertexId = (String) startVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value();
+        this.endVertexId = (String) endVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value();
         this.startVertexName = getName(startVertex);
         this.endVertexName = getName(endVertex);
         this.startVertexType = getVertexType(startVertex);
@@ -66,14 +66,15 @@ public class Edges implements Serializable {
         edge.keys().forEach(key -> this.metadata.put(key, edge.value(key)));
     }
 
-    public Edges(String graphId, Edge edge, Map<Object, Vertex> startNodeMap, Map<Object, Vertex> endNodeMap) {
+    public Edges(String graphId, Edge edge, Map<Object, Object> startNodeMap, Map<Object, Object> endNodeMap) {
         if (null == edge)
             throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_REL.name(),
                     "Failed to create relation object. Relation from database is null.");
-        this.id = edge.id().toString();
+        this.id = edge.id();
         this.graphId = graphId;
-        Vertex startNode = startNodeMap.get(edge.outVertex().id());
-        Vertex endNode = endNodeMap.get(edge.inVertex().id());
+
+        Vertex startNode = (Vertex) startNodeMap.get(edge.inVertex().id());
+        Vertex endNode = (Vertex) endNodeMap.get(edge.outVertex().id());
         this.startVertexId = startNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
         this.endVertexId = endNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
         this.startVertexName = getName(startNode);
@@ -109,19 +110,6 @@ public class Edges implements Serializable {
         });
     }
 
-
-    private String getName(Node node) {
-        String name = (String) node.getProperty("name", null);
-        if (StringUtils.isBlank(name)) {
-            name = (String) node.getProperty("title", null);
-            if (StringUtils.isBlank(name)) {
-                name = (String) node.getProperty(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), null);
-                if (StringUtils.isBlank(name))
-                    name = (String) node.getProperty(SystemProperties.IL_SYS_NODE_TYPE.name(), null);
-            }
-        }
-        return name;
-    }
 
     private String getName(Vertex vertex) {
         String name = vertex.property("name").isPresent() ? vertex.property("name").value().toString() : null;
@@ -221,11 +209,11 @@ public class Edges implements Serializable {
         this.graphId = graphId;
     }
 
-    public String getId() {
+    public Object getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Object id) {
         this.id = id;
     }
 

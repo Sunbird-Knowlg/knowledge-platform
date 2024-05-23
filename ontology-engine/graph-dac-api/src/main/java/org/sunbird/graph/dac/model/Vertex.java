@@ -14,7 +14,7 @@ public class Vertex implements Serializable {
 
     private static final long serialVersionUID = 252337826576516976L;
 
-    private long id;
+    private Object id;
     private String graphId;
     private String identifier;
     private String vertexType;
@@ -56,11 +56,11 @@ public class Vertex implements Serializable {
     }
 
 
-    public long getId() {
+    public Object getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Object id) {
         this.id = id;
     }
 
