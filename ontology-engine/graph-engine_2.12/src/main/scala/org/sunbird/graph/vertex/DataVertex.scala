@@ -57,7 +57,7 @@ object DataVertex {
     }
   }
 
-  def deleteNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
+  def deleteVertex(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
     val identifier: String = request.getRequest.getOrDefault("identifier", "").asInstanceOf[String]
     oec.janusGraphService.deleteNode(request.graphId, identifier, request)
   }
@@ -74,11 +74,8 @@ object DataVertex {
             updateEdges(request.graphId, vertex, request.getContext)
           )
           futureList.map(list => result)
-        })
-        .flatMap(f => f)
-        .recoverWith { case e: CompletionException => throw e.getCause }
-    }).flatMap(f => f)
-      .recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
 /*  private def updateEdges(vertex: Vertex, graphId: String, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {

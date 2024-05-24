@@ -2,7 +2,8 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
-import org.sunbird.common.exception.{ClientException, ServerException}
+import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
@@ -49,6 +50,7 @@ class VertexOperations {
       }
       catch {
           case e: Throwable =>
+            e.printStackTrace()
             e.getCause match {
               case cause: org.apache.tinkerpop.gremlin.driver.exception.ResponseException =>
                 throw new ClientException(
@@ -81,20 +83,40 @@ class VertexOperations {
           parameterMap.put(GraphDACParams.nodeId.name, vertexId)
           parameterMap.put(GraphDACParams.request.name, request)
 
-          deleteQuery(parameterMap, g)
-
-          true
+          executeVertexDeletion(parameterMap, g)
       }
       catch {
-        case e: Exception => throw e
+        case e: Throwable =>
+          e.printStackTrace()
+          throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name,
+            DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
       }
-
     }
-
   }
 
-  def deleteQuery(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource): Unit = {
+  private def executeVertexDeletion(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource): Boolean = {
+    if (null != parameterMap) {
+      val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Remove Property Values Query Generation Failed.]")
 
+      val nodeId = parameterMap.get(GraphDACParams.nodeId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(nodeId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+          DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Remove Property Values Query Generation Failed.]")
+
+      val traversal = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name(), nodeId)
+      if (traversal.hasNext) {
+        traversal.drop().iterate()
+        true
+      } else {
+        throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name,
+          DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + nodeId, nodeId)
+      }
+    } else {
+      throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP)
+    }
   }
 
   private def createVertexTraversal(parameterMap: util.Map[String, AnyRef], graphTraversalSource: GraphTraversalSource): GraphTraversal[org.apache.tinkerpop.gremlin.structure.Vertex, org.apache.tinkerpop.gremlin.structure.Vertex] = {
