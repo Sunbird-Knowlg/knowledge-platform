@@ -11,7 +11,7 @@ import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Edges, Filter, MetadataCriterion, SearchConditions, SearchCriteria, Vertex}
-import org.sunbird.graph.nodes.DataNode.saveExternalProperties
+import org.sunbird.graph.nodes.DataNode.{saveExternalProperties, updateExternalProperties}
 import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
 import org.sunbird.parseq.Task
 
@@ -61,6 +61,48 @@ object DataVertex {
     val identifier: String = request.getRequest.getOrDefault("identifier", "").asInstanceOf[String]
     oec.janusGraphService.deleteNode(request.graphId, identifier, request)
   }
+
+    def update(request: Request, dataModifier: (Vertex) => Vertex = defaultVertexDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
+    val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
+    DefinitionNode.validates(identifier, request).map(vertex => {
+      request.getContext().put("schemaName", vertex.getObjectType.toLowerCase.replace("image", ""))
+      val response = oec.janusGraphService.upsertVertex(request.graphId, dataModifier(vertex), request)
+      response.map(vertex => DefinitionNode.postProcessor(request, vertex))
+        .map(result => {
+          val futureList = Task.parallel[Response](
+            updateExternalProperties(vertex.getIdentifier, vertex.getExternalData, request.getContext, request.getObjectType, request),
+            updateEdges(request.graphId, vertex, request.getContext)
+          )
+          futureList.map(list => result)
+        })
+        .flatMap(f => f)
+        .recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatMap(f => f)
+      .recoverWith { case e: CompletionException => throw e.getCause }
+  }
+
+/*  private def updateEdges(vertex: Vertex, graphId: String, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+    val request = new Request // Assuming Request is required for JanusGraph
+    request.setContext(context)
+
+    if (vertex.getAddedEdges.isEmpty && vertex.getDeletedEdges.isEmpty) {
+      Future(new Response) // No changes, return empty response
+    } else {
+      val futures = Seq(
+        // Delete edges if any
+        if (vertex.getDeletedEdges.nonEmpty) {
+          oec.janusGraphService.removeEdges(graphId, getEdgesMap(vertex.getDeletedEdges))
+        } else Future.successful(Unit),
+        // Add edges if any
+        if (vertex.getAddedEdges.nonEmpty) {
+          oec.janusGraphService.createEdges(graphId, getEdgesMap(vertex.getAddedEdges))
+        } else Future.successful(Unit)
+      )
+      Future.sequence(futures) // Combine deletion and addition calls into one future
+        .map(_ => new Response) // Wrap the combined future with a new Response
+    }
+
+  }*/
 
   private def createEdges(graphId: String, vertex: Vertex, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     val edges: util.List[Edges] = vertex.getAddedEdges

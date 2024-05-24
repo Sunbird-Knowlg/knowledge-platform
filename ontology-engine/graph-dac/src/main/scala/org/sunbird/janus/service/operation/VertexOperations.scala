@@ -2,7 +2,6 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
-import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.graph.common.Identifier
@@ -11,9 +10,11 @@ import org.sunbird.graph.dac.model.Vertex
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
+import org.sunbird.common.dto.Request
 
 import java.util
-import scala.collection.convert.ImplicitConversions.`map AsScala`
+import scala.collection.convert.ImplicitConversions.{`map AsJavaMap`, `map AsScala`}
+import scala.collection.immutable.HashMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -178,6 +179,144 @@ class VertexOperations {
     versionPropertyMap
   }
 
+  def upsertVertex(graphId: String, vertex: Vertex, request: Request): Future[Vertex] = {
+    Future {
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]")
+
+      if (null == vertex)
+        throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
+          DACErrorMessageConstants.INVALID_NODE + " | [Create Node Operation Failed.]")
+
+      val parameterMap = new util.HashMap[String, AnyRef]
+      parameterMap.put(GraphDACParams.graphId.name, graphId)
+      parameterMap.put("vertex", setPrimitiveData(vertex))
+      parameterMap.put(GraphDACParams.request.name, request)
+
+      prepareUpsertMap(parameterMap)
+      try {
+        graphConnection.initialiseGraphClient()
+        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+
+        // Find existing vertex by identifier (replace with your logic if needed)
+        val existingVertex = g.V().has(SystemProperties.IL_UNIQUE_ID.toString, vertex.getIdentifier)
+
+
+          val existingVertexProps = existingVertex.elementMap().next().asInstanceOf[util.HashMap[String, AnyRef]]
+          parameterMap.foreach { case (key, value) =>
+            if (!key.equals(GraphDACParams.graphId.name) && !key.equals(GraphDACParams.request.name)) {
+              existingVertexProps.put(key, value)
+            }
+          }
+//          existingVertex.properties(existingVertexProps)
+
+          val retrieveVertex = existingVertex.elementMap().next()
+          vertex.setIdentifier(retrieveVertex.get("IL_UNIQUE_ID"))
+          vertex.getMetadata.put(GraphDACParams.versionKey.name, retrieveVertex.get("versionKey"))
+          vertex
+      }
+
+      catch {
+        case e: Throwable =>
+          e.getCause match {
+            case cause: org.apache.tinkerpop.gremlin.driver.exception.ResponseException =>
+              throw new ClientException(
+                DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(),
+                DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + vertex.getIdentifier
+              )
+            case cause =>
+              throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name, DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
+          }
+      }
+    }
+  }
+
+  def prepareUpsertMap(parameterMap: util.Map[String, AnyRef]) = {
+    if (null != parameterMap) {
+      val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Vertex]
+      if (null == vertex)
+        throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
+          DACErrorMessageConstants.INVALID_NODE + " | [Upsert Node Query Generation Failed.]")
+
+      if (StringUtils.isBlank(vertex.getIdentifier))
+        vertex.setIdentifier(Identifier.getIdentifier(vertex.getGraphId, Identifier.getUniqueIdFromTimestamp))
+
+      val graphId = parameterMap.getOrDefault("graphId", "").asInstanceOf[String]
+      val date: String = DateUtils.formatCurrentDate
+
+      val ocsMap: util.Map[String, AnyRef] = getOnCreateSetMap( vertex, date)
+      val omsMap: util.Map[String, AnyRef] = getOnMatchSetMap( vertex,date, true)
+
+      val combinedMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
+      combinedMap.putAll(ocsMap)
+      combinedMap.putAll(omsMap)
+
+      parameterMap.put(GraphDACParams.paramValueMap.name, combinedMap)
+    }
+  }
+
+  def getOnCreateSetMap(node: Vertex, date: String): Map[String, Object] = {
+    val paramMap = new HashMap[String, Object]()
+
+    if (node != null && StringUtils.isNotBlank(date)) {
+      if (StringUtils.isBlank(node.getIdentifier)) {
+        node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
+      }
+
+      paramMap.put(SystemProperties.IL_UNIQUE_ID.name, node.getId)
+
+      paramMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getVertexType)
+
+      if (StringUtils.isNotBlank(node.getObjectType)) {
+        paramMap.put(SystemProperties.IL_FUNC_OBJECT_TYPE.name, node.getObjectType)
+      }
+      paramMap.put(AuditProperties.createdOn.name, date)
+
+      if (node.getMetadata.containsKey(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name) == false) {
+        paramMap.put(AuditProperties.lastUpdatedOn.name, date)
+      }
+      val versionKey = DateUtils.parse(date).getTime.toString
+      paramMap.put(GraphDACParams.versionKey.name, versionKey)
+    }
+
+    paramMap
+  }
+
+  def getOnMatchSetMap(node: Vertex, date: String, merge: Boolean): Map[String, Object] = {
+    val paramMap = new HashMap[String, Object]()
+
+    if (node != null && StringUtils.isNotBlank(date)) {
+      // Set operation based on merge flag
+      val setClause = if (merge) {
+        s"${GraphDACParams.ON.name} ${GraphDACParams.MATCH.name} ${GraphDACParams.SET.name}"
+      } else {
+        GraphDACParams.SET.name
+      }
+
+      if (node.getMetadata != null) {
+        node.getMetadata.foreach {
+          case (key, value) => if (key != GraphDACParams.versionKey.name) paramMap.put(key, value)
+        }
+      }
+
+
+      // Set lastUpdatedOn property if not already set
+      if (!node.getMetadata.containsKey(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name)) {
+        paramMap.put(AuditProperties.lastUpdatedOn.name, date)
+      }
+
+      // Set versionKey property if missing in metadata
+      if (node.getMetadata != null &&
+        StringUtils.isBlank(node.getMetadata.get(GraphDACParams.versionKey.name()).toString)) {
+        val versionKey = DateUtils.parse(date).getTime.toString
+        paramMap.put(GraphDACParams.versionKey.name, versionKey)
+      }
+    }
+
+    paramMap
+  }
+
   def setPrimitiveData(vertex: Vertex): Vertex = {
     val metadata: util.Map[String, AnyRef] = vertex.getMetadata
     metadata.forEach((key, value) => {
@@ -193,6 +332,7 @@ class VertexOperations {
     })
     vertex
   }
+
 
 
 }

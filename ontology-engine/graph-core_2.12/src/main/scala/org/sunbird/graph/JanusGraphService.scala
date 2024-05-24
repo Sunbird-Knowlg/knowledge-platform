@@ -1,11 +1,8 @@
 package org.sunbird.graph
 
 import org.sunbird.common.Platform
-import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.dac.model.{Node, SearchCriteria, SubGraph, Vertex}
-import org.sunbird.graph.external.ExternalPropsManager
-import org.sunbird.graph.service.operation.{GraphAsyncOperations, Neo4JBoltSearchOperations, NodeAsyncOperations, SearchAsyncOperations}
+import org.sunbird.common.dto.{Request, Response}
+import org.sunbird.graph.dac.model.Vertex
 import org.sunbird.graph.util.CSPMetaUtil
 import org.sunbird.janus.service.operation.{EdgeOperations, SearchOperations, VertexOperations}
 
@@ -44,6 +41,15 @@ class JanusGraphService {
 
   def deleteNode(graphId: String, vertexId: String, request: Request): Future[java.lang.Boolean] = {
     VertexOperations.deleteVertex(graphId, vertexId, request)
+  }
+  def upsertVertex(graphId: String, vertex: Vertex, request: Request): Future[Vertex] = {
+    if (isrRelativePathEnabled) {
+      val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
+      vertex.setMetadata(metadata)
+    }
+    // Assuming VertexOperations provides access to JanusGraph vertex upsert
+    VertexOperations.upsertVertex(graphId, vertex, request)
+      .map(resVertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resVertex) else resVertex)
   }
 
 }
