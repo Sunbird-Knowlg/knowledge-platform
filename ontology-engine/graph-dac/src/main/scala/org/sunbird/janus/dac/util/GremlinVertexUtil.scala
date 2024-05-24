@@ -44,7 +44,7 @@ class GremlinVertexUtil {
                 }
 
               }
-            case _ => metadata.put(key, value)
+            case _ => metadata.put(key, value.next())
           }
         }
       }
