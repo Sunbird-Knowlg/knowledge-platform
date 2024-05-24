@@ -65,7 +65,7 @@ object DataVertex {
     def update(request: Request, dataModifier: (Vertex) => Vertex = defaultVertexDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
     val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
     DefinitionNode.validates(identifier, request).map(vertex => {
-      request.getContext().put("schemaName", vertex.getObjectType.toLowerCase.replace("image", ""))
+      request.getContext.put("schemaName", vertex.getObjectType.toLowerCase.replace("image", ""))
       val response = oec.janusGraphService.upsertVertex(request.graphId, dataModifier(vertex), request)
       response.map(vertex => DefinitionNode.postProcessor(request, vertex))
         .map(result => {

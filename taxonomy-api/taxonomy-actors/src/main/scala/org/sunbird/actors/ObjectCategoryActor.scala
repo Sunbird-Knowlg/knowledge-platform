@@ -53,7 +53,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
     @throws[Exception]
     private def update(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
-        DataNode.update(request).map(node => {
+        DataVertex.update(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }
