@@ -10,7 +10,7 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.{Node, Relation, Vertex}
+import org.sunbird.graph.dac.model.{Edges, Node, Relation, Vertex}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -142,6 +142,51 @@ object DefinitionNode {
     }).flatMap(f => f)
   }
 
+  @throws[Exception]
+  def validates(identifier: String, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
+    val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
+    val version: String = request.getContext.get("version").asInstanceOf[String]
+    val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String].replaceAll("image", "")
+    val reqVersioning: String = request.getContext.getOrDefault("versioning", "").asInstanceOf[String]
+    val versioning = if (StringUtils.isBlank(reqVersioning)) None else Option(reqVersioning)
+    val req: util.HashMap[String, AnyRef] = new util.HashMap[String, AnyRef](request.getRequest)
+    val skipValidation: Boolean = {
+      if (request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false
+    }
+    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
+    val removeProps = request.getContext.getOrDefault("removeProps", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
+
+    definition.getVertex(identifier, "update", null, versioning, None).map(dbVertex => {
+      val schema = dbVertex.getObjectType.toLowerCase.replace("image", "")
+      val primaryCategory: String = if (null != dbVertex.getMetadata) dbVertex.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+      val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+      val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, objectCategoryDefinition)
+      categoryDefinition.validateRequest(request)
+      resetVertexJsonProperties(dbVertex, graphId, version, schema, objectCategoryDefinition)
+      val inputVertex: Vertex = categoryDefinition.getVertex(dbVertex.getIdentifier, request.getRequest, dbVertex.getVertexType)
+      val dbRels = getDBEdges(graphId, schema, version, req, dbVertex, objectCategoryDefinition)
+      setEdges(dbVertex, inputVertex, dbRels)
+      if (dbVertex.getIdentifier.endsWith(".img") && StringUtils.equalsAnyIgnoreCase("Yes", dbVertex.getMetadata.getOrDefault("isImageNodeCreated", "").asInstanceOf[String])) {
+        inputVertex.getMetadata.put("versionKey", dbVertex.getMetadata.getOrDefault("versionKey", ""))
+        dbVertex.getMetadata.remove("isImageNodeCreated")
+      }
+      dbVertex.getMetadata.putAll(inputVertex.getMetadata)
+      if (MapUtils.isNotEmpty(inputVertex.getExternalData)) {
+        if (MapUtils.isNotEmpty(dbVertex.getExternalData))
+          dbVertex.getExternalData.putAll(inputVertex.getExternalData)
+        else
+          dbVertex.setExternalData(inputVertex.getExternalData)
+      }
+      if (!removeProps.isEmpty) removeProps.toList.foreach(prop => dbVertex.getMetadata.remove(prop))
+      val validatedVertex = if (!skipValidation) categoryDefinition.validateVertex(dbVertex, "update") else Future(dbVertex)
+      validatedVertex.map(node => {
+        if (!removeProps.isEmpty) removeProps.toList.foreach(prop => dbVertex.getMetadata.put(prop, null))
+        node
+      })
+
+    }).flatMap(f => f)
+  }
+
   def postProcessor(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Node = {
     val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
     val version: String = request.getContext.get("version").asInstanceOf[String]
@@ -221,6 +266,35 @@ object DefinitionNode {
       dbNode.setDeletedRelations(delRels)
   }
 
+  private def setEdges(dbVertex: Vertex, inputVertex: Vertex, dbRels: util.Map[String, util.List[Edges]]): Unit = {
+    var addRels: util.List[Edges] = new util.ArrayList[Edges]()
+    var delRels: util.List[Edges] = new util.ArrayList[Edges]()
+    val inRel: util.List[Edges] = dbVertex.getInEdges
+    val outRel: util.List[Edges] = dbVertex.getOutEdges
+    val inRelReq: util.List[Edges] = if (CollectionUtils.isNotEmpty(inputVertex.getInEdges)) new util.ArrayList[Edges](inputVertex.getInEdges) else new util.ArrayList[Edges]()
+    val outRelReq: util.List[Edges] = if (CollectionUtils.isNotEmpty(inputVertex.getOutEdges)) new util.ArrayList[Edges](inputVertex.getOutEdges) else new util.ArrayList[Edges]()
+    if (CollectionUtils.isNotEmpty(inRelReq)) {
+      if (CollectionUtils.isNotEmpty(dbRels.get("in"))) {
+        inRelReq.addAll(dbRels.get("in"))
+        inputVertex.setInEdges(inRelReq)
+      }
+      getNewEdgesList(inRel, inRelReq, addRels, delRels)
+    }
+    if (CollectionUtils.isNotEmpty(outRelReq)) {
+      if (CollectionUtils.isNotEmpty(dbRels.get("out"))) {
+        outRelReq.addAll(dbRels.get("out"))
+        inputVertex.setOutEdges(outRelReq)
+      }
+      getNewEdgesList(outRel, outRelReq, addRels, delRels)
+    }
+    if (CollectionUtils.isNotEmpty(addRels)) {
+      dbVertex.setAddedEdges(addRels)
+      updateEdgeMetadata(dbVertex)
+    }
+    if (CollectionUtils.isNotEmpty(delRels))
+      dbVertex.setDeletedEdges(delRels)
+  }
+
   private def getNewRelationsList(dbRelations: util.List[Relation], newRelations: util.List[Relation], addRels: util.List[Relation], delRels: util.List[Relation]): Unit = {
     val relList = new util.ArrayList[String]
     for (rel <- newRelations) {
@@ -232,6 +306,21 @@ object DefinitionNode {
       for (rel <- dbRelations) {
         val relKey = rel.getStartNodeId + rel.getRelationType + rel.getEndNodeId
         if (!relList.contains(relKey)) delRels.add(rel)
+      }
+    }
+  }
+
+  private def getNewEdgesList(dbEdges: util.List[Edges], newEdges: util.List[Edges], addEdges: util.List[Edges], delEdges: util.List[Edges]): Unit = {
+    val edgeList = new util.ArrayList[String]
+    for (edge <- newEdges) {
+      addEdges.add(edge)
+      val relKey = edge.getStartVertexId + edge.getEdgeType + edge.getEndVertexId
+      if (!edgeList.contains(relKey)) edgeList.add(relKey)
+    }
+    if (null != dbEdges && !dbEdges.isEmpty) {
+      for (rel <- dbEdges) {
+        val relKey = rel.getStartVertexId + rel.getEdgeType + rel.getEndVertexId
+        if (!edgeList.contains(relKey)) delEdges.add(rel)
       }
     }
   }
@@ -283,6 +372,21 @@ object DefinitionNode {
     node
   }
 
+  def resetVertexJsonProperties(vertex: Vertex, graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Vertex = {
+    val jsonPropList = fetchJsonProps(graphId, version, schemaName, ocd)
+    if (!jsonPropList.isEmpty) {
+      vertex.getMetadata.entrySet().map(entry => {
+        if (jsonPropList.contains(entry.getKey)) {
+          entry.getValue match {
+            case value: String => entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
+            case _ => entry
+          }
+        }
+      })
+    }
+    vertex
+  }
+
   def getDBRelations(graphId: String, schemaName: String, version: String, request: util.Map[String, AnyRef], dbNode: Node, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): util.Map[String, util.List[Relation]] = {
     val inRelations = new util.ArrayList[Relation]()
     val outRelations = new util.ArrayList[Relation]()
@@ -318,6 +422,43 @@ object DefinitionNode {
       }
     }
   }
+
+  def getDBEdges(graphId: String, schemaName: String, version: String, request: util.Map[String, AnyRef], dbVertex: Vertex, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): util.Map[String, util.List[Edges]] = {
+    val inEdges = new util.ArrayList[Edges]()
+    val outEdges = new util.ArrayList[Edges]()
+    val relDefMap = getRelationDefinitionMap(graphId, version, schemaName, ocd);
+    if (null != dbVertex) {
+      if (CollectionUtils.isNotEmpty(dbVertex.getInEdges)) {
+        for (inRel <- dbVertex.getInEdges) {
+          val key = inRel.getEdgeType + "_in_" + inRel.getStartVertexObjectType
+          if (relDefMap.containsKey(key)) {
+            val value = relDefMap.get(key).get
+            if (!request.containsKey(value)) {
+              inEdges.add(inRel)
+            }
+          }
+        }
+      }
+      if (CollectionUtils.isNotEmpty(dbVertex.getOutEdges)) {
+        for (outRel <- dbVertex.getOutEdges) {
+          val key = outRel.getEdgeType + "_out_" + outRel.getEndVertexObjectType
+          if (relDefMap.containsKey(key)) {
+            val value = relDefMap.get(key).get
+            if (!request.containsKey(value)) {
+              outEdges.add(outRel)
+            }
+          }
+        }
+      }
+    }
+    new util.HashMap[String, util.List[Edges]]() {
+      {
+        put("in", inEdges)
+        put("out", outEdges)
+      }
+    }
+  }
+
 
   def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
     val futures = nodes.map(node => {

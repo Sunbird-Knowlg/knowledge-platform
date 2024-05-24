@@ -57,6 +57,11 @@ object DataVertex {
     }
   }
 
+  def deleteNode(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[java.lang.Boolean] = {
+    val identifier: String = request.getRequest.getOrDefault("identifier", "").asInstanceOf[String]
+    oec.janusGraphService.deleteNode(request.graphId, identifier, request)
+  }
+
   private def createEdges(graphId: String, vertex: Vertex, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     val edges: util.List[Edges] = vertex.getAddedEdges
     if (CollectionUtils.isNotEmpty(edges)) {

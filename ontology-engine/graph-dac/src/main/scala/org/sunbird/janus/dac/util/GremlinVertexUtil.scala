@@ -1,17 +1,17 @@
 package org.sunbird.janus.dac.util
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.graph.dac.model.{Vertex, Edges}
+import org.sunbird.graph.dac.model.{Edges, Vertex}
 import org.sunbird.common.exception.ServerException
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes
-import java.util
+
+import java.{lang, util}
 
 class GremlinVertexUtil {
 
   def getNode(graphId: String, gremlinVertex: org.apache.tinkerpop.gremlin.structure.Vertex, edgeMap: util.Map[Object, AnyRef],
               startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef]): Vertex = {
-    println("gremlinVertex ", gremlinVertex)
     if (null == gremlinVertex)
       throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
         "Failed to create node object. Node from database is null.")
@@ -22,34 +22,31 @@ class GremlinVertexUtil {
 
     val metadata = new util.HashMap[String, Object]()
     gremlinVertex.keys().forEach { key =>
-      println("key ", key)
-      val value = gremlinVertex.property(key).value()
-      println("value ", value)
       if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name()))
-        vertex.setIdentifier(value.asInstanceOf[String])
+        vertex.setIdentifier(gremlinVertex.values(key).next().asInstanceOf[String])
       else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name()))
-        vertex.setVertexType(value.asInstanceOf[String])
+        vertex.setVertexType(gremlinVertex.values(key).next().asInstanceOf[String])
       else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name()))
-        vertex.setObjectType(value.asInstanceOf[String])
+        vertex.setObjectType(gremlinVertex.values(key).next().asInstanceOf[String])
       else {
+        val value = gremlinVertex.values(key)
         if (null != value) {
-          if (value.isInstanceOf[util.List[_]]) {
-            val list = value.asInstanceOf[util.List[_]]
-            if (null != list && list.size() > 0) {
+          value match {
+            case list: util.List[_] =>
+              if (null != list && list.size() > 0) {
 
-              val obj = list.get(0)
-              obj match {
-                case _: String => metadata.put(key, list.toArray(new Array[String](list.size())))
-                case _: Number => metadata.put(key, list.toArray(new Array[Number](list.size())))
-                case _: java.lang.Boolean => metadata.put(key, list.toArray(new Array[java.lang.Boolean](list.size())))
-                case _ => metadata.put(key, list.toArray(new Array[AnyRef](list.size())))
+                val obj = list.get(0)
+                obj match {
+                  case _: String => metadata.put(key, list.toArray(new Array[String](list.size())))
+                  case _: Number => metadata.put(key, list.toArray(new Array[Number](list.size())))
+                  case _: lang.Boolean => metadata.put(key, list.toArray(new Array[lang.Boolean](list.size())))
+                  case _ => metadata.put(key, list.toArray(new Array[AnyRef](list.size())))
+                }
+
               }
-
-            }
+            case _ => metadata.put(key, value)
           }
         }
-        else
-          metadata.put(key, value)
       }
     }
     vertex.setMetadata(metadata)

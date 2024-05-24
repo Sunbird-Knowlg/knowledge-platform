@@ -8,7 +8,7 @@ import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, Vertex}
 import org.sunbird.graph.schema.validator._
 
 import scala.collection.JavaConverters._
@@ -30,6 +30,20 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         setRelations(node, result.getRelations)
         if (MapUtils.isNotEmpty(result.getExternalData)) node.setExternalData(result.getExternalData) else node.setExternalData(new util.HashMap[String, AnyRef]())
         node
+    }
+
+    def getVertex(identifier: String, input: java.util.Map[String, AnyRef], vertexType: String): Vertex = {
+        val result = schemaValidator.getStructuredData(input)
+        val objectType = schemaValidator.getConfig.getString("objectType")
+        val vertex = new Vertex(identifier, objectType, vertexType)
+        vertex.setGraphId(graphId)
+        vertex.setVertexType(SystemNodeTypes.DATA_NODE.name)
+        vertex.setObjectType(objectType)
+        if (MapUtils.isNotEmpty(input)) vertex.setMetadata(result.getMetadata) else vertex.setMetadata(new util.HashMap[String, AnyRef]())
+        if (StringUtils.isBlank(vertex.getIdentifier)) vertex.setIdentifier(Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp))
+        setEdges(vertex, result.getRelations)
+        if (MapUtils.isNotEmpty(result.getExternalData)) vertex.setExternalData(result.getExternalData) else vertex.setExternalData(new util.HashMap[String, AnyRef]())
+        vertex
     }
 
     def getExternalProps(): List[String] = {

@@ -25,7 +25,6 @@ class SearchOperations {
 
   def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Vertex] = {
     Future {
-      println("IN getNodeByUniqueId operation")
       TelemetryManager.log("Graph Id: " + graphId + "\nVertex Id: " + vertexId + "\nGet Tags:" + getTags)
 
       if (StringUtils.isBlank(graphId))
@@ -40,7 +39,7 @@ class SearchOperations {
       try {
         graphConnection.initialiseGraphClient()
         val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
-        println("IN Try operation")
+
         val parameterMap = new util.HashMap[String, AnyRef]
         parameterMap.put(GraphDACParams.graphId.name, graphId)
         parameterMap.put(GraphDACParams.nodeId.name, vertexId)
@@ -53,7 +52,6 @@ class SearchOperations {
           throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name,
             DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + vertexId, vertexId)
 
-        println("retrievedVertices ", retrievedVertices)
 
         val vertexMap = new util.HashMap[Object, AnyRef]
         val relationMap = new util.HashMap[Object, AnyRef]
@@ -62,16 +60,13 @@ class SearchOperations {
 
         retrievedVertices.forEach { result =>
           if (null != result)
-            println("result ===  ", result)
             getRecordValues(result, vertexMap, relationMap, startNodeMap, endNodeMap)
         }
 
-        println("vertexMap ===  ", vertexMap)
         if (!vertexMap.isEmpty) {
           val entry = vertexMap.entrySet().iterator().next()
           newVertex = gremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap)
         }
-        println("newVertex ===  ", newVertex)
         newVertex
       }
 
@@ -103,7 +98,7 @@ class SearchOperations {
 //            .select("ee", "r", "__endNode"), inE().as("r").outV().as("__startNode")
 //            .select("ee", "r", "__startNode")).toList.asInstanceOf[util.List[util.Map[String, AnyRef]]]
 
-          g.V().hasLabel("domain").has("IL_UNIQUE_ID", "obj-cat:explanation-content1").as("ee")
+          g.V().hasLabel(graphId).has("IL_UNIQUE_ID", vertexId).as("ee")
             .project("ee", "r", "__startNode", "__endNode")
             .by(identity())
             .by(bothE().elementMap().fold())

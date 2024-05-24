@@ -38,4 +38,8 @@ class JanusGraphService {
     SearchOperations.getNodeByUniqueId(graphId, vertexId, getTags, request).map(vertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(vertex) else vertex)
   }
 
+  def deleteNode(graphId: String, vertexId: String, request: Request): Future[java.lang.Boolean] = {
+    VertexOperations.deleteVertex(graphId, vertexId, request)
+  }
+
 }

@@ -1,10 +1,8 @@
 package org.sunbird.janus.service.operation
 
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
-import org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.valueMap
-import org.janusgraph.core.JanusGraph
+import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.graph.common.Identifier
@@ -34,41 +32,74 @@ class VertexOperations {
 
       val parameterMap = new util.HashMap[String, AnyRef]
       parameterMap.put(GraphDACParams.graphId.name, graphId)
-      parameterMap.put("vertex", setPrimitiveData(vertex))
-      prepareMap(parameterMap)
-      try{
-        graphConnection.initialiseGraphClient()
-        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+      parameterMap.put(GraphDACParams.vertex.name, setPrimitiveData(vertex))
 
-        val newVertex = g.addV(vertex.getGraphId)
-        val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
+      try {
+          graphConnection.initialiseGraphClient()
+          val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
 
-        finalMap.foreach { case (key, value) => newVertex.property(key, value) }
-        val retrieveVertex = newVertex.elementMap().next()
+          val addedVertex = createVertexTraversal(parameterMap, g)
+          val vertexElementMap = addedVertex.elementMap().next()
 
-        vertex.setGraphId(graphId)
-        vertex.setIdentifier(retrieveVertex.get("IL_UNIQUE_ID"))
-        vertex.getMetadata.put(GraphDACParams.versionKey.name, retrieveVertex.get("versionKey"))
-        vertex
-      } catch {
-        case e: Throwable =>
-          e.getCause match {
-            case cause: org.apache.tinkerpop.gremlin.driver.exception.ResponseException =>
-              throw new ClientException(
-                DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(),
-                DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + vertex.getIdentifier
-              )
-            case cause =>
-              throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name, DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
-          }
+          vertex.setGraphId(graphId)
+          vertex.setIdentifier(vertexElementMap.get(SystemProperties.IL_UNIQUE_ID.name))
+          vertex.getMetadata.put(GraphDACParams.versionKey.name, vertexElementMap.get(GraphDACParams.versionKey.name))
+          vertex
+      }
+      catch {
+          case e: Throwable =>
+            e.getCause match {
+              case cause: org.apache.tinkerpop.gremlin.driver.exception.ResponseException =>
+                throw new ClientException(
+                  DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(),
+                  DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + vertex.getIdentifier
+                )
+              case cause =>
+                throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name, DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
+            }
       }
     }
   }
 
-  def prepareMap(parameterMap: util.Map[String, AnyRef]) = {
+  def deleteVertex(graphId: String, vertexId: String, request: Request): Future[java.lang.Boolean] = {
+    Future {
+      if (StringUtils.isBlank(graphId))
+          throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+              DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Remove Property Values Operation Failed.]")
+
+      if (StringUtils.isBlank(vertexId))
+          throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+              DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Remove Property Values Operation Failed.]")
+
+      try {
+          graphConnection.initialiseGraphClient()
+          val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+
+          val parameterMap = new util.HashMap[String, AnyRef]
+          parameterMap.put(GraphDACParams.graphId.name, graphId)
+          parameterMap.put(GraphDACParams.nodeId.name, vertexId)
+          parameterMap.put(GraphDACParams.request.name, request)
+
+          deleteQuery(parameterMap, g)
+
+          true
+      }
+      catch {
+        case e: Exception => throw e
+      }
+
+    }
+
+  }
+
+  def deleteQuery(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource): Unit = {
+
+  }
+
+  private def createVertexTraversal(parameterMap: util.Map[String, AnyRef], graphTraversalSource: GraphTraversalSource): GraphTraversal[org.apache.tinkerpop.gremlin.structure.Vertex, org.apache.tinkerpop.gremlin.structure.Vertex] = {
     if (null != parameterMap) {
-      val graphId = parameterMap.getOrDefault("graphId","").asInstanceOf[String]
-      val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Vertex]
+      val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name,"").asInstanceOf[String]
+      val vertex = parameterMap.getOrDefault(GraphDACParams.vertex.name, null).asInstanceOf[Vertex]
 
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
@@ -92,6 +123,16 @@ class VertexOperations {
       combinedMap.putAll(vpMap)
 
       parameterMap.put(GraphDACParams.paramValueMap.name, combinedMap)
+
+      val newVertexTraversal = graphTraversalSource.addV(vertex.getGraphId)
+      val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
+
+      finalMap.foreach { case (key, value) => newVertexTraversal.property(key, value) }
+
+      newVertexTraversal
+    }
+    else {
+      throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP )
     }
   }
 
