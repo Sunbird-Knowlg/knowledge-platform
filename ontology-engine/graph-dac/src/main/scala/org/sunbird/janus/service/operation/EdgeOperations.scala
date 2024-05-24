@@ -7,7 +7,8 @@ import org.apache.tinkerpop.gremlin.structure.{Edge, Vertex}
 import org.janusgraph.core.JanusGraph
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
-import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
+import org.sunbird.graph.common.enums.SystemProperties
+import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 
 import java.util
@@ -36,6 +37,24 @@ class EdgeOperations {
     }
   }
 
+  def removeEdges(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Future[Response] = {
+    Future {
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]")
+
+      if (CollectionUtils.isEmpty(edgeData))
+        throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name,
+          DACErrorMessageConstants.INVALID_NODE + " | [Create Relation Operation Failed.]")
+
+      graphConnection.initialiseGraphClient()
+      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+
+      deleteBulkRelations(g, graphId, edgeData)
+      ResponseHandler.OK()
+    }
+  }
+
   def createBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
     for (row <- edgeData.asScala) {
       val startNodeId = row.get("startNodeId").toString
@@ -43,13 +62,26 @@ class EdgeOperations {
       val relation = row.get("relation").toString
       val relMetadata = row.get("relMetadata").asInstanceOf[Map[String, AnyRef]]
 
-      val startNode: Vertex = g.V().hasLabel(graphId).has("IL_UNIQUE_ID", startNodeId).next()
-      val endNode: Vertex = g.V().hasLabel(graphId).has("IL_UNIQUE_ID", endNodeId).next()
+      val startNode: Vertex = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, startNodeId).next()
+      val endNode: Vertex = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, endNodeId).next()
 
       val edge: Edge = startNode.addEdge(relation, endNode)
       for (key <- relMetadata.keySet) {
         edge.property(key, relMetadata.get(key).toString)
       }
+    }
+  }
+
+  private def deleteBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
+    for (row <- edgeData.asScala) {
+      val startNodeId = row.get("startNodeId").toString
+      val endNodeId = row.get("endNodeId").toString
+      val relation = row.get("relation").toString
+
+      g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, startNodeId)
+        .outE().as(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).inV().has(SystemProperties.IL_UNIQUE_ID.name, endNodeId)
+        .select(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).drop().iterate()
+
     }
   }
 }

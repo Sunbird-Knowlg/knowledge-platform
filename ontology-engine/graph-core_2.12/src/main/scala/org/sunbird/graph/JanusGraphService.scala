@@ -30,8 +30,12 @@ class JanusGraphService {
 
   }
 
-  def createEdges(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]) = {
+  def createEdges(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]): Future[Response] = {
     EdgeOperations.createEdges(graphId, edgeMap)
+  }
+
+  def removeEdges(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]): Future[Response] = {
+    EdgeOperations.removeEdges(graphId, edgeMap)
   }
 
   def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Vertex] = {

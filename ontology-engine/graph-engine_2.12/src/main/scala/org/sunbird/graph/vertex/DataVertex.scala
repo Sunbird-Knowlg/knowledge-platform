@@ -71,6 +71,20 @@ object DataVertex {
     }
   }
 
+  def updateEdges(graphId: String, vertex: Vertex, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+    if (CollectionUtils.isEmpty(vertex.getAddedEdges) && CollectionUtils.isEmpty(vertex.getDeletedEdges)) {
+      Future(new Response)
+    } else {
+      if (CollectionUtils.isNotEmpty(vertex.getDeletedEdges)) {
+        oec.janusGraphService.removeEdges(graphId, getEdgesMap(vertex.getDeletedEdges))
+      }
+      if (CollectionUtils.isNotEmpty(vertex.getAddedEdges)) {
+        oec.janusGraphService.createEdges(graphId, getEdgesMap(vertex.getAddedEdges))
+      }
+      Future(new Response)
+    }
+  }
+
   private def getEdgesMap(edges: util.List[Edges]): java.util.List[util.Map[String, AnyRef]] = {
     val list = new util.ArrayList[util.Map[String, AnyRef]]
     for (edge <- edges) {
