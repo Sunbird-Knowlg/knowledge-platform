@@ -2,7 +2,7 @@ package org.sunbird.graph
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response}
-import org.sunbird.graph.dac.model.Vertex
+import org.sunbird.graph.dac.model.{Vertex, VertexSubGraph}
 import org.sunbird.graph.util.CSPMetaUtil
 import org.sunbird.janus.service.operation.{EdgeOperations, SearchOperations, VertexOperations}
 
@@ -67,5 +67,9 @@ class JanusGraphService {
 
   def checkCyclicLoop(graphId: String, endNodeId: String, startNodeId: String, relationType: String) = {
     SearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
+  }
+
+  def getSubGraph(graphId: String, nodeId: String, depth: Int): Future[VertexSubGraph] = {
+    EdgeOperations.getSubGraph(graphId, nodeId, depth)
   }
 }

@@ -6,10 +6,9 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
-import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.{Relation, SubGraph}
+import org.sunbird.graph.{JanusGraphService, OntologyEngineContext}
+import org.sunbird.graph.dac.model.{Edges, Relation, SubGraph, VertexSubGraph}
 import org.sunbird.graph.nodes.DataNode
-
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
@@ -113,6 +112,49 @@ object FrameworkManager {
     }
   }
 
+  def getCompleteMetadata(id: String, subGraph: VertexSubGraph, includeRelations: Boolean)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+    val nodes = subGraph.getVertexs
+    val relations = subGraph.getEdges
+    val node = nodes.get(id)
+    val metadata = node.getMetadata
+    val objectType = node.getObjectType.toLowerCase().replace("image", "")
+    val channel = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]
+    val definition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
+    val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, objectType, definition)
+    val updatedMetadata: util.Map[String, AnyRef] = metadata.entrySet().asScala.filter(entry => null != entry.getValue)
+      .map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, null) -> convertJsonProperties(entry, jsonProps)).toMap ++
+      Map("objectType" -> node.getObjectType, "identifier" -> node.getIdentifier, "languageCode" -> NodeUtil.getLanguageCodes(node))
+
+    val fields = DefinitionNode.getMetadataFields(node.getGraphId, schemaVersion, objectType, definition)
+    val filteredData: util.Map[String, AnyRef] = if (fields.nonEmpty) updatedMetadata.filterKeys(key => fields.contains(key)) else updatedMetadata
+
+    val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
+    val outRelations = relations.filter((rel: Edges) => {
+      StringUtils.equals(rel.getStartVertexId.toString(), node.getIdentifier)
+    }).sortBy((rel: Edges) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList
+
+    if (includeRelations) {
+      val relMetadata = getEdgesAsMetadata(relationDef, outRelations, "out")
+      val childHierarchy = relMetadata.map(x => (x._1, x._2.map(a => {
+        val identifier = a.getOrElse("identifier", "")
+        val childNode = nodes.get(identifier)
+        val index = a.getOrElse("index", 1).asInstanceOf[Number]
+        val metaData = (childNode.getMetadata ++ Map("index" -> index)).asJava
+        childNode.setMetadata(metaData)
+        if ("associations".equalsIgnoreCase(x._1)) {
+          getCompleteMetadata(childNode.getIdentifier, subGraph, false)
+        } else {
+          getCompleteMetadata(childNode.getIdentifier, subGraph, true)
+        }
+      }).toList.asJava))
+      val data = (filteredData ++ childHierarchy).asJava
+      println("final data ", data)
+      data
+    } else {
+      filteredData
+    }
+  }
+
    def getRelationAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Relation], direction: String) = {
     relationMap.asScala.map(rel =>
     {
@@ -134,6 +176,37 @@ object FrameworkManager {
         x.-("KEY")
         x.-("IL_SEQUENCE_INDEX")
       })).distinct.asJava ))
+  }
+
+  def getEdgesAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Edges], direction: String) = {
+    relationMap.asScala.map(rel => {
+        println("rel ", rel)
+        val endObjectType = rel.getEndVertexObjectType.replace("Image", "")
+        println("endObjectType ", endObjectType)
+        val relKey: String = rel.getEdgeType + "_" + direction + "_" + endObjectType
+        println("relKey ", relKey)
+        println("definitionMap ", definitionMap)
+        if (definitionMap.containsKey(relKey)) {
+          println("IN IF getEdgesAsMetadata")
+          val relData = Map[String, Object]("identifier" -> rel.getEndVertexId.replace(".img", ""),
+            "name" -> rel.getEndVertexName,
+            "objectType" -> endObjectType,
+            "relation" -> rel.getEdgeType,
+            "KEY" -> definitionMap.getOrDefault(relKey, "").asInstanceOf[String]
+          ) ++ rel.getMetadata.asScala
+          val indexMap = if (rel.getEdgeType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
+          println("indexMap ", indexMap)
+          relData ++ indexMap
+        } else {
+          println("IN ELSE getEdgesAsMetadata")
+          Map[String, Object]()
+        }
+      }).filter(x => x.nonEmpty)
+      .groupBy(x => x.getOrDefault("KEY", "").asInstanceOf[String])
+      .map(x => (x._1, (x._2.toList.map(x => {
+        x.-("KEY")
+        x.-("IL_SEQUENCE_INDEX")
+      })).distinct.asJava))
   }
 
   def getFrameworkHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
