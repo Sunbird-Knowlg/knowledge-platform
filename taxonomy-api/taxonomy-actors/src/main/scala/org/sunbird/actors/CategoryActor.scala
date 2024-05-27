@@ -13,6 +13,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.utils.{Constants, RequestUtil}
 import org.sunbird.mangers.FrameworkManager
 import org.sunbird.cache.impl.RedisCache
+import org.sunbird.graph.vertex.DataVertex
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,14 +38,14 @@ class CategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseA
     request.getRequest.put(Constants.IDENTIFIER, code)
     RedisCache.delete("masterCategories")
     FrameworkManager.validateTranslationMap(request)
-    DataNode.create(request).map(node => {
+    DataVertex.create(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.NODE_ID, node.getIdentifier)
     })
   }
 
   private def read(request: Request): Future[Response] = {
-    DataNode.read(request).map(node => {
-      val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+    DataVertex.read(request).map(node => {
+      val metadata: util.Map[String, AnyRef] = NodeUtil.serializeVertex(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
       ResponseHandler.OK.put("category", metadata)
     })
   }

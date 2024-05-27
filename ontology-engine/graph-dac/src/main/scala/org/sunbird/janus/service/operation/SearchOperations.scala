@@ -4,20 +4,20 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 import org.sunbird.janus.dac.util.GremlinVertexUtil
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__._
+import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__._
 import org.sunbird.graph.dac.model.Vertex
 import org.apache.tinkerpop.gremlin.structure.Edge
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
-import org.sunbird.graph.common.enums.GraphDACParams
+import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-
+import java.lang.Boolean
 import java.util
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
-import scala.collection.JavaConverters.asScalaBufferConverter
+
 class SearchOperations {
 
   val graphConnection = new JanusConnectionUtil
@@ -75,6 +75,158 @@ class SearchOperations {
           throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
             DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
       }
+    }
+  }
+
+  def getNodeProperty(graphId: String, vertexId: String, key: String): Future[Property] = {
+    Future {
+      TelemetryManager.log("Graph Id: " + graphId + "\nNode Id: " + vertexId + "\nProperty (Key): " + key)
+
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Node Property' Operation Failed.]")
+
+      if (StringUtils.isBlank(vertexId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+          DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node Property' Operation Failed.]")
+
+      if (StringUtils.isBlank(key))
+        throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name,
+          DACErrorMessageConstants.INVALID_PROPERTY_KEY + " | ['Get Node Property' Operation Failed.]")
+
+      val property = new Property()
+      try {
+        graphConnection.initialiseGraphClient()
+        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+
+        val parameterMap = new util.HashMap[String, AnyRef]
+        parameterMap.put(GraphDACParams.graphId.name, graphId)
+        parameterMap.put(GraphDACParams.nodeId.name, vertexId)
+        parameterMap.put(GraphDACParams.key.name, key)
+
+        val nodeProperty = executeGetNodeProperty(parameterMap, g)
+        val elementMap = nodeProperty.elementMap().next()
+        if (null != elementMap && null != elementMap.get(key)){
+          property.setPropertyName(key)
+          property.setPropertyValue(elementMap.get(key))
+        }
+        property
+      }
+      catch {
+        case e: Throwable =>
+          e.printStackTrace()
+          e.getCause match {
+            case _: NoSuchElementException | _: ResourceNotFoundException =>
+              throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name, DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + vertexId, vertexId)
+            case _ =>
+              throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name, DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
+          }
+      }
+    }
+
+  }
+
+  def checkCyclicLoop(graphId: String, startNodeId: String, relationType: String, endNodeId: String): util.Map[String, AnyRef] = {
+    if (StringUtils.isBlank(graphId))
+      throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+        DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Check Cyclic Loop' Operation Failed.]")
+
+    if (StringUtils.isBlank(startNodeId))
+      throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+        DACErrorMessageConstants.INVALID_START_NODE_ID + " | ['Check Cyclic Loop' Operation Failed.]")
+
+    if (StringUtils.isBlank(relationType))
+      throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name,
+        DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Check Cyclic Loop' Operation Failed.]")
+
+    if (StringUtils.isBlank(endNodeId))
+      throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+        DACErrorMessageConstants.INVALID_END_NODE_ID + " | ['Check Cyclic Loop' Operation Failed.]")
+
+    val cyclicLoopMap = new util.HashMap[String, AnyRef]
+
+    try {
+        graphConnection.initialiseGraphClient()
+        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+
+        val parameterMap = new util.HashMap[String, AnyRef]
+        parameterMap.put(GraphDACParams.graphId.name, graphId)
+        parameterMap.put(GraphDACParams.startNodeId.name, startNodeId)
+        parameterMap.put(GraphDACParams.relationType.name, relationType)
+        parameterMap.put(GraphDACParams.endNodeId.name, endNodeId)
+
+        val result = generateCheckCyclicLoopTraversal(parameterMap, g)
+        if (null != result && result.hasNext) {
+          cyclicLoopMap.put(GraphDACParams.loop.name, new Boolean(true))
+          cyclicLoopMap.put(GraphDACParams.message.name, startNodeId + " and " + endNodeId + " are connected by relation: " + relationType)
+        }
+        else
+          cyclicLoopMap.put(GraphDACParams.loop.name, new Boolean(false))
+
+    }
+    TelemetryManager.log("Returning Cyclic Loop Map: ", cyclicLoopMap)
+    cyclicLoopMap
+  }
+
+
+  def generateCheckCyclicLoopTraversal(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
+
+    if (null != parameterMap) {
+      val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Check Cyclic Loop' Query Generation Failed.]")
+
+      val startNodeId = parameterMap.get(GraphDACParams.startNodeId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(startNodeId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+          DACErrorMessageConstants.INVALID_START_NODE_ID + " | ['Check Cyclic Loop' Query Generation Failed.]")
+
+      val relationType = parameterMap.get(GraphDACParams.relationType.name).asInstanceOf[String]
+      if (StringUtils.isBlank(relationType))
+        throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name,
+          DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Check Cyclic Loop' Query Generation Failed.]")
+
+      val endNodeId = parameterMap.get(GraphDACParams.endNodeId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(endNodeId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+          DACErrorMessageConstants.INVALID_END_NODE_ID + " | ['Check Cyclic Loop' Query Generation Failed.]")
+
+       val cyclicTraversal = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+        .repeat(outE(relationType).inV().simplePath()).until(has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId))
+        .hasLabel(graphId)
+      cyclicTraversal
+    }
+    else throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP)
+  }
+
+
+  def executeGetNodeProperty(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
+    try {
+      if (null != parameterMap) {
+        val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
+        if (StringUtils.isBlank(graphId))
+          throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+            DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Node Property' Query Generation Failed.]")
+
+        val nodeId = parameterMap.get(GraphDACParams.nodeId.name).asInstanceOf[String]
+        if (StringUtils.isBlank(nodeId))
+          throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+            DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node Property' Query Generation Failed.]")
+
+        val key = parameterMap.get(GraphDACParams.key.name).asInstanceOf[String]
+        if (StringUtils.isBlank(key))
+          throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name,
+            DACErrorMessageConstants.INVALID_PROPERTY_KEY + " | ['Get Node Property' Query Generation Failed.]")
+
+        g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, nodeId).values(key)
+
+      }
+      else throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP)
+    }
+    catch {
+      case e: Exception =>
+        throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name, "Error! Something went wrong while creating node object. ", e.getCause);
     }
   }
 

@@ -1,7 +1,7 @@
 package org.sunbird.graph
 
 import org.sunbird.common.Platform
-import org.sunbird.common.dto.{Request, Response}
+import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.graph.dac.model.Vertex
 import org.sunbird.graph.util.CSPMetaUtil
 import org.sunbird.janus.service.operation.{EdgeOperations, SearchOperations, VertexOperations}
@@ -42,14 +42,21 @@ class JanusGraphService {
   def deleteNode(graphId: String, vertexId: String, request: Request): Future[java.lang.Boolean] = {
     VertexOperations.deleteVertex(graphId, vertexId, request)
   }
+
   def upsertVertex(graphId: String, vertex: Vertex, request: Request): Future[Vertex] = {
     if (isrRelativePathEnabled) {
       val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
       vertex.setMetadata(metadata)
     }
-    // Assuming VertexOperations provides access to JanusGraph vertex upsert
     VertexOperations.upsertVertex(graphId, vertex, request)
       .map(resVertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resVertex) else resVertex)
   }
 
+  def getNodeProperty(graphId: String, identifier: String, property: String): Future[Property] = {
+    SearchOperations.getNodeProperty(graphId, identifier, property).map(property => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(property) else property)
+  }
+
+  def checkCyclicLoop(graphId: String, endNodeId: String, startNodeId: String, relationType: String) = {
+    SearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
+  }
 }

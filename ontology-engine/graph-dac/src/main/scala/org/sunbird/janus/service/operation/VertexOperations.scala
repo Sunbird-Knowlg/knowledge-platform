@@ -11,11 +11,8 @@ import org.sunbird.graph.dac.model.Vertex
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.common.dto.Request
-
 import java.util
 import scala.collection.convert.ImplicitConversions.{`map AsJavaMap`, `map AsScala`}
-import scala.collection.immutable.HashMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -119,7 +116,7 @@ class VertexOperations {
     }
   }
 
-  private def createVertexTraversal(parameterMap: util.Map[String, AnyRef], graphTraversalSource: GraphTraversalSource): GraphTraversal[org.apache.tinkerpop.gremlin.structure.Vertex, org.apache.tinkerpop.gremlin.structure.Vertex] = {
+  private def createVertexTraversal(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource): GraphTraversal[org.apache.tinkerpop.gremlin.structure.Vertex, org.apache.tinkerpop.gremlin.structure.Vertex] = {
     if (null != parameterMap) {
       val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name,"").asInstanceOf[String]
       val vertex = parameterMap.getOrDefault(GraphDACParams.vertex.name, null).asInstanceOf[Vertex]
@@ -147,7 +144,7 @@ class VertexOperations {
 
       parameterMap.put(GraphDACParams.paramValueMap.name, combinedMap)
 
-      val newVertexTraversal = graphTraversalSource.addV(vertex.getGraphId)
+      val newVertexTraversal = g.addV(vertex.getGraphId)
       val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
 
       finalMap.foreach { case (key, value) => newVertexTraversal.property(key, value) }
