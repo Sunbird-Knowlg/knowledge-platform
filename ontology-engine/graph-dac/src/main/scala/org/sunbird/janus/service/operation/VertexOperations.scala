@@ -332,10 +332,9 @@ class VertexOperations {
 
       val g = graphConnection.getGraphTraversalSource
 
-      // Generate Root Node Id (assuming similar logic as the provided code)
       val rootNodeUniqueId = Identifier.getIdentifier(graphId, SystemNodeTypes.ROOT_NODE.name())
 
-      val vertex = new Vertex // Assuming you have a Vertex constructor
+      val vertex = new Vertex
       vertex.setIdentifier(rootNodeUniqueId)
       vertex.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId)
       vertex.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name, SystemNodeTypes.ROOT_NODE.name)
@@ -350,19 +349,20 @@ class VertexOperations {
       )
 
       try {
-        val existingRootNode = Option(g.V().has(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId))
+        val existingRootNode = g.V().has(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId).next()
 
-        existingRootNode match {
-          case Some(v) =>
-            v.property(SystemProperties.IL_UNIQUE_ID.name, vertex.getId)
-              .property(AuditProperties.createdOn.name, DateUtils.formatCurrentDate())
-              .next()
-        }
+        val updatedVertex = existingRootNode.property(AuditProperties.createdOn.name, DateUtils.formatCurrentDate())
 
-        val retrievedVertex = g.V().has(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId).elementMap().next()
-        vertex.setId(retrievedVertex.get(SystemProperties.IL_UNIQUE_ID.name))
+        val identifier = updatedVertex.property(SystemProperties.IL_UNIQUE_ID.name).value().toString
+        val versionKey = Option(updatedVertex.property(GraphDACParams.versionKey.name)).map(_.value().toString).getOrElse("")
+
+        vertex.setIdentifier(identifier)
+        vertex.setGraphId(graphId)
+        if (StringUtils.isNotBlank(versionKey))
+          vertex.getMetadata.put(GraphDACParams.versionKey.name, versionKey)
 
         vertex
+
       }
       catch {
         case e: Throwable =>
