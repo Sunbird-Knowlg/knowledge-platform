@@ -52,4 +52,11 @@ class JanusGraphService {
       .map(resVertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resVertex) else resVertex)
   }
 
+  def upsertRootNode(graphId: String, request: Request): Future[Vertex] = {
+    VertexOperations.upsertRootVertex(graphId, request)
+  }
+  def updateVertexes(graphId: String, identifiers: java.util.List[String], metadata: java.util.Map[String, AnyRef]): Future[java.util.Map[String, Vertex]] = {
+    val updatedMetadata = if (isrRelativePathEnabled) CSPMetaUtil.updateRelativePath(metadata) else metadata
+    VertexOperations.updateVertexes(graphId, identifiers, updatedMetadata)
+  }
 }

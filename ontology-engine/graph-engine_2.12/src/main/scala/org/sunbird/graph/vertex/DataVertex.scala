@@ -1,22 +1,20 @@
 package org.sunbird.graph.vertex
 
-import java.util
-import java.util.Optional
-import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.common.enums.SystemProperties
-import org.sunbird.graph.dac.model.{Edges, Filter, MetadataCriterion, SearchConditions, SearchCriteria, Vertex}
+import org.sunbird.graph.dac.model.{Edges, Vertex}
 import org.sunbird.graph.nodes.DataNode.{saveExternalProperties, updateExternalProperties}
 import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
 import org.sunbird.parseq.Task
 
-import scala.collection.convert.ImplicitConversions._
+import java.util
+import java.util.Optional
+import java.util.concurrent.CompletionException
 import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 object DataVertex {
 
@@ -78,6 +76,11 @@ object DataVertex {
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
+  def bulkUpdate(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, Vertex]] = {
+    val identifiers: util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
+    val metadata: util.Map[String, AnyRef] = request.get("metadata").asInstanceOf[util.Map[String, AnyRef]]
+    oec.janusGraphService.updateVertexes(request.graphId, identifiers, metadata)
+  }
 /*  private def updateEdges(vertex: Vertex, graphId: String, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     val request = new Request // Assuming Request is required for JanusGraph
     request.setContext(context)

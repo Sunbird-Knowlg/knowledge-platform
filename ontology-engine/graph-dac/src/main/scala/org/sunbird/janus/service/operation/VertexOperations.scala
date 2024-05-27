@@ -1,5 +1,6 @@
 package org.sunbird.janus.service.operation
 
+import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.sunbird.common.dto.Request
@@ -7,15 +8,16 @@ import org.sunbird.common.exception.{ClientException, ResourceNotFoundException,
 import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
+import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Vertex
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.common.dto.Request
 
 import java.util
-import scala.collection.convert.ImplicitConversions.{`map AsJavaMap`, `map AsScala`}
+import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable`, `map AsJavaMap`, `map AsScala`}
 import scala.collection.immutable.HashMap
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -221,7 +223,6 @@ class VertexOperations {
         graphConnection.initialiseGraphClient()
         val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
 
-        // Find existing vertex by identifier (replace with your logic if needed)
         val existingVertex = g.V().has(SystemProperties.IL_UNIQUE_ID.name, vertex.getIdentifier)
         val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
         finalMap.foreach { case (key, value) =>
@@ -321,6 +322,150 @@ class VertexOperations {
     }
 
     paramMap
+  }
+
+  def upsertRootVertex(graphId: String, request: AnyRef): Future[Vertex] = {
+    Future {
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Upsert Root Node Operation Failed.]")
+
+      val g = graphConnection.getGraphTraversalSource
+
+      // Generate Root Node Id (assuming similar logic as the provided code)
+      val rootNodeUniqueId = Identifier.getIdentifier(graphId, SystemNodeTypes.ROOT_NODE.name())
+
+      val vertex = new Vertex // Assuming you have a Vertex constructor
+      vertex.setIdentifier(rootNodeUniqueId)
+      vertex.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId)
+      vertex.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name, SystemNodeTypes.ROOT_NODE.name)
+      vertex.getMetadata().put(AuditProperties.createdOn.name, DateUtils.formatCurrentDate())
+      vertex.getMetadata().put(GraphDACParams.Nodes_Count.name, 0: Integer)
+      vertex.getMetadata().put(GraphDACParams.Relations_Count.name, 0: Integer)
+
+      val parameterMap = Map(
+        GraphDACParams.graphId.name -> graphId,
+        GraphDACParams.rootNode.name -> vertex,
+        GraphDACParams.request.name -> request
+      )
+
+      try {
+        val existingRootNode = Option(g.V().has(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId))
+
+        existingRootNode match {
+          case Some(v) =>
+            v.property(SystemProperties.IL_UNIQUE_ID.name, vertex.getId)
+              .property(AuditProperties.createdOn.name, DateUtils.formatCurrentDate())
+              .next()
+        }
+
+        val retrievedVertex = g.V().has(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId).elementMap().next()
+        vertex.setId(retrievedVertex.get(SystemProperties.IL_UNIQUE_ID.name))
+
+        vertex
+      }
+      catch {
+        case e: Throwable =>
+          throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name,
+            DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage, e)
+      }
+    }
+  }
+
+  def updateVertexes(graphId: String, identifiers: java.util.List[String], data: java.util.Map[String, AnyRef]): Future[util.Map[String, Vertex]] = {
+    Future {
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Invalid or 'null' Graph Id.]")
+
+
+      if (identifiers.isEmpty)
+        throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+        DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Please Provide Node Identifier.]")
+
+      if (MapUtils.isEmpty(data))
+        throw new ClientException(DACErrorCodeConstants.INVALID_METADATA.name,
+          DACErrorMessageConstants.INVALID_METADATA + " | [Please Provide Valid Node Metadata]")
+
+      val parameterMap = generateUpdateVerticesQuery(graphId, identifiers, setPrimitiveData(data))
+
+      try {
+        graphConnection.initialiseGraphClient()
+        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+
+        val updatedVertices = identifiers.foldLeft(List.empty[Vertex]) {
+          (acc: List[Vertex], identifier: String) =>
+            val existingVertex = g.V().has(SystemProperties.IL_UNIQUE_ID.toString, identifier)
+            val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
+
+            finalMap.foreach { case (key, value) =>
+              if (!key.equals(GraphDACParams.graphId.name) && !key.equals(GraphDACParams.request.name)) {
+                existingVertex.property(key, value)
+              }
+            }
+
+            val updatedVertex = existingVertex.toList().head.asInstanceOf[Vertex]
+
+            acc :+ updatedVertex
+        }
+
+
+        val resultMap = updatedVertices.map(vertex => {
+          val identifier = vertex.getMetadata.get(SystemProperties.IL_UNIQUE_ID.name).asInstanceOf[String]
+          val newVertex = new Vertex
+          newVertex.setIdentifier(identifier)
+          newVertex
+        })
+
+        resultMap.asInstanceOf[Map[String, Vertex]]
+      }
+      catch {
+        case e: Throwable =>
+          e.printStackTrace()
+          e match {
+            case cause: org.apache.tinkerpop.gremlin.driver.exception.ResponseException =>
+              throw new ClientException(
+                DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(),
+                DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + " | Updating multiple nodes failed."
+              )
+            case cause =>
+              val errorMessage = DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage
+              throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name, errorMessage, e)
+          }
+      }
+    }
+  }
+
+  private def setPrimitiveData(metadata: java.util.Map[String, AnyRef]): mutable.Map[String, Object] = {
+    metadata.flatMap { case (key, value) =>
+      val processedValue = value match {
+        case map: Map[Any, Any] =>
+          try {
+            JsonUtils.serialize(map)
+          } catch {
+            case e: Exception =>
+              TelemetryManager.error("Exception Occurred While Processing Primitive Data Types | Exception is : " + e.getMessage(), e)
+              value
+          }
+        case list: List[_] if list.nonEmpty && list.head.isInstanceOf[Map[Any, Any]] =>
+          try {
+            JsonUtils.serialize(list)
+          } catch {
+            case e: Exception =>
+              TelemetryManager.error("Exception Occurred While Processing Primitive Data Types | Exception is : " + e.getMessage(), e)
+              value
+          }
+        case _ => value
+      }
+      Some((key, processedValue))
+    }
+  }
+
+  def generateUpdateVerticesQuery(graphId: String, identifiers: java.util.List[String], data: mutable.Map[String, AnyRef]): Map[String, Object] = {
+    val parameterMap = new HashMap[String, Object]
+    parameterMap.put("identifiers", identifiers);
+    parameterMap.putAll(data);
+    parameterMap;
   }
 
   private def setPrimitiveData(vertex: Vertex): Vertex = {
