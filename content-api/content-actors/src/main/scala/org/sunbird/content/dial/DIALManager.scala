@@ -373,7 +373,7 @@ object DIALManager {
 			imageReq.getContext.put("objectType", "content")
 			imageReq.putAll(imageData)
 
-			oec.dialgraphService.saveExternalProps(imageReq)
+			oec.graphService.saveExternalProps(imageReq)
 
 			dialData
 		}
@@ -405,6 +405,10 @@ object DIALManager {
 		updateMap.put("status",Int.box(0) )
 		updateReq.setRequest(updateMap)
 		updateReq.putAll(batch)
+
+		println(" batch from create request ", batch)
+		println(" updateMap ", updateMap)
+		println(" updateReq ", updateReq)
 
 		oec.dialgraphService.saveExternalProps(updateReq).map { resp =>
 			if (ResponseHandler.checkError(resp)) {
