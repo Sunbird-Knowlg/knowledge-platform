@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
-import org.sunbird.graph.dac.model.{Node, Relation, SubGraph, VertexSubGraph}
+import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.{DefinitionFactory, DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
@@ -25,13 +25,6 @@ object DataSubGraph {
     val identifier: String = request.get("identifier").asInstanceOf[String]
     val depth: Int = request.getOrDefault("depth", 5).asInstanceOf[Int]
     val subGraph: Future[SubGraph] = oec.graphService.getSubGraph(request.graphId, identifier, depth)
-    subGraph
-  }
-
-  def readVertex(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[VertexSubGraph] = {
-    val identifier: String = request.get("identifier").asInstanceOf[String]
-    val depth: Int = request.getOrDefault("depth", 5).asInstanceOf[Int]
-    val subGraph: Future[VertexSubGraph] = oec.janusGraphService.getSubGraph(request.graphId, identifier, depth)
     subGraph
   }
 

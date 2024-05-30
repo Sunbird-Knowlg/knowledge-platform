@@ -10,7 +10,7 @@ import org.janusgraph.core.JanusGraph
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.common.enums.SystemProperties
-import org.sunbird.graph.dac.model.{Edges, Node, VertexSubGraph}
+import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
 import org.sunbird.janus.service.util.JanusConnectionUtil
@@ -110,8 +110,8 @@ class EdgeOperations {
       TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]")
 
       val relationMap = new util.HashMap[Object, AnyRef]()
-      var nodes = new util.HashSet[org.sunbird.graph.dac.model.Vertex]
-      var relations = new util.HashSet[org.sunbird.graph.dac.model.Edges]
+      var nodes = new util.HashSet[org.sunbird.graph.dac.model.Node]
+      var relations = new util.HashSet[org.sunbird.graph.dac.model.Relation]
       val startNodeMap = new util.HashMap[Object, AnyRef]
       val endNodeMap = new util.HashMap[Object, AnyRef]
 
@@ -139,18 +139,18 @@ class EdgeOperations {
         nodes.add(gremlinVertexUtil.getNode(graphId, endNode, relationMap, startNodeMap, endNodeMap))
 
         // Relation Metadata
-        val relData = new Edges(
+        val relData = new Relation(
           startNode.property(SystemProperties.IL_UNIQUE_ID.name).value().toString,
           relationName,
           endNode.property(SystemProperties.IL_UNIQUE_ID.name).value().toString
         )
         relData.setMetadata(relationMetadata)
-        relData.setStartVertexObjectType(startNode.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value().toString)
-        relData.setStartVertexName(startNode.property("name").value().toString)
-        relData.setStartVertexType(startNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
-        relData.setEndVertexObjectType(endNode.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value().toString)
-        relData.setEndVertexName(endNode.property("name").value().toString)
-        relData.setEndVertexType(endNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
+        relData.setStartNodeObjectType(startNode.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value().toString)
+        relData.setStartNodeName(startNode.property("name").value().toString)
+        relData.setStartNodeType(startNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
+        relData.setEndNodeObjectType(endNode.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value().toString)
+        relData.setEndNodeName(endNode.property("name").value().toString)
+        relData.setEndNodeType(endNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
         relations.add(relData)
       }
 
@@ -162,12 +162,12 @@ class EdgeOperations {
       val relationsList= relations.toList
 
       // Convert Scala collections to Java collections
-      val javaNodeMap: java.util.Map[String, org.sunbird.graph.dac.model.Vertex] = nodeMap.asJava
-      val javaRelationsList: java.util.List[org.sunbird.graph.dac.model.Edges] = relationsList.asJava
+      val javaNodeMap: java.util.Map[String, org.sunbird.graph.dac.model.Node] = nodeMap.asJava
+      val javaRelationsList: java.util.List[org.sunbird.graph.dac.model.Relation] = relationsList.asJava
 
       // Create a VertexSubGraph instance
       Future {
-        new VertexSubGraph(javaNodeMap, javaRelationsList)
+        new SubGraph(javaNodeMap, javaRelationsList)
       }
     }
 }

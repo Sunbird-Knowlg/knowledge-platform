@@ -8,7 +8,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.enums.RelationTypes
-import org.sunbird.graph.dac.model.{Node, Vertex}
+import org.sunbird.graph.dac.model.{Node}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
@@ -69,14 +69,6 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType,RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))
       .map(relation => {
         relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
-      })
-    if (indexList.nonEmpty) indexList.max + 1 else 1
-  }
-
-  private def getCategoryIndex(node: Vertex): Integer = {
-    val indexList = (node.getOutEdges.asScala ++ node.getInEdges.asScala).filter(r => (StringUtils.equals(r.getEdgeType, RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartVertexId, node.getIdentifier)))
-      .map(relation => {
-        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).toString.toInt.intValue()
       })
     if (indexList.nonEmpty) indexList.max + 1 else 1
   }

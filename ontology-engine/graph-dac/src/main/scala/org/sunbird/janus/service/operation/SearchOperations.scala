@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
 import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__._
-import org.sunbird.graph.dac.model.Vertex
+import org.sunbird.graph.dac.model.Node
 import org.apache.tinkerpop.gremlin.structure.Edge
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
@@ -18,14 +18,14 @@ import java.util
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter}
-
+import java.lang.Boolean
 
 class SearchOperations {
 
   val graphConnection = new JanusConnectionUtil
   val gremlinVertexUtil = new GremlinVertexUtil
 
-  def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Vertex] = {
+  def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Node] = {
     Future {
       TelemetryManager.log("Graph Id: " + graphId + "\nVertex Id: " + vertexId + "\nGet Tags:" + getTags)
 
@@ -49,7 +49,7 @@ class SearchOperations {
         parameterMap.put(GraphDACParams.request.name, request)
 
         val retrievedVertices = getVertexByUniqueId(parameterMap, g)
-        var newVertex: Vertex = null
+        var newVertex: Node = null
         if (CollectionUtils.isEmpty(retrievedVertices))
           throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name,
             DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + vertexId, vertexId)

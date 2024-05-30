@@ -10,7 +10,6 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.graph.vertex.DataVertex
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import scala.collection.JavaConverters
@@ -35,7 +34,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
         RequestUtil.restrictProperties(request)
         if (!request.getRequest.containsKey(Constants.NAME)) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
         request.getRequest.put(Constants.IDENTIFIER, Constants.CATEGORY_PREFIX + Slug.makeSlug(request.getRequest.get(Constants.NAME).asInstanceOf[String]))
-        DataVertex.create(request).map(node => {
+        DataNode.create(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }
@@ -44,8 +43,8 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
     private def read(request: Request): Future[Response] = {
         val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
         request.getRequest.put(Constants.FIELDS, fields)
-        DataVertex.read(request).map(node => {
-            val metadata: util.Map[String, AnyRef] = NodeUtil.serializeVertex(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+        DataNode.read(request).map(node => {
+            val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
             ResponseHandler.OK.put(Constants.OBJECT_CATEGORY, metadata)
         })
     }
@@ -53,7 +52,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
     @throws[Exception]
     private def update(request: Request): Future[Response] = {
         RequestUtil.restrictProperties(request)
-        DataVertex.update(request).map(node => {
+        DataNode.update(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
         })
     }

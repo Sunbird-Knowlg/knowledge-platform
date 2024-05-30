@@ -9,7 +9,7 @@ import org.sunbird.common.{DateUtils, JsonUtils}
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
 import org.sunbird.graph.dac.enums.SystemNodeTypes
-import org.sunbird.graph.dac.model.Vertex
+import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -24,7 +24,7 @@ import scala.concurrent.Future
 class VertexOperations {
 
   val graphConnection = new JanusConnectionUtil
-  def addVertex(graphId: String, vertex: Vertex): Future[Vertex] = {
+  def addVertex(graphId: String, vertex: Node): Future[Node] = {
     Future {
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
@@ -124,7 +124,7 @@ class VertexOperations {
   private def createVertexTraversal(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource): GraphTraversal[org.apache.tinkerpop.gremlin.structure.Vertex, org.apache.tinkerpop.gremlin.structure.Vertex] = {
     if (null != parameterMap) {
       val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name,"").asInstanceOf[String]
-      val vertex = parameterMap.getOrDefault(GraphDACParams.vertex.name, null).asInstanceOf[Vertex]
+      val vertex = parameterMap.getOrDefault(GraphDACParams.vertex.name, null).asInstanceOf[Node]
 
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
@@ -161,7 +161,7 @@ class VertexOperations {
     }
   }
 
-  def getMetadataCypherQueryMap(node: Vertex): util.Map[String, AnyRef] = {
+  def getMetadataCypherQueryMap(node: Node): util.Map[String, AnyRef] = {
     val metadataPropertyMap = new util.HashMap[String, AnyRef]
     if (null != node && null != node.getMetadata && !node.getMetadata.isEmpty) {
       node.getMetadata.foreach { case (key, value) => metadataPropertyMap.put(key, value) }
@@ -169,19 +169,19 @@ class VertexOperations {
     metadataPropertyMap
   }
 
-  def getSystemPropertyMap(node: Vertex, date: String): util.Map[String, AnyRef] = {
+  def getSystemPropertyMap(node: Node, date: String): util.Map[String, AnyRef] = {
     val systemPropertyMap = new util.HashMap[String, AnyRef]
     if (null != node && StringUtils.isNotBlank(date)) {
       if (StringUtils.isBlank(node.getIdentifier))
         node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
       systemPropertyMap.put(SystemProperties.IL_UNIQUE_ID.name, node.getIdentifier)
-      systemPropertyMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getVertexType)
+      systemPropertyMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getNodeType)
       systemPropertyMap.put(SystemProperties.IL_FUNC_OBJECT_TYPE.name, node.getObjectType)
     }
     systemPropertyMap
   }
 
-  def getAuditPropertyMap(node: Vertex, date: String, isUpdateOnly: Boolean):util.Map[String, AnyRef] = {
+  def getAuditPropertyMap(node: Node, date: String, isUpdateOnly: Boolean):util.Map[String, AnyRef] = {
     val auditPropertyMap = new util.HashMap[String, AnyRef]
     if(null != node && StringUtils.isNotBlank(date)) {
       if (BooleanUtils.isFalse(isUpdateOnly)) {
@@ -196,14 +196,14 @@ class VertexOperations {
     auditPropertyMap
   }
 
-  def getVersionPropertyMap(node: Vertex, date: String): util.Map[String, AnyRef] = {
+  def getVersionPropertyMap(node: Node, date: String): util.Map[String, AnyRef] = {
     val versionPropertyMap = new util.HashMap[String, AnyRef]
     if (null != node && StringUtils.isNotBlank(date))
       versionPropertyMap.put(GraphDACParams.versionKey.name, DateUtils.parse(date).getTime.toString)
     versionPropertyMap
   }
 
-  def upsertVertex(graphId: String, vertex: Vertex, request: Request): Future[Vertex] = {
+  def upsertVertex(graphId: String, vertex: Node, request: Request): Future[Node] = {
     Future {
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
@@ -253,7 +253,7 @@ class VertexOperations {
 
   def prepareUpsertMap(parameterMap: util.Map[String, AnyRef]) = {
     if (null != parameterMap) {
-      val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Vertex]
+      val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Node]
       if (null == vertex)
         throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
           DACErrorMessageConstants.INVALID_NODE + " | [Upsert Node Query Generation Failed.]")
@@ -270,7 +270,7 @@ class VertexOperations {
     }
   }
 
-  private def getOnCreateSetMap(node: Vertex, date: String): util.Map[String, Object] = {
+  private def getOnCreateSetMap(node: Node, date: String): util.Map[String, Object] = {
     val paramMap = new util.HashMap[String, Object]()
 
     if (node != null && StringUtils.isNotBlank(date)) {
@@ -280,7 +280,7 @@ class VertexOperations {
 
       paramMap.put(SystemProperties.IL_UNIQUE_ID.name, node.getIdentifier)
 
-      paramMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getVertexType)
+      paramMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getNodeType)
 
       if (StringUtils.isNotBlank(node.getObjectType)) {
         paramMap.put(SystemProperties.IL_FUNC_OBJECT_TYPE.name, node.getObjectType)
@@ -297,7 +297,7 @@ class VertexOperations {
     paramMap
   }
 
-  private def getOnMatchSetMap(node: Vertex, date: String, merge: Boolean): util.Map[String, Object] = {
+  private def getOnMatchSetMap(node: Node, date: String, merge: Boolean): util.Map[String, Object] = {
     val paramMap = new util.HashMap[String, Object]()
 
     if (node != null && StringUtils.isNotBlank(date)) {
@@ -324,7 +324,7 @@ class VertexOperations {
     paramMap
   }
 
-  def upsertRootVertex(graphId: String, request: AnyRef): Future[Vertex] = {
+  def upsertRootVertex(graphId: String, request: AnyRef): Future[Node] = {
     Future {
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
@@ -334,13 +334,13 @@ class VertexOperations {
 
       val rootNodeUniqueId = Identifier.getIdentifier(graphId, SystemNodeTypes.ROOT_NODE.name())
 
-      val vertex = new Vertex
+      val vertex = new Node
       vertex.setIdentifier(rootNodeUniqueId)
-      vertex.getMetadata().put(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId)
-      vertex.getMetadata().put(SystemProperties.IL_SYS_NODE_TYPE.name, SystemNodeTypes.ROOT_NODE.name)
-      vertex.getMetadata().put(AuditProperties.createdOn.name, DateUtils.formatCurrentDate())
-      vertex.getMetadata().put(GraphDACParams.Nodes_Count.name, 0: Integer)
-      vertex.getMetadata().put(GraphDACParams.Relations_Count.name, 0: Integer)
+      vertex.getMetadata.put(SystemProperties.IL_UNIQUE_ID.name, rootNodeUniqueId)
+      vertex.getMetadata.put(SystemProperties.IL_SYS_NODE_TYPE.name, SystemNodeTypes.ROOT_NODE.name)
+      vertex.getMetadata.put(AuditProperties.createdOn.name, DateUtils.formatCurrentDate())
+      vertex.getMetadata.put(GraphDACParams.Nodes_Count.name, 0: Integer)
+      vertex.getMetadata.put(GraphDACParams.Relations_Count.name, 0: Integer)
 
       val parameterMap = Map(
         GraphDACParams.graphId.name -> graphId,
@@ -372,7 +372,7 @@ class VertexOperations {
     }
   }
 
-  def updateVertexes(graphId: String, identifiers: java.util.List[String], data: java.util.Map[String, AnyRef]): Future[util.Map[String, Vertex]] = {
+  def updateVertexes(graphId: String, identifiers: java.util.List[String], data: java.util.Map[String, AnyRef]): Future[util.Map[String, Node]] = {
     Future {
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
@@ -393,8 +393,8 @@ class VertexOperations {
         graphConnection.initialiseGraphClient()
         val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
 
-        val updatedVertices = identifiers.foldLeft(List.empty[Vertex]) {
-          (acc: List[Vertex], identifier: String) =>
+        val updatedVertices = identifiers.foldLeft(List.empty[Node]) {
+          (acc: List[Node], identifier: String) =>
             val existingVertex = g.V().has(SystemProperties.IL_UNIQUE_ID.toString, identifier)
             val finalMap = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new util.HashMap[String, AnyRef]).asInstanceOf[util.Map[String, AnyRef]]
 
@@ -404,7 +404,7 @@ class VertexOperations {
               }
             }
 
-            val updatedVertex = existingVertex.toList().head.asInstanceOf[Vertex]
+            val updatedVertex = existingVertex.toList().head.asInstanceOf[Node]
 
             acc :+ updatedVertex
         }
@@ -412,12 +412,12 @@ class VertexOperations {
 
         val resultMap = updatedVertices.map(vertex => {
           val identifier = vertex.getMetadata.get(SystemProperties.IL_UNIQUE_ID.name).asInstanceOf[String]
-          val newVertex = new Vertex
+          val newVertex = new Node
           newVertex.setIdentifier(identifier)
           newVertex
         })
 
-        resultMap.asInstanceOf[Map[String, Vertex]]
+        resultMap.asInstanceOf[Map[String, Node]]
       }
       catch {
         case e: Throwable =>
@@ -439,7 +439,7 @@ class VertexOperations {
   private def setPrimitiveData(metadata: java.util.Map[String, AnyRef]): mutable.Map[String, Object] = {
     metadata.flatMap { case (key, value) =>
       val processedValue = value match {
-        case map: Map[Any, Any] =>
+        case map: util.Map[Any, Any] =>
           try {
             JsonUtils.serialize(map)
           } catch {
@@ -468,7 +468,7 @@ class VertexOperations {
     parameterMap;
   }
 
-  private def setPrimitiveData(vertex: Vertex): Vertex = {
+  private def setPrimitiveData(vertex: Node): Node = {
     val metadata: util.Map[String, AnyRef] = vertex.getMetadata
     metadata.forEach((key, value) => {
       try {

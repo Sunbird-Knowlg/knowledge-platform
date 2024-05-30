@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import org.sunbird.common.dto.Property
 import org.sunbird.common.{JsonUtils, Platform}
-import org.sunbird.graph.dac.model.{Node, Vertex}
+import org.sunbird.graph.dac.model.Node
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.Map
@@ -40,12 +40,6 @@ object CSPMetaUtil {
     val metadata = updateAbsolutePath(node.getMetadata)
     node.setMetadata(metadata)
     node
-  }
-
-  def updateAbsolutePath(vertex: Vertex): Vertex = {
-    val metadata = updateAbsolutePath(vertex.getMetadata)
-    vertex.setMetadata(metadata)
-    vertex
   }
 
   def updateAbsolutePath(nodes: java.util.List[Node]): java.util.List[Node] = {

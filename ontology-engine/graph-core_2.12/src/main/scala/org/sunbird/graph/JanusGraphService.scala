@@ -2,7 +2,7 @@ package org.sunbird.graph
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response}
-import org.sunbird.graph.dac.model.{Vertex, VertexSubGraph}
+import org.sunbird.graph.dac.model.{SearchCriteria, Node, SubGraph}
 import org.sunbird.graph.util.CSPMetaUtil
 import org.sunbird.janus.service.operation.{EdgeOperations, SearchOperations, VertexOperations}
 
@@ -18,7 +18,7 @@ class JanusGraphService {
   val isrRelativePathEnabled: lang.Boolean = Platform.getBoolean("cloudstorage.metadata.replace_absolute_path", false)
 
 
-  def addVertex(graphId: String, vertex: Vertex): Future[Vertex] = {
+  def addVertex(graphId: String, vertex: Node): Future[Node] = {
     if (isrRelativePathEnabled) {
       val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
       vertex.setMetadata(metadata)
@@ -35,7 +35,7 @@ class JanusGraphService {
     EdgeOperations.removeEdges(graphId, edgeMap)
   }
 
-  def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Vertex] = {
+  def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Node] = {
     SearchOperations.getNodeByUniqueId(graphId, vertexId, getTags, request).map(vertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(vertex) else vertex)
   }
 
@@ -43,7 +43,7 @@ class JanusGraphService {
     VertexOperations.deleteVertex(graphId, vertexId, request)
   }
 
-  def upsertVertex(graphId: String, vertex: Vertex, request: Request): Future[Vertex] = {
+  def upsertVertex(graphId: String, vertex: Node, request: Request): Future[Node] = {
     if (isrRelativePathEnabled) {
       val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
       vertex.setMetadata(metadata)
@@ -52,11 +52,11 @@ class JanusGraphService {
       .map(resVertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resVertex) else resVertex)
   }
 
-  def upsertRootNode(graphId: String, request: Request): Future[Vertex] = {
+  def upsertRootNode(graphId: String, request: Request): Future[Node] = {
     VertexOperations.upsertRootVertex(graphId, request)
   }
 
-  def updateVertexes(graphId: String, identifiers: java.util.List[String], metadata: java.util.Map[String, AnyRef]): Future[java.util.Map[String, Vertex]] = {
+  def updateVertexes(graphId: String, identifiers: java.util.List[String], metadata: java.util.Map[String, AnyRef]): Future[java.util.Map[String, Node]] = {
     val updatedMetadata = if (isrRelativePathEnabled) CSPMetaUtil.updateRelativePath(metadata) else metadata
     VertexOperations.updateVertexes(graphId, identifiers, updatedMetadata)
   }
@@ -69,7 +69,11 @@ class JanusGraphService {
     SearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
   }
 
-  def getSubGraph(graphId: String, nodeId: String, depth: Int): Future[VertexSubGraph] = {
+  def getSubGraph(graphId: String, nodeId: String, depth: Int): Future[SubGraph] = {
     EdgeOperations.getSubGraph(graphId, nodeId, depth)
   }
+
+//  def getNodeByUniqueIds(graphId: String, searchCriteria: SearchCriteria): Future[java.util.List[Vertex]] = {
+//    SearchAsyncOperations.getNodeByUniqueIds(graphId, searchCriteria).map(nodes => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(nodes) else nodes)
+//  }
 }
