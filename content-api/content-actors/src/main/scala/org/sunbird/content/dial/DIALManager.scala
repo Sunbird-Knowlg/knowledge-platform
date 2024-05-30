@@ -358,6 +358,7 @@ object DIALManager {
 				"text" -> dialcode,
 				"id" -> fileName
 			)
+
 			val imageData = new util.HashMap[String, AnyRef]()
 			imageData.put("dialcode", dialcode)
 			imageData.put("config", mergedConfig.mapValues(_.toString).asJava)
@@ -370,14 +371,13 @@ object DIALManager {
 			imageContext.putAll(request.getContext)
 			imageReq.setContext(imageContext)
 			imageReq.getContext.put("schemaName", "dialcode_image")
-			imageReq.getContext.put("objectType", "content")
+			imageReq.getContext.put("objectType", request.getObjectType)
 			imageReq.putAll(imageData)
 
 			oec.graphService.saveExternalProps(imageReq)
 
 			dialData
 		}
-
 
 		val processId = UUID.randomUUID
 		val dialcodes = dialCodesMap.map(_("text")).toList.asJava
@@ -399,16 +399,13 @@ object DIALManager {
 		context.remove("identifier")
 		updateReq.setContext(context)
 		updateReq.getContext.put("schemaName", "dialcode")
-		updateReq.getContext.put("objectType", "content")
+		updateReq.getContext.put("objectType", request.getObjectType)
 		val updateMap = new util.HashMap[String, AnyRef]()
 		updateMap.put("identifier", rspObj.get("node_id"))
 		updateMap.put("status",Int.box(0) )
 		updateReq.setRequest(updateMap)
 		updateReq.putAll(batch)
 
-		println(" batch from create request ", batch)
-		println(" updateMap ", updateMap)
-		println(" updateReq ", updateReq)
 
 		oec.dialgraphService.saveExternalProps(updateReq).map { resp =>
 			if (ResponseHandler.checkError(resp)) {
