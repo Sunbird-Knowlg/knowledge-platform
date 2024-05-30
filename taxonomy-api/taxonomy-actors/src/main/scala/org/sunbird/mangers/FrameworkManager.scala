@@ -131,7 +131,7 @@ object FrameworkManager {
     val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
     val outRelations = relations.filter((rel: Edges) => {
       StringUtils.equals(rel.getStartVertexId.toString(), node.getIdentifier)
-    }).sortBy((rel: Edges) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList
+    }).sortBy((rel: Edges) => rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", "1").toString.toInt)(Ordering.Int).toList
 
     if (includeRelations) {
       val relMetadata = getEdgesAsMetadata(relationDef, outRelations, "out")
@@ -148,7 +148,6 @@ object FrameworkManager {
         }
       }).toList.asJava))
       val data = (filteredData ++ childHierarchy).asJava
-      println("final data ", data)
       data
     } else {
       filteredData
@@ -180,25 +179,18 @@ object FrameworkManager {
 
   def getEdgesAsMetadata(definitionMap: Map[String, AnyRef], relationMap: util.List[Edges], direction: String) = {
     relationMap.asScala.map(rel => {
-        println("rel ", rel)
         val endObjectType = rel.getEndVertexObjectType.replace("Image", "")
-        println("endObjectType ", endObjectType)
         val relKey: String = rel.getEdgeType + "_" + direction + "_" + endObjectType
-        println("relKey ", relKey)
-        println("definitionMap ", definitionMap)
         if (definitionMap.containsKey(relKey)) {
-          println("IN IF getEdgesAsMetadata")
           val relData = Map[String, Object]("identifier" -> rel.getEndVertexId.replace(".img", ""),
             "name" -> rel.getEndVertexName,
             "objectType" -> endObjectType,
             "relation" -> rel.getEdgeType,
             "KEY" -> definitionMap.getOrDefault(relKey, "").asInstanceOf[String]
           ) ++ rel.getMetadata.asScala
-          val indexMap = if (rel.getEdgeType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
-          println("indexMap ", indexMap)
+          val indexMap = if (rel.getEdgeType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).toString.toInt) else Map()
           relData ++ indexMap
         } else {
-          println("IN ELSE getEdgesAsMetadata")
           Map[String, Object]()
         }
       }).filter(x => x.nonEmpty)

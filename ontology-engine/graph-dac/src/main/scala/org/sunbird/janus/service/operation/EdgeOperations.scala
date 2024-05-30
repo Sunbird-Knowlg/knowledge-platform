@@ -20,7 +20,7 @@ import java.util
 import java.util.{HashMap, List, Map, Set}
 import java.util.stream.Collectors
 import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter, asScalaIteratorConverter, mapAsScalaMapConverter}
-import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable`, `map AsScala`}
 import scala.collection.immutable.HashSet
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -32,6 +32,7 @@ class EdgeOperations {
   val gremlinVertexUtil = new GremlinVertexUtil
   def createEdges(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Future[Response] = {
     Future{
+
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
           DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Create Node Operation Failed.]")
@@ -67,20 +68,21 @@ class EdgeOperations {
   }
 
   def createBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
-    for (row <- edgeData.asScala) {
+    for (row <- edgeData.asScala.distinct) {
       val startNodeId = row.get("startNodeId").toString
       val endNodeId = row.get("endNodeId").toString
       val relation = row.get("relation").toString
-      val relMetadata = row.get("relMetadata").asInstanceOf[Map[String, AnyRef]]
-
+      val relMetadata = row.get("relMetadata").asInstanceOf[util.Map[AnyRef, AnyRef]]
       val startNode: Vertex = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, startNodeId).next()
       val endNode: Vertex = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, endNodeId).next()
 
-      val edge: Edge = startNode.addEdge(relation, endNode)
-      for (key <- relMetadata.keySet) {
-        edge.property(key, relMetadata.get(key).toString)
+      val edgeTraversal = g.V(startNode.id()).as("a").addE(relation).to(__.V(endNode.id()).as("b"))
+      for ((key, value) <- relMetadata) {
+        edgeTraversal.property(key, value)
       }
+      val addedEdge = edgeTraversal.next()
     }
+
   }
 
   private def deleteBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
@@ -117,12 +119,13 @@ class EdgeOperations {
         .emit().repeat(outE().inV().simplePath()).times(5).as("m")
         .outE().as("r2").inV().as("l")
         .select("n", "m", "r2", "l")
-        .unfold()
+        .dedup()
         .project("relationName", "relationMetadata", "startNode", "endNode")
         .by(__.select("r2").label())
         .by(__.select("r2").elementMap())
         .by(__.select("m"))
         .by(__.select("l"))
+        .dedup("startNode", "endNode")
         .toList()
 
 
@@ -144,12 +147,10 @@ class EdgeOperations {
         relData.setMetadata(relationMetadata)
         relData.setStartVertexObjectType(startNode.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value().toString)
         relData.setStartVertexName(startNode.property("name").value().toString)
-//        relData.setStartVertexType(startNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
+        relData.setStartVertexType(startNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
         relData.setEndVertexObjectType(endNode.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value().toString)
         relData.setEndVertexName(endNode.property("name").value().toString)
-//        relData.setEndVertexType(endNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
-        relData.setEndVertexType("DATA_NODE")
-        relData.setStartVertexType("DATA_NODE")
+        relData.setEndVertexType(endNode.property(SystemProperties.IL_SYS_NODE_TYPE.name).value().toString)
         relations.add(relData)
       }
 

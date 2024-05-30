@@ -5,7 +5,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.neo4j.graphdb.Node;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes;
@@ -73,8 +72,9 @@ public class Edges implements Serializable {
         this.id = edge.id();
         this.graphId = graphId;
 
-        Vertex startNode = (Vertex) startNodeMap.get(edge.inVertex().id());
-        Vertex endNode = (Vertex) endNodeMap.get(edge.outVertex().id());
+        Vertex startNode = (Vertex) startNodeMap.get(edge.outVertex().id());
+        Vertex endNode = (Vertex) endNodeMap.get(edge.inVertex().id());
+
         this.startVertexId = startNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
         this.endVertexId = endNode.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
         this.startVertexName = getName(startNode);

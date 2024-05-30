@@ -2,7 +2,7 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
 import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__._
 import org.sunbird.graph.dac.model.Vertex
@@ -13,10 +13,12 @@ import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-import java.lang.Boolean
+
 import java.util
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
+import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter}
+
 
 class SearchOperations {
 
@@ -242,20 +244,49 @@ class SearchOperations {
           if (StringUtils.isBlank(vertexId))
             throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
               DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node By Unique Id' Query Generation Failed.]")
+          val result = g.V().hasLabel(graphId).has("IL_UNIQUE_ID", vertexId).as("ee")
+            .flatMap(
+              coalesce(
+                union(
+                  outE().dedup().as("r").inV().dedup().as("__endNode").select("ee", "r", "__endNode"),
+                  inE().dedup().as("r").outV().dedup().as("__startNode").select("ee", "r", "__startNode")
+                ),
+                project("ee", "r", "__startNode", "__endNode")
+                  .by(select("ee"))
+                  .by(constant(null))
+                  .by(constant(null))
+                  .by(constant(null))
+              )
+          )
+        .dedup().toList.asInstanceOf[util.List[util.Map[String, AnyRef]]]
 
-          g.V().hasLabel(graphId).has("IL_UNIQUE_ID", vertexId).as("ee")
-            .project("ee", "r", "__startNode", "__endNode")
-            .by(identity())
-            .by(bothE().elementMap().fold())
-            .by(inE().outV().elementMap().fold())
-            .by(outE().inV().elementMap().fold())
-            .toList()
+          val finalList = new util.ArrayList[util.Map[String, AnyRef]]
+          result.asScala.map { tr =>
+            val ee = tr.get("ee").asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]
+            val r = tr.get("r")
+            val startNode = tr.get("__startNode") match {
+              case null => ee
+              case node => node
+            }
+            val endNode = tr.get("__endNode") match {
+              case null => ee
+              case node => node
+            }
+            val resMap = new util.HashMap[String, AnyRef]
+            resMap.put("ee", ee)
+            resMap.put("r", r)
+            resMap.put("__startNode", startNode)
+            resMap.put("__endNode", endNode)
+            finalList.add(resMap)
+          }.asJava
 
+          finalList
         }
         else throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP )
     }
     catch {
       case e :Exception =>
+        e.printStackTrace()
         throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name, "Error! Something went wrong while creating node object. ", e.getCause);
     }
   }
@@ -272,21 +303,23 @@ class SearchOperations {
         val edgeValue = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT)
         if (null != edgeValue && edgeValue.isInstanceOf[org.apache.tinkerpop.gremlin.structure.Edge]) {
             val edge: org.apache.tinkerpop.gremlin.structure.Edge = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).asInstanceOf[Edge]
-            nodeMap.put(edge.id(), edge)
+          relationMap.put(edge.id(), edge)
         }
     }
+
     if (null != startNodeMap) {
         val startVertexValue = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT)
+
         if (null != startVertexValue && startVertexValue.isInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]) {
             val startVertex: org.apache.tinkerpop.gremlin.structure.Vertex = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT).asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]
-            nodeMap.put(startVertex.id(), startVertex)
+          startNodeMap.put(startVertex.id(), startVertex)
         }
     }
     if (null != endNodeMap) {
         val endVertexValue = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT)
         if (null != endVertexValue && endVertexValue.isInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]) {
             val endVertex: org.apache.tinkerpop.gremlin.structure.Vertex = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT).asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]
-            nodeMap.put(endVertex.id(), endVertex)
+          endNodeMap.put(endVertex.id(), endVertex)
         }
     }
   }
