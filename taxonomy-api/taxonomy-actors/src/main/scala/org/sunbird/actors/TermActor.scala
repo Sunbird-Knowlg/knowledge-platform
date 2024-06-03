@@ -38,6 +38,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
   @throws[Exception]
   private def create(request: Request): Future[Response] = {
     val requestList: util.List[util.Map[String, AnyRef]] = getRequestData(request)
+    request.getRequest.remove("term")
     if (TERM_CREATION_LIMIT < requestList.size) throw new ClientException("ERR_INVALID_TERM_REQUEST", "No. of request exceeded max limit of " + TERM_CREATION_LIMIT)
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
@@ -45,16 +46,19 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
     val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
     CategoryData.flatMap(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
-        val categoryList = new util.ArrayList[Map[String, AnyRef]]
-        val relationMap = new util.HashMap[String, AnyRef]
-        relationMap.put("identifier", categoryId)
-        relationMap.put("index", getIndex(node))
-        categoryList.add(relationMap)
-        request.put("categories", categoryList)
         val identifier = new util.ArrayList[String]
         var codeError = 0
         var serverError = 0
+        val index: Integer = getIndex(node)
+        var i: Integer = 0
         val future = requestList.asScala.map(req => {
+          val categoryList = new util.ArrayList[util.Map[String, AnyRef]]
+          val relationMap = new util.HashMap[String, AnyRef]
+          relationMap.put("identifier", categoryId)
+          relationMap.put("index", (index + i).asInstanceOf[Integer])
+          i = (i + 1)
+          categoryList.add(relationMap)
+          request.put("categories", categoryList)
           request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, req.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
           request.getRequest.putAll(req)
           DataNode.create(request).map(termNode =>
