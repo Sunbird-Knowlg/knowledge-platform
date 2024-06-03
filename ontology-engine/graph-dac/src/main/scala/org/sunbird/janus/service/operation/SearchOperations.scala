@@ -5,20 +5,31 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
 import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__._
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.apache.tinkerpop.gremlin.structure.Edge
+import org.janusgraph.core.JanusGraph
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
 import org.sunbird.janus.service.util.JanusConnectionUtil
 import org.sunbird.telemetry.logger.TelemetryManager
+import org.apache.tinkerpop.gremlin.driver.Cluster
+import org.apache.tinkerpop.gremlin.driver.Client
+import org.apache.tinkerpop.gremlin.driver.Result
+import org.apache.tinkerpop.gremlin.driver.ResultSet
+import org.apache.tinkerpop.gremlin.structure.io.binary.TypeSerializerRegistry
+import org.apache.tinkerpop.gremlin.util.ser.GraphBinaryMessageSerializerV1
+import org.janusgraph.graphdb.tinkerpop.JanusGraphIoRegistry
 
 import java.util
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import ExecutionContext.Implicits.global
-import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter}
+import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter, mapAsScalaMapConverter}
 import java.lang.Boolean
+import scala.concurrent.duration.Duration
+import scala.collection.JavaConversions._
+
 
 class SearchOperations {
 
@@ -171,7 +182,7 @@ class SearchOperations {
   }
 
 
-  def generateCheckCyclicLoopTraversal(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
+  private def generateCheckCyclicLoopTraversal(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
 
     if (null != parameterMap) {
       val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
@@ -203,7 +214,7 @@ class SearchOperations {
   }
 
 
-  def executeGetNodeProperty(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
+  private def executeGetNodeProperty(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
     try {
       if (null != parameterMap) {
         val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
@@ -321,6 +332,90 @@ class SearchOperations {
             val endVertex: org.apache.tinkerpop.gremlin.structure.Vertex = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT).asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]
           endNodeMap.put(endVertex.id(), endVertex)
         }
+    }
+  }
+
+  def getNodeByUniqueIds(graphId: String, searchCriteria: SearchCriteria)  = {
+
+    if (StringUtils.isBlank(graphId))
+      throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name, DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Nodes By Search Criteria' Operation Failed.]")
+
+    if (null == searchCriteria)
+      throw new ClientException(DACErrorCodeConstants.INVALID_CRITERIA.name, DACErrorMessageConstants.INVALID_SEARCH_CRITERIA + " | ['Get Nodes By Search Criteria' Operation Failed.]")
+
+
+    val typeSerializerRegistry = TypeSerializerRegistry.build.addRegistry(JanusGraphIoRegistry.instance).create
+    val cluster = Cluster.build()
+      .addContactPoint("localhost")
+      .port(8182)
+      .serializer(new GraphBinaryMessageSerializerV1(typeSerializerRegistry))
+      .create()
+
+    // Create the client// Create the client
+    val client:Client = cluster.connect()
+
+    var str = searchCriteria.getJanusQuery;
+    str = str.replace("AND", "")
+    val sb = new StringBuilder
+    sb.append("g.V().hasLabel('" + graphId + "')")
+      .append(str)
+      .append(".dedup()")
+      .append(".as('ee')")
+      .append(".coalesce(")
+      .append("outE().as('r').inV().as('endNode').select('ee', 'r', 'endNode'),")
+      .append("outE().as('r').outV().as('startNode').select('ee', 'r', 'startNode'),")
+      .append("select('ee').as('r').constant(null).as('endNode').select('ee', 'r', 'endNode')")
+      .append(")")
+      .append(".project('ee', 'r', '__startNode', '__endNode')")
+      .append(".by(select('ee'))")
+      .append(".by(constant(null))")
+      .append(".by(constant(null))")
+      .append(".by(constant(null))")
+      .append(".dedup()")
+      .append(".toList()")
+
+    val gremlinQuery = sb.toString
+    println("gremlinQuery ", gremlinQuery)
+
+    // Execute the query
+    val resultSet:ResultSet = client.submit(gremlinQuery)
+    val results: util.List[Result]  = resultSet.all().get()
+    val finalList = new util.ArrayList[util.Map[String, AnyRef]]
+    val nodes = new util.ArrayList[Node]
+    if(!CollectionUtils.isEmpty(results)){
+      for (result <- results) {
+        val res = result.getObject.asInstanceOf[util.Map[String, AnyRef]]
+        val resMap = new util.HashMap[String, AnyRef]
+        resMap.put("ee", res.get("ee").asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex])
+        resMap.put("r", res.get("r"))
+        resMap.put("__startNode", res.get("__startNode"))
+        resMap.put("__endNode", res.get("__endNode"))
+        finalList.add(resMap)
+      }
+
+      if (!CollectionUtils.isEmpty(finalList)) {
+        val vertexMap = new util.HashMap[Object, AnyRef]
+        val relationMap = new util.HashMap[Object, AnyRef]
+        val startNodeMap = new util.HashMap[Object, AnyRef]
+        val endNodeMap = new util.HashMap[Object, AnyRef]
+
+        finalList.forEach { result =>
+          if (null != result)
+            getRecordValues(result, vertexMap, relationMap, startNodeMap, endNodeMap)
+        }
+
+        if (!vertexMap.isEmpty) {
+          for (entry <- vertexMap.entrySet) {
+            nodes.add(gremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap))
+          }
+        }
+      }
+    }
+    // Close the client and cluster
+    client.close()
+    cluster.close()
+    Future {
+      nodes
     }
   }
 

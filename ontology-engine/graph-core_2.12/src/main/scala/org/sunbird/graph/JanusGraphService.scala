@@ -18,7 +18,8 @@ class JanusGraphService {
   val isrRelativePathEnabled: lang.Boolean = Platform.getBoolean("cloudstorage.metadata.replace_absolute_path", false)
 
 
-  def addVertex(graphId: String, vertex: Node): Future[Node] = {
+  def addNode(graphId: String, vertex: Node): Future[Node] = {
+    println("addNode ", vertex)
     if (isrRelativePathEnabled) {
       val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
       vertex.setMetadata(metadata)
@@ -27,11 +28,11 @@ class JanusGraphService {
 
   }
 
-  def createEdges(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]): Future[Response] = {
+  def createRelation(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]): Future[Response] = {
     EdgeOperations.createEdges(graphId, edgeMap)
   }
 
-  def removeEdges(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]): Future[Response] = {
+  def removeRelation(graphId: String, edgeMap: java.util.List[java.util.Map[String, AnyRef]]): Future[Response] = {
     EdgeOperations.removeEdges(graphId, edgeMap)
   }
 
@@ -43,7 +44,7 @@ class JanusGraphService {
     VertexOperations.deleteVertex(graphId, vertexId, request)
   }
 
-  def upsertVertex(graphId: String, vertex: Node, request: Request): Future[Node] = {
+  def upsertNode(graphId: String, vertex: Node, request: Request): Future[Node] = {
     if (isrRelativePathEnabled) {
       val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
       vertex.setMetadata(metadata)
@@ -56,7 +57,7 @@ class JanusGraphService {
     VertexOperations.upsertRootVertex(graphId, request)
   }
 
-  def updateVertexes(graphId: String, identifiers: java.util.List[String], metadata: java.util.Map[String, AnyRef]): Future[java.util.Map[String, Node]] = {
+  def updateNodes(graphId: String, identifiers: java.util.List[String], metadata: java.util.Map[String, AnyRef]): Future[java.util.Map[String, Node]] = {
     val updatedMetadata = if (isrRelativePathEnabled) CSPMetaUtil.updateRelativePath(metadata) else metadata
     VertexOperations.updateVertexes(graphId, identifiers, updatedMetadata)
   }
@@ -73,7 +74,7 @@ class JanusGraphService {
     EdgeOperations.getSubGraph(graphId, nodeId, depth)
   }
 
-//  def getNodeByUniqueIds(graphId: String, searchCriteria: SearchCriteria): Future[java.util.List[Vertex]] = {
-//    SearchAsyncOperations.getNodeByUniqueIds(graphId, searchCriteria).map(nodes => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(nodes) else nodes)
-//  }
+  def getNodeByUniqueIds(graphId: String, searchCriteria: SearchCriteria): Future[java.util.List[Node]] = {
+    SearchOperations.getNodeByUniqueIds(graphId, searchCriteria).map(nodes => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(nodes) else nodes)
+  }
 }

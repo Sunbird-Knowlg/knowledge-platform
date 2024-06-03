@@ -18,7 +18,11 @@ class GremlinEdgeUtil {
 
     val relation: Relation = new Relation
     relation.setGraphId(graphId)
-    relation.setId(edge.id.asInstanceOf[Long])
+//    val vertexIdAsLong: Long = edge.id match {
+//      case id: Number => id.longValue()
+//      case id: String => id.toLong
+//    }
+//    relation.setId(edge.id.asInstanceOf[Long])
 
     val startNode = startNodeMap.get(edge.outVertex.id).asInstanceOf[Vertex]
     val endNode = endNodeMap.get(edge.inVertex.id).asInstanceOf[Vertex]
@@ -37,7 +41,7 @@ class GremlinEdgeUtil {
     val metadata = new util.HashMap[String, Object]
 
     edge.keys.forEach((key: String) => {
-      val value = edge.value(key)
+      val value = edge.values(key)
       if (null != value) if (value.isInstanceOf[util.List[_]]) {
         val list = value.asInstanceOf[util.List[AnyRef]]
         if (!list.isEmpty) {
@@ -50,21 +54,20 @@ class GremlinEdgeUtil {
           }
         }
       }
-      else metadata.put(key, value)
+      else metadata.put(key, value.next())
     })
-
     relation.setMetadata(metadata)
     relation
   }
 
   private def getName(vertex: Vertex) = {
-    var name = vertex.property("name").asInstanceOf[String]
+    var name = vertex.property("name").value.asInstanceOf[String]
     if (StringUtils.isBlank(name) || StringUtils.equalsIgnoreCase("null", name)) {
-      name = vertex.property("title").asInstanceOf[String]
+      name = vertex.property("title").value.asInstanceOf[String]
       if (StringUtils.isBlank(name) || StringUtils.equalsIgnoreCase("null", name)) {
-        name = vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).asInstanceOf[String]
+        name = vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value.asInstanceOf[String]
         if (StringUtils.isBlank(name) || StringUtils.equalsIgnoreCase("null", name))
-          name = vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name).asInstanceOf[String]
+          name = vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name).value.asInstanceOf[String]
       }
     }
     name
@@ -77,8 +80,8 @@ class GremlinEdgeUtil {
 
   private def getNodeMetadata(vertex: Vertex) = {
     val metadata = new util.HashMap[String, AnyRef]
-    if (vertex != null) vertex.keys.forEach((key: String) => {
-      val value = vertex.value(key)
+      if (vertex != null) vertex.keys().forEach { key =>
+      val value = vertex.values(key)
       if (null != value) if (value.isInstanceOf[util.List[_]]) {
         val list = value.asInstanceOf[util.List[_]]
         if (!list.isEmpty) {
@@ -91,9 +94,9 @@ class GremlinEdgeUtil {
           }
         }
       }
-      else metadata.put(key, value)
+      else metadata.put(key, value.next())
 
-    })
+    }
     metadata
   }
 

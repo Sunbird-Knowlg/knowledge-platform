@@ -1,9 +1,7 @@
 package org.sunbird.graph.dac.model;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SubGraph implements Serializable {
 
@@ -30,4 +28,5 @@ public class SubGraph implements Serializable {
     public void setRelations(List<Relation> relations) {
         this.relations = relations;
     }
+
 }

@@ -249,4 +249,11 @@ public class RelationCriterion implements Serializable {
         }
         return sb.toString();
     }
+
+    public String getJanusCypher(SearchCriteria sc, String prevParam) {
+        StringBuilder sb = new StringBuilder();
+
+
+        return sb.toString();
+    }
 }

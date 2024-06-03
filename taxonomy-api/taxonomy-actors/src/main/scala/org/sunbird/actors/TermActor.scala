@@ -101,7 +101,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
   private def getIndex(node: Node): Integer = {
     val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType, RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))
       .map(relation => {
-        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
+        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).toString.toInt.intValue()
       })
     if (indexList.nonEmpty) indexList.max + 1 else 1
   }

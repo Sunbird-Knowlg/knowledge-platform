@@ -93,7 +93,6 @@ public class MetadataCriterion implements Serializable {
 
     public String getCypher(SearchCriteria sc, String param) {
         StringBuilder sb = new StringBuilder();
-        
         if (null != filters && filters.size() > 0) {
             sb.append("( ");
             for (int i = 0; i < filters.size(); i++) {
@@ -119,6 +118,33 @@ public class MetadataCriterion implements Serializable {
         }
         if (null != filters && filters.size() > 0)
             sb.append(") ");
+        return sb.toString();
+    }
+
+    public String getJanusCypher(SearchCriteria sc, String param) {
+        StringBuilder sb = new StringBuilder();
+        if (null != filters && filters.size() > 0) {
+            for (int i = 0; i < filters.size(); i++) {
+                String filterCypher = filters.get(i).getJanusCypher(sc, param);
+                if(StringUtils.isNotBlank(filterCypher)) {
+                    sb.append(filterCypher);
+                    if (i < filters.size() - 1)
+                        sb.append(" ").append(getOp()).append(" ");
+                }
+            }
+        }
+        if (null != metadata && metadata.size() > 0) {
+            if (null != filters && filters.size() > 0)
+                sb.append(" ").append(getOp()).append(" ");
+            for (int i = 0; i < metadata.size(); i++) {
+                String metadataCypher = metadata.get(i).getJanusCypher(sc, param);
+                if(StringUtils.isNotBlank(metadataCypher)) {
+                    sb.append(metadataCypher);
+                    if (i < metadata.size() - 1)
+                        sb.append(" ").append(getOp()).append(" ");
+                }
+            }
+        }
         return sb.toString();
     }
 }

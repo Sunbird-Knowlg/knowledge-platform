@@ -41,7 +41,7 @@ object NodeValidator {
         searchCriteria.addMetadata(mc)
         searchCriteria.setCountQuery(false)
         try {
-            val nodes = oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
+            val nodes = oec.janusGraphService.getNodeByUniqueIds(graphId, searchCriteria)
             nodes
         } catch {
             case e: Exception =>

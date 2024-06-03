@@ -219,6 +219,37 @@ public class SearchCriteria implements Serializable {
         return sb.toString();
     }
 
+    @JsonIgnore
+    public String getJanusQuery() {
+        Map<String, Object> data = new HashMap<String, Object>();
+        StringBuilder sb = new StringBuilder();
+
+        if (StringUtils.isNotBlank(nodeType) || StringUtils.isNotBlank(objectType)
+                || (null != metadata && metadata.size() > 0)) {
+            if (StringUtils.isNotBlank(nodeType)) {
+                sb.append(".has('").append(SystemProperties.IL_SYS_NODE_TYPE.name()).append("', '").append(nodeType).append("')");
+            }
+            if (StringUtils.isNotBlank(objectType)) {
+                sb.append(".has('").append(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).append("', '").append(objectType).append("')");
+            }
+            if (null != metadata && metadata.size() > 0) {
+                for (int i = 0; i < metadata.size(); i++) {
+                    String metadataCypher = metadata.get(i).getJanusCypher(this, "ee");
+                    if (StringUtils.isNotBlank(metadataCypher)) {
+                        sb.append(metadataCypher);
+                        if (i < metadata.size() - 1)
+                            sb.append(" ").append(getOp()).append(" ");
+                    }
+                }
+            }
+        }
+        if (null != relations && relations.size() > 0) {
+            for (RelationCriterion rel : relations)
+                sb.append(rel.getCypher(this, null));
+        }
+        return sb.toString();
+    }
+
     public List<String> getFields() {
         return fields;
     }

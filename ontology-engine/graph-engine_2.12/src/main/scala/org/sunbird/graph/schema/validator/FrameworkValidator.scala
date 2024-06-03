@@ -152,7 +152,7 @@ trait FrameworkValidator extends IDefinition {
       }
     }
     try {
-      oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
+      oec.janusGraphService.getNodeByUniqueIds(graphId, searchCriteria)
     } catch {
       case e: Exception =>
         throw new ServerException("ERR_GRAPH_PROCESSING_ERROR", "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
@@ -183,7 +183,7 @@ trait FrameworkValidator extends IDefinition {
           setCountQuery(false)
         }
       }
-      oec.graphService.getNodeByUniqueIds(node.getGraphId, searchCriteria).map(nodeList => {
+      oec.janusGraphService.getNodeByUniqueIds(node.getGraphId, searchCriteria).map(nodeList => {
         if (CollectionUtils.isEmpty(nodeList))
           throw new ResourceNotFoundException("ERR_VALIDATING_CONTENT_FRAMEWORK", s"Nodes not found for Id's $ids ")
         val termMap = nodeList.asScala.map(node => node.getIdentifier -> node.getMetadata.getOrDefault("name", "")).toMap

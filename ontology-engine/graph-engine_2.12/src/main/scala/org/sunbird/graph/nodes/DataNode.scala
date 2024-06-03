@@ -26,7 +26,7 @@ object DataNode {
     @throws[Exception]
     def create(request: Request, dataModifier: (Node) => Node = defaultDataModifier)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         DefinitionNode.validate(request).map(node => {
-            val response = oec.graphService.addNode(request.graphId, dataModifier(node))
+            val response = oec.janusGraphService.addNode(request.graphId, dataModifier(node))
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
@@ -41,7 +41,7 @@ object DataNode {
         val identifier: String = request.getContext.get("identifier").asInstanceOf[String]
         DefinitionNode.validate(identifier, request).map(node => {
           request.getContext().put("schemaName", node.getObjectType.toLowerCase.replace("image", ""))
-            val response = oec.graphService.upsertNode(request.graphId, dataModifier(node), request)
+            val response = oec.janusGraphService.upsertNode(request.graphId, dataModifier(node), request)
             response.map(node => DefinitionNode.postProcessor(request, node)).map(result => {
                 val futureList = Task.parallel[Response](
                     updateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
@@ -135,7 +135,7 @@ object DataNode {
     private def createRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext) : Future[Response] = {
         val relations: util.List[Relation] = node.getAddedRelations
         if (CollectionUtils.isNotEmpty(relations)) {
-            oec.graphService.createRelation(graphId,getRelationMap(relations))
+            oec.janusGraphService.createRelation(graphId,getRelationMap(relations))
         } else {
             Future(new Response)
         }
@@ -161,9 +161,9 @@ object DataNode {
             Future(new Response)
         } else {
             if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
-                oec.graphService.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
+                oec.janusGraphService.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
             if (CollectionUtils.isNotEmpty(node.getAddedRelations))
-                oec.graphService.createRelation(graphId,getRelationMap(node.getAddedRelations))
+                oec.janusGraphService.createRelation(graphId,getRelationMap(node.getAddedRelations))
             Future(new Response)
         }
     }
