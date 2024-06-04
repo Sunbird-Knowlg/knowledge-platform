@@ -2,7 +2,6 @@ package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode }
@@ -12,13 +11,9 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
-
 import java.util
-import java.util.{ArrayList, List, Map}
 import javax.inject.Inject
-import scala.collection.JavaConverters._
 import scala.collection.JavaConverters.asScalaBufferConverter
-import scala.collection.immutable.HashMap
 import scala.concurrent.{ExecutionContext, Future}
 
 class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
@@ -38,23 +33,27 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
   @throws[Exception]
   private def create(request: Request): Future[Response] = {
     val requestList: util.List[util.Map[String, AnyRef]] = getRequestData(request)
+    request.getRequest.remove("term")
     if (TERM_CREATION_LIMIT < requestList.size) throw new ClientException("ERR_INVALID_TERM_REQUEST", "No. of request exceeded max limit of " + TERM_CREATION_LIMIT)
     RequestUtil.restrictProperties(request)
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
-    val CategoryData = validateCategoryInstance(request)
+    val categoryData = validateCategoryInstance(request)
     val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
-    CategoryData.flatMap(node => {
+    categoryData.flatMap(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
-        val categoryList = new util.ArrayList[Map[String, AnyRef]]
-        val relationMap = new util.HashMap[String, AnyRef]
-        relationMap.put("identifier", categoryId)
-        relationMap.put("index", getIndex(node))
-        categoryList.add(relationMap)
-        request.put("categories", categoryList)
         val identifier = new util.ArrayList[String]
         var codeError = 0
         var serverError = 0
+        val index: Integer = getIndex(node)
+        var i: Integer = 0
         val future = requestList.asScala.map(req => {
+          val categoryList = new util.ArrayList[util.Map[String, AnyRef]]
+          val relationMap = new util.HashMap[String, AnyRef]
+          relationMap.put("identifier", categoryId)
+          relationMap.put("index", (index + i).asInstanceOf[Integer])
+          i = (i + 1)
+          categoryList.add(relationMap)
+          request.put("categories", categoryList)
           request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, req.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
           request.getRequest.putAll(req)
           DataNode.create(request).map(termNode =>
@@ -67,7 +66,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
           }
         })
         Future.sequence(future).flatMap { _ =>
-        createResponse(codeError, serverError, identifier, requestList.size)
+          createResponse(codeError, serverError, identifier, requestList.size)
         }
       } else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category")
     })
