@@ -390,7 +390,7 @@ object DIALManager {
 		batch.put("config", mergedConfig.mapValues(_.toString).asJava)
 		batch.put("status", Int.box(0) )
 		batch.put("channel", channel)
-		batch.put("publisher", publisher.get)
+		batch.put("publisher", publisher.getOrElse(""))
 		batch.put("created_on", Long.box(System.currentTimeMillis()))
 
 		val updateReq = new Request()
@@ -429,7 +429,7 @@ object DIALManager {
 		event.put("dialcodes", dialCodes)
 		val storageMap = new util.HashMap[String, Any]()
 		storageMap.put("container", "dial")
-		storageMap.put("path", if (publisher.nonEmpty) channel+"/"+ publisher.get +"/" else s"$channel/")
+		storageMap.put("path", if (publisher.nonEmpty) channel+"/"+ publisher.getOrElse("") +"/" else s"$channel/")
 		storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
 		event.put("storage", storageMap)
 		event.put("config", config.toMap.asJava)
