@@ -10,8 +10,9 @@ import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
+import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
 import org.sunbird.janus.service.util.JanusConnectionUtil
+import org.sunbird.janus.service.util.{ DriverUtil, VertexUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
@@ -39,16 +40,21 @@ class VertexOperations {
       parameterMap.put(GraphDACParams.vertex.name, setPrimitiveData(vertex))
 
       try {
-          graphConnection.initialiseGraphClient()
-          val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
+         val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
 
-          val addedVertex = createVertexTraversal(parameterMap, g)
-          val vertexElementMap = addedVertex.elementMap().next()
+        val query: String = VertexUtil.createVertexQuery(parameterMap)
+        val results = client.submit(query).all().get()
 
+        results.foreach(r => {
+          val vertexElement = r.getVertex
+          val identifier = vertexElement.value(SystemProperties.IL_UNIQUE_ID.name).asInstanceOf[String]
+          val versionKey = vertexElement.value(GraphDACParams.versionKey.name).asInstanceOf[String]
+          //            transaction.createTxLog(vertexElementMap)
           vertex.setGraphId(graphId)
-          vertex.setIdentifier(vertexElementMap.get(SystemProperties.IL_UNIQUE_ID.name))
-          vertex.getMetadata.put(GraphDACParams.versionKey.name, vertexElementMap.get(GraphDACParams.versionKey.name))
-          vertex
+          vertex.setIdentifier(identifier)
+          vertex.getMetadata.put(GraphDACParams.versionKey.name, versionKey)
+        })
+        vertex
       }
       catch {
           case e: Throwable =>
@@ -136,10 +142,10 @@ class VertexOperations {
 
       val date: String = DateUtils.formatCurrentDate
 
-      val mpMap :util.Map[String, AnyRef] = getMetadataCypherQueryMap(vertex)
-      val spMap :util.Map[String, AnyRef] = getSystemPropertyMap(vertex, date)
-      val apMap :util.Map[String, AnyRef] = getAuditPropertyMap(vertex, date, false)
-      val vpMap :util.Map[String, AnyRef] = getVersionPropertyMap(vertex, date)
+      val mpMap :util.Map[String, AnyRef] = VertexUtil.getMetadataCypherQueryMap(vertex)
+      val spMap :util.Map[String, AnyRef] = VertexUtil.getSystemPropertyMap(vertex, date)
+      val apMap :util.Map[String, AnyRef] = VertexUtil.getAuditPropertyMap(vertex, date, false)
+      val vpMap :util.Map[String, AnyRef] = VertexUtil.getVersionPropertyMap(vertex, date)
 
       val combinedMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
       combinedMap.putAll(mpMap)
@@ -159,48 +165,6 @@ class VertexOperations {
     else {
       throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP )
     }
-  }
-
-  def getMetadataCypherQueryMap(node: Node): util.Map[String, AnyRef] = {
-    val metadataPropertyMap = new util.HashMap[String, AnyRef]
-    if (null != node && null != node.getMetadata && !node.getMetadata.isEmpty) {
-      node.getMetadata.foreach { case (key, value) => metadataPropertyMap.put(key, value) }
-    }
-    metadataPropertyMap
-  }
-
-  def getSystemPropertyMap(node: Node, date: String): util.Map[String, AnyRef] = {
-    val systemPropertyMap = new util.HashMap[String, AnyRef]
-    if (null != node && StringUtils.isNotBlank(date)) {
-      if (StringUtils.isBlank(node.getIdentifier))
-        node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
-      systemPropertyMap.put(SystemProperties.IL_UNIQUE_ID.name, node.getIdentifier)
-      systemPropertyMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getNodeType)
-      systemPropertyMap.put(SystemProperties.IL_FUNC_OBJECT_TYPE.name, node.getObjectType)
-    }
-    systemPropertyMap
-  }
-
-  def getAuditPropertyMap(node: Node, date: String, isUpdateOnly: Boolean):util.Map[String, AnyRef] = {
-    val auditPropertyMap = new util.HashMap[String, AnyRef]
-    if(null != node && StringUtils.isNotBlank(date)) {
-      if (BooleanUtils.isFalse(isUpdateOnly)) {
-        auditPropertyMap.put(AuditProperties.createdOn.name,
-          if (node.getMetadata.containsKey(AuditProperties.createdOn.name))
-            node.getMetadata.get(AuditProperties.createdOn.name)
-          else date)
-      }
-      if (null != node.getMetadata && null == node.getMetadata.get(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name))
-        auditPropertyMap.put(AuditProperties.lastUpdatedOn.name, date)
-    }
-    auditPropertyMap
-  }
-
-  def getVersionPropertyMap(node: Node, date: String): util.Map[String, AnyRef] = {
-    val versionPropertyMap = new util.HashMap[String, AnyRef]
-    if (null != node && StringUtils.isNotBlank(date))
-      versionPropertyMap.put(GraphDACParams.versionKey.name, DateUtils.parse(date).getTime.toString)
-    versionPropertyMap
   }
 
   def upsertVertex(graphId: String, vertex: Node, request: Request): Future[Node] = {
@@ -251,7 +215,7 @@ class VertexOperations {
     }
   }
 
-  def prepareUpsertMap(parameterMap: util.Map[String, AnyRef]) = {
+  private def prepareUpsertMap(parameterMap: util.Map[String, AnyRef]) = {
     if (null != parameterMap) {
       val vertex = parameterMap.getOrDefault("vertex", null).asInstanceOf[Node]
       if (null == vertex)
@@ -461,7 +425,7 @@ class VertexOperations {
     }
   }
 
-  def generateUpdateVerticesQuery(graphId: String, identifiers: java.util.List[String], data: mutable.Map[String, AnyRef]): Map[String, Object] = {
+  private def generateUpdateVerticesQuery(graphId: String, identifiers: java.util.List[String], data: mutable.Map[String, AnyRef]): Map[String, Object] = {
     val parameterMap = new HashMap[String, Object]
     parameterMap.put("identifiers", identifiers);
     parameterMap.putAll(data);
