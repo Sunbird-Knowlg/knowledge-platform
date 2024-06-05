@@ -6,7 +6,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.{Node, Relation, Vertex}
+import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
 
 import java.util
@@ -79,13 +79,5 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     node
   }
 
-  override def vertexDataModifier(vertex: Vertex): Vertex = {
-    if (vertex.getMetadata.containsKey("trackable") &&
-      vertex.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].containsKey("enabled") &&
-      "Yes".equalsIgnoreCase(vertex.getMetadata.getOrDefault("trackable", new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("enabled", "").asInstanceOf[String])) {
-      vertex.getMetadata.put("contentType", "Event")
-    }
-    vertex
-  }
 
 }

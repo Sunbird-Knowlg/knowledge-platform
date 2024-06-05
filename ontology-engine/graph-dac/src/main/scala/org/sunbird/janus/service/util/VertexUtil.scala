@@ -68,25 +68,31 @@ object VertexUtil {
 
       val ocsMap: util.Map[String, AnyRef] = getOnCreateSetMap(node, date)
       val omsMap: util.Map[String, AnyRef] = getOnMatchSetMap(node, date, merge = true)
-      val finalMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-      finalMap.putAll(ocsMap)
-      finalMap.putAll(omsMap)
 
       templateQuery.append("g.V().has('")
         .append(graphId)
         .append("','")
         .append(SystemProperties.IL_UNIQUE_ID.name)
         .append("','")
-        .append(node.getIdentifier)
+        .append(node.getIdentifier())
         .append("')")
 
-      finalMap.foreach { case (key, value) =>
-        templateQuery.append(".property('")
-          .append(key)
-          .append("', '")
-          .append(value)
-          .append("')")
+      ocsMap.foreach { case (key, value) =>
+          templateQuery.append(".property('")
+            .append(key)
+            .append("', '")
+            .append(value).append("')")
       }
+
+      templateQuery.append(".sideEffect(")
+
+      omsMap.foreach { case (key, value) =>
+          templateQuery.append("property('").append(key)
+            .append("', '").append(value).append("').")
+      }
+
+      templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
+      templateQuery.append(").next()")
     }
     templateQuery.toString()
   }
@@ -144,7 +150,7 @@ object VertexUtil {
   private def getOnCreateSetMap(node: Node, date: String): util.Map[String, Object] = {
     val paramMap = new util.HashMap[String, Object]()
 
-    if (node != null && StringUtils.isNotBlank(date)) {
+    if (null != node && StringUtils.isNotBlank(date)) {
       if (StringUtils.isBlank(node.getIdentifier)) {
         node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
       }
@@ -157,7 +163,7 @@ object VertexUtil {
       }
       paramMap.put(AuditProperties.createdOn.name, date)
 
-      if (!node.getMetadata.containsKey(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name)) {
+      if (null != node.getMetadata && null != node.getMetadata.get(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name)) {
         paramMap.put(AuditProperties.lastUpdatedOn.name, date)
       }
       val versionKey = DateUtils.parse(date).getTime.toString

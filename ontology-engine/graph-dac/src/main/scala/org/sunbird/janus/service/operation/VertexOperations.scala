@@ -149,6 +149,7 @@ class VertexOperations {
       try {
         val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
         val query: String = VertexUtil.updateVertexQuery(parameterMap)
+        println("query  -->"+query)
         val results = client.submit(query).all().get()
 
         results.foreach(r => {
