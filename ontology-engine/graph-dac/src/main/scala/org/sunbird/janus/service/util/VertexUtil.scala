@@ -185,7 +185,7 @@ object VertexUtil {
         paramMap.put(AuditProperties.lastUpdatedOn.name, date)
       }
       if (node.getMetadata != null &&
-        StringUtils.isBlank(node.getMetadata.get(GraphDACParams.versionKey.name()).toString)) {
+        StringUtils.isBlank(node.getMetadata.getOrDefault(GraphDACParams.versionKey.name(), "").toString)) {
         val versionKey = DateUtils.parse(date).getTime.toString
         paramMap.put(GraphDACParams.versionKey.name, versionKey)
       }
