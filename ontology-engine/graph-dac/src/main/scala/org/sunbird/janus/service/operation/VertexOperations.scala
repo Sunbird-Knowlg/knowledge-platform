@@ -37,7 +37,7 @@ class VertexOperations {
 
       val parameterMap = new util.HashMap[String, AnyRef]
       parameterMap.put(GraphDACParams.graphId.name, graphId)
-      parameterMap.put(GraphDACParams.vertex.name, setPrimitiveData(node))
+      parameterMap.put(GraphDACParams.node.name, setPrimitiveData(node))
 
       try {
         val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)

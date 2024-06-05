@@ -2,9 +2,8 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversalSource}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
-import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__._
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.apache.tinkerpop.gremlin.structure.Edge
 import org.janusgraph.core.JanusGraph
@@ -16,9 +15,6 @@ import org.sunbird.janus.service.util.{DriverUtil, JanusConnectionUtil, SearchUt
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.apache.tinkerpop.gremlin.driver.Result
 import org.apache.tinkerpop.gremlin.driver.ResultSet
-import org.apache.tinkerpop.gremlin.structure.io.binary.TypeSerializerRegistry
-import org.apache.tinkerpop.gremlin.util.ser.GraphBinaryMessageSerializerV1
-import org.janusgraph.graphdb.tinkerpop.JanusGraphIoRegistry
 
 import java.util
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -31,7 +27,6 @@ import scala.collection.JavaConversions._
 
 class SearchOperations {
 
-  val graphConnection = new JanusConnectionUtil
   val gremlinVertexUtil = new GremlinVertexUtil
 
   def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Node] = {
@@ -104,16 +99,14 @@ class SearchOperations {
 
       val property = new Property()
       try {
-        graphConnection.initialiseGraphClient()
-        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
-
         val parameterMap = new util.HashMap[String, AnyRef]
         parameterMap.put(GraphDACParams.graphId.name, graphId)
         parameterMap.put(GraphDACParams.nodeId.name, vertexId)
         parameterMap.put(GraphDACParams.key.name, key)
 
-        val nodeProperty = executeGetNodeProperty(parameterMap, g)
-        val elementMap = nodeProperty.elementMap().next()
+        val resultSet = executeGetNodeProperty(parameterMap)
+        val result = resultSet.one()
+        val elementMap = result.getObject.asInstanceOf[util.Map[AnyRef, AnyRef]]
         if (null != elementMap && null != elementMap.get(key)){
           property.setPropertyName(key)
           property.setPropertyValue(elementMap.get(key))
@@ -154,22 +147,20 @@ class SearchOperations {
     val cyclicLoopMap = new util.HashMap[String, AnyRef]
 
     try {
-        graphConnection.initialiseGraphClient()
-        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
-
         val parameterMap = new util.HashMap[String, AnyRef]
         parameterMap.put(GraphDACParams.graphId.name, graphId)
         parameterMap.put(GraphDACParams.startNodeId.name, startNodeId)
         parameterMap.put(GraphDACParams.relationType.name, relationType)
         parameterMap.put(GraphDACParams.endNodeId.name, endNodeId)
 
-        val result = generateCheckCyclicLoopTraversal(parameterMap, g)
-        if (null != result && result.hasNext) {
+        val resultSet = generateCheckCyclicLoopTraversal(parameterMap)
+        val result = resultSet.one()
+        if (null != result) {
+          println("result ", result)
           cyclicLoopMap.put(GraphDACParams.loop.name, new Boolean(true))
           cyclicLoopMap.put(GraphDACParams.message.name, startNodeId + " and " + endNodeId + " are connected by relation: " + relationType)
         }
-        else
-          cyclicLoopMap.put(GraphDACParams.loop.name, new Boolean(false))
+        else cyclicLoopMap.put(GraphDACParams.loop.name, new Boolean(false))
 
     }
     TelemetryManager.log("Returning Cyclic Loop Map: ", cyclicLoopMap)
@@ -177,7 +168,7 @@ class SearchOperations {
   }
 
 
-  private def generateCheckCyclicLoopTraversal(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
+  private def generateCheckCyclicLoopTraversal(parameterMap: util.Map[String, AnyRef]) = {
 
     if (null != parameterMap) {
       val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
@@ -200,16 +191,16 @@ class SearchOperations {
         throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
           DACErrorMessageConstants.INVALID_END_NODE_ID + " | ['Check Cyclic Loop' Query Generation Failed.]")
 
-       val cyclicTraversal = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
-        .repeat(outE(relationType).inV().simplePath()).until(has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId))
-        .hasLabel(graphId)
-      cyclicTraversal
+      val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+      val query = SearchUtil.checkCyclicLoopQuery(graphId, startNodeId, endNodeId, relationType)
+      println("generateCheckCyclicLoopTraversal Query ", query)
+      client.submit(query)
     }
     else throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP)
   }
 
 
-  private def executeGetNodeProperty(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource) = {
+  private def executeGetNodeProperty(parameterMap: util.Map[String, AnyRef]) = {
     try {
       if (null != parameterMap) {
         val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
@@ -227,8 +218,9 @@ class SearchOperations {
           throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name,
             DACErrorMessageConstants.INVALID_PROPERTY_KEY + " | ['Get Node Property' Query Generation Failed.]")
 
-        g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, nodeId).values(key)
-
+        val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+        val query = SearchUtil.getNodePropertyQuery(graphId, nodeId, key)
+        client.submit(query)
       }
       else throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP)
     }

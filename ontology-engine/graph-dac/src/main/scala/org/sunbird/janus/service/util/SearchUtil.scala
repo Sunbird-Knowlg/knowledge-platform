@@ -41,5 +41,19 @@ object SearchUtil {
     sb.toString()
   }
 
+  def getNodePropertyQuery(graphId: String, nodeId: String, key: String): String = {
+    val sb = new StringBuilder
+    sb.append("g.V().hasLabel('" + graphId + "').has('" + SystemProperties.IL_UNIQUE_ID.name + "', '" + nodeId + "').values("+key+")")
+    sb.toString()
+  }
+
+  def checkCyclicLoopQuery(graphId: String, startNodeId: String, endNodeId: String, relationType: String): String = {
+    val sb = new StringBuilder
+    sb.append("g.V().hasLabel('" + graphId + "').has('" + SystemProperties.IL_UNIQUE_ID.name + "', '" + startNodeId + "')")
+    sb.append(".repeat(outE('" + relationType + "').inV().simplePath()).until(has('"+ SystemProperties.IL_UNIQUE_ID.name + "', '" + endNodeId + "'))")
+    sb.append(".hasLabel('"+graphId+"')")
+
+    sb.toString()
+  }
 
 }
