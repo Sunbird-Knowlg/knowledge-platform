@@ -11,11 +11,10 @@ import org.janusgraph.core.JanusGraph
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
-import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
+import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
 import org.sunbird.janus.service.util.JanusConnectionUtil
+import org.sunbird.janus.service.util.DriverUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.apache.tinkerpop.gremlin.driver.Cluster
-import org.apache.tinkerpop.gremlin.driver.Client
 import org.apache.tinkerpop.gremlin.driver.Result
 import org.apache.tinkerpop.gremlin.driver.ResultSet
 import org.apache.tinkerpop.gremlin.structure.io.binary.TypeSerializerRegistry
@@ -50,16 +49,13 @@ class SearchOperations {
 
       TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]")
       try {
-        graphConnection.initialiseGraphClient()
-        val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
-
         val parameterMap = new util.HashMap[String, AnyRef]
         parameterMap.put(GraphDACParams.graphId.name, graphId)
         parameterMap.put(GraphDACParams.nodeId.name, vertexId)
         parameterMap.put(GraphDACParams.getTags.name, getTags.asInstanceOf[java.lang.Boolean])
         parameterMap.put(GraphDACParams.request.name, request)
 
-        val retrievedVertices = getVertexByUniqueId(parameterMap, g)
+        val retrievedVertices = getVertexByUniqueId(parameterMap)
         var newVertex: Node = null
         if (CollectionUtils.isEmpty(retrievedVertices))
           throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name,
@@ -243,7 +239,7 @@ class SearchOperations {
     }
   }
 
-  private def getVertexByUniqueId(parameterMap: util.Map[String, AnyRef], g: GraphTraversalSource): util.List[util.Map[String, AnyRef]] = {
+  private def getVertexByUniqueId(parameterMap: util.Map[String, AnyRef]): util.List[util.Map[String, AnyRef]] = {
     try {
         if (null != parameterMap) {
           val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name, "").asInstanceOf[String]
@@ -255,41 +251,59 @@ class SearchOperations {
           if (StringUtils.isBlank(vertexId))
             throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
               DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node By Unique Id' Query Generation Failed.]")
-          val result = g.V().hasLabel(graphId).has("IL_UNIQUE_ID", vertexId).as("ee")
-            .flatMap(
-              coalesce(
-                union(
-                  outE().dedup().as("r").inV().dedup().as("__endNode").select("ee", "r", "__endNode"),
-                  inE().dedup().as("r").outV().dedup().as("__startNode").select("ee", "r", "__startNode")
-                ),
-                project("ee", "r", "__startNode", "__endNode")
-                  .by(select("ee"))
-                  .by(constant(null))
-                  .by(constant(null))
-                  .by(constant(null))
-              )
-          )
-        .dedup().toList.asInstanceOf[util.List[util.Map[String, AnyRef]]]
+
+          val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+          val sb = new StringBuilder
+          sb.append("g.V().hasLabel('").append(graphId).append("').has('")
+            .append(SystemProperties.IL_UNIQUE_ID).append("', '").append(vertexId).append("').as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"')")
+            .append(".flatMap(")
+            .append("coalesce(")
+            .append("union(")
+            .append("outE().dedup().as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"').inV().dedup()")
+            .append(".as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT+"')")
+            .append(".select('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"', '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"'," +
+              " '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT+"'),")
+            .append("inE().dedup().as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"').outV().dedup()")
+            .append(".as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT+"')")
+            .append(".select('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"', '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"'," +
+              " '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT+"')")
+            .append("),")
+            .append("project('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"', " +
+              "'"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"', '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT+"', " +
+              "'"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT+"')")
+            .append(".by(select('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"'))")
+            .append(".by(constant(null))")
+            .append(".by(constant(null))")
+            .append(".by(constant(null))")
+            .append("))")
+            .append(".dedup().toList()")
+
+
+          val gremlinQuery = sb.toString
+          println("getVertexByUniqueId gremlinQuery === ", gremlinQuery)
+
+          // Execute the query
+          val resultSet: ResultSet = client.submit(gremlinQuery)
+          val results: util.List[Result] = resultSet.all().get()
 
           val finalList = new util.ArrayList[util.Map[String, AnyRef]]
-          result.asScala.map { tr =>
-            val ee = tr.get("ee").asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]
-            val r = tr.get("r")
-            val startNode = tr.get("__startNode") match {
-              case null => ee
-              case node => node
-            }
-            val endNode = tr.get("__endNode") match {
-              case null => ee
-              case node => node
-            }
+          for (result <- results) {
+            val res = result.getObject.asInstanceOf[util.Map[String, AnyRef]]
             val resMap = new util.HashMap[String, AnyRef]
-            resMap.put("ee", ee)
-            resMap.put("r", r)
-            resMap.put("__startNode", startNode)
-            resMap.put("__endNode", endNode)
+            resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT, res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT).asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex])
+            resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT, res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT))
+            val startNode = res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT) match {
+              case null => res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT)
+              case node => node
+            }
+            val endNode = res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT) match {
+              case null => res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT)
+              case node => node
+            }
+            resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT, startNode)
+            resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT, endNode)
             finalList.add(resMap)
-          }.asJava
+          }
 
           finalList
         }
@@ -343,36 +357,14 @@ class SearchOperations {
     if (null == searchCriteria)
       throw new ClientException(DACErrorCodeConstants.INVALID_CRITERIA.name, DACErrorMessageConstants.INVALID_SEARCH_CRITERIA + " | ['Get Nodes By Search Criteria' Operation Failed.]")
 
-
-    val typeSerializerRegistry = TypeSerializerRegistry.build.addRegistry(JanusGraphIoRegistry.instance).create
-    val cluster = Cluster.build()
-      .addContactPoint("localhost")
-      .port(8182)
-      .serializer(new GraphBinaryMessageSerializerV1(typeSerializerRegistry))
-      .create()
-
-    // Create the client// Create the client
-    val client:Client = cluster.connect()
+    val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
 
     var str = searchCriteria.getJanusQuery;
+
     str = str.replace("AND", "")
     val sb = new StringBuilder
     sb.append("g.V().hasLabel('" + graphId + "')")
-      .append(str)
-      .append(".dedup()")
-      .append(".as('ee')")
-      .append(".coalesce(")
-      .append("outE().as('r').inV().as('endNode').select('ee', 'r', 'endNode'),")
-      .append("outE().as('r').outV().as('startNode').select('ee', 'r', 'startNode'),")
-      .append("select('ee').as('r').constant(null).as('endNode').select('ee', 'r', 'endNode')")
-      .append(")")
-      .append(".project('ee', 'r', '__startNode', '__endNode')")
-      .append(".by(select('ee'))")
-      .append(".by(constant(null))")
-      .append(".by(constant(null))")
-      .append(".by(constant(null))")
-      .append(".dedup()")
-      .append(".toList()")
+      .append(str);
 
     val gremlinQuery = sb.toString
     println("gremlinQuery ", gremlinQuery)
@@ -386,10 +378,10 @@ class SearchOperations {
       for (result <- results) {
         val res = result.getObject.asInstanceOf[util.Map[String, AnyRef]]
         val resMap = new util.HashMap[String, AnyRef]
-        resMap.put("ee", res.get("ee").asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex])
-        resMap.put("r", res.get("r"))
-        resMap.put("__startNode", res.get("__startNode"))
-        resMap.put("__endNode", res.get("__endNode"))
+        resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT, res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT).asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex])
+        resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT, res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT))
+        resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT, res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT))
+        resMap.put(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT, res.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT))
         finalList.add(resMap)
       }
 
@@ -411,9 +403,7 @@ class SearchOperations {
         }
       }
     }
-    // Close the client and cluster
-    client.close()
-    cluster.close()
+
     Future {
       nodes
     }

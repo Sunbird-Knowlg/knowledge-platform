@@ -242,10 +242,62 @@ public class SearchCriteria implements Serializable {
                     }
                 }
             }
+            sb.append(".dedup()").append(".as('ee')");
         }
-        if (null != relations && relations.size() > 0) {
-            for (RelationCriterion rel : relations)
-                sb.append(rel.getCypher(this, null));
+        if (!countQuery) {
+            boolean returnNode = true;
+            if (null == fields || fields.isEmpty()) {
+                if (null != sortOrder && sortOrder.size() > 0) {
+                    sb.append(".order()");
+                    for (int i = 0; i < sortOrder.size(); i++) {
+                        Sort sort = sortOrder.get(i);
+                        if (StringUtils.equals(Sort.SORT_DESC, sort.getSortOrder())) {
+                            sb.append(".by('").append(sort.getSortField()).append(", Order.desc) ");
+                        }
+                    }
+                }
+                if (startPosition > 0)
+                    sb.append("skip(").append(startPosition).append(")");
+                if (resultSize > 0)
+                    sb.append("limit(").append(resultSize).append(")");
+                sb.append(".coalesce(");
+                sb.append("outE().as('r').inV().as('endNode').select('ee', 'r', 'endNode'),");
+                sb.append("outE().as('r').outV().as('startNode').select('ee', 'r', 'startNode'),");
+                sb.append("select('ee').as('r').constant(null).as('endNode').select('ee', 'r', 'endNode')");
+                sb.append(")");
+                sb.append(".project('ee', 'r', '__startNode', '__endNode')");
+                sb.append(".by(select('ee'))");
+                sb.append(".by(constant(null))");
+                sb.append(".by(constant(null))");
+                sb.append(".by(constant(null))");
+                sb.append(".dedup()");
+                sb.append(".toList()");
+            } else {
+                returnNode = false;
+                sb.append("RETURN ");
+                for (int i = 0; i < fields.size(); i++) {
+                    sb.append("ee.").append(fields.get(i)).append(" as ").append(fields.get(i)).append(" ");
+                    if (i < fields.size() - 1)
+                        sb.append(", ");
+                }
+            }
+            if (!returnNode) {
+                if (null != sortOrder && sortOrder.size() > 0) {
+                    sb.append(".order()");
+                    for (int i = 0; i < sortOrder.size(); i++) {
+                        Sort sort = sortOrder.get(i);
+                        if (StringUtils.equals(Sort.SORT_DESC, sort.getSortOrder())) {
+                            sb.append(".by('").append(sort.getSortField()).append(", Order.desc) ");
+                        }
+                    }
+                }
+                if (startPosition > 0)
+                    sb.append("skip(").append(startPosition).append(")");
+                if (resultSize > 0)
+                    sb.append("limit(").append(resultSize).append(")");
+            }
+        } else {
+            sb.append(".count()").append("  .as('__count')").append("  .select('__count')");
         }
         return sb.toString();
     }
