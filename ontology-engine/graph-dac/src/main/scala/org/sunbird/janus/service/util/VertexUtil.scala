@@ -1,6 +1,7 @@
 package org.sunbird.janus.service.util
 
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
+import org.apache.tinkerpop.gremlin.driver.Client
 import org.sunbird.common.DateUtils
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.common.Identifier
@@ -17,26 +18,66 @@ object VertexUtil {
     val templateQuery: StringBuilder = new StringBuilder()
     if (null != parameterMap) {
       val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name, "").asInstanceOf[String]
-      val vertex = parameterMap.getOrDefault(GraphDACParams.vertex.name, null).asInstanceOf[Node]
+      val node = parameterMap.getOrDefault(GraphDACParams.node.name, null).asInstanceOf[Node]
 
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
           DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Create Node' Query Generation Failed.]")
 
-      if (null == vertex)
+      if (null == node)
         throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
           DACErrorMessageConstants.INVALID_NODE + " | [Create Node Query Generation Failed.]")
 
       val date: String = DateUtils.formatCurrentDate
 
       val finalMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-      finalMap.putAll(getMetadataCypherQueryMap(vertex))
-      finalMap.putAll(getSystemPropertyMap(vertex, date))
-      finalMap.putAll(getAuditPropertyMap(vertex, date, false))
-      finalMap.putAll(getVersionPropertyMap(vertex, date))
+      finalMap.putAll(getMetadataCypherQueryMap(node))
+      finalMap.putAll(getSystemPropertyMap(node, date))
+      finalMap.putAll(getAuditPropertyMap(node, date, false))
+      finalMap.putAll(getVersionPropertyMap(node, date))
 
       templateQuery.append("g.addV('")
-        .append(vertex.getGraphId)
+        .append(node.getGraphId)
+        .append("')")
+
+      finalMap.foreach { case (key, value) =>
+        templateQuery.append(".property('")
+          .append(key)
+          .append("', '")
+          .append(value)
+          .append("')")
+      }
+    }
+    templateQuery.toString()
+  }
+
+  def updateVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+    val templateQuery: StringBuilder = new StringBuilder()
+    if (null != parameterMap) {
+      val node = parameterMap.getOrDefault(GraphDACParams.node.name, null).asInstanceOf[Node]
+
+      if (null == node)
+        throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name,
+          DACErrorMessageConstants.INVALID_NODE + " | [Upsert Node Query Generation Failed.]")
+
+      if (StringUtils.isBlank(node.getIdentifier))
+        node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
+
+      val graphId =  parameterMap.getOrDefault(GraphDACParams.graphId.name, null).asInstanceOf[String]
+      val date: String = DateUtils.formatCurrentDate
+
+      val ocsMap: util.Map[String, AnyRef] = getOnCreateSetMap(node, date)
+      val omsMap: util.Map[String, AnyRef] = getOnMatchSetMap(node, date, merge = true)
+      val finalMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
+      finalMap.putAll(ocsMap)
+      finalMap.putAll(omsMap)
+
+      templateQuery.append("g.V().has('")
+        .append(graphId)
+        .append("','")
+        .append(SystemProperties.IL_UNIQUE_ID.name)
+        .append("','")
+        .append(node.getIdentifier)
         .append("')")
 
       finalMap.foreach { case (key, value) =>
@@ -91,5 +132,61 @@ object VertexUtil {
       versionPropertyMap.put(GraphDACParams.versionKey.name, DateUtils.parse(date).getTime.toString)
     versionPropertyMap
   }
+
+  def getElementMap(id: AnyRef, client: Client): util.Map[AnyRef, AnyRef] = {
+    val query = s"g.V($id).elementMap()"
+    val resultSet = client.submit(query)
+    val result = resultSet.one()
+    val elementMap = result.getObject.asInstanceOf[util.Map[AnyRef, AnyRef]]
+    elementMap
+  }
+
+  private def getOnCreateSetMap(node: Node, date: String): util.Map[String, Object] = {
+    val paramMap = new util.HashMap[String, Object]()
+
+    if (node != null && StringUtils.isNotBlank(date)) {
+      if (StringUtils.isBlank(node.getIdentifier)) {
+        node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
+      }
+
+      paramMap.put(SystemProperties.IL_UNIQUE_ID.name, node.getIdentifier)
+      paramMap.put(SystemProperties.IL_SYS_NODE_TYPE.name, node.getNodeType)
+
+      if (StringUtils.isNotBlank(node.getObjectType)) {
+        paramMap.put(SystemProperties.IL_FUNC_OBJECT_TYPE.name, node.getObjectType)
+      }
+      paramMap.put(AuditProperties.createdOn.name, date)
+
+      if (!node.getMetadata.containsKey(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name)) {
+        paramMap.put(AuditProperties.lastUpdatedOn.name, date)
+      }
+      val versionKey = DateUtils.parse(date).getTime.toString
+      paramMap.put(GraphDACParams.versionKey.name, versionKey)
+    }
+
+    paramMap
+  }
+
+  private def getOnMatchSetMap(node: Node, date: String, merge: Boolean): util.Map[String, Object] = {
+    val paramMap = new util.HashMap[String, Object]()
+    if (node != null && StringUtils.isNotBlank(date)) {
+      if (node.getMetadata != null) {
+        node.getMetadata.foreach {
+          case (key, value) => if (key != GraphDACParams.versionKey.name) paramMap.put(key, value)
+        }
+      }
+      if (!node.getMetadata.containsKey(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name)) {
+        paramMap.put(AuditProperties.lastUpdatedOn.name, date)
+      }
+      if (node.getMetadata != null &&
+        StringUtils.isBlank(node.getMetadata.get(GraphDACParams.versionKey.name()).toString)) {
+        val versionKey = DateUtils.parse(date).getTime.toString
+        paramMap.put(GraphDACParams.versionKey.name, versionKey)
+      }
+    }
+    paramMap
+  }
+
+
 
 }

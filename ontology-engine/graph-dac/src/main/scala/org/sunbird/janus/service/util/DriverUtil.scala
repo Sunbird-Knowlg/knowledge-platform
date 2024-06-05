@@ -14,8 +14,8 @@ import java.util
 object DriverUtil {
 
   private val driverMap: util.Map[String, Client] = new util.HashMap[String, Client]
-  val contactUrl: String = if (Platform.config.hasPath("janusContactPoint")) Platform.config.getString("janusContactPoint") else "localhost"
-  val port: Any = if (Platform.config.hasPath("janusPort")) Platform.config.getInt("janusPort") else 8182
+  private val contactUrl: String = if (Platform.config.hasPath("janusContactPoint")) Platform.config.getString("janusContactPoint") else "localhost"
+  private val port: Any = if (Platform.config.hasPath("janusPort")) Platform.config.getInt("janusPort") else 8182
 
   def getGraphClient(graphId: String, graphOperation: GraphOperation): Client = {
     println("getGraphClient ...")
