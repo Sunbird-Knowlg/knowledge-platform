@@ -12,8 +12,7 @@ import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
-import org.sunbird.janus.service.util.JanusConnectionUtil
-import org.sunbird.janus.service.util.DriverUtil
+import org.sunbird.janus.service.util.{DriverUtil, JanusConnectionUtil, SearchUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.apache.tinkerpop.gremlin.driver.Result
 import org.apache.tinkerpop.gremlin.driver.ResultSet
@@ -253,33 +252,8 @@ class SearchOperations {
               DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node By Unique Id' Query Generation Failed.]")
 
           val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
-          val sb = new StringBuilder
-          sb.append("g.V().hasLabel('").append(graphId).append("').has('")
-            .append(SystemProperties.IL_UNIQUE_ID).append("', '").append(vertexId).append("').as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"')")
-            .append(".flatMap(")
-            .append("coalesce(")
-            .append("union(")
-            .append("outE().dedup().as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"').inV().dedup()")
-            .append(".as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT+"')")
-            .append(".select('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"', '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"'," +
-              " '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT+"'),")
-            .append("inE().dedup().as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"').outV().dedup()")
-            .append(".as('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT+"')")
-            .append(".select('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"', '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"'," +
-              " '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT+"')")
-            .append("),")
-            .append("project('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"', " +
-              "'"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT+"', '"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_START_NODE_OBJECT+"', " +
-              "'"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_END_NODE_OBJECT+"')")
-            .append(".by(select('"+CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT+"'))")
-            .append(".by(constant(null))")
-            .append(".by(constant(null))")
-            .append(".by(constant(null))")
-            .append("))")
-            .append(".dedup().toList()")
 
-
-          val gremlinQuery = sb.toString
+          val gremlinQuery = SearchUtil.getVertexByUniqueIdQuery(graphId, vertexId)
           println("getVertexByUniqueId gremlinQuery === ", gremlinQuery)
 
           // Execute the query
@@ -349,7 +323,7 @@ class SearchOperations {
     }
   }
 
-  def getNodeByUniqueIds(graphId: String, searchCriteria: SearchCriteria)  = {
+  def getNodeByUniqueIds(graphId: String, searchCriteria: SearchCriteria): Future[util.ArrayList[Node]]  = {
 
     if (StringUtils.isBlank(graphId))
       throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name, DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Nodes By Search Criteria' Operation Failed.]")
@@ -359,12 +333,9 @@ class SearchOperations {
 
     val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
 
-    var str = searchCriteria.getJanusQuery;
-
-    str = str.replace("AND", "")
     val sb = new StringBuilder
     sb.append("g.V().hasLabel('" + graphId + "')")
-      .append(str);
+      .append(searchCriteria.getJanusQuery.replace("AND", ""));
 
     val gremlinQuery = sb.toString
     println("gremlinQuery ", gremlinQuery)

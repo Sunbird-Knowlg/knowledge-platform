@@ -2,6 +2,7 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.apache.tinkerpop.gremlin.driver.{Result, ResultSet}
 import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__
 import org.apache.tinkerpop.gremlin.groovy.jsr223.dsl.credential.__.{bothE, outE}
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
@@ -11,9 +12,9 @@ import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
-import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants}
+import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
-import org.sunbird.janus.service.util.JanusConnectionUtil
+import org.sunbird.janus.service.util.{DriverUtil, EdgeUtil, JanusConnectionUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
@@ -28,7 +29,6 @@ import scala.collection.JavaConverters._
 
 class EdgeOperations {
 
-  val graphConnection = new JanusConnectionUtil
   val gremlinVertexUtil = new GremlinVertexUtil
   def createEdges(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Future[Response] = {
     Future{
@@ -41,10 +41,7 @@ class EdgeOperations {
         throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name,
           DACErrorMessageConstants.INVALID_NODE + " | [Create Relation Operation Failed.]")
 
-      graphConnection.initialiseGraphClient()
-      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
-
-      createBulkRelations(g, graphId, edgeData)
+      createBulkRelations(graphId, edgeData)
       ResponseHandler.OK()
     }
   }
@@ -59,54 +56,55 @@ class EdgeOperations {
         throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name,
           DACErrorMessageConstants.INVALID_NODE + " | [Create Relation Operation Failed.]")
 
-      graphConnection.initialiseGraphClient()
-      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
-
-      deleteBulkRelations(g, graphId, edgeData)
+      deleteBulkRelations(graphId, edgeData)
       ResponseHandler.OK()
     }
   }
 
-  def createBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
+  private def createBulkRelations(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
     for (row <- edgeData.asScala.distinct) {
       val startNodeId = row.get("startNodeId").toString
       val endNodeId = row.get("endNodeId").toString
       val relation = row.get("relation").toString
       val relMetadata = row.get("relMetadata").asInstanceOf[util.Map[AnyRef, AnyRef]]
-      val startNode: Vertex = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, startNodeId).next()
-      val endNode: Vertex = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, endNodeId).next()
 
-      val edgeTraversal = g.V(startNode.id()).as("a").addE(relation).to(__.V(endNode.id()).as("b"))
-      for ((key, value) <- relMetadata) {
-        edgeTraversal.property(key, value)
-      }
-      val addedEdge = edgeTraversal.next()
+      val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
+
+      // Gremlin query to get the target vertex ID
+      val startNodeQuery = "g.V().hasLabel('"+graphId+"').has('"+SystemProperties.IL_UNIQUE_ID.name+"', '"+startNodeId+"').id()"
+      val startNodeResult = client.submit(startNodeQuery).one
+      val startNode = startNodeResult.getObject
+
+      // Gremlin query to get the target vertex ID
+      val endNodeQuery = "g.V().hasLabel('"+graphId+"').has('"+SystemProperties.IL_UNIQUE_ID.name+"', '"+endNodeId+"').id()"
+      val endNodeResult = client.submit(endNodeQuery).one
+      val endNode = endNodeResult.getObject
+
+      val createRelationsQuery = EdgeUtil.createRelationsQuery(startNode, endNode, relation, relMetadata)
+      client.submit(createRelationsQuery)
     }
 
   }
 
-  private def deleteBulkRelations(g: GraphTraversalSource, graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
+  private def deleteBulkRelations(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): Unit = {
     for (row <- edgeData.asScala) {
       val startNodeId = row.get("startNodeId").toString
       val endNodeId = row.get("endNodeId").toString
       val relation = row.get("relation").toString
 
-      g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, startNodeId)
-        .outE().as(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).inV().has(SystemProperties.IL_UNIQUE_ID.name, endNodeId)
-        .select(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).drop().iterate()
-
+      val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
+      val deleteRelationsQuery = EdgeUtil.deleteRelationsQuery(graphId, startNodeId, endNodeId)
+      client.submit(deleteRelationsQuery)
     }
   }
 
-    def getSubGraph(graphId: String, nodeId: String, depth: Integer) = {
+    def getSubGraph(graphId: String, nodeId: String, depth: Integer): Future[SubGraph] = {
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name, DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Get SubGraph Operation Failed.]")
       if (StringUtils.isBlank(nodeId))
         throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name, DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Please Provide Node Identifier.]")
       var effectiveDepth:Integer  = if (depth == null) 5 else depth
 
-      graphConnection.initialiseGraphClient()
-      val g: GraphTraversalSource = graphConnection.getGraphTraversalSource
       TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]")
 
       val relationMap = new util.HashMap[Object, AnyRef]()
@@ -115,25 +113,17 @@ class EdgeOperations {
       val startNodeMap = new util.HashMap[Object, AnyRef]
       val endNodeMap = new util.HashMap[Object, AnyRef]
 
-      var results = g.V().hasLabel(graphId).has(SystemProperties.IL_UNIQUE_ID.name, nodeId).as("n")
-        .emit().repeat(outE().inV().simplePath()).times(5).as("m")
-        .outE().as("r2").inV().as("l")
-        .select("n", "m", "r2", "l")
-        .dedup()
-        .project("relationName", "relationMetadata", "startNode", "endNode")
-        .by(__.select("r2").label())
-        .by(__.select("r2").elementMap())
-        .by(__.select("m"))
-        .by(__.select("l"))
-        .dedup("startNode", "endNode")
-        .toList()
+      val subGraphQuery = EdgeUtil.getSubGraphQuery(graphId: String, nodeId: String, effectiveDepth: Integer)
+      val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+      val resultSet: ResultSet = client.submit(subGraphQuery)
+      val results: util.List[Result] = resultSet.all().get()
 
-
-      for (result <- results.asScala) {
-        val startNode = result.get("startNode").asInstanceOf[Vertex]
-        val endNode = result.get("endNode").asInstanceOf[Vertex]
-        val relationName = result.get("relationName").toString
-        val relationMetadata = result.get("relationMetadata").asInstanceOf[util.Map[String, Object]]
+      for (result <- results) {
+        val res = result.getObject.asInstanceOf[util.Map[String, AnyRef]]
+        val startNode = res.get("startNode").asInstanceOf[Vertex]
+        val endNode = res.get("endNode").asInstanceOf[Vertex]
+        val relationName = res.get("relationName").toString
+        val relationMetadata = res.get("relationMetadata").asInstanceOf[util.Map[String, Object]]
 
         nodes.add(gremlinVertexUtil.getNode(graphId, startNode, relationMap, startNodeMap, endNodeMap))
         nodes.add(gremlinVertexUtil.getNode(graphId, endNode, relationMap, startNodeMap, endNodeMap))
