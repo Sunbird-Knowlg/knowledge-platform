@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
@@ -24,7 +24,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "create a categoryDefinition node and store it in neo4j" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234")
@@ -56,7 +56,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "should throw exception if get category node returns null" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getCategoryDefinitionNode()))
 		val request = getCategoryDefintionRequest()
@@ -79,7 +79,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "return success response for readCategoryDefinition" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -95,7 +95,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "return success response for readCategoryDefinition with post request" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -110,7 +110,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "return success response for readCategoryDefinition with post request for global definition" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "obj-cat:1234_content_test", *, *).returns(Future.failed(new ResourceNotFoundException("NODE_NOT_FOUND", "Node not found!")))
@@ -127,7 +127,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "return success response for updateCategoryDefinition for valid input" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234_content_all")
@@ -157,7 +157,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 	it should "return client exception response for updateCategoryDefinition for invalid input" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-		val graphDB = mock[GraphService]
+		val graphDB = mock[Neo4jGraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234_content_all")

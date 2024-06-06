@@ -5,7 +5,7 @@ import java.util
 import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
@@ -22,7 +22,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
       it should "return success response for 'createCategory' operation" in {
           implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-          val graphDB = mock[GraphService]
+          val graphDB = mock[Neo4jGraphService]
           (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
           val node = new Node("domain", "DATA_NODE", "Category")
           node.setIdentifier("state")
@@ -59,7 +59,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
       it should "throw exception if invalid translations sent in request" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val nodes: util.List[Node] = getCategoryNode()
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
@@ -76,7 +76,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if null values sent in request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val nodes: util.List[Node] = getCategoryNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
@@ -111,7 +111,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'readCategory'" in {
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-      val graphDB = mock[GraphService]
+      val graphDB = mock[Neo4jGraphService]
       (oec.graphService _).expects().returns(graphDB)
       val node = getValidNode()
       (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -125,7 +125,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for updateCategory" in {
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-      val graphDB = mock[GraphService]
+      val graphDB = mock[Neo4jGraphService]
       (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
       val node = getValidNode()
       (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -142,7 +142,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   it should "throw an exception if identifier is sent in update request" in {
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-      val graphDB = mock[GraphService]
+      val graphDB = mock[Neo4jGraphService]
       (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
       val request = getCategoryRequest()
       request.putAll(mapAsJavaMap(Map("description" -> "test desc", "identifier"-> "category_test")))
@@ -153,7 +153,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   it should "throw an exception if code is sent in update request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryRequest()
     request.putAll(mapAsJavaMap(Map("description" -> "test desc", "code" -> "category_test")))
@@ -164,7 +164,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'retireCategory' operation" in {
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-      val graphDB = mock[GraphService]
+      val graphDB = mock[Neo4jGraphService]
       (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
       val node = getValidNode()
       node.setObjectType("Category")

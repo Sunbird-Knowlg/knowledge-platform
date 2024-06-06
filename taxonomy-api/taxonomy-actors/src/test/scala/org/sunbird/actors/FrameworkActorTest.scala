@@ -7,7 +7,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
 import org.sunbird.utils.Constants
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -24,7 +24,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for 'createFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("channel_test")
@@ -51,7 +51,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if code is sent empty for 'createFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getFrameworkRequest()
     request.putAll(mapAsJavaMap(Map("name" -> "framework_test", "code" -> "", "description" -> "desc_test", "channel" -> "channel_test")))
@@ -62,7 +62,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if channel is not sent in the request for 'createFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getFrameworkRequest()
     request.putAll(mapAsJavaMap(Map("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test")))
@@ -73,7 +73,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if invalid translations sent in the request 'createFramework'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("channel_test")
@@ -102,7 +102,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if empty channel identifier is sent in the request 'createFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("")
@@ -124,7 +124,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for updateFramework" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -141,7 +141,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for 'retireCategory' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     node.setObjectType("Framework")
@@ -161,7 +161,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for 'copyFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getFrameworkOfNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -179,7 +179,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if code not sent in the request 'copyFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getFrameworkOfNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -197,7 +197,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if code & identifier values same in the request 'copyFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getFrameworkOfNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -215,7 +215,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for 'publishFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("sunbird")
@@ -242,7 +242,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for 'readFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
     val node = getValidNode()

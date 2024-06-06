@@ -5,7 +5,7 @@ import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.utils.Constants
 import org.json.JSONObject
@@ -29,7 +29,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for create lock if found in cassandra" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -64,7 +64,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "create a new lock If not found in cassandra" in{
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -98,7 +98,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception for create lock if it is already locked by other user" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -153,7 +153,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception for create lock if it is self locked" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -188,7 +188,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if there was error saving in cassandra" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -223,7 +223,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for retire a lock" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -252,7 +252,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if error in deleting from cassandra in  retire a lock" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -282,7 +282,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if userId and createdBy is not equal in  retire lock" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Content")
     node.setIdentifier("do_123")
@@ -322,7 +322,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for refresh a lock" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val node = new Node("domain", "DATA_NODE", "Content")
@@ -366,7 +366,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if lockKey and request lockId is not same in 'refresh lock' " in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val node = new Node("domain", "DATA_NODE", "Content")
@@ -401,7 +401,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "create a new lock if a lock is not found while refreshing" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val node = new Node("domain", "DATA_NODE", "Content")
@@ -434,7 +434,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if error occurs while saving in cassandra while refresh lock operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val node = new Node("domain", "DATA_NODE", "Content")
@@ -468,7 +468,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if userId not equal to createdBy while refresh lock operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val node = new Node("domain", "DATA_NODE", "Content")
@@ -502,7 +502,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if error occurs while updating in cassandra for refresh a lock" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val node = new Node("domain", "DATA_NODE", "Content")
@@ -538,7 +538,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for list locks" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponseForList())).anyNumberOfTimes()
 
@@ -556,7 +556,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for list lock with resourceId as String" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(cassandraResponseForList())).anyNumberOfTimes()
 
@@ -574,7 +574,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if error occurs while reading from cassandra in list lock" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(errorResponse())).anyNumberOfTimes()
 
@@ -593,7 +593,7 @@ class LockActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if x-device-id is not passed in the request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(errorResponse())).anyNumberOfTimes()
 

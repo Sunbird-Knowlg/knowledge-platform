@@ -7,7 +7,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.common.enums.GraphDACParams
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 import scala.concurrent.Future
@@ -23,7 +23,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "create a CategoryInstance node and store it in neo4j" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("NCF")
@@ -70,7 +70,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw error if category does not belong to master category" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("NCF")
@@ -94,7 +94,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw error if code value is empty " in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("NCF")
@@ -118,7 +118,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throws exception if identifier is empty" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("")
@@ -142,7 +142,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if frameworkId is not sent in request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
     request.putAll(mapAsJavaMap(Map("code" -> "board", "name" -> "Board")))
@@ -154,7 +154,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if frameworkId is null " in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
     request.putAll(mapAsJavaMap(Map("framework" -> "", "code" -> "board", "name" -> "Board")))
@@ -166,7 +166,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if node id is empty for 'readCategoryInstance'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node()
     node.setIdentifier("")
@@ -194,7 +194,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if code is not sent in request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
     request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]")))
@@ -206,7 +206,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if status is sent in createCategoryInstance request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val request = getCategoryInstanceRequest()
@@ -220,7 +220,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for 'readCategoryInstance'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -254,7 +254,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for updateCategoryInstance" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -274,7 +274,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "throw exception if identifier is sent in updateCategoryInstance request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
     request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "name" -> "Board", "identifier"->"ncf_board", "description" -> "Board", "code" -> "board", "channel" -> "sunbird", "category" -> "board")))
@@ -287,7 +287,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
   it should "return success response for retireCategoryInstance" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()

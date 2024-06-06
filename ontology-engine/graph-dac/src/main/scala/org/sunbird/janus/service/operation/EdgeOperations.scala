@@ -14,7 +14,7 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
 import org.sunbird.janus.dac.util.GremlinVertexUtil
-import org.sunbird.janus.service.util.{DriverUtil, EdgeUtil, JanusConnectionUtil}
+import org.sunbird.janus.service.util.{DriverUtil, EdgeUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util

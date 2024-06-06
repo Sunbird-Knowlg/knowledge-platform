@@ -24,7 +24,7 @@ object DataSubGraph {
   def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[SubGraph] = {
     val identifier: String = request.get("identifier").asInstanceOf[String]
     val depth: Int = request.getOrDefault("depth", 5).asInstanceOf[Int]
-    val subGraph: Future[SubGraph] = oec.janusGraphService.getSubGraph(request.graphId, identifier, depth)
+    val subGraph: Future[SubGraph] = oec.graphService.getSubGraph(request.graphId, identifier, depth)
     subGraph
   }
 

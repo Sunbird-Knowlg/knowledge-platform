@@ -2,7 +2,7 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversalSource}
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 import org.sunbird.janus.dac.util.GremlinVertexUtil
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.apache.tinkerpop.gremlin.structure.Edge
@@ -11,7 +11,7 @@ import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
-import org.sunbird.janus.service.util.{DriverUtil, JanusConnectionUtil, SearchUtil}
+import org.sunbird.janus.service.util.{DriverUtil, SearchUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.apache.tinkerpop.gremlin.driver.Result
 import org.apache.tinkerpop.gremlin.driver.ResultSet

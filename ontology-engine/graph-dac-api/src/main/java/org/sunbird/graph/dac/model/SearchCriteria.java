@@ -274,12 +274,12 @@ public class SearchCriteria implements Serializable {
                 sb.append(".toList()");
             } else {
                 returnNode = false;
-                sb.append("RETURN ");
-                for (int i = 0; i < fields.size(); i++) {
-                    sb.append("ee.").append(fields.get(i)).append(" as ").append(fields.get(i)).append(" ");
-                    if (i < fields.size() - 1)
-                        sb.append(", ");
-                }
+//                sb.append("RETURN ");
+//                for (int i = 0; i < fields.size(); i++) {
+//                    sb.append("ee.").append(fields.get(i)).append(" as ").append(fields.get(i)).append(" ");
+//                    if (i < fields.size() - 1)
+//                        sb.append(", ");
+//                }
             }
             if (!returnNode) {
                 if (null != sortOrder && sortOrder.size() > 0) {
