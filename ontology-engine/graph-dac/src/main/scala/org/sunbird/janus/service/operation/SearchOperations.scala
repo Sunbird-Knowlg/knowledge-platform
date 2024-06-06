@@ -156,7 +156,6 @@ class SearchOperations {
         val resultSet = generateCheckCyclicLoopTraversal(parameterMap)
         val result = resultSet.one()
         if (null != result) {
-          println("result ", result)
           cyclicLoopMap.put(GraphDACParams.loop.name, new Boolean(true))
           cyclicLoopMap.put(GraphDACParams.message.name, startNodeId + " and " + endNodeId + " are connected by relation: " + relationType)
         }
@@ -193,7 +192,6 @@ class SearchOperations {
 
       val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
       val query = SearchUtil.checkCyclicLoopQuery(graphId, startNodeId, endNodeId, relationType)
-      println("generateCheckCyclicLoopTraversal Query ", query)
       client.submit(query)
     }
     else throw new ClientException(DACErrorCodeConstants.INVALID_PARAMETER.name, DACErrorMessageConstants.INVALID_PARAM_MAP)
@@ -246,9 +244,6 @@ class SearchOperations {
           val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
 
           val gremlinQuery = SearchUtil.getVertexByUniqueIdQuery(graphId, vertexId)
-          println("getVertexByUniqueId gremlinQuery === ", gremlinQuery)
-
-          // Execute the query
           val resultSet: ResultSet = client.submit(gremlinQuery)
           val results: util.List[Result] = resultSet.all().get()
 
@@ -330,9 +325,6 @@ class SearchOperations {
       .append(searchCriteria.getJanusQuery.replace("AND", ""));
 
     val gremlinQuery = sb.toString
-    println("gremlinQuery ", gremlinQuery)
-
-    // Execute the query
     val resultSet:ResultSet = client.submit(gremlinQuery)
     val results: util.List[Result]  = resultSet.all().get()
     val finalList = new util.ArrayList[util.Map[String, AnyRef]]

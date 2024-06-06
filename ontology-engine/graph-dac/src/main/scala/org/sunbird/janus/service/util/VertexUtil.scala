@@ -8,9 +8,8 @@ import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants}
-
 import java.util
-import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable`, `map AsJavaMap`, `map AsScala`}
+import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable`, `map AsScala`}
 
 object VertexUtil {
 
@@ -40,18 +39,12 @@ object VertexUtil {
         .append(node.getGraphId)
         .append("')")
 
-      finalMap.foreach { case (key, value) =>
-        templateQuery.append(".property('")
-          .append(key)
-          .append("', '")
-          .append(value)
-          .append("')")
-      }
+      appendProperties(templateQuery, finalMap)
     }
     templateQuery.toString()
   }
 
-  def updateVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+  def upsertVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
     val templateQuery: StringBuilder = new StringBuilder()
     if (null != parameterMap) {
       val node = parameterMap.getOrDefault(GraphDACParams.node.name, null).asInstanceOf[Node]
@@ -69,30 +62,148 @@ object VertexUtil {
       val ocsMap: util.Map[String, AnyRef] = getOnCreateSetMap(node, date)
       val omsMap: util.Map[String, AnyRef] = getOnMatchSetMap(node, date, merge = true)
 
+      templateQuery.append("g.V().has(")
+        .append(getMatchCriteriaString(graphId, node))
+        .append(")")
+        .append(".fold()")
+        .append(".coalesce(")
+        .append("unfold(), addV('")
+        .append(graphId)
+        .append("')")
+
+      appendProperties(templateQuery, ocsMap)
+      templateQuery.append(".sideEffect(")
+      appendProperties(templateQuery, omsMap)
+
+      templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
+      templateQuery.append(").next()")
+    }
+    templateQuery.toString()
+  }
+
+  def upsertRootVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+    val templateQuery: StringBuilder = new StringBuilder()
+
+    if (null != parameterMap) {
+      val rootNode = parameterMap.get(GraphDACParams.rootNode.name).asInstanceOf[Node]
+
+      if (null == rootNode)
+        throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name(),
+          DACErrorMessageConstants.INVALID_ROOT_NODE + " | [Create Root Node Query Generation Failed.]")
+
+      val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name, "").asInstanceOf[String]
+      val date: String = DateUtils.formatCurrentDate
+
+      templateQuery.append("g.V().has(")
+        .append(getMatchCriteriaString(graphId, rootNode))
+        .append(")")
+        .append(".fold()")
+        .append(".coalesce(")
+        .append("unfold(), addV('")
+        .append(graphId)
+        .append("')")
+        .append(getOnCreateSetString(date, rootNode))
+        .append(".next()")
+
+    }
+    templateQuery.toString()
+  }
+
+  def upsertVerticesQuery(graphId: String, identifiers: util.List[String], metadata: util.Map[String, AnyRef]): String = {
+    val templateQuery: StringBuilder = new StringBuilder()
+
+    templateQuery.append("g.V().hasLabel('")
+      .append(graphId)
+      .append("').has('")
+      .append(SystemProperties.IL_UNIQUE_ID.name)
+      .append("', within(")
+
+    templateQuery.append(identifiers.map(id => s"'$id'").mkString(","))
+    templateQuery.append("))")
+
+    appendProperties(templateQuery, metadata)
+
+    templateQuery.toString()
+  }
+
+  private def appendProperties(templateQuery: StringBuilder, metadata: util.Map[String, AnyRef]): Unit = {
+    metadata.foreach { case (key, value) =>
+      templateQuery.append(".property('")
+        .append(key)
+        .append("', '")
+        .append(value)
+        .append("')")
+    }
+  }
+
+  private def getMatchCriteriaString(graphId: String, node: Node): String = {
+    var matchCriteria :String = ""
+		if (StringUtils.isNotBlank(graphId) && null != node) {
+			if (StringUtils.isBlank(node.getIdentifier))
+				node.setIdentifier(Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp))
+			if (StringUtils.isBlank(node.getGraphId))
+				node.setGraphId(graphId);
+    matchCriteria = "'" + graphId + "', '" + SystemProperties.IL_UNIQUE_ID.name + "', '" + node.getIdentifier + "'"
+    }
+    matchCriteria
+  }
+
+  private def getOnCreateSetString(date: String, node: Node): String = {
+    val query: StringBuilder = new StringBuilder()
+
+    if (null != node && StringUtils.isNotBlank(date)) {
+      if (StringUtils.isBlank(node.getIdentifier)) {
+        node.setIdentifier(Identifier.getIdentifier(node.getGraphId, Identifier.getUniqueIdFromTimestamp))
+      }
+      query.append(".property('").append(SystemProperties.IL_UNIQUE_ID.name)
+        .append("'").append(",'").append(node.getIdentifier).append("')")
+
+      query.append(".property('").append(SystemProperties.IL_SYS_NODE_TYPE.name)
+        .append("'").append(",'").append(node.getNodeType).append("')")
+
+      if (StringUtils.isNotBlank(node.getObjectType)) {
+        query.append(".property('").append(SystemProperties.IL_SYS_NODE_TYPE.name)
+          .append("'").append(",'").append(node.getNodeType).append("')")
+      }
+
+      query.append(".property('").append(AuditProperties.createdOn.name)
+        .append("'").append(",'").append(date).append("')")
+
+      if (null != node.getMetadata &&
+        null == node.getMetadata.getOrDefault(GraphDACParams.SYS_INTERNAL_LAST_UPDATED_ON.name, ""))
+        {
+          query.append(".property('").append(AuditProperties.lastUpdatedOn.name)
+            .append("'").append(",'").append(date).append("')")
+        }
+
+      query.append(".property('").append(GraphDACParams.versionKey.name)
+        .append("'").append(",'").append(DateUtils.parse(date).getTime.toString).append("')")
+    }
+    query.toString()
+  }
+
+  def deleteVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+    val templateQuery: StringBuilder = new StringBuilder()
+    if (null != parameterMap) {
+      val graphId = parameterMap.get(GraphDACParams.graphId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(graphId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
+          DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Remove Property Values Query Generation Failed.]")
+
+      val nodeId = parameterMap.get(GraphDACParams.nodeId.name).asInstanceOf[String]
+      if (StringUtils.isBlank(nodeId))
+        throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
+          DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Remove Property Values Query Generation Failed.]")
+
       templateQuery.append("g.V().has('")
         .append(graphId)
         .append("','")
         .append(SystemProperties.IL_UNIQUE_ID.name)
         .append("','")
-        .append(node.getIdentifier())
+        .append(nodeId)
         .append("')")
+        .append(".drop()")
 
-      ocsMap.foreach { case (key, value) =>
-          templateQuery.append(".property('")
-            .append(key)
-            .append("', '")
-            .append(value).append("')")
-      }
-
-      templateQuery.append(".sideEffect(")
-
-      omsMap.foreach { case (key, value) =>
-          templateQuery.append("property('").append(key)
-            .append("', '").append(value).append("').")
-      }
-
-      templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
-      templateQuery.append(").next()")
     }
     templateQuery.toString()
   }
