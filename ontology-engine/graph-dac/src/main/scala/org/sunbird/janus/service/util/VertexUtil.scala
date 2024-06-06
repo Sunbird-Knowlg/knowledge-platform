@@ -37,9 +37,10 @@ object VertexUtil {
 
       templateQuery.append("g.addV('")
         .append(node.getGraphId)
-        .append("')")
+        .append("').")
 
       appendProperties(templateQuery, finalMap)
+      templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
     }
     templateQuery.toString()
   }
@@ -69,10 +70,11 @@ object VertexUtil {
         .append(".coalesce(")
         .append("unfold(), addV('")
         .append(graphId)
-        .append("')")
+        .append("').")
 
       appendProperties(templateQuery, ocsMap)
-      templateQuery.append(".sideEffect(")
+      templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
+      templateQuery.append(").sideEffect(")
       appendProperties(templateQuery, omsMap)
 
       templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
@@ -103,7 +105,7 @@ object VertexUtil {
         .append(graphId)
         .append("')")
         .append(getOnCreateSetString(date, rootNode))
-        .append(".next()")
+        .append(").next()")
 
     }
     templateQuery.toString()
@@ -119,20 +121,21 @@ object VertexUtil {
       .append("', within(")
 
     templateQuery.append(identifiers.map(id => s"'$id'").mkString(","))
-    templateQuery.append("))")
+    templateQuery.append(")).")
 
     appendProperties(templateQuery, metadata)
+    templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
 
     templateQuery.toString()
   }
 
   private def appendProperties(templateQuery: StringBuilder, metadata: util.Map[String, AnyRef]): Unit = {
     metadata.foreach { case (key, value) =>
-      templateQuery.append(".property('")
+      templateQuery.append("property('")
         .append(key)
         .append("', '")
         .append(value)
-        .append("')")
+        .append("').")
     }
   }
 
