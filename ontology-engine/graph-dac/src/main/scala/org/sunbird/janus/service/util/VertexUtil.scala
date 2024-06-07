@@ -205,7 +205,7 @@ object VertexUtil {
         .append("','")
         .append(nodeId)
         .append("')")
-        .append(".drop()")
+        .append(".fold().coalesce(unfold(), constant(false)).drop().constant(true)")
 
     }
     templateQuery.toString()

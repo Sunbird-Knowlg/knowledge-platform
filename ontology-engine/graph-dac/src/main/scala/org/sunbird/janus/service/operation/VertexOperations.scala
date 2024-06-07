@@ -2,7 +2,6 @@ package org.sunbird.janus.service.operation
 
 import org.apache.commons.collections4.MapUtils
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.common.{DateUtils, JsonUtils}
@@ -89,10 +88,10 @@ class VertexOperations {
       try {
         val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
         val query: String = VertexUtil.deleteVertexQuery(parameterMap)
-        val results = client.submit(query).all().get()
-        val resultCount = results.size()
-        if (resultCount > 0) { true }
-        else { false }
+        val checkResults = client.submit(query).all().get()
+        val isDeleted = checkResults.isEmpty
+
+        isDeleted
       }
       catch {
         case e: Throwable =>
@@ -209,7 +208,7 @@ class VertexOperations {
     }
   }
 
-  def updateVertices(graphId: String, identifiers: java.util.List[String], data: java.util.Map[String, AnyRef]): Future[util.Map[String, Node]] = {
+  def updateVertices(graphId: String, identifiers: util.List[String], data: util.Map[String, AnyRef]): Future[util.Map[String, Node]] = {
     Future {
       if (StringUtils.isBlank(graphId))
         throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name,
@@ -245,7 +244,7 @@ class VertexOperations {
     }
   }
 
-  private def setPrimitiveData(metadata: java.util.Map[String, AnyRef]): mutable.Map[String, Object] = {
+  private def setPrimitiveData(metadata: util.Map[String, AnyRef]): mutable.Map[String, Object] = {
     metadata.flatMap { case (key, value) =>
       val processedValue = value match {
         case map: util.Map[Any, Any] =>
