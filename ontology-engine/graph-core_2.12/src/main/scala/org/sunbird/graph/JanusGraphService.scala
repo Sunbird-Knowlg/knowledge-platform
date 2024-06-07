@@ -4,7 +4,7 @@ import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.graph.dac.model.{SearchCriteria, Node, SubGraph}
 import org.sunbird.graph.util.CSPMetaUtil
-import org.sunbird.janus.service.operation.{EdgeOperations, SearchOperations, VertexOperations}
+import org.sunbird.graph.service.operation.{EdgeOperations, SearchOperations, VertexOperations}
 
 import java.lang
 import scala.concurrent.{ExecutionContext, Future}

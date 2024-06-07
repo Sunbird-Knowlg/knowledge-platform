@@ -2,6 +2,7 @@ package org.sunbird.graph.dac.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
@@ -125,6 +126,21 @@ public class SearchCriteria implements Serializable {
 
     @JsonIgnore
     public String getQuery() {
+
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getConfig("graphDatabase").toString() : "janusgraph";
+        String queryString = "";
+        switch(graphDBName) {
+            case "neo4j" :
+                queryString=  getNeo4jQuery();
+                break;
+            case "janusgraph" :
+                queryString= getJanusQuery();
+                break;
+        }
+        return queryString;
+    }
+
+    public String getNeo4jQuery() {
         StringBuilder sb = new StringBuilder();
         pIndex = 1;
         sb.append("MATCH (ee:" + (StringUtils.isBlank(graphId) ? "NODE" : graphId) + ") ");
@@ -164,10 +180,10 @@ public class SearchCriteria implements Serializable {
                 sb.append(rel.getCypher(this, null));
         }
         if (!countQuery) {
-        	boolean returnNode = true;
+            boolean returnNode = true;
             if (null == fields || fields.isEmpty()) {
-            	sb.append("WITH DISTINCT ee ");
-            	if (null != sortOrder && sortOrder.size() > 0) {
+                sb.append("WITH DISTINCT ee ");
+                if (null != sortOrder && sortOrder.size() > 0) {
                     sb.append("ORDER BY ");
                     for (int i = 0; i < sortOrder.size(); i++) {
                         Sort sort = sortOrder.get(i);
@@ -179,13 +195,13 @@ public class SearchCriteria implements Serializable {
                             sb.append(", ");
                     }
                 }
-            	if (startPosition > 0)
+                if (startPosition > 0)
                     sb.append("SKIP ").append(startPosition).append(" ");
                 if (resultSize > 0)
                     sb.append("LIMIT ").append(resultSize).append(" ");
                 sb.append("OPTIONAL MATCH (ee)-[r]-() RETURN ee, r, startNode(r) as __startNode, endNode(r) as __endNode ");
             } else {
-            	returnNode = false;
+                returnNode = false;
                 sb.append("RETURN ");
                 for (int i = 0; i < fields.size(); i++) {
                     sb.append("ee.").append(fields.get(i)).append(" as ").append(fields.get(i)).append(" ");
@@ -194,7 +210,7 @@ public class SearchCriteria implements Serializable {
                 }
             }
             if (!returnNode) {
-            	if (null != sortOrder && sortOrder.size() > 0) {
+                if (null != sortOrder && sortOrder.size() > 0) {
                     sb.append("ORDER BY ");
                     for (int i = 0; i < sortOrder.size(); i++) {
                         Sort sort = sortOrder.get(i);
@@ -206,7 +222,7 @@ public class SearchCriteria implements Serializable {
                             sb.append(", ");
                     }
                 }
-            	if (startPosition > 0) {
+                if (startPosition > 0) {
                     sb.append("SKIP ").append(startPosition).append(" ");
                 }
                 if (resultSize > 0) {
@@ -234,7 +250,7 @@ public class SearchCriteria implements Serializable {
             }
             if (null != metadata && metadata.size() > 0) {
                 for (int i = 0; i < metadata.size(); i++) {
-                    String metadataCypher = metadata.get(i).getJanusCypher(this, "ee");
+                    String metadataCypher = metadata.get(i).getCypher(this, "ee");
                     if (StringUtils.isNotBlank(metadataCypher)) {
                         sb.append(metadataCypher);
                         if (i < metadata.size() - 1)

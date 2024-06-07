@@ -7,7 +7,7 @@ import org.sunbird.kafka.client.KafkaClient
 
 class OntologyEngineContext {
 
-    private val graphDBName: String = if(Platform.config.hasPath("graphDatabase")) Platform.config.getConfig("graphDatabase").asInstanceOf[String] else "janus"
+    private val graphDBName: String = if(Platform.config.hasPath("graphDatabase")) Platform.config.getConfig("graphDatabase").asInstanceOf[String] else "janusgraph"
     private val dialGraphDB = new DialGraphService
     private val hUtil = new HttpUtil
     private lazy val kfClient = new KafkaClient

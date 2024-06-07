@@ -1,6 +1,7 @@
 package org.sunbird.graph.dac.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
@@ -58,6 +59,20 @@ public class Filter implements Serializable {
     }
 
     public String getCypher(SearchCriteria sc, String param) {
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getConfig("graphDatabase").toString() : "janusgraph";
+        String queryString = "";
+        switch(graphDBName) {
+            case "neo4j" :
+                queryString=  getNeo4jCypher(sc, param);
+                break;
+            case "janusgraph" :
+                queryString= getJanusCypher(sc, param);
+                break;
+        }
+        return queryString;
+    }
+
+    public String getNeo4jCypher(SearchCriteria sc, String param) {
         StringBuilder sb = new StringBuilder();
         int pIndex = sc.pIndex;
         if (StringUtils.isBlank(param))
@@ -103,7 +118,7 @@ public class Filter implements Serializable {
             sc.params.put("" + pIndex, value);
             pIndex += 1;
         } else if (SearchConditions.OP_IN.equals(getOperator())) {
-        		sb.append(" ").append(param).append(property).append(" in {").append(pIndex).append("} ");
+            sb.append(" ").append(param).append(property).append(" in {").append(pIndex).append("} ");
             sc.params.put("" + pIndex, value);
             pIndex += 1;
         }

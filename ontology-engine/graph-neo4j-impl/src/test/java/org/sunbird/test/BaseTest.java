@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.neo4j.driver.v1.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.sunbird.common.Platform;
+import org.sunbird.graph.service.util.DriverUtil;
 import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
@@ -31,7 +32,7 @@ public class BaseTest {
 	@AfterClass
 	public static void afterTest() throws Exception {
 		neo4jContainer.stop();
-//		DriverUtil.closeDrivers();
+		DriverUtil.closeDrivers();
 	}
 
 	@BeforeClass
