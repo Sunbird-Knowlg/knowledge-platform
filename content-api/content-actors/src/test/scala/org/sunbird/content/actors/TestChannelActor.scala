@@ -7,7 +7,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -22,7 +22,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   it should "return success response for 'createChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("channel_test")
@@ -51,7 +51,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   it should "throw invalid identifier exception for channelUpdate" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
     node.setIdentifier("channel_test")
@@ -66,7 +66,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   it should "return success response for 'readChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
     node.setIdentifier("channel_test")
@@ -81,7 +81,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   it should "return success response for 'updateChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getNode("Channel", None)
     node.setObjectType("Channel")
@@ -101,7 +101,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
 
   it should "return success response for 'retireChannel' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getNode("Channel", None)
     node.setObjectType("Channel")

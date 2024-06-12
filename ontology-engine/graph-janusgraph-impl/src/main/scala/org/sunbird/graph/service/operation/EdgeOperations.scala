@@ -14,7 +14,7 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
 import org.sunbird.graph.dac.util.GremlinVertexUtil
-import org.sunbird.graph.service.util.{DriverUtil, EdgeUtil}
+import org.sunbird.graph.service.util.{ClientUtil, EdgeUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
@@ -68,7 +68,7 @@ class EdgeOperations {
       val relation = row.get("relation").toString
       val relMetadata = row.get("relMetadata").asInstanceOf[util.Map[AnyRef, AnyRef]]
 
-      val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
+      val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
 
       // Gremlin query to get the target vertex ID
       val startNodeQuery = "g.V().hasLabel('"+graphId+"').has('"+SystemProperties.IL_UNIQUE_ID.name+"', '"+startNodeId+"').id()"
@@ -92,7 +92,7 @@ class EdgeOperations {
       val endNodeId = row.get("endNodeId").toString
       val relation = row.get("relation").toString
 
-      val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
+      val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
       val deleteRelationsQuery = EdgeUtil.deleteRelationsQuery(graphId, startNodeId, endNodeId)
       client.submit(deleteRelationsQuery)
     }
@@ -114,7 +114,7 @@ class EdgeOperations {
       val endNodeMap = new util.HashMap[Object, AnyRef]
 
       val subGraphQuery = EdgeUtil.getSubGraphQuery(graphId: String, nodeId: String, effectiveDepth: Integer)
-      val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+      val client = ClientUtil.getGraphClient(graphId, GraphOperation.READ)
       val resultSet: ResultSet = client.submit(subGraphQuery)
       val results: util.List[Result] = resultSet.all().get()
 

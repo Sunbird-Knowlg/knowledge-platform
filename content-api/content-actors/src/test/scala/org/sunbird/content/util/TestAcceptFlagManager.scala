@@ -7,7 +7,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.content.actors.{BaseSpec, ContentActor}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -19,7 +19,7 @@ class TestAcceptFlagManager extends BaseSpec with MockFactory {
   it should "return success response for acceptFlag for Resource" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val nodeMetaData = new util.HashMap[String, AnyRef]() {{
       put("name", "Domain")

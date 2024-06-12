@@ -8,7 +8,7 @@ import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 
 import java.util
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -50,7 +50,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         enrichFrameworkMasterCategoryMap()
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.addNode _).expects(where { (g: String, n:Node) => {
             n.getObjectType.equals("Event")
@@ -90,7 +90,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         enrichFrameworkMasterCategoryMap()
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
         (graphDB.removeRelation(_: String, _: util.List[util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response))
@@ -133,7 +133,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "discard node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidDraftNode())).twice()
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
@@ -150,7 +150,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "publish node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val eventSetNode = getEventSetCollectionNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
@@ -169,7 +169,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getLiveEventSetCollectionNode()
         node.setOutRelations(null)
@@ -185,7 +185,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getEventSetCollectionNode()
         node.setOutRelations(null)
@@ -202,7 +202,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'readContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         val node = getNode("EventSet", None)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -217,7 +217,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'getHierarchy'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         val node = getNode("EventSet", None)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))

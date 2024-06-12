@@ -8,7 +8,7 @@ import org.sunbird.common.exception.ResponseCode
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.utils.ScalaJsonUtils
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
 import java.util
@@ -39,7 +39,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "create a node and store it in neo4j" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         // Uncomment below line if running individual file in local.
         //(graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
@@ -61,7 +61,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "create a plugin node and store it in neo4j" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode())).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
@@ -79,7 +79,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "create a plugin node with invalid request, should through client exception" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         val request = getContentRequest()
         request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
         request.setOperation("createContent")
@@ -89,7 +89,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "generate and return presigned url" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNode()))
         implicit val ss: StorageService = mock[StorageService]
@@ -105,7 +105,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "discard node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(2)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNodeToDiscard()))
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
@@ -122,7 +122,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(1)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard()))
         implicit val ss = mock[StorageService]
@@ -216,7 +216,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     ignore should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(2)
         val node = getNode("Content", None)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -232,7 +232,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'readContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         val node = getNode("Content", None)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -247,7 +247,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
    it should "return client error response for 'readContent' if visibility is 'Private" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
             {
@@ -267,7 +267,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     }
    it should "return success response for 'readPrivateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
             {
@@ -289,7 +289,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return client error for 'readPrivateContent' if channel is 'blank'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
@@ -303,7 +303,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return client error for 'readPrivateContent' if channel is mismatched" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         val node = getNode("Content", Some(new util.HashMap[String, AnyRef]() {
             {
@@ -327,7 +327,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     
     it should "return success response for 'updateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -349,7 +349,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return client exception for 'updateContent' with invalid versionKey" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -383,7 +383,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'copyContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -440,7 +440,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     /*it should "return success response for 'uploadContent' with jpeg asset"  {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getAssetNodeToUpload()
@@ -461,7 +461,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 */
     it should "return success response for 'systemUpdateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNode()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
@@ -486,7 +486,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'reviewContent' for document mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
@@ -509,7 +509,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "through client exception for review operation if node is under processing" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
         node.getMetadata.put("contentType", "Resource")
@@ -549,7 +549,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'rejectContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val node =  getValidNodeToReject()
@@ -566,7 +566,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return client exception for 'rejectContent' without status" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val node =  getValidNodeToReject()
@@ -586,7 +586,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success for 'rejectContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val node =  getValidNodeToReject()
@@ -627,7 +627,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'publishContent' for document mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
@@ -647,7 +647,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     ignore should "return success response for 'publishContent' for youtube mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "video/x-youtube", "LearningResource", "Content", "https://www.youtube.com/watch?v=GHmQ8euNwv8")
@@ -667,7 +667,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'publishContent' for video mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "video/mp4", "LearningResource", "Content", "https://ekstep-public-prod.s3-ap-south-1.amazonaws.com/content/do_312293067955650560231/artifact/itemupload_1500618666256.mp4")
@@ -687,7 +687,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'publishContent' for HTML mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/vnd.ekstep.html-archive", "LearningResource", "Content", "https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/content/do_21357841995316428811795/artifact/2.-ekiikrnn-kii-prkrti-output-3_1657521986480_1657522093104.zip")
@@ -707,7 +707,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'publishContent' for H5P mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/vnd.ekstep.h5p-archive", "LearningResource", "Content", "https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/content/do_2135971978057482241406/artifact/1659814186163_do_2135971978057482241406.zip")
@@ -727,7 +727,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'publishContent' for Plugin mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/vnd.ekstep.plugin-archive", "LearningResource", "Content", "https://ntpproductionall.blob.core.windows.net/ntp-content-production/content/org.ekstep.summary/artifact/org.ekstep.summary-1.0-1_1574060894628.zip")
@@ -747,7 +747,7 @@ class TestContentActor extends BaseSpec with MockFactory {
 
     it should "return success response for 'publishContent' for Collection mimeType" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         implicit val ss = mock[StorageService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getValidNode()
@@ -766,7 +766,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "through client exception for publish operation if node is under processing" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
         node.getMetadata.put("contentType", "Resource")
@@ -787,7 +787,7 @@ class TestContentActor extends BaseSpec with MockFactory {
     it should "through client exception for publish operation if published by is not passed" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
         node.getMetadata.put("contentType", "Resource")

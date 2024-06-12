@@ -11,7 +11,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 
-object DriverUtil {
+object ClientUtil {
 
   private val driverMap: util.Map[String, Client] = new util.HashMap[String, Client]
   private val contactUrl: String = if (Platform.config.hasPath("janusContactPoint")) Platform.config.getString("janusContactPoint") else "localhost"

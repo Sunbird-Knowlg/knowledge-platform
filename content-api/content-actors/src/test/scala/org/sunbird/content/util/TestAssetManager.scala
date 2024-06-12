@@ -6,7 +6,7 @@ import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 
@@ -16,7 +16,7 @@ import scala.concurrent.Future
 class TestAssetManager extends AsyncFlatSpec with Matchers with AsyncMockFactory {
   "AssetCopyManager" should "return copied node identifier when asset is copied" ignore {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode_channel()))

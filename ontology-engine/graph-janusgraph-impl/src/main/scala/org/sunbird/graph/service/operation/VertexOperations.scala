@@ -12,7 +12,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.dac.transaction.TransactionLog
 import org.sunbird.graph.dac.util.GremlinVertexUtil
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
-import org.sunbird.graph.service.util.{DriverUtil, VertexUtil}
+import org.sunbird.graph.service.util.{ClientUtil, VertexUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
@@ -183,7 +183,7 @@ class VertexOperations {
           GraphDACParams.request.name -> request
         )
 
-        val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
+        val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
         val query: String = VertexUtil.upsertRootVertexQuery(parameterMap)
         val results = client.submit(query).all().get()
 
@@ -222,7 +222,7 @@ class VertexOperations {
 
       val output = new util.HashMap[String, Node]
       try {
-        val client = DriverUtil.getGraphClient(graphId, GraphOperation.WRITE)
+        val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
         val query: String = VertexUtil.upsertVerticesQuery(graphId, identifiers, setPrimitiveData(data))
         val results = client.submit(query).all().get()
 

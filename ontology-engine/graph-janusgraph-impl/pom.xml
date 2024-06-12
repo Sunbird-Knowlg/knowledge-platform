@@ -75,19 +75,21 @@
             <version>3.7.2</version>
         </dependency>
         <dependency>
-            <groupId>org.janusgraph</groupId>
-            <artifactId>janusgraph-inmemory</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.janusgraph</groupId>
-            <artifactId>janusgraph-cql</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
+            <artifactId>graph-dac-api</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+            </exclusions>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
 

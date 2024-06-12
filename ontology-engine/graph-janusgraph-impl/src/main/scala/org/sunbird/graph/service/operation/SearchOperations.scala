@@ -2,16 +2,14 @@ package org.sunbird.graph.service.operation
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
 import org.sunbird.graph.dac.util.GremlinVertexUtil
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.apache.tinkerpop.gremlin.structure.Edge
-import org.janusgraph.core.JanusGraph
 import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, MiddlewareException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.common.enums.{GraphDACParams, SystemProperties}
 import org.sunbird.graph.service.common.{CypherQueryConfigurationConstants, DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
-import org.sunbird.graph.service.util.{DriverUtil, SearchUtil}
+import org.sunbird.graph.service.util.{ClientUtil, SearchUtil}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.apache.tinkerpop.gremlin.driver.Result
 import org.apache.tinkerpop.gremlin.driver.ResultSet
@@ -19,9 +17,7 @@ import org.apache.tinkerpop.gremlin.driver.ResultSet
 import java.util
 import scala.concurrent.{Await, ExecutionContext, Future}
 import ExecutionContext.Implicits.global
-import scala.collection.JavaConverters.{asJavaIterableConverter, asScalaBufferConverter, mapAsScalaMapConverter}
 import java.lang.Boolean
-import scala.concurrent.duration.Duration
 import scala.collection.JavaConversions._
 
 
@@ -190,7 +186,7 @@ class SearchOperations {
         throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
           DACErrorMessageConstants.INVALID_END_NODE_ID + " | ['Check Cyclic Loop' Query Generation Failed.]")
 
-      val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+      val client = ClientUtil.getGraphClient(graphId, GraphOperation.READ)
       val query = SearchUtil.checkCyclicLoopQuery(graphId, startNodeId, endNodeId, relationType)
       client.submit(query)
     }
@@ -216,7 +212,7 @@ class SearchOperations {
           throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name,
             DACErrorMessageConstants.INVALID_PROPERTY_KEY + " | ['Get Node Property' Query Generation Failed.]")
 
-        val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+        val client = ClientUtil.getGraphClient(graphId, GraphOperation.READ)
         val query = SearchUtil.getNodePropertyQuery(graphId, nodeId, key)
         client.submit(query)
       }
@@ -241,7 +237,7 @@ class SearchOperations {
             throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name,
               DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node By Unique Id' Query Generation Failed.]")
 
-          val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+          val client = ClientUtil.getGraphClient(graphId, GraphOperation.READ)
 
           val gremlinQuery = SearchUtil.getVertexByUniqueIdQuery(graphId, vertexId)
           val resultSet: ResultSet = client.submit(gremlinQuery)
@@ -318,7 +314,7 @@ class SearchOperations {
     if (null == searchCriteria)
       throw new ClientException(DACErrorCodeConstants.INVALID_CRITERIA.name, DACErrorMessageConstants.INVALID_SEARCH_CRITERIA + " | ['Get Nodes By Search Criteria' Operation Failed.]")
 
-    val client = DriverUtil.getGraphClient(graphId, GraphOperation.READ)
+    val client = ClientUtil.getGraphClient(graphId, GraphOperation.READ)
 
     val sb = new StringBuilder
     sb.append("g.V().hasLabel('" + graphId + "')")

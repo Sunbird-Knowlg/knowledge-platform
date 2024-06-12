@@ -8,7 +8,7 @@ import org.sunbird.common.dto.{Property, Request}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 
 import java.util
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -19,7 +19,7 @@ class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
     "CopyManager" should "return copied node identifier when content is copied" ignore {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         implicit val ss: StorageService = mock[StorageService]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDefinitionNode_channel()))

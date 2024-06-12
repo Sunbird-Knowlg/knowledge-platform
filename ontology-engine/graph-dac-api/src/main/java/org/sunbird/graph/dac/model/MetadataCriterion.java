@@ -93,7 +93,7 @@ public class MetadataCriterion implements Serializable {
     }
 
     public String getCypher(SearchCriteria sc, String param) {
-        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getConfig("graphDatabase").toString() : "janusgraph";
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getString("graphDatabase")  : "neo4j";
         String queryString = "";
         switch(graphDBName) {
             case "neo4j" :

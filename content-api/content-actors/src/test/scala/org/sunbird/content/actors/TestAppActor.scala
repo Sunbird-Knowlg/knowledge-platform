@@ -6,7 +6,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util
@@ -25,7 +25,7 @@ class TestAppActor extends BaseSpec with MockFactory {
 
   it should "return success response for 'create' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node("domain", "DATA_NODE", "App")
     node.setIdentifier("android-org.test.sunbird.integration")
@@ -59,7 +59,7 @@ class TestAppActor extends BaseSpec with MockFactory {
 
   it should "return success response for update" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()//.repeated(2)
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -78,7 +78,7 @@ class TestAppActor extends BaseSpec with MockFactory {
 
   it should "return success response for read app" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).repeated(1)
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
