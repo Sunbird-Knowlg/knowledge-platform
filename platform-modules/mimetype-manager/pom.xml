@@ -11,7 +11,7 @@
     <artifactId>mimetype-manager</artifactId>
     <properties>
         <scala.major.version>2.12</scala.major.version>
-        <play2.version>2.7.2</play2.version>
+        <play2.version>2.8.20</play2.version>
     </properties>
 
     <dependencies>
@@ -28,9 +28,9 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>${CLOUD_STORE_GROUP_ID}</groupId>
-            <artifactId>${CLOUD_STORE_ARTIFACT_ID}</artifactId>
-            <version>${CLOUD_STORE_VERSION}</version>
+            <groupId>org.sunbird</groupId>
+            <artifactId>cloud-store-sdk_2.12</artifactId>
+            <version>1.4.7</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.jamesmurty.util</groupId>
