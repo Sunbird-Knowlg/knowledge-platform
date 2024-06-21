@@ -5,15 +5,16 @@ import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.common.exception.ServerException
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes
-import org.apache.tinkerpop.gremlin.structure.{Vertex, Edge}
+import org.sunbird.graph.util.ScalaJsonUtil
+import org.apache.tinkerpop.gremlin.structure.{Edge, Vertex}
 
 import java.{lang, util}
 
 class GremlinVertexUtil {
-  val gremlinEdgeUtil = new GremlinEdgeUtil
+  private val gremlinEdgeUtil = new GremlinEdgeUtil
 
   def getNode(graphId: String, gremlinVertex: Vertex, edgeMap: util.Map[Object, AnyRef],
-              startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef]): Node = {
+              startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Node = {
     if (null == gremlinVertex)
       throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
         "Failed to create node object. Node from database is null.")
@@ -21,34 +22,34 @@ class GremlinVertexUtil {
     val node: Node = new Node()
     node.setGraphId(graphId)
     node.setId(gremlinVertex.id().asInstanceOf[Long])
-
     val metadata = new util.HashMap[String, Object]()
-    gremlinVertex.keys().forEach { key =>
-      if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name()))
+
+    val propKeys = gremlinVertex.keys()
+    propKeys.forEach { key =>
+      if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
         node.setIdentifier(gremlinVertex.values(key).next().asInstanceOf[String])
-      else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name()))
+      }
+      else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name())) {
         node.setNodeType(gremlinVertex.values(key).next().asInstanceOf[String])
-      else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name()))
+      }
+      else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name())) {
         node.setObjectType(gremlinVertex.values(key).next().asInstanceOf[String])
+      }
       else {
-        val value = gremlinVertex.values(key)
-        if (null != value) {
-          value match {
-            case list: util.List[_] =>
-              if (null != list && list.size() > 0) {
-
-                val obj = list.get(0)
+          val value: AnyRef = gremlinVertex.values(key).next()
+          if (propTypeMap.exists(_.get(key).contains("array"))) {
+              val listValue: util.List[AnyRef] = ScalaJsonUtil.deserialize[util.List[AnyRef]](value.toString)
+              if (listValue != null && listValue.size() > 0) {
+                val obj = listValue.get(0)
                 obj match {
-                  case _: String => metadata.put(key, list.toArray(new Array[String](list.size())))
-                  case _: Number => metadata.put(key, list.toArray(new Array[Number](list.size())))
-                  case _: lang.Boolean => metadata.put(key, list.toArray(new Array[lang.Boolean](list.size())))
-                  case _ => metadata.put(key, list.toArray(new Array[AnyRef](list.size())))
+                  case _: String => metadata.put(key, listValue.toArray(new Array[String](0)))
+                  case _: Number => metadata.put(key, listValue.toArray(new Array[Number](0)))
+                  case _: lang.Boolean => metadata.put(key, listValue.toArray(new Array[lang.Boolean](0)))
+                  case _ => metadata.put(key, listValue.toArray(new Array[AnyRef](0)))
                 }
-
               }
-            case _ => metadata.put(key, value.next())
           }
-        }
+          else metadata.put(key, value)
       }
     }
     node.setMetadata(metadata)

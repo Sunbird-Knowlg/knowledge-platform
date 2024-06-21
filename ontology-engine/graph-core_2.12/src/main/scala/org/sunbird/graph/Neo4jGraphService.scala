@@ -32,7 +32,7 @@ class Neo4jGraphService extends BaseGraphService {
     NodeAsyncOperations.upsertRootNode(graphId, request)
   }
 
-  override def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node] = {
+  override def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request, propTypeMap: Option[Map[String, AnyRef]] = None): Future[Node] = {
     SearchAsyncOperations.getNodeByUniqueId(graphId, nodeId, getTags, request).map(node => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(node) else node)
   }
 

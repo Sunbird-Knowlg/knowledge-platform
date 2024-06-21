@@ -32,8 +32,8 @@ class JanusGraphService extends BaseGraphService {
     EdgeOperations.removeEdges(graphId, edgeMap)
   }
 
-  override def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Node] = {
-    SearchOperations.getNodeByUniqueId(graphId, vertexId, getTags, request).map(vertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(vertex) else vertex)
+  override def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request, propTypeMap: Option[Map[String, AnyRef]] = None): Future[Node] = {
+    SearchOperations.getNodeByUniqueId(graphId, vertexId, getTags, request, propTypeMap).map(vertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(vertex) else vertex)
   }
 
   override def deleteNode(graphId: String, vertexId: String, request: Request): Future[java.lang.Boolean] = {

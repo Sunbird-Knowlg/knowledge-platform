@@ -25,7 +25,7 @@ class SearchOperations {
 
   val gremlinVertexUtil = new GremlinVertexUtil
 
-  def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request): Future[Node] = {
+  def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request, propTypeMap: Option[Map[String, AnyRef]]): Future[Node] = {
     Future {
       TelemetryManager.log("Graph Id: " + graphId + "\nVertex Id: " + vertexId + "\nGet Tags:" + getTags)
 
@@ -63,7 +63,7 @@ class SearchOperations {
 
         if (!vertexMap.isEmpty) {
           val entry = vertexMap.entrySet().iterator().next()
-          newVertex = gremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap)
+          newVertex = gremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap, propTypeMap)
         }
         newVertex
       }

@@ -79,18 +79,6 @@
             <artifactId>commons-text</artifactId>
             <version>1.9</version>
         </dependency>
-        <dependency>
-            <groupId>org.sunbird</groupId>
-            <artifactId>graph-dac-api</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-lang3</artifactId>
-                </exclusion>
-            </exclusions>
-            <version>1.0-SNAPSHOT</version>
-            <type>jar</type>
-        </dependency>
     </dependencies>
 
     <build>

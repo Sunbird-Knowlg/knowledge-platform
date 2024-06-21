@@ -3,6 +3,7 @@ package org.sunbird.graph.service.util
 import org.apache.commons.lang3.{BooleanUtils, StringUtils}
 import org.apache.tinkerpop.gremlin.driver.Client
 import org.sunbird.common.DateUtils
+import org.sunbird.graph.util.ScalaJsonUtil
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.common.enums.{AuditProperties, GraphDACParams, SystemProperties}
@@ -31,7 +32,7 @@ object VertexUtil {
       val date: String = DateUtils.formatCurrentDate
 
       val finalMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-      finalMap.putAll(getMetadataCypherQueryMap(node))
+      finalMap.putAll(getMetadataQueryMap(node))
       finalMap.putAll(getSystemPropertyMap(node, date))
       finalMap.putAll(getAuditPropertyMap(node, date, false))
       finalMap.putAll(getVersionPropertyMap(node, date))
@@ -73,10 +74,10 @@ object VertexUtil {
         .append(graphId)
         .append("').")
 
-      appendProperties(templateQuery, ocsMap)
+      appendProperties(templateQuery, omsMap)
       templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
       templateQuery.append(").sideEffect(")
-      appendProperties(templateQuery, omsMap)
+      appendProperties(templateQuery, ocsMap)
 
       templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
       templateQuery.append(").next()")
@@ -135,8 +136,11 @@ object VertexUtil {
       templateQuery.append("property('")
         .append(key)
         .append("', '")
-        .append(value)
-        .append("').")
+        if (value.isInstanceOf[util.List[_]]) {
+          templateQuery.append(ScalaJsonUtil.serialize(value))
+        }
+        else templateQuery.append(value)
+      templateQuery.append("').")
     }
   }
 
@@ -212,7 +216,7 @@ object VertexUtil {
     templateQuery.toString()
   }
 
-  def getMetadataCypherQueryMap(node: Node): util.Map[String, AnyRef] = {
+  def getMetadataQueryMap(node: Node): util.Map[String, AnyRef] = {
     val metadataPropertyMap = new util.HashMap[String, AnyRef]
     if (null != node && null != node.getMetadata && !node.getMetadata.isEmpty) {
       node.getMetadata.foreach { case (key, value) => metadataPropertyMap.put(key, value) }

@@ -22,7 +22,7 @@ trait BaseGraphService {
 
     def upsertRootNode(graphId: String, request: Request): Future[Node]
 
-    def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request): Future[Node]
+    def getNodeByUniqueId(graphId: String, nodeId: String, getTags: Boolean, request: Request, propTypeMap: Option[Map[String, AnyRef]] = None): Future[Node]
 
     def deleteNode(graphId: String, nodeId: String, request: Request): Future[java.lang.Boolean]
 
