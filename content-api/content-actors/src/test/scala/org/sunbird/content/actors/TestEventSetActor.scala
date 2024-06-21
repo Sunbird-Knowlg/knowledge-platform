@@ -107,7 +107,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
                 add(eventNode)
             }
         })).noMoreThanOnce()
-        (graphDB.getNodeByUniqueId _).expects(*, *, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
+        (graphDB.getNodeByUniqueId _).expects(*, *, *, *, *).returns(Future(eventSetNode)).anyNumberOfTimes()
         (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
 
 
