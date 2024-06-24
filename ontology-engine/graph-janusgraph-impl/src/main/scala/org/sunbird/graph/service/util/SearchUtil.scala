@@ -43,7 +43,7 @@ object SearchUtil {
 
   def getNodePropertyQuery(graphId: String, nodeId: String, key: String): String = {
     val sb = new StringBuilder
-    sb.append("g.V().hasLabel('" + graphId + "').has('" + SystemProperties.IL_UNIQUE_ID.name + "', '" + nodeId + "').values("+key+")")
+    sb.append("g.V().hasLabel('" + graphId + "').has('" + SystemProperties.IL_UNIQUE_ID.name + "', '" + nodeId + "').elementMap('"+key+"')")
     sb.toString()
   }
 

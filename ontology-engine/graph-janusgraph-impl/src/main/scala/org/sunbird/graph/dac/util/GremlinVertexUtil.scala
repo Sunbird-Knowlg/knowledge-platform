@@ -13,8 +13,7 @@ import java.{lang, util}
 class GremlinVertexUtil {
   private val gremlinEdgeUtil = new GremlinEdgeUtil
 
-  def getNode(graphId: String, gremlinVertex: Vertex, edgeMap: util.Map[Object, AnyRef],
-              startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Node = {
+  def getNode(graphId: String, gremlinVertex: Vertex, edgeMap: util.Map[AnyRef, AnyRef], startNodeMap: util.Map[AnyRef, AnyRef], endNodeMap: util.Map[AnyRef, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Node = {
     if (null == gremlinVertex)
       throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
         "Failed to create node object. Node from database is null.")
@@ -22,10 +21,9 @@ class GremlinVertexUtil {
     val node: Node = new Node()
     node.setGraphId(graphId)
     node.setId(gremlinVertex.id().asInstanceOf[Long])
-    val metadata = new util.HashMap[String, Object]()
+    val metadata = new util.HashMap[String, AnyRef]()
 
-    val propKeys = gremlinVertex.keys()
-    propKeys.forEach { key =>
+    gremlinVertex.keys().forEach { key =>
       if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
         node.setIdentifier(gremlinVertex.values(key).next().asInstanceOf[String])
       }

@@ -39,14 +39,16 @@ class VertexOperations {
       parameterMap.put(GraphDACParams.node.name, setPrimitiveData(node))
 
       try {
-        val query: String = VertexUtil.createVertexQuery(parameterMap)
-        val results = GraphOperations.queryHandler(graphId, query, node.getIdentifier, new util.HashMap[String, AnyRef])
+        VertexUtil.createVertexQuery(parameterMap)
+        val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
+        val query: String = parameterMap.getOrDefault(GraphDACParams.query.name, "").asInstanceOf[String]
+        val statementParameters = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, "").asInstanceOf[util.Map[String, AnyRef]]
+        val results = client.submit(query, statementParameters).all().get()
 
         results.foreach(r => {
           val nodeElement = r.getVertex
           val identifier = nodeElement.value(SystemProperties.IL_UNIQUE_ID.name).asInstanceOf[String]
           val versionKey = nodeElement.value(GraphDACParams.versionKey.name).asInstanceOf[String]
-          //TransactionLog.createTxLog(VertexUtil.getElementMap(nodeElement.id, client))
           node.setGraphId(graphId)
           node.setIdentifier(identifier)
           node.getMetadata.put(GraphDACParams.versionKey.name, versionKey)
@@ -86,10 +88,9 @@ class VertexOperations {
 
       try {
         val query: String = VertexUtil.deleteVertexQuery(parameterMap)
-        val results = GraphOperations.queryHandler(graphId, query, nodeId, new util.HashMap[String, AnyRef])
-//        val checkResults = client.submit(query).all().get()
+        val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
+        val results = client.submit(query).all().get()
         val isDeleted = results.isEmpty
-
         isDeleted
       }
       catch {
@@ -128,8 +129,11 @@ class VertexOperations {
       parameterMap.put(GraphDACParams.request.name, request)
 
       try {
-        val query: String = VertexUtil.upsertVertexQuery(parameterMap)
-        val results = GraphOperations.queryHandler(graphId, query, node.getIdentifier, new util.HashMap[String, AnyRef])
+        VertexUtil.upsertVertexQuery(parameterMap)
+        val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
+        val query: String = parameterMap.getOrDefault(GraphDACParams.query.name, "").asInstanceOf[String]
+        val statementParameters = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, "").asInstanceOf[util.Map[String, AnyRef]]
+        val results = client.submit(query, statementParameters).all().get()
 
         results.foreach(r => {
           val vertexElement = r.getVertex
@@ -220,11 +224,12 @@ class VertexOperations {
         throw new ClientException(DACErrorCodeConstants.INVALID_METADATA.name,
           DACErrorMessageConstants.INVALID_METADATA + " | [Please Provide Valid Node Metadata]")
 
+      val parameterMap = new util.HashMap[String, AnyRef]
       val output = new util.HashMap[String, Node]
       try {
         val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
-        val query: String = VertexUtil.upsertVerticesQuery(graphId, identifiers, setPrimitiveData(data))
-        val results = client.submit(query).all().get()
+        val query: String = VertexUtil.upsertVerticesQuery(graphId, identifiers, setPrimitiveData(data), parameterMap)
+        val results = client.submit(query, parameterMap).all().get()
 
         results.foreach(r => {
           val vertexElement = r.getVertex

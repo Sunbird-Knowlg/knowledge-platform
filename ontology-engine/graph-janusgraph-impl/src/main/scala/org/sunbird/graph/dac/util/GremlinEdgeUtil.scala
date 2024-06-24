@@ -6,12 +6,11 @@ import org.sunbird.common.exception.ServerException
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes
 import org.sunbird.graph.dac.model.Relation
-
+import org.sunbird.graph.util.ScalaJsonUtil
 import java.{lang, util}
-import java.util.{HashMap, List, Map}
 
 class GremlinEdgeUtil {
-  def getRelation(graphId: String, edge: Edge, startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef]): Relation = {
+  def getRelation(graphId: String, edge: Edge, startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Relation = {
 
     if (null == edge)
       throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_REL.name, "Failed to create relation object. Relation from database is null.")
@@ -36,25 +35,25 @@ class GremlinEdgeUtil {
     relation.setStartNodeObjectType(getObjectType(startNode))
     relation.setEndNodeObjectType(getObjectType(endNode))
     relation.setRelationType(edge.label())
-    relation.setStartNodeMetadata(getNodeMetadata(startNode))
-    relation.setEndNodeMetadata(getNodeMetadata(endNode))
+    relation.setStartNodeMetadata(getNodeMetadata(startNode, propTypeMap))
+    relation.setEndNodeMetadata(getNodeMetadata(endNode, propTypeMap))
     val metadata = new util.HashMap[String, Object]
 
     edge.keys.forEach((key: String) => {
-      val value = edge.values(key)
-      if (null != value) if (value.isInstanceOf[util.List[_]]) {
-        val list = value.asInstanceOf[util.List[AnyRef]]
-        if (!list.isEmpty) {
-          val obj = list.get(0)
+      val value: AnyRef = edge.values(key).next()
+      if (propTypeMap.exists(_.get(key).contains("array"))) {
+        val listValue: util.List[AnyRef] = ScalaJsonUtil.deserialize[util.List[AnyRef]](value.toString)
+        if (listValue != null && listValue.size() > 0) {
+          val obj = listValue.get(0)
           obj match {
-            case _: String => metadata.put(key, list.toArray(new Array[String](list.size())))
-            case _: Number => metadata.put(key, list.toArray(new Array[Number](list.size())))
-            case _: lang.Boolean => metadata.put(key, list.toArray(new Array[lang.Boolean](list.size())))
-            case _ => metadata.put(key, list.toArray(new Array[AnyRef](list.size())))
+            case _: String => metadata.put(key, listValue.toArray(new Array[String](0)))
+            case _: Number => metadata.put(key, listValue.toArray(new Array[Number](0)))
+            case _: lang.Boolean => metadata.put(key, listValue.toArray(new Array[lang.Boolean](0)))
+            case _ => metadata.put(key, listValue.toArray(new Array[AnyRef](0)))
           }
         }
       }
-      else metadata.put(key, value.next())
+      else metadata.put(key, value)
     })
     relation.setMetadata(metadata)
     relation
@@ -78,25 +77,27 @@ class GremlinEdgeUtil {
 
   private def getObjectType(vertex: Vertex) = vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name).value.toString
 
-  private def getNodeMetadata(vertex: Vertex) = {
+  private def getNodeMetadata(vertex: Vertex, propTypeMap: Option[Map[String, AnyRef]] = None) = {
     val metadata = new util.HashMap[String, AnyRef]
-      if (vertex != null) vertex.keys().forEach { key =>
-      val value = vertex.values(key)
-      if (null != value) if (value.isInstanceOf[util.List[_]]) {
-        val list = value.asInstanceOf[util.List[_]]
-        if (!list.isEmpty) {
-          val firstElement = list.get(0)
-          firstElement match {
-            case _: String => metadata.put(key, list.toArray(new Array[String](list.size())))
-            case _: Number => metadata.put(key, list.toArray(new Array[Number](list.size())))
-            case _: lang.Boolean => metadata.put(key, list.toArray(new Array[lang.Boolean](list.size())))
-            case _ => metadata.put(key, list.toArray(new Array[AnyRef](list.size())))
+      if (vertex != null) {
+        vertex.keys.forEach((key: String) => {
+          val value: AnyRef = vertex.values(key).next()
+          if (propTypeMap.exists(_.get(key).contains("array"))) {
+            val listValue: util.List[AnyRef] = ScalaJsonUtil.deserialize[util.List[AnyRef]](value.toString)
+            if (listValue != null && listValue.size() > 0) {
+              println("list in If --->" + listValue)
+              val obj = listValue.get(0)
+              obj match {
+                case _: String => metadata.put(key, listValue.toArray(new Array[String](0)))
+                case _: Number => metadata.put(key, listValue.toArray(new Array[Number](0)))
+                case _: lang.Boolean => metadata.put(key, listValue.toArray(new Array[lang.Boolean](0)))
+                case _ => metadata.put(key, listValue.toArray(new Array[AnyRef](0)))
+              }
+            }
           }
-        }
+          else metadata.put(key, value)
+        })
       }
-      else metadata.put(key, value.next())
-
-    }
     metadata
   }
 

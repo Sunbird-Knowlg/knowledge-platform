@@ -45,8 +45,7 @@ class JanusGraphService extends BaseGraphService {
       val metadata = CSPMetaUtil.updateRelativePath(vertex.getMetadata)
       vertex.setMetadata(metadata)
     }
-    VertexOperations.upsertVertex(graphId, vertex, request)
-      .map(resVertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resVertex) else resVertex)
+    VertexOperations.upsertVertex(graphId, vertex, request).map(resVertex => if (isrRelativePathEnabled) CSPMetaUtil.updateAbsolutePath(resVertex) else resVertex)
   }
 
   override def upsertRootNode(graphId: String, request: Request): Future[Node] = {
