@@ -183,7 +183,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
-    ignore should "return success response for retireContent" in {
+    it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
