@@ -2,6 +2,7 @@ package org.sunbird.graph.dac.util
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.tinkerpop.gremlin.structure.{Edge, Vertex}
+import org.janusgraph.graphdb.relations.RelationIdentifier
 import org.sunbird.common.exception.ServerException
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes
@@ -10,18 +11,14 @@ import org.sunbird.graph.util.ScalaJsonUtil
 import java.{lang, util}
 
 class GremlinEdgeUtil {
-  def getRelation(graphId: String, edge: Edge, startNodeMap: util.Map[Object, AnyRef], endNodeMap: util.Map[Object, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Relation = {
+  def getRelation(graphId: String, edge: Edge, startNodeMap: util.Map[AnyRef, AnyRef], endNodeMap: util.Map[AnyRef, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Relation = {
 
     if (null == edge)
       throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_REL.name, "Failed to create relation object. Relation from database is null.")
 
     val relation: Relation = new Relation
     relation.setGraphId(graphId)
-//    val vertexIdAsLong: Long = edge.id match {
-//      case id: Number => id.longValue()
-//      case id: String => id.toLong
-//    }
-//    relation.setId(edge.id.asInstanceOf[Long])
+    relation.setId(edge.id().asInstanceOf[RelationIdentifier].getRelationId)
 
     val startNode = startNodeMap.get(edge.outVertex.id).asInstanceOf[Vertex]
     val endNode = endNodeMap.get(edge.inVertex.id).asInstanceOf[Vertex]
@@ -37,7 +34,7 @@ class GremlinEdgeUtil {
     relation.setRelationType(edge.label())
     relation.setStartNodeMetadata(getNodeMetadata(startNode, propTypeMap))
     relation.setEndNodeMetadata(getNodeMetadata(endNode, propTypeMap))
-    val metadata = new util.HashMap[String, Object]
+    val metadata = new util.HashMap[String, AnyRef]
 
     edge.keys.forEach((key: String) => {
       val value: AnyRef = edge.values(key).next()

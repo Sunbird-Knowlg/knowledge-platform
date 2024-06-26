@@ -2,6 +2,7 @@ package org.sunbird.graph.service.util
 
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.service.common.CypherQueryConfigurationConstants
+import org.sunbird.graph.util.ScalaJsonUtil
 import org.yaml.snakeyaml.nodes.NodeId
 
 import java.util
@@ -44,12 +45,13 @@ object EdgeUtil {
 
   def createRelationsQuery(startNode: AnyRef, endNode:AnyRef, relation: String, relMetadata: util.Map[AnyRef, AnyRef]): String = {
     val sb = new StringBuilder
-
     sb.append("g.V("+startNode+").as('a').V("+endNode+").as('b').addE('"+relation+"').from('a').to('b')")
     relMetadata.forEach((key, value) => {
-      sb.append(".property('" + key + "',"  + value + ")")
+      if (value.isInstanceOf[util.List[_]]) {
+        sb.append(".property('" + key + "',"  + ScalaJsonUtil.serialize(value) + ")")
+      }
+      else sb.append(".property('" + key + "',"  + value + ")")
     })
-
     sb.toString()
   }
 

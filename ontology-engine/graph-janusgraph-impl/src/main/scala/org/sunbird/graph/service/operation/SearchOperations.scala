@@ -51,10 +51,10 @@ class SearchOperations {
           throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name,
             DACErrorMessageConstants.NODE_NOT_FOUND + " | [Invalid Node Id.]: " + vertexId, vertexId)
 
-        val vertexMap = new util.HashMap[Object, AnyRef]
-        val relationMap = new util.HashMap[Object, AnyRef]
-        val startNodeMap = new util.HashMap[Object, AnyRef]
-        val endNodeMap = new util.HashMap[Object, AnyRef]
+        val vertexMap = new util.HashMap[AnyRef, AnyRef]
+        val relationMap = new util.HashMap[AnyRef, AnyRef]
+        val startNodeMap = new util.HashMap[AnyRef, AnyRef]
+        val endNodeMap = new util.HashMap[AnyRef, AnyRef]
 
         retrievedVertices.forEach { result =>
           if (null != result)
@@ -273,7 +273,7 @@ class SearchOperations {
     }
   }
 
-  private def getRecordValues(result: util.Map[String, AnyRef], nodeMap :util.Map[Object, AnyRef], relationMap :util.Map[Object, AnyRef], startNodeMap :util.Map[Object, AnyRef], endNodeMap :util.Map[Object, AnyRef] ): Unit = {
+  private def getRecordValues(result: util.Map[String, AnyRef], nodeMap :util.Map[AnyRef, AnyRef], relationMap :util.Map[AnyRef, AnyRef], startNodeMap :util.Map[AnyRef, AnyRef], endNodeMap :util.Map[AnyRef, AnyRef] ): Unit = {
     if (null != nodeMap) {
         val vertexValue = result.get(CypherQueryConfigurationConstants.DEFAULT_CYPHER_NODE_OBJECT)
         if (null != vertexValue && vertexValue.isInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex]) {

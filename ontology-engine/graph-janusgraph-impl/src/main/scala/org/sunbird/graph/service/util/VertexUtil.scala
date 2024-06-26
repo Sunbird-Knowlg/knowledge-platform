@@ -16,7 +16,7 @@ import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable
 object VertexUtil {
 
   def createVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
-    val templateQuery: StringBuilder = new StringBuilder()
+    val query: StringBuilder = new StringBuilder()
     if (null != parameterMap) {
       val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name, "").asInstanceOf[String]
       val node = parameterMap.getOrDefault(GraphDACParams.node.name, null).asInstanceOf[Node]
@@ -30,25 +30,29 @@ object VertexUtil {
           DACErrorMessageConstants.INVALID_NODE + " | [Create Node Query Generation Failed.]")
 
       val date: String = DateUtils.formatCurrentDate
+      val templateQuery: StringBuilder = new StringBuilder()
+      val paramValueMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 
-      val finalMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-      finalMap.putAll(getMetadataQueryMap(node))
-      finalMap.putAll(getSystemPropertyMap(node, date))
-      finalMap.putAll(getAuditPropertyMap(node, date, false))
-      finalMap.putAll(getVersionPropertyMap(node, date))
+      paramValueMap.putAll(getMetadataQueryMap(node))
+      paramValueMap.putAll(getSystemPropertyMap(node, date))
+      paramValueMap.putAll(getAuditPropertyMap(node, date, false))
+      paramValueMap.putAll(getVersionPropertyMap(node, date))
 
       templateQuery.append("g.addV('")
         .append(node.getGraphId)
         .append("').")
-
-      appendProperties(templateQuery, finalMap)
+      appendProperties(templateQuery, paramValueMap)
       templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
+
+      parameterMap.put(GraphDACParams.query.name, templateQuery.toString)
+      parameterMap.put(GraphDACParams.paramValueMap.name, prepareParamValueMap(paramValueMap))
+
     }
-    templateQuery.toString()
+    query.toString()
   }
 
   def upsertVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
-    val templateQuery: StringBuilder = new StringBuilder()
+    val query: StringBuilder = new StringBuilder()
     if (null != parameterMap) {
       val node = parameterMap.getOrDefault(GraphDACParams.node.name, null).asInstanceOf[Node]
 
@@ -64,6 +68,8 @@ object VertexUtil {
 
       val ocsMap: util.Map[String, AnyRef] = getOnCreateSetMap(node, date)
       val omsMap: util.Map[String, AnyRef] = getOnMatchSetMap(node, date, merge = true)
+      val templateQuery: StringBuilder = new StringBuilder()
+      val paramValueMap: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 
       templateQuery.append("g.V().has(")
         .append(getMatchCriteriaString(graphId, node))
@@ -74,15 +80,22 @@ object VertexUtil {
         .append(graphId)
         .append("').")
 
-      appendProperties(templateQuery, omsMap)
+      appendProperties(templateQuery, ocsMap)
       templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
       templateQuery.append(").sideEffect(")
-      appendProperties(templateQuery, ocsMap)
+      appendProperties(templateQuery, omsMap)
 
       templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
       templateQuery.append(").next()")
+
+      paramValueMap.putAll(ocsMap)
+      paramValueMap.putAll(omsMap)
+
+      parameterMap.put(GraphDACParams.query.name, templateQuery.toString)
+      parameterMap.put(GraphDACParams.paramValueMap.name, prepareParamValueMap(paramValueMap))
+
     }
-    templateQuery.toString()
+    query.toString()
   }
 
   def upsertRootVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
@@ -113,7 +126,7 @@ object VertexUtil {
     templateQuery.toString()
   }
 
-  def upsertVerticesQuery(graphId: String, identifiers: util.List[String], metadata: util.Map[String, AnyRef]): String = {
+  def upsertVerticesQuery(graphId: String, identifiers: util.List[String], metadata: util.Map[String, AnyRef], params: util.Map[String, AnyRef]): String = {
     val templateQuery: StringBuilder = new StringBuilder()
 
     templateQuery.append("g.V().hasLabel('")
@@ -127,21 +140,28 @@ object VertexUtil {
 
     appendProperties(templateQuery, metadata)
     templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
-
+    templateQuery.append(".toList()")
+    params.putAll(prepareParamValueMap(metadata))
     templateQuery.toString()
   }
 
   private def appendProperties(templateQuery: StringBuilder, metadata: util.Map[String, AnyRef]): Unit = {
-    metadata.foreach { case (key, value) =>
+    metadata.foreach { case (key, _) =>
       templateQuery.append("property('")
         .append(key)
-        .append("', '")
-        if (value.isInstanceOf[util.List[_]]) {
-          templateQuery.append(ScalaJsonUtil.serialize(value))
-        }
-        else templateQuery.append(value)
-      templateQuery.append("').")
+        .append("', ")
+        .append(key)
+        .append(").")
     }
+  }
+
+  def prepareParamValueMap(paramValueMap: util.Map[String, AnyRef]): util.Map[String, AnyRef] = {
+    paramValueMap.foreach { case (key, value) =>
+      if (value.isInstanceOf[util.List[_]]) {
+        paramValueMap.put(key, ScalaJsonUtil.serialize(value))
+      }
+    }
+    paramValueMap
   }
 
   private def getMatchCriteriaString(graphId: String, node: Node): String = {
