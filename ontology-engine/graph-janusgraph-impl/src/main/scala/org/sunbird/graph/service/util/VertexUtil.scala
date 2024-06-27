@@ -140,7 +140,6 @@ object VertexUtil {
 
     appendProperties(templateQuery, metadata)
     templateQuery.delete(templateQuery.length() - 1, templateQuery.length())
-    templateQuery.append(".toList()")
     params.putAll(prepareParamValueMap(metadata))
     templateQuery.toString()
   }
