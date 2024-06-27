@@ -15,7 +15,7 @@ import scala.collection.convert.ImplicitConversions.{`collection AsScalaIterable
 
 object VertexUtil {
 
-  def createVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+  def generateCreateVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
     val query: StringBuilder = new StringBuilder()
     if (null != parameterMap) {
       val graphId = parameterMap.getOrDefault(GraphDACParams.graphId.name, "").asInstanceOf[String]
@@ -51,7 +51,7 @@ object VertexUtil {
     query.toString()
   }
 
-  def upsertVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+  def generateUpsertVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
     val query: StringBuilder = new StringBuilder()
     if (null != parameterMap) {
       val node = parameterMap.getOrDefault(GraphDACParams.node.name, null).asInstanceOf[Node]
@@ -98,7 +98,7 @@ object VertexUtil {
     query.toString()
   }
 
-  def upsertRootVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
+  def generateUpsertRootVertexQuery(parameterMap: util.Map[String, AnyRef]): String = {
     val templateQuery: StringBuilder = new StringBuilder()
 
     if (null != parameterMap) {
@@ -126,7 +126,7 @@ object VertexUtil {
     templateQuery.toString()
   }
 
-  def upsertVerticesQuery(graphId: String, identifiers: util.List[String], metadata: util.Map[String, AnyRef], params: util.Map[String, AnyRef]): String = {
+  def generateUpsertVerticesQuery(graphId: String, identifiers: util.List[String], metadata: util.Map[String, AnyRef], params: util.Map[String, AnyRef]): String = {
     val templateQuery: StringBuilder = new StringBuilder()
 
     templateQuery.append("g.V().hasLabel('")

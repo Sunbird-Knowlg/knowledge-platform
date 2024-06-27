@@ -22,9 +22,8 @@ import scala.collection.mutable
 import scala.compat.java8.FutureConverters.CompletionStageOps
 import scala.concurrent.Future
 
-class VertexOperations {
+object VertexOperations {
 
-  val gremlinVertexUtil = new GremlinVertexUtil
 
   def addVertex(graphId: String, node: Node): Future[Node] = {
     if (StringUtils.isBlank(graphId))
@@ -40,7 +39,7 @@ class VertexOperations {
     parameterMap.put(GraphDACParams.node.name, setPrimitiveData(node))
 
     try {
-      VertexUtil.createVertexQuery(parameterMap)
+      VertexUtil.generateCreateVertexQuery(parameterMap)
       val client= ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
       val query: String = parameterMap.getOrDefault(GraphDACParams.query.name, "").asInstanceOf[String]
       val statementParameters = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, new java.util.HashMap[String, AnyRef]).asInstanceOf[java.util.Map[String, AnyRef]]
@@ -130,7 +129,7 @@ class VertexOperations {
       parameterMap.put(GraphDACParams.request.name, request)
 
       try {
-        VertexUtil.upsertVertexQuery(parameterMap)
+        VertexUtil.generateUpsertVertexQuery(parameterMap)
         val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
         val query: String = parameterMap.getOrDefault(GraphDACParams.query.name, "").asInstanceOf[String]
         val statementParameters = parameterMap.getOrDefault(GraphDACParams.paramValueMap.name, "").asInstanceOf[util.Map[String, AnyRef]]
@@ -190,7 +189,7 @@ class VertexOperations {
         )
 
         val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
-        val query: String = VertexUtil.upsertRootVertexQuery(parameterMap)
+        val query: String = VertexUtil.generateUpsertRootVertexQuery(parameterMap)
 
         val cs: CompletableFuture[Node] = client.submitAsync(query).toCompletableFuture
           .thenCompose[Node](resultSet => resultSet.all().thenApply[Node](resultSet => {
@@ -238,7 +237,7 @@ class VertexOperations {
       val output = new util.HashMap[String, Node]
       try {
         val client = ClientUtil.getGraphClient(graphId, GraphOperation.WRITE)
-        val query: String = VertexUtil.upsertVerticesQuery(graphId, identifiers, setPrimitiveData(data), parameterMap)
+        val query: String = VertexUtil.generateUpsertVerticesQuery(graphId, identifiers, setPrimitiveData(data), parameterMap)
 
         val cs: CompletableFuture[util.Map[String, Node]] = client.submitAsync(query, parameterMap).toCompletableFuture
           .thenCompose[util.Map[String, Node]] { resultSet =>
@@ -248,7 +247,7 @@ class VertexOperations {
                   if (record != null) {
                     val vertexElement = record.getVertex
                     val identifier = vertexElement.value(SystemProperties.IL_UNIQUE_ID.name).asInstanceOf[String]
-                    val node = gremlinVertexUtil.getNode(graphId, vertexElement, null, null, null)
+                    val node = GremlinVertexUtil.getNode(graphId, vertexElement, null, null, null)
                     output.put(identifier, node)
                   }
                 }

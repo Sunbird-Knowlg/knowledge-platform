@@ -10,9 +10,6 @@ import java.lang
 import scala.concurrent.{ExecutionContext, Future}
 class JanusGraphService extends BaseGraphService {
 
-  private val VertexOperations = new VertexOperations()
-  private val EdgeOperations = new EdgeOperations()
-  private val SearchOperations = new SearchOperations()
 
   override implicit val ec: ExecutionContext = ExecutionContext.global
   override def addNode(graphId: String, vertex: Node): Future[Node] = {

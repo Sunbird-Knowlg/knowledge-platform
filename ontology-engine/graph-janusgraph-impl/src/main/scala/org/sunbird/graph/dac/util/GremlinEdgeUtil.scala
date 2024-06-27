@@ -10,7 +10,7 @@ import org.sunbird.graph.dac.model.Relation
 import org.sunbird.graph.util.ScalaJsonUtil
 import java.{lang, util}
 
-class GremlinEdgeUtil {
+object GremlinEdgeUtil {
   def getRelation(graphId: String, edge: Edge, startNodeMap: util.Map[AnyRef, AnyRef], endNodeMap: util.Map[AnyRef, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Relation = {
 
     if (null == edge)
@@ -82,7 +82,6 @@ class GremlinEdgeUtil {
           if (propTypeMap.exists(_.get(key).contains("array"))) {
             val listValue: util.List[AnyRef] = ScalaJsonUtil.deserialize[util.List[AnyRef]](value.toString)
             if (listValue != null && listValue.size() > 0) {
-              println("list in If --->" + listValue)
               val obj = listValue.get(0)
               obj match {
                 case _: String => metadata.put(key, listValue.toArray(new Array[String](0)))

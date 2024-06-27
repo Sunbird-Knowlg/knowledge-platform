@@ -21,9 +21,8 @@ import java.lang.Boolean
 import scala.collection.JavaConversions._
 
 
-class SearchOperations {
+object SearchOperations {
 
-  val gremlinVertexUtil = new GremlinVertexUtil
 
   def getNodeByUniqueId(graphId: String, vertexId: String, getTags: Boolean, request: Request, propTypeMap: Option[Map[String, AnyRef]]): Future[Node] = {
     Future {
@@ -63,7 +62,7 @@ class SearchOperations {
 
         if (!vertexMap.isEmpty) {
           val entry = vertexMap.entrySet().iterator().next()
-          newVertex = gremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap, propTypeMap)
+          newVertex = GremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap, propTypeMap)
         }
         newVertex
       }
@@ -349,7 +348,7 @@ class SearchOperations {
 
         if (!vertexMap.isEmpty) {
           for (entry <- vertexMap.entrySet) {
-            nodes.add(gremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap))
+            nodes.add(GremlinVertexUtil.getNode(graphId, entry.getValue.asInstanceOf[org.apache.tinkerpop.gremlin.structure.Vertex], relationMap, startNodeMap, endNodeMap))
           }
         }
       }

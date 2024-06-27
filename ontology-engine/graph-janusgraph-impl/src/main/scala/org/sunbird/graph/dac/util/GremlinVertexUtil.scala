@@ -10,8 +10,7 @@ import org.apache.tinkerpop.gremlin.structure.{Edge, Vertex}
 
 import java.{lang, util}
 
-class GremlinVertexUtil {
-  private val gremlinEdgeUtil = new GremlinEdgeUtil
+object GremlinVertexUtil {
 
   def getNode(graphId: String, gremlinVertex: Vertex, edgeMap: util.Map[AnyRef, AnyRef], startNodeMap: util.Map[AnyRef, AnyRef], endNodeMap: util.Map[AnyRef, AnyRef], propTypeMap: Option[Map[String, AnyRef]] = None): Node = {
     if (null == gremlinVertex)
@@ -59,10 +58,10 @@ class GremlinVertexUtil {
       edgeMap.forEach { (id, rel) =>
         val edge = rel.asInstanceOf[Edge]
         if (edge.inVertex().id() == gremlinVertex.id()) {
-          outEdges.add(gremlinEdgeUtil.getRelation(graphId, edge, startNodeMap, endNodeMap))
+          outEdges.add(GremlinEdgeUtil.getRelation(graphId, edge, startNodeMap, endNodeMap))
         }
         if (edge.outVertex().id() == gremlinVertex.id()) {
-          inEdges.add(gremlinEdgeUtil.getRelation(graphId, edge, startNodeMap, endNodeMap))
+          inEdges.add(GremlinEdgeUtil.getRelation(graphId, edge, startNodeMap, endNodeMap))
         }
       }
       node.setInRelations(inEdges)

@@ -3,14 +3,13 @@ package org.sunbird.graph.service.util
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.service.common.CypherQueryConfigurationConstants
 import org.sunbird.graph.util.ScalaJsonUtil
-import org.yaml.snakeyaml.nodes.NodeId
 
 import java.util
+import scala.collection.JavaConverters.asScalaBufferConverter
 
 object EdgeUtil {
 
-  def getSubGraphQuery(graphId: String, nodeId: String, depth: Integer): String = {
-
+  def generateSubGraphCypherQuery(graphId: String, nodeId: String, depth: Integer): String = {
     val sb = new StringBuilder
     sb.append("g.V().hasLabel('")
       .append(graphId).append("').has('")
@@ -31,29 +30,44 @@ object EdgeUtil {
     sb.toString()
   }
 
-  def deleteRelationsQuery(graphId:String, startNodeId:String, endNodeId:String): String = {
+  def generateDeleteRelationsQuery(graphId:String, edgeData: util.List[util.Map[String, AnyRef]]): String = {
     val sb = new StringBuilder
+    for (row <- edgeData.asScala) {
+      val startNodeId = row.get("startNodeId").toString
+      val endNodeId = row.get("endNodeId").toString
+      val relation = row.get("relation").toString
 
-    sb.append("g.V().hasLabel('").append(graphId).append("')")
-      .append(".has('").append(SystemProperties.IL_UNIQUE_ID).append("', '").append(startNodeId).append("')")
-      .append(".outE().as(").append(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT)
-      .append(".inV().has('").append(SystemProperties.IL_UNIQUE_ID.name).append("', '").append(endNodeId).append("')")
-      .append(".select(").append(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).append(").drop().iterate()")
+      sb.append("g.V().hasLabel('").append(graphId).append("')")
+        .append(".has('").append(SystemProperties.IL_UNIQUE_ID).append("', '").append(startNodeId).append("')")
+        .append(".outE().as(").append(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT)
+        .append(".inV().has('").append(SystemProperties.IL_UNIQUE_ID.name).append("', '").append(endNodeId).append("')")
+        .append(".select(").append(CypherQueryConfigurationConstants.DEFAULT_CYPHER_RELATION_OBJECT).append(").drop().iterate()")
 
+    }
     sb.toString()
   }
 
-  def createRelationsQuery(startNode: AnyRef, endNode:AnyRef, relation: String, relMetadata: util.Map[AnyRef, AnyRef]): String = {
-    val sb = new StringBuilder
-    sb.append("g.V("+startNode+").as('a').V("+endNode+").as('b').addE('"+relation+"').from('a').to('b')")
-    relMetadata.forEach((key, value) => {
-      if (value.isInstanceOf[util.List[_]]) {
-        sb.append(".property('" + key + "',"  + ScalaJsonUtil.serialize(value) + ")")
+  def generateCreateBulkRelationsQuery(graphId: String, edgeData: util.List[util.Map[String, AnyRef]]): List[String] = {
+    edgeData.asScala.distinct.map { row =>
+      val startNodeId = row.get("startNodeId").toString
+      val endNodeId = row.get("endNodeId").toString
+      val relation = row.get("relation").toString
+      val relMetadata = row.get("relMetadata").asInstanceOf[util.Map[AnyRef, AnyRef]]
+
+      val sb = new StringBuilder
+      sb.append(s"g.V().hasLabel('$graphId').has('${SystemProperties.IL_UNIQUE_ID.name}', '$startNodeId').as('a')")
+      sb.append(s".V().hasLabel('$graphId').has('${SystemProperties.IL_UNIQUE_ID.name}', '$endNodeId').as('b')")
+      sb.append(s".addE('$relation').from('a').to('b')")
+
+      relMetadata.forEach { (key, value) =>
+        value match {
+          case list: util.List[_] => sb.append(s".property('$key', ${ScalaJsonUtil.serialize(list)})")
+          case _ => sb.append(s".property('$key', '$value')")
+        }
       }
-      else sb.append(".property('" + key + "',"  + value + ")")
-    })
-    sb.toString()
-  }
 
+      sb.toString()
+    }.toList
+  }
 
 }
