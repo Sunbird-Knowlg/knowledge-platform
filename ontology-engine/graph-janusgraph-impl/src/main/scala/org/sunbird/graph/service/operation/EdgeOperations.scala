@@ -10,7 +10,6 @@ import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.service.common.{DACErrorCodeConstants, DACErrorMessageConstants, GraphOperation}
 import org.sunbird.graph.dac.util.GremlinVertexUtil
 import org.sunbird.graph.service.util.{ClientUtil, EdgeUtil}
-import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.util
 import java.util.concurrent.CompletableFuture
@@ -99,8 +98,6 @@ object EdgeOperations {
     if (StringUtils.isBlank(nodeId))
       throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name, DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Please Provide Node Identifier.]")
     val effectiveDepth: Integer = if (depth == null) 5 else depth
-
-    TelemetryManager.log("Driver Initialised. | [Graph Id: " + graphId + "]")
 
     val relationMap = new util.HashMap[AnyRef, AnyRef]()
     val nodes = new util.HashSet[Node]()

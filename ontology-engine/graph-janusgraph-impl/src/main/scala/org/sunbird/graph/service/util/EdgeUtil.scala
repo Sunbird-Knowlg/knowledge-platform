@@ -35,7 +35,6 @@ object EdgeUtil {
     for (row <- edgeData.asScala) {
       val startNodeId = row.get("startNodeId").toString
       val endNodeId = row.get("endNodeId").toString
-      val relation = row.get("relation").toString
 
       sb.append("g.V().hasLabel('").append(graphId).append("')")
         .append(".has('").append(SystemProperties.IL_UNIQUE_ID).append("', '").append(startNodeId).append("')")
