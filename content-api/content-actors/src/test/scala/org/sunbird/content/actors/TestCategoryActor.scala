@@ -8,7 +8,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResponseCode
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -26,7 +26,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
     it should "create a categoryNode and store it in neo4j" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getValidNode()))
         val nodes: util.List[Node] = getCategoryNode()
@@ -76,7 +76,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
 
     it should "return success response for updateCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getValidNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -96,7 +96,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
 
     it should "return success response for readCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).repeated(1)
         val node = getValidNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -111,7 +111,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
 
     it should "return success response for retireCategory" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getValidNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()

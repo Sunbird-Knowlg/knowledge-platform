@@ -4,7 +4,7 @@ import akka.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import java.util
 import scala.collection.JavaConversions.mapAsJavaMap
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,7 +20,7 @@ class TestObjectActor extends BaseSpec with MockFactory{
 
   it should "return success response for 'readObject'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB)
     val node = getNode("Content", None)
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))

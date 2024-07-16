@@ -1,9 +1,12 @@
 package org.sunbird.graph.dac.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Filter implements Serializable {
 
@@ -56,6 +59,20 @@ public class Filter implements Serializable {
     }
 
     public String getCypher(SearchCriteria sc, String param) {
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getString("graphDatabase")  : "neo4j";
+        String queryString = "";
+        switch(graphDBName) {
+            case "neo4j" :
+                queryString=  getNeo4jCypher(sc, param);
+                break;
+            case "janusgraph" :
+                queryString= getJanusCypher(sc, param);
+                break;
+        }
+        return queryString;
+    }
+
+    public String getNeo4jCypher(SearchCriteria sc, String param) {
         StringBuilder sb = new StringBuilder();
         int pIndex = sc.pIndex;
         if (StringUtils.isBlank(param))
@@ -101,11 +118,59 @@ public class Filter implements Serializable {
             sc.params.put("" + pIndex, value);
             pIndex += 1;
         } else if (SearchConditions.OP_IN.equals(getOperator())) {
-        		sb.append(" ").append(param).append(property).append(" in {").append(pIndex).append("} ");
+            sb.append(" ").append(param).append(property).append(" in {").append(pIndex).append("} ");
             sc.params.put("" + pIndex, value);
             pIndex += 1;
         }
         sc.pIndex = pIndex;
+        return sb.toString();
+    }
+
+    public String getJanusCypher(SearchCriteria sc, String param) {
+        StringBuilder sb = new StringBuilder();
+        int pIndex = sc.pIndex;
+
+        String propertyKey = (StringUtils.equals("identifier", property)) ? SystemProperties.IL_UNIQUE_ID.name() : property;
+
+        switch (getOperator()) {
+            case SearchConditions.OP_EQUAL:
+                sb.append(".has('").append(propertyKey).append("', '").append(value).append("')");
+                break;
+            case SearchConditions.OP_LIKE:
+                sb.append(".has('").append(propertyKey).append("', TextP.containing('").append(value).append("'))");
+                break;
+            case SearchConditions.OP_STARTS_WITH:
+                sb.append(".has('").append(propertyKey).append("', TextP.startingWith('").append(value).append("'))");
+                break;
+            case SearchConditions.OP_ENDS_WITH:
+                sb.append(".has('").append(propertyKey).append("', TextP.endingWith('").append(value).append("'))");
+                break;
+            case SearchConditions.OP_GREATER_THAN:
+                sb.append(".has('").append(propertyKey).append("', P.gt(").append(value).append("))");
+                break;
+            case SearchConditions.OP_GREATER_OR_EQUAL:
+                sb.append(".has('").append(propertyKey).append("', P.gte(").append(value).append("))");
+                break;
+            case SearchConditions.OP_LESS_THAN:
+                sb.append(".has('").append(propertyKey).append("', P.lt(").append(value).append("))");
+                break;
+            case SearchConditions.OP_LESS_OR_EQUAL:
+                sb.append(".has('").append(propertyKey).append("', P.lte(").append(value).append("))");
+                break;
+            case SearchConditions.OP_NOT_EQUAL:
+                sb.append(".not(has('").append(propertyKey).append("', '").append(value).append("'))");
+                break;
+            case SearchConditions.OP_IN:
+                List<Object> inValues = (List<Object>) value;
+                String inClause = inValues.stream()
+                        .map(v -> "'" + v + "'")
+                        .collect(Collectors.joining(", "));
+                sb.append(".has('").append(propertyKey).append("', P.within(").append(inClause).append("))");
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown operator: " + getOperator());
+        }
+
         return sb.toString();
     }
 }

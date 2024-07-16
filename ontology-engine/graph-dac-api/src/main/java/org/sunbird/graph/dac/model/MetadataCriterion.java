@@ -1,6 +1,7 @@
 package org.sunbird.graph.dac.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.exception.GraphEngineErrorCodes;
 
@@ -92,12 +93,25 @@ public class MetadataCriterion implements Serializable {
     }
 
     public String getCypher(SearchCriteria sc, String param) {
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getString("graphDatabase")  : "neo4j";
+        String queryString = "";
+        switch(graphDBName) {
+            case "neo4j" :
+                queryString=  getNeo4jCypher(sc, param);
+                break;
+            case "janusgraph" :
+                queryString= getJanusCypher(sc, param);
+                break;
+        }
+        return queryString;
+    }
+
+    public String getNeo4jCypher(SearchCriteria sc, String param) {
         StringBuilder sb = new StringBuilder();
-        
         if (null != filters && filters.size() > 0) {
             sb.append("( ");
             for (int i = 0; i < filters.size(); i++) {
-                String filterCypher = filters.get(i).getCypher(sc, param);
+                String filterCypher = filters.get(i).getNeo4jCypher(sc, param);
                 if(StringUtils.isNotBlank(filterCypher)) {
                     sb.append(filterCypher);
                     if (i < filters.size() - 1)
@@ -109,7 +123,7 @@ public class MetadataCriterion implements Serializable {
             if (null != filters && filters.size() > 0)
                 sb.append(" ").append(getOp()).append(" ");
             for (int i = 0; i < metadata.size(); i++) {
-                String metadataCypher = metadata.get(i).getCypher(sc, param);
+                String metadataCypher = metadata.get(i).getNeo4jCypher(sc, param);
                 if(StringUtils.isNotBlank(metadataCypher)) {
                     sb.append(metadataCypher);
                     if (i < metadata.size() - 1)
@@ -119,6 +133,33 @@ public class MetadataCriterion implements Serializable {
         }
         if (null != filters && filters.size() > 0)
             sb.append(") ");
+        return sb.toString();
+    }
+
+    public String getJanusCypher(SearchCriteria sc, String param) {
+        StringBuilder sb = new StringBuilder();
+        if (null != filters && filters.size() > 0) {
+            for (int i = 0; i < filters.size(); i++) {
+                String filterCypher = filters.get(i).getJanusCypher(sc, param);
+                if(StringUtils.isNotBlank(filterCypher)) {
+                    sb.append(filterCypher);
+                    if (i < filters.size() - 1)
+                        sb.append(" ").append(getOp()).append(" ");
+                }
+            }
+        }
+        if (null != metadata && metadata.size() > 0) {
+            if (null != filters && filters.size() > 0)
+                sb.append(" ").append(getOp()).append(" ");
+            for (int i = 0; i < metadata.size(); i++) {
+                String metadataCypher = metadata.get(i).getJanusCypher(sc, param);
+                if(StringUtils.isNotBlank(metadataCypher)) {
+                    sb.append(metadataCypher);
+                    if (i < metadata.size() - 1)
+                        sb.append(" ").append(getOp()).append(" ");
+                }
+            }
+        }
         return sb.toString();
     }
 }

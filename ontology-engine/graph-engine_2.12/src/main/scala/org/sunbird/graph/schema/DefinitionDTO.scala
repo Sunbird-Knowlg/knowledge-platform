@@ -134,4 +134,9 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
         if (schemaValidator.getConfig().hasPath("metadataFields")) schemaValidator.getConfig.getStringList("metadataFields").asScala.toList else List[String]()
     }
 
+    def getAllPropertiesType(): Map[String, AnyRef] = {
+        schemaValidator.getAllPropsType.asScala.toMap
+    }
+
+
 }

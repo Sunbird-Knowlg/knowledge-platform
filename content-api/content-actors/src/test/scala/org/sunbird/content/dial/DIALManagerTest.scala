@@ -7,7 +7,7 @@ import org.sunbird.common.dto.{Property, Request, Response}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode, ServerException}
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 
 import java.util
 import scala.concurrent.Future
@@ -15,7 +15,7 @@ import scala.concurrent.Future
 class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 
 	implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-	val graphDB: GraphService = mock[GraphService]
+	val graphDB: Neo4jGraphService = mock[Neo4jGraphService]
 	val httpUtil: HttpUtil = mock[HttpUtil]
 
 	"getRequestData with list input" should "return request data as list with scala types" in {

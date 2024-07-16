@@ -18,11 +18,23 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
-            <artifactId>graph-dac-api</artifactId>
+            <artifactId>graph-janusgraph-impl</artifactId>
             <exclusions>
                 <exclusion>
-                        <groupId>org.apache.commons</groupId>
-                        <artifactId>commons-lang3</artifactId>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+            </exclusions>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
+            <artifactId>graph-neo4j-impl</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
                 </exclusion>
             </exclusions>
             <version>1.0-SNAPSHOT</version>

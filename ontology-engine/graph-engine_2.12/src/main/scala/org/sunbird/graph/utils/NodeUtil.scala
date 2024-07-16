@@ -1,7 +1,6 @@
 package org.sunbird.graph.utils
 
 import java.util
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
@@ -39,7 +38,6 @@ object NodeUtil {
         finalMetadata.put("languageCode", getLanguageCodes(node))
         finalMetadata
     }
-
 
     def setRelation(node: Node, nodeMap: util.Map[String, AnyRef], relationMap: util.Map[String, AnyRef]) = {
         val inRelations: util.List[Relation] = new util.ArrayList[Relation]()
@@ -109,7 +107,6 @@ object NodeUtil {
         node
     }
 
-
     def handleKeyNames(entry: util.Map.Entry[String, AnyRef], fields: util.List[String]) = {
         if(CollectionUtils.isEmpty(fields)) {
             entry.getKey.substring(0,1).toLowerCase + entry.getKey.substring(1)
@@ -142,7 +139,7 @@ object NodeUtil {
         }
         relMap
     }
-    
+
     def convertJsonProperties(entry: util.Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
         if(jsonProps.contains(entry.getKey)) {
             try {JsonUtils.deserialize(entry.getValue.asInstanceOf[String], classOf[Object])} //.readTree(entry.getValue.toString)}

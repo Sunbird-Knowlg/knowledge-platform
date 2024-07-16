@@ -75,7 +75,10 @@ trait VersionKeyValidator extends IDefinition {
 
     def getVersionKeyFromDB(identifier: String, graphId: String)(implicit ec: ExecutionContext,  oec: OntologyEngineContext): Future[String] = {
         oec.graphService.getNodeProperty(graphId, identifier, "versionKey").map(property => {
-            val versionKey: String =  property.getPropertyValue.asInstanceOf[org.neo4j.driver.internal.value.StringValue].asString()
+            val versionKey: String =  property.getPropertyValue match {
+                case value: org.neo4j.driver.internal.value.StringValue => value.asString()
+                case _ => property.getPropertyValue.asInstanceOf[String]
+            }
             if(StringUtils.isNotBlank(versionKey))
                 versionKey
             else

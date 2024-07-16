@@ -6,10 +6,9 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
-import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.{JanusGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Relation, SubGraph}
 import org.sunbird.graph.nodes.DataNode
-
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
@@ -91,7 +90,7 @@ object FrameworkManager {
     val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
     val outRelations = relations.filter((rel: Relation) => {
       StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
-    }).sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList
+    }).sortBy((rel: Relation) => rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).toString.toInt)(Ordering.Int).toList
 
     if(includeRelations){
       val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
@@ -125,7 +124,7 @@ object FrameworkManager {
           "relation"-> rel.getRelationType,
           "KEY" -> definitionMap.getOrDefault(relKey, "").asInstanceOf[String]
         ) ++ rel.getMetadata.asScala
-        val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
+        val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).toString.toInt) else Map()
         relData ++ indexMap
       } else Map[String, Object]()
     }).filter(x => x.nonEmpty)

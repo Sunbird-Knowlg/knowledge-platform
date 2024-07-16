@@ -6,7 +6,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import java.util
 
 import scala.collection.JavaConversions.mapAsJavaMap
@@ -23,7 +23,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
 
   it should "return success response for 'copyAsset'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getNode()))
@@ -47,7 +47,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
   it should "copy asset with invalid objectType, should through client exception" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInvalidNode()))
     val request = getContentRequest()

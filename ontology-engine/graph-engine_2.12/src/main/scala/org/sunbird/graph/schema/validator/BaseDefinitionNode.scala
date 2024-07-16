@@ -1,14 +1,13 @@
 package org.sunbird.graph.schema.validator
 
 import java.util
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
-import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.dac.model.{ Node, Relation }
 import org.sunbird.graph.schema.{IDefinition, ObjectCategoryDefinition}
 
 import scala.collection.JavaConverters._
@@ -58,12 +57,11 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
         Future{node}
     }
 
-    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None, propTypeMap: Option[Map[String, AnyRef]] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
-        val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
+        val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request, propTypeMap)
         node
     }
-
 
     protected def setRelations(node: Node, relations: java.util.Map[String, AnyRef]): Unit = {
         if (MapUtils.isNotEmpty(relations)) {

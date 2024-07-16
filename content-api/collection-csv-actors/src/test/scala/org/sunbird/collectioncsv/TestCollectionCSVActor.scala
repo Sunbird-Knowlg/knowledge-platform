@@ -11,7 +11,7 @@ import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -26,7 +26,7 @@ class TestCollectionCSVActor extends FlatSpec with Matchers with MockFactory {
     val httpUtil: HttpUtil = mock[HttpUtil]
     implicit val ss: StorageService = mock[StorageService]
     implicit val oec: OntologyEngineContext  = mock[OntologyEngineContext]
-    val graphDB: GraphService = mock[GraphService]
+    val graphDB: Neo4jGraphService = mock[Neo4jGraphService]
     val currentDirectory: String = new java.io.File(".").getCanonicalPath
     val resourceDirectory: String = if(currentDirectory.contains("collection-csv-actors")) currentDirectory+"/src/test/resources/" else currentDirectory+"/content-api/collection-csv-actors/src/test/resources/"
 

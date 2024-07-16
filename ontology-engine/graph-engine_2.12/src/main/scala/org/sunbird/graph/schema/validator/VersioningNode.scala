@@ -2,7 +2,6 @@ package org.sunbird.graph.schema.validator
 
 import java.util
 import java.util.concurrent.CompletionException
-
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{DateUtils, JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, ResponseHandler}
@@ -28,16 +27,16 @@ trait VersioningNode extends IDefinition {
     val COLLECTION_MIME_TYPE = "application/vnd.ekstep.content-collection"
 
 
-    abstract override def getNode(identifier: String, operation: String, mode: String = "read", versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    abstract override def getNode(identifier: String, operation: String, mode: String = "read", versioning: Option[String] = None, disableCache: Option[Boolean] = None, propTypeMap: Option[Map[String, AnyRef]] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         operation match {
-            case "update" => getNodeToUpdate(identifier, versioning);
-            case "read" => getNodeToRead(identifier, mode, disableCache)
-            case _ => getNodeToRead(identifier, mode, disableCache)
+            case "update" => getNodeToUpdate(identifier, versioning, propTypeMap);
+            case "read" => getNodeToRead(identifier, mode, disableCache, propTypeMap)
+            case _ => getNodeToRead(identifier, mode, disableCache, propTypeMap)
         }
     }
 
-    private def getNodeToUpdate(identifier: String, versioning: Option[String] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val nodeFuture: Future[Node] = super.getNode(identifier , "update", null)
+    private def getNodeToUpdate(identifier: String, versioning: Option[String] = None, propTypeMap: Option[Map[String, AnyRef]] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+        val nodeFuture: Future[Node] = super.getNode(identifier , "update", null, None, None, propTypeMap)
         nodeFuture.map(node => {
             val versioningEnable = versioning.getOrElse({if(schemaValidator.getConfig.hasPath("version"))schemaValidator.getConfig.getString("version") else "disable"})
             if(null == node)
@@ -49,39 +48,39 @@ trait VersioningNode extends IDefinition {
         }).flatMap(f => f)
     }
 
-    private def getNodeToRead(identifier: String, mode: String, disableCache: Option[Boolean])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    private def getNodeToRead(identifier: String, mode: String, disableCache: Option[Boolean], propTypeMap: Option[Map[String, AnyRef]] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         if ("edit".equalsIgnoreCase(mode)) {
-            val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode)
+            val imageNode = super.getNode(identifier + IMAGE_SUFFIX, "read", mode, None, None, propTypeMap)
             imageNode recoverWith {
                 case e: CompletionException => {
                     if (e.getCause.isInstanceOf[ResourceNotFoundException])
-                        super.getNode(identifier, "read", mode)
+                        super.getNode(identifier, "read", mode, None, None, propTypeMap)
                     else
                         throw e.getCause
                 }
             }
         } else {
             if(disableCache.nonEmpty){
-                if(disableCache.get) super.getNode(identifier, "read", mode)
-                else getNodeFromCache(identifier)
+                if(disableCache.get) super.getNode(identifier, "read", mode, None, None, propTypeMap)
+                else getNodeFromCache(identifier, propTypeMap)
             } else{
                 val cacheKey = getSchemaName().toLowerCase() + ".cache.enable"
-                if (Platform.getBoolean(cacheKey, false)) getNodeFromCache(identifier)
-                else super.getNode(identifier, "read", mode)
+                if (Platform.getBoolean(cacheKey, false)) getNodeFromCache(identifier, propTypeMap)
+                else super.getNode(identifier, "read", mode, None, None, propTypeMap)
             }
         }
     }
-    private def getNodeFromCache(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]= {
+    private def getNodeFromCache(identifier: String, propTypeMap: Option[Map[String, AnyRef]] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node]= {
         val ttl: Integer = if (Platform.config.hasPath(getSchemaName().toLowerCase() + ".cache.ttl")) Platform.config.getInt(getSchemaName().toLowerCase() + ".cache.ttl") else 86400
-        getCachedNode(identifier, ttl)
+        getCachedNode(identifier, ttl, propTypeMap)
     }
 
-    private def getEditableNode(identifier: String, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+    private def getEditableNode(identifier: String, node: Node, propTypeMap: Option[Map[String, AnyRef]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         val status = node.getMetadata.get("status").asInstanceOf[String]
         if(statusList.contains(status)) {
             val imageId = node.getIdentifier + IMAGE_SUFFIX
             try{
-                val imageNode = oec.graphService.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
+                val imageNode = oec.graphService.getNodeByUniqueId(node.getGraphId, imageId, false, new Request(), propTypeMap)
                 imageNode recoverWith {
                     case e: CompletionException => {
                         TelemetryManager.error("Exception occurred while fetching image node, may not be found", e.getCause)
@@ -130,7 +129,7 @@ trait VersioningNode extends IDefinition {
         }
     }
 
-    def getCachedNode(identifier: String, ttl: Integer)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    def getCachedNode(identifier: String, ttl: Integer, propTypeMap: Option[Map[String, AnyRef]] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
         nodeStringFuture.map(nodeString => {
             if (null != nodeString && !nodeString.asInstanceOf[String].isEmpty) {
@@ -139,7 +138,7 @@ trait VersioningNode extends IDefinition {
                   .getAnyRef("relations").asInstanceOf[java.util.Map[String, AnyRef]])
                 Future {node}
             } else {
-                super.getNode(identifier, "read", null)
+                super.getNode(identifier, "read", null, None, None, propTypeMap)
             }
         }).flatMap(f => f)
     }

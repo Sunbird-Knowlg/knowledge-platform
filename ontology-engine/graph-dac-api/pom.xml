@@ -86,6 +86,21 @@
 			<version>1.17.6</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.tinkerpop</groupId>
+			<artifactId>gremlin-driver</artifactId>
+			<version>3.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.janusgraph</groupId>
+			<artifactId>janusgraph-core</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.janusgraph</groupId>
+			<artifactId>janusgraph-inmemory</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,7 +1,7 @@
 package org.sunbird.graph.schema.validator
 
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.dac.model.{Node}
 import org.sunbird.graph.schema.IDefinition
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,4 +19,5 @@ trait SchemaValidator extends IDefinition {
 
         super.validate(node, operation)
     }
+
 }

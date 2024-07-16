@@ -6,7 +6,7 @@ import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.common.enums.GraphDACParams
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
@@ -23,7 +23,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "create a Term node and store it in neo4j" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
@@ -54,7 +54,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if categoryId and identifier are same" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
@@ -76,7 +76,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if identifier is null" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("")
@@ -98,7 +98,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if categoryId is null" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
@@ -120,7 +120,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if frameworkId is null" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
@@ -142,7 +142,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if code is not sent in the request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
     node.setIdentifier("ncf_board")
@@ -168,7 +168,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'readTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val categoryInstanceNode = getCategoryInstanceOfNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode))
@@ -184,7 +184,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if identifier is empty for 'readTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val categoryInstanceNode = getCategoryInstanceOfNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode))
@@ -213,7 +213,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if termId is empty for 'readTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val categoryInstanceNode = getCategoryInstanceOfNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode))
@@ -228,7 +228,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'updateTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -246,7 +246,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if identifier is sent in updateCategoryInstance request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val request = getTermRequest()
@@ -261,7 +261,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'retireTerm' " in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
+    val graphDB = mock[Neo4jGraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()

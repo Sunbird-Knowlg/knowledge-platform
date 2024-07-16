@@ -1,6 +1,7 @@
 package org.sunbird.graph.dac.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
@@ -156,6 +157,20 @@ public class RelationCriterion implements Serializable {
     }
 
     public String getCypher(SearchCriteria sc, String prevParam) {
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getString("graphDatabase") : "neo4j";
+        String queryString = "";
+        switch(graphDBName) {
+            case "neo4j" :
+                queryString=  getNeo4jCypher(sc, prevParam);
+                break;
+            case "janusgraph" :
+                queryString= getJanusCypher(sc, prevParam);
+                break;
+        }
+        return queryString;
+    }
+
+    public String getNeo4jCypher(SearchCriteria sc, String prevParam) {
         StringBuilder sb = new StringBuilder();
         sb.append("WITH ee ");
         if (StringUtils.isNotBlank(prevParam))
@@ -235,7 +250,7 @@ public class RelationCriterion implements Serializable {
                 if (StringUtils.isNotBlank(objectType) || (null != identifiers && identifiers.size() > 0))
                     sb.append("AND ");
                 for (int i = 0; i < metadata.size(); i++) {
-                    sb.append(metadata.get(i).getCypher(sc, param));
+                    sb.append(metadata.get(i).getNeo4jCypher(sc, param));
                     if (i < metadata.size() - 1)
                         sb.append(" ").append(getOp()).append(" ");
                 }
@@ -244,9 +259,16 @@ public class RelationCriterion implements Serializable {
         }
         if (null != relations && relations.size() > 0) {
             for (RelationCriterion rel : relations) {
-                sb.append(rel.getCypher(sc, param));
+                sb.append(rel.getNeo4jCypher(sc, param));
             }
         }
+        return sb.toString();
+    }
+
+    public String getJanusCypher(SearchCriteria sc, String prevParam) {
+        StringBuilder sb = new StringBuilder();
+
+
         return sb.toString();
     }
 }

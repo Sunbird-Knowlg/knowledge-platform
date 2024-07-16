@@ -37,7 +37,6 @@ object DataSubGraph {
     val dataMap = new util.HashMap[String, AnyRef]
     val relMap = new util.HashMap[String, AnyRef]
     readSubGraphData(request, dataMap, relMap).map(sub => {
-      println("subGraphData out " + sub)
       sub
     })
   }
@@ -60,7 +59,6 @@ object DataSubGraph {
     })
     finalDataMap.map(entry => {
       val mapData = entry._2.asInstanceOf[java.util.Map[String, AnyRef]].asScala
-      println("mapData  " + mapData.toString())
       val outRelations: util.List[Relation] = mapData.getOrElse("outRelations", new util.ArrayList[Relation]).asInstanceOf[util.List[Relation]]
       for (rel <- outRelations.asScala) {
         val subReq = new Request()
@@ -71,7 +69,6 @@ object DataSubGraph {
         subReq.getContext.put("objectType", rel.getEndNodeObjectType)
         subReq.getContext.put("isRoot", "true")
         subReq.put("identifier", rel.getEndNodeId)
-        println("readSubGraphData "+ readSubGraphData(subReq, dataMap, relMap))
       }
     })
     Future{finalDataMap}
@@ -107,7 +104,6 @@ object DataSubGraph {
         finalMetadata.keySet.retainAll(fields)
       finalMetadata.put("identifier", node.getIdentifier)
     }
-    println("definitionMap  "+ definitionMap)
     val relMap: util.Map[String, util.List[util.Map[String, AnyRef]]] = geOutRelationMap(node, updatedMetadataMap, definitionMap)
     finalMetadata.putAll(relMap)
     finalMetadata

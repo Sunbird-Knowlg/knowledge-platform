@@ -2,6 +2,7 @@ package org.sunbird.graph.dac.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
+import org.sunbird.common.Platform;
 import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
@@ -125,6 +126,21 @@ public class SearchCriteria implements Serializable {
 
     @JsonIgnore
     public String getQuery() {
+
+        String graphDBName = Platform.config.hasPath("graphDatabase") ? Platform.config.getString("graphDatabase")  : "neo4j";
+        String queryString = "";
+        switch(graphDBName) {
+            case "neo4j" :
+                queryString=  getNeo4jQuery();
+                break;
+            case "janusgraph" :
+                queryString= getJanusQuery();
+                break;
+        }
+        return queryString;
+    }
+
+    public String getNeo4jQuery() {
         StringBuilder sb = new StringBuilder();
         pIndex = 1;
         sb.append("MATCH (ee:" + (StringUtils.isBlank(graphId) ? "NODE" : graphId) + ") ");
@@ -164,10 +180,10 @@ public class SearchCriteria implements Serializable {
                 sb.append(rel.getCypher(this, null));
         }
         if (!countQuery) {
-        	boolean returnNode = true;
+            boolean returnNode = true;
             if (null == fields || fields.isEmpty()) {
-            	sb.append("WITH DISTINCT ee ");
-            	if (null != sortOrder && sortOrder.size() > 0) {
+                sb.append("WITH DISTINCT ee ");
+                if (null != sortOrder && sortOrder.size() > 0) {
                     sb.append("ORDER BY ");
                     for (int i = 0; i < sortOrder.size(); i++) {
                         Sort sort = sortOrder.get(i);
@@ -179,13 +195,13 @@ public class SearchCriteria implements Serializable {
                             sb.append(", ");
                     }
                 }
-            	if (startPosition > 0)
+                if (startPosition > 0)
                     sb.append("SKIP ").append(startPosition).append(" ");
                 if (resultSize > 0)
                     sb.append("LIMIT ").append(resultSize).append(" ");
                 sb.append("OPTIONAL MATCH (ee)-[r]-() RETURN ee, r, startNode(r) as __startNode, endNode(r) as __endNode ");
             } else {
-            	returnNode = false;
+                returnNode = false;
                 sb.append("RETURN ");
                 for (int i = 0; i < fields.size(); i++) {
                     sb.append("ee.").append(fields.get(i)).append(" as ").append(fields.get(i)).append(" ");
@@ -194,7 +210,7 @@ public class SearchCriteria implements Serializable {
                 }
             }
             if (!returnNode) {
-            	if (null != sortOrder && sortOrder.size() > 0) {
+                if (null != sortOrder && sortOrder.size() > 0) {
                     sb.append("ORDER BY ");
                     for (int i = 0; i < sortOrder.size(); i++) {
                         Sort sort = sortOrder.get(i);
@@ -206,7 +222,7 @@ public class SearchCriteria implements Serializable {
                             sb.append(", ");
                     }
                 }
-            	if (startPosition > 0) {
+                if (startPosition > 0) {
                     sb.append("SKIP ").append(startPosition).append(" ");
                 }
                 if (resultSize > 0) {
@@ -215,6 +231,89 @@ public class SearchCriteria implements Serializable {
             }
         } else {
             sb.append("RETURN count(ee) as __count");
+        }
+        return sb.toString();
+    }
+
+    @JsonIgnore
+    public String getJanusQuery() {
+        Map<String, Object> data = new HashMap<String, Object>();
+        StringBuilder sb = new StringBuilder();
+
+        if (StringUtils.isNotBlank(nodeType) || StringUtils.isNotBlank(objectType)
+                || (null != metadata && metadata.size() > 0)) {
+            if (StringUtils.isNotBlank(nodeType)) {
+                sb.append(".has('").append(SystemProperties.IL_SYS_NODE_TYPE.name()).append("', '").append(nodeType).append("')");
+            }
+            if (StringUtils.isNotBlank(objectType)) {
+                sb.append(".has('").append(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).append("', '").append(objectType).append("')");
+            }
+            if (null != metadata && metadata.size() > 0) {
+                for (int i = 0; i < metadata.size(); i++) {
+                    String metadataCypher = metadata.get(i).getCypher(this, "ee");
+                    if (StringUtils.isNotBlank(metadataCypher)) {
+                        sb.append(metadataCypher);
+                        if (i < metadata.size() - 1)
+                            sb.append(" ").append(getOp()).append(" ");
+                    }
+                }
+            }
+            sb.append(".dedup()").append(".as('ee')");
+        }
+        if (!countQuery) {
+            boolean returnNode = true;
+            if (null == fields || fields.isEmpty()) {
+                if (null != sortOrder && sortOrder.size() > 0) {
+                    sb.append(".order()");
+                    for (int i = 0; i < sortOrder.size(); i++) {
+                        Sort sort = sortOrder.get(i);
+                        if (StringUtils.equals(Sort.SORT_DESC, sort.getSortOrder())) {
+                            sb.append(".by('").append(sort.getSortField()).append(", Order.desc) ");
+                        }
+                    }
+                }
+                if (startPosition > 0)
+                    sb.append("skip(").append(startPosition).append(")");
+                if (resultSize > 0)
+                    sb.append("limit(").append(resultSize).append(")");
+                sb.append(".coalesce(");
+                sb.append("outE().as('r').inV().as('endNode').select('ee', 'r', 'endNode'),");
+                sb.append("outE().as('r').outV().as('startNode').select('ee', 'r', 'startNode'),");
+                sb.append("select('ee').as('r').constant(null).as('endNode').select('ee', 'r', 'endNode')");
+                sb.append(")");
+                sb.append(".project('ee', 'r', '__startNode', '__endNode')");
+                sb.append(".by(select('ee'))");
+                sb.append(".by(constant(null))");
+                sb.append(".by(constant(null))");
+                sb.append(".by(constant(null))");
+                sb.append(".dedup()");
+                sb.append(".toList()");
+            } else {
+                returnNode = false;
+//                sb.append("RETURN ");
+//                for (int i = 0; i < fields.size(); i++) {
+//                    sb.append("ee.").append(fields.get(i)).append(" as ").append(fields.get(i)).append(" ");
+//                    if (i < fields.size() - 1)
+//                        sb.append(", ");
+//                }
+            }
+            if (!returnNode) {
+                if (null != sortOrder && sortOrder.size() > 0) {
+                    sb.append(".order()");
+                    for (int i = 0; i < sortOrder.size(); i++) {
+                        Sort sort = sortOrder.get(i);
+                        if (StringUtils.equals(Sort.SORT_DESC, sort.getSortOrder())) {
+                            sb.append(".by('").append(sort.getSortField()).append(", Order.desc) ");
+                        }
+                    }
+                }
+                if (startPosition > 0)
+                    sb.append("skip(").append(startPosition).append(")");
+                if (resultSize > 0)
+                    sb.append("limit(").append(resultSize).append(")");
+            }
+        } else {
+            sb.append(".count()").append("  .as('__count')").append("  .select('__count')");
         }
         return sb.toString();
     }

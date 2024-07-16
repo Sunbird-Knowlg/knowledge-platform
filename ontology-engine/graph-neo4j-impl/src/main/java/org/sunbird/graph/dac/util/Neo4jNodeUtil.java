@@ -50,7 +50,7 @@ public class Neo4jNodeUtil {
         if (null != outRels && null != outRels.iterator()) {
             List<Relation> outRelations = new ArrayList<Relation>();
             for (Relationship outRel : outRels)
-                outRelations.add(new Relation(graphId, outRel));
+                outRelations.add(Neo4jRelationUtil.getRelation(graphId, outRel));
             node.setOutRelations(outRelations);
         }
 
@@ -58,7 +58,7 @@ public class Neo4jNodeUtil {
         if (null != inRels && null != inRels.iterator()) {
             List<Relation> inRelations = new ArrayList<Relation>();
             for (Relationship inRel : inRels) {
-                inRelations.add(new Relation(graphId, inRel));
+                inRelations.add(Neo4jRelationUtil.getRelation(graphId, inRel));
             }
         }
         return node;
@@ -127,10 +127,10 @@ public class Neo4jNodeUtil {
                 org.neo4j.driver.v1.types.Relationship relationship = (org.neo4j.driver.v1.types.Relationship) entry
                         .getValue();
                 if (relationship.startNodeId() == neo4jNode.id()) {
-                    outRelations.add(new Relation(graphId, relationship, startNodeMap, endNodeMap));
+                    outRelations.add(Neo4jRelationUtil.getRelation(graphId, relationship, startNodeMap, endNodeMap));
                 }
                 if (relationship.endNodeId() == neo4jNode.id()) {
-                    inRelations.add(new Relation(graphId, relationship, startNodeMap, endNodeMap));
+                    inRelations.add(Neo4jRelationUtil.getRelation(graphId, relationship, startNodeMap, endNodeMap));
                 }
             }
             node.setInRelations(inRelations);

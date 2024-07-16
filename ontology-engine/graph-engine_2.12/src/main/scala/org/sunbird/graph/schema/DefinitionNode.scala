@@ -74,7 +74,8 @@ object DefinitionNode {
     val definition = DefinitionFactory.getDefinition(request.getContext.get("graph_id").asInstanceOf[String]
       , schemaName, request.getContext.get("version").asInstanceOf[String])
     val disableCache: Option[Boolean] = if (request.getRequest.containsKey("disableCache")) request.get("disableCache").asInstanceOf[Option[Boolean]] else None
-    definition.getNode(request.get("identifier").asInstanceOf[String], "read", if (request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read", None, disableCache)
+    val propertyTypes: Option[Map[String, AnyRef]] = Some(definition.getAllPropertiesType())
+    definition.getNode(request.get("identifier").asInstanceOf[String], "read", if (request.getRequest.containsKey("mode")) request.get("mode").asInstanceOf[String] else "read", None, disableCache, propertyTypes)
   }
 
   @throws[Exception]

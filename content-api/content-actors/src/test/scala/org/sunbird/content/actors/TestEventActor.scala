@@ -6,7 +6,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
-import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.{Neo4jGraphService, OntologyEngineContext}
 import java.util
 
 import scala.collection.JavaConverters._
@@ -17,7 +17,7 @@ class TestEventActor extends BaseSpec with MockFactory {
 
     it should "discard node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNodeToDiscard())).anyNumberOfTimes()
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
@@ -35,7 +35,7 @@ class TestEventActor extends BaseSpec with MockFactory {
 
     it should "publish node in draft state should return success" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getDraftNode())).anyNumberOfTimes()
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getDraftNode()))
@@ -56,7 +56,7 @@ class TestEventActor extends BaseSpec with MockFactory {
 
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard())).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
@@ -76,7 +76,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234.img")))
         request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard()))
         val response = callActor(request, Props(new EventActor()))
@@ -85,7 +85,7 @@ class TestEventActor extends BaseSpec with MockFactory {
 
     it should "return success response for retireContent" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getNode("Content", None)
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
@@ -103,7 +103,7 @@ class TestEventActor extends BaseSpec with MockFactory {
     it should "return success response for 'updateContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         implicit val ss = mock[StorageService]
-        val graphDB = mock[GraphService]
+        val graphDB = mock[Neo4jGraphService]
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         val node = getDraftNode()
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
