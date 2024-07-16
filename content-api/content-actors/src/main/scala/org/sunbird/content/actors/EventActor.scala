@@ -79,5 +79,4 @@ class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServi
     node
   }
 
-
 }
