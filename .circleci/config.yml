@@ -3,7 +3,7 @@ executorType: machine
 jobs:
   build:
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2204:2022.04.2
     steps:
       - checkout
       - restore_cache:
@@ -19,7 +19,7 @@ jobs:
 
   unit-tests:
     machine:
-       image: ubuntu-2004:202201-02
+       image: ubuntu-2204:2022.04.2
     parallelism: 1
     steps:
       - checkout

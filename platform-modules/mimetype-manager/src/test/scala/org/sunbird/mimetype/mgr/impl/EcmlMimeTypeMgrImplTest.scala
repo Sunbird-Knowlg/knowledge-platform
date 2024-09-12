@@ -101,7 +101,7 @@ class EcmlMimeTypeMgrImplTest extends AsyncFlatSpec with Matchers with AsyncMock
         })
     }
 
-    ignore should "review ECML having xml body and return result" in {
+    it should "review ECML having xml body and return result" ignore {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
