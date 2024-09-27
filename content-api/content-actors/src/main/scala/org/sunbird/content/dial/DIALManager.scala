@@ -1,21 +1,27 @@
 package org.sunbird.content.dial
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception._
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.content.util.ContentConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.managers.HierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
 
+import java.io.File
 import java.util
+import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable.{HashMap, Map}
+import scala.collection.mutable.{Map => Mmap}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.parsing.json.JSON
 
 
 object DIALManager {
@@ -24,7 +30,19 @@ object DIALManager {
 	val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate")
 	val DIAL_API_AUTH_KEY: String = ContentConstants.BEARER + Platform.config.getString("dial_service.api.auth_key")
 	val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
-
+	private val kfClient = new KafkaClient
+	val DIALTOPIC: String = Platform.config.getString("kafka.dial.request.topic")
+	val defaultConfig: Mmap[String, Any] = Mmap(
+		"errorCorrectionLevel" -> "H",
+		"pixelsPerBlock" -> 2,
+		"qrCodeMargin" -> 3,
+		"textFontName" -> "Verdana",
+		"textFontSize" -> 11,
+		"textCharacterSpacing" -> 0.1,
+		"imageFormat" -> "png",
+		"colourModel" -> "Grayscale",
+		"imageBorderSize" -> 1
+	)
 	def link(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val linkType: String = request.getContext.getOrDefault(DIALConstants.LINK_TYPE, DIALConstants.CONTENT).asInstanceOf[String]
 		val channelId: String = request.getContext.getOrDefault(DIALConstants.CHANNEL, "").asInstanceOf[String]
@@ -291,16 +309,25 @@ object DIALManager {
 	def reserve(request: Request, channelId: String, contentId: String, rootNode: Node, contentMetadata: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		//validateContentStatus(contentMetadata)
 
-		val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
-		val updateDialCodes  = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
+		val reservedDialCodes = if (contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String]) else Map.empty[String, Integer]
+		val updateDialCodes = getUpdateDIALCodes(reservedDialCodes, request, channelId, contentId)
+		val reqPublisher = request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]].get(DIALConstants.PUBLISHER).asInstanceOf[String]
 
-		if(updateDialCodes.size > reservedDialCodes.size) {
+		if (updateDialCodes.size > reservedDialCodes.size) {
 			val updateReq = getDIALReserveUpdateRequest(request, rootNode, updateDialCodes)
 			DataNode.update(updateReq).map(updatedNode => {
 				val response = ResponseHandler.OK()
 				val updatedSuccessResponse = getDIALReserveUpdateResponse(response, updateDialCodes.size.asInstanceOf[Integer], contentId, updatedNode)
 				updatedSuccessResponse.getResult.put(DIALConstants.VERSION_KEY, updatedNode.getMetadata.get(DIALConstants.VERSION_KEY))
-				updatedSuccessResponse
+				println(" publisher ", request.getRequest)
+				val dialcodes: Map[String, AnyRef] =
+					updatedSuccessResponse.getResult
+						.get("reservedDialcodes")
+						.asInstanceOf[java.util.Map[String, AnyRef]]
+						.asScala
+						.toMap
+				val updatedResponse = createRequest(dialcodes, channelId, Option(reqPublisher), updatedSuccessResponse, request)
+				updatedResponse
 			})
 		} else {
 			val errorResponse = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, DIALErrors.ERR_INVALID_COUNT, DIALErrors.ERR_DIAL_INVALID_COUNT_RESPONSE)
@@ -308,6 +335,88 @@ object DIALManager {
 			Future(updatedErrorResponse)
 		}
 	}
+
+	/*
+  * prepare qr data
+  * */
+
+	def createRequest(data: Map[String, AnyRef], channel: String, publisher: Option[String], rspObj: Response, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+
+		val dialCodesMap = data.map { case (dialcode, index) =>
+			val fileName = s"$index" + "_" + s"$dialcode"
+			val dialData = Map(
+				"data" -> s"https://dev.knowlg.sunbird.org/dial/$dialcode",
+				"text" -> dialcode,
+				"id" -> fileName
+			)
+			dialData
+		}
+
+		val qrCodeSpecString = request.getRequestString("qrcodespec", "") // Assuming this is a JSON string
+		val qrCodeSpec = JSON.parseFull(qrCodeSpecString) match {
+			case Some(map: Map[String, Any]) => map
+			case _ => Map.empty[String, Any]
+		}
+		val mergedConfig: Mmap[String, Any] = defaultConfig.++(qrCodeSpec)
+		val processId = UUID.randomUUID
+		val dialcodes = dialCodesMap.map(_("text")).toList.asJava
+		rspObj.getResult.put(DIALConstants.PROCESS_ID, processId)
+		pushDialEvent(processId, rspObj, channel, publisher, dialCodesMap,mergedConfig)
+
+		val batch = new java.util.HashMap[String, AnyRef]()
+		batch.put("identifier", processId)
+		batch.put("dialcodes", dialcodes)
+		batch.put("config", mergedConfig.mapValues(_.toString).asJava)
+		batch.put("status", Int.box(0) )
+		batch.put("channel", channel)
+		batch.put("publisher", publisher.get)
+		batch.put("created_on", Long.box(System.currentTimeMillis()))
+
+		val updateReq = new Request()
+		val context = new util.HashMap[String, Object]()
+		context.putAll(request.getContext)
+		context.remove("identifier")
+		updateReq.setContext(context)
+		updateReq.getContext.put("schemaName", "dialcode")
+		updateReq.getContext.put("objectType", "content")
+		val updateMap = new util.HashMap[String, AnyRef]()
+		updateMap.put("identifier", rspObj.get("node_id"))
+		updateMap.put("status",Int.box(0) )
+		updateReq.setRequest(updateMap)
+		updateReq.putAll(batch)
+
+		oec.dialgraphService.saveExternalProps(updateReq).map { resp =>
+			if (ResponseHandler.checkError(resp)) {
+				throw new ServerException("ERR_WHILE_SAVING_TO_CASSANDRA", "Error while saving external props to Cassandra")
+			}
+			else {
+				resp
+			}
+
+		}
+		rspObj
+
+	}
+
+	def pushDialEvent (processId: UUID, rspObj: Response, channel: String, publisher: Option[String], dialCodes:  Iterable[Map[String, String]], config: Mmap[String, Any] ) ={
+		val event = new util.HashMap[String, Any]()
+
+		event.put("eid", DIALConstants.DIAL_EID)
+		event.put("processId", processId)
+		event.put("objectId", Option(rspObj.get("node_id")).getOrElse(channel))
+		event.put("dialcodes", dialCodes)
+		val storageMap = new util.HashMap[String, Any]()
+		storageMap.put("container", "dial")
+		storageMap.put("path", if (publisher.nonEmpty) channel+"/"+ publisher.get +"/" else s"$channel/")
+		storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
+		event.put("storage", storageMap)
+		event.put("config", config.toMap.asJava)
+		val topic: String = DIALTOPIC
+		val dialEvent = ScalaJsonUtils.serialize(event)
+		if (StringUtils.isBlank(dialEvent)) throw new ClientException("DIAL_REQUEST_EXCEPTION", "Event is not generated properly.")
+		kfClient.send(dialEvent, topic)
+	}
+
 
 	def release(request: Request, contentId: String, rootNode: Node, contentMetadata: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val reservedDialCodes = if(contentMetadata.containsKey(DIALConstants.RESERVED_DIALCODES)) ScalaJsonUtils.deserialize[Map[String, Integer]](contentMetadata.get(DIALConstants.RESERVED_DIALCODES).asInstanceOf[String])
@@ -423,10 +532,9 @@ object DIALManager {
 	}
 
 	def getUpdateDIALCodes(reservedDialCodes: Map[String, Integer], request: Request, channelId: String, contentId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Map[String, Integer] = {
-		val maxIndex: Integer = if (reservedDialCodes.nonEmpty) reservedDialCodes.max._2	else -1
+		val maxIndex: Integer = if (reservedDialCodes.nonEmpty) reservedDialCodes.toSeq.sortBy(_._2).last._2	else -1
 		val dialCodes = reservedDialCodes.keySet
 		val reqDialcodesCount = request.getRequest.get(DIALConstants.DIALCODES).asInstanceOf[util.Map[String, AnyRef]].get(DIALConstants.COUNT).asInstanceOf[Integer]
-
 		if (dialCodes.size < reqDialcodesCount) {
 			val newDialcodes = generateDialCodes(channelId, contentId, reqDialcodesCount - dialCodes.size, request.get(DIALConstants.PUBLISHER).asInstanceOf[String])
 			val newDialCodesMap: Map[String, Integer] = newDialcodes.zipWithIndex.map { case (newDialCode, idx) =>
@@ -481,5 +589,36 @@ object DIALManager {
 			response.getResult.put(DIALConstants.RESERVED_DIALCODES, JsonUtils.deserialize(reservDialCodes, classOf[util.Map[String, Integer]]))
 
 		response
+	}
+
+	@throws[Exception]
+	def readQRCodesBatchInfo(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+		if (StringUtils.isBlank(request.get("processId").toString)) Future{ ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, DIALErrors.ERR_INVALID_PROCESS_ID_REQUEST, DIALErrors.ERR_INVALID_PROCESS_ID_REQUEST)}
+		 request.getContext.replace("schemaName", "dialcode")
+		request.put("identifier", UUID.fromString( request.get("processId").toString ))
+		request.getRequest.remove("channelId")
+		val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], "dialcode")
+		val qrCodesBatch = oec.graphService.readExternalProps(request, externalProps)
+		qrCodesBatch.map { response =>
+			println(" rsp from qaCodesBatch:  ", response.getResponseCode)
+			val updatedResponse = ResponseHandler.OK()
+			if (Platform.config.getBoolean("cloudstorage.metadata.replace_absolute_path")) response.getResult.replace("url", Platform.config.getString("cloudstorage.relative_path_prefix"),  Platform.config.getString("cloudstorage.read_base_path") + File.separator + Platform.config.getString("cloud_storage_container"))
+			if (!response.getResult.isEmpty){
+				updatedResponse.getResult.put(DIALConstants.batchInfo, response.getResult)
+				updatedResponse
+			}
+			else response
+		}.recover {
+			case ex: Exception =>
+				// Handle the exception here
+				TelemetryManager.error(s"An error occurred: ${ex.getMessage}", ex)
+				ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "An internal error occurred", ex.getMessage)
+		}
+		/*	val response = ResponseHandler.OK()
+		response.getResult.put(DIALConstants.batchInfo, "response test")
+		println(" qrCodesBatch ", qrCodesBatch)
+//		val resp = getSuccessResponse
+//		resp.put(DialCodeEnum.batchInfo.name, qrCodesBatch)
+		response*/
 	}
 }
