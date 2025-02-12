@@ -67,9 +67,15 @@ class StorageService {
         getService.deleteObject(getContainerName, key, isDirectory)
     }
 
-    def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
-      getService.getPutSignedURL(getContainerName, key, ttl, permission, Option.apply(getMimeType(key)))
-    }
+  def getSignedURL(key: String, ttl: Option[Int], permission: Option[String]): String = {
+    val additionalParams: Map[String, String] = Map("clientId" -> (if (Platform.config.hasPath("cloud_storage_client_id")) Platform.config.getString("cloud_storage_client_id") else ""),
+      "privateKeyIds" -> (if (Platform.config.hasPath("cloud_storage_private_key_id")) Platform.config.getString("cloud_storage_private_key_id") else ""),
+      "projectId" -> (if (Platform.config.hasPath("cloud_storage_project_id")) Platform.config.getString("cloud_storage_project_id") else ""),
+      "privateKeyPkcs8" -> (if (Platform.config.hasPath("cloud_storage_secret")) Platform.config.getString("cloud_storage_secret") else ""),
+      "clientEmail" -> (if (Platform.config.hasPath("cloud_storage_key")) Platform.config.getString("cloud_storage_key") else "")
+      )
+    getService.getPutSignedURL(getContainerName, key, ttl, permission, additionalParams = Option.apply(additionalParams))
+  }
 
     def getUri(key: String): String = {
         try {
