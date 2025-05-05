@@ -428,7 +428,7 @@ object DIALManager {
 		event.put("objectId", Option(rspObj.get("node_id")).getOrElse(channel))
 		event.put("dialcodes", dialCodes)
 		val storageMap = new util.HashMap[String, Any]()
-		storageMap.put("container", "dial")
+		storageMap.put("container", DIAL_CONTAINER)
 		storageMap.put("path", if (publisher.nonEmpty) channel+"/"+ publisher.getOrElse("") +"/" else s"$channel/")
 		storageMap.put("filename", Option(rspObj.get("node_id")).get + "_" + System.currentTimeMillis())
 		event.put("storage", storageMap)
