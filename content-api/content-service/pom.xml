@@ -135,13 +135,26 @@
             <artifactId>play-logback_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
             <scope>runtime</scope>
-        </dependency>
+      </dependency>
+
+
         <dependency>
             <groupId>com.typesafe.play</groupId>
             <artifactId>play-netty-server_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
             <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+      <dependency>
+           <groupId>io.netty</groupId>
+           <artifactId>netty-codec-http</artifactId>
+           <version>4.1.44.Final</version>
+      </dependency> 
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>

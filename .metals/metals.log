@@ -1,0 +1,569 @@
+2025.05.05 23:53:59 INFO  Started: Metals version 1.5.2 in folders '/home/sohel/knowledge/knowledge-platform' for client Cursor 1.96.2.[0m
+2025.05.05 23:54:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:26 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.05 23:54:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 05, 2025 11:54:27 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 15
+2025.05.05 23:54:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 05, 2025 11:54:27 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 23
+May 05, 2025 11:54:27 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 8
+May 05, 2025 11:54:27 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 6
+2025.05.05 23:54:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:27 WARN  Build server is not auto-connectable.[0m
+2025.05.05 23:54:27 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.05 23:54:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:29 INFO  time: code lens generation in 2.27s[0m
+2025.05.05 23:54:29 INFO  time: code lens generation in 2.27s[0m
+2025.05.05 23:54:29 INFO  time: code lens generation in 2.27s[0m
+2025.05.05 23:54:29 INFO  time: code lens generation in 2.27s[0m
+2025.05.05 23:54:29 INFO  time: code lens generation in 2.27s[0m
+2025.05.05 23:54:30 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.05 23:54:30 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:30 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:30 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:31 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:31 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:31 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 05, 2025 11:54:32 PM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.05 23:54:31 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:31 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:32 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:32 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:54:35 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:56:15 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:56:15 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:56:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:56:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:56:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:57:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:57:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:57:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 05, 2025 11:57:57 PM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.05 23:57:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:57:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:57:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:58:36 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:58:36 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 05, 2025 11:58:36 PM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.05 23:58:39 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.05 23:58:54 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 05, 2025 11:58:54 PM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:07 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.06 00:01:07 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:11 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:11 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:11 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:11 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:14 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:14 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:14 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:14 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:14 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:01:15 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:15 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:15 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:16 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:17 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:16 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:17 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:17 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:01:18 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:18 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:18 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:18 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:01:19 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:21 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:22 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:22 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:01:22 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:23 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:23 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:01:23 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:46 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:46 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala[0m
+2025.05.06 00:01:46 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:47 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:52 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:52 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:54 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:54 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:55 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:55 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:57 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:57 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:58 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:58 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:58 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:01:58 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:58 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:59 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:59 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:01:59 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:01:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:01:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:02:00 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:02:00 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:02:00 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:02:00 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:02:00 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:02:08 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala[0m
+2025.05.06 00:02:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:09 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:09 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:11 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:11 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:11 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:12 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:12 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:02:13 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:02:13 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:02:34 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:46 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:02:46 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:03:45 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala[0m
+2025.05.06 00:03:45 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:03:45 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:03:52 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:03:56 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.06 00:03:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:02 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:02 INFO  Shutting down server[0m
+2025.05.06 00:04:02 INFO  shutting down Metals[0m
+2025.05.06 00:04:02 INFO  Exiting server[0m
+2025.05.06 00:04:15 INFO  Started: Metals version 1.5.2 in folders '/home/sohel/knowledge/knowledge-platform' for client Cursor 1.96.2.[0m
+2025.05.06 00:04:15 INFO  time: initialize in 0.13s[0m
+2025.05.06 00:04:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:04:27 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2
+2025.05.06 00:04:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:30 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:39 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:39 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:40 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.06 00:04:40 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:39 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:44 INFO  time: code lens generation in 4.89s[0m
+2025.05.06 00:04:44 INFO  time: code lens generation in 4.89s[0m
+2025.05.06 00:04:44 INFO  time: code lens generation in 4.56s[0m
+2025.05.06 00:04:45 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:45 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:45 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:04:50 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:04:51 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:05:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:05:46 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:05:46 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:05:46 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala[0m
+2025.05.06 00:05:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:05:48 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala[0m
+2025.05.06 00:05:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-actors/src/main/scala/org/sunbird/content/actors/CategoryActor.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:05:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:05:51 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:06:18 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:06:19 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:06:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:06:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:06:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:07:12 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala[0m
+2025.05.06 00:07:12 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:07:12 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:07:12 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:07:13 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/CategoryController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:22 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala[0m
+2025.05.06 00:11:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:29 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:36 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:36 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:40 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:48 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala[0m
+2025.05.06 00:11:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:48 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:53 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:11:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:00 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:00 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:00 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-52-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:12:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:02 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:04 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:04 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:06 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:06 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-56-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:12:06 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:06 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:07 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:13 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:13 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:14 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:17 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:19 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:19 AM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 166
+2025.05.06 00:12:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-66-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:12:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:21 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-74-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:12:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:23 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-80-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:12:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:23 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:12:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:12:25 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:12:28 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:56 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:57 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:58 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-91-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:14:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-93-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:14:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:14:59 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-95-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:15:00 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:00 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:00 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:02 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:01 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:03 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/ContentController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:03 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala[0m
+2025.05.06 00:15:03 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:05 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/BaseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:07 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:07 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala[0m
+2025.05.06 00:15:07 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:08 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:09 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:10 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:10 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:10 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:10 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-110-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:15:10 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:15 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:19 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:19 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-116-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:21 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:22 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:22 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:22 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:21 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:22 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:24 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:24 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:25 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:26 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:25 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:26 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-136-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:15:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:26 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:27 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:28 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-140-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:15:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:28 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:27 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:28 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:28 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:28 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:30 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:32 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:32 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:33 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:34 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:35 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:35 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:36 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:15:36 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:35 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:35 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:36 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:36 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:15:37 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+May 06, 2025 12:15:37 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:15:45 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:15:45 INFO  Shutting down server[0m
+2025.05.06 00:15:45 INFO  shutting down Metals[0m
+2025.05.06 00:15:45 INFO  Exiting server[0m
+2025.05.06 00:16:03 INFO  Started: Metals version 1.5.2 in folders '/home/sohel/knowledge/knowledge-platform' for client Cursor 1.96.2.[0m
+2025.05.06 00:16:11 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:19 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:19 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:19 WARN  no build target for: /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala[0m
+2025.05.06 00:16:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:20 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:33 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:33 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+Exception in thread "pool-7-thread-1" java.lang.InterruptedException
+	at scala.meta.internal.metals.FutureCancelToken.checkCanceled(FutureCancelToken.scala:29)
+	at scala.meta.internal.pc.CompilerAccess.onCompilerJobQueue$$anonfun$1(CompilerAccess.scala:244)
+	at scala.meta.internal.pc.CompilerJobQueue$Job.run(CompilerJobQueue.scala:153)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025.05.06 00:16:33 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:36 INFO  time: code lens generation in 16s[0m
+2025.05.06 00:16:36 INFO  time: code lens generation in 15s[0m
+2025.05.06 00:16:36 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:16:39 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:16:41 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+May 06, 2025 12:16:44 AM scala.meta.internal.metals.StdReporter $anonfun$create$1
+WARNING: empty definition using pc, found symbol in pc: `<none>`. (full report at: /home/sohel/knowledge/knowledge-platform/.metals/.reports/metals-full/2025-05-05/r_empty-definition_23-54-32-057.md)
+2025.05.06 00:16:54 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:55 INFO  no build target found for /home/sohel/knowledge/knowledge-platform/content-api/content-service/app/controllers/v3/LicenseController.scala. Using presentation compiler with project's scala-library version: 3.3.5[0m
+2025.05.06 00:16:57 INFO  Shutting down server[0m
+2025.05.06 00:16:57 INFO  shutting down Metals[0m
+2025.05.06 00:16:57 INFO  Exiting server[0m
