@@ -622,7 +622,6 @@ object DIALManager {
 		val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], "dialcode")
 		val qrCodesBatch = oec.graphService.readExternalProps(request, externalProps)
 		qrCodesBatch.map { response =>
-			println(" rsp from qaCodesBatch:  ", response.getResponseCode)
 			val updatedResponse = ResponseHandler.OK()
 			if (Platform.config.getBoolean("cloudstorage.metadata.replace_absolute_path")) response.getResult.replace("url", Platform.config.getString("cloudstorage.relative_path_prefix"),  Platform.config.getString("cloudstorage.read_base_path") + File.separator + Platform.config.getString("cloud_storage_container"))
 			if (!response.getResult.isEmpty){

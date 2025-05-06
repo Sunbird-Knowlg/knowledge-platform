@@ -20,7 +20,6 @@ class DialStore(keySpace: String, table: String, primaryKey: java.util.List[Stri
   def insert(request: util.Map[String, AnyRef], propsMapping: Map[String, String])(implicit ec: ExecutionContext): Future[Response] = {
     val insertQuery: Insert = QueryBuilder.insertInto(keySpace, table)
     val identifier = request.get("identifier")
-    println(" primarykey type ", primaryKey.get(0).getClass)
 
     if (identifier.isInstanceOf[String]) insertQuery.value(primaryKey.get(0), UUID.fromString(identifier.asInstanceOf[String]))
     else insertQuery.value(primaryKey.get(0), identifier)
@@ -44,10 +43,8 @@ class DialStore(keySpace: String, table: String, primaryKey: java.util.List[Stri
       }
     }
     try {
-      println(" insert query ", insertQuery)
       val session: Session = CassandraConnector.getSession
       val sessionExecute = session.executeAsync(insertQuery)
-      println(" result set  ", sessionExecute.get())
       sessionExecute.asScala.map(resultset => {
         ResponseHandler.OK()
       })

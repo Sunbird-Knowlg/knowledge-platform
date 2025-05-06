@@ -15,7 +15,6 @@ class DialGraphService {
   def saveExternalProps(request: Request): Future[Response] = {
     val externalProps: java.util.Map[String, AnyRef] = request.getRequest
     val updatedExternalProps = if (isrRelativePathEnabled) CSPMetaUtil.saveExternalRelativePath(externalProps) else externalProps
-    println(" updated external props ", updatedExternalProps.get(" identifier "), " ", updatedExternalProps.get("identifier").getClass)
     request.setRequest(updatedExternalProps)
     DialPropsManager.saveProps(request)
   }
