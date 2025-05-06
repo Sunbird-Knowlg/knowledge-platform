@@ -4,5 +4,5 @@
 **/*.iml
 **/application.conf
 *.conf
-.vscode
-.metals
+.vscode/
+.metals/
