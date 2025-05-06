@@ -136,8 +136,6 @@
             <version>${play2.version}</version>
             <scope>runtime</scope>
       </dependency>
-
-
         <dependency>
             <groupId>com.typesafe.play</groupId>
             <artifactId>play-netty-server_${scala.major.version}</artifactId>
