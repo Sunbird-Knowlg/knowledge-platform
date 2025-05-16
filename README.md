@@ -204,3 +204,42 @@ mvn play2:run
 ```shell
 curl http://localhost:9000/health
 ```
+
+### GitHub Actions Workflow Prerequisites
+
+To ensure the GitHub Actions workflows in this repository function correctly, the following prerequisites must be met:
+
+1. **Secrets Configuration**:
+   - Ensure the following secrets are configured in your GitHub repository:
+
+    #### GCP (Google Cloud Platform)
+    - `GCP_SERVICE_ACCOUNT_KEY`: Base64-encoded service account key for GCP.
+    - `REGISTRY_NAME`: GCP registry name (e.g., `asia-south1-docker.pkg.dev`).
+    - `REGISTRY_URL`: URL of the GCP container registry (e.g., `asia-south1-docker.pkg.dev/sunbird-morocco-sandbox-434709/sunbird-morocco-artifact-dev`).
+
+    #### DockerHub
+    - `REGISTRY_USERNAME`: DockerHub username.
+    - `REGISTRY_PASSWORD`: DockerHub password.
+    - `REGISTRY_NAME`: DockerHub registry name (e.g., `docker.io`).
+    - `REGISTRY_URL`: URL of the DockerHub registry. (e.g., `docker.io/<username>`)
+
+    #### Azure Container Registry (ACR)
+    - `REGISTRY_USERNAME`: ACR username (service principal or admin username).
+    - `REGISTRY_PASSWORD`: ACR password (service principal secret or admin password).
+    - `REGISTRY_NAME`: ACR registry name (e.g., `myregistry.azurecr.io`).
+    - `REGISTRY_URL`: URL of the ACR registry (e.g., `myregistry.azurecr.io`).
+
+    #### GitHub Container Registry (GHCR)
+    - `GITHUB_TOKEN`: GitHub token for authentication.
+    - `REGISTRY_NAME`: GitHub Container Registry name (e.g., `ghcr.io`).
+    - `REGISTRY_URL`: URL of the GHCR registry (e.g., `ghcr.io/<organization>/<repository>`).
+
+Ensure these secrets are added to the repository settings under **Settings > Secrets and variables > Actions**.
+
+2. **Environment Variables**:
+   - The following environment variables must be set in the repository or workflow:
+     - `CLOUD_STORE_GROUP_ID`: The group ID for cloud storage dependencies.
+     - `CLOUD_STORE_ARTIFACT_ID`: The artifact ID for cloud storage dependencies.
+     - `CLOUD_STORE_VERSION`: The version of the cloud storage dependencies.
+
+By ensuring these prerequisites are met, the workflows in this repository will execute successfully.
