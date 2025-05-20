@@ -86,3 +86,4 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}
+          echo "Pushed Docker image: $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}"
