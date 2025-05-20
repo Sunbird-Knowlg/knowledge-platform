@@ -50,14 +50,8 @@ jobs:
               gcloud auth configure-docker ${{ secrets.REGISTRY_NAME }}
               REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
               ;;
-            "azure")
-              echo "Logging in to Azure Container Registry"
-              echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
-                --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
-              REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
-              ;;
-            "dockerhub")
-              echo "Logging in to Docker Container Registry"
+            "azure" | "dockerhub")
+              echo "Logging in to Container Registry"
               echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
                 --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
               REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
