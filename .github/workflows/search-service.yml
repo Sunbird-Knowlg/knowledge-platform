@@ -42,25 +42,33 @@ jobs:
       # Step 6: Set up Login to Docker registry
       - name: Determine registry and login
         run: |
-          if [[ -n "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" ]]; then
-            echo "Using Google Container Registry"
-            echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | base64 --decode > $HOME/gcloud-key.json
-            gcloud auth activate-service-account --key-file=$HOME/gcloud-key.json
-            gcloud auth configure-docker ${{ secrets.REGISTRY_NAME }}
-            REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
-
-          elif [[ -n "${{ secrets.REGISTRY_USERNAME }}" && -n "${{ secrets.REGISTRY_PASSWORD }}" ]]; then
-            echo "Logging in to custom Docker registry"
-            echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
-              --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
-            REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
-
-          else
-            echo "Using GitHub Container Registry (GHCR)"
-            REPO_NAME_LOWERCASE=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            REGISTRY_URL="ghcr.io/$REPO_NAME_LOWERCASE"
-          fi
+          case "${{ vars.REGISTRY_PROVIDER }}" in
+            "gcp")
+              echo "Using Google Container Registry"
+              echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | base64 --decode > $HOME/gcloud-key.json
+              gcloud auth activate-service-account --key-file=$HOME/gcloud-key.json
+              gcloud auth configure-docker ${{ secrets.REGISTRY_NAME }}
+              REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
+              ;;
+            "azure")
+              echo "Logging in to Azure Container Registry"
+              echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
+                --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+              REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
+              ;;
+            "dockerhub")
+              echo "Logging in to Docker Container Registry"
+              echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
+                --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+              REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
+              ;;
+            *)
+              echo "Using GitHub Container Registry (GHCR)"
+              REPO_NAME_LOWERCASE=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+              echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+              REGISTRY_URL="ghcr.io/$REPO_NAME_LOWERCASE"
+              ;;
+          esac
 
           echo "REGISTRY_URL=${REGISTRY_URL}" >> $GITHUB_ENV
 
