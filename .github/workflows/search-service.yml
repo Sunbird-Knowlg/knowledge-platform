@@ -51,7 +51,7 @@ jobs:
               REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
               ;;
             "azure" | "dockerhub")
-              echo "Logging in to Azure Container Registry"
+              echo "Logging in to Container Registry"
               echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
                 --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
               REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
