@@ -1,0 +1,83 @@
+name: Build and Push Taxonomy Service Image
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up JDK 11 and Maven
+      - name: Set up JDK 11 and Maven
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+
+      # Step 4: Build the project
+      - name: Build Taxonomy API Service
+        run: |
+          mvn clean install -DskipTests=true \
+            -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+            -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
+            -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
+
+      # Step 5: Package the project
+      - name: Package Taxonomy API Service
+        run: |
+          cd taxonomy-api
+          mvn play2:dist -pl taxonomy-service \
+            -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+            -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
+            -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
+
+      # Step 6: Set up Login to Docker registry
+      - name: Determine registry and login
+        run: |
+          case "${{ vars.REGISTRY_PROVIDER }}" in
+            "gcp")
+              echo "Using Google Container Registry"
+              echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" | base64 --decode > $HOME/gcloud-key.json
+              gcloud auth activate-service-account --key-file=$HOME/gcloud-key.json
+              gcloud auth configure-docker ${{ secrets.REGISTRY_NAME }}
+              REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
+              ;;
+            "azure" | "dockerhub")
+              echo "Logging in to Container Registry"
+              echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_NAME }} \
+                --username ${{ secrets.REGISTRY_USERNAME }} --password-stdin
+              REGISTRY_URL=$(echo "${{ secrets.REGISTRY_URL }}" | tr '[:upper:]' '[:lower:]')
+              ;;
+            *)
+              echo "Using GitHub Container Registry (GHCR)"
+              REPO_NAME_LOWERCASE=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+              echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+              REGISTRY_URL="ghcr.io/$REPO_NAME_LOWERCASE"
+              ;;
+          esac
+
+          echo "REGISTRY_URL=${REGISTRY_URL}" >> $GITHUB_ENV
+
+      # Step 7: Build Docker image
+      - name: Build Docker Image
+        run: |
+          IMAGE_NAME="taxonomy-api"
+          IMAGE_TAG=$(echo "${{ github.ref_name }}_$(echo $GITHUB_SHA | cut -c1-7)" | tr '[:upper:]' '[:lower:]')
+          docker build -f build/taxonomy-service/Dockerfile -t $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG} .
+
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+
+      # Step 8: Push Docker Image
+      - name: Push Docker Image
+        run: |
+          docker push $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}
+          echo "Pushed Docker image: $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}"
