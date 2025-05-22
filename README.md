@@ -212,6 +212,8 @@ To ensure the GitHub Actions workflows in this repository function correctly, th
 1. **Secrets Configuration**:
    - Ensure the secrets are configured in your GitHub repository, depending on the value of `REGISTRY_PROVIDER`. The workflow will push the image to the respective container registry if the required credentials are provided.
 
+   - Note: If No REGISTRY_PROVIDER is provided the image will be pushed to GHCR.
+
     #### GCP (Google Cloud Platform)
     - `REGISTRY_PROVIDER`: Set to `gcp`
     - `GCP_SERVICE_ACCOUNT_KEY`: Base64-encoded service account key for GCP.
