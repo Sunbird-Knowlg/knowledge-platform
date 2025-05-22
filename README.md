@@ -204,3 +204,45 @@ mvn play2:run
 ```shell
 curl http://localhost:9000/health
 ```
+
+### GitHub Actions Workflow Prerequisites
+
+To ensure the GitHub Actions workflows in this repository function correctly, the following prerequisites must be met:
+
+1. **Secrets Configuration**:
+   - Ensure the secrets are configured in your GitHub repository, depending on the value of `REGISTRY_PROVIDER`. The workflow will push the image to the respective container registry if the required credentials are provided.
+
+   - Note: If No REGISTRY_PROVIDER is provided the image will be pushed to GHCR.
+
+    #### GCP (Google Cloud Platform)
+    - `REGISTRY_PROVIDER`: Set to `gcp`
+    - `GCP_SERVICE_ACCOUNT_KEY`: Base64-encoded service account key for GCP.
+    - `REGISTRY_NAME`: GCP registry name (e.g., `asia-south1-docker.pkg.dev`).
+    - `REGISTRY_URL`: URL of the GCP container registry (e.g., `asia-south1-docker.pkg.dev/<project_id>/<repository_name>`).
+
+    #### DockerHub
+    - `REGISTRY_PROVIDER`: Set to `dockerhub`
+    - `REGISTRY_USERNAME`: DockerHub username.
+    - `REGISTRY_PASSWORD`: DockerHub password.
+    - `REGISTRY_NAME`: DockerHub registry name (e.g., `docker.io`).
+    - `REGISTRY_URL`: URL of the DockerHub registry (e.g., `docker.io/<username>`).
+
+    #### Azure Container Registry (ACR)
+    - `REGISTRY_PROVIDER`: Set to `azure`
+    - `REGISTRY_USERNAME`: ACR username (service principal or admin username).
+    - `REGISTRY_PASSWORD`: ACR password (service principal secret or admin password).
+    - `REGISTRY_NAME`: ACR registry name (e.g., `myregistry.azurecr.io`).
+    - `REGISTRY_URL`: URL of the ACR registry (e.g., `myregistry.azurecr.io`).
+
+    #### GitHub Container Registry (GHCR)
+    - `REGISTRY_PROVIDER`: Set to any value other than above (default is GHCR)
+    - No additional secrets are required. The workflow uses the built-in `GITHUB_TOKEN` provided by GitHub Actions for authentication.
+
+2. **Environment Variables**:
+   - The following environment variables must be set in the repository or workflow:
+     - `CLOUD_STORE_GROUP_ID`: The group ID for cloud storage dependencies.
+     - `CLOUD_STORE_ARTIFACT_ID`: The artifact ID for cloud storage dependencies.
+     - `CLOUD_STORE_VERSION`: The version of the cloud storage dependencies.
+
+Ensure these secrets and variables are added to the repository settings under **Settings > Secrets and variables > Actions**.
+By ensuring these prerequisites are met, the workflows in this repository will execute successfully.
