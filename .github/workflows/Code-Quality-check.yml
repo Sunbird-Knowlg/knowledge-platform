@@ -78,7 +78,7 @@ jobs:
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION} \
-          -Dsonar.projectKey=sunbird-knowlg-1 \
+          -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
           -Dsonar.organization=sunbird-knowlg-1 \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.coverage.jacoco.xmlReportPaths=content-api/content-service/target/site/jacoco/jacoco.xml
@@ -89,7 +89,7 @@ jobs:
         if: github.event_name == 'pull_request' && always()
         with:
           script: |
-            const sonarUrl = `https://sonarcloud.io/dashboard?id=sunbird-knowlg-1`;
+            const sonarUrl = `https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform`;
             const message = `### Quality Gate Results
             Check the detailed SonarQube analysis at: ${sonarUrl}`;
             github.rest.issues.createComment({
