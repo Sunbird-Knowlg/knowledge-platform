@@ -12,8 +12,8 @@ jobs:
       CLOUD_STORE_GROUP_ID: ${{ vars.CLOUD_STORE_GROUP_ID }}
       CLOUD_STORE_ARTIFACT_ID: ${{ vars.CLOUD_STORE_ARTIFACT_ID }} 
       CLOUD_STORE_VERSION: ${{ vars.CLOUD_STORE_VERSION }}
-      PROJECT_KEY: vinodbhorge_knowledge-platform
-      ORGANISATION_KEY: vinodbhorge
+      PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+      ORGANISATION_KEY: ${{ vars.SONAR_ORGANISATION_KEY }}
     steps:
       - uses: actions/checkout@v3
         with:
