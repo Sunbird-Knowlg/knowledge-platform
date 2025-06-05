@@ -8,14 +8,12 @@ permissions:
   pull-requests: write
   contents: read
   issues: write
+  checks: write
+  statuses: write
 
 jobs:
   test-and-quality:
     runs-on: ubuntu-latest
-    env:
-      CLOUD_STORE_GROUP_ID: ${{ vars.CLOUD_STORE_GROUP_ID }}
-      CLOUD_STORE_ARTIFACT_ID: ${{ vars.CLOUD_STORE_ARTIFACT_ID }} 
-      CLOUD_STORE_VERSION: ${{ vars.CLOUD_STORE_VERSION }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -38,19 +36,16 @@ jobs:
 
       - name: Build and Run Tests
         run: |
-          echo ${CLOUD_STORE_GROUP_ID}
-          echo ${CLOUD_STORE_ARTIFACT_ID}
-          echo ${CLOUD_STORE_VERSION}
-          mvn clean install -DskipTests \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          mvn clean install -DskipTests=true \
+          -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+          -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }}  \
+          -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
           echo "Running the test cases"
           cd content-api/content-service/
           mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+          -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }}  \
+          -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
 
       - name: Upload Test Results
         if: always()
@@ -76,14 +71,13 @@ jobs:
 
       - name: SonarCloud Analysis
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: content-api/content-service
         run: |
           mvn sonar:sonar \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION} \
+          -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+          -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }}  \
+          -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }} \
           -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
           -Dsonar.organization=sunbird-knowlg-1 \
           -Dsonar.host.url=https://sonarcloud.io \
