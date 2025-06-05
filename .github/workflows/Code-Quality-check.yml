@@ -38,6 +38,7 @@ jobs:
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          echo "Running the test cases"
           cd content-api/content-service/
           mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
