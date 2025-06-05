@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - '*'
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
 
 jobs:
   test-and-quality:
@@ -34,6 +38,9 @@ jobs:
 
       - name: Build and Run Tests
         run: |
+          echo ${CLOUD_STORE_GROUP_ID}
+          echo ${CLOUD_STORE_ARTIFACT_ID}
+          echo ${CLOUD_STORE_VERSION}
           mvn clean install -DskipTests \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
