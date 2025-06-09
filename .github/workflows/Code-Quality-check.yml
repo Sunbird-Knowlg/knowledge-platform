@@ -63,7 +63,7 @@ jobs:
       - name: Run Content Service Tests
         working-directory: content-api/content-service/
         run: |
-          mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
@@ -99,7 +99,7 @@ jobs:
       - name: Run Taxonomy Tests
         working-directory: taxonomy-api/taxonomy-service/
         run: |
-          mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
@@ -117,6 +117,42 @@ jobs:
         with:
           name: Taxonomy Test Results
           path: taxonomy-api/taxonomy-service/target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: true
+
+  test-search:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run Search Tests
+        working-directory: search-api/search-service
+        run: |
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
+          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
+          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
+          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+
+      - name: Upload Search Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-test-results
+          path: 'search-api/search-service/target/surefire-reports/*.xml'
+
+      - name: Publish Search Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Search Test Results
+          path: search-api/search-service/target/surefire-reports/*.xml
           reporter: java-junit
           fail-on-error: true
 
@@ -170,8 +206,43 @@ jobs:
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.coverage.jacoco.xmlReportPaths=taxonomy-api/taxonomy-service/target/site/jacoco/jacoco.xml
 
+  sonar-analysis-search:
+    needs: test-search
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Run SonarCloud Analysis for Search
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: search-api/search-service
+        run: |
+          mvn clean compile \
+            -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
+            -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
+            -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+
+          mvn sonar:sonar \
+            -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
+            -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
+            -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION} \
+            -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
+            -Dsonar.organization=sunbird-knowlg-1 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.java.binaries=target/classes \
+            -Dsonar.java.test.binaries=target/test-classes \
+            -Dsonar.coverage.jacoco.xmlReportPaths=search-api/search-service/target/site/jacoco/jacoco.xml
+
   comment-pr:
-    needs: [sonar-analysis-content, sonar-analysis-taxonomy]
+    needs: [sonar-analysis-content, sonar-analysis-taxonomy, sonar-analysis-search]
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -182,7 +253,9 @@ jobs:
             const message = `### SonarCloud Analysis Results 🔍
             
             #### Quality Gate Results for Services:
-            - [Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform)
+            - [Content Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform_content)
+            - [Taxonomy Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform_taxonomy)
+            - [Search Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform_search)
             
             Please review the analysis results for each service. Ensure all quality gates are passing before merging.`;
             
