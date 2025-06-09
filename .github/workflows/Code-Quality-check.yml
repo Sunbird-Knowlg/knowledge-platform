@@ -63,7 +63,7 @@ jobs:
       - name: Run Content Service Tests
         working-directory: content-api/content-service/
         run: |
-          mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
@@ -99,7 +99,7 @@ jobs:
       - name: Run Taxonomy Tests
         working-directory: taxonomy-api/taxonomy-service/
         run: |
-          mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
@@ -133,9 +133,9 @@ jobs:
           cache: 'maven'
 
       - name: Run Search Tests
-        working-directory: search-api/search-service/
+        working-directory: search-api/search-service
         run: |
-          mvn clean test org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
           -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
           -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
           -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
