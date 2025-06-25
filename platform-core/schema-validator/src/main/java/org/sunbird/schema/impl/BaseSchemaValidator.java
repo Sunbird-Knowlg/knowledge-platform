@@ -19,6 +19,7 @@ import org.sunbird.schema.dto.ValidationResult;
 
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -68,8 +69,10 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
      * @param stream the InputStream for the schema.
      * @return the read schema.
      */
-    protected JsonSchema readSchema(InputStream stream) {
-        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(stream)) {
+    protected JsonSchema readSchema(InputStream stream) throws Exception{
+        byte[] bytes = stream.readAllBytes();
+        InputStream jsonStream = new ByteArrayInputStream(bytes);
+        try (JsonSchemaReader reader = schemaReaderFactory.createSchemaReader(jsonStream)) {
             return reader.read();
         }
     }
