@@ -482,6 +482,10 @@ public abstract class SearchBaseActor extends AbstractActor {
                             objectTypes.add("Asset");
                             objectTypes.add("CollectionImage");
                         }
+                        if(StringUtils.equalsIgnoreCase("Question", (String) val) && !publishedStatus)
+                            objectTypes.add("QuestionImage");
+                        if(StringUtils.equalsIgnoreCase("QuestionSet", (String) val) && !publishedStatus)
+                            objectTypes.add("QuestionSetImage");
                     }
                     entry.setValue(new ArrayList<String>(objectTypes));
                 }
