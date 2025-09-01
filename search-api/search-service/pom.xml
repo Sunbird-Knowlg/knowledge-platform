@@ -46,26 +46,26 @@
       <version>${play2.version}</version>
       <exclusions>
         <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
         </exclusion>
         <exclusion>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.maj.version}</artifactId>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-scala_${scala.maj.version}</artifactId>
         </exclusion>
         <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
         </exclusion>
         <exclusion>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-parameter-names</artifactId>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-parameter-names</artifactId>
         </exclusion>
         <exclusion>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-cbor</artifactId>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-cbor</artifactId>
         </exclusion>
-    </exclusions>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.typesafe.play</groupId>
@@ -73,18 +73,18 @@
       <version>${play2.version}</version>
       <exclusions>
         <exclusion>
-            <artifactId>jackson-databind</artifactId>
-            <groupId>com.fasterxml.jackson.core</groupId>            
+          <artifactId>jackson-databind</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
         </exclusion>
         <exclusion>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-scala_${scala.maj.version}</artifactId>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-scala_${scala.maj.version}</artifactId>
         </exclusion>
         <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
         </exclusion>
-    </exclusions>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.typesafe.play</groupId>
@@ -96,32 +96,65 @@
       <artifactId>play-logback_${scala.major.version}</artifactId>
       <version>${play2.version}</version>
       <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.13</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.play</groupId>
       <artifactId>play-netty-server_${scala.major.version}</artifactId>
       <version>${play2.version}</version>
       <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-handler</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
-        <groupId>com.fasterxml.jackson.dataformat</groupId>
-        <artifactId>jackson-dataformat-cbor</artifactId>
-        <version>${fasterxml.jackson.version}</version>
-    </dependency>        
-    <dependency>
-        <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-module-parameter-names</artifactId>
-        <version>${fasterxml.jackson.version}</version>
-    </dependency>        
-    <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${fasterxml.jackson.version}</version>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>4.1.118.Final</version>
     </dependency>
     <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${fasterxml.jackson.version}</version>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-cbor</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-parameter-names</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${fasterxml.jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
@@ -165,6 +198,17 @@
       <groupId>com.github.danielwegener</groupId>
       <artifactId>logback-kafka-appender</artifactId>
       <version>0.2.0-RC2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.xerial.snappy</groupId>
+          <artifactId>snappy-java</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial.snappy</groupId>
+      <artifactId>snappy-java</artifactId>
+      <version>1.1.10.4</version>
     </dependency>
   </dependencies>
   <build>
