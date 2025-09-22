@@ -1,0 +1,68 @@
+name: Build and Push Content Service Image
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up JDK 11 and Maven
+      - name: Set up JDK 11 and Maven
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+
+      # Step 3: Set up Login to Docker registry
+      - name: Registry Login
+        uses: ./.github/actions/registry-login
+        with:
+          registry_provider: ${{ vars.REGISTRY_PROVIDER }}
+          gcp_service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          registry_name: ${{ secrets.REGISTRY_NAME }}
+          registry_url: ${{ secrets.REGISTRY_URL }}
+          registry_username: ${{ secrets.REGISTRY_USERNAME }}
+          registry_password: ${{ secrets.REGISTRY_PASSWORD }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 4: Build the project
+      - name: Build Content Service
+        run: |
+          mvn clean install -DskipTests=true \
+            -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+            -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
+            -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
+
+      # Step 5: Package the project
+      - name: Package Content Service
+        run: |
+          cd content-api
+          mvn play2:dist -pl content-service \
+            -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
+            -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
+            -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
+
+      # Step 6: Build Docker image 
+      - name: Build Docker Image
+        run: |
+          IMAGE_NAME="content-service"
+          IMAGE_TAG=$(echo "${{ github.ref_name }}_$(echo $GITHUB_SHA | cut -c1-7)" | tr '[:upper:]' '[:lower:]')
+          docker build -f build/content-service/Dockerfile -t $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG} .
+
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+     
+      # Step 7: Push Docker Image
+      - name: Push Docker Image
+        run: |
+          docker push $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}
+          echo "Pushed Docker image: $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}"
