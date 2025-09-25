@@ -1,8 +1,5 @@
 package org.sunbird.graph.nodes
 
-import java.util
-import java.util.Optional
-import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.DateUtils
@@ -10,12 +7,15 @@ import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
-import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
+import org.sunbird.graph.dac.model._
 import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}
 import org.sunbird.parseq.Task
 
-import scala.collection.convert.ImplicitConversions._
+import java.util
+import java.util.Optional
+import java.util.concurrent.CompletionException
 import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -112,7 +112,7 @@ object DataNode {
         oec.graphService.deleteNode(request.graphId, identifier, request)
     }
 
-    private def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+     def saveExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
             externalProps.put("identifier", identifier)
             val request = new Request(context, externalProps, "", objectType)
@@ -122,7 +122,7 @@ object DataNode {
         }
     }
 
-    private def updateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  def updateExternalProperties(identifier: String, externalProps: util.Map[String, AnyRef], context: util.Map[String, AnyRef], objectType: String, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
         if (MapUtils.isNotEmpty(externalProps)) {
                 val req = new Request(request)
                 req.put("identifier", identifier)
@@ -185,10 +185,12 @@ object DataNode {
         }
         list
     }
+
     
     private def defaultDataModifier(node: Node) = {
         node
     }
+
 
   @throws[Exception]
   def systemUpdate(request: Request, nodeList: util.List[Node], hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {

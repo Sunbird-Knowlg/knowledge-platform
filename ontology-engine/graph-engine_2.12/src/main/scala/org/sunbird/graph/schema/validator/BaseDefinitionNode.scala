@@ -1,14 +1,13 @@
 package org.sunbird.graph.schema.validator
 
 import java.util
-
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
-import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.dac.model.{Edges, Node, Relation, Vertex}
 import org.sunbird.graph.schema.{IDefinition, ObjectCategoryDefinition}
 
 import scala.collection.JavaConverters._
@@ -53,16 +52,44 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
         node
     }
 
+    override def getVertex(input: java.util.Map[String, Object]): Vertex = {
+        val result = schemaValidator.getStructuredData(input)
+        val vertex = new Vertex(graphId, result.getMetadata)
+        val objectType = schemaValidator.getConfig.getString("objectType")
+        vertex.setVertexType(SystemNodeTypes.DATA_NODE.name)
+        vertex.setObjectType(objectType)
+        vertex.setIdentifier(input.getOrDefault("identifier", Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp)).asInstanceOf[String])
+        input.remove("identifier")
+        setEdges(vertex, result.getRelations)
+        if (CollectionUtils.isNotEmpty(vertex.getInEdges)) vertex.setAddedEdges(vertex.getInEdges)
+        if (CollectionUtils.isNotEmpty(vertex.getOutEdges)) vertex.setAddedEdges(vertex.getOutEdges)
+        vertex.setExternalData(result.getExternalData)
+        vertex
+    }
+
     @throws[Exception]
     override def validate(node: Node, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
         Future{node}
     }
+
+  @throws[Exception]
+  override def validateVertex(vertex: Vertex, operation: String, setDefaultValue: Boolean)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Vertex] = {
+    Future {
+      vertex
+    }
+  }
 
     override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
         val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
         node
     }
+
+  override def getVertex(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Vertex] = {
+    val request: Request = new Request()
+    val vertex: Future[Vertex] = oec.janusGraphService.getNodeByUniqueId(graphId, identifier, false, request)
+    vertex
+  }
 
 
     protected def setRelations(node: Node, relations: java.util.Map[String, AnyRef]): Unit = {
@@ -92,4 +119,33 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
             node.setOutRelations(outRelations)
         }
     }
+
+  protected def setEdges(vertex: Vertex, edges: java.util.Map[String, AnyRef]): Unit = {
+    if (MapUtils.isNotEmpty(edges)) {
+      def getEdges(schema: Map[String, AnyRef], direction: String): List[Edges] = {
+        edges.asScala.filterKeys(key => schema.keySet.contains(key))
+          .flatten(entry => {
+            val relSchema = schema.get(entry._1).get.asInstanceOf[java.util.Map[String, AnyRef]].asScala
+            val relData = entry._2.asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+            relData.asScala.map(r => {
+              val relation = {
+                if (StringUtils.equalsAnyIgnoreCase("out", direction)) {
+                  new Edges(vertex.getIdentifier, relSchema.get("type").get.asInstanceOf[String], r.get("identifier").asInstanceOf[String])
+                    .updateMetadata((r.asScala - "identifier").asJava)
+                } else {
+                  new Edges(r.get("identifier").asInstanceOf[String], relSchema.get("type").get.asInstanceOf[String], vertex.getIdentifier)
+                    .updateMetadata((r.asScala - "identifier").asJava)
+                }
+              }
+              relation
+            })
+          }).toList
+      }
+
+      val inRelations = getEdges(inRelationsSchema, "in").asJava
+      vertex.setInEdges(inRelations)
+      val outRelations = getEdges(outRelationsSchema, "out").asJava
+      vertex.setOutEdges(outRelations)
+    }
+  }
 }

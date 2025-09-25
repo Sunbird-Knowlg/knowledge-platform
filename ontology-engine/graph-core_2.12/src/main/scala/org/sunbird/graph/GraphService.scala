@@ -12,6 +12,7 @@ import java.lang
 import scala.concurrent.{ExecutionContext, Future}
 
 class GraphService {
+
     implicit  val ec: ExecutionContext = ExecutionContext.global
     val isrRelativePathEnabled: lang.Boolean = Platform.getBoolean("cloudstorage.metadata.replace_absolute_path", false)
 
