@@ -197,8 +197,10 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
         request.setOperation("retireContent")
         val response = callActor(request, Props(new EventSetActor()))
+
         assert("successful".equals(response.getParams.getStatus))
     }
+
 
     it should "return success response for 'readContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
