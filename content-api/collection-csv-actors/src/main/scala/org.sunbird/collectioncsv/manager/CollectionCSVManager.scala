@@ -472,10 +472,14 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     //invoke DIAL code Linking
     val linkDIALCodeReqMap = folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
-      if(nodeInfo(CollectionTOCConstants.DIAL_CODES) != null && nodeInfo(CollectionTOCConstants.DIAL_CODES).toString.nonEmpty)
-        new util.HashMap[String, String]{put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString); put(CollectionTOCConstants.DIALCODE, nodeInfo(CollectionTOCConstants.DIAL_CODES).toString)}
-      else  new util.HashMap[String, String]()
-    }).filter(record => record.nonEmpty).toList
+      val required = nodeInfo.getOrElse(CollectionTOCConstants.DIAL_CODE_REQUIRED, CollectionTOCConstants.NO).toString
+      val dial = nodeInfo.getOrElse(CollectionTOCConstants.DIAL_CODES, "").toString
+      val dialToSend = if (CollectionTOCConstants.YES.equalsIgnoreCase(required) && dial.nonEmpty) dial else ""
+      new util.HashMap[String, String]{
+        put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString)
+        put(CollectionTOCConstants.DIALCODE, dialToSend)
+      }
+    }).toList
 
     if(linkDIALCodeReqMap.nonEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
   }
