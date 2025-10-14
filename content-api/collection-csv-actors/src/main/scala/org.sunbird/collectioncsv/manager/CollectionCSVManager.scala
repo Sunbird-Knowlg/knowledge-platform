@@ -327,14 +327,15 @@ object CollectionCSVManager extends CollectionInputFileReader  {
            |"dialcodeRequired": "No","code": "nodeID","framework": "$frameworkID" }}""".stripMargin
       else
         try {
+          val dialcodesJson = {
+            val required = nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString
+            val dial = nodeInfo(CollectionTOCConstants.DIAL_CODES).toString
+            if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) s"[\"$dial\"]" else "[]"
+          }
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
              |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "primaryCategory": "${getPrimaryCategory(collectionUnitType)}",
              |"description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
-             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": ${
-               val required = nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString
-               val dial = nodeInfo(CollectionTOCConstants.DIAL_CODES).toString
-               if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) s"[\"$dial\"]" else "[]"
-             },
+             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": $dialcodesJson,
              |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
              |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
               nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].map(keyword=>JsonUtils.serialize(keyword)).mkString("[",",","]") else "[]"},
