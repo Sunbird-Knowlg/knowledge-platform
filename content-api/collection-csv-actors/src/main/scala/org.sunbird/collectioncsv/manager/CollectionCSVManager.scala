@@ -327,15 +327,10 @@ object CollectionCSVManager extends CollectionInputFileReader  {
            |"dialcodeRequired": "No","code": "nodeID","framework": "$frameworkID" }}""".stripMargin
       else
         try {
-          val dialcodesJson = {
-            val required = nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString
-            val dial = nodeInfo(CollectionTOCConstants.DIAL_CODES).toString
-            if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) "[\"" + dial + "\"]" else "[]"
-          }
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
              |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "primaryCategory": "${getPrimaryCategory(collectionUnitType)}",
              |"description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
-             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": $dialcodesJson,
+             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": ["${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}"],
              |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
              |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
               nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].map(keyword=>JsonUtils.serialize(keyword)).mkString("[",",","]") else "[]"},
@@ -383,7 +378,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     } else {
       val linkedContentsInfoMap: Map[String, Map[String, String]] = if(linkedContentsDetails.nonEmpty) {
         linkedContentsDetails.flatMap(linkedContentRecord => {
-           Map(linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString ->
+          Map(linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString ->
             Map(CollectionTOCConstants.IDENTIFIER -> linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString,
               CollectionTOCConstants.NAME -> JsonUtils.serialize(linkedContentRecord(CollectionTOCConstants.NAME).toString),
               CollectionTOCConstants.CONTENT_TYPE -> linkedContentRecord.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString))
@@ -435,7 +430,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
         {
-           val LinkedContentInfo = nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].map(contentId => {
+          val LinkedContentInfo = nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].map(contentId => {
             val linkedContentDetails: Map[String, String] = linkedContentsInfoMap(contentId)
             s""""${linkedContentDetails(CollectionTOCConstants.IDENTIFIER)}": {"name": ${linkedContentDetails(CollectionTOCConstants.NAME)},"root": false, "children": []}"""
           }).mkString(",")
