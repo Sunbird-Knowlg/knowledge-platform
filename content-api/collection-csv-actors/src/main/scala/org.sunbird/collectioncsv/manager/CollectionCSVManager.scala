@@ -53,7 +53,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     if (mode.equals(CollectionTOCConstants.UPDATE)) validateRecordsDataAuthenticity(inputFileExtension, csvRecords, collectionHierarchy) else List.empty[Map[String, AnyRef]]
   }
 
-  def validateCollection(collection: Map[String, AnyRef], mode: String) {
+  def validateCollection(collection: Map[String, AnyRef], mode: String): Unit = {
     if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).toString))
       throw new ClientException("INVALID_COLLECTION", "Invalid Collection. Please Provide Valid Collection Identifier.")
     if(mode.equalsIgnoreCase("export")) {
@@ -330,7 +330,11 @@ object CollectionCSVManager extends CollectionInputFileReader  {
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
              |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "primaryCategory": "${getPrimaryCategory(collectionUnitType)}",
              |"description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
-             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": ["${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}"],
+             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": ${
+               val required = nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString
+               val dial = nodeInfo(CollectionTOCConstants.DIAL_CODES).toString
+               if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) s"[\"$dial\"]" else "[]"
+             },
              |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
              |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
               nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].map(keyword=>JsonUtils.serialize(keyword)).mkString("[",",","]") else "[]"},
