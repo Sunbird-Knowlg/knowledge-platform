@@ -378,10 +378,12 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     } else {
       val linkedContentsInfoMap: Map[String, Map[String, String]] = if(linkedContentsDetails.nonEmpty) {
         linkedContentsDetails.flatMap(linkedContentRecord => {
-          Map(linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString ->
-            Map(CollectionTOCConstants.IDENTIFIER -> linkedContentRecord(CollectionTOCConstants.IDENTIFIER).toString,
-              CollectionTOCConstants.NAME -> JsonUtils.serialize(linkedContentRecord(CollectionTOCConstants.NAME).toString),
-              CollectionTOCConstants.CONTENT_TYPE -> linkedContentRecord.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString))
+          val id = linkedContentRecord.getOrElse(CollectionTOCConstants.IDENTIFIER, "").toString
+          if (id.nonEmpty) Some(id -> Map(
+            CollectionTOCConstants.IDENTIFIER -> id,
+            CollectionTOCConstants.NAME -> JsonUtils.serialize(linkedContentRecord.getOrElse(CollectionTOCConstants.NAME, "").toString),
+            CollectionTOCConstants.CONTENT_TYPE -> linkedContentRecord.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString
+          )) else None
         }).toMap
       } else Map.empty[String, Map[String, String]]
 
@@ -430,9 +432,10 @@ object CollectionCSVManager extends CollectionInputFileReader  {
 
         val contentsNode = if(nodeInfo.contains(CollectionTOCConstants.LINKED_CONTENT) && nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].nonEmpty && linkedContentsInfoMap.nonEmpty)
         {
-          val LinkedContentInfo = nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].map(contentId => {
-            val linkedContentDetails: Map[String, String] = linkedContentsInfoMap(contentId)
-            s""""${linkedContentDetails(CollectionTOCConstants.IDENTIFIER)}": {"name": ${linkedContentDetails(CollectionTOCConstants.NAME)},"root": false, "children": []}"""
+          val LinkedContentInfo = nodeInfo(CollectionTOCConstants.LINKED_CONTENT).asInstanceOf[Seq[String]].flatMap(contentId => {
+            linkedContentsInfoMap.get(contentId).map(linkedContentDetails =>
+              s""""${linkedContentDetails(CollectionTOCConstants.IDENTIFIER)}": {"name": ${linkedContentDetails(CollectionTOCConstants.NAME)},"root": false, "children": []}"""
+            )
           }).mkString(",")
           LinkedContentInfo
         } else ""
@@ -480,18 +483,16 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     childrenHierarchy.map(record => {
       val UnitChildren = if (record.contains(CollectionTOCConstants.CHILDREN)) {
           record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
-            if(record.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString.equalsIgnoreCase(collectionUnitType))
-              childNode(CollectionTOCConstants.IDENTIFIER).toString
-            else ""
+            val childContentType = childNode.getOrElse(CollectionTOCConstants.CONTENT_TYPE, "").toString
+            if(childContentType.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString else ""
           }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
         }
         else Seq.empty[String]
 
       val linkedContents = if (record.contains(CollectionTOCConstants.CHILDREN)) {
         record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
-          if(!record.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString.equalsIgnoreCase(collectionUnitType))
-            childNode(CollectionTOCConstants.IDENTIFIER).toString
-          else ""
+          val childContentType = childNode.getOrElse(CollectionTOCConstants.CONTENT_TYPE, "").toString
+          if(!childContentType.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString else ""
         }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
       }
       else Seq.empty[String]
