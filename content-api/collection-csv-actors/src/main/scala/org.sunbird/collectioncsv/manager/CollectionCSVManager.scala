@@ -330,7 +330,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
           val dialcodesJson = {
             val required = nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString
             val dial = nodeInfo(CollectionTOCConstants.DIAL_CODES).toString
-            if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) s"[\"$dial\"]" else "[]"
+            if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) "[\"" + dial + "\"]" else "[]"
           }
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
              |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "primaryCategory": "${getPrimaryCategory(collectionUnitType)}",
