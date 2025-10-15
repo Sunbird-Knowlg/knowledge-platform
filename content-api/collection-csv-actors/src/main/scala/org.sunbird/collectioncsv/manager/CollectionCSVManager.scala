@@ -482,7 +482,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
           record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
             val childContentType = childNode.getOrElse(CollectionTOCConstants.CONTENT_TYPE, "").toString
             if(childContentType.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString else ""
-          }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
+          }).filter(_.nonEmpty).toSeq
         }
         else Seq.empty[String]
 
@@ -490,7 +490,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
         record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
           val childContentType = childNode.getOrElse(CollectionTOCConstants.CONTENT_TYPE, "").toString
           if(!childContentType.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString else ""
-        }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
+        }).filter(_.nonEmpty).toSeq
       }
       else Seq.empty[String]
 
