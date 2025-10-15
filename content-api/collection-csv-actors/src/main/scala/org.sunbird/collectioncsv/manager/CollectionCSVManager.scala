@@ -327,15 +327,10 @@ object CollectionCSVManager extends CollectionInputFileReader  {
            |"dialcodeRequired": "No","code": "nodeID","framework": "$frameworkID" }}""".stripMargin
       else
         try {
-          val dialcodesJson = {
-            val required = nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString
-            val dial = nodeInfo(CollectionTOCConstants.DIAL_CODES).toString
-            if ("Yes".equalsIgnoreCase(required) && dial.nonEmpty) "[\"" + dial + "\"]" else "[]"
-          }
           s""""${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}": {"isNew": false,"root": false, "metadata": {"mimeType": "application/vnd.ekstep.content-collection",
              |"contentType": "$collectionUnitType","name": ${JsonUtils.serialize(nodeInfo("name").toString.trim)}, "primaryCategory": "${getPrimaryCategory(collectionUnitType)}",
              |"description": ${if(nodeInfo.contains(CollectionTOCConstants.DESCRIPTION)) JsonUtils.serialize(nodeInfo(CollectionTOCConstants.DESCRIPTION).toString) else JsonUtils.serialize("")},
-             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": $dialcodesJson,
+             |"dialcodeRequired": "${nodeInfo(CollectionTOCConstants.DIAL_CODE_REQUIRED).toString}","dialcodes": ["${nodeInfo(CollectionTOCConstants.DIAL_CODES).toString}"],
              |"code": "${nodeInfo(CollectionTOCConstants.IDENTIFIER).toString}","framework": "$frameworkID",
              |"keywords": ${if(nodeInfo.contains(CollectionTOCConstants.KEYWORDS) && nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].nonEmpty)
               nodeInfo(CollectionTOCConstants.KEYWORDS).asInstanceOf[List[String]].map(keyword=>JsonUtils.serialize(keyword)).mkString("[",",","]") else "[]"},
@@ -472,15 +467,10 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     //invoke DIAL code Linking
     val linkDIALCodeReqMap = folderInfoMap.map(record => {
       val nodeInfo = record._2.asInstanceOf[scala.collection.mutable.Map[String, AnyRef]]
-      val required = nodeInfo.getOrElse(CollectionTOCConstants.DIAL_CODE_REQUIRED, CollectionTOCConstants.NO).toString
-      val dial = nodeInfo.getOrElse(CollectionTOCConstants.DIAL_CODES, "").toString
-      val map = new util.HashMap[String, String]()
-      map.put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString)
-      if (CollectionTOCConstants.YES.equalsIgnoreCase(required) && dial.nonEmpty) {
-        map.put(CollectionTOCConstants.DIALCODE, dial)
-      }
-      map
-    }).toList
+      if(nodeInfo(CollectionTOCConstants.DIAL_CODES) != null && nodeInfo(CollectionTOCConstants.DIAL_CODES).toString.nonEmpty)
+        new util.HashMap[String, String]{put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString); put(CollectionTOCConstants.DIALCODE, nodeInfo(CollectionTOCConstants.DIAL_CODES).toString)}
+      else  new util.HashMap[String, String]()
+    }).filter(record => record.nonEmpty).toList
 
     if(linkDIALCodeReqMap.nonEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
   }
