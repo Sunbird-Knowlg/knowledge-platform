@@ -53,7 +53,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     if (mode.equals(CollectionTOCConstants.UPDATE)) validateRecordsDataAuthenticity(inputFileExtension, csvRecords, collectionHierarchy) else List.empty[Map[String, AnyRef]]
   }
 
-  def validateCollection(collection: Map[String, AnyRef], mode: String) {
+  def validateCollection(collection: Map[String, AnyRef], mode: String): Unit = {
     if (!COLLECTION_TOC_ALLOWED_MIMETYPE.equalsIgnoreCase(collection(MIME_TYPE).toString))
       throw new ClientException("INVALID_COLLECTION", "Invalid Collection. Please Provide Valid Collection Identifier.")
     if(mode.equalsIgnoreCase("export")) {
@@ -480,19 +480,17 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     childrenHierarchy.map(record => {
       val UnitChildren = if (record.contains(CollectionTOCConstants.CHILDREN)) {
           record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
-            if(record.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString.equalsIgnoreCase(collectionUnitType))
-              childNode(CollectionTOCConstants.IDENTIFIER).toString
-            else ""
-          }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
+            val childContentType = childNode.getOrElse(CollectionTOCConstants.CONTENT_TYPE, "").toString
+            if(childContentType.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString else ""
+          }).filter(_.nonEmpty).toSeq
         }
         else Seq.empty[String]
 
       val linkedContents = if (record.contains(CollectionTOCConstants.CHILDREN)) {
         record(CollectionTOCConstants.CHILDREN).asInstanceOf[List[Map[String, AnyRef]]].map(childNode => {
-          if(!record.getOrElse(CollectionTOCConstants.CONTENT_TYPE,"").toString.equalsIgnoreCase(collectionUnitType))
-            childNode(CollectionTOCConstants.IDENTIFIER).toString
-          else ""
-        }).filter(nodeId => nodeId.nonEmpty).asInstanceOf[Seq[String]]
+          val childContentType = childNode.getOrElse(CollectionTOCConstants.CONTENT_TYPE, "").toString
+          if(!childContentType.equalsIgnoreCase(collectionUnitType)) childNode(CollectionTOCConstants.IDENTIFIER).toString else ""
+        }).filter(_.nonEmpty).toSeq
       }
       else Seq.empty[String]
 
