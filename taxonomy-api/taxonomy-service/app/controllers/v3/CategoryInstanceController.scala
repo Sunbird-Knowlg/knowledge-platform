@@ -1,6 +1,6 @@
 package controllers.v3
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import controllers.BaseController
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.exception.ClientException

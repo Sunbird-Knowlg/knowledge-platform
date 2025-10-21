@@ -1,6 +1,6 @@
 package controllers
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import handlers.LoggingAction

@@ -1,7 +1,7 @@
 package org.sunbird.actors
 
 import java.util
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response}

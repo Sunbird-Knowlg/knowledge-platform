@@ -1,6 +1,6 @@
 package controllers.v4
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import controllers.BaseController
 import org.sunbird.collectioncsv.util.CollectionTOCConstants

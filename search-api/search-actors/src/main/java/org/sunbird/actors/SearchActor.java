@@ -1,9 +1,9 @@
 package org.sunbird.actors;
 
-import akka.dispatch.Futures;
-import akka.dispatch.Mapper;
-import akka.dispatch.Recover;
-import akka.util.Timeout;
+import org.apache.pekko.dispatch.Futures;
+import org.apache.pekko.dispatch.Mapper;
+import org.apache.pekko.dispatch.Recover;
+import org.apache.pekko.util.Timeout;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;

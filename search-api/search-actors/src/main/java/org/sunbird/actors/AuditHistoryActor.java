@@ -1,6 +1,6 @@
 package org.sunbird.actors;
 
-import akka.dispatch.Mapper;
+import org.apache.pekko.dispatch.Mapper;
 import org.apache.commons.lang3.StringUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.dto.Request;

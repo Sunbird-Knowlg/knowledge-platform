@@ -1,10 +1,10 @@
 package managers;
 
-import akka.actor.ActorRef;
-import akka.dispatch.ExecutionContexts;
-import akka.dispatch.Futures;
-import akka.dispatch.Mapper;
-import akka.util.Timeout;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.dispatch.ExecutionContexts;
+import org.apache.pekko.dispatch.Futures;
+import org.apache.pekko.dispatch.Mapper;
+import org.apache.pekko.util.Timeout;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import static akka.pattern.Patterns.ask;
+import static org.apache.pekko.pattern.Patterns.ask;
 
 public class SearchManager {
     protected ObjectMapper mapper = new ObjectMapper();

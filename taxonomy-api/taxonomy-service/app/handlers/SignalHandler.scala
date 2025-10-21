@@ -2,7 +2,7 @@ package handlers
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import javax.inject.{Inject, Singleton}
 import org.slf4j.LoggerFactory
 import play.api.inject.DefaultApplicationLifecycle

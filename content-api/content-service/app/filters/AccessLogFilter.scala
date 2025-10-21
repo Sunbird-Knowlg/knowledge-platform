@@ -1,6 +1,6 @@
 package filters
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import javax.inject.Inject
 import org.sunbird.telemetry.util.TelemetryAccessEventUtil
 import play.api.Logging

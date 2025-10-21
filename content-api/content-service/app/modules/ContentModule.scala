@@ -4,10 +4,10 @@ import com.google.inject.AbstractModule
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
 import org.sunbird.content.actors.{AppActor, AssetActor, CategoryActor, CollectionActor, ContentActor, EventActor, EventSetActor, HealthActor, LicenseActor, ObjectActor}
-import play.libs.akka.AkkaGuiceSupport
+import play.api.libs.concurrent.PekkoGuiceSupport
 import utils.ActorNames
 
-class ContentModule extends AbstractModule with AkkaGuiceSupport {
+class ContentModule extends AbstractModule with PekkoGuiceSupport {
 
     override def configure() = {
         // $COVERAGE-OFF$ Disabling scoverage as this code is impossible to test

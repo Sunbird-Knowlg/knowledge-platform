@@ -3,7 +3,7 @@
  */
 package org.sunbird.search;
 
-import akka.dispatch.OnSuccess;
+import org.apache.pekko.dispatch.OnSuccess;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;

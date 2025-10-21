@@ -1,7 +1,7 @@
 package controllers
 
-import akka.actor.ActorRef
-import akka.pattern.Patterns
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.pattern.Patterns
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{RequestParams, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode

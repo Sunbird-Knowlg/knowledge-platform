@@ -1,6 +1,6 @@
 package controllers.v4
 
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
 import controllers.BaseController
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}

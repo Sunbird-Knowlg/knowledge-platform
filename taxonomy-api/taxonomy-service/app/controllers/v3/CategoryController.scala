@@ -1,6 +1,6 @@
 package controllers.v3
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 
 import scala.concurrent.{ExecutionContext, Future}
 import controllers.BaseController

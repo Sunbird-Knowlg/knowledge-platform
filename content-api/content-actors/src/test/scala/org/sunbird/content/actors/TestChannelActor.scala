@@ -2,7 +2,7 @@ package org.sunbird.content.actors
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.common.dto.Request

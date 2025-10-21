@@ -1,10 +1,10 @@
 package org.sunbird.actors;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.dispatch.Futures;
-import akka.dispatch.Recover;
-import akka.pattern.Patterns;
+import org.apache.pekko.actor.AbstractActor;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.dispatch.Futures;
+import org.apache.pekko.dispatch.Recover;
+import org.apache.pekko.pattern.Patterns;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
