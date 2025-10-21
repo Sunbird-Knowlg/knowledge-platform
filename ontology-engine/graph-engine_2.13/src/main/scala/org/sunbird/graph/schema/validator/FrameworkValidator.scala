@@ -13,9 +13,9 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model._
 import org.sunbird.graph.schema.{FrameworkMasterCategoryMap, IDefinition}
 
-import scala.collection.convert.ImplicitConversions._
 import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 trait FrameworkValidator extends IDefinition {
 

@@ -12,6 +12,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.validator._
 
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters._
 
 class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0", ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends BaseDefinitionNode(graphId, schemaName, version, ocd) with VersionKeyValidator with VersioningNode with RelationValidator with FrameworkValidator with PropAsEdgeValidator with SchemaValidator {
 

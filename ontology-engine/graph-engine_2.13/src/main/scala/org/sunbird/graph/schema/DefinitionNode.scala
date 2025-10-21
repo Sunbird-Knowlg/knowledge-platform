@@ -176,13 +176,13 @@ object DefinitionNode {
 
   private def getNewRelationsList(dbRelations: util.List[Relation], newRelations: util.List[Relation], addRels: util.List[Relation], delRels: util.List[Relation]): Unit = {
     val relList = new util.ArrayList[String]
-    for (rel <- newRelations) {
+    for (rel <- newRelations.asScala) {
       addRels.add(rel)
       val relKey = rel.getStartNodeId + rel.getRelationType + rel.getEndNodeId
       if (!relList.contains(relKey)) relList.add(relKey)
     }
     if (null != dbRelations && !dbRelations.isEmpty) {
-      for (rel <- dbRelations) {
+      for (rel <- dbRelations.asScala) {
         val relKey = rel.getStartNodeId + rel.getRelationType + rel.getEndNodeId
         if (!relList.contains(relKey)) delRels.add(rel)
       }
@@ -192,7 +192,7 @@ object DefinitionNode {
   def updateRelationMetadata(node: Node): Unit = {
     var relOcr = new util.HashMap[String, Integer]()
     val rels = node.getAddedRelations
-    for (rel <- rels) {
+    for (rel <- rels.asScala) {
       val relKey = rel.getStartNodeObjectType + rel.getRelationType + rel.getEndNodeObjectType
       if (relOcr.containsKey(relKey))
         relOcr.put(relKey, relOcr.get(relKey) + 1)
@@ -208,7 +208,7 @@ object DefinitionNode {
   def resetJsonProperties(node: Node, graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): Node = {
     val jsonPropList = fetchJsonProps(graphId, version, schemaName, ocd)
     if (!jsonPropList.isEmpty) {
-      node.getMetadata.entrySet().map(entry => {
+      node.getMetadata.entrySet().asScala.map(entry => {
         if (jsonPropList.contains(entry.getKey)) {
           entry.getValue match {
             case value: String => entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
@@ -226,9 +226,9 @@ object DefinitionNode {
     val relDefMap = getRelationDefinitionMap(graphId, version, schemaName, ocd);
     if (null != dbNode) {
       if (CollectionUtils.isNotEmpty(dbNode.getInRelations)) {
-        for (inRel <- dbNode.getInRelations()) {
+        for (inRel <- dbNode.getInRelations().asScala) {
           val key = inRel.getRelationType() + "_in_" + inRel.getStartNodeObjectType()
-          if (relDefMap.containsKey(key)) {
+          if (relDefMap.contains(key)) {
             val value = relDefMap.get(key).get
             if (!request.containsKey(value)) {
               inRelations.add(inRel)
@@ -237,9 +237,9 @@ object DefinitionNode {
         }
       }
       if (CollectionUtils.isNotEmpty(dbNode.getOutRelations)) {
-        for (outRel <- dbNode.getOutRelations()) {
+        for (outRel <- dbNode.getOutRelations().asScala) {
           val key = outRel.getRelationType() + "_out_" + outRel.getEndNodeObjectType()
-          if (relDefMap.containsKey(key)) {
+          if (relDefMap.contains(key)) {
             val value = relDefMap.get(key).get
             if (!request.containsKey(value)) {
               outRelations.add(outRel)
@@ -270,7 +270,7 @@ object DefinitionNode {
       val schema = node.getObjectType.toLowerCase.replace("image", "")
       val jsonProps = fetchJsonProps(graphId, version, schema)
       val metadata = node.getMetadata
-      metadata.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
+      metadata.asScala.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
     })
   }
 

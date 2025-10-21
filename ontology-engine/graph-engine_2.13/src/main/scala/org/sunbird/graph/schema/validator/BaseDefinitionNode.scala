@@ -12,6 +12,7 @@ import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.schema.{IDefinition, ObjectCategoryDefinition}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class BaseDefinitionNode(graphId: String, schemaName: String, version: String = "1.0", ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext) extends IDefinition(graphId, schemaName, version, ocd)(ec, oec) {
 
