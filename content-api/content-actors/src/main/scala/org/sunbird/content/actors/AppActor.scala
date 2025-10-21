@@ -13,7 +13,6 @@ import org.sunbird.util.RequestUtil
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 /***

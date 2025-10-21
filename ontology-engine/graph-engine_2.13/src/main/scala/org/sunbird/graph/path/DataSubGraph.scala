@@ -13,9 +13,8 @@ import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 
 import java.util
 import java.util.{ArrayList, HashMap, Map}
-import scala.collection.JavaConversions.mapAsScalaMap
-import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future, future}
+import scala.jdk.CollectionConverters._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object DataSubGraph {

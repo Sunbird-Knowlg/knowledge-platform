@@ -4,7 +4,6 @@ import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.schema.SchemaValidatorFactory
 
 import java.util
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 // $COVERAGE-OFF$ Disabling scoverage
 object DialPropsManager {

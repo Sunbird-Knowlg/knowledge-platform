@@ -13,7 +13,6 @@ import org.sunbird.managers.HierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import javax.inject.Inject
-import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.collection.immutable.{HashMap, Map}
 import scala.concurrent.{ExecutionContext, Future}
 

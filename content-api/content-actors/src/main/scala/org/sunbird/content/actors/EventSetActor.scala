@@ -15,7 +15,6 @@ import org.sunbird.utils.HierarchyConstants
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends ContentActor {

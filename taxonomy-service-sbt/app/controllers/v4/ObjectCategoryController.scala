@@ -8,7 +8,6 @@ import org.sunbird.utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 @Singleton

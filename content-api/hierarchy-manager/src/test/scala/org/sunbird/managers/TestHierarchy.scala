@@ -9,7 +9,7 @@ import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.OntologyEngineContext
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class TestHierarchy extends BaseSpec {
 

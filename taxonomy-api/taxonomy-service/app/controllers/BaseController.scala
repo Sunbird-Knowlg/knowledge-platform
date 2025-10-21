@@ -11,7 +11,6 @@ import play.api.mvc._
 import utils.JavaJsonUtils
 
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -27,8 +27,6 @@ import java.io.File
 import java.util
 import java.util.concurrent.CompletionException
 import javax.inject.Inject
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {

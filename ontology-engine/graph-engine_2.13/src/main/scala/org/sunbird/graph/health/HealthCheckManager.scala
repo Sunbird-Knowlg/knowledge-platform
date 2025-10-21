@@ -9,8 +9,6 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object HealthCheckManager extends CassandraConnector with RedisConnector {

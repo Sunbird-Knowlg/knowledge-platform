@@ -13,8 +13,6 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {

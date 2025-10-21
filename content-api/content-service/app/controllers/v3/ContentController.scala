@@ -9,7 +9,6 @@ import org.sunbird.common.dto.ResponseHandler
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, JavaJsonUtils}
 
-import scala.collection.JavaConverters._
 
 import scala.concurrent.{ExecutionContext, Future}
 

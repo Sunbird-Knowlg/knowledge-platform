@@ -12,8 +12,7 @@ import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {

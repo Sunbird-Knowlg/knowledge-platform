@@ -11,8 +11,7 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util
 
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.Future
 
 class TestAppActor extends BaseSpec with MockFactory {

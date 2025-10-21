@@ -17,7 +17,6 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import java.io.File
 import java.util
 import java.util.UUID
-import scala.collection.JavaConverters._
 import scala.collection.immutable.{HashMap, Map}
 import scala.collection.mutable.{Map => Mmap}
 import scala.concurrent.{ExecutionContext, Future}

@@ -9,7 +9,6 @@ import utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
 import scala.concurrent.ExecutionContext
 
-import scala.collection.JavaConverters._
 
 /***
  * TODO: Re-write this controller after merging the Event and EventSet Controller.

@@ -10,7 +10,7 @@ import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
 import org.sunbird.utils.Constants
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 

@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.graph.dac.model.Node
 
-import scala.collection.JavaConverters._
 
 object HierarchyBackwardCompatibilityUtil {
 

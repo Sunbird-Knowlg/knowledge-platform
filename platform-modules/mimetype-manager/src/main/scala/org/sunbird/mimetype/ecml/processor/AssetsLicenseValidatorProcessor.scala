@@ -6,7 +6,6 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.url.mgr.impl.URLFactoryManager
 
-import scala.collection.JavaConverters._
 
 
 trait AssetsLicenseValidatorProcessor extends IProcessor {

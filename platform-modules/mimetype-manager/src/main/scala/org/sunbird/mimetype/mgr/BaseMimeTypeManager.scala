@@ -15,7 +15,6 @@ import org.sunbird.common.{DateUtils, HttpUtil, Platform, Slug}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 

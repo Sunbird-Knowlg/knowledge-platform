@@ -6,7 +6,7 @@ import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.util.ScalaJsonUtil
 import java.util
 import java.util.Collections
-import scala.collection.JavaConversions.asScalaBuffer
+import scala.jdk.CollectionConverters.asScalaBuffer
 
 object FrameworkCache{
 

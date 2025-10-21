@@ -7,7 +7,6 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
 import scala.collection.Map
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object ReviewManager {

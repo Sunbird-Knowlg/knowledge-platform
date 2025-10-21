@@ -10,7 +10,6 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 class ObjectActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {

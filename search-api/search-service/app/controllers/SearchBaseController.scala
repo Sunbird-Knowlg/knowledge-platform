@@ -11,7 +11,6 @@ import play.api.mvc._
 
 import java.util
 import java.util.UUID
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class SearchBaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {

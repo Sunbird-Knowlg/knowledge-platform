@@ -17,9 +17,7 @@ import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 import java.util
 import java.util.{Collections, Optional}
 import java.util.concurrent.{CompletionException, Executors}
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.utils.Constants
 

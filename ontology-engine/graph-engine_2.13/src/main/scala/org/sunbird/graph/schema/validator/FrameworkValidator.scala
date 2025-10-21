@@ -14,7 +14,6 @@ import org.sunbird.graph.dac.model._
 import org.sunbird.graph.schema.{FrameworkMasterCategoryMap, IDefinition}
 
 import scala.collection.convert.ImplicitConversions._
-import scala.collection.JavaConverters._
 import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
 

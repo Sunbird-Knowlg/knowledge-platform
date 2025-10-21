@@ -7,7 +7,6 @@ import org.sunbird.graph.external.store.ExternalStoreFactory
 import org.sunbird.schema.SchemaValidatorFactory
 
 import java.util.UUID
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object ExternalPropsManager {

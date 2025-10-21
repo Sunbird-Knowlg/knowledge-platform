@@ -1,24 +1,25 @@
 package org.sunbird.graph.schema
 
-import com.twitter.storehaus.cache.Cache
-import com.twitter.util.Duration
+import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
 import org.sunbird.common.Platform
+import java.util.concurrent.TimeUnit
 
 object FrameworkMasterCategoryMap {
 
   val ttlMS = Platform.getLong("master.category.cache.ttl", 10000l)
-  var cache =  Cache.ttl[String, Map[String, AnyRef]](Duration.fromMilliseconds(ttlMS))
+  val cache: Cache[String, Map[String, AnyRef]] = Caffeine.newBuilder()
+    .expireAfterWrite(ttlMS, TimeUnit.MILLISECONDS)
+    .build[String, Map[String, AnyRef]]()
 
-  def get(id: String):Map[String, AnyRef] = {
-    cache.getNonExpired(id).getOrElse(null)
+  def get(id: String): Map[String, AnyRef] = {
+    Option(cache.getIfPresent(id)).orNull
   }
 
   def put(id: String, data: Map[String, AnyRef]): Unit = {
-    val updated = cache.putClocked(id, data)._2
-    cache = updated
+    cache.put(id, data)
   }
 
   def containsKey(id: String): Boolean = {
-    cache.contains(id)
+    cache.getIfPresent(id) != null
   }
 }

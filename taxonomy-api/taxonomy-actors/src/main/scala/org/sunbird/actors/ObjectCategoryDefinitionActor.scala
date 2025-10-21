@@ -15,8 +15,6 @@ import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {

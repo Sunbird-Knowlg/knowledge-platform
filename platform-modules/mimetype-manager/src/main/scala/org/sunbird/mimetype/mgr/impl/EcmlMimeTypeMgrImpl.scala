@@ -17,7 +17,6 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.xml.sax.{InputSource, SAXException}
 
-import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 

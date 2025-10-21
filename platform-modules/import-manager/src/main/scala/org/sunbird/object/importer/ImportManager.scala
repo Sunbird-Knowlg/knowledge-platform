@@ -15,8 +15,7 @@ import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
-import scala.collection.JavaConversions.mapAsJavaMap
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 

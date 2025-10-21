@@ -24,7 +24,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         request.remove("last_updated_on")
         if(propsMapping.keySet.contains("last_updated_on"))
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
-        import scala.collection.JavaConverters._
         for ((key, value) <- request.asScala) {
             propsMapping.getOrElse(key, "") match {
                 case "blob" => value match {
@@ -60,7 +59,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         request.remove("last_updated_on")
         if (propsMapping.keySet.contains("last_updated_on"))
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
-        import scala.collection.JavaConverters._
         insertQuery.using(QueryBuilder.ttl(ttl))
         for ((key, value) <- request.asScala) {
             propsMapping.getOrElse(key, "") match {
@@ -117,7 +115,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                     val row = resultSet.one()
                     val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap
                     val response = ResponseHandler.OK()
-                    import scala.collection.JavaConverters._
                     response.putAll(externalMetadataMap.asJava)
                     response
                 } else {
@@ -145,7 +142,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             })
         }
         val selectQuery = select.from(keySpace, table)
-        import scala.collection.JavaConverters._
         import scala.collection.convert.ImplicitConversions._
         val clause: Clause = QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers))
         selectQuery.where.and(clause)
@@ -156,7 +152,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
                 if (resultSet.iterator().hasNext) {
                     val response = ResponseHandler.OK()
                     resultSet.iterator().toStream.map(row => {
-                        import scala.collection.JavaConverters._
                         val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap.asJava
                         response.put(row.getString(primaryKey.get(0)), externalMetadataMap)
                     }).toList
@@ -176,7 +171,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
 
     def delete(identifiers: List[String])(implicit ec: ExecutionContext): Future[Response] = {
         val delete = QueryBuilder.delete()
-        import scala.collection.JavaConverters._
         val deleteQuery = delete.from(keySpace, table).where(QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers)))
         try {
             val session: Session = CassandraConnector.getSession

@@ -12,7 +12,7 @@ import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 
 class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 

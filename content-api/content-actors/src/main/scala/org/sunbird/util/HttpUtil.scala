@@ -1,7 +1,6 @@
 package org.sunbird.util
 
 import com.mashape.unirest.http.Unirest
-import scala.collection.JavaConverters._
 
 /**
  *

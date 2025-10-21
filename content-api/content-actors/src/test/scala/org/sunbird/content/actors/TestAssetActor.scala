@@ -9,7 +9,7 @@ import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import java.util
 
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

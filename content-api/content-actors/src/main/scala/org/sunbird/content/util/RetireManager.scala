@@ -22,7 +22,6 @@ import org.sunbird.parseq.Task
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
 
-import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}

@@ -13,7 +13,6 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {

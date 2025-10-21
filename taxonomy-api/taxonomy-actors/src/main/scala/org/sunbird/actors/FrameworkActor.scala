@@ -17,9 +17,8 @@ import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 

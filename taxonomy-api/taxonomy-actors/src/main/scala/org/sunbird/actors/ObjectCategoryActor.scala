@@ -13,7 +13,6 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
-import scala.collection.JavaConverters
 import scala.concurrent.{ExecutionContext, Future}
 
 class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {

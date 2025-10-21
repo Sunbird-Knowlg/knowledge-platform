@@ -8,7 +8,6 @@ import org.sunbird.models.UploadParams
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext}
 @Singleton
 class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, @Named(ActorNames.ASSET_ACTOR) assetActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {

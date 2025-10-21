@@ -3,7 +3,7 @@ package org.sunbird.utils
 import java.util
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.telemetry.logger.TelemetryManager
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 
 object CategoryCache{

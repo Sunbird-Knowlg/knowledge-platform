@@ -12,9 +12,8 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition, ObjectCategoryDefinitionMap}
 
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+import scala.jdk.CollectionConverters._
 
 object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
@@ -98,7 +97,7 @@ object NodeUtil {
         if(MapUtils.isNotEmpty(nodeMap)) {
             node.setIdentifier(nodeMap.get("identifier").asInstanceOf[String])
             node.setObjectType(nodeMap.get("objectType").asInstanceOf[String])
-            val filteredMetadata: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](JavaConverters.mapAsJavaMapConverter(nodeMap.asScala.filterNot(entry => relationMap.containsKey(entry._1)).toMap).asJava)
+            val filteredMetadata: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef](nodeMap.asScala.filterNot(entry => relationMap.containsKey(entry._1)).toMap.asJava)
             node.setMetadata(filteredMetadata)
             setRelation(node, nodeMap, relationMap)
         }
@@ -165,14 +164,14 @@ object NodeUtil {
           "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
         val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
         val completeRelData = relData ++ indexMap
-        mapAsJavaMap(completeRelData)
+        completeRelData.asJava
       } else {
         val objectType = rel.getStartNodeObjectType.replace("Image", "")
         val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
           "name" -> rel.getStartNodeName,
           "objectType" -> objectType,
           "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
-        mapAsJavaMap(relData)
+        relData.asJava
       }
     }
 
@@ -185,7 +184,7 @@ object NodeUtil {
             case _ => new util.ArrayList[String]()
         }
         if(CollectionUtils.isNotEmpty(languages)){
-            JavaConverters.bufferAsJavaListConverter(languages.asScala.map(lang => if(Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "")).asJava
+            languages.asScala.map(lang => if(Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "").asJava
         }else{
             languages
         }

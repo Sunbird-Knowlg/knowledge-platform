@@ -6,8 +6,7 @@ import org.apache.commons.lang3.StringUtils
 import java.sql.Timestamp
 import java.util
 import java.util.{Date, TimeZone, UUID}
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}

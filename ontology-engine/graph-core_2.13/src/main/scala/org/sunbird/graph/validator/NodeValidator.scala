@@ -11,7 +11,6 @@ import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.service.operation.SearchAsyncOperations
 
 import scala.collection.convert.ImplicitConversions._
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object NodeValidator {

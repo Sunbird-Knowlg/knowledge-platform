@@ -28,7 +28,6 @@ class DialStore(keySpace: String, table: String, primaryKey: java.util.List[Stri
     request.remove("last_updated_on")
     if (propsMapping.keySet.contains("last_updated_on"))
       insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
-    import scala.collection.JavaConverters._
     for ((key, value) <- request.asScala) {
       propsMapping.getOrElse(key, "") match {
         case "blob" => value match {

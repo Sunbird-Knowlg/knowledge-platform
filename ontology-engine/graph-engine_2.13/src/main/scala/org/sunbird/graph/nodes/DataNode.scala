@@ -15,7 +15,6 @@ import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNod
 import org.sunbird.parseq.Task
 
 import scala.collection.convert.ImplicitConversions._
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 

@@ -7,7 +7,6 @@ import org.sunbird.telemetry.util.TelemetryAccessEventUtil
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 class AccessLogFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter with Logging {

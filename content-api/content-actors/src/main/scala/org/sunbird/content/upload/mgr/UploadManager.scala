@@ -15,7 +15,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.kafka.client.KafkaClient
 

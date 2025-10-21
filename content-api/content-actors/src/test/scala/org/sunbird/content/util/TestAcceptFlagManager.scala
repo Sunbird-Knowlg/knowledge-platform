@@ -10,7 +10,7 @@ import org.sunbird.content.actors.{BaseSpec, ContentActor}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

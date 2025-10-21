@@ -7,7 +7,6 @@ import javax.inject.{Inject, Named}
 import org.sunbird.utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, JavaJsonUtils}
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext,Future}
 import org.sunbird.common.dto.ResponseHandler
 

@@ -14,7 +14,6 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
-import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 

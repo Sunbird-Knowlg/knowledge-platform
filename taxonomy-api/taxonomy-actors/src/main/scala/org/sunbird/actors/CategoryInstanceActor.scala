@@ -17,7 +17,6 @@ import java.util
 import java.util.Map
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.JavaConverters._
 
 class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
   implicit val ec: ExecutionContext = getContext().dispatcher

@@ -8,7 +8,6 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
-import scala.collection.JavaConverters._
 
 class AccessLogFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter with Logging {
 

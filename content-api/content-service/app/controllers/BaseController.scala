@@ -14,7 +14,6 @@ import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
 import utils.{Constants, JavaJsonUtils}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {

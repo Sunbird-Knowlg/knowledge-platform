@@ -13,7 +13,6 @@ import java.util
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {

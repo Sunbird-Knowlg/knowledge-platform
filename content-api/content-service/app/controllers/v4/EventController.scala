@@ -6,7 +6,6 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import utils.{ActorNames, ApiId, Constants}
 
 import javax.inject.{Inject, Named}
-import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.concurrent.ExecutionContext
 
 @Singleton

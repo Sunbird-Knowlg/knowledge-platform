@@ -15,8 +15,8 @@ import org.sunbird.graph.relations.{IRelation, RelationHandler}
 import org.sunbird.graph.schema.IDefinition
 import org.sunbird.graph.validator.NodeValidator
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 trait RelationValidator extends IDefinition {
 

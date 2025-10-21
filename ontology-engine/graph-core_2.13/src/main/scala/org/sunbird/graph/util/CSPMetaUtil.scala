@@ -9,7 +9,6 @@ import org.sunbird.common.dto.Property
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.Map
 
 object CSPMetaUtil {

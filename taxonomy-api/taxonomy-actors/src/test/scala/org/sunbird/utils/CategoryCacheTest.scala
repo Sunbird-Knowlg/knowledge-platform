@@ -3,7 +3,6 @@ package org.sunbird.utils
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers}
 import org.sunbird.cache.impl.RedisCache
 import java.util
-import scala.collection.JavaConverters._
 
 class CategoryCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 

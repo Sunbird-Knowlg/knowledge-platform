@@ -4,7 +4,6 @@ import org.sunbird.graph.BaseSpec
 import org.sunbird.graph.dac.model.Node
 
 import java.util
-import scala.collection.JavaConverters._
 class CSPMetaUtilTest extends BaseSpec {
 
     "saveExternalRelativePath" should "return map with relative Paths for question data" in {
