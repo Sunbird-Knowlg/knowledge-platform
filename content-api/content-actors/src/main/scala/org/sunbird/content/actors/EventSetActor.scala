@@ -15,6 +15,7 @@ import org.sunbird.utils.HierarchyConstants
 
 import java.util
 import javax.inject.Inject
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
 class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends ContentActor {
@@ -127,7 +128,7 @@ class EventSetActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageSe
   }
 
   def getHierarchy(request: Request): Future[Response] = {
-    val fields: util.List[String] = seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       val outRelations = if (node.getOutRelations == null) List[Relation]() else node.getOutRelations.asScala

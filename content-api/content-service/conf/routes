@@ -1,11 +1,11 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET		  /health						    controllers.HealthController.health
-GET       /service/health                   controllers.HealthController.serviceHealth
+GET		  /health						    controllers.HealthController.health()
+GET       /service/health                   controllers.HealthController.serviceHealth()
 
 # Content APIs
-POST      /content/v3/create                controllers.v3.ContentController.create
+POST      /content/v3/create                controllers.v3.ContentController.create()
 PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.update(identifier:String)
 GET       /content/v3/read/:identifier      controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 POST      /content/v3/upload/url/:identifier     controllers.v3.ContentController.uploadPreSigned(identifier:String, type: Option[String])
@@ -16,7 +16,7 @@ POST     /content/v3/import                 controllers.v3.ContentController.imp
 
 # Content APIs - with mock response
 POST     /content/v3/flag/:identifier           controllers.v3.ContentController.flag(identifier:String)
-POST     /content/v3/bundle                     controllers.v3.ContentController.bundle
+POST     /content/v3/bundle                     controllers.v3.ContentController.bundle()
 POST     /content/v3/flag/accept/:identifier    controllers.v3.ContentController.acceptFlag(identifier:String)
 POST     /content/v3/flag/reject/:identifier    controllers.v3.ContentController.rejectFlag(identifier:String)
 POST     /content/v3/publish/:identifier        controllers.v3.ContentController.publish(identifier:String)
@@ -30,27 +30,27 @@ POST     /content/v3/unlisted/publish/:identifier  controllers.v3.ContentControl
 GET      /content/v3/process/status/:processid     controllers.v3.ContentController.getProcessIdStatus(processid: String)
 
 # Collection APIs
-PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy
-DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy
-PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy
+PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy()
+DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy()
+PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy()
 GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
 GET       /content/v3/hierarchy/:identifier/:bookmarkId controllers.v3.ContentController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
 POST    /collection/v3/dialcode/link/:identifier            @controllers.v3.ContentController.collectionLinkDialCode(identifier:String)
 
 #License APIs
-POST    /license/v3/create                      controllers.v3.LicenseController.create
+POST    /license/v3/create                      controllers.v3.LicenseController.create()
 GET     /license/v3/read/:identifier            controllers.v3.LicenseController.read(identifier: String, fields:Option[String])
 PATCH   /license/v3/update/:identifier          controllers.v3.LicenseController.update(identifier: String)
 DELETE  /license/v3/retire/:identifier          controllers.v3.LicenseController.retire(identifier: String)
 
 #These are routes for Channel
-POST     /channel/v3/create                   controllers.v3.ChannelController.create
+POST     /channel/v3/create                   controllers.v3.ChannelController.create()
 PATCH     /channel/v3/update/:identifier      controllers.v3.ChannelController.update(identifier: String)
 GET       /channel/v3/read/:identifier        controllers.v3.ChannelController.read(identifier: String)
 DELETE     /channel/v3/retire/:identifier    controllers.v3.ChannelController.retire(identifier: String)
 
 # Category APIs
-POST    /category/v3/create                      controllers.v3.CategoryController.create
+POST    /category/v3/create                      controllers.v3.CategoryController.create()
 GET     /category/v3/read/:identifier            controllers.v3.CategoryController.read(identifier: String, fields:Option[String])
 PATCH   /category/v3/update/:identifier          controllers.v3.CategoryController.update(identifier: String)
 DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryController.retire(identifier: String)
@@ -59,7 +59,7 @@ DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryControll
 POST      /asset/v3/validate                     controllers.v4.AssetController.licenceValidate(field:Option[String])
 
 #Asset V4 Api's
-POST      /asset/v4/create                       controllers.v4.AssetController.create
+POST      /asset/v4/create                       controllers.v4.AssetController.create()
 PATCH     /asset/v4/update/:identifier           controllers.v4.AssetController.update(identifier:String)
 GET       /asset/v4/read/:identifier             controllers.v4.AssetController.read(identifier:String, mode:Option[String], fields:Option[String])
 POST      /asset/v4/upload/:identifier           controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
@@ -68,7 +68,7 @@ POST      /asset/v4/copy/:identifier             controllers.v4.AssetController.
 POST      /asset/v4/validate                     controllers.v4.AssetController.licenceValidate(field:Option[String])
 
 # Collection v4 Api's
-POST     /collection/v4/create                     controllers.v4.CollectionController.create
+POST     /collection/v4/create                     controllers.v4.CollectionController.create()
 PATCH    /collection/v4/update/:identifier         controllers.v4.CollectionController.update(identifier:String)
 GET      /collection/v4/read/:identifier           controllers.v4.CollectionController.read(identifier:String, mode:Option[String], fields:Option[String])
 GET      /collection/v4/private/read/:identifier   controllers.v4.CollectionController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
@@ -76,9 +76,9 @@ POST     /collection/v4/flag/:identifier           controllers.v4.CollectionCont
 POST     /collection/v4/flag/accept/:identifier    controllers.v4.CollectionController.acceptFlag(identifier:String)
 DELETE   /collection/v4/discard/:identifier        controllers.v4.CollectionController.discard(identifier:String)
 DELETE   /collection/v4/retire/:identifier         controllers.v4.CollectionController.retire(identifier:String)
-PATCH    /collection/v4/hierarchy/add              controllers.v4.CollectionController.addHierarchy
-DELETE   /collection/v4/hierarchy/remove           controllers.v4.CollectionController.removeHierarchy
-PATCH    /collection/v4/hierarchy/update           controllers.v4.CollectionController.updateHierarchy
+PATCH    /collection/v4/hierarchy/add              controllers.v4.CollectionController.addHierarchy()
+DELETE   /collection/v4/hierarchy/remove           controllers.v4.CollectionController.removeHierarchy()
+PATCH    /collection/v4/hierarchy/update           controllers.v4.CollectionController.updateHierarchy()
 GET      /collection/v4/hierarchy/:identifier      controllers.v4.CollectionController.getHierarchy(identifier:String, mode:Option[String])
 GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.CollectionController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
 POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
@@ -89,7 +89,7 @@ POST     /collection/v4/publish/:identifier         controllers.v4.CollectionCon
 POST     /collection/v4/unlisted/publish/:identifier  controllers.v4.CollectionController.publishUnlisted(identifier:String)
 
 # Content v4 APIs
-POST      /content/v4/create                       controllers.v4.ContentController.create
+POST      /content/v4/create                       controllers.v4.ContentController.create()
 PATCH     /content/v4/update/:identifier           controllers.v4.ContentController.update(identifier:String)
 GET       /content/v4/read/:identifier             controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 GET       /content/v4/private/read/:identifier     controllers.v4.ContentController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
@@ -112,12 +112,12 @@ POST      /content/v4/unlisted/publish/:identifier  controllers.v4.ContentContro
 GET      /content/v4/process/status/:processid     controllers.v4.ContentController.getProcessIdStatus(processid: String)
 
 # App v4 APIs
-POST      /app/v4/register                          controllers.v4.AppController.register
+POST      /app/v4/register                          controllers.v4.AppController.register()
 PATCH     /app/v4/update/:identifier                controllers.v4.AppController.update(identifier:String)
 GET       /app/v4/read/:identifier                  controllers.v4.AppController.read(identifier:String, fields:Option[String])
 
 # Event APIs
-POST      /event/v4/create                          controllers.v4.EventController.create
+POST      /event/v4/create                          controllers.v4.EventController.create()
 PATCH     /event/v4/update/:identifier              controllers.v4.EventController.update(identifier:String)
 POST      /event/v4/publish/:identifier             controllers.v4.EventController.publish(identifier:String)
 GET       /event/v4/read/:identifier                controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String])
@@ -125,7 +125,7 @@ DELETE    /event/v4/discard/:identifier             controllers.v4.EventControll
 DELETE    /private/event/v4/retire/:identifier      controllers.v4.EventController.retire(identifier:String)
 
 # EventSet v4 Api's
-POST    /eventset/v4/create                      controllers.v4.EventSetController.create
+POST    /eventset/v4/create                      controllers.v4.EventSetController.create()
 PUT     /eventset/v4/update/:identifier          controllers.v4.EventSetController.update(identifier:String)
 POST    /eventset/v4/publish/:identifier         controllers.v4.EventSetController.publish(identifier:String)
 GET     /eventset/v4/hierarchy/:identifier       controllers.v4.EventSetController.getHierarchy(identifier:String, mode:Option[String], fields:Option[String])

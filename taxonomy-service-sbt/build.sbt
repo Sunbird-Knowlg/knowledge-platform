@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "taxonomy-service-sbt",
     version := "1.0-SNAPSHOT",
-    scalaVersion := "2.12.8",
+    scalaVersion := "2.13.12",
     javacOptions ++= Seq("-source", "11", "-target", "11"),
     libraryDependencies ++= Seq(
       guice,
@@ -16,15 +16,15 @@ lazy val root = (project in file("."))
       "org.sunbird" % "taxonomy-actors" % "1.0-SNAPSHOT",
       "io.lemonlabs" %% "scala-uri" % "1.4.10",
       "net.codingwell" %% "scala-guice" % "4.2.5",
-      "com.typesafe.play" %% "play-specs2" % "2.7.9",
-      "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % Test
+      "org.playframework" %% "play-specs2" % "3.0.5",
+      "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.1" % Test
     )
   )
   .settings(
     libraryDependencies += ("org.sunbird" % "taxonomy-actors" % "1.0-SNAPSHOT")
-      .exclude("com.typesafe.akka","akka-actor_2.11")
-      .exclude("org.scala-lang.modules","scala-java8-compat_2.11")
-      .exclude("org.scala-lang.modules","scala-parser-combinators_2.11")
-      .exclude("com.typesafe.akka","akka-slf4j_2.11")
+      .exclude("com.typesafe.akka","akka-actor_2.13")
+      .exclude("org.scala-lang.modules","scala-java8-compat_2.13")
+      .exclude("org.scala-lang.modules","scala-parser-combinators_2.13")
+      .exclude("com.typesafe.akka","akka-slf4j_2.13")
   )
   resolvers += "Local Maven Repository" at "file:///"+Path.userHome+"/.m2/repository"

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
 
@@ -110,10 +111,10 @@ object DefinitionNode {
         else
           dbNode.setExternalData(inputNode.getExternalData)
       }
-      if (!removeProps.isEmpty) removeProps.toList.foreach(prop => dbNode.getMetadata.remove(prop))
+      if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
       val validatedNode = if (!skipValidation) categoryDefinition.validate(dbNode, "update") else Future(dbNode)
       validatedNode.map(node => {
-        if (!removeProps.isEmpty) removeProps.toList.foreach(prop => dbNode.getMetadata.put(prop, null))
+        if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.put(prop, null))
         node
       })
 

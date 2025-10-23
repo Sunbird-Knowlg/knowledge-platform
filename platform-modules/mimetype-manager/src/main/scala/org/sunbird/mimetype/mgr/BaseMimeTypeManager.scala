@@ -9,6 +9,7 @@ import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.validator.routines.UrlValidator
 import org.apache.tika.Tika
+import scala.jdk.CollectionConverters._
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.common.{DateUtils, HttpUtil, Platform, Slug}

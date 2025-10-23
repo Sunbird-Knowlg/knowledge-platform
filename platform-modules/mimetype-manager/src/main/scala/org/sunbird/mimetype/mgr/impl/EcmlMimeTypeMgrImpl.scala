@@ -9,6 +9,7 @@ import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.ecml.{ECMLExtractor, ECMLProcessor}

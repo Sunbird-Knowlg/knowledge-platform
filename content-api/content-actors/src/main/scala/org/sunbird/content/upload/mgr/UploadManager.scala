@@ -15,7 +15,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
-import scala.jdk.CollectionConverters.mapAsJavaMap
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import org.sunbird.kafka.client.KafkaClient
 
@@ -54,7 +54,7 @@ object UploadManager {
 		if (StringUtils.isNotBlank(artifactUrl)) {
 			val updateReq = new Request(request)
 			updateReq.getContext().put("identifier", identifier)
-			updateReq.getRequest.putAll(mapAsJavaMap(updatedResult))
+			updateReq.getRequest.putAll(updatedResult.asJava)
 			if( size > CONTENT_ARTIFACT_ONLINE_SIZE)
 				updateReq.put("contentDisposition", "online-only")
 			if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType))

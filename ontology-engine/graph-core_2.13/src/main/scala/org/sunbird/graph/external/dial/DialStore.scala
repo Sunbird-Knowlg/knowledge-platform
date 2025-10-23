@@ -13,6 +13,7 @@ import java.sql.Timestamp
 import java.util
 import java.util.{Date, UUID}
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.jdk.CollectionConverters._
 
 // $COVERAGE-OFF$ Disabling scoverage
 class DialStore(keySpace: String, table: String, primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
@@ -28,7 +29,7 @@ class DialStore(keySpace: String, table: String, primaryKey: java.util.List[Stri
     request.remove("last_updated_on")
     if (propsMapping.keySet.contains("last_updated_on"))
       insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
-    for ((key, value) <- request.asScala) {
+    for ((key: String, value: AnyRef) <- request.asScala) {
       propsMapping.getOrElse(key, "") match {
         case "blob" => value match {
           case value: String => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))

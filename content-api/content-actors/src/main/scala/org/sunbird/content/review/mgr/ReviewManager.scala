@@ -6,6 +6,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 
+import scala.jdk.CollectionConverters._
 import scala.collection.Map
 import scala.concurrent.{ExecutionContext, Future}
 

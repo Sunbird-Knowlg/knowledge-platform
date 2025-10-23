@@ -14,6 +14,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -41,7 +42,7 @@ class ObjectCategoryActor @Inject()(implicit oec: OntologyEngineContext) extends
 
     @throws[Exception]
     private def read(request: Request): Future[Response] = {
-        val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+        val fields: util.List[String] = request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
         request.getRequest.put(Constants.FIELDS, fields)
         DataNode.read(request).map(node => {
             val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])

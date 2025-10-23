@@ -15,7 +15,7 @@ import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
-import scala.jdk.CollectionConverters.mapAsJavaMap
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -109,9 +109,9 @@ class ImportManager(config: ImportConfig) {
 	def validateStage(stage: String, validObjectStage: util.List[String]): Boolean = if(StringUtils.isNotBlank(stage)) validObjectStage.contains(stage) else true
 
 	def getInstructionEvent(identifier: String, source: String, metadata: util.Map[String, AnyRef], collection: util.List[util.Map[String, AnyRef]], stage: String, originData: util.Map[String, AnyRef]): String = {
-		val actor = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("id" -> "Auto Creator", "type" -> "System"))
-		val context = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("pdata" -> mapAsJavaMap(Map[String, AnyRef]("id" -> "org.sunbird.platform", "ver" -> "1.0", "env" -> Platform.getString("cloud_storage.env", "dev"))), ImportConstants.CHANNEL -> metadata.getOrDefault(ImportConstants.CHANNEL, "")))
-		val objectData = mapAsJavaMap[String, AnyRef](Map[String, AnyRef]("id" -> identifier, "ver" -> metadata.get(ImportConstants.VERSION_KEY)))
+		val actor = Map[String, AnyRef]("id" -> "Auto Creator", "type" -> "System").asJava
+		val context = Map[String, AnyRef]("pdata" -> Map[String, AnyRef]("id" -> "org.sunbird.platform", "ver" -> "1.0", "env" -> Platform.getString("cloud_storage.env", "dev")).asJava, ImportConstants.CHANNEL -> metadata.getOrDefault(ImportConstants.CHANNEL, "")).asJava
+		val objectData = Map[String, AnyRef]("id" -> identifier, "ver" -> metadata.get(ImportConstants.VERSION_KEY)).asJava
 		val edata = mutable.Map[String, AnyRef]("action" -> "auto-create", "iteration" -> 1.asInstanceOf[AnyRef], ImportConstants.OBJECT_TYPE -> metadata.getOrDefault(ImportConstants.OBJECT_TYPE, "").asInstanceOf[String],
 			if (StringUtils.isNotBlank(source)) ImportConstants.REPOSITORY -> source else ImportConstants.IDENTIFIER -> identifier, ImportConstants.METADATA -> metadata, if (CollectionUtils.isNotEmpty(collection)) ImportConstants.COLLECTION -> collection else ImportConstants.COLLECTION -> List().asJava,
 			ImportConstants.STAGE -> stage, if(StringUtils.isNotBlank(source) && MapUtils.isNotEmpty(originData)) ImportConstants.ORIGIN_DATA -> originData else ImportConstants.ORIGIN_DATA -> new util.HashMap[String, AnyRef]()).asJava

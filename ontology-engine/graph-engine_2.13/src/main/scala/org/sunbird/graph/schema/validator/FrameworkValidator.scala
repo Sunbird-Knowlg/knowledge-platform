@@ -9,6 +9,7 @@ import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model._
 import org.sunbird.graph.schema.{FrameworkMasterCategoryMap, IDefinition}
@@ -35,7 +36,7 @@ trait FrameworkValidator extends IDefinition {
         val framework: String = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
         if (null != fwCategories && fwCategories.nonEmpty && framework.nonEmpty) {
           //prepare data for validation
-          val fwMetadata: Map[String, AnyRef] = node.getMetadata.asScala.filterKeys(key => fwCategories.contains(key))
+          val fwMetadata: Map[String, AnyRef] = node.getMetadata.asScala.filter(entry => fwCategories.contains(entry._1)).toMap
           //validate data from cache
           if (fwMetadata.nonEmpty) {
             val errors: util.List[String] = new util.ArrayList[String]
@@ -72,12 +73,12 @@ trait FrameworkValidator extends IDefinition {
     getValidatedTerms(node, orgFwTerms).map(orgTermMap => {
      val jsonPropsType = schemaValidator.getAllPropsType.asScala 
      masterCategories.map(masterCategory => {
-      val orgIdFieldName = masterCategory.getOrDefault("orgIdFieldName", "").asInstanceOf[String]
-      val code = masterCategory.getOrDefault("code", "").asInstanceOf[String]
+      val orgIdFieldName = masterCategory.getOrElse("orgIdFieldName", "").asInstanceOf[String]
+      val code = masterCategory.getOrElse("code", "").asInstanceOf[String]
       if(StringUtils.isNotBlank(orgIdFieldName)){
         val categoryData = fetchValidatedList(getList(orgIdFieldName, node), orgTermMap)
         if (CollectionUtils.isNotEmpty(categoryData) && StringUtils.isNotBlank(code)) {
-          val typeInfo = jsonPropsType.getOrDefault(code, "").asInstanceOf[String]
+          val typeInfo = jsonPropsType.getOrElse(code, "").asInstanceOf[String]
           if(StringUtils.isNotBlank(typeInfo) && typeInfo == "array"){
             node.getMetadata.put(code, categoryData)
           } else {
@@ -103,8 +104,8 @@ trait FrameworkValidator extends IDefinition {
   private def getOrgAndTargetFWData(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext):Future[(List[String], List[String],List[Map[String, AnyRef]])] = {
     val masterCategories: Future[List[Map[String, AnyRef]]] = getMasterCategory(graphId, objectType)
     masterCategories.map(result => {
-      (result.map(cat => cat.getOrDefault("orgIdFieldName", "").asInstanceOf[String]),
-        result.map(cat => cat.getOrDefault("targetIdFieldName", "").asInstanceOf[String]), result.map(cat => cat.asInstanceOf[Map[String, AnyRef]]))
+      (result.map(cat => cat.getOrElse("orgIdFieldName", "").asInstanceOf[String]),
+        result.map(cat => cat.getOrElse("targetIdFieldName", "").asInstanceOf[String]), result.map(cat => cat.asInstanceOf[Map[String, AnyRef]]))
     })
   }
 
@@ -120,7 +121,7 @@ trait FrameworkValidator extends IDefinition {
           logger.warn(s"ALERT!... There are no master framework category objects[$objectType] defined. This will not enable framework category properties validation.")
           List[Map[String, AnyRef]]()
         } else {
-          val masterCategories: scala.collection.immutable.Map[String, AnyRef] = dataNodes.map(
+          val masterCategories: scala.collection.immutable.Map[String, AnyRef] = dataNodes.asScala.map(
             node => node.getMetadata.getOrDefault("code", "").asInstanceOf[String] -> Map[String, AnyRef](
               "code" -> node.getMetadata.getOrDefault("code", "").asInstanceOf[String],
               "orgIdFieldName" -> node.getMetadata.getOrDefault("orgIdFieldName", "").asInstanceOf[String],

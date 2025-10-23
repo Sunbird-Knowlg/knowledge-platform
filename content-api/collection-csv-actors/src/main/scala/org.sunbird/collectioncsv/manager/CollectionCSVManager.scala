@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets
 import java.util
 import java.util.logging.Logger
 import scala.collection.immutable.{ListMap, Map}
-import scala.collection.convert.ImplicitConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
@@ -237,7 +237,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
   }
 
   private def populateFolderInfoMap(folderInfoMap: mutable.Map[String, AnyRef], csvRecords: util.List[CSVRecord], mode: String): Unit = {
-    csvRecords.map(csvRecord => {
+    csvRecords.asScala.map(csvRecord => {
       val csvRecordFolderHierarchyMap: Map[String, String] = csvRecord.toMap.asScala.toMap.filter(colData => {
         folderHierarchyHdrColumnsList.contains(colData._1) && colData._2.nonEmpty
       })
@@ -256,11 +256,11 @@ object CollectionCSVManager extends CollectionInputFileReader  {
           if(nodeInfoMap.contains(CollectionTOCConstants.CHILDREN))
           {
             var childrenSet = nodeInfoMap(CollectionTOCConstants.CHILDREN).asInstanceOf[Seq[String]]
-            childrenSet ++= Seq(getCode(sortedFoldersDataList.get(sortedFoldersDataKey.indexOf(folderData._1)+1)))
+            childrenSet ++= Seq(getCode(sortedFoldersDataList(sortedFoldersDataKey.indexOf(folderData._1)+1)))
             nodeInfoMap(CollectionTOCConstants.CHILDREN) = childrenSet
           }
           else {
-            val childrenList = Seq(getCode(sortedFoldersDataList.get(sortedFoldersDataKey.indexOf(folderData._1)+1)))
+            val childrenList = Seq(getCode(sortedFoldersDataList(sortedFoldersDataKey.indexOf(folderData._1)+1)))
             nodeInfoMap += (CollectionTOCConstants.CHILDREN -> childrenList)
           }
           folderInfoMap(folderDataHashCode) = nodeInfoMap
@@ -302,7 +302,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
             else {
               val childrenList = {
                 if((sortedFoldersDataKey.indexOf(folderData._1)+1) != sortedFoldersDataList.size)
-                  Seq(getCode(sortedFoldersDataList.get(sortedFoldersDataKey.indexOf(folderData._1)+1)))
+                  Seq(getCode(sortedFoldersDataList(sortedFoldersDataKey.indexOf(folderData._1)+1)))
                 else Seq.empty[String]
               }
               scala.collection.mutable.Map(CollectionTOCConstants.NAME -> folderData._2, CollectionTOCConstants.CHILDREN -> childrenList, CollectionTOCConstants.LEVEL -> folderData._1)
@@ -468,9 +468,9 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       if(nodeInfo(CollectionTOCConstants.DIAL_CODES) != null && nodeInfo(CollectionTOCConstants.DIAL_CODES).toString.nonEmpty)
         new util.HashMap[String, String]{put(CollectionTOCConstants.IDENTIFIER, nodeInfo(CollectionTOCConstants.IDENTIFIER).toString); put(CollectionTOCConstants.DIALCODE, nodeInfo(CollectionTOCConstants.DIAL_CODES).toString)}
       else  new util.HashMap[String, String]()
-    }).filter(record => record.nonEmpty).toList
+    }).filter(record => !record.isEmpty).toList
 
-    if(linkDIALCodeReqMap.nonEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
+    if(!linkDIALCodeReqMap.isEmpty) linkDIALCode(channelID, collectionID, linkDIALCodeReqMap)
   }
 
 

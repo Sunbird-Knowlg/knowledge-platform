@@ -8,6 +8,7 @@ import org.sunbird.schema.SchemaValidatorFactory
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 object ExternalPropsManager {
     def saveProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {

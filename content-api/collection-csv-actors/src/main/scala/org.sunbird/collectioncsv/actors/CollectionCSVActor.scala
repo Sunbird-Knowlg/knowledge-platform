@@ -14,6 +14,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 
 import javax.inject.Inject
 import scala.collection.immutable.{HashMap, Map}
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class CollectionCSVActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {

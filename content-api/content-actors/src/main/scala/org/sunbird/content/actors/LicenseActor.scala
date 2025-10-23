@@ -14,6 +14,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.util.RequestUtil
 
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor {
@@ -42,7 +43,7 @@ class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 
     @throws[Exception]
     private def read(request: Request): Future[Response] = {
-        val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+        val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
         request.getRequest.put("fields", fields)
         DataNode.read(request).map(node => {
             if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "License not found with identifier: " + node.getIdentifier)

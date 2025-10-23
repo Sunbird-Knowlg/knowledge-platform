@@ -14,6 +14,7 @@ import org.sunbird.util.RequestUtil
 import java.util
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 /***
  * TODO: rewrite this Actor after merging the Event and EventSet code.
@@ -41,7 +42,7 @@ class AppActor @Inject() (implicit oec: OntologyEngineContext) extends BaseActor
 
   @throws[Exception]
   private def read(request: Request): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       if (NodeUtil.isRetired(node)) ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name, "App not found with identifier: " + node.getIdentifier)

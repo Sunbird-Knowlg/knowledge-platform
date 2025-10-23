@@ -8,6 +8,7 @@ import managers.SearchManager
 import org.sunbird.search.util.SearchConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
+import scala.jdk.CollectionConverters._
 
 import java.util
 import org.apache.commons.lang3.StringUtils

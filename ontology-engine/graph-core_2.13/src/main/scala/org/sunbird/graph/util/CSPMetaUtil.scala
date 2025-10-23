@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.sunbird.common.dto.Property
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
+import scala.jdk.CollectionConverters._
 
 import scala.collection.immutable.Map
 

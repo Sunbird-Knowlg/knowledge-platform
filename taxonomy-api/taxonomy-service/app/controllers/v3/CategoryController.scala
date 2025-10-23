@@ -6,7 +6,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import controllers.BaseController
 
 import javax.inject.{Inject, Named, Singleton}
-import org.sunbird.utils.Constants
+import utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, JavaJsonUtils}
 

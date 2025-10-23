@@ -1,6 +1,7 @@
 package controllers.v4
 
 import org.apache.pekko.actor.ActorRef
+import scala.jdk.CollectionConverters._
 import com.google.inject.Singleton
 import controllers.BaseController
 import play.api.mvc.ControllerComponents

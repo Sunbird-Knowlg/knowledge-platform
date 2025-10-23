@@ -8,7 +8,9 @@ import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import play.api.mvc._
-import utils.JavaJsonUtils
+import utils.{Constants, JavaJsonUtils}
+
+import scala.jdk.CollectionConverters._
 
 
 import scala.collection.mutable

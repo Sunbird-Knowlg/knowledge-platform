@@ -10,7 +10,7 @@ object CategoryCache{
 
   def setFramework(id: String, framework: util.Map[String, AnyRef]): Unit = {
     if (null != framework && !framework.isEmpty) {
-      val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].toList
+      val categories = framework.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
       categories.map(category => {
         val catName = category.get("code").asInstanceOf[String]
         val terms = getTerms(category, "terms")
@@ -27,20 +27,20 @@ object CategoryCache{
 
   private def getTerms(category: util.Map[String, AnyRef], key: String): List[String] = {
     val returnTerms = new util.ArrayList[String]
-    if (category != null && category.nonEmpty) {
-      val terms = category.getOrDefault(key, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].toList
+    if (category != null && !category.isEmpty) {
+      val terms = category.getOrDefault(key, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala.toList
       if (terms != null && terms.nonEmpty) {
         for (term <- terms) {
-          val termName = term.getOrElse("name", "").asInstanceOf[String]
+          val termName = term.getOrDefault("name", "").asInstanceOf[String]
           if (termName != null && termName.trim.nonEmpty) {
-            returnTerms += termName
+            returnTerms.add(termName)
             val childTerms = getTerms(term, "associations")
             if (childTerms.nonEmpty)
-              returnTerms ++= childTerms
+              returnTerms.addAll(childTerms.asJava)
           }
         }
       }
     }
-    returnTerms.toList
+    returnTerms.asScala.toList
   }
 }

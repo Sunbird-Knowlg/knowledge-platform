@@ -9,6 +9,7 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, SearchConditions, SearchCriteria}
 import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.service.operation.SearchAsyncOperations
+import scala.jdk.CollectionConverters._
 
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}

@@ -11,6 +11,7 @@ import org.sunbird.graph.nodes.DataNode
 
 import java.util
 import javax.inject.Inject
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 
 class EventActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends ContentActor {

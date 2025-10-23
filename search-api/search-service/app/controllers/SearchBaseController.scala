@@ -12,6 +12,7 @@ import play.api.mvc._
 import java.util
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 abstract class SearchBaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
@@ -25,15 +26,15 @@ abstract class SearchBaseController(protected val cc: ControllerComponents)(impl
 
     def commonHeaders()(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
         val customHeaders = Map("x-channel-id" -> "CHANNEL_ID", "x-consumer-id" -> "CONSUMER_ID", "x-app-id" -> "APP_ID", "x-session-id" -> "SESSION_ID", "x-device-id" -> "DEVICE_ID")
-        val headers = request.headers.headers.groupBy(_._1).mapValues(_.map(_._2))
+        val headers = request.headers.headers.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
         val appHeaders = headers.filter(header => customHeaders.keySet.contains(header._1.toLowerCase))
                 .map(entry => (customHeaders.get(entry._1.toLowerCase()).get, entry._2.head))
-        val contextMap = {
-            if(appHeaders.contains("CHANNEL_ID"))
-                appHeaders
-            else appHeaders + ("CHANNEL_ID"-> DEFAULT_CHANNEL_ID)
+        val contextMap: Map[String, String] = {
+            if(appHeaders.toMap.contains("CHANNEL_ID"))
+                appHeaders.toMap
+            else appHeaders.toMap + ("CHANNEL_ID" -> DEFAULT_CHANNEL_ID)
         }
-        mapAsJavaMap(contextMap)
+        contextMap.asJava.asInstanceOf[java.util.Map[String, Object]]
     }
 
     def getRequest(input: java.util.Map[String, AnyRef], context: java.util.Map[String, AnyRef], operation: String): org.sunbird.common.dto.Request = {

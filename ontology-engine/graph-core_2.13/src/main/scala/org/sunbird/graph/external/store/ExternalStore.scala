@@ -13,6 +13,7 @@ import java.sql.Timestamp
 import java.util
 import java.util.Date
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.jdk.CollectionConverters._
 
 class ExternalStore(keySpace: String , table: String , primaryKey: java.util.List[String]) extends CassandraStore(keySpace, table, primaryKey) {
 
@@ -24,7 +25,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         request.remove("last_updated_on")
         if(propsMapping.keySet.contains("last_updated_on"))
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
-        for ((key, value) <- request.asScala) {
+        for ((key: String, value: AnyRef) <- request.asScala) {
             propsMapping.getOrElse(key, "") match {
                 case "blob" => value match {
                     case value: String => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
@@ -60,7 +61,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
         if (propsMapping.keySet.contains("last_updated_on"))
             insertQuery.value("last_updated_on", new Timestamp(new Date().getTime))
         insertQuery.using(QueryBuilder.ttl(ttl))
-        for ((key, value) <- request.asScala) {
+        for ((key: String, value: AnyRef) <- request.asScala) {
             propsMapping.getOrElse(key, "") match {
                 case "blob" => value match {
                     case value: String => insertQuery.value(key, QueryBuilder.fcall("textAsBlob", value))
@@ -142,8 +143,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             })
         }
         val selectQuery = select.from(keySpace, table)
-        import scala.collection.convert.ImplicitConversions._
-        val clause: Clause = QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers))
+        val clause: Clause = QueryBuilder.in(primaryKey.get(0), identifiers.asJava)
         selectQuery.where.and(clause)
         try {
             val session: Session = CassandraConnector.getSession
@@ -151,10 +151,10 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             futureResult.asScala.map(resultSet => {
                 if (resultSet.iterator().hasNext) {
                     val response = ResponseHandler.OK()
-                    resultSet.iterator().toStream.map(row => {
+                    resultSet.iterator().asScala.foreach(row => {
                         val externalMetadataMap = extProps.map(prop => prop -> row.getObject(prop)).toMap.asJava
                         response.put(row.getString(primaryKey.get(0)), externalMetadataMap)
-                    }).toList
+                    })
                     response
                 } else {
                     TelemetryManager.error("Entry is not found in external-store for object with identifiers: " + identifiers)
@@ -171,7 +171,7 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
 
     def delete(identifiers: List[String])(implicit ec: ExecutionContext): Future[Response] = {
         val delete = QueryBuilder.delete()
-        val deleteQuery = delete.from(keySpace, table).where(QueryBuilder.in(primaryKey.get(0), seqAsJavaList(identifiers)))
+        val deleteQuery = delete.from(keySpace, table).where(QueryBuilder.in(primaryKey.get(0), identifiers.asJava))
         try {
             val session: Session = CassandraConnector.getSession
             session.executeAsync(deleteQuery).asScala.map(resultSet => {

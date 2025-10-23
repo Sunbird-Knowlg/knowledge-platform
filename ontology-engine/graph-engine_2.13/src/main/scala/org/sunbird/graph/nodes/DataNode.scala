@@ -9,6 +9,7 @@ import org.sunbird.common.DateUtils
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria}
 import org.sunbird.graph.schema.{DefinitionDTO, DefinitionFactory, DefinitionNode}

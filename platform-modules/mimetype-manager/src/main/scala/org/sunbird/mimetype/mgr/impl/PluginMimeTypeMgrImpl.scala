@@ -9,6 +9,7 @@ import org.sunbird.common.JsonUtils
 import org.sunbird.common.exception.ClientException
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.graph.OntologyEngineContext
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}

@@ -9,6 +9,8 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Slug
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
+import scala.jdk.CollectionConverters._
+import scala.util.{Failure, Success}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -40,7 +42,7 @@ class H5PMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
             Future {
                 extractH5PPackageInCloud(objectId, extractionBasePath, node, "snapshot", false).map(resp =>
                     TelemetryManager.info("H5P content snapshot folder upload success for " + objectId)
-                ) onFailure { case e: Throwable =>
+                ).recover { case e: Throwable =>
                     TelemetryManager.error("H5P content snapshot folder upload failed for " + objectId, e.getCause)
                 }
             }

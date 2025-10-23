@@ -15,8 +15,8 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.convert.ImplicitConversions._
 
 object FlagManager {
   private val FLAGGABLE_STATUS: util.List[String] = util.Arrays.asList("Live", "Unlisted", "Flagged")
@@ -80,7 +80,7 @@ object FlagManager {
 
   private def fetchHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
     oec.graphService.readExternalProps(request, List(HierarchyConstants.HIERARCHY)).map(resp => {
-      resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
+      resp.getResult.asScala.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + request.get(HierarchyConstants.IDENTIFIER)) }
   }
 
@@ -104,7 +104,7 @@ object FlagManager {
       dataList
     }else{
       responseDataList.addAll(dataList)
-      new util.ArrayList[String](responseDataList.toSet)
+      new util.ArrayList[String](responseDataList.asScala.toSet.asJava)
     }
   }
 }

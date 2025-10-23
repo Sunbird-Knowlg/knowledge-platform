@@ -52,14 +52,14 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
       oec.graphService.readExternalProps(request, externalProps).map(response => {
         if (!ResponseHandler.checkError(response)) {
-            if(request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", "") &&
-              request.getRequest.get("deviceId") == response.getResult.toMap.getOrDefault("deviceid", "") &&
-              request.getRequest.get("resourceType") == response.getResult.toMap.getOrDefault("resourcetype", "")){
+            if(request.getRequest.get("userId") == response.getResult.asScala.toMap.getOrElse("createdby", "") &&
+              request.getRequest.get("deviceId") == response.getResult.asScala.toMap.getOrElse("deviceid", "") &&
+              request.getRequest.get("resourceType") == response.getResult.asScala.toMap.getOrElse("resourcetype", "")){
                   Future {
-                    ResponseHandler.OK.put("lockKey", response.getResult.toMap.getOrDefault("lockid", "")).put("expiresAt", formatExpiryDate(response.getResult.toMap.getOrDefault("expiresat", "").asInstanceOf[Date])).put("expiresIn", defaultLockExpiryTime / 60)
+                    ResponseHandler.OK.put("lockKey", response.getResult.asScala.toMap.getOrElse("lockid", "")).put("expiresAt", formatExpiryDate(response.getResult.asScala.toMap.getOrElse("expiresat", "").asInstanceOf[Date])).put("expiresIn", defaultLockExpiryTime / 60)
                   }
             }
-            else if (request.getRequest.get("userId") == response.getResult.toMap.getOrDefault("createdby", ""))
+            else if (request.getRequest.get("userId") == response.getResult.asScala.toMap.getOrElse("createdby", ""))
                   throw new ClientException("RESOURCE_SELF_LOCKED", "Error due to self lock , Resource already locked by user ")
             else {
               val creatorInfoStr = response.getResult.get("creatorinfo").asInstanceOf[String]
@@ -122,8 +122,8 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
           else throw new ClientException("ERR_LOCK_REFRESHING_FAILED", "no data found from db for refreshing lock")
         }
         else {
-          val lockId = response.getResult.toMap.getOrDefault("lockid", "")
-          val createdBy = response.getResult.toMap.getOrDefault("createdby", "")
+          val lockId = response.getResult.asScala.toMap.getOrElse("lockid", "")
+          val createdBy = response.getResult.asScala.toMap.getOrElse("createdby", "")
           if (createdBy != userId)
             throw new ClientException("ERR_LOCK_REFRESHING_FAILED", "Unauthorized to refresh this lock")
           request.put("fields", List("expiresat"))
@@ -153,7 +153,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
       oec.graphService.readExternalProps(request, externalProps).map(response => {
         if (!ResponseHandler.checkError(response)) {
-          val createdBy = response.getResult.toMap.getOrDefault("createdby", "")
+          val createdBy = response.getResult.asScala.toMap.getOrElse("createdby", "")
           if (createdBy != userId)
             throw new ClientException("ERR_LOCK_RETIRING_FAILED", "Unauthorized to retire lock")
           request.put("identifiers", List(resourceId))
@@ -182,7 +182,7 @@ class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       request.getRequest.put("identifier", resourceId)
     }
     else {
-        request.getRequest.put("identifiers", resourceId.asInstanceOf[java.util.List[String]].toList)
+        request.getRequest.put("identifiers", resourceId.asInstanceOf[java.util.List[String]].asScala.toList)
       }
     val externalProps = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String])
     oec.graphService.readExternalProps(request, externalProps).map(response => {

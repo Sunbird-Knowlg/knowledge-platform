@@ -5,6 +5,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.cache.util.RedisConnector
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 /**
  * This Utility Object Provide Methods To Perform CRUD Operation With Redis

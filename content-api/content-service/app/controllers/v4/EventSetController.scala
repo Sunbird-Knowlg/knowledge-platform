@@ -1,6 +1,7 @@
 package controllers.v4
 
 import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import scala.jdk.CollectionConverters._
 import com.google.inject.Singleton
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import utils.{ActorNames, ApiId, Constants}

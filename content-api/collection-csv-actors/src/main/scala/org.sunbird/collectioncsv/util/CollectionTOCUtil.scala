@@ -9,6 +9,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import java.util
 import java.text.MessageFormat
 import scala.collection.immutable.Map
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 

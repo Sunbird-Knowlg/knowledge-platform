@@ -14,6 +14,7 @@ import org.sunbird.utils.{Constants, RequestUtil}
 import java.util
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
   implicit val ec: ExecutionContext = getContext().dispatcher

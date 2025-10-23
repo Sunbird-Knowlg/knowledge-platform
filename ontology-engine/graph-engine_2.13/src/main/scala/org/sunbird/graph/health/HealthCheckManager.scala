@@ -10,6 +10,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.service.operation.NodeAsyncOperations
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 object HealthCheckManager extends CassandraConnector with RedisConnector {
     val CONNECTION_SUCCESS: String = "connection check is Successful"
@@ -26,7 +27,7 @@ object HealthCheckManager extends CassandraConnector with RedisConnector {
         val allChecks: List[Map[String, Any]] = redisHealth ++ graphHealth ++ (if (cassandraEnabled) List(checkCassandraHealth()) else List())
         val overAllHealth = allChecks.map(check => check.getOrElse("healthy",false).asInstanceOf[Boolean]).foldLeft(true)(_ && _)
         val response = ResponseHandler.OK()
-        response.put("checks", allChecks.map(m => JavaConverters.mapAsJavaMapConverter(m).asJava).asJava)
+        response.put("checks", allChecks.map(m => m.asJava).asJava)
         response.put("healthy", overAllHealth)
         Future(response)
     }

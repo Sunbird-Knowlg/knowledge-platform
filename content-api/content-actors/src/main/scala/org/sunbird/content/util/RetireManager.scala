@@ -22,7 +22,7 @@ import org.sunbird.parseq.Task
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
 
-import scala.collection.convert.ImplicitConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,10 +37,10 @@ object RetireManager {
             if(CollectionUtils.isNotEmpty(shallowIds)){
                 throw new ClientException(ContentConstants.ERR_CONTENT_RETIRE, s"Content With Identifier [" + request.get(ContentConstants.IDENTIFIER) + "] Can Not Be Retired. It Has Been Adopted By Other Users.")
             } else { 
-                val updateMetadataMap = Map(ContentConstants.STATUS -> "Retired", HierarchyConstants.LAST_UPDATED_ON -> DateUtils.formatCurrentDate, HierarchyConstants.LAST_STATUS_CHANGED_ON -> DateUtils.formatCurrentDate)
+                val updateMetadataMap = Map[String, AnyRef](ContentConstants.STATUS -> "Retired", HierarchyConstants.LAST_UPDATED_ON -> DateUtils.formatCurrentDate, HierarchyConstants.LAST_STATUS_CHANGED_ON -> DateUtils.formatCurrentDate)
                 val futureList = Task.parallel[Response](
                     handleCollectionToRetire(node, request, updateMetadataMap),
-                    updateNodesToRetire(request, mapAsJavaMap[String,AnyRef](updateMetadataMap)))
+                    updateNodesToRetire(request, updateMetadataMap.asJava))
                 futureList.map(f => {
                     val response = ResponseHandler.OK()
                     response.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
@@ -78,16 +78,16 @@ object RetireManager {
             req.getContext.put(ContentConstants.SCHEMA_NAME, ContentConstants.COLLECTION_SCHEMA_NAME)
             req.put(ContentConstants.IDENTIFIER, request.get(ContentConstants.IDENTIFIER))
             oec.graphService.readExternalProps(req, List(HierarchyConstants.HIERARCHY)).flatMap(resp => {
-                val hierarchyString = resp.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
+                val hierarchyString = resp.getResult.asScala.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String]
                 if (StringUtils.isNotBlank(hierarchyString)) {
                     val hierarchyMap = JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
                     val childIds = getChildrenIdentifiers(hierarchyMap)
                     if (CollectionUtils.isNotEmpty(childIds)) {
                         val topicName = Platform.getString("kafka.topics.graph.event", "sunbirddev.learning.graph.events")
-                        childIds.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
-                        RedisCache.delete(childIds.map(id => "hierarchy_" + id): _*)
+                        childIds.asScala.foreach(id => kfClient.send(ScalaJsonUtils.serialize(getLearningGraphEvent(request, id)), topicName))
+                        RedisCache.delete(childIds.asScala.map(id => "hierarchy_" + id).toSeq: _*)
                     }
-                    hierarchyMap.putAll(updateMetadataMap)
+                    hierarchyMap.putAll(updateMetadataMap.asJava)
                     req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(hierarchyMap))
                     oec.graphService.saveExternalProps(req)
                 } else Future(ResponseHandler.OK())
@@ -123,9 +123,9 @@ object RetireManager {
         if (httpResponse.getStatus == 200) {
             val response: Response = JsonUtils.deserialize(httpResponse.getBody, classOf[Response])
             if(response.get("count").asInstanceOf[Integer] > 0){
-                response.get("content").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].map(content => {
+                response.get("content").asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]].asScala.map(content => {
                     val originData = ScalaJsonUtils.deserialize[Map[String, AnyRef]](content.get("originData").asInstanceOf[String])
-                    val copyType = originData.getOrDefault("copyType", "").asInstanceOf[String]
+                    val copyType = originData.getOrElse("copyType", "").asInstanceOf[String]
                     if(StringUtils.isNotBlank(copyType) && StringUtils.equalsIgnoreCase(copyType , "shallow")){
                         result.add(content.get("identifier").asInstanceOf[String])
                     } else { 
@@ -142,13 +142,13 @@ object RetireManager {
 
     private def getChildrenIdentifiers(hierarchyMap: util.HashMap[String, AnyRef]): util.List[String] = {
         val childIds: ListBuffer[String] = ListBuffer[String]()
-        addChildIds(hierarchyMap.getOrElse(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], childIds)
-        bufferAsJavaList(childIds)
+        addChildIds(hierarchyMap.getOrDefault(HierarchyConstants.CHILDREN, new util.ArrayList[util.HashMap[String, AnyRef]]()).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], childIds)
+        childIds.toList.asJava
     }
 
     private def addChildIds(childrenMaps: util.ArrayList[util.HashMap[String, AnyRef]], childrenIds: ListBuffer[String]): Unit = {
         if (CollectionUtils.isNotEmpty(childrenMaps)) {
-            childrenMaps.filter(child => StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])).foreach(child => {
+            childrenMaps.asScala.filter(child => StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, child.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])).foreach(child => {
                 childrenIds += child.get(HierarchyConstants.IDENTIFIER).asInstanceOf[String]
                 addChildIds(child.get(HierarchyConstants.CHILDREN).asInstanceOf[util.ArrayList[util.HashMap[String, AnyRef]]], childrenIds)
             })

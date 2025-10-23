@@ -6,7 +6,7 @@ import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.util.ScalaJsonUtil
 import java.util
 import java.util.Collections
-import scala.jdk.CollectionConverters.asScalaBuffer
+import scala.jdk.CollectionConverters._
 
 object FrameworkCache{
 
@@ -17,12 +17,12 @@ object FrameworkCache{
 
      def getFwCacheKey(identifier: String, categoryNames: util.List[String]): String = {
         Collections.sort(categoryNames)
-        CACHE_PREFIX + identifier.toLowerCase + "_" + categoryNames.map(_.toLowerCase).mkString("_")
+        CACHE_PREFIX + identifier.toLowerCase + "_" + categoryNames.asScala.map(_.toLowerCase).mkString("_")
     }
 
     def get(id: String, returnCategories: util.List[String]): util.Map[String, Object] = {
         if (cacheEnabled) {
-            if (returnCategories.nonEmpty) {
+            if (!returnCategories.isEmpty) {
               val categories = new util.ArrayList[String](returnCategories)
                 Collections.sort(categories)
                 val cachedCategories: String = RedisCache.get(getFwCacheKey(id, categories))
@@ -40,7 +40,7 @@ object FrameworkCache{
 
     def save(framework: Map[String, AnyRef], categoryNames: util.List[String]): Unit = {
       val identifier = framework.getOrElse("identifier", "").asInstanceOf[String]
-        if (cacheEnabled && !framework.isEmpty && StringUtils.isNotBlank(identifier) && categoryNames.nonEmpty) {
+        if (cacheEnabled && !framework.isEmpty && StringUtils.isNotBlank(identifier) && !categoryNames.isEmpty) {
           val categories = new util.ArrayList[String](categoryNames)
           Collections.sort(categories)
           val key: String = getFwCacheKey(identifier, categories)

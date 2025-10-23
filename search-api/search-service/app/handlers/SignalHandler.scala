@@ -9,6 +9,7 @@ import play.api.inject.DefaultApplicationLifecycle
 import sun.misc.Signal
 
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SignalHandler @Inject()(implicit actorSystem: ActorSystem, lifecycle: DefaultApplicationLifecycle) {
@@ -22,10 +23,10 @@ class SignalHandler @Inject()(implicit actorSystem: ActorSystem, lifecycle: Defa
             // $COVERAGE-OFF$ Disabling scoverage as this code is impossible to test
             isShuttingDown = true
             println("Termination required, swallowing SIGTERM to allow current requests to finish. : " + System.currentTimeMillis())
-            actorSystem.scheduler.scheduleOnce(STOP_DELAY)(() => {
+            actorSystem.scheduler.scheduleOnce(STOP_DELAY) {
                 println("ApplicationLifecycle stop triggered... : " + System.currentTimeMillis())
                 lifecycle.stop()
-            })(actorSystem.dispatcher)
+            }(ExecutionContext.global)
             // $COVERAGE-ON
         }
     })

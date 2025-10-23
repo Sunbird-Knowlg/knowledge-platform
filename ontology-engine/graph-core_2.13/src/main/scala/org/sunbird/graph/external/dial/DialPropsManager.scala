@@ -5,6 +5,7 @@ import org.sunbird.schema.SchemaValidatorFactory
 
 import java.util
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 // $COVERAGE-OFF$ Disabling scoverage
 object DialPropsManager {
   def saveProps(request: Request)(implicit ec: ExecutionContext): Future[Response] = {

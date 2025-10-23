@@ -69,7 +69,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def read(request: Request): Future[Response] = {
     val frameworkId = request.get("identifier").asInstanceOf[String]
-    val returnCategories: java.util.List[String] = seqAsJavaListConverter(request.get("categories").asInstanceOf[String].split(",").filter(category => StringUtils.isNotBlank(category) && !StringUtils.equalsIgnoreCase(category, "null"))).asJava
+    val returnCategories: java.util.List[String] = request.get("categories").asInstanceOf[String].split(",").filter(category => StringUtils.isNotBlank(category) && !StringUtils.equalsIgnoreCase(category, "null")).toList.asJava
     request.getRequest.put("categories", returnCategories)
     if (StringUtils.isNotBlank(frameworkId)) {
       val framework = FrameworkCache.get(frameworkId, returnCategories)
@@ -81,7 +81,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
         val frameworkData: Future[Map[String, AnyRef]] = if (Platform.getBoolean("service.db.cassandra.enabled", true))
           FrameworkManager.getFrameworkHierarchy(request) else {
           val frameworkStr = RedisCache.get("fw:"+frameworkId, (key: String) => "{}")
-          Future(JsonUtils.deserialize(frameworkStr, classOf[java.util.Map[String, AnyRef]]).toMap)
+          Future(JsonUtils.deserialize(frameworkStr, classOf[java.util.Map[String, AnyRef]]).asScala.toMap)
         }
         frameworkData.map(framework => {
           if (framework.isEmpty) {
@@ -93,9 +93,10 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
             })
           } else {
             Future {
-              val filterFrameworkData  = FrameworkManager.filterFrameworkCategories(framework, returnCategories)
+              val filterFrameworkData: Map[String, AnyRef] = FrameworkManager.filterFrameworkCategories(framework.asJava, returnCategories)
               FrameworkCache.save(filterFrameworkData, returnCategories)
-              ResponseHandler.OK.put(Constants.FRAMEWORK, filterFrameworkData.asJava)
+              val javaMap: java.util.Map[String, AnyRef] = filterFrameworkData.asJava
+              ResponseHandler.OK.put(Constants.FRAMEWORK, javaMap)
             }
           }
         }).flatMap(f => f)

@@ -9,6 +9,7 @@ import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.{DefinitionFactory, DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 
 import java.util
@@ -57,7 +58,7 @@ object DataSubGraph {
       finalDataMap.put(n.getIdentifier, newDataMap)
       finalDataMap
     })
-    finalDataMap.map(entry => {
+    finalDataMap.asScala.map(entry => {
       val mapData = entry._2.asInstanceOf[java.util.Map[String, AnyRef]].asScala
       println("mapData  " + mapData.toString())
       val outRelations: util.List[Relation] = mapData.getOrElse("outRelations", new util.ArrayList[Relation]).asInstanceOf[util.List[Relation]]

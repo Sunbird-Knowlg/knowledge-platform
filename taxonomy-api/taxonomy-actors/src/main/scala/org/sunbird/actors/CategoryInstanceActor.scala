@@ -14,6 +14,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util
+import scala.jdk.CollectionConverters._
 import java.util.Map
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

@@ -9,6 +9,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.enums.SystemNodeTypes
 import org.sunbird.graph.dac.model.Node
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.schema.validator._
 
 import scala.concurrent.ExecutionContext
@@ -35,7 +36,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
     def getExternalProps(): List[String] = {
         if (schemaValidator.getConfig.hasPath("external.properties")) {
             val propsSet = Set.empty ++ schemaValidator.getConfig.getObject("external.properties").keySet().asScala
-            (for (prop <- propsSet) yield prop) (collection.breakOut)
+            (for (prop <- propsSet) yield prop).toList
         }
         else
             List()
@@ -98,7 +99,7 @@ class DefinitionDTO(graphId: String, schemaName: String, version: String = "1.0"
 
     def getAllCopySchemes(): List[String] = schemaValidator.getConfig.hasPath("copy.scheme") match {
         case true => val copySchemeSet = Set.empty ++ schemaValidator.getConfig.getObject("copy.scheme").keySet().asScala
-            (for (prop <- copySchemeSet) yield prop) (collection.breakOut)
+            (for (prop <- copySchemeSet) yield prop).toList
         case false => List()
     }
 

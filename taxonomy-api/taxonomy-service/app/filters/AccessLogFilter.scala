@@ -9,6 +9,8 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
+import scala.jdk.CollectionConverters._
+
 class AccessLogFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter with Logging {
 
     val xHeaderNames = Map("x-session-id" -> "X-Session-ID", "X-Consumer-ID" -> "x-consumer-id", "x-device-id" -> "X-Device-ID", "x-app-id" -> "APP_ID", "x-authenticated-userid" -> "X-Authenticated-Userid", "x-channel-id" -> "X-Channel-Id")
@@ -26,7 +28,7 @@ class AccessLogFilter @Inject() (implicit ec: ExecutionContext) extends Essentia
 
           val path = requestHeader.uri
           if(!path.contains("/health")){
-            val headers = requestHeader.headers.headers.groupBy(_._1).mapValues(_.map(_._2))
+            val headers = requestHeader.headers.headers.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
             val appHeaders = headers.filter(header => xHeaderNames.keySet.contains(header._1.toLowerCase))
                 .map(entry => (xHeaderNames.get(entry._1.toLowerCase()).get, entry._2.head))
             val otherDetails = Map[String, Any]("StartTime" -> startTime, "env" -> "assessment",
