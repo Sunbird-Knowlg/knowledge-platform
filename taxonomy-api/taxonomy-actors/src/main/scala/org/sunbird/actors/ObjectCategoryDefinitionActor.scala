@@ -15,9 +15,8 @@ import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
 
 class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
 
@@ -73,7 +72,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 			val identifier = Constants.CATEGORY_PREFIX + Slug.makeSlug(categoryName) + "_" + Slug.makeSlug(objectType) + "_" + Slug.makeSlug(channel)
 			request.getRequest.put(Constants.IDENTIFIER, identifier)
 		}
-		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		val fields: util.List[String] = request.get(Constants.FIELDS).asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put(Constants.FIELDS, fields)
 		DataNode.read(request) recoverWith {
 			case e: ResourceNotFoundException => {

@@ -8,7 +8,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 
 import java.util
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 
 class DiscardManagerTest  extends BaseSpec with MockFactory  {
 

@@ -1,6 +1,6 @@
 package org.sunbird.content.actors
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
@@ -11,8 +11,7 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util
 
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.Future
 
 class TestAppActor extends BaseSpec with MockFactory {

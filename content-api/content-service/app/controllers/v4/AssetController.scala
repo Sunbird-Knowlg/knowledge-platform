@@ -1,15 +1,22 @@
 package controllers.v4
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import scala.jdk.CollectionConverters._
 import com.google.inject.Singleton
+import scala.jdk.CollectionConverters._
 import controllers.BaseController
+import scala.jdk.CollectionConverters._
 import javax.inject.{Inject, Named}
+import scala.jdk.CollectionConverters._
 import org.sunbird.models.UploadParams
+import scala.jdk.CollectionConverters._
 import play.api.mvc.ControllerComponents
+import scala.jdk.CollectionConverters._
 import utils.{ActorNames, ApiId}
+import scala.jdk.CollectionConverters._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext}
+import scala.jdk.CollectionConverters._
 @Singleton
 class AssetController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, @Named(ActorNames.ASSET_ACTOR) assetActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {
     val objectType = "Asset"

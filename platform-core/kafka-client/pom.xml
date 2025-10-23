@@ -49,13 +49,13 @@
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.maj.version}</artifactId>
-            <version>3.0.8</version>
+            <version>3.2.15</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>net.manub</groupId>
-            <artifactId>scalatest-embedded-kafka_${scala.maj.version}</artifactId>
-            <version>1.1.0-kafka1.1-nosr</version>
+            <groupId>io.github.embeddedkafka</groupId>
+            <artifactId>embedded-kafka_${scala.maj.version}</artifactId>
+            <version>3.4.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

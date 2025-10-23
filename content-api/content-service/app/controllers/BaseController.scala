@@ -5,16 +5,16 @@ import java.io.File
 import java.util
 import java.util.UUID
 
-import akka.actor.ActorRef
-import akka.pattern.Patterns
+import org.apache.pekko.actor.ActorRef
+import org.apache.pekko.pattern.Patterns
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import play.api.mvc._
 import utils.{Constants, JavaJsonUtils}
+import scala.jdk.CollectionConverters._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class BaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
@@ -63,7 +63,7 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
     }
 
     def commonHeaders(ignoreHeaders: Option[List[String]] = Option(List()))(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
-        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId").filterKeys(key => !ignoreHeaders.getOrElse(List()).contains(key))
+        val customHeaders = Map("x-channel-id" -> "channel", "X-Consumer-ID" -> "consumerId", "X-App-Id" -> "appId").view.filterKeys(key => !ignoreHeaders.getOrElse(List()).contains(key)).toMap
         customHeaders.map(ch => {
             val value = request.headers.get(ch._1)
             if (value.isDefined && !value.isEmpty) {

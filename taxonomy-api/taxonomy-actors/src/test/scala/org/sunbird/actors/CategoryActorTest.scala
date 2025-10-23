@@ -2,14 +2,14 @@ package org.sunbird.actors
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 

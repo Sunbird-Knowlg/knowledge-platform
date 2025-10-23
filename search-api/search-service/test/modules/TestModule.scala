@@ -3,12 +3,12 @@ package modules
 import com.google.inject.AbstractModule
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import play.libs.akka.AkkaGuiceSupport
+import play.api.libs.concurrent.PekkoGuiceSupport
 import utils.ActorNames
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TestModule extends AbstractModule with AkkaGuiceSupport{
+class TestModule extends AbstractModule with PekkoGuiceSupport{
 
     override def configure() = {
         super.configure()

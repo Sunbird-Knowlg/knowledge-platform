@@ -12,7 +12,6 @@ import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.kafka.client.KafkaClient
 
-import scala.collection.JavaConverters._
 
 class ImportManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {
 

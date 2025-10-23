@@ -1,10 +1,10 @@
 package org.sunbird.actor.core;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.dispatch.Futures;
-import akka.dispatch.Recover;
-import akka.pattern.Patterns;
+import org.apache.pekko.actor.AbstractActor;
+import org.apache.pekko.actor.ActorRef;
+import org.apache.pekko.dispatch.Futures;
+import org.apache.pekko.dispatch.Recover;
+import org.apache.pekko.pattern.Patterns;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseParams;

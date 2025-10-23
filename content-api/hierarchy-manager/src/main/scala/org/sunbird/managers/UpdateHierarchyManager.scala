@@ -14,10 +14,10 @@ import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.schema.dto.ValidationResult
 import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
+import scala.jdk.CollectionConverters._
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
-import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -56,7 +56,7 @@ object UpdateHierarchyManager {
                               val response = ResponseHandler.OK()
                               response.put(HierarchyConstants.CONTENT_ID, rootId)
                               idMap.remove(rootId)
-                              response.put(HierarchyConstants.IDENTIFIERS, mapAsJavaMap(idMap))
+                              response.put(HierarchyConstants.IDENTIFIERS, idMap.asJava)
                               if (request.getContext.getOrDefault("shouldImageDelete", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
                                   deleteHierarchy(request)
                               Future(response)
@@ -288,11 +288,16 @@ object UpdateHierarchyManager {
                 if (CollectionUtils.isNotEmpty(nextLevel) && MapUtils.isNotEmpty(currentLevelNodes)) {
                     nextLevel.foreach(e => {
                         val parentId = e.get("parent").asInstanceOf[String]
-                        currentLevelNodes.getOrDefault(parentId, List[java.util.Map[String, AnyRef]]()).foreach(parent => {
-                            val children = parent.getOrDefault(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.Map[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
-                            children.add(e)
-                            parent.put(HierarchyConstants.CHILDREN, sortByIndex(children))
-                        })
+                        currentLevelNodes.get(parentId) match {
+                            case Some(parentList) => parentList.foreach(parent => {
+                                val existingChildren = parent.getOrDefault(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.Map[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
+                                // Ensure we have a mutable ArrayList
+                                val children = new java.util.ArrayList[java.util.Map[String, AnyRef]](existingChildren)
+                                children.add(e)
+                                parent.put(HierarchyConstants.CHILDREN, sortByIndex(children))
+                            })
+                            case None => // Parent not found, skip this node
+                        }
                     })
                 }
             }
@@ -524,7 +529,10 @@ object UpdateHierarchyManager {
     }
 
     def sortByIndex(childrenMaps: java.util.List[java.util.Map[String, AnyRef]]): java.util.List[java.util.Map[String, AnyRef]] = {
-        bufferAsJavaList(childrenMaps.sortBy(_.get("index").asInstanceOf[Int]))
+        import scala.jdk.CollectionConverters._
+        val sortedList = new java.util.ArrayList[java.util.Map[String, AnyRef]]()
+        childrenMaps.asScala.sortBy(_.get("index").asInstanceOf[Int]).foreach(sortedList.add)
+        sortedList
     }
 
 

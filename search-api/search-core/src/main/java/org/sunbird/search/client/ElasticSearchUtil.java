@@ -3,7 +3,7 @@
  */
 package org.sunbird.search.client;
 
-import akka.dispatch.Futures;
+import org.apache.pekko.dispatch.Futures;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;

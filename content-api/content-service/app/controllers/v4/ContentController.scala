@@ -1,6 +1,7 @@
 package controllers.v4
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import scala.jdk.CollectionConverters._
 import com.google.inject.Singleton
 import controllers.BaseController
 import javax.inject.{Inject, Named}
@@ -8,7 +9,6 @@ import org.sunbird.models.UploadParams
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConverters._
 
 import scala.concurrent.{ExecutionContext}
 

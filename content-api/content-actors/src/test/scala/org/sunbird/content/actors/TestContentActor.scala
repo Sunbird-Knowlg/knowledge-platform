@@ -1,6 +1,6 @@
 package org.sunbird.content.actors
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
@@ -12,7 +12,6 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.kafka.client.KafkaClient
 
 import java.util
-import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

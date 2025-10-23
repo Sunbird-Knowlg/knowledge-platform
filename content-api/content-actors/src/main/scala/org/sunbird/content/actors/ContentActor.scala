@@ -19,6 +19,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.HierarchyManager
+import scala.jdk.CollectionConverters._
 import org.sunbird.managers.HierarchyManager.hierarchyPrefix
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.util.RequestUtil
@@ -27,8 +28,6 @@ import java.io.File
 import java.util
 import java.util.concurrent.CompletionException
 import javax.inject.Inject
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
@@ -90,7 +89,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def read(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
-		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
@@ -113,7 +112,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def privateRead(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
-		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put("fields", fields)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
 		DataNode.read(request).map(node => {

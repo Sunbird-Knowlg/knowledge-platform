@@ -2,7 +2,7 @@ package org.sunbird.content.util
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Property, Request, Response}
@@ -10,7 +10,7 @@ import org.sunbird.content.actors.{BaseSpec, ContentActor}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

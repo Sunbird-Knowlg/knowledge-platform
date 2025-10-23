@@ -14,10 +14,10 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.{Constants, RequestUtil}
 
 import java.util
+import scala.jdk.CollectionConverters._
 import java.util.Map
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.JavaConverters._
 
 class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
   implicit val ec: ExecutionContext = getContext().dispatcher

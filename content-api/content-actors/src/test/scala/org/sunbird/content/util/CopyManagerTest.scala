@@ -11,7 +11,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 import java.util
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters.mapAsJavaMap
 import scala.concurrent.Future
 
 class CopyManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory {

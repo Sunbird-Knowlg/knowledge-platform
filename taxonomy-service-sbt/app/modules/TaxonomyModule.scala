@@ -2,10 +2,10 @@ package modules
 
 import com.google.inject.AbstractModule
 import org.sunbird.actors.{HealthActor, ObjectCategoryActor, ObjectCategoryDefinitionActor}
-import play.libs.akka.AkkaGuiceSupport
+import play.api.libs.concurrent.PekkoGuiceSupport
 import utils.ActorNames
 
-class TaxonomyModule extends AbstractModule with AkkaGuiceSupport {
+class TaxonomyModule extends AbstractModule with PekkoGuiceSupport {
 
     override def configure() = {
         super.configure()
