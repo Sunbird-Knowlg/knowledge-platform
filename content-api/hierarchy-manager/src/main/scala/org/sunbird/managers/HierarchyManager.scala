@@ -371,8 +371,8 @@ object HierarchyManager {
             oec.graphService.saveExternalProps(req)
         }).flatMap(f => f).recoverWith {
             case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
-                Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessages.asScala.mkString(",")))
-            } else throw clientException
+                    Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessages.asScala.mkString(",")))
+                } else throw clientException
             case e: Exception =>
                 Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), e.getMessage))
         }
@@ -391,9 +391,9 @@ object HierarchyManager {
             existingLeafNodes.map(en => {
                 leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
             })
-            filteredLeafNodes = childList.asScala.filter(existingLeafNode => {
+            filteredLeafNodes = new util.ArrayList[java.util.Map[String, AnyRef]](childList.asScala.filter(existingLeafNode => {
                 !leafNodeIds.asScala.contains(existingLeafNode.get("identifier").asInstanceOf[String])
-            }).toList.asJava
+            }).toList.asJava)
             maxIndex = childMap.values.toList.map(child => child.get("index").asInstanceOf[Integer]).max
         }
         leafNodeIds.asScala.foreach(id => {
@@ -454,7 +454,7 @@ object HierarchyManager {
                 if (StringUtils.isNotEmpty(relationalMetadataString) && !relationalMetadataString.trim.isBlank) {
                     val relMetadataJavaMap = JsonUtils.deserialize(relationalMetadataString, classOf[java.util.Map[String, AnyRef]])
                    if(relMetadataJavaMap != null && relMetadataJavaMap.size()>0) Future(relMetadataJavaMap.asScala.toMap) else Future(Map[String, AnyRef]())
-                } else
+                } else 
                     Future(Map[String, AnyRef]())
             } else {
                 val req = new Request(request)
