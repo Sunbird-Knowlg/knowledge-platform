@@ -1,4 +1,5 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import java.util
 
@@ -52,7 +53,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
-    val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    val node = new Node("domain", Map[String,AnyRef]("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel").asJava)
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -67,7 +68,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
-    val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    val node = new Node("domain", Map[String,AnyRef]("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel").asJava)
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))

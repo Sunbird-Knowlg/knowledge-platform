@@ -1,4 +1,5 @@
 package org.sunbird.content.util
+import scala.jdk.CollectionConverters._
 
 import java.util
 
@@ -10,7 +11,7 @@ import org.sunbird.content.actors.{BaseSpec, ContentActor}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
-import scala.jdk.CollectionConverters.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -42,7 +43,7 @@ class TestAcceptFlagManager extends BaseSpec with MockFactory {
 
     val request = getRequest()
     request.getContext.put("identifier","domain")
-    request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "domain")))
+    request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "domain").asJava)
     request.setOperation("acceptFlag")
     val response = callActor(request, Props(new ContentActor()))
     assert("successful".equals(response.getParams.getStatus))

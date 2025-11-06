@@ -9,6 +9,7 @@ import org.scalamock.scalatest.AsyncMockFactory
 import org.sunbird.common.{HttpUtil, JsonUtils}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.kafka.client.KafkaClient
 

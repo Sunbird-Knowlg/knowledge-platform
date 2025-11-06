@@ -1,4 +1,5 @@
 package org.sunbird.channel
+import scala.jdk.CollectionConverters._
 
 import org.scalatest.{AsyncFlatSpec, Matchers}
 import org.sunbird.common.dto.Request

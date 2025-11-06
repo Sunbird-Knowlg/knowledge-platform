@@ -11,18 +11,18 @@ import scala.concurrent.{ExecutionContext, Future}
 class TestModule extends AbstractModule with PekkoGuiceSupport {
 
     override def configure(): Unit = {
-        bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.CONTENT_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.LICENSE_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.COLLECTION_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.CHANNEL_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.CATEGORY_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.ASSET_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.APP_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.EVENT_SET_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.EVENT_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.OBJECT_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.COLLECTION_CSV_ACTOR)
+        bindActor[TestActor](ActorNames.HEALTH_ACTOR)
+        bindActor[TestActor](ActorNames.CONTENT_ACTOR)
+        bindActor[TestActor](ActorNames.LICENSE_ACTOR)
+        bindActor[TestActor](ActorNames.COLLECTION_ACTOR)
+        bindActor[TestActor](ActorNames.CHANNEL_ACTOR)
+        bindActor[TestActor](ActorNames.CATEGORY_ACTOR)
+        bindActor[TestActor](ActorNames.ASSET_ACTOR)
+        bindActor[TestActor](ActorNames.APP_ACTOR)
+        bindActor[TestActor](ActorNames.EVENT_SET_ACTOR)
+        bindActor[TestActor](ActorNames.EVENT_ACTOR)
+        bindActor[TestActor](ActorNames.OBJECT_ACTOR)
+        bindActor[TestActor](ActorNames.COLLECTION_CSV_ACTOR)
         println("Test Module is initialized...")
     }
 }

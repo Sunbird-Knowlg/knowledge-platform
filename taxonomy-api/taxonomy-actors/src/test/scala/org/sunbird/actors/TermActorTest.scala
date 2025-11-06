@@ -10,7 +10,8 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
-import scala.jdk.CollectionConverters.mapAsJavaMap
+import scala.jdk.CollectionConverters._
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -28,7 +29,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     val node = new Node()
     node.setIdentifier("ncf_board")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
         put("objectType", "CategoryInstance")
@@ -46,7 +47,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
 
     val request = getTermRequest()
-    request.putAll(mapAsJavaMap(Map("term"-> mapAsJavaMap(Map("code"->"class1", "name"->"Class1","description"->"Class1")), "framework"->"NCF", "category"->"board")))
+    request.putAll(mutable.Map[String, AnyRef]("term"-> mutable.Map[String, AnyRef]("code"->"class1", "name"->"Class1","description"->"Class1").asJava, "framework"->"NCF", "category"->"board").asJava)
     request.setOperation(Constants.CREATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert(response.get(Constants.NODE_ID).equals(new util.ArrayList[String]() { add("ncf_board_class1") }))
@@ -59,7 +60,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     val node = new Node()
     node.setIdentifier("ncf_board")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
         put("objectType", "CategoryInstance")
@@ -68,7 +69,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     })
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     val request = getTermRequest()
-    request.putAll(mapAsJavaMap(Map("code"->"class1", "name"->"Class1", "description"->"Class1", "framework"->"NCF", "category"->"board")))
+    request.putAll(mutable.Map[String, AnyRef]("code"->"class1", "name"->"Class1", "description"->"Class1", "framework"->"NCF", "category"->"board"))
     request.setOperation(Constants.CREATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -81,7 +82,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     val node = new Node()
     node.setIdentifier("")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "");
         put("objectType", "CategoryInstance")
@@ -90,7 +91,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     })
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     val request = getTermRequest()
-    request.putAll(mapAsJavaMap(Map("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" -> "board"))
     request.setOperation(Constants.CREATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -103,7 +104,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     val node = new Node()
     node.setIdentifier("ncf_board")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
         put("objectType", "CategoryInstance")
@@ -112,7 +113,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     })
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     val request = getTermRequest()
-    request.putAll(mapAsJavaMap(Map("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" ->"", "channel" -> "sunbird")))
+    request.putAll(mutable.Map[String, AnyRef]("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" ->"", "channel" -> "sunbird"))
     request.setOperation(Constants.CREATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -125,7 +126,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     val node = new Node()
     node.setIdentifier("ncf_board")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
         put("objectType", "CategoryInstance")
@@ -134,7 +135,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     })
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     val request = getTermRequest()
-    request.putAll(mapAsJavaMap(Map("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("code" -> "class1", "name" -> "Class1", "description" -> "Class1", "framework" -> "", "category" -> "board"))
     request.setOperation(Constants.CREATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -147,7 +148,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     val node = new Node()
     node.setIdentifier("ncf_board")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board");
         put("objectType", "CategoryInstance")
@@ -158,7 +159,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 
     val request = getTermRequest()
-    request.putAll(mapAsJavaMap(Map("code" -> "", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("code" -> "", "name" -> "Class1", "description" -> "Class1", "framework" -> "NCF", "category" -> "board"))
     request.setOperation(Constants.CREATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -176,7 +177,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board_class1", *, *).returns(Future(termNode))
     val request = getTermRequest()
     request.getContext.put("identifier", "ncf_board_class1")
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "term" -> "class1", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "term" -> "class1", "category" -> "board"))
     request.setOperation(Constants.READ_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -193,7 +194,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     node.setGraphId("domain")
     node.setNodeType("DATA_NODE")
     node.setObjectType("Term")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("code", "ncf_board_class1")
         put("objectType", "Term")
@@ -205,7 +206,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board_class1", *, *).returns(Future(node))
     val request = getTermRequest()
     request.getContext.put("identifier", "ncf_board_class1")
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "term" -> "class1", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "term" -> "class1", "category" -> "board"))
     request.setOperation(Constants.READ_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -219,7 +220,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode))
     val request = getTermRequest()
     request.getContext.put("identifier", "ncf_board_class1")
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "term" -> "", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "term" -> "", "category" -> "board"))
     request.setOperation(Constants.READ_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -238,7 +239,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
     val request = getTermRequest()
     request.getContext.put(Constants.IDENTIFIER, "ncf_board_class1")
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "term" ->"class1", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "term" ->"class1", "category" -> "board"))
     request.setOperation(Constants.UPDATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -251,7 +252,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
     val request = getTermRequest()
     request.getContext.put(Constants.IDENTIFIER, "ncf_board_class1")
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "identifier"->"ncf_board_class1","name" -> "Board", "description" -> "Board", "code" -> "board", "term" -> "class1", "channel" -> "sunbird", "category" -> "board")))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "identifier"->"ncf_board_class1","name" -> "Board", "description" -> "Board", "code" -> "board", "term" -> "class1", "channel" -> "sunbird", "category" -> "board"))
     request.setOperation(Constants.UPDATE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -270,8 +271,8 @@ class TermActorTest extends BaseSpec with MockFactory{
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
     val request = getTermRequest()
     request.getContext.put("identifier", "ncf_board_class1")
-    request.putAll(mapAsJavaMap(Map("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "term" ->"class1" , "category" -> "board")))
-    request.putAll(mapAsJavaMap(Map("identifier" -> "ncf_board_class1")))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "term" ->"class1" , "category" -> "board"))
+    request.putAll(mutable.Map[String, AnyRef]("identifier" -> "ncf_board_class1"))
     request.setOperation(Constants.RETIRE_TERM)
     val response = callActor(request, Props(new TermActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -282,7 +283,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     node.setGraphId("domain")
     node.setNodeType("DATA_NODE")
     node.setObjectType("Term")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("code", "ncf_board_class1")
         put("objectType", "Term")
@@ -299,7 +300,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     node.setIdentifier("ncf_board_class1")
     node.setNodeType("DATA_NODE")
     node.setObjectType("Term")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board_class1")
         put("framework", "NCF")
@@ -314,7 +315,7 @@ class TermActorTest extends BaseSpec with MockFactory{
   }
   private def getTermRequest(): Request = {
     val request = new Request()
-    request.setContext(new util.HashMap[String, AnyRef]() {
+    request.setContext(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("graph_id", "domain")
         put("version", "1.0")
@@ -332,7 +333,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     node.setIdentifier("ncf_board")
     node.setNodeType("DATA_NODE")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
+    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
       {
         put("identifier", "ncf_board")
         put("framework", "NCF")

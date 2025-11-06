@@ -11,7 +11,8 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
-import scala.jdk.CollectionConverters.mapAsJavaMap
+import scala.jdk.CollectionConverters._
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -31,7 +32,7 @@ class ObjectCategoryActorTest  extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
         val request = getCategoryRequest()
-        request.putAll(mapAsJavaMap(Map("name" -> "1234")))
+        request.putAll(Map[String,AnyRef]("name" -> "1234").asJava)
         request.setOperation(Constants.CREATE_OBJECT_CATEGORY)
         val response = callActor(request, Props(new ObjectCategoryActor()))
         assert(response.get(Constants.IDENTIFIER) != null)
@@ -41,7 +42,7 @@ class ObjectCategoryActorTest  extends BaseSpec with MockFactory {
     it should "return exception for categoryNode without name" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getCategoryRequest()
-        request.putAll(mapAsJavaMap(Map("translations" -> Map("en" -> "english", "hi" -> "hindi"))))
+        request.putAll(Map[String,AnyRef]("translations" -> Map[String,AnyRef]("en" -> "english", "hi" -> "hindi").asJava).asJava)
         request.setOperation(Constants.CREATE_OBJECT_CATEGORY)
         val response = callActor(request, Props(new ObjectCategoryActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -60,7 +61,7 @@ class ObjectCategoryActorTest  extends BaseSpec with MockFactory {
 
         val request = getCategoryRequest()
         request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc").asJava)
         request.setOperation(Constants.UPDATE_OBJECT_CATEGORY)
         val response = callActor(request, Props(new ObjectCategoryActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -75,7 +76,7 @@ class ObjectCategoryActorTest  extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
         val request = getCategoryRequest()
         request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234")
-        request.putAll(mapAsJavaMap(Map("fields" -> "")))
+        request.putAll(Map[String,AnyRef]("fields" -> "").asJava)
         request.setOperation(Constants.READ_OBJECT_CATEGORY)
         val response = callActor(request, Props(new ObjectCategoryActor()))
         assert("successful".equals(response.getParams.getStatus))
