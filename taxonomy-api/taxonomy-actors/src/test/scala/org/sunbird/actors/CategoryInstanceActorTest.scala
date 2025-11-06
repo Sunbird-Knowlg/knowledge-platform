@@ -14,7 +14,6 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
-import scala.collection.mutable
 
 class CategoryInstanceActorTest extends BaseSpec with MockFactory {
 
@@ -30,7 +29,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val node = new Node()
     node.setIdentifier("NCF")
     node.setObjectType("Framework")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "NCF");
         put("objectType", "Framework")
@@ -44,7 +43,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val categoryNode = new Node()
     categoryNode.setIdentifier("board")
     categoryNode.setObjectType("Category")
-    categoryNode.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    categoryNode.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "board");
         put("objectType", "Category")
@@ -77,7 +76,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val node = new Node()
     node.setIdentifier("NCF")
     node.setObjectType("Framework")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "NCF");
         put("objectType", "Framework")
@@ -88,7 +87,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "board", "name" -> "Board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "board", "name" -> "Board").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -101,7 +100,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val node = new Node()
     node.setIdentifier("NCF")
     node.setObjectType("Framework")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "NCF");
         put("objectType", "Framework")
@@ -112,7 +111,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "", "name" -> "Board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "", "name" -> "Board").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -125,7 +124,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val node = new Node()
     node.setIdentifier("")
     node.setObjectType("Framework")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "");
         put("objectType", "Framework")
@@ -136,7 +135,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "board", "name" -> "Board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "board", "name" -> "Board").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -147,7 +146,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("code" -> "board", "name" -> "Board"))
+    request.putAll(mutable.Map[String, AnyRef]("code" -> "board", "name" -> "Board").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -159,7 +158,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "", "code" -> "board", "name" -> "Board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "", "code" -> "board", "name" -> "Board").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -174,7 +173,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     node.setIdentifier("")
     node.setNodeType("DATA_NODE")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "")
         put("objectType", "CategoryInstance")
@@ -188,7 +187,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     val request = getCategoryInstanceRequest()
     request.getContext.put("identifier", "ncf_board")
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "board").asJava)
     request.setOperation("readCategoryInstance")
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -199,7 +198,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -212,7 +211,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","code" -> "board","status" -> "Live", "name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","code" -> "board","status" -> "Live", "name" -> "Board", "frameworks" -> "[{identifier=NCF_TEST1}]}]").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -228,7 +227,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
     val request = getCategoryInstanceRequest()
     request.getContext.put("identifier", "ncf_board")
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","name" -> "Board", "description" -> "Board", "code" -> "board","identifier" -> "ncf_board", "channel" ->"sunbird","category" -> "board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","name" -> "Board", "description" -> "Board", "code" -> "board","identifier" -> "ncf_board", "channel" ->"sunbird","category" -> "board").asJava)
     request.setOperation("readCategoryInstance")
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -238,7 +237,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getCategoryInstanceRequest()
     request.getContext.put("identifier", "ncf_board")
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "ncf", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> ""))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "ncf", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "").asJava)
     request.setOperation("readCategoryInstance")
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -248,7 +247,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getCategoryInstanceRequest()
     request.getContext.put("identifier", "ncf_board")
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "", "name" -> "Board", "description" -> "Board", "code" -> "board", "identifier" -> "ncf_board", "channel" -> "sunbird", "category" -> "board").asJava)
     request.setOperation("readCategoryInstance")
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -265,7 +264,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","name" -> "Board", "description" -> "Board", "code" -> "board", "channel" ->"sunbird","category" -> "board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","name" -> "Board", "description" -> "Board", "code" -> "board", "channel" ->"sunbird","category" -> "board").asJava)
     request.setOperation(Constants.UPDATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -279,7 +278,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "identifier"->"ncf_board", "description" -> "Board", "code" -> "board", "channel" -> "sunbird", "category" -> "board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "name" -> "Board", "identifier"->"ncf_board", "description" -> "Board", "code" -> "board", "channel" -> "sunbird", "category" -> "board").asJava)
     request.setOperation(Constants.UPDATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -298,8 +297,8 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
     val request = getCategoryInstanceRequest()
     request.getContext.put("identifier", "ncf_board")
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","name" -> "Board", "description" -> "Board", "code" -> "board", "channel" ->"sunbird","category" -> "board"))
-    request.putAll(mutable.Map[String, AnyRef]("identifier" -> "ncf_board"))
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF","name" -> "Board", "description" -> "Board", "code" -> "board", "channel" ->"sunbird","category" -> "board").asJava)
+    request.putAll(mutable.Map[String, AnyRef]("identifier" -> "ncf_board").asJava)
     request.setOperation("retireCategoryInstance")
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -311,7 +310,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     node.setIdentifier("ncf_board")
     node.setNodeType("DATA_NODE")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "ncf_board")
         put("framework", "NCF")
@@ -332,7 +331,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     request
   }
 
-  private def getContext(): util.mutable.Map[String, AnyRef] = new util.Hashmutable.Map[String, AnyRef]() {
+  private def getContext(): util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]() {
     {
       put("graph_id", "domain")
       put("version", "1.0")
@@ -348,7 +347,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     node.setIdentifier("ncf_board")
     node.setNodeType("DATA_NODE")
     node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "Board")
         put("objectType", "CategoryInstance")
