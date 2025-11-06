@@ -14,11 +14,11 @@ import scala.concurrent.Future
 
 class BaseSpec extends Specification {
 
-    implicit val app = new GuiceApplicationBuilder()
+    implicit val app: play.api.Application = new GuiceApplicationBuilder()
             .disable(classOf[modules.SearchModule])
             .bindings(new TestModule)
-            .build
-    implicit val config = ConfigFactory.load();
+            .build()
+    implicit val config: com.typesafe.config.Config = ConfigFactory.load();
 
     def post(apiURL: String, request: String, h: FakeHeaders = FakeHeaders(Seq()))
     : Future[Result] = {
@@ -26,13 +26,13 @@ class BaseSpec extends Specification {
         route(app, FakeRequest(POST, apiURL, headers, Json.toJson(Json.parse(request)))).get
     }
 
-    def isOK(response: Future[Result]) {
+    def isOK(response: Future[Result]): Unit = {
         status(response) must equalTo(OK)
         contentType(response) must beSome.which(_ == "application/json")
         contentAsString(response) must contain(""""status":"successful"""")
     }
 
-    def hasClientError(response: Future[Result]) {
+    def hasClientError(response: Future[Result]): Unit = {
         status(response) must equalTo(BAD_REQUEST)
         contentType(response) must beSome.which(_ == "application/json")
         contentAsString(response) must contain(""""err":"CLIENT_ERROR","status":"failed"""")
