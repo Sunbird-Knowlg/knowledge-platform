@@ -11,7 +11,8 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
-import scala.jdk.CollectionConverters.mapAsJavaMap
+import scala.jdk.CollectionConverters._
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -29,7 +30,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234")
 		node.setObjectType("ObjectCategoryDefinition")
-		node.setMetadata(new util.HashMap[String, AnyRef]() {
+		node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234");
 				put("objectType", "ObjectCategory")
@@ -43,11 +44,11 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
 		val request = getCategoryDefintionRequest()
-		val objectMetadata = new util.HashMap[String, AnyRef](){{
-			put("schema", new util.HashMap())
-			put("config", new util.HashMap())
+		val objectMetadata = new util.Hashmutable.Map[String, AnyRef](){{
+			put("schema", new util.Hashmutable.Map[String, AnyRef]())
+			put("config", new util.Hashmutable.Map[String, AnyRef]())
 		}}
-		request.putAll(mapAsJavaMap(Map("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> objectMetadata)))
+		request.putAll(mutable.Map[String, AnyRef]("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> objectMetadata).asJava)
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.get(Constants.IDENTIFIER) != null)
@@ -60,7 +61,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getCategoryDefinitionNode()))
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> Map("schema" -> Map()), "config" -> Map())))
+		request.putAll(mutable.Map[String, AnyRef]("targetObjectType" -> "Content", "categoryId" -> "obj-cat:1234", "objectMetadata" -> mutable.Map[String, AnyRef]("schema" -> mutable.Map[String, AnyRef]().asJava, "config" -> mutable.Map[String, AnyRef]().asJava)).asJava)
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -70,7 +71,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 	it should "should throw exception for blank categoryId" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("tagetObjectType" -> "Content", "categoryId" -> "")))
+		request.putAll(mutable.Map[String, AnyRef]("tagetObjectType" -> "Content", "categoryId" -> "").asJava)
 		request.setOperation(Constants.CREATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -85,10 +86,10 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		val request = getCategoryDefintionRequest()
 		request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234_content_all")
-		request.putAll(mapAsJavaMap(Map("fields" -> "")))
+		request.putAll(mutable.Map[String, AnyRef]("fields" -> "").asJava)
 		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
-		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.Hashmutable.Map[String, AnyRef]()).asInstanceOf[util.mutable.Map[String, AnyRef]]
 		assert("successful".equals(response.getParams.getStatus))
 		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
 	}
@@ -100,10 +101,10 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		val node = getCategoryDefinitionNodeForRead()
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234")))
+		request.putAll(mutable.Map[String, AnyRef]("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234").asJava)
 		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
-		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.Hashmutable.Map[String, AnyRef]()).asInstanceOf[util.mutable.Map[String, AnyRef]]
 		assert("successful".equals(response.getParams.getStatus))
 		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
 	}
@@ -117,10 +118,10 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "obj-cat:1234_content_all", *, *)
 		  .returns(Future(node)).anyNumberOfTimes()
 		val request = getCategoryDefintionRequest()
-		request.putAll(mapAsJavaMap(Map("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234", "channel" -> "test")))
+		request.putAll(mutable.Map[String, AnyRef]("fields" -> "", "REQ_METHOD" -> "POST", "objectType" -> "Content", "name" -> "1234", "channel" -> "test").asJava)
 		request.setOperation(Constants.READ_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
-		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+		val objectCategoryDefinition = response.getResult.getOrDefault("objectCategoryDefinition", new util.Hashmutable.Map[String, AnyRef]()).asInstanceOf[util.mutable.Map[String, AnyRef]]
 		assert("successful".equals(response.getParams.getStatus))
 		assert("obj-cat:1234_content_all".equals(objectCategoryDefinition.getOrDefault("identifier", "")))
 	}
@@ -132,7 +133,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234_content_all")
 		node.setObjectType("ObjectCategoryDefinition")
-		node.setMetadata(new util.HashMap[String, AnyRef]() {
+		node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234_content_all")
 				put("categoryId", "obj-cat:1234")
@@ -149,7 +150,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 
 		val request = getCategoryDefintionRequest()
 		request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234_content_all")
-		request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+		request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
 		request.setOperation(Constants.UPDATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert("successful".equals(response.getParams.getStatus))
@@ -161,7 +162,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 		val node = new Node()
 		node.setIdentifier("obj-cat:1234_content_all")
-		node.setMetadata(new util.HashMap[String, AnyRef]() {
+		node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234_content_all")
 				put("categoryId", "obj-cat:1234")
@@ -173,7 +174,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		})
 		val request = getCategoryDefintionRequest()
 		request.getContext.put(Constants.IDENTIFIER, "obj-cat:1234_content_all")
-		request.putAll(mapAsJavaMap(Map("description" -> "test desc", "categoryId" -> "obj-cat:test-1234", "channel" -> "abc")))
+		request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "categoryId" -> "obj-cat:test-1234", "channel" -> "abc").asJava)
 		request.setOperation(Constants.UPDATE_OBJECT_CATEGORY_DEFINITION)
 		val response = callActor(request, Props(new ObjectCategoryDefinitionActor()))
 		assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -186,7 +187,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		request
 	}
 
-	private def getContext(): util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]() {
+	private def getContext(): util.mutable.Map[String, AnyRef] = new util.Hashmutable.Map[String, AnyRef]() {
 		{
 			put("graph_id", "domain")
 			put("version", "1.0")
@@ -201,17 +202,17 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		node.setIdentifier("obj-cat:1234_content_all")
 		node.setNodeType("DATA_NODE")
 		node.setObjectType("ObjectCategoryDefinition")
-		node.setMetadata(new util.HashMap[String, AnyRef]() {
+		node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234_content_all")
 				put("categoryId", "obj-cat:1234")
 				put("objectType", "ObjectCategoryDefinition")
 				put("name", "Test Category Definition")
 				put("targetObjectType", "Content")
-				put("objectMetadata", new util.HashMap[String, AnyRef]() {
+				put("objectMetadata", new util.Hashmutable.Map[String, AnyRef]() {
 					{
-						put("config", new util.HashMap())
-						put("schema", new util.HashMap())
+						put("config", new util.Hashmutable.Map[String, AnyRef]())
+						put("schema", new util.Hashmutable.Map[String, AnyRef]())
 					}
 				})
 			}
@@ -224,14 +225,14 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		node.setIdentifier("obj-cat:1234_content_all")
 		node.setNodeType("DATA_NODE")
 		node.setObjectType("ObjectCategoryDefinition")
-		node.setMetadata(new util.HashMap[String, AnyRef]() {
+		node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
 			{
 				put("identifier", "obj-cat:1234_content_all")
 				put("categoryId", "obj-cat:1234")
 				put("objectType", "ObjectCategoryDefinition")
 				put("name", "Test Category Definition")
 				put("targetObjectType", "Content")
-				put("objectMetadata", new util.HashMap[String, AnyRef]() {
+				put("objectMetadata", new util.Hashmutable.Map[String, AnyRef]() {
 					{
 						put("config", "{}")
 						put("schema", "{}")

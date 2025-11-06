@@ -10,7 +10,7 @@ import play.api.test.FakeRequest
 
 @RunWith(classOf[JUnitRunner])
 class BadRequestSpec extends Specification {
-    implicit val app = new GuiceApplicationBuilder().build
+    implicit val app: play.api.Application = new GuiceApplicationBuilder().build()
     "Application" should {
         "send 404 on a bad request - /boum" in {
             route(app, FakeRequest(GET, "/boum")) must beSome.which (status(_) == NOT_FOUND)

@@ -1,4 +1,5 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import java.util
 import java.util.concurrent.TimeUnit
@@ -77,7 +78,7 @@ class BaseSpec extends FlatSpec with Matchers {
                 put("status", "Live")
             }
         })
-        val masterCategories: scala.collection.immutable.Map[String, AnyRef] = Map(
+        val masterCategories: scala.collection.immutable.Map[String, AnyRef] = Map[String,AnyRef](
             node.getMetadata.getOrDefault("code", "").asInstanceOf[String] ->
               Map[String, AnyRef]("code" -> node.getMetadata.getOrDefault("code", "").asInstanceOf[String],
                   "orgIdFieldName" -> node.getMetadata.getOrDefault("orgIdFieldName", "").asInstanceOf[String],

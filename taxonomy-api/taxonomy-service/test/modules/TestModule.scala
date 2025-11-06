@@ -1,6 +1,7 @@
 package modules
 
 import com.google.inject.AbstractModule
+import org.apache.pekko.actor.Props
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.actors.ObjectCategoryActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -11,14 +12,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class TestModule extends AbstractModule with PekkoGuiceSupport {
 	override def configure(): Unit = {
-		bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.OBJECT_CATEGORY_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.OBJECT_CATEGORY_DEFINITION_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.FRAMEWORK_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.CATEGORY_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.CATEGORY_INSTANCE_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.TERM_ACTOR)
-		bindActor(classOf[TestActor], ActorNames.LOCK_ACTOR)
+		bindActor(ActorNames.HEALTH_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.OBJECT_CATEGORY_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.OBJECT_CATEGORY_DEFINITION_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.FRAMEWORK_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.CATEGORY_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.CATEGORY_INSTANCE_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.TERM_ACTOR, _ => Props(classOf[TestActor]))
+		bindActor(ActorNames.LOCK_ACTOR, _ => Props(classOf[TestActor]))
 		println("Test Module is initialized...")
 	}
 }

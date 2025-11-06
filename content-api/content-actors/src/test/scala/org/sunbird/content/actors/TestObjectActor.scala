@@ -1,4 +1,5 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
@@ -6,7 +7,7 @@ import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import java.util
-import scala.jdk.CollectionConverters.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -27,7 +28,7 @@ class TestObjectActor extends BaseSpec with MockFactory{
     implicit val ss = mock[StorageService]
     val request = getRequest()
     request.getContext.put("identifier","do1234")
-    request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+    request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
     request.setOperation("readObject")
     val response = callActor(request, Props(new ObjectActor()))
     assert("successful".equals(response.getParams.getStatus))

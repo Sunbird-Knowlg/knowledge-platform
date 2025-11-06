@@ -1,4 +1,5 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
@@ -22,7 +23,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.getContext.put("objectType","Content")
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventActor()))
@@ -45,7 +46,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_1234").asJava)
         request.setOperation("publishContent")
         val response = callActor(request, Props(new EventActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -60,7 +61,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard())).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.getContext.put("objectType","Content")
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventActor()))
@@ -72,7 +73,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234.img")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234.img")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_1234.img").asJava)
         request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
         val graphDB = mock[GraphService]
@@ -92,7 +93,7 @@ class TestEventActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_1234").asJava)
         request.getContext.put("objectType","Content")
         request.setOperation("retireContent")
         val response = callActor(request, Props(new EventActor()))
@@ -113,9 +114,9 @@ class TestEventActor extends BaseSpec with MockFactory {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234",
+        request.putAll(Map[String,AnyRef]("name" -> "New Content", "code" -> "1234",
             "startDate" ->  "2021-03-04", "endDate" -> "2021-03-04", "startTime" -> "11:00:00Z", "endTime" -> "11:00:00Z",
-            "registrationEndDate" -> "2021-03-04", "eventType" -> "Online", "versionKey" -> "test_123")))
+            "registrationEndDate" -> "2021-03-04", "eventType" -> "Online", "versionKey" -> "test_123").asJava)
         request.setOperation("updateContent")
         val response = callActor(request, Props(new EventActor()))
         assert("successful".equals(response.getParams.getStatus))

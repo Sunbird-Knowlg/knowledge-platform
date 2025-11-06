@@ -1,4 +1,5 @@
 package org.sunbird.content.util
+import scala.jdk.CollectionConverters._
 
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
@@ -8,14 +9,14 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 
 import java.util
-import scala.jdk.CollectionConverters.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 
 class DiscardManagerTest  extends BaseSpec with MockFactory  {
 
     it should "discard node in Live state should return client error" in {
         implicit val oec: OntologyEngineContext = new OntologyEngineContext
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "").asJava)
         request.setOperation("discardContent")
         val exception = intercept[ClientException] {
             DiscardManager.validateRequest(request)

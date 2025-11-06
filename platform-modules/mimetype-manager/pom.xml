@@ -28,9 +28,9 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.sunbird</groupId>
-            <artifactId>cloud-store-sdk_2.12</artifactId>
-            <version>1.4.6.3</version>
+            <groupId>${CLOUD_STORE_GROUP_ID}</groupId>
+            <artifactId>${CLOUD_STORE_ARTIFACT_ID}</artifactId>
+            <version>${CLOUD_STORE_VERSION}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.jamesmurty.util</groupId>
@@ -142,7 +142,7 @@
         <dependency>
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
-            <version>1.22</version>
+            <version>2.9.1</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>

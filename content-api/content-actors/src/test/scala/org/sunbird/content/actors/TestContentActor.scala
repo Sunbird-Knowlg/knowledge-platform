@@ -1,4 +1,5 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
@@ -28,7 +29,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
-        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource",
+        val content = (Map[String,AnyRef]("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource",
             "framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}}))
         request.put("content", content)
         assert(true)
@@ -50,7 +51,9 @@ class TestContentActor extends BaseSpec with MockFactory {
         }))
 
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("channel"-> "in.ekstep","name" -> "New", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "targetBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        val targetBoardIds = new util.ArrayList[String]()
+        targetBoardIds.add("ncf_board_cbse")
+        request.getRequest.putAll( (Map[String,AnyRef]("channel"-> "in.ekstep","name" -> "New", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.content-collection", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "targetBoardIds" -> targetBoardIds)))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -68,7 +71,9 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "framework"-> "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        val organisationBoardIds = new util.ArrayList[String]()
+        organisationBoardIds.add("ncf_board_cbse")
+        request.getRequest.putAll( (Map[String,AnyRef]("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep", "framework"-> "NCF", "organisationBoardIds" -> organisationBoardIds)))
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -80,7 +85,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]
         val request = getContentRequest()
-        request.getRequest.putAll( mapAsJavaMap(Map("name" -> "New Content", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep")))
+        request.getRequest.putAll(Map[String,AnyRef]("name" -> "New Content", "mimeType"-> "application/vnd.ekstep.plugin-archive", "contentType" -> "Course", "primaryCategory" -> "Learning Resource", "channel" -> "in.ekstep").asJava)
         request.setOperation("createContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -94,7 +99,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss: StorageService = mock[StorageService]
         (ss.getSignedURL(_: String, _: Option[Int], _: Option[String])).expects(*, *, *).returns("cloud store url")
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("fileName" -> "presigned_url", "filePath" -> "/data/cloudstore/", "type" -> "assets", "identifier" -> "do_1234")))
+        request.getRequest.putAll(Map[String,AnyRef]("fileName" -> "presigned_url", "filePath" -> "/data/cloudstore/", "type" -> "assets", "identifier" -> "do_1234").asJava)
         request.setOperation("uploadPreSignedUrl")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.get("identifier") != null)
@@ -110,7 +115,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.setOperation("discardContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -126,7 +131,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getInValidNodeToDiscard()))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.setOperation("discardContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -137,7 +142,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234.img")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234.img")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_1234.img").asJava)
         request.setOperation("retireContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -223,7 +228,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_1234").asJava)
         request.setOperation("retireContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -238,7 +243,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("readContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -259,7 +264,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("readContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -280,7 +285,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
         request.getRequest.put("channel", "abc-123")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("readPrivateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -292,7 +297,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("readPrivateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -316,7 +321,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
         request.getRequest.put("channel", "abc")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("readPrivateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -338,7 +343,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc", "versionKey" -> "test_123").asJava)
         request.setOperation("updateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -359,7 +364,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc", "versionKey" -> "test_123").asJava)
         request.setOperation("updateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("failed".equals(response.getParams.getStatus))
@@ -372,7 +377,9 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "updated description","framework" ->  "NCF", "organisationBoardIds" -> new util.ArrayList[String](){{add("ncf_board_cbse")}})))
+        val organisationBoardIds2 = new util.ArrayList[String]()
+        organisationBoardIds2.add("ncf_board_cbse")
+        request.putAll(Map[String,AnyRef]("description" -> "updated description","framework" ->  "NCF", "organisationBoardIds" -> organisationBoardIds2).asJava)
         request.setOperation("updateContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("failed".equals(response.getParams.getStatus))
@@ -394,9 +401,9 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "createdBy" -> "username_1",
             "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF",
-            "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
+            "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }}).asJava)
         request.setOperation("copy")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -449,7 +456,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
         val request = getContentRequest()
         request.getContext.put("identifier", "do_1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "createdBy" -> "username_1",
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "createdBy" -> "username_1",
             "createdFor" -> new util.ArrayList[String]() {{ add("NCF2") }}, "framework" -> "NCF",
             "organisation" -> new util.ArrayList[String]() {{ add("NCF2") }})))
         request.put("file", new File(Resources.getResource("jpegImage.jpeg").toURI))
@@ -475,7 +482,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc", "versionKey" -> "test_123").asJava)
         request.setOperation("systemUpdate")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -557,7 +564,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc", "versionKey" -> "test_123").asJava)
         request.setOperation("rejectContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -575,7 +582,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "versionKey" -> "test_123")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc", "versionKey" -> "test_123").asJava)
         request.setOperation("rejectContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("failed".equals(response.getParams.getStatus))
@@ -597,7 +604,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node)).anyNumberOfTimes()
         val request = getContentRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("rejectComment"->"Testing reject comment", "versionKey" -> "test_123","rejectReasons" -> Array("Incorrect Content"))))
+        request.putAll(Map[String,AnyRef]("rejectComment"->"Testing reject comment", "versionKey" -> "test_123","rejectReasons" -> Array("Incorrect Content").toList.asJava).asJava)
         request.setOperation("rejectContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -830,8 +837,8 @@ class TestContentActor extends BaseSpec with MockFactory {
         node.setNodeType("DATA_NODE")
         node.setObjectType("Content")
         node.setGraphId("domain")
-        node.setMetadata(mapAsJavaMap(
-            ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:learning-resource\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n            \"license\",\n            \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }")))
+        node.setMetadata(
+            ScalaJsonUtils.deserialize[Map[String,AnyRef]]("{\n    \"objectCategoryDefinition\": {\n      \"name\": \"Learning Resource\",\n      \"description\": \"Content Playlist\",\n      \"categoryId\": \"obj-cat:learning-resource\",\n      \"targetObjectType\": \"Content\",\n      \"objectMetadata\": {\n        \"config\": {},\n        \"schema\": {\n          \"required\": [\n            \"author\",\n            \"copyright\",\n            \"license\",\n            \"audience\"\n          ],\n          \"properties\": {\n            \"audience\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"Student\",\n                  \"Teacher\"\n                ]\n              },\n              \"default\": [\n                \"Student\"\n              ]\n            },\n            \"mimeType\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"application/pdf\"\n              ]\n            }\n          }\n        }\n      }\n    }\n  }").asJava)
         node
     }
 
@@ -851,7 +858,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         node.setNodeType("DATA_NODE")
         node.setObjectType("Framework")
         node.setGraphId("domain")
-        node.setMetadata(mapAsJavaMap(Map("name"-> "NCF")))
+        node.setMetadata(Map[String,AnyRef]("name"-> "NCF").asJava)
         node
     }
 
@@ -861,7 +868,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         node.setNodeType("DATA_NODE")
         node.setObjectType("Term")
         node.setGraphId("domain")
-        node.setMetadata(mapAsJavaMap(Map("name"-> "CBSE")))
+        node.setMetadata(Map[String,AnyRef]("name"-> "CBSE").asJava)
         node
     }
 
