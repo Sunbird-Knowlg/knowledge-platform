@@ -1,6 +1,6 @@
 package controllers
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import handlers.SignalHandler
 import javax.inject.{Inject, Named}
 import org.sunbird.common.JsonUtils

@@ -1,6 +1,6 @@
 package org.sunbird.actors;
 
-import akka.dispatch.Futures;
+import org.apache.pekko.dispatch.Futures;
 import org.sunbird.actor.core.BaseActor;
 import org.sunbird.common.Platform;
 import org.sunbird.common.dto.Request;

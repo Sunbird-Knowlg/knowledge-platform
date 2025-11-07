@@ -26,7 +26,7 @@ import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.mimetype.mgr.impl.H5PMimeTypeMgrImpl
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 

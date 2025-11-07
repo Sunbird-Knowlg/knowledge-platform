@@ -24,7 +24,7 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     framework.put("systemDefault", "No")
     framework.put("objectType", "Framework")
     framework.put("status", "Live")
-    framework.put("categories", new util.ArrayList[util.Map[String, AnyRef]]())
+    framework.put("categories", new util.ArrayList[util.Map[String,AnyRef]]())
     framework.put("owner", "in.ekstep")
     framework.put("type", "K-12")
 
@@ -34,7 +34,7 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     val category2 = new util.HashMap[String, AnyRef]()
     category2.put("name", "Grade")
     category2.put("code", "grade")
-    val categories = new util.ArrayList[util.Map[String, AnyRef]]()
+    val categories = new util.ArrayList[util.Map[String,AnyRef]]()
     categories.add(category1)
     categories.add(category2)
 
@@ -46,7 +46,7 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     val term1 = new util.HashMap[String, AnyRef]()
     term1.put("name", "Term1")
     term1.put("code", "term1")
-    val associations1 = new util.ArrayList[util.Map[String, AnyRef]]()
+    val associations1 = new util.ArrayList[util.Map[String,AnyRef]]()
     val association1 = new util.HashMap[String, AnyRef]()
     association1.put("category", "Category1")
     associations1.add(association1)
@@ -55,15 +55,15 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     val term2 = new util.HashMap[String, AnyRef]()
     term2.put("name", "Term2")
     term2.put("code", "term2")
-    val associations2 = new util.ArrayList[util.Map[String, AnyRef]]()
+    val associations2 = new util.ArrayList[util.Map[String,AnyRef]]()
     val association2 = new util.HashMap[String, AnyRef]()
     association2.put("category", "Category2")
     associations2.add(association2)
     term2.put("associations", associations2)
 
-    category1.put("terms", new util.ArrayList[util.Map[String, AnyRef]]())
-    category1.get("terms").asInstanceOf[util.List[util.Map[String, AnyRef]]].add(term1)
-    category1.get("terms").asInstanceOf[util.List[util.Map[String, AnyRef]]].add(term2)
+    category1.put("terms", new util.ArrayList[util.Map[String,AnyRef]]())
+    category1.get("terms").asInstanceOf[util.List[util.Map[String,AnyRef]]].add(term1)
+    category1.get("terms").asInstanceOf[util.List[util.Map[String,AnyRef]]].add(term2)
 
     val returnCategories = new util.ArrayList[String]()
     returnCategories.add("Category1")
@@ -73,9 +73,9 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
 
     val frameworkWithAssociationsRemoved = filterFrameworkCategories(framework, categoryNames)
     val filteredTerms = frameworkWithAssociationsRemoved
-      .getOrElse("categories", new util.ArrayList[util.Map[String, AnyRef]]())
-      .asInstanceOf[util.List[util.Map[String, AnyRef]]]
-      .flatMap(_.getOrDefault("terms", new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]])
+      .getOrElse("categories", new util.ArrayList[util.Map[String,AnyRef]]())
+      .asInstanceOf[util.List[util.Map[String,AnyRef]]]
+      .flatMap[util.Map[String,AnyRef]](_.getOrDefault("terms", new util.ArrayList[util.Map[String,AnyRef]]).asInstanceOf[util.List[util.Map[String,AnyRef]]])
 
     assert(filteredTerms.contains(term1))
     assert(filteredTerms.contains(term2))

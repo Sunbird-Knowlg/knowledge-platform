@@ -1,8 +1,8 @@
 package controllers.v3
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import controllers.BaseController
-import org.sunbird.utils.Constants
+import utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 

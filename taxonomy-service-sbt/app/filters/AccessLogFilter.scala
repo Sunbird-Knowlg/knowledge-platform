@@ -1,6 +1,6 @@
 package filters
 
-import akka.util.ByteString
+import org.apache.pekko.util.ByteString
 import javax.inject.Inject
 import org.sunbird.telemetry.util.TelemetryAccessEventUtil
 import play.api.Logging
@@ -8,7 +8,6 @@ import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
-import scala.collection.JavaConverters._
 
 class AccessLogFilter @Inject() (implicit ec: ExecutionContext) extends EssentialFilter with Logging {
 

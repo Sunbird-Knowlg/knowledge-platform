@@ -1,6 +1,6 @@
 package org.sunbird.search.processor;
 
-import akka.dispatch.Mapper;
+import org.apache.pekko.dispatch.Mapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;

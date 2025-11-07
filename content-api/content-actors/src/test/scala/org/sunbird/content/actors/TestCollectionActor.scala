@@ -1,8 +1,9 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
 

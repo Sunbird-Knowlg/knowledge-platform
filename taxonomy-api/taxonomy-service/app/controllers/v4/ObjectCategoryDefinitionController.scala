@@ -1,16 +1,17 @@
 package controllers.v4
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import controllers.BaseController
 import javax.inject.{Inject, Named}
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.exception.ClientException
-import org.sunbird.utils.Constants
+import utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+
+import scala.jdk.CollectionConverters._
 
 class ObjectCategoryDefinitionController @Inject()(@Named(ActorNames.OBJECT_CATEGORY_DEFINITION_ACTOR) objCategoryDefinitionActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 

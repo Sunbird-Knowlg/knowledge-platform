@@ -1,8 +1,9 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.apache.hadoop.util.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
@@ -11,7 +12,7 @@ import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
-import scala.collection.JavaConversions.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -54,7 +55,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val request = getLicenseRequest()
-    request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+    request.putAll(Map[String,AnyRef]("identifier" -> "do_1234").asJava)
     request.setOperation("createLicense")
     val response = callActor(request, Props(new LicenseActor()))
     assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -75,7 +76,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
 
     implicit val ss = mock[StorageService]
     val request = getLicenseRequest()
-    request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+    request.putAll(Map[String,AnyRef]("description" -> "test desc").asJava)
     request.setOperation("updateLicense")
     val response = callActor(request, Props(new LicenseActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -90,7 +91,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     implicit val ss = mock[StorageService]
     val request = getLicenseRequest()
-    request.putAll(mapAsJavaMap(Map("fields" -> "")))
+    request.putAll(Map[String,AnyRef]("fields" -> "").asJava)
     request.setOperation("readLicense")
     val response = callActor(request, Props(new LicenseActor()))
     assert("successful".equals(response.getParams.getStatus))

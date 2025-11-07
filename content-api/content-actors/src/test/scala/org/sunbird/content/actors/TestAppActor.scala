@@ -1,6 +1,7 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
@@ -11,8 +12,7 @@ import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.util
 
-import scala.collection.JavaConverters._
-import scala.collection.JavaConversions.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.Future
 
 class TestAppActor extends BaseSpec with MockFactory {
@@ -39,9 +39,9 @@ class TestAppActor extends BaseSpec with MockFactory {
     request.getRequest.put("name", "Test Integration App")
     request.getRequest.put("logo", "logo url")
     request.getRequest.put("description", "Description of Test Integration App")
-    request.getRequest.put("provider", Map("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
+    request.getRequest.put("provider", Map[String,AnyRef]("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
     request.getRequest.put("osType", "Android")
-    request.getRequest.put("osMetadata", Map("packageId" -> "org.test.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
+    request.getRequest.put("osMetadata", Map[String,AnyRef]("packageId" -> "org.test.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
     request.setOperation("create")
     val response = callActor(request, Props(new AppActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -69,7 +69,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getRequest()
-    request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+    request.putAll(Map[String,AnyRef]("description" -> "test desc").asJava)
     request.setOperation("update")
     val response = callActor(request, Props(new AppActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -83,7 +83,7 @@ class TestAppActor extends BaseSpec with MockFactory {
     val node = getValidNode()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     val request = getRequest()
-    request.putAll(mapAsJavaMap(Map("fields" -> "")))
+    request.putAll(Map[String,AnyRef]("fields" -> "").asJava)
     request.setOperation("read")
     val response = callActor(request, Props(new AppActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -118,9 +118,9 @@ class TestAppActor extends BaseSpec with MockFactory {
         put("name", "Test Integration App")
         put("logo", "logo url")
         put("description", "Description of Test Integration App")
-        put("provider", Map("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
+        put("provider", Map[String,AnyRef]("name" -> "Test Organisation", "copyright" -> "CC BY 4.0").asJava)
         put("osType", "Android")
-        put("osMetadata", Map("packageId" -> "org.test.sunbird.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
+        put("osMetadata", Map[String,AnyRef]("packageId" -> "org.test.sunbird.integration", "appVersion" -> "1.0", "compatibilityVer" -> "1.0").asJava)
       }
     })
     node

@@ -3,7 +3,6 @@ package org.sunbird.utils
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, Matchers}
 import org.sunbird.cache.impl.RedisCache
 import java.util
-import scala.collection.JavaConverters._
 
 class CategoryCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
@@ -20,9 +19,9 @@ class CategoryCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll wi
     term1.put("name", "Term1")
     val term2 = new util.HashMap[String, AnyRef]()
     term2.put("name", "Term2")
-    val terms1 = List(term1, term2).asJava
+    val terms1 = util.Arrays.asList(term1, term2)
     category1.put("terms", terms1)
-    framework.put("categories", List(category1).asJava)
+    framework.put("categories", util.Arrays.asList(category1))
     CategoryCache.setFramework(frameworkId, framework)
     val cachedTerms = RedisCache.getList("cat_framework_idCategory1")
     cachedTerms should contain theSameElementsAs List("Term1", "Term2")
@@ -51,7 +50,7 @@ class CategoryCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll wi
     val category1 = new util.HashMap[String, AnyRef]()
     category1.put("name", "Category1")
     category1.put("terms", new util.ArrayList[util.Map[String, AnyRef]]())
-    framework.put("categories", List(category1).asJava)
+    framework.put("categories", util.Arrays.asList(category1))
     CategoryCache.setFramework(frameworkId, framework)
     val cachedTerms = RedisCache.getList("cat_framework_idCategory1")
     cachedTerms shouldBe empty

@@ -13,8 +13,7 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.JsonUtils
 
-import scala.collection.JavaConverters._
-import scala.collection.convert.ImplicitConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
 
 object ChannelManager {
@@ -52,7 +51,7 @@ object ChannelManager {
   }
 
   def validateObjectCategory(request: Request) = {
-    if (!util.Collections.disjoint(request.getRequest.keySet(), ChannelConstants.categoryKeyList)) {
+    if (!util.Collections.disjoint(request.getRequest.keySet(), ChannelConstants.categoryKeyList.asJava)) {
       val masterCategoriesList: List[String] = getMasterCategoryList()
       val errMsg: ListBuffer[String] = ListBuffer()
       compareWithMasterCategory(request, masterCategoriesList, errMsg)
@@ -65,7 +64,7 @@ object ChannelManager {
     ChannelConstants.categoryKeyList.map(cat => {
       if (request.getRequest.containsKey(cat)) {
         val requestedCategoryList: util.List[String] = getRequestedCategoryList(request, cat)
-        if (!masterCat.containsAll(requestedCategoryList))
+        if (!masterCat.asJava.containsAll(requestedCategoryList))
           errMsg += cat
       }
     })
@@ -122,11 +121,13 @@ object ChannelManager {
     if (CollectionUtils.isEmpty(channelPrimaryCategories))
       globalPrimaryCategories
     else {
-      val idsToIgnore = channelPrimaryCategories.map(cat => cat.get("identifier").asInstanceOf[String])
+      val idsToIgnore = channelPrimaryCategories.asScala.map(cat => cat.get("identifier").asInstanceOf[String])
         .map(id => id.replace("_"+channel, "_all"))
-      globalPrimaryCategories.filter(cat => {
+      val result = globalPrimaryCategories.asScala.filter(cat => {
         !idsToIgnore.contains(cat.get("identifier").asInstanceOf[String])
-      }) ++ channelPrimaryCategories
+      }).toList.asJava
+      result.addAll(channelPrimaryCategories)
+      result
     }
   }
 
@@ -136,7 +137,7 @@ object ChannelManager {
     if (200 != httpResponse.status) throw new ServerException("ERR_FETCHING_OBJECT_CATEGORY_DEFINITION", "Error while fetching primary categories.")
     val response: Response = JsonUtils.deserialize(httpResponse.body, classOf[Response])
     val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.objectCategoryDefinitionKey, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
-    objectCategoryList.asScala.map(cat => (cat - "objectType").asJava).asJava
+    objectCategoryList.asScala.map(cat => (cat.asScala - "objectType").asJava).toList.asJava
   }
 
   def getMasterCategoryList(): List[String] = {
@@ -148,6 +149,6 @@ object ChannelManager {
     val objectCategoryList: util.List[util.Map[String, AnyRef]] = response.getResult.getOrDefault(ChannelConstants.OBJECT_CATEGORY, new util.ArrayList[util.Map[String, AnyRef]]).asInstanceOf[util.ArrayList[util.Map[String, AnyRef]]]
     if (objectCategoryList.isEmpty)
       throw new ClientException("ERR_NO_MASTER_OBJECT_CATEGORY_DEFINED", "Master category object not present")
-    objectCategoryList.map(a => a.getOrDefault("name", "").asInstanceOf[String]).toList
+    objectCategoryList.asScala.map(a => a.getOrDefault("name", "").asInstanceOf[String]).toList
   }
 }

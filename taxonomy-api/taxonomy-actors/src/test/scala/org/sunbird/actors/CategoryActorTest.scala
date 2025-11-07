@@ -2,14 +2,15 @@ package org.sunbird.actors
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.utils.Constants
 
-import scala.collection.JavaConversions.mapAsJavaMap
+import scala.jdk.CollectionConverters._
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -117,7 +118,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
       (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
       val request = getCategoryRequest()
       request.getContext.put("identifier", "category_test")
-      request.putAll(mapAsJavaMap(Map("identifier" -> "category_test")))
+      request.putAll(mutable.Map[String, AnyRef]("identifier" -> "category_test").asJava)
       request.setOperation("readCategory")
       val response = callActor(request, Props(new CategoryActor()))
       assert("successful".equals(response.getParams.getStatus))
@@ -134,7 +135,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
       (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
       val request = getCategoryRequest()
-      request.putAll(mapAsJavaMap(Map("description" -> "test desc")))
+      request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
       request.setOperation(Constants.UPDATE_CATEGORY)
       val response = callActor(request, Props(new CategoryActor()))
       assert("successful".equals(response.getParams.getStatus))
@@ -145,7 +146,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
       val graphDB = mock[GraphService]
       (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
       val request = getCategoryRequest()
-      request.putAll(mapAsJavaMap(Map("description" -> "test desc", "identifier"-> "category_test")))
+      request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "identifier"-> "category_test").asJava)
       request.setOperation(Constants.UPDATE_CATEGORY)
       val response = callActor(request, Props(new CategoryActor()))
       assert("failed".equals(response.getParams.getStatus))
@@ -156,7 +157,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getCategoryRequest()
-    request.putAll(mapAsJavaMap(Map("description" -> "test desc", "code" -> "category_test")))
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "code" -> "category_test").asJava)
     request.setOperation(Constants.UPDATE_CATEGORY)
     val response = callActor(request, Props(new CategoryActor()))
     assert("failed".equals(response.getParams.getStatus))

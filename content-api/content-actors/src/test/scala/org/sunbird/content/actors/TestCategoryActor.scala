@@ -1,8 +1,9 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.apache.hadoop.util.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
@@ -11,7 +12,7 @@ import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 
-import scala.collection.JavaConversions.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -37,7 +38,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         request.getRequest.put("targetIdFieldName", "targetStateIds")
         request.getRequest.put("searchIdFieldName", "se_stateIds")
         request.getRequest.put("searchLabelFieldName", "se_states")
-        request.putAll(mapAsJavaMap(Map("name" -> "do_1234", "code" -> "do_1234")))
+        request.putAll(Map[String,AnyRef]("name" -> "do_1234", "code" -> "do_1234").asJava)
         request.setOperation("createCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.get("identifier") != null)
@@ -53,7 +54,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         request.getRequest.put("targetIdFieldName", "targetStateIds")
         request.getRequest.put("searchIdFieldName", "se_stateIds")
         request.getRequest.put("searchLabelFieldName", "se_states")
-        request.putAll(mapAsJavaMap(Map("code" -> "do_1234")))
+        request.putAll(Map[String,AnyRef]("code" -> "do_1234").asJava)
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
         assert(StringUtils.equalsIgnoreCase(response.get("messages").asInstanceOf[util.ArrayList[String]].get(0).asInstanceOf[String], "Required Metadata name not set"))
@@ -67,7 +68,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         request.getRequest.put("targetIdFieldName", "targetStateIds")
         request.getRequest.put("searchIdFieldName", "se_stateIds")
         request.getRequest.put("searchLabelFieldName", "se_states")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "code" -> "do_1234")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "code" -> "do_1234").asJava)
         request.setOperation("createCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -87,7 +88,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val ss = mock[StorageService]
         val request = getCategoryRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("description" -> "test desc", "code" -> "do_1234")))
+        request.putAll(Map[String,AnyRef]("description" -> "test desc", "code" -> "do_1234").asJava)
         request.setOperation("updateCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -103,7 +104,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val ss = mock[StorageService]
         val request = getCategoryRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("fields" -> "")))
+        request.putAll(Map[String,AnyRef]("fields" -> "").asJava)
         request.setOperation("readCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -122,7 +123,7 @@ class TestCategoryActor extends BaseSpec with MockFactory{
         implicit val ss = mock[StorageService]
         val request = getCategoryRequest()
         request.getContext.put("identifier","do_1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "code" -> "do_1234")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "code" -> "do_1234").asJava)
         request.setOperation("retireCategory")
         val response = callActor(request, Props(new CategoryActor()))
         assert("successful".equals(response.getParams.getStatus))

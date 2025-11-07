@@ -1,7 +1,7 @@
 package org.sunbird.collectioncsv
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestKit
+import org.apache.pekko.actor.{ActorSystem, Props}
+import org.apache.pekko.testkit.TestKit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.cloudstore.StorageService

@@ -1,6 +1,7 @@
 package controllers.v4
 
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
+import scala.jdk.CollectionConverters._
 import com.google.inject.Singleton
 import controllers.BaseController
 import play.api.mvc.ControllerComponents
@@ -9,7 +10,6 @@ import utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
 import scala.concurrent.ExecutionContext
 
-import scala.collection.JavaConverters._
 
 /***
  * TODO: Re-write this controller after merging the Event and EventSet Controller.

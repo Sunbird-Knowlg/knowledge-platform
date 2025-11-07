@@ -1,6 +1,7 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.JsonUtils
@@ -11,8 +12,7 @@ import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
 import java.util
-import scala.collection.JavaConversions.mapAsJavaMap
-import scala.collection.JavaConverters.seqAsJavaListConverter
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -28,17 +28,17 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
-        val eventSet = mapAsJavaMap(Map(
+        val eventSet = Map[String,AnyRef](
             "name" -> "New Content", "code" -> "1234",
             "startDate"-> "2021/01/03", //wrong format
             "endDate"-> "2021-01-03",
             "schedule" ->
-              mapAsJavaMap(Map("type" -> "NON_RECURRING",
-                  "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03", "endDate" -> "2021-01-03", "startTime" -> "11:00:00Z", "endTime" -> "13:00:00Z"))).asJava)),
-            "onlineProvider" -> "Zoom",
+              Map[String,AnyRef]("type" -> "NON_RECURRING",
+                  "value" -> List(Map[String,AnyRef]("startDate" -> "2021-01-03", "endDate" -> "2021-01-03", "startTime" -> "11:00:00Z", "endTime" -> "13:00:00Z")).asJava),
+            "onlineProvider" -> "Zoom", 
             "registrationEndDate" -> "2021-02-25",
-            "eventType" -> "Online"))
-        request.putAll(eventSet)
+            "eventType" -> "Online")
+        request.putAll(eventSet.asJava)
         assert(true)
         val response = callActor(request, Props(new EventSetActor()))
         println("Response: " + JsonUtils.serialize(response))
@@ -67,17 +67,17 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         })).anyNumberOfTimes()
         (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
         val request = getContentRequest()
-        val eventSet = mapAsJavaMap(Map(
+        val eventSet = Map[String,AnyRef](
             "name" -> "New Content", "code" -> "1234",
             "startDate"-> "2021-01-03", //wrong format
             "endDate"-> "2021-01-03",
             "schedule" ->
-              mapAsJavaMap(Map("type" -> "NON_RECURRING",
-                  "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03", "endDate" -> "2021-01-03", "startTime" -> "11:00:00Z", "endTime" -> "13:00:00Z"))).asJava)),
+              Map[String,AnyRef]("type" -> "NON_RECURRING",
+                  "value" -> List(Map[String,AnyRef]("startDate" -> "2021-01-03", "endDate" -> "2021-01-03", "startTime" -> "11:00:00Z", "endTime" -> "13:00:00Z")).asJava),
             "onlineProvider" -> "Zoom",
             "registrationEndDate" -> "2021-02-25",
-            "eventType" -> "Online"))
-        request.putAll(eventSet)
+            "eventType" -> "Online")
+        request.putAll(eventSet.asJava)
         request.setOperation("createContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert(response.get("identifier") != null)
@@ -112,18 +112,18 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
 
         val request = getContentRequest()
-        val eventSet = mapAsJavaMap(Map(
+        val eventSet = Map[String,AnyRef](
             "name" -> "New Content", "code" -> "1234",
             "startDate"-> "2021-01-03", //wrong format
             "endDate"-> "2021-01-03",
             "schedule" ->
-              mapAsJavaMap(Map("type" -> "NON_RECURRING",
-                  "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03", "endDate" -> "2021-01-03", "startTime" -> "11:00:00Z", "endTime" -> "13:00:00Z"))).asJava)),
+              Map[String,AnyRef]("type" -> "NON_RECURRING",
+                  "value" -> List(Map[String,AnyRef]("startDate" -> "2021-01-03", "endDate" -> "2021-01-03", "startTime" -> "11:00:00Z", "endTime" -> "13:00:00Z")).asJava),
             "onlineProvider" -> "Zoom",
             "registrationEndDate" -> "2021-02-25",
             "eventType" -> "Online",
-            "versionKey" -> "test_123"))
-        request.putAll(eventSet)
+            "versionKey" -> "test_123")
+        request.putAll(eventSet.asJava)
         request.setOperation("updateContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert(response.get("identifier") != null)
@@ -139,7 +139,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, *, *).returns(Future(true))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -160,7 +160,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
 
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.setOperation("publishContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert(response.getResponseCode == ResponseCode.OK)
@@ -177,7 +177,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node])).anyNumberOfTimes()
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_12346").asJava)
         request.setOperation("discardContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
@@ -194,7 +194,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
+        request.getRequest.putAll(Map[String,AnyRef]("identifier" -> "do_1234").asJava)
         request.setOperation("retireContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -209,7 +209,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("readContent")
         val response = callActor(request, Props(new EventSetActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -224,7 +224,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
         request.getContext.put("identifier","do1234")
-        request.putAll(mapAsJavaMap(Map("identifier" -> "do_1234", "fields" -> "")))
+        request.putAll(Map[String,AnyRef]("identifier" -> "do_1234", "fields" -> "").asJava)
         request.setOperation("getHierarchy")
         val response = callActor(request, Props(new EventSetActor()))
         assert("successful".equals(response.getParams.getStatus))
@@ -317,11 +317,11 @@ class TestEventSetActor extends BaseSpec with MockFactory {
                 put("registrationEndDate", "2021-01-02")
                 put("eventType", "Online")
                 put("schedule",
-                  mapAsJavaMap(Map("type" -> "NON_RECURRING",
-                      "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03",
+                  Map[String,AnyRef]("type" -> "NON_RECURRING",
+                      "value" -> List(Map[String,AnyRef]("startDate" -> "2021-01-03",
                           "endDate" -> "2021-01-03",
                           "startTime" -> "11:00:00Z",
-                          "endTime" -> "13:00:00Z"))).asJava)))
+                          "endTime" -> "13:00:00Z")).asJava).asJava)
 
             }
         })
@@ -353,12 +353,12 @@ class TestEventSetActor extends BaseSpec with MockFactory {
                 put("registrationEndDate", "2021-01-02")
                 put("eventType", "Online")
                 put("schedule",
-                  mapAsJavaMap(Map("type" -> "NON_RECURRING",
-                      "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03",
+                  Map[String,AnyRef]("type" -> "NON_RECURRING",
+                      "value" -> List(Map[String,AnyRef]("startDate" -> "2021-01-03",
                           "endDate" -> "2021-01-03",
                           "startTime" -> "11:00:00Z",
                           "endTime" -> "13:00:00Z",
-                      "status" -> "Draft"))).asJava)))
+                      "status" -> "Draft")).asJava).asJava)
 
             }
         })
@@ -388,12 +388,12 @@ class TestEventSetActor extends BaseSpec with MockFactory {
                 put("registrationEndDate", "2021-01-02")
                 put("eventType", "Online")
                 put("schedule",
-                  mapAsJavaMap(Map("type" -> "NON_RECURRING",
-                      "value" -> List(mapAsJavaMap(Map("startDate" -> "2021-01-03",
+                  Map[String,AnyRef]("type" -> "NON_RECURRING",
+                      "value" -> List(Map[String,AnyRef]("startDate" -> "2021-01-03",
                           "endDate" -> "2021-01-03",
                           "startTime" -> "11:00:00Z",
                           "endTime" -> "13:00:00Z",
-                      "status" -> "Live"))).asJava)))
+                      "status" -> "Live")).asJava).asJava)
 
             }
         })

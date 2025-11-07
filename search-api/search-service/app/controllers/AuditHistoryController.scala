@@ -1,6 +1,6 @@
 package controllers
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import com.google.inject.Inject
 import com.google.inject.name.Named
 import handlers.LoggingAction
@@ -8,13 +8,13 @@ import managers.SearchManager
 import org.sunbird.search.util.SearchConstants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
+import scala.jdk.CollectionConverters._
 
 import java.util
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.graph.common.enums.AuditProperties
 import org.sunbird.telemetry.logger.TelemetryManager
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 class AuditHistoryController @Inject()(@Named(ActorNames.AUDIT_HISTORY_ACTOR) auditHistoryActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {

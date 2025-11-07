@@ -1,4 +1,5 @@
 package org.sunbird.content.dial
+import scala.jdk.CollectionConverters._
 
 import org.scalamock.matchers.Matchers
 import org.scalamock.scalatest.AsyncMockFactory
@@ -214,7 +215,7 @@ class DIALManagerTest extends AsyncFlatSpec with Matchers with AsyncMockFactory 
 
 	"validateDuplicateDIALCodes with duplicate dial codes" should "throw client exception" in {
 		val exception = intercept[ClientException] {
-			DIALManager.validateDuplicateDIALCodes(Map("do_2222" -> List("E8B7Z6", "R4X2P2"), "do_1111" -> List("N4Z7D5", "E8B7Z6", "L4A6W8", "D2E1J9", "R4X2P2")))
+			DIALManager.validateDuplicateDIALCodes(Map[String,AnyRef]("do_2222" -> List("E8B7Z6", "R4X2P2"), "do_1111" -> List("N4Z7D5", "E8B7Z6", "L4A6W8", "D2E1J9", "R4X2P2")))
 		}
 		assert(exception.getErrCode ==  "ERR_DUPLICATE_DIAL_CODES")
 	}

@@ -1,6 +1,7 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
@@ -9,7 +10,7 @@ import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import java.util
 
-import scala.collection.JavaConversions.mapAsJavaMap
+// import scala.jdk.CollectionConverters.mapAsJavaMap replaced with .asJava)
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -170,7 +171,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     node.setNodeType("DATA_NODE")
     node.setObjectType("Framework")
     node.setGraphId("domain")
-    node.setMetadata(mapAsJavaMap(Map("name"-> "NCF")))
+    node.setMetadata(Map[String,AnyRef]("name"-> "NCF").asJava)
     node
   }
 
@@ -180,7 +181,7 @@ class TestAssetActor extends BaseSpec with MockFactory {
     node.setNodeType("DATA_NODE")
     node.setObjectType("Term")
     node.setGraphId("domain")
-    node.setMetadata(mapAsJavaMap(Map("name"-> "CBSE")))
+    node.setMetadata(Map[String,AnyRef]("name"-> "CBSE").asJava)
     node
   }
 }

@@ -17,11 +17,10 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import java.io.File
 import java.util
 import java.util.UUID
-import scala.collection.JavaConverters._
 import scala.collection.immutable.{HashMap, Map}
 import scala.collection.mutable.{Map => Mmap}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.parsing.json.JSON
+import scala.jdk.CollectionConverters._
 
 
 object DIALManager {
@@ -345,9 +344,10 @@ object DIALManager {
 	def createRequest(data: Map[String, AnyRef], channel: String, publisher: Option[String], rspObj: Response, request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
 
 		val qrCodeSpecString = request.getRequestString("qrcodespec", "") // Assuming this is a JSON string
-		val qrCodeSpec = JSON.parseFull(qrCodeSpecString) match {
-			case Some(map: Map[String, Any]) => map
-			case _ => Map.empty[String, Any]
+		val qrCodeSpec = if (StringUtils.isNotBlank(qrCodeSpecString)) {
+			ScalaJsonUtils.deserialize[Map[String, Any]](qrCodeSpecString)
+		} else {
+			Map.empty[String, Any]
 		}
 		val mergedConfig: Mmap[String, Any] = defaultConfig.++(qrCodeSpec)
 

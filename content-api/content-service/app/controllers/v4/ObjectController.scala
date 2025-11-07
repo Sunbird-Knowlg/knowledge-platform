@@ -1,11 +1,11 @@
 package controllers.v4
 
-import akka.actor.ActorRef
+import org.apache.pekko.actor.ActorRef
+import scala.jdk.CollectionConverters._
 import controllers.BaseController
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 class ObjectController  @Inject()(@Named(ActorNames.OBJECT_ACTOR) objectActor: ActorRef, cc: ControllerComponents)(implicit exec: ExecutionContext) extends BaseController(cc) {

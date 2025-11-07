@@ -9,12 +9,12 @@ import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
+import scala.jdk.CollectionConverters._
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
-import scala.collection.JavaConverters._
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 

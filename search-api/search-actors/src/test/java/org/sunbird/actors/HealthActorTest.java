@@ -1,7 +1,7 @@
 package org.sunbird.actors;
 
-import akka.actor.Props;
-import akka.testkit.TestKit;
+import org.apache.pekko.actor.Props;
+import org.apache.pekko.testkit.TestKit;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;

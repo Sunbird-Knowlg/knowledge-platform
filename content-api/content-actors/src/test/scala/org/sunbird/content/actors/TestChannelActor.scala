@@ -1,15 +1,15 @@
 package org.sunbird.content.actors
+import scala.jdk.CollectionConverters._
 
 import java.util
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -53,7 +53,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
-    val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    val node = new Node("domain", Map[String,AnyRef]("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel").asJava)
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
@@ -68,7 +68,7 @@ class TestChannelActor extends BaseSpec with MockFactory {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB)
-    val node = new Node("domain",mapAsJavaMap(Map("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel")))
+    val node = new Node("domain", Map[String,AnyRef]("identifier" -> "channel_test", "nodeType"->"DATA_NODE", "objectType"->"Channel").asJava)
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))

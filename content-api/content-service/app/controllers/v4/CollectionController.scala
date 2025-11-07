@@ -1,6 +1,7 @@
 package controllers.v4
 
-import akka.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import scala.jdk.CollectionConverters._
 import com.google.inject.Singleton
 import controllers.BaseController
 import org.sunbird.collectioncsv.util.CollectionTOCConstants
@@ -9,7 +10,6 @@ import javax.inject.{Inject, Named}
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 @Singleton
 class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor: ActorRef, @Named(ActorNames.COLLECTION_ACTOR) collectionActor: ActorRef, @Named(ActorNames.COLLECTION_CSV_ACTOR) collectionCSVActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc)  {

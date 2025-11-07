@@ -4,6 +4,7 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.graph.util.ScalaJsonUtil
 import java.util
+import scala.jdk.CollectionConverters._
 
 class FrameworkCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll{
 
@@ -43,10 +44,10 @@ class FrameworkCacheTest extends FlatSpec with Matchers with BeforeAndAfterAll{
 
   "save" should "save framework metadata to cache" in {
     FrameworkCache.cacheEnabled = true
-    val framework = Map("identifier" -> "framework_id", "name" -> "Framework1")
+    val framework = Map[String,AnyRef]("identifier" -> "framework_id", "name" -> "Framework1")
     val categoryNames = new util.ArrayList[String]()
     categoryNames.add("Category1")
-    val identifier = framework.getOrElse("identifier", "")
+    val identifier = framework.getOrElse("identifier", "").asInstanceOf[String]
     val cacheKey = FrameworkCache.getFwCacheKey(identifier, categoryNames)
     RedisCache.set(cacheKey, "sample-cache-data", FrameworkCache.cacheTtl)
     FrameworkCache.save(framework, categoryNames)
