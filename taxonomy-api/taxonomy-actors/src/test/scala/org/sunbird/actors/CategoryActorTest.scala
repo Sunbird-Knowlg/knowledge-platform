@@ -185,7 +185,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
 
   private def getCategoryRequest(): Request = {
       val request = new Request()
-      request.setContext(new util.Hashmutable.Map[String, AnyRef]() {
+      request.setContext(new util.HashMap[String, AnyRef]() {
         {
           put("graph_id", "domain")
           put("version", "1.0")
@@ -203,7 +203,7 @@ class CategoryActorTest extends BaseSpec with MockFactory{
       node.setIdentifier("category_test")
       node.setNodeType("DATA_NODE")
       node.setObjectType("Category")
-      node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+      node.setMetadata(new util.HashMap[String, AnyRef]() {
         {
           put("identifier", "category_test")
           put("objectType", "Category")

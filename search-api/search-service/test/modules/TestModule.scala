@@ -12,9 +12,9 @@ class TestModule extends AbstractModule with PekkoGuiceSupport{
 
     override def configure() = {
         super.configure()
-        bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.SEARCH_ACTOR)
-        bindActor(classOf[TestActor], ActorNames.AUDIT_HISTORY_ACTOR)
+        bindActor[TestActor](ActorNames.HEALTH_ACTOR)
+        bindActor[TestActor](ActorNames.SEARCH_ACTOR)
+        bindActor[TestActor](ActorNames.AUDIT_HISTORY_ACTOR)
         println("Initialized application actors for search-service")
     }
 }

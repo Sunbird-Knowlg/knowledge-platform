@@ -30,7 +30,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "channel_test");
         put("objectType", "Channel")
@@ -43,7 +43,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getFrameworkOfNode()))
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("name" ->"framework_test", "code"-> "framework_test", "description" -> "desc_test", "channel"->"channel_test"))
+    request.putAll(mutable.Map[String, AnyRef]("name" ->"framework_test", "code"-> "framework_test", "description" -> "desc_test", "channel"->"channel_test").asJava)
     request.setOperation(Constants.CREATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -55,7 +55,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "", "description" -> "desc_test", "channel" -> "channel_test"))
+    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "", "description" -> "desc_test", "channel" -> "channel_test").asJava)
     request.setOperation(Constants.CREATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -66,7 +66,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test"))
+    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test").asJava)
     request.setOperation(Constants.CREATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -79,7 +79,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("channel_test")
     node.setObjectType("Channel")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "channel_test");
         put("objectType", "Channel")
@@ -93,7 +93,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     translations.put("sta", "trnm")
     val request = getFrameworkRequest()
     request.put("translations", translations)
-    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test", "channel" -> "channel_test"))
+    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test", "channel" -> "channel_test").asJava)
     request.setOperation(Constants.CREATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -108,7 +108,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("")
     node.setObjectType("Channel")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "channel_test");
         put("objectType", "Channel")
@@ -117,7 +117,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     })
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test", "channel" -> "channel_test"))
+    request.putAll(mutable.Map[String, AnyRef]("name" -> "framework_test", "code" -> "framework_test", "description" -> "desc_test", "channel" -> "channel_test").asJava)
     request.setOperation(Constants.CREATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -134,7 +134,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc"))
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
     request.setOperation(Constants.UPDATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -171,7 +171,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "NCF", "createdBy" -> "username_1", Constants.CODE -> "NCF_COPY"))
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "NCF", "createdBy" -> "username_1", Constants.CODE -> "NCF_COPY").asJava)
     request.setOperation(Constants.COPY_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -189,7 +189,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "NCF"))
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "NCF").asJava)
     request.setOperation(Constants.COPY_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -207,7 +207,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "NCF", Constants.CODE -> "NCF"))
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "NCF", Constants.CODE -> "NCF").asJava)
     request.setOperation(Constants.COPY_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("failed".equals(response.getParams.getStatus))
@@ -221,7 +221,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("sunbird")
     node.setObjectType("Channel")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "sunbird");
         put("objectType", "Channel")
@@ -235,7 +235,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
     val request = getFrameworkRequest()
     request.getContext.put(Constants.IDENTIFIER, "framework_test")
-    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "framework_test", "channel" -> "sunbird"))
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "framework_test", "channel" -> "sunbird").asJava)
     request.setOperation(Constants.PUBLISH_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -253,7 +253,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 //    RedisCache.set(cacheKey, frameworkMetadata)
     val request = getFrameworkRequest()
     request.getContext.put("identifier", "frameworkTest")
-    request.putAll(mutable.Map[String, AnyRef]("identifier" -> "framework_test", "channel" -> "sunbird", Constants.CATEGORIES -> ""))
+    request.putAll(mutable.Map[String, AnyRef]("identifier" -> "framework_test", "channel" -> "sunbird", Constants.CATEGORIES -> "").asJava)
     request.setOperation(Constants.READ_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -265,7 +265,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     node.setIdentifier("framework_test")
     node.setNodeType("DATA_NODE")
     node.setObjectType("Framework")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("identifier", "framework_test")
         put("objectType", "Framework")
@@ -283,7 +283,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     node.setGraphId("domain")
     node.setNodeType("DATA_NODE")
     node.setObjectType("Framework")
-    node.setMetadata(new util.Hashmutable.Map[String, AnyRef]() {
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
         put("code", "framework_test")
         put("objectType", "Framework")
@@ -300,7 +300,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     request
   }
 
-  private def getContext(): util.mutable.Map[String, AnyRef] = new util.Hashmutable.Map[String, AnyRef]() {
+  private def getContext(): util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]() {
     {
       put("graph_id", "domain")
       put("version", "1.0")
@@ -312,7 +312,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
   private def getFramwrokRequest(): Request = {
     val request = new Request()
-    request.setContext(new util.Hashmutable.Map[String, AnyRef]() {
+    request.setContext(new util.HashMap[String, AnyRef]() {
       {
         put("graph_id", "domain")
         put("version", "1.0")
