@@ -34,8 +34,30 @@
             "type": "string"
         },
         "trackable": {
-            "type": "boolean",
-            "default": false
+            "type": "object",
+            "properties": {
+                "enabled": {
+                "type": "string",
+                "enum": [
+                    "Yes",
+                    "No"
+                ],
+                "default": "No"
+                },
+                "autoBatch": {
+                "type": "string",
+                "enum": [
+                    "Yes",
+                    "No"
+                ],
+                "default": "No"
+                }
+            },
+            "default": {
+                "enabled": "No",
+                "autoBatch": "No"
+            },
+            "additionalProperties": false
         },
         "orgIdFieldName": {
             "type": "string"
