@@ -1,0 +1,122 @@
+package org.sunbird.utils.assessment
+
+import org.apache.commons.lang3.StringUtils
+import org.sunbird.common.dto.Request
+import org.sunbird.utils.HierarchyConstants
+import utils.Constants
+import java.util
+import scala.jdk.CollectionConverters._
+
+object BranchingUtil {
+
+	def generateBranchingRecord(nodesModified: util.HashMap[String, AnyRef]): util.HashMap[String, AnyRef] = {
+		if(nodesModified == null) return new util.HashMap[String, AnyRef]()
+		val idSet = nodesModified.keySet().asScala.toList
+		val branchingRecord = new util.HashMap[String, AnyRef]()
+		idSet.map(id => {
+			val nodeMetaData = nodesModified.getOrDefault(id, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault(Constants.METADATA, new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]]
+			val containsBL = nodeMetaData.containsKey(Constants.BRANCHING_LOGIC)
+			branchingRecord.put(id, new util.HashMap[String, AnyRef]() {
+				{
+					if (containsBL) {
+						put(Constants.BRANCHING_LOGIC, nodeMetaData.get(Constants.BRANCHING_LOGIC))
+						nodeMetaData.remove(Constants.BRANCHING_LOGIC)
+					}
+					put(Constants.CONTAINS_BL, containsBL.asInstanceOf[AnyRef])
+					put(Constants.COPY_OF, nodeMetaData.get(Constants.COPY_OF).asInstanceOf[String])
+				}
+			})
+			nodeMetaData.remove(Constants.COPY_OF)
+		})
+		branchingRecord
+	}
+
+	def hierarchyRequestModifier(request: Request, branchingRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]) = {
+		val nodesModified: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[java.util.HashMap[String, AnyRef]]
+		val hierarchy: java.util.HashMap[String, AnyRef] = request.getRequest.get(HierarchyConstants.HIERARCHY).asInstanceOf[java.util.HashMap[String, AnyRef]]
+		val oldToNewIdMap = getIdentifierMapping(branchingRecord, identifiers)
+		branchingRecord.keySet().asScala.toList.map(id => {
+			val nodeInfo = branchingRecord.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+			val node = nodesModified.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+			val nodeMetaData = node.get(Constants.METADATA).asInstanceOf[util.HashMap[String, AnyRef]]
+			val newId = identifiers.get(id)
+			if (nodeInfo.get(Constants.CONTAINS_BL).asInstanceOf[Boolean]) {
+				val branchingLogic = nodeInfo.get(Constants.BRANCHING_LOGIC).asInstanceOf[util.HashMap[String, AnyRef]]
+				branchingLogicModifier(branchingLogic, oldToNewIdMap)
+				nodeMetaData.put(Constants.BRANCHING_LOGIC, branchingLogic)
+			}
+			node.put(Constants.IS_NEW, false.asInstanceOf[AnyRef])
+			nodesModified.remove(id)
+			nodesModified.put(newId, node)
+		})
+		hierarchy.keySet().asScala.toList.map(id => {
+			val nodeHierarchy = hierarchy.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+			val children = nodeHierarchy.get(Constants.CHILDREN).asInstanceOf[util.ArrayList[String]]
+			val newChildrenList = new util.ArrayList[String]
+			children.asScala.map(identifier => {
+				if (identifiers.containsKey(identifier)) newChildrenList.add(identifiers.get(identifier)) else newChildrenList.add(identifier)
+			})
+			nodeHierarchy.put(Constants.CHILDREN, newChildrenList)
+			if (identifiers.containsKey(id)) {
+				hierarchy.remove(id)
+				hierarchy.put(identifiers.get(id), nodeHierarchy)
+			}
+		})
+		request
+	}
+
+	def branchingLogicModifier(branchingLogic: util.HashMap[String, AnyRef], oldToNewIdMap: util.Map[String, String]): Unit = {
+		branchingLogic.keySet().asScala.toList.map(identifier => {
+			val nodeBL = branchingLogic.get(identifier).asInstanceOf[util.HashMap[String, AnyRef]]
+			nodeBL.keySet().asScala.toList.map(key => {
+				if (StringUtils.equalsIgnoreCase(key, Constants.TARGET)) branchingLogicArrayHandler(nodeBL, Constants.TARGET, oldToNewIdMap)
+				else if (StringUtils.equalsIgnoreCase(key, Constants.PRE_CONDITION)) preConditionHandler(nodeBL, oldToNewIdMap)
+				else if (StringUtils.equalsIgnoreCase(key, Constants.SOURCE)) branchingLogicArrayHandler(nodeBL, Constants.SOURCE, oldToNewIdMap)
+			})
+			if (oldToNewIdMap.containsKey(identifier)) {
+				branchingLogic.put(oldToNewIdMap.get(identifier), nodeBL)
+				branchingLogic.remove(identifier)
+			}
+		})
+	}
+
+	def getIdentifierMapping(branchingRecord: util.HashMap[String, AnyRef], identifiers: util.Map[String, String]): util.Map[String, String] = {
+		val oldToNewIdMap = new util.HashMap[String, String]()
+		branchingRecord.keySet().asScala.toList.map(id => {
+			val nodeInfo = branchingRecord.get(id).asInstanceOf[util.HashMap[String, AnyRef]]
+			val newId = identifiers.get(id)
+			val oldId = nodeInfo.get(Constants.COPY_OF).asInstanceOf[String]
+			oldToNewIdMap.put(oldId, newId)
+		})
+		oldToNewIdMap
+	}
+
+	def branchingLogicArrayHandler(nodeBL: util.HashMap[String, AnyRef], name: String, oldToNewIdMap: util.Map[String, String]) = {
+		val branchingLogicArray = nodeBL.getOrDefault(name, new util.ArrayList[String]).asInstanceOf[util.ArrayList[String]]
+		val newBranchingLogicArray = new util.ArrayList[String]()
+		branchingLogicArray.asScala.map(id => {
+			if (oldToNewIdMap.containsKey(id)) {
+				newBranchingLogicArray.add(oldToNewIdMap.get(id))
+			} else newBranchingLogicArray.add(id)
+		})
+		nodeBL.put(name, newBranchingLogicArray)
+	}
+
+	def preConditionHandler(nodeBL: util.HashMap[String, AnyRef], oldToNewIdMap: util.Map[String, String]): Unit = {
+		val preCondition = nodeBL.get(Constants.PRE_CONDITION).asInstanceOf[util.HashMap[String, AnyRef]]
+		preCondition.keySet().asScala.toList.map(key => {
+			val conjunctionArray = preCondition.get(key).asInstanceOf[util.ArrayList[String]]
+			val condition = conjunctionArray.get(0).asInstanceOf[util.HashMap[String, AnyRef]]
+			condition.keySet().asScala.toList.map(logicOp => {
+				val conditionArray = condition.get(logicOp).asInstanceOf[util.ArrayList[String]]
+				val sourceQuestionRecord = conditionArray.get(0).asInstanceOf[util.HashMap[String, AnyRef]]
+				val preConditionVar = sourceQuestionRecord.get(Constants.PRE_CONDITION_VAR).asInstanceOf[String]
+				val stringArray = preConditionVar.split("\\.")
+				if (oldToNewIdMap.containsKey(stringArray(0))) {
+					val newString = oldToNewIdMap.get(stringArray(0)) + "." + stringArray.drop(1).mkString(".")
+					sourceQuestionRecord.put(Constants.PRE_CONDITION_VAR, newString)
+				}
+			})
+		})
+	}
+}

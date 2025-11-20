@@ -45,6 +45,14 @@ class UnifiedServiceModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[TermActor](ActorNames.TERM_ACTOR)
         bindActor[LockActor](ActorNames.LOCK_ACTOR)
         
+        // Assessment Service Actors
+        bindActor[org.sunbird.actors.assessment.ItemSetActor](ActorNames.ITEM_SET_ACTOR)
+        bindActor[org.sunbird.actors.assessment.AssessmentItemActor](ActorNames.ASSESSMENT_ITEM_ACTOR)
+        bindActor[org.sunbird.actors.assessment.QuestionActor](ActorNames.QUESTION_ACTOR)
+        bindActor[org.sunbird.actors.assessment.QuestionSetActor](ActorNames.QUESTION_SET_ACTOR)
+        bindActor[org.sunbird.v5.actors.QuestionActor](ActorNames.QUESTION_V5_ACTOR)
+        bindActor[org.sunbird.v5.actors.QuestionSetActor](ActorNames.QUESTION_SET_V5_ACTOR)
+        
         // Set telemetry component
         TelemetryGenerator.setComponent("knowlg-unified-service")
         println("Initialized application actors for unified knowledge service")

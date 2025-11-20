@@ -1,6 +1,9 @@
 .DS_Store
+.gitignore
 **/target/**
 **/.idea/**
 **/*.iml
 **/application.conf
 *.conf
+.metals/*
+.vscode/*

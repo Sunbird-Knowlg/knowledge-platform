@@ -209,4 +209,11 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
         Future(BadRequest(JavaJsonUtils.serialize(result)).as("application/json"))
     }
 
+    def getRequestHeader(headerkey: String, targetKey: String, defaultValue: String = UUID.randomUUID().toString)(implicit request: Request[AnyContent]): java.util.Map[String, AnyRef] = {
+        val map = new util.HashMap[String, AnyRef]()
+        val header = request.headers.get(headerkey).getOrElse(defaultValue)
+        map.put(targetKey, header.asInstanceOf[AnyRef])
+        map
+    }
+
 }

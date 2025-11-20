@@ -326,6 +326,9 @@
             </exclusions>
         </dependency>
         
+        <!-- Assessment API Dependencies (embedded from inquiry-api-service) -->
+        <!-- Assessment actors and hierarchy manager are now embedded in this service -->
+        
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.playframework</groupId>
