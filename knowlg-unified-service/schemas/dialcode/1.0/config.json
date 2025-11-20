@@ -1,0 +1,45 @@
+{
+  "objectType": "dialcode",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "external": {
+    "tableName": "dialcode_batch",
+    "properties": {
+      "processid": {
+        "type": "uuid"
+      },
+      "channel": {
+        "type": "string"
+      },
+      "publisher": {
+        "type": "string"
+      },
+      "dialcodes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "config": {
+        "type": "object",
+        "patternProperties": {
+          "^[a-zA-Z0-9_]+$": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "status": {
+        "type": "integer"
+      },
+      "url": {
+        "type": "string"
+      },
+      "created_on": {
+        "type": "timestamp"
+      }
+    },
+    "primaryKey": ["processid"]
+  },
+  "schema_restrict_api": false
+}

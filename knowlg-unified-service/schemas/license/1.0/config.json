@@ -1,0 +1,19 @@
+{
+  "objectType": "License",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "edge": {
+    "key": "name"
+  },
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "status", "identifier", "name"
+    ]
+  }
+}

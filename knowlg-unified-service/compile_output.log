@@ -1,0 +1,393 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< org.sunbird:knowlg-unified-service >-----------------
+[INFO] Building knowlg-unified-service 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] -------------------------------[ play2 ]--------------------------------
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-2: The plugin org.apache.maven.plugins:maven-clean-plugin:4.0.0-beta-2 requires Maven version 4.0.0-rc-2
+[INFO] Latest version of plugin org.apache.maven.plugins:maven-clean-plugin failed compatibility check
+[INFO] Looking for compatible RELEASE version of plugin org.apache.maven.plugins:maven-clean-plugin
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-1: The plugin org.apache.maven.plugins:maven-clean-plugin:4.0.0-beta-1 requires Maven version 4.0.0-beta-3
+[INFO] Selected plugin org.apache.maven.plugins:maven-clean-plugin:3.5.0
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-1: The plugin org.apache.maven.plugins:maven-resources-plugin:4.0.0-beta-1 requires Maven version 4.0.0-beta-3
+[INFO] Latest version of plugin org.apache.maven.plugins:maven-resources-plugin failed compatibility check
+[INFO] Looking for compatible RELEASE version of plugin org.apache.maven.plugins:maven-resources-plugin
+[INFO] Selected plugin org.apache.maven.plugins:maven-resources-plugin:3.3.1
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-1: The plugin org.apache.maven.plugins:maven-jar-plugin:4.0.0-beta-1 requires Maven version 4.0.0-beta-3
+[INFO] Latest version of plugin org.apache.maven.plugins:maven-jar-plugin failed compatibility check
+[INFO] Looking for compatible RELEASE version of plugin org.apache.maven.plugins:maven-jar-plugin
+[INFO] Selected plugin org.apache.maven.plugins:maven-jar-plugin:3.5.0
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-2: The plugin org.apache.maven.plugins:maven-install-plugin:4.0.0-beta-2 requires Maven version 4.0.0-rc-2
+[INFO] Latest version of plugin org.apache.maven.plugins:maven-install-plugin failed compatibility check
+[INFO] Looking for compatible RELEASE version of plugin org.apache.maven.plugins:maven-install-plugin
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-1: The plugin org.apache.maven.plugins:maven-install-plugin:4.0.0-beta-1 requires Maven version 4.0.0-beta-3
+[INFO] Selected plugin org.apache.maven.plugins:maven-install-plugin:3.1.4
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-2: The plugin org.apache.maven.plugins:maven-deploy-plugin:4.0.0-beta-2 requires Maven version 4.0.0-rc-2
+[INFO] Latest version of plugin org.apache.maven.plugins:maven-deploy-plugin failed compatibility check
+[INFO] Looking for compatible RELEASE version of plugin org.apache.maven.plugins:maven-deploy-plugin
+[WARNING] Ignoring incompatible plugin version 4.0.0-beta-1: The plugin org.apache.maven.plugins:maven-deploy-plugin:4.0.0-beta-1 requires Maven version 4.0.0-beta-3
+[INFO] Selected plugin org.apache.maven.plugins:maven-deploy-plugin:3.1.4
+[WARNING] 1 problem was encountered while building the effective model for org.javassist:javassist:jar:3.21.0-GA during dependency collection step for project (use -X to see details)
+[WARNING] The POM for org.sunbird:mimetype-manager:jar:1.0-SNAPSHOT is invalid, transitive dependencies (if any) will not be available: 2 problems were encountered while building the effective model for org.sunbird:mimetype-manager:1.0-SNAPSHOT
+[ERROR] 'dependencies.dependency.artifactId' for ${CLOUD_STORE_GROUP_ID}:${CLOUD_STORE_ARTIFACT_ID}:jar with value '${CLOUD_STORE_ARTIFACT_ID}' does not match a valid id pattern. @ 
+[ERROR] 'dependencies.dependency.groupId' for ${CLOUD_STORE_GROUP_ID}:${CLOUD_STORE_ARTIFACT_ID}:jar with value '${CLOUD_STORE_GROUP_ID}' does not match a valid id pattern. @ 
+
+[WARNING] 2 problems were encountered while building the effective model for org.apache.yetus:audience-annotations:jar:0.5.0 during dependency collection step for project (use -X to see details)
+[INFO] 
+[INFO] --- play2:1.0.0-rc5:routes-compile (default-routes-compile) @ knowlg-unified-service ---
+[INFO] Generating injected router
+[INFO] 1 router processed, 0 compiled
+[INFO] 
+[INFO] --- play2:1.0.0-rc5:template-compile (default-template-compile) @ knowlg-unified-service ---
+[INFO] No templates to compile
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ knowlg-unified-service ---
+[INFO] Copying 3 resources from conf to target/classes
+[INFO] 
+[INFO] --- sbt-compiler:1.0.0:compile (default-compile) @ knowlg-unified-service ---
+[WARNING]  Parameter '_sourcePositionMappers' (user property 'sbt._sourcePositionMappers') is read-only, must not be used in configuration
+[INFO] Compiling 75 Scala sources and 11 Java sources to /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/target/classes...
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/actors/assessment/ItemSetActor.scala:75: type mismatch;
+ found   : List[java.util.HashMap[String,AnyRef]] (in scala.collection.immutable) 
+ required: List[java.util.HashMap[String,AnyRef]] (in java.util) 
+[ERROR] 				val newRels: util.List[util.HashMap[String, AnyRef]] = itemRels.toList.sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).map(rel => {
+[ERROR] 				                                                                                                                                                                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:34: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.create(request).asScala.map(node => {
+[ERROR] 		                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:42: not found: value JavaConverters
+[ERROR] 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+[ERROR] 		                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:44: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:57: not found: value JavaConverters
+[ERROR] 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+[ERROR] 		                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:60: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:73: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.update(request).asScala.map(node => {
+[ERROR] 		                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:79: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:95: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 			DataNode.read(request).asScala.map(node => {
+[ERROR] 			                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:107: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:122: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(readReq).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:140: value asScala is not a member of scala.collection.mutable.Set[java.util.Map.Entry[String,Object]]
+[ERROR] 		val metadata:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).asScala.map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, extPropNameList) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
+[ERROR] 		                                                                                                               ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:154: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:167: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:180: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:189: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:200: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:213: value asJava is not a member of java.util.Map[String,AnyRef]
+[ERROR] 			val children = hierarchy.asJava.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
+[ERROR] 			                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:220: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR] 		HierarchyManager.getUnPublishedHierarchy(request).asScala.map(resp => {
+[ERROR] 		                                                  ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:249: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 				val messages:List[String] = Await.result(DataNode.read(readReq).asScala.map(node => {
+[ERROR] 				                                                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:264: value asScala is not a member of List[org.sunbird.graph.dac.model.Relation]
+[ERROR] 		  .view.mapValues(_.asScala.map(_.getEndNodeId).toList).toMap
+[ERROR] 		                    ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:265: value getOrDefault is not a member of Map[String,List[String]]
+[ERROR] 		(visibilityIdMap.getOrDefault("Default", List()), visibilityIdMap.getOrDefault("Parent", List()))
+[ERROR] 		                 ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:265: value getOrDefault is not a member of Map[String,List[String]]
+[ERROR] 		(visibilityIdMap.getOrDefault("Default", List()), visibilityIdMap.getOrDefault("Parent", List()))
+[ERROR] 		                                                                  ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:275: value asJava is not a member of java.util.Map[String,AnyRef]
+[ERROR] 		val children = hierarchy.asJava.getOrDefault("children", new util.ArrayList[java.util.Map[String, AnyRef]]).asInstanceOf[util.List[java.util.Map[String, AnyRef]]]
+[ERROR] 		                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:284: value containsKey is not a member of List[String]
+did you mean contains?
+[ERROR] 				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent") || (StringUtils.equalsIgnoreCase( objectType, "Question") && StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default") && validStatus.containsKey(content.getOrDefault("status", "").asInstanceOf[String]) && StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))) {
+[ERROR] 				                                                                                                                                                                                                                                                                                               ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:281: type mismatch;
+ found   : scala.collection.mutable.Buffer[String]
+ required: List[String]
+[ERROR] 		children.asScala.flatMap(content => {
+[ERROR] 		                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:323: not found: value JavaConverters
+[ERROR] 		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+[ERROR] 		                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/AssessmentManager.scala:326: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR] 		DataNode.read(request).asScala.map(node => {
+[ERROR] 		                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:33: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]     DataNode.read(request).asScala.map(node => {
+[ERROR]                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:45: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]       copiedNodeFuture.asScala.map(copiedNode => {
+[ERROR]                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:72: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]     copyNode(originNode, request).asScala.map(node => {
+[ERROR]                                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:78: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]       HierarchyManager.getHierarchy(req).asScala.map(response => {
+[ERROR]                                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:91: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Request]
+[ERROR]     copyCreateReq.asScala.map(req => {
+[ERROR]                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:92: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]       DataNode.create(req).asScala.map(copiedNode => {
+[ERROR]                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:99: value asScala is not a member of scala.concurrent.Future[java.util.Map[String,AnyRef]]
+[ERROR]     prepareHierarchyRequest(originHierarchy, originNode, node, copyType, request).asScala.map(req => {
+[ERROR]                                                                                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:107: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]       UpdateHierarchyManager.updateHierarchy(updateHierarchyReq).asScala.map(response => {
+[ERROR]                                                                  ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:116: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]           UpdateHierarchyManager.updateHierarchy(branchingUpdateReq).asScala.map(response_ => {
+[ERROR]                                                                      ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:142: value asScala is not a member of scala.concurrent.Future[java.util.Map[String,AnyRef]]
+[ERROR]       getExternalData(idMap.keySet().asScala.toList, request).asScala.map(exData => {
+[ERROR]                                                               ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:143: value asScala is not a member of scala.collection.immutable.Map[String,String]
+[ERROR]         idMap.asScala.toMap.asScala.foreach(entry => {
+[ERROR]                             ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:164: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]     externalPropsResponse.asScala.map(response => {
+[ERROR]                           ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:165: value asScala is not a member of List[String]
+[ERROR]       identifiers.asScala.map(id => {
+[ERROR]                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:175: value asScala is not a member of scala.collection.mutable.Buffer[java.util.Map[String,AnyRef]]
+[ERROR]       children.asScala.asScala.foreach(child => {
+[ERROR]                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:185: value asScala is not a member of List[String]
+[ERROR]                   internalHierarchyProps.asScala.map(key => remove(key))
+[ERROR]                                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:225: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]     DataNode.update(req).asScala.map(node => node)
+[ERROR]                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:256: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]     DataNode.read(readReq).asScala.map(node => {
+[ERROR]                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:259: value asScala is not a member of List[String]
+[ERROR]       externalProps.asScala.foreach(prop => {
+[ERROR]                     ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:269: value asScala is not a member of scala.collection.mutable.Buffer[String]
+[ERROR]   def getOriginData(metadata: util.Map[String, AnyRef], copyType: String): java.util.Map[String, AnyRef] = (Map(AssessmentConstants.COPY_TYPE -> copyType) ++ originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).asScala.map(key => key -> metadata.get(key)).toMap).asJava
+[ERROR]                                                                                                                                                                                                                                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/CopyManager.scala:294: value containsKey is not a member of String
+did you mean contains?
+[ERROR]       metadata.keySet().removeAll(metadataNotTobeCopied.asScala.toList.filter(str => !str.containsKey("dial")).asJava)
+[ERROR]                                                                                           ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:280: value asJava is not a member of java.util.List[String]
+[ERROR]             if(!children.asJava.containsAll(branchingLogic.keySet()))
+[ERROR]                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:48: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]         rootNodeFuture.asScala.map(rootNode => {
+[ERROR]                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:59: value containsKey is not a member of List[String]
+did you mean contains?
+[ERROR]                 if(!childNodes.containsKey(unitId)) {
+[ERROR]                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:89: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]         rootNodeFuture.asScala.map(rootNode => {
+[ERROR]                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:99: value containsKey is not a member of List[String]
+did you mean contains?
+[ERROR]                 if(!childNodes.containsKey(unitId)) {
+[ERROR]                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:170: value containsKey is not a member of java.util.List[String]
+did you mean contains or containsAll?
+[ERROR]                 .filter(child => !leafNodeIds.containsKey(child.get("identifier")))
+[ERROR]                                               ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:114: value asScala is not a member of scala.concurrent.Future[Map[String,AnyRef]]
+[ERROR]         fetchHierarchy(request, rootNode.getIdentifier).asScala.map(hierarchy => {
+[ERROR]                                                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:118: value asScala is not a member of scala.concurrent.Future[List[org.sunbird.graph.dac.model.Node]]
+[ERROR]                 fetchLeafNodes(request).asScala.map(leafNodes => {
+[ERROR]                                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:144: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]                     updateRootNode(rootNode, request, operation).asScala.map(node => {
+[ERROR]                                                                  ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:145: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]                         updateRootHierarchy(hierarchy, leafNodes, node, request, operation).asScala.map(response => {
+[ERROR]                                                                                             ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:192: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]         rootNodeFuture.asScala.map(rootNode => {
+[ERROR]                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:218: value asScala is not a member of scala.concurrent.Future[java.util.Map[String,AnyRef]]
+[ERROR]             searchResponse.asScala.map(rootHierarchy => {
+[ERROR]                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:249: value asScala is not a member of scala.concurrent.Future[java.util.Map[String, _ >: java.util.Map[String,AnyRef] <: AnyRef]]
+[ERROR]         hierarchyFuture.asScala.map(result => {
+[ERROR]                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:297: value asScala is not a member of scala.concurrent.Future[java.util.List[org.sunbird.graph.dac.model.Node]]
+[ERROR]         DataNode.list(req).asScala.map(nodes => {
+[ERROR]                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:311: value asScala is not a member of List[org.sunbird.graph.dac.model.Node]
+[ERROR]         leafNodes.asScala.map(node => {
+[ERROR]                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:328: value get is not a member of List[java.util.Map[String,AnyRef]]
+[ERROR]             val child = childNodes.get(0)
+[ERROR]                                    ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:345: value foreach is not a member of java.util.List[java.util.Map[String,AnyRef]]
+did you mean forEach?
+[ERROR]             for(child <- children) {
+[ERROR]                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:355: value get is not a member of List[java.util.Map[String,AnyRef]]
+[ERROR]             val child = childNodes.get(0)
+[ERROR]                                    ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:378: value foreach is not a member of java.util.List[java.util.Map[String,AnyRef]]
+did you mean forEach?
+[ERROR]             for(child <- children) {
+[ERROR]                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:455: value foreach is not a member of java.util.List[java.util.Map[String,AnyRef]]
+did you mean forEach?
+[ERROR]         for(leafNode <- leafNodes){
+[ERROR]                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:460: value asScala is not a member of List[java.util.Map[String,AnyRef]]
+[ERROR]             val childMap:Map[String, java.util.Map[String, AnyRef]] = childList.asScala.toList.asScala.map(f => f.get("identifier").asInstanceOf[String] -> f).toMap
+[ERROR]                                                                                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:461: value containsKey is not a member of java.util.List[String]
+did you mean contains or containsAll?
+[ERROR]             val existingLeafNodes = childMap.filter(p => leafNodeIds.containsKey(p._1))
+[ERROR]                                                                      ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:466: value containsKey is not a member of java.util.List[String]
+did you mean contains or containsAll?
+[ERROR]                 !leafNodeIds.containsKey(existingLeafNode.get("identifier").asInstanceOf[String])
+[ERROR]                              ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:468: value asScala is not a member of Iterable[java.util.Map[String,AnyRef]]
+[ERROR]             maxIndex = childMap.values.asScala.map(child => child.get("index").asInstanceOf[Integer]).max.asInstanceOf[Integer]
+[ERROR]                                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:488: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]         responseFuture.asScala.map(response => {
+[ERROR]                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:498: value asScala is not a member of scala.concurrent.Future[org.sunbird.common.dto.Response]
+[ERROR]                 responseFuture.asScala.map(response => {
+[ERROR]                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:520: value asScala is not a member of scala.concurrent.Future[Map[String,AnyRef]]
+[ERROR]         hierarchy.asScala.map(hierarchy => {
+[ERROR]                   ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:522: value containsKey is not a member of List[String]
+did you mean contains?
+[ERROR]                 if (StringUtils.isNotEmpty(hierarchy.asJava.getOrDefault("status", "").asInstanceOf[String]) && statusList.containsKey(hierarchy.asJava.getOrDefault("status", "").asInstanceOf[String])) {
+[ERROR]                                                                                                                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:602: type mismatch;
+ found   : List[java.util.Map[String,AnyRef]]
+ required: java.util.Collection[_]
+[ERROR]             if (CollectionUtils.isNotEmpty(response)) {
+[ERROR]                                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:603: value get is not a member of List[java.util.Map[String,AnyRef]]
+[ERROR]                 response.get(0)
+[ERROR]                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:607: type mismatch;
+ found   : java.util.List[java.util.Map[String,AnyRef]]
+ required: scala.collection.IterableOnce[?]
+[ERROR]                         child.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+[ERROR]                                                           ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:608: type mismatch;
+ found   : java.util.ArrayList[java.util.Map[String,AnyRef]]
+ required: scala.collection.IterableOnce[?]
+[ERROR]                     else new util.ArrayList[util.Map[String, AnyRef]]
+[ERROR]                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:610: type mismatch;
+ found   : java.util.List[Nothing]
+ required: java.util.List[java.util.Map[String,AnyRef]]
+Note: Nothing <: java.util.Map[String,AnyRef], but Java-defined trait List is invariant in type E.
+You may wish to investigate a wildcard type such as `_ <: java.util.Map[String,AnyRef]`. (SLS 3.2.10)
+[ERROR]                 filterBookmarkHierarchy(nextChildren, bookmarkId)
+[ERROR]                                         ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:620: value asScala is not a member of scala.concurrent.Future[Map[String,AnyRef]]
+[ERROR]             parentHierarchy.asScala.map(hierarchy => {
+[ERROR]                             ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:638: value asScala is not a member of List[java.util.Map[String,AnyRef]]
+[ERROR]         children.asScala.toList.asScala.map(content => {
+[ERROR]                                 ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:653: value asScala is not a member of List[java.util.Map[String,AnyRef]]
+[ERROR]         children.asScala.toList.asScala.map(content => {
+[ERROR]                                 ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:672: value asScala is not a member of scala.concurrent.Future[java.util.List[org.sunbird.graph.dac.model.Node]]
+[ERROR]             DataNode.list(request).asScala.map(nodes => {
+[ERROR]                                    ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:674: value asScala is not a member of List[String]
+[ERROR]                 val imageNodeIds: util.List[String] = leafNodeIds.asScala.toList.asScala.map(id => id + HierarchyConstants.IMAGE_SUFFIX).asJava
+[ERROR]                                                                                  ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:676: value asScala is not a member of scala.concurrent.Future[java.util.List[org.sunbird.graph.dac.model.Node]]
+[ERROR]                 DataNode.list(request).asScala.map(imageNodes => {
+[ERROR]                                        ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:702: value containsKey is not a member of java.util.Set[String]
+did you mean contains or containsAll?
+[ERROR]         if (branchingLogic.keySet().containsKey(identifier)) {
+[ERROR]                                     ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:727: type mismatch;
+ found   : List[String]
+ required: java.util.Collection[_]
+[ERROR]             if (!childrenIds.asJava.containsAll(sourceIds))
+[ERROR]                                                 ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/HierarchyManager.scala:732: value asScala is not a member of scala.collection.mutable.Map[String,AnyRef]
+[ERROR]         reqBranching.asScala.asScala.map(entry => {
+[ERROR]                              ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:34: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]         getValidatedRootNode(rootId, request).asScala.map(node => {
+[ERROR]                                               ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:35: value asScala is not a member of scala.concurrent.Future[java.util.HashMap[String,AnyRef]]
+[ERROR]             getExistingHierarchy(request, node).asScala.map(existingHierarchy => {
+[ERROR]                                                 ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:38: value asScala is not a member of scala.concurrent.Future[List[org.sunbird.graph.dac.model.Node]]
+[ERROR]                 addChildNodesInNodeList(existingChildren, request, nodes).asScala.map(list => (existingHierarchy, list))
+[ERROR]                                                                           ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:45: value asScala is not a member of scala.concurrent.Future[List[org.sunbird.graph.dac.model.Node]]
+[ERROR]                   updateNodesModifiedInNodeList(nodes, nodesModified, request, idMap).asScala.map(updatedList => {
+[ERROR]                                                                                       ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:47: value asScala is not a member of scala.concurrent.Future[java.util.List[java.util.Map[String,AnyRef]]]
+[ERROR]                       getChildrenHierarchy(request, modifiedNodeList, rootId, hierarchy, idMap, result._1).asScala.map(children => {
+[ERROR]                                                                                                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:49: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]                           updateHierarchyData(rootId, children, modifiedNodeList, request).asScala.map(node => {
+[ERROR]                                                                                            ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:69: value asScala is not a member of Iterable[String]
+[ERROR]         hierarchy.asScala.keys.asScala.foreach(key => {
+[ERROR]                                ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:87: value find is not a member of java.util.Set[String]
+possible cause: maybe a semicolon is missing before `value find`?
+[ERROR]                 .find(key => nodesModified.get(key).asInstanceOf[java.util.HashMap[String, AnyRef]].get(HierarchyConstants.ROOT).asInstanceOf[Boolean])
+[ERROR]                  ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:89: value containsKey is not a member of object org.apache.commons.lang3.StringUtils
+did you mean containsAny? or perhaps contains or containsOnly?
+[ERROR]         if (StringUtils.isEmpty(rootId) && StringUtils.isAllBlank(rootId) || StringUtils.containsKey(rootId, HierarchyConstants.IMAGE_SUFFIX))
+[ERROR]                                                                                          ^
+[ERROR] /Users/sanketikam4/November/knowledge-platform/knowlg-unified-service/app/org/sunbird/managers/assessment/UpdateHierarchyManager.scala:98: value asScala is not a member of scala.concurrent.Future[org.sunbird.graph.dac.model.Node]
+[ERROR]         DataNode.read(req).asScala.map(rootNode => {
+[ERROR]                            ^
+[ERROR] 100 errors found
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.574 s
+[INFO] Finished at: 2025-11-20T10:59:25+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal com.google.code.sbt-compiler-maven-plugin:sbt-compiler-maven-plugin:1.0.0:compile (default-compile) on project knowlg-unified-service: Scala compilation failed: CompileFailed -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -1,0 +1,85 @@
+{
+  "$id": "lock-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lock",
+  "type": "object",
+  "required": [
+    "resourceId",
+    "resourceType",
+    "resourceInfo",
+    "creatorInfo",
+    "createdBy"
+  ],
+  "properties": {
+    "lockid": {
+      "type": "string"
+    },
+    "resourceid": {
+      "type": "string"
+    },
+    "resourctype": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "K-12",
+        "TPD"
+      ],
+      "default": "K-12"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Live",
+        "Retired"
+      ],
+      "default": "Live"
+    },
+    "resourceinfo": {
+      "type": "string"
+    },
+    "createdby": {
+      "type": "string"
+    },
+    "createdon": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "consumerId": {
+      "type": "string"
+    },
+    "appId": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "deviceid": {
+      "type": "string"
+    },
+    "expiresat": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "systemDefault": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    }
+  }
+}
+

@@ -1,0 +1,42 @@
+{
+  "objectType": "Framework",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier"
+    ]
+  },
+  "external": {
+    "tableName": "framework_hierarchy",
+    "properties": {
+      "hierarchy": {
+        "type": "text"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
+  "relations": {
+    "channels": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": [
+        "Channel"
+      ]
+    },
+    "categories": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "CategoryInstance"
+      ]
+    }
+  },
+  "schema_restrict_api": false
+}

@@ -1,0 +1,27 @@
+{
+  "objectType": "App",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier", "name"
+    ]
+  },
+  "external": {
+    "tableName": "",
+    "properties": {
+    },
+    "primaryKey": [
+      "identifier"
+    ]
+  },
+  "relations": {
+  },
+  "schema_restrict_api": false
+}

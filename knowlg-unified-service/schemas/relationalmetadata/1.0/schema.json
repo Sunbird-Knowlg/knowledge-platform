@@ -1,0 +1,31 @@
+{
+  "$id": "app-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "relationalmetadata",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "optional": {
+      "type": "boolean",
+      "default": false
+    },
+    "mandatoryQuestion": {
+      "type": "boolean",
+      "default": false
+    },
+    "score": {
+      "type": "number"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}
