@@ -16,7 +16,7 @@ import scala.jdk.CollectionConverters._
 
 abstract class SearchBaseController(protected val cc: ControllerComponents)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
-    val DEFAULT_CHANNEL_ID = Platform.config.getString("channel.default");
+    val DEFAULT_CHANNEL_ID = Platform.getString("channel.default", "sunbird");
     val API_VERSION = "3.0"
     
     def requestBody()(implicit request: Request[AnyContent]) = {
