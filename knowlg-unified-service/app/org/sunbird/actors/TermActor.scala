@@ -1,0 +1,199 @@
+package org.sunbird.actors
+
+import org.apache.commons.lang3.StringUtils
+import org.sunbird.actor.core.BaseActor
+import org.sunbird.common.{Platform, Slug}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler}
+import org.sunbird.common.exception.{ClientException, ResponseCode }
+import org.sunbird.graph.OntologyEngineContext
+import org.sunbird.graph.dac.enums.RelationTypes
+import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.utils.{Constants, RequestUtil}
+import java.util
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters._
+
+class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
+  implicit val ec: ExecutionContext = getContext().dispatcher
+
+  private final val TERM_CREATION_LIMIT: Int = if (Platform.config.hasPath("framework.max_term_creation_limit")) Platform.config.getInt("framework.max_term_creation_limit") else 200
+  override def onReceive(request: Request): Future[Response] = {
+    request.getOperation match {
+      case Constants.CREATE_TERM => create(request)
+      case Constants.READ_TERM => read(request)
+      case Constants.UPDATE_TERM => update(request)
+      case Constants.RETIRE_TERM => retire(request)
+      case _ => ERROR(request.getOperation)
+    }
+  }
+
+  @throws[Exception]
+  private def create(request: Request): Future[Response] = {
+    val requestList: util.List[util.Map[String, AnyRef]] = getRequestData(request)
+    request.getRequest.remove("term")
+    if (TERM_CREATION_LIMIT < requestList.size) throw new ClientException("ERR_INVALID_TERM_REQUEST", "No. of request exceeded max limit of " + TERM_CREATION_LIMIT)
+    RequestUtil.restrictProperties(request)
+    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
+    val categoryData = validateCategoryInstance(request)
+    val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
+    categoryData.flatMap(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
+        val identifier = new util.ArrayList[String]
+        var codeError = 0
+        var serverError = 0
+        val index: Integer = getIndex(node)
+        var i: Integer = 0
+        val future = requestList.asScala.map(req => {
+          val categoryList = new util.ArrayList[util.Map[String, AnyRef]]
+          val relationMap = new util.HashMap[String, AnyRef]
+          relationMap.put("identifier", categoryId)
+          relationMap.put("index", (index + i).asInstanceOf[Integer])
+          i = (i + 1)
+          categoryList.add(relationMap)
+          request.put("categories", categoryList)
+          request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(categoryId, req.getOrDefault(Constants.CODE, "").asInstanceOf[String]))
+          request.getRequest.putAll(req)
+          DataNode.create(request).map(termNode =>
+            identifier.add(termNode.getIdentifier)
+          ) recover {
+            case e: ClientException =>
+              codeError += 1
+            case e: Exception =>
+              serverError += 1
+          }
+        })
+        Future.sequence(future).flatMap { _ =>
+          createResponse(codeError, serverError, identifier, requestList.size)
+        }
+      } else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category")
+    })
+  }
+
+  private def createResponse(codeError: Int, serverError: Int, identifiers: util.ArrayList[String], size: Int): Future[Response] = {
+    if (codeError == 0 && serverError == 0) {
+      Future(ResponseHandler.OK.put(Constants.NODE_ID, identifiers))
+    }
+    else if (codeError > 0 && serverError == 0) {
+      if (codeError == size) {
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term"))
+      } else {
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term", Constants.NODE_ID, identifiers))
+      }
+    } else if (codeError == 0 && serverError > 0) {
+      if (serverError == size) {
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name, "Internal Server Error"))
+      } else {
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, ResponseCode.PARTIAL_SUCCESS.name, "Partial Success with Internal Error", Constants.NODE_ID, identifiers))
+      }
+    } else {
+      if ((codeError + serverError) == size) {
+        Future(ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name, "Internal Server Error and also Invalid Request"))
+      } else {
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, ResponseCode.PARTIAL_SUCCESS.name, "Internal Server Error and also Invalid Request", Constants.NODE_ID, identifiers))
+      }
+    }
+}
+
+  private def getIndex(node: Node): Integer = {
+    val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType, RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))
+      .map(relation => {
+        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX", 1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
+      })
+    if (indexList.nonEmpty) indexList.max + 1 else 1
+  }
+
+  private def read(request: Request): Future[Response] = {
+    validateCategoryInstance(request)
+    validateTerm(request).map(node => {
+      val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, null, request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
+      ResponseHandler.OK.put("term", metadata)
+    })
+  }
+
+  private def update(request: Request): Future[Response] = {
+    val termId = request.getContext.getOrDefault(Constants.TERM, "").asInstanceOf[String];
+    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
+    RequestUtil.restrictProperties(request)
+    val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
+    validateCategoryInstance(request)
+    request.getContext.put(Constants.IDENTIFIER, generateIdentifier(categoryId, termId))
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
+    })
+  }
+
+  private def retire(request: Request): Future[Response] = {
+    val termId = request.getContext.getOrDefault(Constants.TERM, "").asInstanceOf[String];
+    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
+    val categoryId = generateIdentifier(frameworkId, request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
+    validateCategoryInstance(request)
+    request.getContext.put(Constants.IDENTIFIER, generateIdentifier(categoryId, termId))
+    request.getRequest.put("status", "Retired")
+    DataNode.update(request).map(node => {
+      ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
+    })
+  }
+
+  private def validateTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    val termId = request.getRequest.getOrDefault(Constants.TERM, "").asInstanceOf[String]
+    if (termId.isEmpty()) throw new ClientException("ERR_INVALID_TERM_ID", s"Invalid TermId: '${termId}' for Term")
+    val categoryInstanceId = generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String])
+    val getTermReq = new Request()
+    getTermReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getTermReq.getContext.put(Constants.SCHEMA_NAME, Constants.TERM_SCHEMA_NAME)
+    getTermReq.getContext.put(Constants.VERSION, Constants.TERM_SCHEMA_VERSION)
+    getTermReq.put(Constants.IDENTIFIER, generateIdentifier(categoryInstanceId, termId))
+    DataNode.read(getTermReq)(oec, ec).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, generateIdentifier(categoryInstanceId, termId))) node
+      else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
+    })(ec)
+  }
+
+  private def validateCategoryInstance(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
+    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
+    val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
+    if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Term ")
+    if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for Term")
+    val categoryInstanceId = generateIdentifier(frameworkId, categoryId)
+    val getCategoryInstanceReq = new Request()
+    getCategoryInstanceReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getCategoryInstanceReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
+    getCategoryInstanceReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
+    getCategoryInstanceReq.put(Constants.IDENTIFIER, categoryInstanceId)
+    DataNode.read(getCategoryInstanceReq)(oec, ec).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
+      else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
+    })(ec)
+  }
+
+  private def getRequestData(request: Request): util.List[util.Map[String, AnyRef]] = {
+    val req = request.getRequest.get(request.getObjectType.toLowerCase())
+    req match {
+      case req: util.List[util.Map[String, AnyRef] @unchecked] => req
+      case req: util.Map[String, AnyRef] @unchecked => new util.ArrayList[util.Map[String, AnyRef]]() {
+        {
+          add(req)
+        }
+      }
+      case _ => throw new ClientException("ERR_INVALID_TERM", "Invalid Request! Please Provide Valid Request.")
+    }
+  }
+
+  private def generateIdentifier(scopeId: String, code: String): String = {
+    var id: String = null
+    if (StringUtils.isNotBlank(scopeId)) id = Slug.makeSlug(scopeId + "_" + code)
+    id
+  }
+
+}

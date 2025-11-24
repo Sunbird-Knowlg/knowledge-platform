@@ -1,0 +1,147 @@
+package utils
+
+object Constants {
+    // Content Service Constants
+    val SCHEMA_NAME: String = "schemaName"
+    val RESPONSE_SCHEMA_NAME: String = "responseSchemaName"
+    val VERSION: String = "version"
+    val CONTENT_SCHEMA_NAME: String = "content"
+    val COLLECTION_SCHEMA_NAME: String = "collection"
+    val ASSET_SCHEMA_NAME: String = "asset"
+    val CONTENT_VERSION: String = "1.0"
+    val COLLECTION_VERSION: String = "1.0"
+    val ASSET_VERSION: String = "1.0"
+    val COLLECTION_MIME_TYPE: String = "application/vnd.ekstep.content-collection"
+    val ASSET_CONTENT_TYPE: String = "Asset"
+    val CONTENT_OBJECT_TYPE: String = "Content"
+    val COLLECTION_OBJECT_TYPE: String = "Collection"
+    val ASSET_OBJECT_TYPE: String = "Asset"
+    
+    // Taxonomy Service Constants
+    val CREATE_OBJECT_CATEGORY: String = "createObjectCategory"
+    val READ_OBJECT_CATEGORY: String = "readObjectCategory"
+    val UPDATE_OBJECT_CATEGORY: String = "updateObjectCategory"
+    val IDENTIFIER: String = "identifier"
+    val NAME: String = "name"
+    val NODE_ID: String = "node_id"
+    val CATEGORY_PREFIX: String = "obj-cat:"
+    val OBJECT_CATEGORY: String = "objectCategory"
+    val FIELDS: String = "fields"
+    val OBJECT_CATEGORY_SCHEMA_NAME="objectcategory"
+    val OBJECT_CATEGORY_SCHEMA_VERSION="1.0"
+
+    // Actor Operations For ObjectCategoryDefinition
+    val CREATE_OBJECT_CATEGORY_DEFINITION: String = "createObjectCategoryDefinition"
+    val READ_OBJECT_CATEGORY_DEFINITION: String = "readObjectCategoryDefinition"
+    val UPDATE_OBJECT_CATEGORY_DEFINITION: String = "updateObjectCategoryDefinition"
+    // Constants For ObjectCategoryDefinition
+    val CATEGORY_ID = "categoryId"
+    val CHANNEL = "channel";
+    val TARGET_OBJECT_TYPE = "targetObjectType"
+    val OBJECT_CATEGORY_DEFINITION: String = "objectCategoryDefinition"
+
+    // Constants For Framework
+    val FRAMEWORK: String = "framework";
+    val CREATE_FRAMEWORK: String = "createFramework";
+    val READ_FRAMEWORK: String = "readFramework"
+    val UPDATE_FRAMEWORK: String = "updateFramework";
+    val RETIRE_FRAMEWORK: String = "retireFramework";
+    val COPY_FRAMEWORK: String = "copyFramework";
+    val PUBLISH_FRAMEWORK: String = "publishFramework";
+    val FRAMEWORK_SCHEMA_VERSION = "1.0";
+    val FRAMEWORK_SCHEMA_NAME="framework"
+    val CATEGORIES: String = "categories"
+    val CHANNEL_SCHEMA_NAME="channel"
+    val CHANNEL_SCHEMA_VERSION = "1.0";
+    val PUBLISH_STATUS: String = "publishStatus"
+
+    val CATEGORY: String = "category";
+    val CREATE_CATEGORY: String = "createCategory";
+    val READ_CATEGORY: String = "readCategory"
+    val UPDATE_CATEGORY: String = "updateCategory"
+    val RETIRE_CATEGORY: String = "retireCategory"
+    val CATEGORY_SCHEMA_VERSION = "1.0";
+    val CATEGORY_SCHEMA_NAME = "category"
+    val CODE: String = "code";
+
+    val CREATE_CATEGORY_INSTANCE: String = "createCategoryInstance";
+    val READ_CATEGORY_INSTANCE: String = "readCategoryInstance"
+    val UPDATE_CATEGORY_INSTANCE: String = "updateCategoryInstance"
+    val RETIRE_CATEGORY_INSTANCE: String = "retireCategoryInstance"
+    val CATEGORY_INSTANCE_SCHEMA_VERSION: String = "1.0";
+    val CATEGORY_INSTANCE_SCHEMA_NAME: String = "CategoryInstance"
+    val VERSION_KEY: String = "versionKey"
+
+    val TERM: String = "term";
+    val CREATE_TERM: String = "createTerm";
+    val READ_TERM: String = "readTerm"
+    val UPDATE_TERM: String = "updateTerm"
+    val RETIRE_TERM: String = "retireTerm"
+    val TERM_SCHEMA_VERSION: String = "1.0";
+    val TERM_SCHEMA_NAME: String = "term"
+
+    // Constants For Lock
+    val LOCK: String = "lock";
+    val CREATE_LOCK: String = "createLock";
+    val REFRESH_LOCK: String = "refreshLock";
+    val RETIRE_LOCK: String = "retireLock";
+    val LIST_LOCK: String = "listLock";
+    val LOCK_SCHEMA_VERSION = "1.0";
+    val LOCK_SCHEMA_NAME="lock"
+    val X_DEVICE_ID="deviceId"
+    val X_AUTHENTICATED_USER_ID="userId"
+    val RESOURCE_ID="resourceId"
+    val RESOURCE_TYPE= "resourceType"
+    val RESOURCE_INFO= "resourceInfo"
+    val CREATOR_INFO= "creatorInfo"
+    val CREATED_BY= "createdBy"
+
+    // Assessment Service Constants
+    val REQUIRED_KEYS: List[String] = List("createdBy", "createdFor")
+    val ERR_INVALID_REQUEST: String = "ERR_INVALID_REQUEST"
+    val ERR_INVALID_OBJECT_TYPE: String = "ERR_INVALID_OBJECT_TYPE"
+    val COPY_SCHEME: String = "copyScheme"
+    val MIME_TYPE: String = "mimeType"
+    val QUESTIONSET_MIME_TYPE: String = "application/vnd.sunbird.questionset"
+    val STATUS: String = "status"
+    val COPY_TYPE: String = "copyType"
+    val ROOT_ID: String = "rootId"
+    val MODE: String = "mode"
+    val COPY_TYPE_SHALLOW: String = "shallow"
+    val QUESTIONSET_SCHEMA_NAME: String = "questionset"
+    val QUESTION: String = "question"
+    val HIERARCHY: String = "hierarchy"
+    val CHILDREN: String = "children"
+    val ORIGIN: String = "origin"
+    val ORIGIN_DATA: String = "originData"
+    val CONTENT_TYPE: String = "contentType"
+    val ROOT: String = "root"
+    val NODES_MODIFIED: String = "nodesModified"
+    val VISIBILITY: String = "visibility"
+    val METADATA: String = "metadata"
+    val PRIMARY_CATEGORY : String = "primaryCategory"
+    val QUESTIONSET : String = "questionSet"
+    val OBJECT_TYPE : String = "objectType"
+    val COPY_TYPE_DEEP: String = "deep"
+    val QUESTION_MIME_TYPE: String = "application/vnd.sunbird.question"
+    val QUESTION_SCHEMA_NAME: String = "question"
+    val ASSESSMENT_ITEM_MIME_TYPE: String = "application/vnd.ekstep.ecml-archive"
+    val ASSESSMENT_ITEM_SCHEMA_NAME: String = "assessmentitem"
+    val VISIBILITY_PARENT: String = "Parent"
+    val VISIBILITY_DEFAULT: String = "Default"
+    val BRANCHING_LOGIC: String = "branchingLogic"
+    val COPY_OF: String = "copyOf"
+    val CONTAINS_BL: String = "containsBL"
+    val IDENTIFIERS: String = "identifiers"
+    val IS_NEW: String = "isNew"
+    val TARGET: String = "target"
+    val PRE_CONDITION: String = "preCondition"
+    val SOURCE: String = "source"
+    val PRE_CONDITION_VAR : String = "var"
+
+    // Error Codes
+    val ERR_REQUEST_DATA_VALIDATION: String = "ERR_REQUEST_DATA_VALIDATION"
+    val ERR_OBJECT_VALIDATION: String = "ERR_OBJECT_VALIDATION"
+    val ERR_ACCESS_DENIED: String = "ERR_ACCESS_DENIED"
+    val SCHEMA_VERSION: String = "1.0"
+}
