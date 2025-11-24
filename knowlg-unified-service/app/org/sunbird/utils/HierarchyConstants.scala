@@ -30,6 +30,8 @@ object HierarchyConstants {
     val CHILD_NODES: String = "childNodes"
     val QUESTION_SCHEMA_NAME: String = "question"
 	val QUESTIONSET_SCHEMA_NAME: String = "questionset"
+    val COLLECTION_SCHEMA_NAME: String = "collection"
+    val EVENT_SET_SCHEMA_NAME: String = "eventset"
     val SCHEMA_NAME: String = "schemaName"
     val SCHEMA_VERSION: String = "1.0"
     val CONTENT_ID: String = "identifier"
