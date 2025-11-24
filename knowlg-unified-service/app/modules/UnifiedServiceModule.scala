@@ -17,7 +17,7 @@ class UnifiedServiceModule extends AbstractModule with PekkoGuiceSupport {
         super.configure()
         
         // Shared Health Actor (single instance for all services)
-        bindActor[org.sunbird.content.actors.HealthActor](ActorNames.HEALTH_ACTOR)
+        bindActor[org.sunbird.actors.HealthActor](ActorNames.HEALTH_ACTOR)
         
         // Content Service Actors
         bindActor[ContentActor](ActorNames.CONTENT_ACTOR)

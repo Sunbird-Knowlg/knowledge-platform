@@ -11,7 +11,7 @@ import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.JavaJsonUtils
 
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object AssessmentItemUtils {

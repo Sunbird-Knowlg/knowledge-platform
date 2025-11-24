@@ -1,4 +1,4 @@
-package org.sunbird.utils
+package org.sunbird.utils.assessment
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.Request
@@ -7,7 +7,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.DefinitionNode
 
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
+import scala.collection.convert.ImplicitConversions._
 
 object RequestUtil {
 
@@ -36,7 +36,7 @@ object RequestUtil {
 	def validateListRequest(request: Request): Unit = {
 		if (request.get("identifiers") == null || request.get("identifiers").asInstanceOf[java.util.List[String]].isEmpty)
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Required field identifier is missing or empty.")
-		val reqSize = request.get("identifiers").asInstanceOf[java.util.List[String]].size()
+		val reqSize = request.get("identifiers").asInstanceOf[java.util.List[String]].length
 		if (reqSize > questionListLimit)
 			throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "Request contains more than the permissible limit of identifiers: " + reqSize + ". Permissible limit is: "+questionListLimit)
 	}

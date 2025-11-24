@@ -12,10 +12,12 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 import org.sunbird.utils.RequestUtil
-import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.hierarchy.HierarchyManager
 
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters
+import scala.collection.JavaConverters._
+import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -38,7 +40,7 @@ object AssessmentManager {
 	}
 
 	def read(request: Request, resName: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("Image", ""), request.getContext.get("version").asInstanceOf[String])
@@ -53,7 +55,7 @@ object AssessmentManager {
 	}
 
 	def privateRead(request: Request, resName: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
 		DataNode.read(request).map(node => {
@@ -137,13 +139,13 @@ object AssessmentManager {
 		val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType.toLowerCase().replace("image", ""), node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
 		val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, request.getContext().get("version").toString, node.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition)
 		val metadata:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, extPropNameList) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
-		if (metadata.getOrDefault("body", "").asInstanceOf[String].isEmpty) messages += s"""body"""
-		if (metadata.getOrDefault("editorState", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].isEmpty) messages += s"""editorState"""
+		if (metadata.getOrElse("body", "").asInstanceOf[String].isEmpty) messages += s"""body"""
+		if (metadata.getOrElse("editorState", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].isEmpty) messages += s"""editorState"""
 		if (null != metadata.get("interactionTypes")) {
-			if (metadata.getOrDefault("responseDeclaration", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].isEmpty) messages += s"""responseDeclaration"""
-			if (metadata.getOrDefault("interactions", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].isEmpty) messages += s"""interactions"""
+			if (metadata.getOrElse("responseDeclaration", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].isEmpty) messages += s"""responseDeclaration"""
+			if (metadata.getOrElse("interactions", new util.HashMap()).asInstanceOf[util.Map[String, AnyRef]].isEmpty) messages += s"""interactions"""
 		} else {
-			if (metadata.getOrDefault("answer", "").asInstanceOf[String].isEmpty) messages += s"""answer"""
+			if (metadata.getOrElse("answer", "").asInstanceOf[String].isEmpty) messages += s"""answer"""
 		}
 		messages.toList
 	}
@@ -225,7 +227,7 @@ object AssessmentManager {
 	}
 
 	private def validateChildrenRecursive(request: Request, children: util.List[util.Map[String, AnyRef]], rootUserId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
-		children.asScala.foreach(content => {
+		children.toList.foreach(content => {
 			if ((StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default")
 			  && !StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
 			  && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
@@ -261,7 +263,7 @@ object AssessmentManager {
 		val visibilityIdMap: Map[String, List[String]] = outRelations
 		  .groupBy(_.getEndNodeMetadata.get("visibility").asInstanceOf[String])
 		  .view.mapValues(_.map(_.getEndNodeId).toList).toMap
-		(visibilityIdMap.getOrElse("Default", List()), visibilityIdMap.getOrElse("Parent", List()))
+		(visibilityIdMap.getOrDefault("Default", List()), visibilityIdMap.getOrDefault("Parent", List()))
 	}
 
 	def updateHierarchy(hierarchyString: String, status: String, rootUserId: String): (java.util.Map[String, AnyRef], java.util.List[String]) = {
@@ -277,7 +279,7 @@ object AssessmentManager {
 	}
 
 	private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status: String, idList: List[String], rootUserId: String): List[String] = {
-		children.asScala.toList.flatMap(content => {
+		children.toList.flatMap(content => {
 			val objectType = content.getOrDefault("objectType", "").asInstanceOf[String]
 			val updatedIdList: List[String] =
 				if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent") || (StringUtils.equalsIgnoreCase( objectType, "Question") && StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default") && validStatus.contains(content.getOrDefault("status", "").asInstanceOf[String]) && StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))) {
@@ -319,7 +321,7 @@ object AssessmentManager {
 	}
 
 	def readComment(request: Request, resName: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
+		val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
 		request.getRequest.put("fields", fields)
 		val res = new java.util.ArrayList[java.util.Map[String, AnyRef]] {}
 		DataNode.read(request).map(node => {

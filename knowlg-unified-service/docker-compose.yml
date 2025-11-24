@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  knowlg-unified-service:
+    image: sunbird/knowlg-unified-service:latest
+    container_name: knowlg-unified-service
+    ports:
+      - "9000:9000"
+    environment:
+      JAVA_OPTIONS: "-Xms512m -Xmx2048m"
+      # Add any additional environment variables here
+    networks:
+      - knowlg-network
+    restart: unless-stopped
+
+networks:
+  knowlg-network:
+    driver: bridge

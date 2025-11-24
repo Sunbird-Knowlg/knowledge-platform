@@ -13,8 +13,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.assessment.BranchingUtil
-import utils.Constants
+import org.sunbird.utils.assessment.{AssessmentConstants, BranchingUtil}
 import org.sunbird.utils.HierarchyConstants
 import org.sunbird.managers.hierarchy.{HierarchyManager, UpdateHierarchyManager}
 
@@ -34,13 +33,13 @@ object CopyManager {
     validateRequest(request)
     DataNode.read(request).map(node => {
       validateExistingNode(request, node)
-      val copiedNodeFuture: Future[Node] = node.getMetadata.get(Constants.MIME_TYPE) match {
-        case Constants.QUESTIONSET_MIME_TYPE =>
+      val copiedNodeFuture: Future[Node] = node.getMetadata.get(AssessmentConstants.MIME_TYPE) match {
+        case AssessmentConstants.QUESTIONSET_MIME_TYPE =>
           node.setInRelations(null)
           node.setOutRelations(null)
           validateShallowCopyReq(node, request)
           copyQuestionSet(node, request)
-        case Constants.QUESTION_MIME_TYPE =>
+        case AssessmentConstants.QUESTION_MIME_TYPE =>
           node.setInRelations(null)
           copyNode(node, request)
       }
@@ -51,7 +50,7 @@ object CopyManager {
             put(node.getIdentifier, copiedNode.getIdentifier)
           }
         })
-        response.put(Constants.VERSION_KEY, copiedNode.getMetadata.get(Constants.VERSION_KEY))
+        response.put(AssessmentConstants.VERSION_KEY, copiedNode.getMetadata.get(AssessmentConstants.VERSION_KEY))
         response
       })
     }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
@@ -60,27 +59,27 @@ object CopyManager {
   def validateExistingNode(request: Request, node: Node) = {
     val requestObjectType = request.getObjectType
     val nodeObjectType = node.getObjectType
-    if (!StringUtils.equalsIgnoreCase(requestObjectType, nodeObjectType)) throw new ClientException(Constants.ERR_INVALID_OBJECT_TYPE, s"Please Provide Valid ${requestObjectType} Identifier")
-    if (StringUtils.equalsIgnoreCase(node.getObjectType, Constants.QUESTION) && StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(Constants.VISIBILITY, Constants.VISIBILITY_PARENT).asInstanceOf[String], Constants.VISIBILITY_PARENT))
-      throw new ClientException(Constants.ERR_INVALID_REQUEST, "Question With Visibility Parent Cannot Be Copied Individually!")
+    if (!StringUtils.equalsIgnoreCase(requestObjectType, nodeObjectType)) throw new ClientException(AssessmentConstants.ERR_INVALID_OBJECT_TYPE, s"Please Provide Valid ${requestObjectType} Identifier")
+    if (StringUtils.equalsIgnoreCase(node.getObjectType, AssessmentConstants.QUESTION) && StringUtils.equalsIgnoreCase(node.getMetadata.getOrDefault(AssessmentConstants.VISIBILITY, AssessmentConstants.VISIBILITY_PARENT).asInstanceOf[String], AssessmentConstants.VISIBILITY_PARENT))
+      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "Question With Visibility Parent Cannot Be Copied Individually!")
     val reqVer = request.getContext.getOrDefault("version", "1.0").asInstanceOf[String]
     val nodeVer = node.getMetadata.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
     if(reqVer.toDouble >= 1.1 && nodeVer.toDouble < 1.1)
-      throw new ClientException(Constants.ERR_INVALID_REQUEST, s"${node.getObjectType.replace("Image", "")} with identifier ${node.getIdentifier.replace(".img","")} can not be copied as it doesn't have data in QuML 1.1 format.")
+      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, s"${node.getObjectType.replace("Image", "")} with identifier ${node.getIdentifier.replace(".img","")} can not be copied as it doesn't have data in QuML 1.1 format.")
   }
 
   def copyQuestionSet(originNode: Node, request: Request)(implicit ex: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
-    val copyType = request.getRequest.get(Constants.COPY_TYPE).asInstanceOf[String]
+    val copyType = request.getRequest.get(AssessmentConstants.COPY_TYPE).asInstanceOf[String]
     copyNode(originNode, request).map(node => {
       val req = new Request(request)
-      req.put(Constants.ROOT_ID, request.get(Constants.IDENTIFIER))
-      req.put(Constants.MODE, request.get(Constants.MODE))
-      if(!StringUtils.equalsIgnoreCase(originNode.getMetadata.get(Constants.STATUS).asInstanceOf[String],"Live"))
-        req.put(Constants.MODE, "edit")
+      req.put(AssessmentConstants.ROOT_ID, request.get(AssessmentConstants.IDENTIFIER))
+      req.put(AssessmentConstants.MODE, request.get(AssessmentConstants.MODE))
+      if(!StringUtils.equalsIgnoreCase(originNode.getMetadata.get(AssessmentConstants.STATUS).asInstanceOf[String],"Live"))
+        req.put(AssessmentConstants.MODE, "edit")
       HierarchyManager.getHierarchy(req).map(response => {
-        val originHierarchy = response.getResult.getOrDefault(Constants.QUESTIONSET, new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
+        val originHierarchy = response.getResult.getOrDefault(AssessmentConstants.QUESTIONSET, new util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
         copyType match {
-          case Constants.COPY_TYPE_SHALLOW => updateShallowHierarchy(request, node, originNode, originHierarchy)
+          case AssessmentConstants.COPY_TYPE_SHALLOW => updateShallowHierarchy(request, node, originNode, originHierarchy)
           case _ => updateHierarchy(request, node, originNode, originHierarchy, copyType)
         }
       }).flatMap(f => f)
@@ -104,7 +103,7 @@ object CopyManager {
       val nodesModified: java.util.HashMap[String, AnyRef] = hierarchyRequest.getRequest.get(HierarchyConstants.NODES_MODIFIED).asInstanceOf[java.util.HashMap[String, AnyRef]]
       val branchingRecord = BranchingUtil.generateBranchingRecord(nodesModified)
       val originalRequest = JsonUtils.deserialize(ScalaJsonUtils.serialize(hierarchyRequest), classOf[Request])
-      val BLExists = branchingRecord.asScala.exists(BLRecord => BLRecord._2.asInstanceOf[util.HashMap[String, AnyRef]].get(Constants.CONTAINS_BL) == true)
+      val BLExists = branchingRecord.asScala.exists(BLRecord => BLRecord._2.asInstanceOf[util.HashMap[String, AnyRef]].get(AssessmentConstants.CONTAINS_BL) == true)
       val (updateHierarchyReq, branchingUpdateReq) = if (BLExists) (hierarchyRequest, JsonUtils.deserialize(ScalaJsonUtils.serialize(hierarchyRequest), classOf[Request])) else (originalRequest, new Request())
       UpdateHierarchyManager.updateHierarchy(updateHierarchyReq).map(response => {
         if (!ResponseHandler.checkError(response)) response
@@ -114,7 +113,7 @@ object CopyManager {
         }
       }).map(response => {
         if (BLExists) {
-          BranchingUtil.hierarchyRequestModifier(branchingUpdateReq, branchingRecord, response.getResult.get(Constants.IDENTIFIERS).asInstanceOf[util.Map[String, String]])
+          BranchingUtil.hierarchyRequestModifier(branchingUpdateReq, branchingRecord, response.getResult.get(AssessmentConstants.IDENTIFIERS).asInstanceOf[util.Map[String, String]])
           UpdateHierarchyManager.updateHierarchy(branchingUpdateReq).map(response_ => {
             if (!ResponseHandler.checkError(response_)) node
             else {
@@ -135,9 +134,9 @@ object CopyManager {
       val idMap = new util.HashMap[String, String]()
       hierarchy.put(node.getIdentifier, new util.HashMap[String, AnyRef]() {
         {
-          put(Constants.CHILDREN, new util.ArrayList[String]())
-          put(Constants.ROOT, true.asInstanceOf[AnyRef])
-          put(Constants.PRIMARY_CATEGORY, node.getMetadata.get(Constants.PRIMARY_CATEGORY))
+          put(AssessmentConstants.CHILDREN, new util.ArrayList[String]())
+          put(AssessmentConstants.ROOT, true.asInstanceOf[AnyRef])
+          put(AssessmentConstants.PRIMARY_CATEGORY, node.getMetadata.get(AssessmentConstants.PRIMARY_CATEGORY))
         }
       })
       populateHierarchyRequest(children, nodesModified, hierarchy, node.getIdentifier, copyType, request, idMap)
@@ -147,8 +146,8 @@ object CopyManager {
         })
         new util.HashMap[String, AnyRef]() {
           {
-            put(Constants.NODES_MODIFIED, nodesModified)
-            put(Constants.HIERARCHY, hierarchy)
+            put(AssessmentConstants.NODES_MODIFIED, nodesModified)
+            put(AssessmentConstants.HIERARCHY, hierarchy)
           }
         }
       })
@@ -175,39 +174,39 @@ object CopyManager {
   def populateHierarchyRequest(children: util.List[util.Map[String, AnyRef]], nodesModified: util.HashMap[String, AnyRef], hierarchy: util.HashMap[String, AnyRef], parentId: String, copyType: String, request: Request, idMap: java.util.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
     if (null != children && !children.isEmpty) {
       children.asScala.toList.foreach(child => {
-        val id = if ("Parent".equalsIgnoreCase(child.get(Constants.VISIBILITY).asInstanceOf[String])) {
+        val id = if ("Parent".equalsIgnoreCase(child.get(AssessmentConstants.VISIBILITY).asInstanceOf[String])) {
           val identifier = UUID.randomUUID().toString
           nodesModified.put(identifier, new util.HashMap[String, AnyRef]() {
             {
-              put(Constants.METADATA, cleanUpCopiedData(new util.HashMap[String, AnyRef]() {
+              put(AssessmentConstants.METADATA, cleanUpCopiedData(new util.HashMap[String, AnyRef]() {
                 {
                   putAll(child)
-                  put(Constants.COPY_OF, child.getOrDefault(Constants.IDENTIFIER,""))
-                  put(Constants.CHILDREN, new util.ArrayList())
+                  put(AssessmentConstants.COPY_OF, child.getOrDefault(AssessmentConstants.IDENTIFIER,""))
+                  put(AssessmentConstants.CHILDREN, new util.ArrayList())
                   internalHierarchyProps.map(key => remove(key))
                 }
               }, copyType))
-              put(Constants.ROOT, false.asInstanceOf[AnyRef])
-              put(Constants.OBJECT_TYPE, child.getOrDefault(Constants.OBJECT_TYPE, ""))
+              put(AssessmentConstants.ROOT, false.asInstanceOf[AnyRef])
+              put(AssessmentConstants.OBJECT_TYPE, child.getOrDefault(AssessmentConstants.OBJECT_TYPE, ""))
               put("isNew", true.asInstanceOf[AnyRef])
               put("setDefaultValue", false.asInstanceOf[AnyRef])
             }
           })
-          if (StringUtils.equalsIgnoreCase(Constants.QUESTION_MIME_TYPE, child.getOrDefault("mimeType", "").asInstanceOf[String]))
+          if (StringUtils.equalsIgnoreCase(AssessmentConstants.QUESTION_MIME_TYPE, child.getOrDefault("mimeType", "").asInstanceOf[String]))
             idMap.put(child.getOrDefault("identifier", "").asInstanceOf[String], identifier)
           identifier
         } else
-          child.get(Constants.IDENTIFIER).asInstanceOf[String]
-        if (StringUtils.equalsIgnoreCase(child.getOrDefault(Constants.MIME_TYPE, "").asInstanceOf[String], Constants.QUESTIONSET_MIME_TYPE))
+          child.get(AssessmentConstants.IDENTIFIER).asInstanceOf[String]
+        if (StringUtils.equalsIgnoreCase(child.getOrDefault(AssessmentConstants.MIME_TYPE, "").asInstanceOf[String], AssessmentConstants.QUESTIONSET_MIME_TYPE))
           hierarchy.put(id, new util.HashMap[String, AnyRef]() {
             {
-              put(Constants.CHILDREN, new util.ArrayList[String]())
-              put(Constants.ROOT, false.asInstanceOf[AnyRef])
-              put(Constants.PRIMARY_CATEGORY, child.get(Constants.PRIMARY_CATEGORY))
+              put(AssessmentConstants.CHILDREN, new util.ArrayList[String]())
+              put(AssessmentConstants.ROOT, false.asInstanceOf[AnyRef])
+              put(AssessmentConstants.PRIMARY_CATEGORY, child.get(AssessmentConstants.PRIMARY_CATEGORY))
             }
           })
-        hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(Constants.CHILDREN).asInstanceOf[util.List[String]].add(id)
-        populateHierarchyRequest(child.get(Constants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType, request, idMap)
+        hierarchy.get(parentId).asInstanceOf[util.Map[String, AnyRef]].get(AssessmentConstants.CHILDREN).asInstanceOf[util.List[String]].add(id)
+        populateHierarchyRequest(child.get(AssessmentConstants.CHILDREN).asInstanceOf[util.List[util.Map[String, AnyRef]]], nodesModified, hierarchy, id, copyType, request, idMap)
       })
     }
   }
@@ -215,41 +214,41 @@ object CopyManager {
   def updateShallowHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val childrenHierarchy = originHierarchy.get("children").asInstanceOf[util.List[util.Map[String, AnyRef]]]
     val req = new Request(request)
-    req.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.QUESTIONSET_SCHEMA_NAME))
-    req.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.SCHEMA_VERSION))
-    req.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
-    req.put(Constants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef]() {
+    req.getContext.put(AssessmentConstants.SCHEMA_NAME, request.getContext.getOrDefault(AssessmentConstants.SCHEMA_NAME, AssessmentConstants.QUESTIONSET_SCHEMA_NAME))
+    req.getContext.put(AssessmentConstants.VERSION, request.getContext.getOrDefault(AssessmentConstants.VERSION, AssessmentConstants.SCHEMA_VERSION))
+    req.getContext.put(AssessmentConstants.IDENTIFIER, node.getIdentifier)
+    req.put(AssessmentConstants.HIERARCHY, ScalaJsonUtils.serialize(new java.util.HashMap[String, AnyRef]() {
       {
-        put(Constants.IDENTIFIER, node.getIdentifier)
-        put(Constants.CHILDREN, childrenHierarchy)
+        put(AssessmentConstants.IDENTIFIER, node.getIdentifier)
+        put(AssessmentConstants.CHILDREN, childrenHierarchy)
       }
     }))
     DataNode.update(req).map(node => node)
   }
 
   def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
-    val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), node.getObjectType.toLowerCase.replace("image", ""), request.getContext.getOrDefault(Constants.VERSION, "").asInstanceOf[String])
+    val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, new util.ArrayList(), node.getObjectType.toLowerCase.replace("image", ""), request.getContext.getOrDefault(AssessmentConstants.VERSION, "").asInstanceOf[String])
     val requestMap = request.getRequest
-    requestMap.remove(Constants.MODE)
-    requestMap.remove(Constants.COPY_SCHEME).asInstanceOf[String]
-    val copyType = requestMap.remove(Constants.COPY_TYPE).asInstanceOf[String]
+    requestMap.remove(AssessmentConstants.MODE)
+    requestMap.remove(AssessmentConstants.COPY_SCHEME).asInstanceOf[String]
+    val copyType = requestMap.remove(AssessmentConstants.COPY_TYPE).asInstanceOf[String]
     val originData: java.util.Map[String, AnyRef] = getOriginData(metadata, copyType)
     cleanUpCopiedData(metadata, copyType)
     metadata.putAll(requestMap)
-    metadata.put(Constants.STATUS, "Draft")
-    metadata.put(Constants.ORIGIN, node.getIdentifier)
-    metadata.put(Constants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
+    metadata.put(AssessmentConstants.STATUS, "Draft")
+    metadata.put(AssessmentConstants.ORIGIN, node.getIdentifier)
+    metadata.put(AssessmentConstants.IDENTIFIER, Identifier.getIdentifier(request.getContext.get("graph_id").asInstanceOf[String], Identifier.getUniqueIdFromTimestamp))
     if (MapUtils.isNotEmpty(originData))
-      metadata.put(Constants.ORIGIN_DATA, originData)
-    request.getContext().put(Constants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
+      metadata.put(AssessmentConstants.ORIGIN_DATA, originData)
+    request.getContext().put(AssessmentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase.replace("image", ""))
     val req = new Request(request)
     req.setRequest(metadata)
     val graphId = request.getContext.getOrDefault("graph_id", "").asInstanceOf[String]
     val version = request.getContext.getOrDefault("version", "").asInstanceOf[String]
-    val externalProps = if (StringUtils.equalsIgnoreCase(Constants.QUESTIONSET_MIME_TYPE, node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String])) {
-      DefinitionNode.getExternalProps(graphId, version, Constants.QUESTIONSET_SCHEMA_NAME).diff(List("hierarchy"))
+    val externalProps = if (StringUtils.equalsIgnoreCase(AssessmentConstants.QUESTIONSET_MIME_TYPE, node.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String])) {
+      DefinitionNode.getExternalProps(graphId, version, AssessmentConstants.QUESTIONSET_SCHEMA_NAME).diff(List("hierarchy"))
     } else {
-      DefinitionNode.getExternalProps(graphId, version, Constants.QUESTION_SCHEMA_NAME)
+      DefinitionNode.getExternalProps(graphId, version, AssessmentConstants.QUESTION_SCHEMA_NAME)
     }
     val readReq = new Request()
     readReq.setContext(request.getContext)
@@ -268,31 +267,31 @@ object CopyManager {
     }).flatMap(f=>f)
   }
 
-  def getOriginData(metadata: util.Map[String, AnyRef], copyType: String): java.util.Map[String, AnyRef] = (Map(Constants.COPY_TYPE -> copyType) ++ originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap).asJava
+  def getOriginData(metadata: util.Map[String, AnyRef], copyType: String): java.util.Map[String, AnyRef] = (Map(AssessmentConstants.COPY_TYPE -> copyType) ++ originMetadataKeys.asScala.filter(key => metadata.containsKey(key)).map(key => key -> metadata.get(key)).toMap).asJava
 
   def validateRequest(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
-    val keysNotPresent = Constants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
+    val keysNotPresent = AssessmentConstants.REQUIRED_KEYS.filter(key => emptyCheckFilter(request.getRequest.getOrDefault(key, "")))
     if (keysNotPresent.nonEmpty)
-      throw new ClientException(Constants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
+      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "Please provide valid value for " + keysNotPresent)
   }
 
   def validateShallowCopyReq(node: Node, request: Request) = {
     val copyType: String = request.getRequest.get("copyType").asInstanceOf[String]
     if (StringUtils.equalsIgnoreCase("shallow", copyType) && !StringUtils.equalsIgnoreCase("Live", node.getMetadata.get("status").asInstanceOf[String]))
-      throw new ClientException(Constants.ERR_INVALID_REQUEST, "QuestionSet With Status " + node.getMetadata.get(Constants.STATUS).asInstanceOf[String].toLowerCase + " Cannot Be Partially (Shallow) Copied.")
-    if(StringUtils.equalsIgnoreCase("shallow", copyType) && StringUtils.equalsIgnoreCase(request.get(Constants.MODE).asInstanceOf[String], "edit"))
-      request.getRequest.remove(Constants.MODE)
+      throw new ClientException(AssessmentConstants.ERR_INVALID_REQUEST, "QuestionSet With Status " + node.getMetadata.get(AssessmentConstants.STATUS).asInstanceOf[String].toLowerCase + " Cannot Be Partially (Shallow) Copied.")
+    if(StringUtils.equalsIgnoreCase("shallow", copyType) && StringUtils.equalsIgnoreCase(request.get(AssessmentConstants.MODE).asInstanceOf[String], "edit"))
+      request.getRequest.remove(AssessmentConstants.MODE)
   }
 
   def emptyCheckFilter(key: AnyRef): Boolean = key match {
     case k: String => k.asInstanceOf[String].isEmpty
-		case k: util.Map[_, _] => MapUtils.isEmpty(k.asInstanceOf[util.Map[String, AnyRef]])
-		case k: util.List[_] => CollectionUtils.isEmpty(k.asInstanceOf[util.List[String]])
+    case k: util.Map[String, AnyRef] => MapUtils.isEmpty(k.asInstanceOf[util.Map[String, AnyRef]])
+    case k: util.List[String] => CollectionUtils.isEmpty(k.asInstanceOf[util.List[String]])
     case _ => true
   }
 
   def cleanUpCopiedData(metadata: util.Map[String, AnyRef], copyType: String): util.Map[String, AnyRef] = {
-    if (StringUtils.equalsIgnoreCase(Constants.COPY_TYPE_SHALLOW, copyType)) {
+    if (StringUtils.equalsIgnoreCase(AssessmentConstants.COPY_TYPE_SHALLOW, copyType)) {
       metadata.keySet().removeAll(metadataNotTobeCopied.asScala.toList.filter(str => !str.contains("dial")).asJava)
     } else metadata.keySet().removeAll(metadataNotTobeCopied)
     metadata

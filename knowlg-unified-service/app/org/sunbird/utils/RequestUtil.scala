@@ -1,4 +1,4 @@
-package org.sunbird.utils.assessment
+package org.sunbird.utils
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.Request

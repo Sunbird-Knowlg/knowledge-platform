@@ -10,15 +10,17 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.managers.hierarchy.HierarchyManager
+import org.sunbird.managers.HierarchyManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 import org.sunbird.utils.RequestUtil
-import utils.Constants
+import org.sunbird.utils.assessment.AssessmentErrorCodes
 
 import java.util
 import java.util.UUID
+import scala.collection.JavaConverters
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.jdk.CollectionConverters._
+import scala.collection.convert.ImplicitConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 
@@ -30,7 +32,7 @@ object AssessmentV5Manager {
   val validStatus = List("Draft", "Review")
 
   def validateAndGetVersion(ver: AnyRef): AnyRef = {
-    if (supportedVersions.contains(ver)) ver else throw new ClientException(Constants.ERR_REQUEST_DATA_VALIDATION, s"Platform doesn't support quml version ${ver} | Currently Supported quml version are: ${supportedVersions}")
+    if (supportedVersions.contains(ver)) ver else throw new ClientException(AssessmentErrorCodes.ERR_REQUEST_DATA_VALIDATION, s"Platform doesn't support quml version ${ver} | Currently Supported quml version are: ${supportedVersions}")
   }
 
   def validateVisibilityForCreate(request: Request, errCode: String): Unit = {
@@ -40,7 +42,7 @@ object AssessmentV5Manager {
   }
 
   def create(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    validateVisibilityForCreate(request, Constants.ERR_REQUEST_DATA_VALIDATION)
+    validateVisibilityForCreate(request, AssessmentErrorCodes.ERR_REQUEST_DATA_VALIDATION)
     val qumlVersion = request.getRequest.getOrDefault("qumlVersion", 0.0.asInstanceOf[AnyRef])
     val version = if (qumlVersion != 0.0) validateAndGetVersion(qumlVersion) else defaultVersion
     request.put("qumlVersion", version)
@@ -62,7 +64,7 @@ object AssessmentV5Manager {
         val data: AnyRef = try {
           JsonUtils.deserialize(metadata.getOrDefault(key, "").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
         } catch {
-          			case _: Throwable => metadata.getOrDefault(key, "")
+          case _: Throwable => metadata.getOrDefault(key, "")
         }
         metadata.put(key, data)
       }
@@ -138,9 +140,9 @@ object AssessmentV5Manager {
     /*if (StringUtils.isBlank(metadata.getOrDefault("answer", "").asInstanceOf[String]))
       messages += s"""answer"""*/
     if (null != metadata.get("interactionTypes")) {
-      if (StringUtils.isBlank(metadata.getOrDefault("responseDeclaration", "").asInstanceOf[String])) messages += s"""responseDeclaration"""
-      if (StringUtils.isBlank(metadata.getOrDefault("interactions", "").asInstanceOf[String])) messages += s"""interactions"""
-      if (StringUtils.isBlank(metadata.getOrDefault("outcomeDeclaration", "").asInstanceOf[String])) messages += s"""outcomeDeclaration"""
+      if (StringUtils.isBlank(metadata.getOrElse("responseDeclaration", "").asInstanceOf[String])) messages += s"""responseDeclaration"""
+      if (StringUtils.isBlank(metadata.getOrElse("interactions", "").asInstanceOf[String])) messages += s"""interactions"""
+      if (StringUtils.isBlank(metadata.getOrElse("outcomeDeclaration", "").asInstanceOf[String])) messages += s"""outcomeDeclaration"""
     } else {
       if (StringUtils.isBlank(metadata.getOrDefault("answer", "").asInstanceOf[String]))
         messages += s"""answer"""
@@ -149,14 +151,14 @@ object AssessmentV5Manager {
   }
 
   def validateHierarchy(request: Request, children: util.List[util.Map[String, AnyRef]], rootUserId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
-    children.asScala.foreach(content => {
+    children.toList.foreach(content => {
       val version: Double = content.getOrDefault("qumlVersion", 1.0.asInstanceOf[AnyRef]).asInstanceOf[Double]
       if (version < 1.1)
-        throw new ClientException(Constants.ERR_OBJECT_VALIDATION, s"Children Object with identifier ${content.get("identifier").toString} doesn't have data in QuML 1.1 format.")
+        throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, s"Children Object with identifier ${content.get("identifier").toString} doesn't have data in QuML 1.1 format.")
       if ((StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default")
         && !StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
         && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
-        throw new ClientException(Constants.ERR_OBJECT_VALIDATION, "Object with identifier: " + content.get("identifier") + " is not Live. Please Publish it.")
+        throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, "Object with identifier: " + content.get("identifier") + " is not Live. Please Publish it.")
       if ((StringUtils.equalsAnyIgnoreCase("application/vnd.sunbird.question", content.get("mimeType").toString) &&
         StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent")
         && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
@@ -178,7 +180,7 @@ object AssessmentV5Manager {
           messages
         }), Duration.apply("30 seconds"))
         if (messages.nonEmpty)
-          throw new ClientException(Constants.ERR_OBJECT_VALIDATION, s"Mandatory Fields ${messages.asJava} Missing for ${content.get("identifier").toString}")
+          throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, s"Mandatory Fields ${messages.asJava} Missing for ${content.get("identifier").toString}")
       }
       val nestedChildren = content.getOrDefault("children", new util.ArrayList[Map[String, AnyRef]]).asInstanceOf[util.List[util.Map[String, AnyRef]]]
       if (!nestedChildren.isEmpty)
@@ -195,7 +197,7 @@ object AssessmentV5Manager {
   }
 
   private def updateChildrenRecursive(children: util.List[util.Map[String, AnyRef]], status: String, idList: List[String], rootUserId: String): List[String] = {
-    children.asScala.toList.flatMap(content => {
+    children.toList.flatMap(content => {
       val objectType = content.getOrDefault("objectType", "").asInstanceOf[String]
       val updatedIdList: List[String] =
         if (StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Parent") || (StringUtils.equalsIgnoreCase(objectType, "Question") && StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default") && validStatus.contains(content.getOrDefault("status", "").asInstanceOf[String]) && StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))) {
@@ -309,12 +311,8 @@ object AssessmentV5Manager {
 
   def processTimeLimits(data: util.Map[String, AnyRef]): Unit = {
     if (data.containsKey("timeLimits")) {
-		val timeLimits:util.Map[String, AnyRef] = data.get("timeLimits") match {
-			case m: util.Map[_, _] => m.asInstanceOf[util.Map[String, AnyRef]]
-			case s: String => JsonUtils.deserialize(s, classOf[java.util.Map[String, AnyRef]])
-			 case _ => Map().asJava.asInstanceOf[util.Map[String, AnyRef]]
-		}
-      val maxTime: Integer = timeLimits.getOrDefault("maxTime", "0").asInstanceOf[String].toInt
+      val timeLimits:util.Map[String, AnyRef] = if(data.get("timeLimits").isInstanceOf[util.Map[String, AnyRef]]) data.getOrDefault("timeLimits", Map().asJava).asInstanceOf[util.Map[String, AnyRef]] else JsonUtils.deserialize(data.get("timeLimits").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
+      val maxTime: Integer = timeLimits.getOrElse("maxTime", "0").asInstanceOf[String].toInt
       val updatedData: util.Map[String, AnyRef] = Map("questionSet" -> Map("max" -> maxTime, "min" -> 0.asInstanceOf[AnyRef]).asJava).asJava.asInstanceOf[util.Map[String, AnyRef]]
       data.put("timeLimits", updatedData)
     }
@@ -322,22 +320,22 @@ object AssessmentV5Manager {
 
   def getAnswer(data: util.Map[String, AnyRef]): String = {
     val interactions: util.Map[String, AnyRef] = data.getOrDefault("interactions", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
-    if (!StringUtils.equalsIgnoreCase(data.getOrDefault("primaryCategory", "").asInstanceOf[String], "Subjective Question") && !interactions.isEmpty) {
+    if (!StringUtils.equalsIgnoreCase(data.getOrElse("primaryCategory", "").asInstanceOf[String], "Subjective Question") && !interactions.isEmpty) {
       val responseDeclaration: util.Map[String, AnyRef] = data.getOrDefault("responseDeclaration", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
       val responseData = responseDeclaration.get("response1").asInstanceOf[util.Map[String, AnyRef]]
-      val intractionsResp1: util.Map[String, AnyRef] = interactions.getOrDefault("response1", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-      val options = intractionsResp1.getOrDefault("options", List().asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+      val intractionsResp1: util.Map[String, AnyRef] = interactions.getOrElse("response1", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val options = intractionsResp1.getOrElse("options", List().asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]
       val answerData = responseData.get("cardinality").asInstanceOf[String] match {
         case "single" => {
           val correctResp = responseData.getOrDefault("correctResponse", Map().asJava).asInstanceOf[util.Map[String, AnyRef]].get("value").asInstanceOf[Integer]
-          val label = options.asScala.filter(op => op.get("value").asInstanceOf[Integer] == correctResp).head.get("label").asInstanceOf[String]
+          val label = options.toList.filter(op => op.get("value").asInstanceOf[Integer] == correctResp).head.get("label").asInstanceOf[String]
           val answer = """<div class="anwser-container"><div class="anwser-body">answer_html</div></div>""".replace("answer_html", label)
           answer
         }
         case "multiple" => {
           val correctResp = responseData.getOrDefault("correctResponse", Map().asJava).asInstanceOf[util.Map[String, AnyRef]].get("value").asInstanceOf[util.List[Integer]]
           val singleAns = """<div class="anwser-body">answer_html</div>"""
-          val answerList: List[String] = options.asScala.filter(op => correctResp.contains(op.get("value").asInstanceOf[Integer])).map(op => singleAns.replace("answer_html", op.get("label").asInstanceOf[String])).toList
+          val answerList: List[String] = options.toList.filter(op => correctResp.contains(op.get("value").asInstanceOf[Integer])).map(op => singleAns.replace("answer_html", op.get("label").asInstanceOf[String])).toList
           val answer = """<div class="anwser-container">answer_div</div>""".replace("answer_div", answerList.mkString(""))
           answer
         }
@@ -349,9 +347,9 @@ object AssessmentV5Manager {
   def processInteractions(data: util.Map[String, AnyRef]): Unit = {
     val interactions: util.Map[String, AnyRef] = data.getOrDefault("interactions", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
     if (!interactions.isEmpty) {
-      val validation = interactions.getOrDefault("validation", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-      val resp1: util.Map[String, AnyRef] = interactions.getOrDefault("response1", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
-      val resValData = interactions.getOrDefault("response1", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]].getOrDefault("validation", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val validation = interactions.getOrElse("validation", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val resp1: util.Map[String, AnyRef] = interactions.getOrElse("response1", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val resValData = interactions.getOrElse("response1", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]].getOrElse("validation", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
       if (!resValData.isEmpty) resValData.putAll(validation) else resp1.put("validation", validation)
       interactions.remove("validation")
       interactions.put("response1", resp1)
@@ -362,7 +360,7 @@ object AssessmentV5Manager {
   def processHints(data: util.Map[String, AnyRef]): Unit = {
     val hints = data.getOrDefault("hints", List[String]().asJava).asInstanceOf[util.List[String]]
     if (!hints.isEmpty) {
-      val updatedHints: util.Map[String, AnyRef] = hints.asScala.map(hint => UUID.randomUUID().toString -> hint.asInstanceOf[AnyRef]).toMap.asJava
+      val updatedHints: util.Map[String, AnyRef] = hints.toList.map(hint => Map[String, AnyRef](UUID.randomUUID().toString -> hint).asJava).flatten.toMap.asJava
       data.put("hints", updatedHints)
     }
   }
@@ -380,7 +378,7 @@ object AssessmentV5Manager {
       //transform responseDeclaration and populate outcomeDeclaration
       val responseDeclaration: util.Map[String, AnyRef] = data.getOrDefault("responseDeclaration", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
       if (!responseDeclaration.isEmpty) {
-        for (key <- responseDeclaration.keySet().asScala) {
+        for (key <- responseDeclaration.keySet()) {
           val responseData = responseDeclaration.get(key).asInstanceOf[util.Map[String, AnyRef]]
           // remove maxScore and put it under outcomeDeclaration
           val maxScore = Map[String, AnyRef]("cardinality" -> responseData.getOrDefault("cardinality", "").asInstanceOf[String], "type" -> responseData.getOrDefault("type", "").asInstanceOf[String], "defaultValue" -> responseData.get("maxScore"))
@@ -400,7 +398,7 @@ object AssessmentV5Manager {
             case e: NumberFormatException => e.printStackTrace()
           }
           //update mapping
-          val mappingData = responseData.asScala.getOrElse("mapping", List[util.Map[String, AnyRef]]().asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+          val mappingData = responseData.getOrElse("mapping", List[util.Map[String, AnyRef]]().asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]
           if (!mappingData.isEmpty) {
             val updatedMapping = mappingData.asScala.toList.map(mapData => {
               Map[String, AnyRef]("value" -> mapData.get("response"), "score" -> mapData.getOrDefault("outcomes", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]].get("score")).asJava
@@ -418,7 +416,7 @@ object AssessmentV5Manager {
     val solutions = data.getOrDefault("solutions", List[util.Map[String, AnyRef]](Map[String, AnyRef]().asJava).asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]
     if (!solutions.isEmpty) {
       val updatedSolutions: util.Map[String, AnyRef] = solutions.asScala.toList.map(solution => {
-        Map[String, AnyRef](solution.asScala.getOrElse("id", "").asInstanceOf[String] -> getSolutionString(solution, data.asScala.getOrElse("media", List[util.Map[String, AnyRef]](Map[String, AnyRef]().asJava).asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]))
+        Map[String, AnyRef](solution.getOrElse("id", "").asInstanceOf[String] -> getSolutionString(solution, data.getOrElse("media", List[util.Map[String, AnyRef]](Map[String, AnyRef]().asJava).asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]))
       }).flatten.toMap.asJava
       data.put("solutions", updatedSolutions)
     }
@@ -437,7 +435,7 @@ object AssessmentV5Manager {
         case "html" => data.getOrDefault("value", "").asInstanceOf[String]
         case "video" => {
           val value = data.getOrDefault("value", "").asInstanceOf[String]
-          val mediaData: util.Map[String, AnyRef] = media.asScala.find(map => StringUtils.equalsIgnoreCase(value, map.asScala.getOrElse("id", "").asInstanceOf[String])).getOrElse(Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
+          val mediaData: util.Map[String, AnyRef] = media.asScala.toList.filter(map => StringUtils.equalsIgnoreCase(value, map.getOrElse("id", "").asInstanceOf[String])).flatten.toMap.asJava
           val src = mediaData.getOrDefault("src", "").asInstanceOf[String]
           val thumbnail = mediaData.getOrDefault("thumbnail", "").asInstanceOf[String]
           val solutionStr = """<video data-asset-variable="media_identifier" width="400" controls="" poster="thumbnail_url"><source type="video/mp4" src="media_source_url"><source type="video/webm" src="media_source_url"></video>""".replace("media_identifier", value).replace("thumbnail_url", thumbnail).replace("media_source_url", src)
@@ -482,7 +480,7 @@ object AssessmentV5Manager {
 
   def tranformChildren(children: util.List[util.Map[String, AnyRef]]): Unit = {
     if (!children.isEmpty) {
-      children.asScala.foreach(ch => {
+      children.foreach(ch => {
         if (ch.containsKey("version")) ch.remove("version")
         processBloomsLevel(ch)
         processBooleanProps(ch)
@@ -520,7 +518,7 @@ object AssessmentV5Manager {
   }
 
   def readComment(request: Request, resName: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
+    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
     request.getRequest.put("fields", fields)
     val res = new java.util.ArrayList[java.util.Map[String, AnyRef]] {}
     DataNode.read(request).map(node => {
