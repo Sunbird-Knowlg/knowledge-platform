@@ -28,7 +28,7 @@ object DIALManager {
 
 	val DIAL_SEARCH_API_URL: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.search")
 	val DIALCODE_GENERATE_URI: String = Platform.config.getString("dial_service.api.base_url") + Platform.config.getString("dial_service.api.generate")
-	val CLOUD_BASE_URL = Platform.getString("cloudstorage.read_base_path", "https://dev.knowlg.sunbird.org")
+	val CLOUD_BASE_URL = Platform.getString("plugin.media.base.url", "https://dev.knowlg.sunbird.org")
 	val DIAL_CONTAINER: String = Platform.getString("cloud_storage_dial_container", "dial")
 	val DIAL_API_AUTH_KEY: String = ContentConstants.BEARER + Platform.config.getString("dial_service.api.auth_key")
 	val PASSPORT_KEY: String = Platform.config.getString("graph.passport.key.base")
@@ -354,7 +354,7 @@ object DIALManager {
 		val dialCodesMap = data.map { case (dialcode, index) =>
 			val fileName = s"$index" + "_" + s"$dialcode"
 			val dialData = Map(
-				"data" -> s"$CLOUD_BASE_URL/$DIAL_CONTAINER/$dialcode",
+				"data" -> s"$CLOUD_BASE_URL/dial/$dialcode",
 				"text" -> dialcode,
 				"id" -> fileName
 			)
