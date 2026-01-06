@@ -1,21 +1,16 @@
 version: "3.0"
 services:
-  sunbird-neo4j:
-    image: neo4j:3.3.0
-    container_name: "sunbird_neo4j"
+  sunbird-janusgraph:
+    image: janusgraph/janusgraph:latest
+    container_name: "sunbird_janusgraph"
     ports:
-      - 7473:7473
-      - 7474:7474
-      - 7687:7687
+      - 8182:8182
     volumes:
-      - $sunbird_dbs_path/neo4j/data:/var/lib/neo4j/data
-      - $sunbird_dbs_path/neo4j/logs:/var/lib/neo4j/logs
-      - $sunbird_dbs_path/neo4j/plugins:/var/lib/neo4j/plugins
+      - $sunbird_dbs_path/janusgraph/data:/var/lib/janusgraph/data
+      - $sunbird_dbs_path/janusgraph/logs:/var/lib/janusgraph/logs
     environment:
-      NEO4J_AUTH: none
-      NEO4J_dbms_connector_https_advertised__address: "localhost:7473"
-      NEO4J_dbms_connector_http_advertised__address: "localhost:7474"
-      NEO4J_dbms_connector_bolt_advertised__address: "localhost:7687"
+      - janusgraph.storage.backend=cql
+      - janusgraph.storage.hostname=sunbird-cassandra
 
   sunbird-cassandra:
     image: cassandra:3.11.11
@@ -23,7 +18,7 @@ services:
     ports:
       - 9042:9042
     depends_on:
-      - sunbird-neo4j
+      - sunbird-janusgraph
     volumes:
       - $sunbird_dbs_path/cassandra/data:/var/lib/cassandra
       - $sunbird_dbs_path/cassandra/logs:/opt/cassandra/logs

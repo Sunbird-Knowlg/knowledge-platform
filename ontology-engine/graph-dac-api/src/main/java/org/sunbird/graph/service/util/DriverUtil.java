@@ -1,11 +1,12 @@
 package org.sunbird.graph.service.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.v1.Config;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.exceptions.ClientException;
+import org.apache.tinkerpop.gremlin.driver.Cluster;
+import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph;
 import org.sunbird.common.Platform;
+import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.service.common.DACConfigurationConstants;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
@@ -16,57 +17,84 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import static org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal;
+
 public class DriverUtil {
 
-	private static Map<String, Driver> driverMap = new HashMap<String, Driver>();
+	private static Map<String, GraphTraversalSource> graphTraversalSourceMap = new HashMap<>();
+	private static Map<String, Cluster> clusterMap = new HashMap<>();
 
-	public static Driver getDriver(String graphId, GraphOperation graphOperation) {
-		TelemetryManager.log("Get Driver for Graph Id: "+ graphId);
+	public static GraphTraversalSource getGraphTraversalSource(String graphId, GraphOperation graphOperation) {
+		TelemetryManager.log("Get GraphTraversalSource for Graph Id: "+ graphId);
 		String driverKey = graphId + DACConfigurationConstants.UNDERSCORE
 				+ StringUtils.lowerCase(graphOperation.name());
 		TelemetryManager.log("Driver Configuration Key: " + driverKey);
 
-		Driver driver = driverMap.get(driverKey);
-		if (null == driver) {
-			driver = loadDriver(graphId, graphOperation);
-			driverMap.put(driverKey, driver);
+		GraphTraversalSource g = graphTraversalSourceMap.get(driverKey);
+		if (null == g) {
+			g = loadGraphTraversalSource(graphId, graphOperation, driverKey);
+			graphTraversalSourceMap.put(driverKey, g);
 		}
-		return driver;
+		return g;
 	}
 
-	public static Driver loadDriver(String graphId, GraphOperation graphOperation) {
-		TelemetryManager.log("Loading driver for Graph Id: "+ graphId);
+	private static GraphTraversalSource loadGraphTraversalSource(String graphId, GraphOperation graphOperation, String driverKey) {
+		TelemetryManager.log("Loading GraphTraversalSource for Graph Id: "+ graphId);
 		String route = getRoute(graphId, graphOperation);
-		Driver driver = GraphDatabase.driver(route, getConfig());
-		if (null != driver)
-			registerShutdownHook(driver);
-		return driver;
+		
+		Cluster cluster = Cluster.build()
+				.addContactPoint(route.split(":")[0])
+				.port(Integer.parseInt(route.split(":")[1]))
+				.maxWaitForConnection(30000)
+				.maxConnectionPoolSize(DACConfigurationConstants.JANUSGRAPH_MAX_CONNECTION_POOL_SIZE)
+				.minConnectionPoolSize(DACConfigurationConstants.JANUSGRAPH_MIN_CONNECTION_POOL_SIZE)
+				.create();
+		
+		clusterMap.put(driverKey, cluster);
+		
+		GraphTraversalSource g = traversal().withRemote(DriverRemoteConnection.using(cluster, "g"));
+		
+		registerShutdownHook(g, cluster);
+		return g;
 	}
 
-	public static Config getConfig() {
-		Config.ConfigBuilder config = Config.build();
-		config.withEncryptionLevel(Config.EncryptionLevel.NONE);
-		config.withMaxIdleSessions(DACConfigurationConstants.NEO4J_SERVER_MAX_IDLE_SESSION);
-		config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
-		return config.toConfig();
-	}
-
-	public static void closeDrivers() {
-		for (Iterator<Map.Entry<String, Driver>> it = driverMap.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<String, Driver> entry = it.next();
-			Driver driver = entry.getValue();
-			driver.close();
+	public static void closeConnections() {
+		for (Iterator<Map.Entry<String, GraphTraversalSource>> it = graphTraversalSourceMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry<String, GraphTraversalSource> entry = it.next();
+			GraphTraversalSource g = entry.getValue();
+			try {
+				g.close();
+			} catch (Exception e) {
+				TelemetryManager.error("Error closing GraphTraversalSource", e);
+			}
+			it.remove();
+		}
+		
+		for (Iterator<Map.Entry<String, Cluster>> it = clusterMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry<String, Cluster> entry = it.next();
+			Cluster cluster = entry.getValue();
+			try {
+				cluster.close();
+			} catch (Exception e) {
+				TelemetryManager.error("Error closing Cluster", e);
+			}
 			it.remove();
 		}
 	}
 
-	private static void registerShutdownHook(Driver driver) {
+	private static void registerShutdownHook(GraphTraversalSource g, Cluster cluster) {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				TelemetryManager.log("Closing Neo4j Graph Driver...");
-				if (null != driver)
-					driver.close();
+				TelemetryManager.log("Closing JanusGraph connections...");
+				try {
+					if (null != g)
+						g.close();
+					if (null != cluster)
+						cluster.close();
+				} catch (Exception e) {
+					TelemetryManager.error("Error closing connections", e);
+				}
 			}
 		});
 	}
@@ -77,13 +105,13 @@ public class DriverUtil {
 			throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
 					DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Graph Id: " + graphId + "]");
 
-		String routeUrl = "bolt://localhost:7687";
+		String routeUrl = "localhost:8182";
 		String baseKey = DACConfigurationConstants.DEFAULT_ROUTE_PROP_PREFIX + StringUtils.lowerCase(graphOperation.name())
 				+ DACConfigurationConstants.DOT;
 		if (Platform.config.hasPath(baseKey + graphId)) {
 			routeUrl = Platform.config.getString(baseKey + graphId);
-		} else if (Platform.config.hasPath(baseKey + DACConfigurationConstants.DEFAULT_NEO4J_BOLT_ROUTE_ID)) {
-			routeUrl = Platform.config.getString(baseKey + DACConfigurationConstants.DEFAULT_NEO4J_BOLT_ROUTE_ID);
+		} else if (Platform.config.hasPath(baseKey + DACConfigurationConstants.DEFAULT_JANUSGRAPH_ROUTE_ID)) {
+			routeUrl = Platform.config.getString(baseKey + DACConfigurationConstants.DEFAULT_JANUSGRAPH_ROUTE_ID);
 		} else {
 			TelemetryManager.warn("Graph connection configuration not defined.");
 		}
