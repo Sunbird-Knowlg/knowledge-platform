@@ -26,7 +26,7 @@ object UploadManager {
 	private val MEDIA_TYPE_LIST = List("image", "video")
 	private val kfClient = new KafkaClient
 	private val CONTENT_ARTIFACT_ONLINE_SIZE: Double = Platform.getDouble("content.artifact.size.for_online", 209715200.asInstanceOf[Double])
-
+	private val ENABLE_ASSET_ENRICHMENT = Platform.getBoolean("asset_enrichment.enable", true)
 
 	def upload(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
 		val identifier: String = node.getIdentifier
@@ -57,11 +57,17 @@ object UploadManager {
 			updateReq.getRequest.putAll(updatedResult.asJava)
 			if( size > CONTENT_ARTIFACT_ONLINE_SIZE)
 				updateReq.put("contentDisposition", "online-only")
-			if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType))
-				updateReq.put("status", "Processing")
+			
+			if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType)) {
+				if (ENABLE_ASSET_ENRICHMENT) {
+					updateReq.put("status", "Processing")
+				} else {
+					updateReq.put("status", "Live")
+				}
+			}
 
 			DataNode.update(updateReq).map(node => {
-				if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType) && null != node)
+				if (ENABLE_ASSET_ENRICHMENT && StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType) && null != node)
 					pushInstructionEvent(identifier, node)
 				getUploadResponse(node)
 			})
