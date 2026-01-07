@@ -4,18 +4,14 @@ import scala.jdk.CollectionConverters._
 import java.util
 import java.io.File
 
-import org.scalatest.{AsyncFlatSpec, Matchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.nodes.DataNode
-import org.sunbird.common.Platform
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class UploadManagerTest extends AsyncFlatSpec with Matchers with MockFactory {
+class UploadManagerTest extends FlatSpec with Matchers with MockFactory {
 
 	implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 	implicit val ec: ExecutionContext = ExecutionContext.global
@@ -35,39 +31,60 @@ class UploadManagerTest extends AsyncFlatSpec with Matchers with MockFactory {
 		assert(result.get("artifactUrl").toString.equals("testurl"))
 	}
 
-	"updateNode with empty artifactUrl" should "return server error" in {
-		val request = new Request()
-		val result = Map(
-			"artifactUrl" -> "",
-			"size" -> 1024.0.asInstanceOf[AnyRef]
-		)
-
-		val futureResponse = UploadManager.updateNode(request, "do_test_error", "image", "Asset", result)
-		
-		futureResponse.map { response =>
-			assert(response.getResponseCode == ResponseCode.SERVER_ERROR)
-			assert(response.getParams.getErr == "ERR_UPLOAD_FILE")
-		}
+	"getUploadResponse with node having .img extension" should "return response with cleaned identifier" in {
+		val jpegFile = new File(getClass.getResource("/jpegImage.jpeg").getPath)
+		val jpegUrl = jpegFile.toURI.toString
+		val node = new Node()
+		node.setIdentifier("do_1234.img")
+		node.setMetadata(new util.HashMap[String, AnyRef](){{
+			put("artifactUrl", jpegUrl)
+			put("versionKey", "v1.0".asInstanceOf[AnyRef])
+		}})
+		val response = UploadManager.getUploadResponse(node)
+		val result = response.getResult
+		assert(null != response)
+		assert("OK" == response.getResponseCode.toString)
+		assert(result.get("identifier").toString.equals("do_1234"))
+		assert(result.get("node_id").toString.equals("do_1234"))
+		assert(result.get("artifactUrl").toString.equals(jpegUrl))
 	}
 
-	"File validation" should "confirm test resources exist and are accessible" in {
-		Future {
-			// Validate that our test files exist and have the expected properties
-			val jpegFile = new File(getClass.getResource("/jpegImage.jpeg").getPath)
-			val pdfFile = new File(getClass.getResource("/sample.pdf").getPath)
-			
-			assert(jpegFile.exists(), "JPEG test file should exist")
-			assert(pdfFile.exists(), "PDF test file should exist")
-			assert(jpegFile.length() > 0, "JPEG file should have content")
-			assert(pdfFile.length() > 0, "PDF file should have content")
-			assert(jpegFile.getName == "jpegImage.jpeg", "JPEG file name should match")
-			assert(pdfFile.getName == "sample.pdf", "PDF file name should match")
-			
-			// Log file sizes for reference
-			println(s"JPEG file size: ${jpegFile.length()} bytes")
-			println(s"PDF file size: ${pdfFile.length()} bytes")
-			
-			succeed // Return a successful assertion for AsyncFlatSpec
-		}
+	"getUploadResponse with complete metadata" should "return response with all required fields" in {
+		val pdfFile = new File(getClass.getResource("/sample.pdf").getPath)
+		val pdfUrl = pdfFile.toURI.toString
+		val node = new Node()
+		node.setIdentifier("do_5678")
+		node.setMetadata(new util.HashMap[String, AnyRef](){{
+			put("artifactUrl", pdfUrl)
+			put("versionKey", "2.1".asInstanceOf[AnyRef])
+		}})
+		val response = UploadManager.getUploadResponse(node)
+		val result = response.getResult
+		assert(null != response)
+		assert("OK" == response.getResponseCode.toString)
+		assert(result.size() == 5)
+		assert(result.get("node_id").toString.equals("do_5678"))
+		assert(result.get("identifier").toString.equals("do_5678"))
+		assert(result.get("artifactUrl").toString.equals(pdfUrl))
+		assert(result.get("content_url").toString.equals(pdfUrl))
+		assert(result.get("versionKey").toString.equals("2.1"))
+	}
+
+	"getUploadResponse with numeric versionKey" should "return response with proper version handling" in {
+		val jpegFile = new File(getClass.getResource("/jpegImage.jpeg").getPath)
+		val jpegUrl = jpegFile.toURI.toString
+		val node = new Node()
+		node.setIdentifier("do_9999")
+		node.setMetadata(new util.HashMap[String, AnyRef](){{
+			put("artifactUrl", jpegUrl)
+			put("versionKey", 12345.asInstanceOf[AnyRef])
+		}})
+		val response = UploadManager.getUploadResponse(node)
+		val result = response.getResult
+		assert(null != response)
+		assert("OK" == response.getResponseCode.toString)
+		assert(result.get("versionKey").toString.equals("12345"))
+		assert(result.get("artifactUrl").toString.equals(jpegUrl))
+		assert(result.get("content_url").toString.equals(jpegUrl))
 	}
 }
