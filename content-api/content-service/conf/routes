@@ -13,8 +13,6 @@ POST      /content/v3/upload/:identifier         controllers.v3.ContentControlle
 POST      /content/v3/copy/:identifier           controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 POST     /content/v3/dialcode/link               controllers.v3.ContentController.linkDialCode()
 POST     /content/v3/import                 controllers.v3.ContentController.importContent()
-
-# Content APIs - with mock response
 POST     /content/v3/flag/:identifier           controllers.v3.ContentController.flag(identifier:String)
 POST     /content/v3/bundle                     controllers.v3.ContentController.bundle()
 POST     /content/v3/flag/accept/:identifier    controllers.v3.ContentController.acceptFlag(identifier:String)
@@ -37,7 +35,7 @@ GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentControlle
 GET       /content/v3/hierarchy/:identifier/:bookmarkId controllers.v3.ContentController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
 POST    /collection/v3/dialcode/link/:identifier            @controllers.v3.ContentController.collectionLinkDialCode(identifier:String)
 
-#License APIs
+# License APIs
 POST    /license/v3/create                      controllers.v3.LicenseController.create()
 GET     /license/v3/read/:identifier            controllers.v3.LicenseController.read(identifier: String, fields:Option[String])
 PATCH   /license/v3/update/:identifier          controllers.v3.LicenseController.update(identifier: String)
