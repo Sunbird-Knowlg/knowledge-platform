@@ -28,9 +28,9 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.sunbird</groupId>
-            <artifactId>cloud-store-sdk_2.13</artifactId>
-            <version>1.4.8.1</version>
+            <groupId>${CLOUD_STORE_GROUP_ID}</groupId>
+            <artifactId>${CLOUD_STORE_ARTIFACT_ID}</artifactId>
+            <version>${CLOUD_STORE_VERSION}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.jamesmurty.util</groupId>
