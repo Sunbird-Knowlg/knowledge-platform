@@ -1,0 +1,187 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+GET		  /health						    controllers.HealthController.health()
+GET       /service/health                   controllers.HealthController.serviceHealth()
+
+# Content APIs
+POST      /content/v3/create                controllers.v3.ContentController.create()
+PATCH     /content/v3/update/:identifier    controllers.v3.ContentController.update(identifier:String)
+GET       /content/v3/read/:identifier      controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /content/v3/upload/url/:identifier     controllers.v3.ContentController.uploadPreSigned(identifier:String, type: Option[String])
+POST      /content/v3/upload/:identifier         controllers.v3.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /content/v3/copy/:identifier           controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
+POST     /content/v3/dialcode/link               controllers.v3.ContentController.linkDialCode()
+POST     /content/v3/import                 controllers.v3.ContentController.importContent()
+POST     /content/v3/flag/:identifier           controllers.v3.ContentController.flag(identifier:String)
+POST     /content/v3/bundle                     controllers.v3.ContentController.bundle()
+POST     /content/v3/flag/accept/:identifier    controllers.v3.ContentController.acceptFlag(identifier:String)
+POST     /content/v3/flag/reject/:identifier    controllers.v3.ContentController.rejectFlag(identifier:String)
+POST     /content/v3/publish/:identifier        controllers.v3.ContentController.publish(identifier:String)
+POST     /content/v3/review/:identifier         controllers.v3.ContentController.review(identifier:String)
+DELETE   /content/v3/discard/:identifier        controllers.v3.ContentController.discard(identifier:String)
+DELETE   /content/v3/retire/:identifier         controllers.v3.ContentController.retire(identifier:String)
+POST     /content/v3/dialcode/reserve/:identifier controllers.v3.ContentController.reserveDialCode(identifier:String)
+PATCH    /content/v3/dialcode/release/:identifier controllers.v3.ContentController.releaseDialcodes(identifier:String)
+POST     /content/v3/reject/:identifier           controllers.v4.ContentController.reviewReject(identifier:String)
+POST     /content/v3/unlisted/publish/:identifier  controllers.v3.ContentController.publishUnlisted(identifier:String)
+GET      /content/v3/process/status/:processid     controllers.v3.ContentController.getProcessIdStatus(processid: String)
+
+# Collection APIs
+PATCH     /content/v3/hierarchy/add         controllers.v3.ContentController.addHierarchy()
+DELETE    /content/v3/hierarchy/remove      controllers.v3.ContentController.removeHierarchy()
+PATCH     /content/v3/hierarchy/update      controllers.v3.ContentController.updateHierarchy()
+GET       /content/v3/hierarchy/:identifier      controllers.v3.ContentController.getHierarchy(identifier:String, mode:Option[String])
+GET       /content/v3/hierarchy/:identifier/:bookmarkId controllers.v3.ContentController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
+POST    /collection/v3/dialcode/link/:identifier            @controllers.v3.ContentController.collectionLinkDialCode(identifier:String)
+
+# License APIs
+POST    /license/v3/create                      controllers.v3.LicenseController.create()
+GET     /license/v3/read/:identifier            controllers.v3.LicenseController.read(identifier: String, fields:Option[String])
+PATCH   /license/v3/update/:identifier          controllers.v3.LicenseController.update(identifier: String)
+DELETE  /license/v3/retire/:identifier          controllers.v3.LicenseController.retire(identifier: String)
+
+#These are routes for Channel
+POST     /channel/v3/create                   controllers.v3.ChannelController.create()
+PATCH     /channel/v3/update/:identifier      controllers.v3.ChannelController.update(identifier: String)
+GET       /channel/v3/read/:identifier        controllers.v3.ChannelController.read(identifier: String)
+DELETE     /channel/v3/retire/:identifier    controllers.v3.ChannelController.retire(identifier: String)
+
+# Category APIs
+POST    /category/v3/create                      controllers.v3.CategoryController.create()
+GET     /category/v3/read/:identifier            controllers.v3.CategoryController.read(identifier: String, fields:Option[String])
+PATCH   /category/v3/update/:identifier          controllers.v3.CategoryController.update(identifier: String)
+DELETE  /category/v3/retire/:identifier          controllers.v3.CategoryController.retire(identifier: String)
+
+#Asset V3 Api's
+POST      /asset/v3/validate                     controllers.v4.AssetController.licenceValidate(field:Option[String])
+
+#Asset V4 Api's
+POST      /asset/v4/create                       controllers.v4.AssetController.create()
+PATCH     /asset/v4/update/:identifier           controllers.v4.AssetController.update(identifier:String)
+GET       /asset/v4/read/:identifier             controllers.v4.AssetController.read(identifier:String, mode:Option[String], fields:Option[String])
+POST      /asset/v4/upload/:identifier           controllers.v4.AssetController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /asset/v4/upload/url/:identifier       controllers.v4.AssetController.uploadPreSigned(identifier:String, type: Option[String])
+POST      /asset/v4/copy/:identifier             controllers.v4.AssetController.copy(identifier:String)
+POST      /asset/v4/validate                     controllers.v4.AssetController.licenceValidate(field:Option[String])
+
+# Collection v4 Api's
+POST     /collection/v4/create                     controllers.v4.CollectionController.create()
+PATCH    /collection/v4/update/:identifier         controllers.v4.CollectionController.update(identifier:String)
+GET      /collection/v4/read/:identifier           controllers.v4.CollectionController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET      /collection/v4/private/read/:identifier   controllers.v4.CollectionController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
+POST     /collection/v4/flag/:identifier           controllers.v4.CollectionController.flag(identifier:String)
+POST     /collection/v4/flag/accept/:identifier    controllers.v4.CollectionController.acceptFlag(identifier:String)
+DELETE   /collection/v4/discard/:identifier        controllers.v4.CollectionController.discard(identifier:String)
+DELETE   /collection/v4/retire/:identifier         controllers.v4.CollectionController.retire(identifier:String)
+PATCH    /collection/v4/hierarchy/add              controllers.v4.CollectionController.addHierarchy()
+DELETE   /collection/v4/hierarchy/remove           controllers.v4.CollectionController.removeHierarchy()
+PATCH    /collection/v4/hierarchy/update           controllers.v4.CollectionController.updateHierarchy()
+GET      /collection/v4/hierarchy/:identifier      controllers.v4.CollectionController.getHierarchy(identifier:String, mode:Option[String])
+GET      /collection/v4/hierarchy/:identifier/:bookmarkId    controllers.v4.CollectionController.getBookmarkHierarchy(identifier: String, bookmarkId: String, mode: Option[String])
+POST     /collection/v4/dialcode/link/:identifier            controllers.v4.CollectionController.collectionLinkDialCode(identifier:String)
+POST     /collection/v4/copy/:identifier                     controllers.v4.CollectionController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
+PATCH    /collection/v4/system/update/:identifier            controllers.v4.CollectionController.systemUpdate(identifier:String)
+POST     /collection/v4/reject/:identifier          controllers.v4.CollectionController.reviewReject(identifier:String)
+POST     /collection/v4/publish/:identifier         controllers.v4.CollectionController.publish(identifier:String)
+POST     /collection/v4/unlisted/publish/:identifier  controllers.v4.CollectionController.publishUnlisted(identifier:String)
+
+# Content v4 APIs
+POST      /content/v4/create                       controllers.v4.ContentController.create()
+PATCH     /content/v4/update/:identifier           controllers.v4.ContentController.update(identifier:String)
+GET       /content/v4/read/:identifier             controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET       /content/v4/private/read/:identifier     controllers.v4.ContentController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
+POST      /content/v4/upload/url/:identifier       controllers.v4.ContentController.uploadPreSigned(identifier:String, type: Option[String])
+POST      /content/v4/upload/:identifier           controllers.v4.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
+POST      /content/v4/copy/:identifier             controllers.v4.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
+POST      /content/v4/dialcode/link                controllers.v4.ContentController.linkDialCode()
+POST      /content/v4/import                       controllers.v4.ContentController.importContent()
+POST      /content/v4/flag/:identifier             controllers.v4.ContentController.flag(identifier:String)
+POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentController.acceptFlag(identifier:String)
+DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
+DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
+PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentController.systemUpdate(identifier:String)
+POST      /content/v4/review/:identifier           controllers.v4.ContentController.review(identifier:String)
+POST      /content/v4/reject/:identifier           controllers.v4.ContentController.reviewReject(identifier:String)
+POST      /content/v4/dialcode/reserve/:identifier  controllers.v4.ContentController.reserveDialCode(identifier:String)
+POST      /content/v4/dialcode/release/:identifier  controllers.v4.ContentController.releaseDialCode(identifier:String)
+POST      /content/v4/publish/:identifier           controllers.v4.ContentController.publish(identifier:String)
+POST      /content/v4/unlisted/publish/:identifier  controllers.v4.ContentController.publishUnlisted(identifier:String)
+GET      /content/v4/process/status/:processid     controllers.v4.ContentController.getProcessIdStatus(processid: String)
+
+# App v4 APIs
+POST      /app/v4/register                          controllers.v4.AppController.register()
+PATCH     /app/v4/update/:identifier                controllers.v4.AppController.update(identifier:String)
+GET       /app/v4/read/:identifier                  controllers.v4.AppController.read(identifier:String, fields:Option[String])
+
+# Event APIs
+POST      /event/v4/create                          controllers.v4.EventController.create()
+PATCH     /event/v4/update/:identifier              controllers.v4.EventController.update(identifier:String)
+POST      /event/v4/publish/:identifier             controllers.v4.EventController.publish(identifier:String)
+GET       /event/v4/read/:identifier                controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String])
+DELETE    /event/v4/discard/:identifier             controllers.v4.EventController.discard(identifier:String)
+DELETE    /private/event/v4/retire/:identifier      controllers.v4.EventController.retire(identifier:String)
+
+# EventSet v4 Api's
+POST    /eventset/v4/create                      controllers.v4.EventSetController.create()
+PUT     /eventset/v4/update/:identifier          controllers.v4.EventSetController.update(identifier:String)
+POST    /eventset/v4/publish/:identifier         controllers.v4.EventSetController.publish(identifier:String)
+GET     /eventset/v4/hierarchy/:identifier       controllers.v4.EventSetController.getHierarchy(identifier:String, mode:Option[String], fields:Option[String])
+GET     /eventset/v4/read/:identifier            controllers.v4.EventSetController.read(identifier:String, mode:Option[String], fields:Option[String])
+DELETE  /eventset/v4/discard/:identifier         controllers.v4.EventSetController.discard(identifier:String)
+DELETE  /private/eventset/v4/retire/:identifier  controllers.v4.EventSetController.retire(identifier:String)
+
+# Object v4 Api's
+GET     /object/v4/read/:identifier              controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
+
+# Collection V4 APIs
+POST   /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
+GET    /collection/v4/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])
+POST   /collection/v4/review/:identifier            controllers.v4.CollectionController.review(identifier:String)
+POST   /collection/v4/dialcode/reserve/:identifier  controllers.v4.CollectionController.reserveDialCode(identifier:String)
+POST   /collection/v4/dialcode/release/:identifier  controllers.v4.CollectionController.releaseDialCode(identifier:String)
+
+# Framework API's
+POST      /framework/v3/create                            controllers.v3.FrameworkController.createFramework()
+GET       /framework/v3/read/:identifier                  controllers.v3.FrameworkController.readFramework(identifier:String, fields: Option[String],categories: Option[String])
+PATCH     /framework/v3/update/:identifier                controllers.v3.FrameworkController.updateFramework(identifier:String)
+POST      /framework/v3/list                              controllers.v3.FrameworkController.listFramework()
+DELETE    /framework/v3/retire/:identifier                controllers.v3.FrameworkController.retire(identifier:String)
+POST      /framework/v3/copy/:identifier                  controllers.v3.FrameworkController.copyFramework(identifier:String)
+POST      /framework/v3/publish/:identifier               controllers.v3.FrameworkController.publish(identifier:String)
+
+# Framework Category Master API's
+POST      /framework/v3/category/master/create                      controllers.v3.TaxonomyCategoryController.createCategory()
+GET       /framework/v3/category/master/read/:identifier            controllers.v3.TaxonomyCategoryController.readCategory(identifier:String)
+PATCH     /framework/v3/category/master/update/:identifier          controllers.v3.TaxonomyCategoryController.updateCategory(identifier:String)
+DELETE    /framework/v3/category/master/retire/:identifier          controllers.v3.TaxonomyCategoryController.retireCategory(identifier:String)
+
+# Framework Category Instance API's
+POST      /framework/v3/category/create                      controllers.v3.CategoryInstanceController.createCategoryInstance(framework: String)
+GET       /framework/v3/category/read/:category              controllers.v3.CategoryInstanceController.readCategoryInstance(category:String, framework: String)
+PATCH     /framework/v3/category/update/:category            controllers.v3.CategoryInstanceController.updateCategoryInstance(category:String, framework: String)
+DELETE    /framework/v3/category/retire/:category            controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
+
+# Term API's
+POST      /framework/v3/term/create                      controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
+GET       /framework/v3/term/read/:termId                controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
+PATCH     /framework/v3/term/update/:termId              controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
+DELETE    /framework/v3/term/retire/:termId              controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
+
+# Object Category API's
+POST      /object/category/v4/create                           controllers.v4.ObjectCategoryController.create()
+PATCH     /object/category/v4/update/:identifier               controllers.v4.ObjectCategoryController.update(identifier:String)
+GET       /object/category/v4/read/:identifier                 controllers.v4.ObjectCategoryController.read(identifier:String, fields:Option[String])
+
+# ObjectCategoryDefinition API's
+POST      /object/category/definition/v4/create                controllers.v4.ObjectCategoryDefinitionController.create()
+GET       /object/category/definition/v4/read/:identifier      controllers.v4.ObjectCategoryDefinitionController.read(identifier:String, fields:Option[String])
+PATCH     /object/category/definition/v4/update/:identifier    controllers.v4.ObjectCategoryDefinitionController.update(identifier:String)
+POST       /object/category/definition/v4/read                 controllers.v4.ObjectCategoryDefinitionController.readCategoryDefinition(fields:Option[String])
+
+# Lock API's
+POST        /v1/lock/create                                     controllers.v3.LockController.createLock()
+PATCH       /v1/lock/refresh                                    controllers.v3.LockController.refreshLock()
+DELETE      /v1/lock/retire                                     controllers.v3.LockController.retireLock()
+POST        /v1/lock/list                                       controllers.v3.LockController.listLock()
+

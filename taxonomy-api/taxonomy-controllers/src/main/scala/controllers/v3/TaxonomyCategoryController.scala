@@ -10,7 +10,7 @@ import utils.Constants
 import play.api.mvc.ControllerComponents
 import utils.{ActorNames, ApiId, JavaJsonUtils}
 
-class CategoryController  @Inject()(@Named(ActorNames.CATEGORY_ACTOR) categoryActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
+class TaxonomyCategoryController  @Inject()(@Named(ActorNames.CATEGORY_ACTOR) categoryActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
 
   val objectType = "Category"
   def createCategory() = Action.async { implicit request =>
