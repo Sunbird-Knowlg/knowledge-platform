@@ -1,48 +1,48 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET		  /health						                 controllers.HealthController.health()
+GET		  /health						                 taxonomy.controllers.HealthController.health()
 
 # Framework API's
-POST      /framework/v3/create                            controllers.v3.FrameworkController.createFramework()
-GET       /framework/v3/read/:identifier                  controllers.v3.FrameworkController.readFramework(identifier:String, fields: Option[String],categories: Option[String])
-PATCH     /framework/v3/update/:identifier                controllers.v3.FrameworkController.updateFramework(identifier:String)
-POST      /framework/v3/list                              controllers.v3.FrameworkController.listFramework()
-DELETE    /framework/v3/retire/:identifier                controllers.v3.FrameworkController.retire(identifier:String)
-POST      /framework/v3/copy/:identifier                  controllers.v3.FrameworkController.copyFramework(identifier:String)
-POST      /framework/v3/publish/:identifier               controllers.v3.FrameworkController.publish(identifier:String)
+POST      /framework/v3/create                            taxonomy.controllers.v3.FrameworkController.createFramework()
+GET       /framework/v3/read/:identifier                  taxonomy.controllers.v3.FrameworkController.readFramework(identifier:String, fields: Option[String],categories: Option[String])
+PATCH     /framework/v3/update/:identifier                taxonomy.controllers.v3.FrameworkController.updateFramework(identifier:String)
+POST      /framework/v3/list                              taxonomy.controllers.v3.FrameworkController.listFramework()
+DELETE    /framework/v3/retire/:identifier                taxonomy.controllers.v3.FrameworkController.retire(identifier:String)
+POST      /framework/v3/copy/:identifier                  taxonomy.controllers.v3.FrameworkController.copyFramework(identifier:String)
+POST      /framework/v3/publish/:identifier               taxonomy.controllers.v3.FrameworkController.publish(identifier:String)
 
 # Category API's
-POST      /framework/v3/category/master/create                      controllers.v3.TaxonomyCategoryController.createCategory()
-GET       /framework/v3/category/master/read/:identifier            controllers.v3.TaxonomyCategoryController.readCategory(identifier:String)
-PATCH     /framework/v3/category/master/update/:identifier          controllers.v3.TaxonomyCategoryController.updateCategory(identifier:String)
-DELETE    /framework/v3/category/master/retire/:identifier          controllers.v3.TaxonomyCategoryController.retireCategory(identifier:String)
+POST      /framework/v3/category/master/create                      taxonomy.controllers.v3.TaxonomyCategoryController.createCategory()
+GET       /framework/v3/category/master/read/:identifier            taxonomy.controllers.v3.TaxonomyCategoryController.readCategory(identifier:String)
+PATCH     /framework/v3/category/master/update/:identifier          taxonomy.controllers.v3.TaxonomyCategoryController.updateCategory(identifier:String)
+DELETE    /framework/v3/category/master/retire/:identifier          taxonomy.controllers.v3.TaxonomyCategoryController.retireCategory(identifier:String)
 
 # Framework Category API's
-POST      /framework/v3/category/create                      controllers.v3.CategoryInstanceController.createCategoryInstance(framework: String)
-GET       /framework/v3/category/read/:category              controllers.v3.CategoryInstanceController.readCategoryInstance(category:String, framework: String)
-PATCH     /framework/v3/category/update/:category            controllers.v3.CategoryInstanceController.updateCategoryInstance(category:String, framework: String)
-DELETE    /framework/v3/category/retire/:category            controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
+POST      /framework/v3/category/create                      taxonomy.controllers.v3.CategoryInstanceController.createCategoryInstance(framework: String)
+GET       /framework/v3/category/read/:category              taxonomy.controllers.v3.CategoryInstanceController.readCategoryInstance(category:String, framework: String)
+PATCH     /framework/v3/category/update/:category            taxonomy.controllers.v3.CategoryInstanceController.updateCategoryInstance(category:String, framework: String)
+DELETE    /framework/v3/category/retire/:category            taxonomy.controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
 
 # Term API's
-POST      /framework/v3/term/create                      controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
-GET       /framework/v3/term/read/:termId                controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
-PATCH     /framework/v3/term/update/:termId              controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
-DELETE    /framework/v3/term/retire/:termId              controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
+POST      /framework/v3/term/create                      taxonomy.controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
+GET       /framework/v3/term/read/:termId                taxonomy.controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
+PATCH     /framework/v3/term/update/:termId              taxonomy.controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
+DELETE    /framework/v3/term/retire/:termId              taxonomy.controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
 
 # Object Category API's
-POST      /object/category/v4/create                           controllers.v4.ObjectCategoryController.create()
-PATCH     /object/category/v4/update/:identifier               controllers.v4.ObjectCategoryController.update(identifier:String)
-GET       /object/category/v4/read/:identifier                 controllers.v4.ObjectCategoryController.read(identifier:String, fields:Option[String])
+POST      /object/category/v4/create                           taxonomy.controllers.v4.ObjectCategoryController.create()
+PATCH     /object/category/v4/update/:identifier               taxonomy.controllers.v4.ObjectCategoryController.update(identifier:String)
+GET       /object/category/v4/read/:identifier                 taxonomy.controllers.v4.ObjectCategoryController.read(identifier:String, fields:Option[String])
 
 # ObjectCategoryDefinition API's
-POST      /object/category/definition/v4/create                controllers.v4.ObjectCategoryDefinitionController.create()
-GET       /object/category/definition/v4/read/:identifier      controllers.v4.ObjectCategoryDefinitionController.read(identifier:String, fields:Option[String])
-PATCH     /object/category/definition/v4/update/:identifier    controllers.v4.ObjectCategoryDefinitionController.update(identifier:String)
-POST       /object/category/definition/v4/read                 controllers.v4.ObjectCategoryDefinitionController.readCategoryDefinition(fields:Option[String])
+POST      /object/category/definition/v4/create                taxonomy.controllers.v4.ObjectCategoryDefinitionController.create()
+GET       /object/category/definition/v4/read/:identifier      taxonomy.controllers.v4.ObjectCategoryDefinitionController.read(identifier:String, fields:Option[String])
+PATCH     /object/category/definition/v4/update/:identifier    taxonomy.controllers.v4.ObjectCategoryDefinitionController.update(identifier:String)
+POST       /object/category/definition/v4/read                 taxonomy.controllers.v4.ObjectCategoryDefinitionController.readCategoryDefinition(fields:Option[String])
 
 # Lock API's
-POST        /v1/lock/create                                     controllers.v3.LockController.createLock()
-PATCH       /v1/lock/refresh                                    controllers.v3.LockController.refreshLock()
-DELETE      /v1/lock/retire                                     controllers.v3.LockController.retireLock()
-POST        /v1/lock/list                                       controllers.v3.LockController.listLock()
+POST        /v1/lock/create                                     taxonomy.controllers.v3.LockController.createLock()
+PATCH       /v1/lock/refresh                                    taxonomy.controllers.v3.LockController.refreshLock()
+DELETE      /v1/lock/retire                                     taxonomy.controllers.v3.LockController.retireLock()
+POST        /v1/lock/list                                       taxonomy.controllers.v3.LockController.listLock()

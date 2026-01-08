@@ -5,6 +5,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{OK, status, _}
+import taxonomy.controllers.v4.ObjectCategoryController
 
 
 @RunWith(classOf[JUnitRunner])

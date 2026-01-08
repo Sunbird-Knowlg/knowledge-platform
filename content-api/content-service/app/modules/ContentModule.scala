@@ -1,13 +1,11 @@
 package modules
 
 import com.google.inject.AbstractModule
-import com.google.inject.name.Names
-import org.apache.pekko.actor.ActorRef
+import content.utils.ActorNames
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
-import org.sunbird.content.actors.{AppActor, AssetActor, CategoryActor, CollectionActor, ContentActor, EventActor, EventSetActor, HealthActor, LicenseActor, ObjectActor}
+import org.sunbird.content.actors._
 import play.api.libs.concurrent.PekkoGuiceSupport
-import utils.ActorNames
 
 class ContentModule extends AbstractModule with PekkoGuiceSupport {
 
@@ -21,7 +19,6 @@ class ContentModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[EventActor](ActorNames.EVENT_ACTOR)
         bindActor[EventSetActor](ActorNames.EVENT_SET_ACTOR)
         bindActor[ChannelActor](ActorNames.CHANNEL_ACTOR)
-        bindActor[CategoryActor](ActorNames.CATEGORY_ACTOR)
         bindActor[AssetActor](ActorNames.ASSET_ACTOR)
         bindActor[AppActor](ActorNames.APP_ACTOR)
         bindActor[ObjectActor](ActorNames.OBJECT_ACTOR)
