@@ -5,6 +5,8 @@ import org.apache.tinkerpop.gremlin.driver.Cluster;
 import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph;
+import org.janusgraph.core.JanusGraph;
+import org.janusgraph.core.JanusGraphFactory;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.service.common.DACConfigurationConstants;
@@ -23,6 +25,7 @@ public class DriverUtil {
 
 	private static Map<String, GraphTraversalSource> graphTraversalSourceMap = new HashMap<>();
 	private static Map<String, Cluster> clusterMap = new HashMap<>();
+	private static Map<String, JanusGraph> janusGraphMap = new HashMap<>();
 
 	public static GraphTraversalSource getGraphTraversalSource(String graphId, GraphOperation graphOperation) {
 		TelemetryManager.log("Get GraphTraversalSource for Graph Id: "+ graphId);
@@ -80,6 +83,17 @@ public class DriverUtil {
 			}
 			it.remove();
 		}
+		
+		for (Iterator<Map.Entry<String, JanusGraph>> it = janusGraphMap.entrySet().iterator(); it.hasNext();) {
+			Map.Entry<String, JanusGraph> entry = it.next();
+			JanusGraph graph = entry.getValue();
+			try {
+				graph.close();
+			} catch (Exception e) {
+				TelemetryManager.error("Error closing JanusGraph", e);
+			}
+			it.remove();
+		}
 	}
 
 	private static void registerShutdownHook(GraphTraversalSource g, Cluster cluster) {
@@ -119,4 +133,46 @@ public class DriverUtil {
 		return routeUrl;
 	}
 
+	/**
+	 * Get a direct JanusGraph instance for schema management operations
+	 * This is needed for operations that require JanusGraphManagement API
+	 * 
+	 * @param graphId the graph identifier
+	 * @return JanusGraph instance
+	 */
+	public static JanusGraph getJanusGraph(String graphId) {
+		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
+		
+		JanusGraph graph = janusGraphMap.get(graphId);
+		if (null == graph) {
+			graph = loadJanusGraph(graphId);
+			janusGraphMap.put(graphId, graph);
+		}
+		return graph;
+	}
+
+	private static JanusGraph loadJanusGraph(String graphId) {
+		TelemetryManager.log("Loading JanusGraph instance for Graph Id: " + graphId);
+		String route = getRoute(graphId, GraphOperation.WRITE);
+		
+		// Get configuration from Platform config if available
+		String storageBackend = Platform.config.hasPath("graph.storage.backend") ?
+				Platform.config.getString("graph.storage.backend") : "cql";
+		String storageHostname = Platform.config.hasPath("graph.storage.hostname") ?
+				Platform.config.getString("graph.storage.hostname") : route.split(":")[0];
+		
+		// Build configuration properties map
+		org.apache.commons.configuration2.MapConfiguration conf = new org.apache.commons.configuration2.MapConfiguration(
+			new java.util.HashMap<String, Object>() {{
+				put("storage.backend", storageBackend);
+				put("storage.hostname", storageHostname);
+			}}
+		);
+		
+		// Create and open JanusGraph
+		JanusGraph graph = JanusGraphFactory.open(conf);
+		
+		TelemetryManager.log("JanusGraph instance loaded for Graph Id: " + graphId);
+		return graph;
+	}
 }

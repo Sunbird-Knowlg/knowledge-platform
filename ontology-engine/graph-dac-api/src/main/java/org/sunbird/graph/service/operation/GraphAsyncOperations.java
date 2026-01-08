@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.sunbird.common.dto.Request;
 import org.sunbird.common.dto.Response;
 import org.sunbird.common.dto.ResponseHandler;
 import org.sunbird.common.exception.ClientException;
@@ -146,16 +147,14 @@ public class GraphAsyncOperations {
 					Vertex startVertex = GremlinQueryBuilder.getVertexByIdentifier(g, graphId, nodeId).next();
 					
 					// Traverse the graph up to the specified depth
-					List<Object> traversalResults = g.V(startVertex.id())
+					List<org.apache.tinkerpop.gremlin.process.traversal.Path> traversalResults = g.V(startVertex.id())
 							.repeat(bothE().otherV().simplePath())
 							.times(finalDepth)
 							.path()
 							.toList();
 					
 					// Process results
-					for (Object pathObj : traversalResults) {
-						org.apache.tinkerpop.gremlin.process.traversal.Path path = 
-							(org.apache.tinkerpop.gremlin.process.traversal.Path) pathObj;
+					for (org.apache.tinkerpop.gremlin.process.traversal.Path path : traversalResults) {
 						
 						for (Object obj : path.objects()) {
 							if (obj instanceof Vertex) {
@@ -206,6 +205,246 @@ public class GraphAsyncOperations {
 					TelemetryManager.error("Error getting subgraph", e);
 					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
 							"Error! Something went wrong while getting subgraph. ", e);
+				}
+			});
+			
+			return FutureConverters.toScala(future);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (!(e instanceof MiddlewareException)) {
+				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Create bulk outgoing relations (one-to-many) from a single start node to multiple end nodes
+	 * Supports UNWIND-style batch operations for efficient relation creation (100+ relations)
+	 * 
+	 * @param graphId the graph identifier
+	 * @param startNodeId the start node identifier  
+	 * @param endNodeIds list of end node identifiers
+	 * @param relationType the relation type
+	 * @param createMetadata metadata to set on newly created relations
+	 * @param matchMetadata metadata to set on existing relations
+	 * @return Future Response
+	 */
+	public static Future<Response> createBulkOutgoingRelations(String graphId, String startNodeId,
+			List<String> endNodeIds, String relationType, Map<String, Object> createMetadata,
+			Map<String, Object> matchMetadata) {
+		
+		try {
+			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+				try {
+					Request request = new Request();
+					if (createMetadata != null) request.getRequest().put("createMetadata", createMetadata);
+					if (matchMetadata != null) request.getRequest().put("matchMetadata", matchMetadata);
+					JanusGraphOperations.createOutgoingRelations(graphId, startNodeId, endNodeIds, 
+							relationType, request);
+					return ResponseHandler.OK();
+				} catch (Exception e) {
+					TelemetryManager.error("Error creating bulk outgoing relations", e);
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while creating bulk outgoing relations. ", e);
+				}
+			});
+			
+			return FutureConverters.toScala(future);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (!(e instanceof MiddlewareException)) {
+				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Create bulk incoming relations (many-to-one) from multiple start nodes to a single end node
+	 * Supports UNWIND-style batch operations for efficient relation creation (100+ relations)
+	 * 
+	 * @param graphId the graph identifier
+	 * @param startNodeIds list of start node identifiers
+	 * @param endNodeId the end node identifier
+	 * @param relationType the relation type
+	 * @param createMetadata metadata to set on newly created relations
+	 * @param matchMetadata metadata to set on existing relations
+	 * @return Future Response
+	 */
+	public static Future<Response> createBulkIncomingRelations(String graphId, List<String> startNodeIds,
+			String endNodeId, String relationType, Map<String, Object> createMetadata,
+			Map<String, Object> matchMetadata) {
+		
+		try {
+			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+				try {
+					Request request = new Request();
+					if (createMetadata != null) request.getRequest().put("createMetadata", createMetadata);
+					if (matchMetadata != null) request.getRequest().put("matchMetadata", matchMetadata);
+					JanusGraphOperations.createIncomingRelations(graphId, startNodeIds, endNodeId, 
+							relationType, request);
+					return ResponseHandler.OK();
+				} catch (Exception e) {
+					TelemetryManager.error("Error creating bulk incoming relations", e);
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while creating bulk incoming relations. ", e);
+				}
+			});
+			
+			return FutureConverters.toScala(future);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (!(e instanceof MiddlewareException)) {
+				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Delete bulk outgoing relations (one-to-many) from a single start node to multiple end nodes
+	 * Supports UNWIND-style batch operations for efficient relation deletion (100+ relations)
+	 * 
+	 * @param graphId the graph identifier
+	 * @param startNodeId the start node identifier
+	 * @param endNodeIds list of end node identifiers
+	 * @param relationType the relation type
+	 * @return Future Response
+	 */
+	public static Future<Response> deleteBulkOutgoingRelations(String graphId, String startNodeId,
+			List<String> endNodeIds, String relationType) {
+		
+		try {
+			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+				try {
+					Request request = new Request();
+					JanusGraphOperations.deleteOutgoingRelations(graphId, startNodeId, endNodeIds, relationType, request);
+					return ResponseHandler.OK();
+				} catch (Exception e) {
+					TelemetryManager.error("Error deleting bulk outgoing relations", e);
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while deleting bulk outgoing relations. ", e);
+				}
+			});
+			
+			return FutureConverters.toScala(future);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (!(e instanceof MiddlewareException)) {
+				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Delete bulk incoming relations (many-to-one) from multiple start nodes to a single end node
+	 * Supports UNWIND-style batch operations for efficient relation deletion (100+ relations)
+	 * 
+	 * @param graphId the graph identifier
+	 * @param startNodeIds list of start node identifiers
+	 * @param endNodeId the end node identifier
+	 * @param relationType the relation type
+	 * @return Future Response
+	 */
+	public static Future<Response> deleteBulkIncomingRelations(String graphId, List<String> startNodeIds,
+			String endNodeId, String relationType) {
+		
+		try {
+			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+				try {
+					Request request = new Request();
+					JanusGraphOperations.deleteIncomingRelations(graphId, startNodeIds, endNodeId, relationType, request);
+					return ResponseHandler.OK();
+				} catch (Exception e) {
+					TelemetryManager.error("Error deleting bulk incoming relations", e);
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while deleting bulk incoming relations. ", e);
+				}
+			});
+			
+			return FutureConverters.toScala(future);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (!(e instanceof MiddlewareException)) {
+				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Create a collection node and link all members with sequence indices
+	 * Implements Neo4j MERGE behavior for collection node + batch member linking
+	 * 
+	 * @param graphId the graph id
+	 * @param collectionId the collection node identifier
+	 * @param collection the collection node with metadata
+	 * @param members list of member node identifiers
+	 * @param relationType the relation type to link members
+	 * @param indexProperty the property name for sequence index (e.g., "IL_SEQUENCE_INDEX")
+	 * @return Future Response with collection Node
+	 */
+	public static Future<Response> createCollection(String graphId, String collectionId, Node collection,
+			List<String> members, String relationType, String indexProperty) {
+		
+		try {
+			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+				try {
+					Node result = JanusGraphCollectionOperations.createCollection(graphId, collectionId, 
+							collection, members, relationType, indexProperty);
+					Response response = ResponseHandler.OK();
+					response.put(GraphDACParams.node.name(), result);
+					return response;
+				} catch (Exception e) {
+					TelemetryManager.error("Error creating collection", e);
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while creating collection. ", e);
+				}
+			});
+			
+			return FutureConverters.toScala(future);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (!(e instanceof MiddlewareException)) {
+				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
+						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	/**
+	 * Delete a collection node with all its edges (DETACH DELETE)
+	 * Removes the collection node and all incoming/outgoing relationships
+	 * 
+	 * @param graphId the graph id
+	 * @param collectionId the collection node identifier
+	 * @return Future Response
+	 */
+	public static Future<Response> deleteCollection(String graphId, String collectionId) {
+		
+		try {
+			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
+				try {
+					JanusGraphCollectionOperations.deleteCollection(graphId, collectionId);
+					return ResponseHandler.OK();
+				} catch (Exception e) {
+					TelemetryManager.error("Error deleting collection", e);
+					throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
+							"Error! Something went wrong while deleting collection. ", e);
 				}
 			});
 			

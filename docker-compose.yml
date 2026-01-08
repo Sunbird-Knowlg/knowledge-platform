@@ -1,37 +1,48 @@
 version: "3.0"
 services:
+  sunbird-yugabyte:
+    image: yugabytedb/yugabyte:latest
+    container_name: "sunbird_yugabyte"
+    ports:
+      - 9042:9042  # YCQL (Cassandra-compatible) port
+      - 5434:5433  # YSQL (PostgreSQL-compatible) port - mapped to 5434
+      - 7001:7000  # Master webserver (mapped to 7001 to avoid conflicts)
+      - 9001:9000  # Master RPC (mapped to 9001 to avoid conflicts)
+    volumes:
+      - $sunbird_dbs_path/yugabyte/data:/home/yugabyte/yb_data
+    command: ["bin/yugabyted", "start", "--daemon=false", "--ui=false"]
+    healthcheck:
+      test: ["CMD", "bin/yugabyted", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   sunbird-janusgraph:
     image: janusgraph/janusgraph:latest
     container_name: "sunbird_janusgraph"
     ports:
-      - 8182:8182
+      - 8182:8182  # Gremlin Server port
+    depends_on:
+      sunbird-yugabyte:
+        condition: service_healthy
     volumes:
       - $sunbird_dbs_path/janusgraph/data:/var/lib/janusgraph/data
       - $sunbird_dbs_path/janusgraph/logs:/var/lib/janusgraph/logs
     environment:
+      - JANUS_PROPS_TEMPLATE=cql
       - janusgraph.storage.backend=cql
-      - janusgraph.storage.hostname=sunbird-cassandra
-
-  sunbird-cassandra:
-    image: cassandra:3.11.11
-    container_name: "sunbird_cassandra"
-    ports:
-      - 9042:9042
-    depends_on:
-      - sunbird-janusgraph
-    volumes:
-      - $sunbird_dbs_path/cassandra/data:/var/lib/cassandra
-      - $sunbird_dbs_path/cassandra/logs:/opt/cassandra/logs
-      - $sunbird_dbs_path/cassandra/backups:/mnt/backups
+      - janusgraph.storage.hostname=sunbird-yugabyte
+      - janusgraph.storage.port=9042
+      - janusgraph.storage.cql.keyspace=janusgraph
 
   sunbird-redis: 
     image: redis:6.0.8
     container_name: "sunbird_redis"
     ports:
-      - 6379:6379
-    command: redis-server /usr/local/etc/redis/redis.conf
+      - 6380:6379  # Redis port - mapped to 6380 to avoid conflicts
+    command: redis-server
     volumes:
-     - $sunbird_dbs_path/redis/redis.conf:/usr/local/etc/redis/redis.conf
+     - $sunbird_dbs_path/redis:/data
 
   zookeeper:
     image: 'wurstmeister/zookeeper:latest'

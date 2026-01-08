@@ -16,6 +16,10 @@
 		<scala.version>2.13.12</scala.version>
 		<scalatest.version>3.0.8</scalatest.version>
 		<fasterxml.jackson.version>2.15.3</fasterxml.jackson.version>
+		<!-- Cloud Store SDK properties (configure based on your cloud provider) -->
+		<CLOUD_STORE_GROUP_ID>org.sunbird</CLOUD_STORE_GROUP_ID>
+		<CLOUD_STORE_ARTIFACT_ID>cloud-store-sdk_2.13</CLOUD_STORE_ARTIFACT_ID>
+		<CLOUD_STORE_VERSION>1.4.8.1</CLOUD_STORE_VERSION>
 	</properties>
 	<profiles>
 		<profile>

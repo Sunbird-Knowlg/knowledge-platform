@@ -11,7 +11,7 @@ Below are the steps to set up the Sunbird Knowlg Microservices, DBs with seed da
 ### Prepare folders for database data and logs
 
 ```shell
-mkdir -p ~/sunbird-dbs/neo4j ~/sunbird-dbs/cassandra ~/sunbird-dbs/redis ~/sunbird-dbs/es ~/sunbird-dbs/kafka
+mkdir -p ~/sunbird-dbs/janusgraph ~/sunbird-dbs/yugabyte ~/sunbird-dbs/redis ~/sunbird-dbs/es ~/sunbird-dbs/kafka
 export sunbird_dbs_path=~/sunbird-dbs
 ```
 
@@ -49,56 +49,66 @@ Please use the minikube to quickly set up the kubernetes cluster in local machin
 minikube start
 ```
 
-### Load Docker Images to Minikube Cluster
-```shell
-minikube image load neo4j:3.3.0
-minikube image load taxonomy-service:R5.0.0
-```
-
-### Create Namespace 
-Create the namespaces to deploy the API microservices, DBs and Jobs.
-1. knowlg-api
-2. knowlg-db
-3. knowlg-job
-
-```shell
-kubectl create namespace knowlg-api
-kubectl create namespace knowlg-db
-kubectl create namespace knowlg-job
-```
-
-### Setup Databases
-Please run the below `helm` commands to set up the required databases within the kubernets cluster.
-It requires the below DBs for Knowlg.
-1. Neo4J
-2. Cassandra
+### Setup Databases Using Docker Compose
+We now use Docker Compose for local development instead of Kubernetes/Minikube.
+The required databases for Knowlg are:
+1. **JanusGraph** (replaces Neo4j) - Graph database using Gremlin traversal language
+2. **Yugabyte** (replaces Cassandra) - Distributed SQL with Cassandra CQL compatibility
 3. Elasticsearch
 4. Kafka
 5. Redis
 
+#### Start All Database Services
 ```shell
-cd kubernetes
-helm install redis sunbird-dbs/redis -n knowlg-db
+docker-compose up -d
+```
 
-minikube mount <LOCAL_SOURCE_DIR>:/var/lib/neo4j/data // LOCAL_SOURCE_DIR is where neo4j dump is extracted Ex: /Users/abc/sunbird-dbs/neo4j/data
-helm install neo4j sunbird-dbs/neo4j -n knowlg-db
+This will start:
+- **sunbird-yugabyte** - Yugabyte database on ports 9042 (YCQL), 5433 (YSQL)
+- **sunbird-janusgraph** - JanusGraph with Gremlin Server on port 8182
+- **sunbird-redis** - Redis on port 6379
+- **sunbird-kafka** - Kafka on port 9092
+- **sunbird-zookeeper** - Zookeeper on port 2181
 
-minikube mount <LOCAL_SOURCE_DIR>:/mnt/backups // LOCAL_SOURCE_DIR is where neo4j dump is extracted Ex: /Users/abc/sunbird-dbs/cassandra/backups
-helm install cassandra sunbird-dbs/cassandra -n knowlg-db
+#### Initialize Database Schema and Keyspaces
+Run the setup script to create Yugabyte keyspaces and JanusGraph schema:
 
-ssh to cassandra pod
-run => cqlsh
-run => source '/mnt/backups/cassandra_backup/db_schema.cql';
+```shell
+chmod +x setup-databases.sh
+./setup-databases.sh
+```
+
+This script will:
+- Create 7 Yugabyte keyspaces: content_store, hierarchy_store, question_store, dialcodes, category_store, janusgraph, sunbirddev_dialcode_store
+- Initialize JanusGraph schema with vertex labels (Content, Concept, Domain) and edge labels (hasContent, associatedTo)
+- Create necessary indices
+
+#### Verify Database Connectivity
+```shell
+chmod +x test-connections.sh
+./test-connections.sh
 ```
 
 **Note:** 
-- The `helm` charts for Kafka, Elasticsearch will be added soon.
+- JanusGraph uses WebSocket protocol (ws://localhost:8182/gremlin) instead of Neo4j's Bolt protocol
+- Yugabyte is fully Cassandra-compatible and uses the same CQL interface on port 9042
+- See DATABASE-MIGRATION.md and JANUSGRAPH-QUERY-REFERENCE.md for migration details
 
 ### Define ConfigMap
-We use the configmap to load the configuration for the microservices.
+We use configuration files for the microservices (Docker Compose approach - configurations are already updated in application.conf files).
 
-#### ConfigMap for Taxonomy-Service
-Use the below commands to load the configmap of taxonomy-service.
+**Note:** The following configurations have been updated to use Yugabyte and JanusGraph:
+- `content-api/content-service/conf/application.conf`
+- `taxonomy-api/taxonomy-service/conf/application.conf`
+- `taxonomy-service-sbt/conf/application.conf`
+
+Key configuration changes:
+- **Yugabyte YCQL endpoint**: `cassandra.lp.connection="127.0.0.1:9042"`
+- **JanusGraph Gremlin endpoint**: `route.domain="ws://localhost:8182/gremlin"`
+- All Neo4j `bolt://` URLs replaced with JanusGraph `ws://` WebSocket endpoints
+
+#### ConfigMap for Taxonomy-Service (Kubernetes deployment)
+If using Kubernetes, use these commands to load the configmap:
 1. `taxonomy-config` - this has the application configuration. Please update the variables with respect to your context and load.
 2. `taxonomy-xml-config` - this has the logback configuration to handle the logs.
 

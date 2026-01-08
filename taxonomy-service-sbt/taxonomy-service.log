@@ -1,0 +1,12 @@
+[info] [launcher] getting org.scala-sbt sbt 1.6.2  (this may take some time)...
+[info] [launcher] getting Scala 2.12.15 (for sbt)...
+[info] welcome to sbt 1.6.2 (Eclipse Adoptium Java 11.0.28)
+[info] loading settings for project taxonomy-service-sbt-build from plugins.sbt ...
+[info] loading project definition from /Users/sanketikam4/January/knowledge-platform/taxonomy-service-sbt/project
+/Users/sanketikam4/January/knowledge-platform/taxonomy-service-sbt/build.sbt:6: error: not found: value PlayAkkaHttpServer
+  .disablePlugins(PlayAkkaHttpServer)
+                  ^
+sbt.compiler.EvalException: Type error in expression
+[error] sbt.compiler.EvalException: Type error in expression
+[error] Use 'last' for the full log.
+[warn] Project loading failed: (r)etry, (q)uit, (l)ast, or (i)gnore? (default: r)

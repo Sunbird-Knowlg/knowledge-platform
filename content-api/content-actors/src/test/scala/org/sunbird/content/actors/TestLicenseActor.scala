@@ -23,7 +23,7 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new LicenseActor()), getLicenseRequest())
   }
 
-  it should "create a licenseNode and store it in neo4j" in {
+  it should "create a licenseNode and store it in JanusGraph" in {
     implicit val ss = mock[StorageService]
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]

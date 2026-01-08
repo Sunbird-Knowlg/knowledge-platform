@@ -23,7 +23,7 @@ class ObjectCategoryDefinitionActorTest extends BaseSpec with MockFactory {
 		testUnknownOperation(Props(new ObjectCategoryDefinitionActor()), getCategoryDefintionRequest())
 	}
 
-	it should "create a categoryDefinition node and store it in neo4j" in {
+	it should "create a categoryDefinition node and store it in JanusGraph" in {
 		implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 		val graphDB = mock[GraphService]
 		(oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()

@@ -211,4 +211,37 @@ public class JanusGraphNodeUtil {
         
         return properties;
     }
+    
+    /**
+     * Convert a JanusGraph Edge to a Relation object
+     * 
+     * @param edge the JanusGraph edge
+     * @return Relation object
+     */
+    public static Relation getRelation(Edge edge) {
+        if (edge == null) {
+            return null;
+        }
+        
+        Relation relation = new Relation();
+        relation.setRelationType(edge.label());
+        
+        // Get start and end node IDs
+        Vertex outVertex = edge.outVertex();
+        Vertex inVertex = edge.inVertex();
+        
+        if (outVertex != null && outVertex.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
+            relation.setStartNodeId((String) outVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value());
+        }
+        
+        if (inVertex != null && inVertex.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
+            relation.setEndNodeId((String) inVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value());
+        }
+        
+        // Set relation metadata from edge properties
+        Map<String, Object> metadata = getEdgeProperties(edge);
+        relation.setMetadata(metadata);
+        
+        return relation;
+    }
 }
