@@ -5,6 +5,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import taxonomy.controllers.v4.ObjectCategoryDefinitionController
 
 @RunWith(classOf[JUnitRunner])
 class ObjectCategoryDefinitionSpec extends BaseSpec {

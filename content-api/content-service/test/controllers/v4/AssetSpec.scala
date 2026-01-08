@@ -1,7 +1,8 @@
 package controllers.v4
 
-import java.io.File
+import content.controllers.v4.AssetController
 
+import java.io.File
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -19,7 +20,7 @@ class AssetSpec extends BaseSpec {
 
     "AssetController " should {
         "return success response for create API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val json: JsValue = Json.parse("""{"request": {"asset": { "primaryCategory": "Asset"}}}""")
             val fakeRequest = FakeRequest("POST", "/asset/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
@@ -29,21 +30,21 @@ class AssetSpec extends BaseSpec {
 
 
         "return success response for update API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val result = controller.update("do_123")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for read API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val result = controller.read("do_123", None, None)(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for upload API with file" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val file = new File("test/resources/sample.pdf")
             val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
             val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
@@ -54,7 +55,7 @@ class AssetSpec extends BaseSpec {
         }
 
         "return success response for upload API with fileUrl" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val file = new File("test/resources/sample.pdf")
             val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
             val multipartBody = MultipartFormData(Map[String, Seq[String]]("fileUrl" -> Seq("https://abc.com/content/sample.pdf"), "filePath" -> Seq("/program/id")), files, Seq[BadPart]())
@@ -65,7 +66,7 @@ class AssetSpec extends BaseSpec {
         }
 
         "return success response for upload API with fileUrl and fileFormat" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val file = new File("test/resources/sample.pdf")
             val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
             val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
@@ -76,14 +77,14 @@ class AssetSpec extends BaseSpec {
         }
 
         "return success response for pre signed Url upload API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val result = controller.uploadPreSigned("01234", None)(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for copy API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val json: JsValue = Json.parse("""{"request": {"asset": { "name": "Asset-Test"}}}""")
             val fakeRequest = FakeRequest("POST", "/asset/v4/copy ").withJsonBody(json)
             val result = controller.copy("01234")(fakeRequest)
@@ -92,7 +93,7 @@ class AssetSpec extends BaseSpec {
         }
 
         "return success response for licenceValidate API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val json: JsValue = Json.parse("""{"request":{"asset":{"provider":"test-provider","url":"test-url"}}}""")
             val fakeRequest = FakeRequest("POST", "/asset/v4/validate?field=license ").withJsonBody(json)
             val result = controller.licenceValidate(Some("test-field"))(fakeRequest)
@@ -103,7 +104,7 @@ class AssetSpec extends BaseSpec {
 
     "Asset controller with invalid request " should {
         "return client error response for create API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val json: JsValue = Json.parse("""{"request": {"asset": { "contentType": "Asset"}}}""")
             val fakeRequest = FakeRequest("POST", "/asset/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
@@ -113,7 +114,7 @@ class AssetSpec extends BaseSpec {
 
     "Asset controller with invalid request " should {
         "return client error response for create API" in {
-            val controller = app.injector.instanceOf[controllers.v4.AssetController]
+            val controller = app.injector.instanceOf[AssetController]
             val json: JsValue = Json.parse("""{"request": {"asset": { "name": "Asset"}}}""")
             val fakeRequest = FakeRequest("POST", "/asset/v4/create ").withJsonBody(json)
             val result = controller.create()(fakeRequest)
