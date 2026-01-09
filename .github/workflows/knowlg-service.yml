@@ -1,4 +1,4 @@
-name: Build and Push Content Service Image
+name: Build and Push Knowlg Service Image
 
 on:
   push:
@@ -17,9 +17,9 @@ jobs:
       - name: Check if build is enabled
         id: check
         run: |
-          ENABLED=$(cat .github/build-config.json | jq -r '.services.content_service')
+          ENABLED=$(cat .github/build-config.json | jq -r '.services.knowlg_service')
           echo "enabled=$ENABLED" >> $GITHUB_OUTPUT
-          echo "Content Service build enabled: $ENABLED"
+          echo "Knowlg Service build enabled: $ENABLED"
 
   build-and-push:
     needs: check-config
@@ -52,7 +52,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 4: Build the project
-      - name: Build Content Service
+      - name: Build Knowlg Service
         run: |
           mvn clean install -DskipTests=true \
             -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
@@ -60,24 +60,23 @@ jobs:
             -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
 
       # Step 5: Package the project
-      - name: Package Content Service
+      - name: Package Knowlg Service
         run: |
-          cd content-api
-          mvn play2:dist -pl content-service \
+          mvn play2:dist -pl knowlg-service \
             -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
             -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
             -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
 
-      # Step 6: Build Docker image 
+      # Step 6: Build Docker image
       - name: Build Docker Image
         run: |
-          IMAGE_NAME="content-service"
+          IMAGE_NAME="knowlg-service"
           IMAGE_TAG=$(echo "${{ github.ref_name }}_$(echo $GITHUB_SHA | cut -c1-7)" | tr '[:upper:]' '[:lower:]')
-          docker build -f build/content-service/Dockerfile -t $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG} .
+          docker build -f build/knowlg-service/Dockerfile -t $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG} .
 
           echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-     
+
       # Step 7: Push Docker Image
       - name: Push Docker Image
         run: |

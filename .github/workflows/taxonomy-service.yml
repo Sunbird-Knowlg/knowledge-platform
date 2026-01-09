@@ -6,13 +6,30 @@ on:
       - '*'
 
 jobs:
+  check-config:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.enabled }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check if build is enabled
+        id: check
+        run: |
+          ENABLED=$(cat .github/build-config.json | jq -r '.services.taxonomy_service')
+          echo "enabled=$ENABLED" >> $GITHUB_OUTPUT
+          echo "Taxonomy Service build enabled: $ENABLED"
+
   build-and-push:
+    needs: check-config
+    if: needs.check-config.outputs.should_build == 'true'
     runs-on: ubuntu-latest
 
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Step 2: Set up JDK 11 and Maven
       - name: Set up JDK 11 and Maven
