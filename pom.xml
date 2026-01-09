@@ -27,6 +27,7 @@
 				<module>platform-core</module>
 				<module>ontology-engine</module>
 				<module>content-api</module>
+				<module>knowlg-service</module>
 <!--				<module>assessment-api</module>-->
 				<module>taxonomy-api</module>
 				<module>platform-modules</module>
