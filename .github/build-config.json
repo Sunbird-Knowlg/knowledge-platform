@@ -1,0 +1,9 @@
+{
+  "_comment": "Enable or disable Docker image builds for each service when tags are pushed. Set to true to build, false to skip.",
+  "services": {
+    "content_service": false,
+    "taxonomy_service": false,
+    "search_service": true,
+    "knowlg_service": true
+  }
+}
