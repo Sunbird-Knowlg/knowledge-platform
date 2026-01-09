@@ -17,6 +17,7 @@
         <scala.version>2.13.12</scala.version>
     </properties>
     <modules>
+        <module>content-controllers</module>
         <module>content-service</module>
         <module>hierarchy-manager</module>
         <module>content-actors</module>

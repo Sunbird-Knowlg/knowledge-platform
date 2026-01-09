@@ -298,6 +298,12 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
+            <artifactId>content-controllers</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
             <artifactId>content-actors</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>

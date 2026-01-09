@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <name>taxonomy-api</name>
     <modules>
+        <module>taxonomy-controllers</module>
         <module>taxonomy-service</module>
         <module>taxonomy-actors</module>
     </modules>

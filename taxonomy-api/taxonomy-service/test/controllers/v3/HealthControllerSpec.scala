@@ -5,12 +5,13 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{OK, status}
+import taxonomy.controllers.HealthController
 
 @RunWith(classOf[JUnitRunner])
 class HealthControllerSpec extends BaseSpec {
 
 	"return api health status report - successful response" in {
-		val controller = app.injector.instanceOf[controllers.HealthController]
+		val controller = app.injector.instanceOf[HealthController]
 		val result = controller.health()(FakeRequest())
 		isOK(result)
 		status(result)(Helpers.defaultAwaitTimeout) must equalTo(OK)

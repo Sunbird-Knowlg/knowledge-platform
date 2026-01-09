@@ -5,11 +5,12 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import taxonomy.controllers.v3.TaxonomyCategoryController
 @RunWith(classOf[JUnitRunner])
 class CategorySpec extends BaseSpec {
   "CategoryController" should {
 
-    val controller = app.injector.instanceOf[CategoryController]
+    val controller = app.injector.instanceOf[TaxonomyCategoryController]
 
     "return success response for create api" in {
       val result = controller.createCategory()(FakeRequest())

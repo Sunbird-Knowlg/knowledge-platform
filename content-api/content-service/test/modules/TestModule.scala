@@ -1,10 +1,10 @@
 package modules
 
 import com.google.inject.AbstractModule
+import content.utils.ActorNames
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import play.api.libs.concurrent.PekkoGuiceSupport
-import utils.ActorNames
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,7 +16,6 @@ class TestModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[TestActor](ActorNames.LICENSE_ACTOR)
         bindActor[TestActor](ActorNames.COLLECTION_ACTOR)
         bindActor[TestActor](ActorNames.CHANNEL_ACTOR)
-        bindActor[TestActor](ActorNames.CATEGORY_ACTOR)
         bindActor[TestActor](ActorNames.ASSET_ACTOR)
         bindActor[TestActor](ActorNames.APP_ACTOR)
         bindActor[TestActor](ActorNames.EVENT_SET_ACTOR)

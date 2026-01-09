@@ -5,6 +5,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import taxonomy.controllers.v3.CategoryInstanceController
 @RunWith(classOf[JUnitRunner])
 class CategoryInstanceSpec extends BaseSpec {
   "CategoryInstanceController" should {

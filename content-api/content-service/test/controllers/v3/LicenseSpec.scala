@@ -1,5 +1,6 @@
 package controllers.v3
 
+import content.controllers.v3.LicenseController
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -12,7 +13,7 @@ class LicenseSpec  extends BaseSpec {
 
     "License Controller " should {
 
-        val controller = app.injector.instanceOf[controllers.v3.LicenseController]
+        val controller = app.injector.instanceOf[LicenseController]
 
         "return success response for create API" in {
             val result = controller.create()(FakeRequest())
