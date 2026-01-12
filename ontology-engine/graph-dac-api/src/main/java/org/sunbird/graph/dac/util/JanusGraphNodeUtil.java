@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class to convert between JanusGraph Vertex objects and Node model objects
+ * Utility class to convert between JanusGraph Vertex objects and Node model
+ * objects
  */
 public class JanusGraphNodeUtil {
 
@@ -27,17 +28,17 @@ public class JanusGraphNodeUtil {
      * Convert a JanusGraph Vertex to a Node object
      * 
      * @param graphId the graph identifier
-     * @param vertex the JanusGraph vertex
+     * @param vertex  the JanusGraph vertex
      * @return Node object representing the vertex
      */
     public static Node getNode(String graphId, Vertex vertex) {
         if (null == vertex)
             throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
                     "Failed to create node object. Vertex from database is null.");
-        
+
         Node node = new Node();
         node.setGraphId(graphId);
-        
+
         // Convert vertex ID to long
         Object vertexId = vertex.id();
         if (vertexId instanceof Long) {
@@ -50,12 +51,12 @@ public class JanusGraphNodeUtil {
 
         Map<String, Object> metadata = new HashMap<>();
         Iterator<VertexProperty<Object>> properties = vertex.properties();
-        
+
         while (properties.hasNext()) {
             VertexProperty<Object> property = properties.next();
             String key = property.key();
             Object value = property.value();
-            
+
             if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
                 node.setIdentifier(value.toString());
             } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name())) {
@@ -64,6 +65,23 @@ public class JanusGraphNodeUtil {
                 node.setObjectType(value.toString());
             } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
                 // Skip graphId as it's internal
+                if (value instanceof List) {
+                    List<?> list = (List<?>) value;
+                    if (list.size() > 0) {
+                        Object obj = list.get(0);
+                        if (obj instanceof String) {
+                            value = list.toArray(new String[0]);
+                        } else if (obj instanceof Number) {
+                            value = list.toArray(new Number[0]);
+                        } else if (obj instanceof Boolean) {
+                            value = list.toArray(new Boolean[0]);
+                        } else {
+                            value = list.toArray();
+                        }
+                    } else {
+                        value = new String[0];
+                    }
+                }
                 metadata.put(key, value);
             }
         }
@@ -98,17 +116,17 @@ public class JanusGraphNodeUtil {
      * Convert a JanusGraph Vertex to a Node object with minimal data (no relations)
      * 
      * @param graphId the graph identifier
-     * @param vertex the JanusGraph vertex
+     * @param vertex  the JanusGraph vertex
      * @return Node object representing the vertex without relations
      */
     public static Node getNodeWithoutRelations(String graphId, Vertex vertex) {
         if (null == vertex)
             throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
                     "Failed to create node object. Vertex from database is null.");
-        
+
         Node node = new Node();
         node.setGraphId(graphId);
-        
+
         // Convert vertex ID to long
         Object vertexId = vertex.id();
         if (vertexId instanceof Long) {
@@ -121,12 +139,12 @@ public class JanusGraphNodeUtil {
 
         Map<String, Object> metadata = new HashMap<>();
         Iterator<VertexProperty<Object>> properties = vertex.properties();
-        
+
         while (properties.hasNext()) {
             VertexProperty<Object> property = properties.next();
             String key = property.key();
             Object value = property.value();
-            
+
             if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
                 node.setIdentifier(value.toString());
             } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name())) {
@@ -134,6 +152,23 @@ public class JanusGraphNodeUtil {
             } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name())) {
                 node.setObjectType(value.toString());
             } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
+                if (value instanceof List) {
+                    List<?> list = (List<?>) value;
+                    if (list.size() > 0) {
+                        Object obj = list.get(0);
+                        if (obj instanceof String) {
+                            value = list.toArray(new String[0]);
+                        } else if (obj instanceof Number) {
+                            value = list.toArray(new Number[0]);
+                        } else if (obj instanceof Boolean) {
+                            value = list.toArray(new Boolean[0]);
+                        } else {
+                            value = list.toArray();
+                        }
+                    } else {
+                        value = new String[0];
+                    }
+                }
                 metadata.put(key, value);
             }
         }
@@ -145,25 +180,25 @@ public class JanusGraphNodeUtil {
     /**
      * Create a Relation object from an Edge
      * 
-     * @param graphId the graph identifier
-     * @param edge the JanusGraph edge
+     * @param graphId       the graph identifier
+     * @param edge          the JanusGraph edge
      * @param currentVertex the current vertex (to determine direction)
      * @return Relation object
      */
     private static Relation createRelation(String graphId, Edge edge, Vertex currentVertex) {
         Relation relation = new Relation();
         relation.setRelationType(edge.label());
-        
+
         // Determine start and end nodes based on direction
         Vertex startVertex = edge.outVertex();
         Vertex endVertex = edge.inVertex();
-        
+
         Object startId = startVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value();
         Object endId = endVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value();
-        
+
         relation.setStartNodeId(startId != null ? startId.toString() : null);
         relation.setEndNodeId(endId != null ? endId.toString() : null);
-        
+
         // Get edge properties as metadata
         Map<String, Object> metadata = new HashMap<>();
         Iterator<Property<Object>> edgeProperties = edge.properties();
@@ -172,7 +207,7 @@ public class JanusGraphNodeUtil {
             metadata.put(property.key(), property.value());
         }
         relation.setMetadata(metadata);
-        
+
         return relation;
     }
 
@@ -185,12 +220,12 @@ public class JanusGraphNodeUtil {
     public static Map<String, Object> getVertexProperties(Vertex vertex) {
         Map<String, Object> properties = new HashMap<>();
         Iterator<VertexProperty<Object>> propertyIterator = vertex.properties();
-        
+
         while (propertyIterator.hasNext()) {
             VertexProperty<Object> property = propertyIterator.next();
             properties.put(property.key(), property.value());
         }
-        
+
         return properties;
     }
 
@@ -203,15 +238,15 @@ public class JanusGraphNodeUtil {
     public static Map<String, Object> getEdgeProperties(Edge edge) {
         Map<String, Object> properties = new HashMap<>();
         Iterator<Property<Object>> propertyIterator = edge.properties();
-        
+
         while (propertyIterator.hasNext()) {
             Property<Object> property = propertyIterator.next();
             properties.put(property.key(), property.value());
         }
-        
+
         return properties;
     }
-    
+
     /**
      * Convert a JanusGraph Edge to a Relation object
      * 
@@ -222,26 +257,26 @@ public class JanusGraphNodeUtil {
         if (edge == null) {
             return null;
         }
-        
+
         Relation relation = new Relation();
         relation.setRelationType(edge.label());
-        
+
         // Get start and end node IDs
         Vertex outVertex = edge.outVertex();
         Vertex inVertex = edge.inVertex();
-        
+
         if (outVertex != null && outVertex.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
             relation.setStartNodeId((String) outVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value());
         }
-        
+
         if (inVertex != null && inVertex.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
             relation.setEndNodeId((String) inVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value());
         }
-        
+
         // Set relation metadata from edge properties
         Map<String, Object> metadata = getEdgeProperties(edge);
         relation.setMetadata(metadata);
-        
+
         return relation;
     }
 }

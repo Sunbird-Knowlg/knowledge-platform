@@ -96,7 +96,16 @@ public class NodeAsyncOperations {
                     if (entry.getValue() != null) {
                         Object value = entry.getValue();
                         if (value instanceof java.util.List) {
-                            value = ((java.util.List) value).toArray();
+                            java.util.List<?> list = (java.util.List<?>) value;
+                            if (list.isEmpty()) {
+                                // If list is empty, we remove the property.
+                                // We use sideEffect to drop property if it exists.
+                                traversal.sideEffect(__.properties(entry.getKey()).drop());
+                                // Do not call property(key, value) as value is empty array which might cause
+                                // error.
+                                continue;
+                            }
+                            value = list.toArray();
                         }
                         traversal.property(entry.getKey(), value);
                     }
@@ -200,7 +209,12 @@ public class NodeAsyncOperations {
                     if (entry.getValue() != null) {
                         Object value = entry.getValue();
                         if (value instanceof java.util.List) {
-                            value = ((java.util.List) value).toArray();
+                            java.util.List<?> list = (java.util.List<?>) value;
+                            if (list.isEmpty()) {
+                                traversal.sideEffect(__.properties(entry.getKey()).drop());
+                                continue;
+                            }
+                            value = list.toArray();
                         }
                         traversal.property(entry.getKey(), value);
                     }
@@ -387,7 +401,12 @@ public class NodeAsyncOperations {
                             if (entry.getValue() != null) {
                                 Object value = entry.getValue();
                                 if (value instanceof java.util.List) {
-                                    value = ((java.util.List) value).toArray();
+                                    java.util.List<?> list = (java.util.List<?>) value;
+                                    if (list.isEmpty()) {
+                                        traversal.sideEffect(__.properties(entry.getKey()).drop());
+                                        continue;
+                                    }
+                                    value = list.toArray();
                                 }
                                 traversal.property(entry.getKey(), value);
                             }
