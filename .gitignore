@@ -4,3 +4,4 @@
 **/*.iml
 **/application.conf
 *.conf
+.metals/

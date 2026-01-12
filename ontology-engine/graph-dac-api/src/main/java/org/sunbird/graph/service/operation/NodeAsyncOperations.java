@@ -3,6 +3,7 @@ package org.sunbird.graph.service.operation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -81,21 +82,28 @@ public class NodeAsyncOperations {
                 // Process primitive data types (serialize complex objects)
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
-                // Create vertex
-                Vertex vertex = g.addV(node.getObjectType())
+                // Create vertex traversal
+                GraphTraversal<Vertex, Vertex> traversal = g.addV(node.getObjectType())
                         .property(SystemProperties.IL_UNIQUE_ID.name(), identifier)
                         .property("graphId", graphId)
                         .property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType())
-                        .property(SystemProperties.IL_SYS_NODE_TYPE.name(), 
-                                 StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType() : SystemNodeTypes.DATA_NODE.name())
-                        .next();
+                        .property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                                StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
+                                        : SystemNodeTypes.DATA_NODE.name());
 
                 // Add all metadata properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                     if (entry.getValue() != null) {
-                        vertex.property(entry.getKey(), entry.getValue());
+                        Object value = entry.getValue();
+                        if (value instanceof java.util.List) {
+                            value = ((java.util.List) value).toArray();
+                        }
+                        traversal.property(entry.getKey(), value);
                     }
                 }
+
+                // Execute traversal
+                traversal.next();
 
                 g.tx().commit();
 
@@ -110,7 +118,7 @@ public class NodeAsyncOperations {
                 if (e instanceof MiddlewareException) {
                     throw e;
                 } else if (e.getMessage() != null && e.getMessage().contains("Unique property constraint")) {
-                    throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), 
+                    throw new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(),
                             DACErrorMessageConstants.CONSTRAINT_VALIDATION_FAILED + node.getIdentifier());
                 } else {
                     throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
@@ -144,7 +152,7 @@ public class NodeAsyncOperations {
 
             try {
                 String identifier = node.getIdentifier();
-                
+
                 // Check if node exists
                 Iterator<Vertex> vertexIter = g.V()
                         .has(SystemProperties.IL_UNIQUE_ID.name(), identifier)
@@ -152,6 +160,8 @@ public class NodeAsyncOperations {
 
                 Vertex vertex;
                 boolean isNew = !vertexIter.hasNext();
+
+                GraphTraversal<Vertex, Vertex> traversal;
 
                 if (isNew) {
                     // Create new node
@@ -164,17 +174,18 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(AuditProperties.createdOn.name(), timestamp);
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), timestamp);
 
-                    vertex = g.addV(node.getObjectType())
+                    traversal = g.addV(node.getObjectType())
                             .property(SystemProperties.IL_UNIQUE_ID.name(), identifier)
                             .property("graphId", graphId)
                             .property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType())
                             .property(SystemProperties.IL_SYS_NODE_TYPE.name(),
-                                     StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType() : SystemNodeTypes.DATA_NODE.name())
-                            .next();
+                                    StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
+                                            : SystemNodeTypes.DATA_NODE.name());
                 } else {
                     // Update existing node
                     vertex = vertexIter.next();
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    traversal = g.V(vertex.id());
                 }
 
                 // Generate new version key
@@ -187,9 +198,16 @@ public class NodeAsyncOperations {
                 // Update all properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                     if (entry.getValue() != null) {
-                        vertex.property(entry.getKey(), entry.getValue());
+                        Object value = entry.getValue();
+                        if (value instanceof java.util.List) {
+                            value = ((java.util.List) value).toArray();
+                        }
+                        traversal.property(entry.getKey(), value);
                     }
                 }
+
+                // Execute traversal
+                traversal.next();
 
                 g.tx().commit();
 
@@ -232,27 +250,30 @@ public class NodeAsyncOperations {
 
             try {
                 String rootId = "root";
-                
+
                 // Check if root node exists
                 Iterator<Vertex> vertexIter = g.V()
                         .has(SystemProperties.IL_UNIQUE_ID.name(), rootId)
                         .has("graphId", graphId);
 
                 Vertex vertex;
+                GraphTraversal<Vertex, Vertex> traversal;
                 if (!vertexIter.hasNext()) {
                     // Create root node
-                    vertex = g.addV("ROOT")
+                    traversal = g.addV("ROOT")
                             .property(SystemProperties.IL_UNIQUE_ID.name(), rootId)
                             .property("graphId", graphId)
                             .property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), "ROOT")
                             .property(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.DATA_NODE.name())
                             .property(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate())
-                            .property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate())
-                            .next();
+                            .property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
                 } else {
                     vertex = vertexIter.next();
-                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    traversal = g.V(vertex.id())
+                            .property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
                 }
+
+                vertex = traversal.next();
 
                 g.tx().commit();
 
@@ -325,8 +346,8 @@ public class NodeAsyncOperations {
      * @param updatedMetadata metadata to update
      * @return Future<Map < String, Node>> map of updated nodes
      */
-    public static Future<Map<String, Node>> updateNodes(String graphId, List<String> identifiers, 
-                                                         Map<String, Object> updatedMetadata) {
+    public static Future<Map<String, Node>> updateNodes(String graphId, List<String> identifiers,
+            Map<String, Object> updatedMetadata) {
         return FutureConverters.toScala(CompletableFuture.supplyAsync(() -> {
             if (StringUtils.isBlank(graphId))
                 throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
@@ -344,10 +365,10 @@ public class NodeAsyncOperations {
 
             try {
                 Map<String, Node> updatedNodes = new HashMap<>();
-                
+
                 // Process primitive data
                 Map<String, Object> metadata = setPrimitiveData(updatedMetadata);
-                
+
                 // Update lastUpdatedOn
                 metadata.put(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
 
@@ -359,13 +380,19 @@ public class NodeAsyncOperations {
 
                     if (vertexIter.hasNext()) {
                         Vertex vertex = vertexIter.next();
+                        GraphTraversal<Vertex, Vertex> traversal = g.V(vertex.id());
 
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                             if (entry.getValue() != null) {
-                                vertex.property(entry.getKey(), entry.getValue());
+                                Object value = entry.getValue();
+                                if (value instanceof java.util.List) {
+                                    value = ((java.util.List) value).toArray();
+                                }
+                                traversal.property(entry.getKey(), value);
                             }
                         }
+                        traversal.next();
 
                         // Convert to Node object
                         Node node = JanusGraphNodeUtil.getNode(graphId, vertex);
@@ -412,7 +439,9 @@ public class NodeAsyncOperations {
                         }
                         entry.setValue(value);
                     } catch (Exception e) {
-                        TelemetryManager.error("Exception Occurred While Processing Primitive Data Types | Exception is : " + e.getMessage(), e);
+                        TelemetryManager
+                                .error("Exception Occurred While Processing Primitive Data Types | Exception is : "
+                                        + e.getMessage(), e);
                     }
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2, HashMap::new));

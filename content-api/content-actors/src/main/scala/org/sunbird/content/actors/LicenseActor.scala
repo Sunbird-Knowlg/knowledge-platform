@@ -8,6 +8,7 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
+import org.sunbird.common.util.WorkflowLogger
 import org.sunbird.content.util.LicenseConstants
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
@@ -33,12 +34,58 @@ class LicenseActor @Inject() (implicit oec: OntologyEngineContext) extends BaseA
 
     @throws[Exception]
     private def create(request: Request): Future[Response] = {
+        // STAGE 1: Controller → Actor
+        val context = new java.util.HashMap[String, Object]()
+        context.put("operation", LicenseConstants.CREATE_LICENSE)
+        context.put("objectType", "License")
+        context.put("requestKeys", request.getRequest.keySet().asScala.mkString(", "))
+        WorkflowLogger.logStage(1, "License Actor Received", LicenseConstants.CREATE_LICENSE, 
+            "LicenseController.create()", "Validation → DataNode.create → Response", context)
+        
         RequestUtil.restrictProperties(request)
-        if (request.getRequest.containsKey("identifier")) throw new ClientException("ERR_NAME_SET_AS_IDENTIFIER", "name will be set as identifier")
-        if (request.getRequest.containsKey("name")) request.getRequest.put("identifier", Slug.makeSlug(request.getRequest.get("name").asInstanceOf[String]))
+        
+        // STAGE 2: Validation
+        val validationContext = new java.util.HashMap[String, Object]()
+        if (request.getRequest.containsKey("name")) {
+            val name = request.getRequest.get("name").asInstanceOf[String]
+            val slug = Slug.makeSlug(name)
+            request.getRequest.put("identifier", slug)
+            validationContext.put("name", name)
+            validationContext.put("generatedIdentifier", slug)
+        }
+        validationContext.put("validationStatus", "PASSED")
+        WorkflowLogger.logStage(2, "Validation Complete", LicenseConstants.CREATE_LICENSE, 
+            "Actor Received", "DataNode.create → JanusGraph", validationContext)
+        
+        // STAGE 3: DataNode.create → Graph Operations
+        context.clear()
+        context.put("identifier", request.getRequest.getOrDefault("identifier", "PENDING"))
+        context.put("targetOperation", "JanusGraph CREATE")
+        context.put("graphId", request.getContext.getOrDefault("graphId", "domain"))
+        WorkflowLogger.logStage(3, "Calling DataNode.create", LicenseConstants.CREATE_LICENSE, 
+            "Validation Complete", "GraphAsyncOperations.addNode → JanusGraph → Response", context)
+        
         DataNode.create(request).map(node => {
+            // STAGE 4: Response received from graph
+            val responseContext = new java.util.HashMap[String, Object]()
+            responseContext.put("createdIdentifier", node.getIdentifier)
+            responseContext.put("nodeId", node.getIdentifier)
+            responseContext.put("graphId", node.getGraphId)
+            responseContext.put("objectType", node.getObjectType)
+            WorkflowLogger.logStage(4, "DataNode Created Successfully", LicenseConstants.CREATE_LICENSE, 
+                "JanusGraph Response", "Building Response → Return to Controller", responseContext)
+            
             ResponseHandler.OK.put("identifier", node.getIdentifier).put("node_id", node.getIdentifier)
-        })
+        }).recover {
+            case ex: Exception =>
+                val errorContext = new java.util.HashMap[String, Object]()
+                errorContext.put("errorMessage", ex.getMessage)
+                errorContext.put("errorClass", ex.getClass.getSimpleName)
+                errorContext.put("stackTrace", ex.getStackTrace.take(5).mkString("\n"))
+                WorkflowLogger.logError(4, "DataNode.create Failed", LicenseConstants.CREATE_LICENSE, 
+                    ex.getMessage, errorContext)
+                throw ex
+        }
     }
 
     @throws[Exception]

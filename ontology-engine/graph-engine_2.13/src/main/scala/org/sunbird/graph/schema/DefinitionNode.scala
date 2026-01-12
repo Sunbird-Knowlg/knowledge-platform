@@ -212,7 +212,11 @@ object DefinitionNode {
       node.getMetadata.entrySet().asScala.map(entry => {
         if (jsonPropList.contains(entry.getKey)) {
           entry.getValue match {
-            case value: String => entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
+            case value: String => try {
+              entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
+            } catch {
+              case e: Exception => entry
+            }
             case _ => entry
           }
         }
