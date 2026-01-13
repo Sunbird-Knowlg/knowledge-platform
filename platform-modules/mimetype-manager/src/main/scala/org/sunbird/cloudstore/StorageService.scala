@@ -2,6 +2,7 @@ package org.sunbird.cloudstore
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.tika.Tika
+import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import org.sunbird.common.{Platform, Slug}
@@ -12,6 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class StorageService {
 
+    private val logger: Logger = LoggerFactory.getLogger(classOf[StorageService])
     val storageType: String = if (Platform.config.hasPath("cloud_storage_type")) Platform.config.getString("cloud_storage_type") else ""
     var storageService: BaseStorageService = null
 
@@ -22,7 +24,10 @@ class StorageService {
               val storageSecret = Platform.config.getString("cloud_storage_secret")
               // TODO: endPoint defined to support "cephs3". Make code changes after cloud-store-sdk 2.11 support it.
               val endPoint = if (Platform.config.hasPath("cloud_storage_endpoint")) Option(Platform.config.getString("cloud_storage_endpoint")) else None
-              storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret, endPoint))
+              val authType = if (Platform.config.hasPath("cloud_storage_auth_type")) Option(Platform.config.getString("cloud_storage_auth_type")) else None
+              val region = if (Platform.config.hasPath("cloud_storage_region")) Option(Platform.config.getString("cloud_storage_region")) else None
+              logger.info(s"Initializing StorageService with storageType: $storageType, authType: ${authType.getOrElse("access_key")}, region: ${region.getOrElse("not configured")}")
+              storageService = StorageServiceFactory.getStorageService(new StorageConfig(storageType, storageKey, storageSecret, endPoint, region, authType))
         }
         storageService
     }
