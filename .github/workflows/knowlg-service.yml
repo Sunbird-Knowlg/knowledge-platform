@@ -13,11 +13,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Check if build is enabled
         id: check
+        env:
+          BUILD_ENABLED_VAR: ${{ vars.KNOWLG_SERVICE_BUILD_ENABLED }}
         run: |
-          ENABLED=$(cat .github/build-config.json | jq -r '.services.knowlg_service')
+          if [ -n "$BUILD_ENABLED_VAR" ]; then
+            ENABLED="$BUILD_ENABLED_VAR"
+             echo "Taking value from KNOWLG_SERVICE_BUILD_ENABLED: $ENABLED"
+          else
+            ENABLED=$(cat .github/build-config.json | jq -r '.services.knowlg_service')
+             echo "Taking value from build-config.json: $ENABLED"
+          fi
           echo "enabled=$ENABLED" >> $GITHUB_OUTPUT
           echo "Knowlg Service build enabled: $ENABLED"
 
@@ -82,3 +90,4 @@ jobs:
         run: |
           docker push $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}
           echo "Pushed Docker image: $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}"
+          
