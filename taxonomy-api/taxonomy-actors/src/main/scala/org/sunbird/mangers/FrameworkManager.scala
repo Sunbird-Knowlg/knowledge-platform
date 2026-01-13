@@ -74,6 +74,8 @@ object FrameworkManager {
     val nodes = subGraph.getNodes
     val relations = subGraph.getRelations
     val node = nodes.get(id)
+    if (null == node)
+      throw new ClientException("ERR_FRAMEWORK_NOT_FOUND", "Framework not found with id: " + id)
     val metadata = node.getMetadata
     val objectType = node.getObjectType.toLowerCase().replace("image", "")
     val channel = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]

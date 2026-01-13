@@ -40,6 +40,7 @@ object NodeValidator {
             MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_IN, identifiers), new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")))
         searchCriteria.addMetadata(mc)
         searchCriteria.setCountQuery(false)
+        searchCriteria.getParams.put("identifiers", identifiers)
         try {
             val nodes = oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
             nodes

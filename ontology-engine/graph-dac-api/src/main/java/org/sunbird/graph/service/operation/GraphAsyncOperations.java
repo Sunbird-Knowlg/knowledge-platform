@@ -55,13 +55,21 @@ public class GraphAsyncOperations {
 						String endNodeId = (String) relData.get(GraphDACParams.endNodeId.name());
 						String relationType = (String) relData.get(GraphDACParams.relationType.name());
 						@SuppressWarnings("unchecked")
-						Map<String, Object> metadata = (Map<String, Object>) relData.get(GraphDACParams.metadata.name());
-						
+						Map<String, Object> metadata = (Map<String, Object>) relData
+								.get(GraphDACParams.metadata.name());
+
 						if (metadata == null) {
 							metadata = new HashMap<>();
 						}
-						
-						GremlinQueryBuilder.createEdge(g, graphId, startNodeId, endNodeId, relationType, metadata).next();
+
+						if (StringUtils.isBlank(relationType)) {
+							TelemetryManager.error("Relation type is missing for startNodeId: " + startNodeId
+									+ ", endNodeId: " + endNodeId);
+							continue;
+						}
+
+						GremlinQueryBuilder.createEdge(g, graphId, startNodeId, endNodeId, relationType, metadata)
+								.next();
 					}
 					return ResponseHandler.OK();
 				} catch (Exception e) {
@@ -70,7 +78,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while creating relations. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -101,7 +109,7 @@ public class GraphAsyncOperations {
 						String startNodeId = (String) relData.get(GraphDACParams.startNodeId.name());
 						String endNodeId = (String) relData.get(GraphDACParams.endNodeId.name());
 						String relationType = (String) relData.get(GraphDACParams.relationType.name());
-						
+
 						GremlinQueryBuilder.deleteEdge(g, graphId, startNodeId, endNodeId, relationType).iterate();
 					}
 					return ResponseHandler.OK();
@@ -111,7 +119,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while removing relations. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -131,31 +139,32 @@ public class GraphAsyncOperations {
 		if (StringUtils.isBlank(nodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
 					DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Please Provide Node Identifier.]");
-		if (null == depth) depth = 5;
+		if (null == depth)
+			depth = 5;
 
 		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.READ);
 		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-		
+
 		final Integer finalDepth = depth;
 		try {
 			CompletableFuture<SubGraph> future = CompletableFuture.supplyAsync(() -> {
 				try {
 					Map<String, Node> nodeMap = new HashMap<>();
 					Set<Relation> relations = new HashSet<>();
-					
+
 					// Get starting vertex
 					Vertex startVertex = GremlinQueryBuilder.getVertexByIdentifier(g, graphId, nodeId).next();
-					
+
 					// Traverse the graph up to the specified depth
 					List<org.apache.tinkerpop.gremlin.process.traversal.Path> traversalResults = g.V(startVertex.id())
 							.repeat(bothE().otherV().simplePath())
 							.times(finalDepth)
 							.path()
 							.toList();
-					
+
 					// Process results
 					for (org.apache.tinkerpop.gremlin.process.traversal.Path path : traversalResults) {
-						
+
 						for (Object obj : path.objects()) {
 							if (obj instanceof Vertex) {
 								Vertex vertex = (Vertex) obj;
@@ -165,40 +174,46 @@ public class GraphAsyncOperations {
 								Edge edge = (Edge) obj;
 								Vertex outV = edge.outVertex();
 								Vertex inV = edge.inVertex();
-								
-								String startNodeId = outV.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
-								String endNodeId = inV.property(SystemProperties.IL_UNIQUE_ID.name()).value().toString();
+
+								String startNodeId = outV.property(SystemProperties.IL_UNIQUE_ID.name()).value()
+										.toString();
+								String endNodeId = inV.property(SystemProperties.IL_UNIQUE_ID.name()).value()
+										.toString();
 								String relationType = edge.label();
-								
+
 								Relation relation = new Relation(startNodeId, relationType, endNodeId);
 								Map<String, Object> edgeMetadata = JanusGraphNodeUtil.getEdgeProperties(edge);
 								relation.setMetadata(edgeMetadata);
-								
+
 								// Set additional node information
 								if (outV.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent()) {
-									relation.setStartNodeObjectType(outV.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString());
+									relation.setStartNodeObjectType(outV
+											.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString());
 								}
 								if (outV.property("name").isPresent()) {
 									relation.setStartNodeName(outV.property("name").value().toString());
 								}
 								if (outV.property(SystemProperties.IL_SYS_NODE_TYPE.name()).isPresent()) {
-									relation.setStartNodeType(outV.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString());
+									relation.setStartNodeType(
+											outV.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString());
 								}
 								if (inV.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent()) {
-									relation.setEndNodeObjectType(inV.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString());
+									relation.setEndNodeObjectType(inV
+											.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString());
 								}
 								if (inV.property("name").isPresent()) {
 									relation.setEndNodeName(inV.property("name").value().toString());
 								}
 								if (inV.property(SystemProperties.IL_SYS_NODE_TYPE.name()).isPresent()) {
-									relation.setEndNodeType(inV.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString());
+									relation.setEndNodeType(
+											inV.property(SystemProperties.IL_SYS_NODE_TYPE.name()).value().toString());
 								}
-								
+
 								relations.add(relation);
 							}
 						}
 					}
-					
+
 					List<Relation> relationsList = new ArrayList<>(relations);
 					return new SubGraph(nodeMap, relationsList);
 				} catch (Exception e) {
@@ -207,7 +222,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while getting subgraph. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -221,28 +236,32 @@ public class GraphAsyncOperations {
 	}
 
 	/**
-	 * Create bulk outgoing relations (one-to-many) from a single start node to multiple end nodes
-	 * Supports UNWIND-style batch operations for efficient relation creation (100+ relations)
+	 * Create bulk outgoing relations (one-to-many) from a single start node to
+	 * multiple end nodes
+	 * Supports UNWIND-style batch operations for efficient relation creation (100+
+	 * relations)
 	 * 
-	 * @param graphId the graph identifier
-	 * @param startNodeId the start node identifier  
-	 * @param endNodeIds list of end node identifiers
-	 * @param relationType the relation type
+	 * @param graphId        the graph identifier
+	 * @param startNodeId    the start node identifier
+	 * @param endNodeIds     list of end node identifiers
+	 * @param relationType   the relation type
 	 * @param createMetadata metadata to set on newly created relations
-	 * @param matchMetadata metadata to set on existing relations
+	 * @param matchMetadata  metadata to set on existing relations
 	 * @return Future Response
 	 */
 	public static Future<Response> createBulkOutgoingRelations(String graphId, String startNodeId,
 			List<String> endNodeIds, String relationType, Map<String, Object> createMetadata,
 			Map<String, Object> matchMetadata) {
-		
+
 		try {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				try {
 					Request request = new Request();
-					if (createMetadata != null) request.getRequest().put("createMetadata", createMetadata);
-					if (matchMetadata != null) request.getRequest().put("matchMetadata", matchMetadata);
-					JanusGraphOperations.createOutgoingRelations(graphId, startNodeId, endNodeIds, 
+					if (createMetadata != null)
+						request.getRequest().put("createMetadata", createMetadata);
+					if (matchMetadata != null)
+						request.getRequest().put("matchMetadata", matchMetadata);
+					JanusGraphOperations.createOutgoingRelations(graphId, startNodeId, endNodeIds,
 							relationType, request);
 					return ResponseHandler.OK();
 				} catch (Exception e) {
@@ -251,7 +270,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while creating bulk outgoing relations. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -265,28 +284,32 @@ public class GraphAsyncOperations {
 	}
 
 	/**
-	 * Create bulk incoming relations (many-to-one) from multiple start nodes to a single end node
-	 * Supports UNWIND-style batch operations for efficient relation creation (100+ relations)
+	 * Create bulk incoming relations (many-to-one) from multiple start nodes to a
+	 * single end node
+	 * Supports UNWIND-style batch operations for efficient relation creation (100+
+	 * relations)
 	 * 
-	 * @param graphId the graph identifier
-	 * @param startNodeIds list of start node identifiers
-	 * @param endNodeId the end node identifier
-	 * @param relationType the relation type
+	 * @param graphId        the graph identifier
+	 * @param startNodeIds   list of start node identifiers
+	 * @param endNodeId      the end node identifier
+	 * @param relationType   the relation type
 	 * @param createMetadata metadata to set on newly created relations
-	 * @param matchMetadata metadata to set on existing relations
+	 * @param matchMetadata  metadata to set on existing relations
 	 * @return Future Response
 	 */
 	public static Future<Response> createBulkIncomingRelations(String graphId, List<String> startNodeIds,
 			String endNodeId, String relationType, Map<String, Object> createMetadata,
 			Map<String, Object> matchMetadata) {
-		
+
 		try {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				try {
 					Request request = new Request();
-					if (createMetadata != null) request.getRequest().put("createMetadata", createMetadata);
-					if (matchMetadata != null) request.getRequest().put("matchMetadata", matchMetadata);
-					JanusGraphOperations.createIncomingRelations(graphId, startNodeIds, endNodeId, 
+					if (createMetadata != null)
+						request.getRequest().put("createMetadata", createMetadata);
+					if (matchMetadata != null)
+						request.getRequest().put("matchMetadata", matchMetadata);
+					JanusGraphOperations.createIncomingRelations(graphId, startNodeIds, endNodeId,
 							relationType, request);
 					return ResponseHandler.OK();
 				} catch (Exception e) {
@@ -295,7 +318,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while creating bulk incoming relations. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -309,23 +332,26 @@ public class GraphAsyncOperations {
 	}
 
 	/**
-	 * Delete bulk outgoing relations (one-to-many) from a single start node to multiple end nodes
-	 * Supports UNWIND-style batch operations for efficient relation deletion (100+ relations)
+	 * Delete bulk outgoing relations (one-to-many) from a single start node to
+	 * multiple end nodes
+	 * Supports UNWIND-style batch operations for efficient relation deletion (100+
+	 * relations)
 	 * 
-	 * @param graphId the graph identifier
-	 * @param startNodeId the start node identifier
-	 * @param endNodeIds list of end node identifiers
+	 * @param graphId      the graph identifier
+	 * @param startNodeId  the start node identifier
+	 * @param endNodeIds   list of end node identifiers
 	 * @param relationType the relation type
 	 * @return Future Response
 	 */
 	public static Future<Response> deleteBulkOutgoingRelations(String graphId, String startNodeId,
 			List<String> endNodeIds, String relationType) {
-		
+
 		try {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				try {
 					Request request = new Request();
-					JanusGraphOperations.deleteOutgoingRelations(graphId, startNodeId, endNodeIds, relationType, request);
+					JanusGraphOperations.deleteOutgoingRelations(graphId, startNodeId, endNodeIds, relationType,
+							request);
 					return ResponseHandler.OK();
 				} catch (Exception e) {
 					TelemetryManager.error("Error deleting bulk outgoing relations", e);
@@ -333,7 +359,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while deleting bulk outgoing relations. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -347,23 +373,26 @@ public class GraphAsyncOperations {
 	}
 
 	/**
-	 * Delete bulk incoming relations (many-to-one) from multiple start nodes to a single end node
-	 * Supports UNWIND-style batch operations for efficient relation deletion (100+ relations)
+	 * Delete bulk incoming relations (many-to-one) from multiple start nodes to a
+	 * single end node
+	 * Supports UNWIND-style batch operations for efficient relation deletion (100+
+	 * relations)
 	 * 
-	 * @param graphId the graph identifier
+	 * @param graphId      the graph identifier
 	 * @param startNodeIds list of start node identifiers
-	 * @param endNodeId the end node identifier
+	 * @param endNodeId    the end node identifier
 	 * @param relationType the relation type
 	 * @return Future Response
 	 */
 	public static Future<Response> deleteBulkIncomingRelations(String graphId, List<String> startNodeIds,
 			String endNodeId, String relationType) {
-		
+
 		try {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				try {
 					Request request = new Request();
-					JanusGraphOperations.deleteIncomingRelations(graphId, startNodeIds, endNodeId, relationType, request);
+					JanusGraphOperations.deleteIncomingRelations(graphId, startNodeIds, endNodeId, relationType,
+							request);
 					return ResponseHandler.OK();
 				} catch (Exception e) {
 					TelemetryManager.error("Error deleting bulk incoming relations", e);
@@ -371,7 +400,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while deleting bulk incoming relations. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -388,21 +417,22 @@ public class GraphAsyncOperations {
 	 * Create a collection node and link all members with sequence indices
 	 * Implements Neo4j MERGE behavior for collection node + batch member linking
 	 * 
-	 * @param graphId the graph id
-	 * @param collectionId the collection node identifier
-	 * @param collection the collection node with metadata
-	 * @param members list of member node identifiers
-	 * @param relationType the relation type to link members
-	 * @param indexProperty the property name for sequence index (e.g., "IL_SEQUENCE_INDEX")
+	 * @param graphId       the graph id
+	 * @param collectionId  the collection node identifier
+	 * @param collection    the collection node with metadata
+	 * @param members       list of member node identifiers
+	 * @param relationType  the relation type to link members
+	 * @param indexProperty the property name for sequence index (e.g.,
+	 *                      "IL_SEQUENCE_INDEX")
 	 * @return Future Response with collection Node
 	 */
 	public static Future<Response> createCollection(String graphId, String collectionId, Node collection,
 			List<String> members, String relationType, String indexProperty) {
-		
+
 		try {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				try {
-					Node result = JanusGraphCollectionOperations.createCollection(graphId, collectionId, 
+					Node result = JanusGraphCollectionOperations.createCollection(graphId, collectionId,
 							collection, members, relationType, indexProperty);
 					Response response = ResponseHandler.OK();
 					response.put(GraphDACParams.node.name(), result);
@@ -413,7 +443,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while creating collection. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -430,12 +460,12 @@ public class GraphAsyncOperations {
 	 * Delete a collection node with all its edges (DETACH DELETE)
 	 * Removes the collection node and all incoming/outgoing relationships
 	 * 
-	 * @param graphId the graph id
+	 * @param graphId      the graph id
 	 * @param collectionId the collection node identifier
 	 * @return Future Response
 	 */
 	public static Future<Response> deleteCollection(String graphId, String collectionId) {
-		
+
 		try {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				try {
@@ -447,7 +477,7 @@ public class GraphAsyncOperations {
 							"Error! Something went wrong while deleting collection. ", e);
 				}
 			});
-			
+
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
 			e.printStackTrace();

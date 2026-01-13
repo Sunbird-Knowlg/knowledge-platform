@@ -14,6 +14,7 @@ import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.mangers.FrameworkManager
 import org.sunbird.utils.{CategoryCache, FrameworkCache}
 import org.sunbird.utils.{Constants, RequestUtil}
+import org.sunbird.common.util.WorkflowLogger
 
 import java.util
 import javax.inject.Inject
@@ -42,6 +43,13 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     RequestUtil.restrictProperties(request)
     val code = request.getRequest.getOrDefault(Constants.CODE, "").asInstanceOf[String]
     val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
+    
+    val context = new java.util.HashMap[String, Object]()
+    context.put("operation", "createFramework")
+    context.put("channel", channel)
+    context.put("code", code)
+    WorkflowLogger.logStage(1, "Framework Actor Received", "createFramework", "FrameworkController.create()", "Validation", context)
+
     if (StringUtils.isNotBlank(code) && StringUtils.isNotBlank(channel)) {
       request.getRequest.put(Constants.IDENTIFIER, code)
       val getChannelReq = new Request()
@@ -55,11 +63,19 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       getChannelReq.put(Constants.IDENTIFIER, channel)
       DataNode.read(getChannelReq).map(node => {
         if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
+          
+          context.put("channelNodeId", node.getIdentifier)
+          WorkflowLogger.logStage(2, "Channel Found", "createFramework", "Channel Search", "Validation Passed", context)
+
           FrameworkManager.validateTranslationMap(request)
           DataNode.create(request).map(frameNode => {
             ResponseHandler.OK.put(Constants.NODE_ID, frameNode.getIdentifier).put("versionKey", frameNode.getMetadata.get("versionKey"))
           })
-        } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+        } else {
+             context.put("error", "Channel Node not found or ID mismatch")
+             WorkflowLogger.logStage(2, "Channel Not Found", "createFramework", "Channel Search", "Validation Failed", context)
+             throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+        }
       }).flatMap(f => f)
     } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
 
