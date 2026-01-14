@@ -1,0 +1,65 @@
+{
+  "objectType": "Question",
+  "relations": {
+    "questionSet": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["QuestionSet", "QuestionSetImage"]
+    }
+  },
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update" : [
+      "visibility", "code", "status", "mimeType"
+    ]
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": ["board","medium","subject","gradeLevel","topic"],
+  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+  "cacheEnabled": false,
+  "schema_restrict_api": true,
+  "external": {
+    "tableName": "question_data",
+    "properties": {
+      "body": {
+        "type": "blob"
+      },
+      "editorState": {
+        "type": "string"
+      },
+      "answer": {
+        "type": "blob"
+      },
+      "solutions": {
+        "type": "string"
+      },
+      "instructions": {
+        "type": "string"
+      },
+      "hints": {
+        "type": "string"
+      },
+      "media": {
+        "type": "string"
+      },
+      "responseDeclaration": {
+        "type": "string"
+      },
+      "interactions": {
+        "type": "string"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
+  "PII_Fields": {
+    "user": {
+      "createdBy": ["creator"]
+    },
+    "org": {
+    }
+  }
+}

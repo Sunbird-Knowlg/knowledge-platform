@@ -4,7 +4,8 @@ import com.google.inject.AbstractModule
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
 import org.sunbird.content.actors.{AppActor, AssetActor, CollectionActor, ContentActor, EventActor, EventSetActor, HealthActor => ContentHealthActor, LicenseActor, ObjectActor}
-import org.sunbird.actors.{CategoryActor, CategoryInstanceActor, FrameworkActor, HealthActor => TaxonomyHealthActor, LockActor, ObjectCategoryActor, ObjectCategoryDefinitionActor, TermActor}
+import org.sunbird.actors.{AssessmentItemActor, CategoryActor, CategoryInstanceActor, FrameworkActor, HealthActor => TaxonomyHealthActor, ItemSetActor, LockActor, ObjectCategoryActor, ObjectCategoryDefinitionActor, QuestionActor, QuestionSetActor, TermActor}
+import org.sunbird.v5.actors.{QuestionActor => QuestionV5Actor, QuestionSetActor => QuestionSetV5Actor}
 import play.api.libs.concurrent.PekkoGuiceSupport
 import utils.ActorNames
 
@@ -36,7 +37,15 @@ class KnowlgModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[TermActor](ActorNames.TERM_ACTOR)
         bindActor[LockActor](ActorNames.LOCK_ACTOR)
         
-        println("Initialized application actors from content-actors and taxonomy-actors JARs...")
+        // Assessment actors from assessment-actors JAR
+        bindActor[AssessmentItemActor](ActorNames.ASSESSMENT_ITEM_ACTOR)
+        bindActor[ItemSetActor](ActorNames.ITEM_SET_ACTOR)
+        bindActor[QuestionActor](ActorNames.QUESTION_ACTOR)
+        bindActor[QuestionSetActor](ActorNames.QUESTION_SET_ACTOR)
+        bindActor[QuestionV5Actor](ActorNames.QUESTION_V5_ACTOR)
+        bindActor[QuestionSetV5Actor](ActorNames.QUESTION_SET_V5_ACTOR)
+        
+        println("Initialized application actors from content-actors, taxonomy-actors, and assessment-actors JARs...")
         // $COVERAGE-ON
     }
 }

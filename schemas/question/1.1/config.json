@@ -1,0 +1,81 @@
+{
+  "objectType": "Question",
+  "relations": {
+    "questionSet": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["QuestionSet", "QuestionSetImage"]
+    }
+  },
+  "restrictProps": {
+    "create" : [
+      "status", "schemaVersion"
+    ],
+    "update" : [
+      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    ],
+    "review" : [
+      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    ],
+    "publish" : [
+      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    ],
+    "reject": [
+      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    ]
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": ["board","medium","subject","gradeLevel","topic"],
+  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+  "cacheEnabled": false,
+  "schema_restrict_api": true,
+  "oneOfProps": ["body","answer","instructions"],
+  "external": {
+    "tableName": "question_data",
+    "properties": {
+      "body": {
+        "type": "blob"
+      },
+      "editorState": {
+        "type": "string"
+      },
+      "answer": {
+        "type": "blob"
+      },
+      "solutions": {
+        "type": "string"
+      },
+      "instructions": {
+        "type": "string"
+      },
+      "hints": {
+        "type": "string"
+      },
+      "media": {
+        "type": "string"
+      },
+      "responseDeclaration": {
+        "type": "string"
+      },
+      "interactions": {
+        "type": "string"
+      },
+      "outcomeDeclaration": {
+        "type": "string"
+      },
+      "feedback": {
+        "type": "string"
+      }
+    },
+    "primaryKey": ["identifier"]
+  },
+  "PII_Fields": {
+    "user": {
+      "createdBy": ["creator"]
+    },
+    "org": {
+    }
+  }
+}
