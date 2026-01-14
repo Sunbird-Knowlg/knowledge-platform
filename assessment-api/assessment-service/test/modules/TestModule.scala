@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import play.libs.pekko.PekkoGuiceSupport
-import utils.ActorNames
+import assessment.utils.ActorNames
 
 import scala.concurrent.{ExecutionContext, Future}
 
