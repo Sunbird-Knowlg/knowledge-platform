@@ -1,0 +1,714 @@
+{
+  "$id": "questionset-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuestionSet",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "mimeType",
+    "primaryCategory"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "mimeType": {
+      "type": "string",
+      "enum": [
+        "application/vnd.sunbird.questionset"
+      ]
+    },
+    "primaryCategory": {
+      "type": "string"
+    },
+    "additionalCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "visibility": {
+      "type": "string",
+      "default": "Default",
+      "enum": [
+        "Default",
+        "Parent",
+        "Private",
+        "Protected"
+      ]
+    },
+    "copyright": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "default": "CC BY 4.0"
+    },
+    "lockKey": {
+      "type": "string"
+    },
+    "assets": {
+      "type": "array"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Student",
+          "Teacher",
+          "Administrator",
+          "Parent"
+        ],
+        "default": "Student"
+      }
+    },
+    "posterImage": {
+      "type": "string",
+      "format": "url"
+    },
+    "author": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "attributions": {
+      "type": "array"
+    },
+    "consumerId": {
+      "type": "string"
+    },
+    "contentEncoding": {
+      "type": "string",
+      "enum": [
+        "gzip",
+        "identity"
+      ],
+      "default": "gzip"
+    },
+    "contentDisposition": {
+      "type": "string",
+      "enum": [
+        "inline",
+        "online",
+        "attachment",
+        "online-only"
+      ],
+      "default": "inline"
+    },
+    "appIcon": {
+      "type": "string",
+      "format": "url"
+    },
+    "publishChecklist": {
+      "type": "array"
+    },
+    "publishComment": {
+      "type": "string"
+    },
+    "compatibilityLevel": {
+      "type": "number",
+      "default": 6
+    },
+    "childNodes": {
+      "type": "array"
+    },
+    "depth": {
+      "type": "number"
+    },
+    "index": {
+      "type": "number"
+    },
+    "parent": {
+      "type": "string"
+    },
+    "downloadUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "previewUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "pdfUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "variants": {
+      "type": "object"
+    },
+    "size": {
+      "type": "number"
+    },
+    "checksum": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Live",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "prevStatus": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pkgVersion": {
+      "type": "number"
+    },
+    "versionKey": {
+      "type": "string"
+    },
+    "language": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "English",
+          "Hindi",
+          "Assamese",
+          "Bengali",
+          "Gujarati",
+          "Kannada",
+          "Malayalam",
+          "Marathi",
+          "Nepali",
+          "Odia",
+          "Punjabi",
+          "Tamil",
+          "Telugu",
+          "Urdu",
+          "Sanskrit",
+          "Maithili",
+          "Other"
+        ]
+      },
+      "default": ["English"]
+    },
+    "languageCode": {
+      "type": "array"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "string"
+    },
+    "subject" : {
+      "type": "array"
+    },
+    "medium" : {
+      "type": "array"
+    },
+    "board" : {
+      "type": "string"
+    },
+    "gradeLevel" : {
+      "type": "array"
+    },
+    "topic" : {
+      "type": "array"
+    },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetFWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetBoardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetGradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetSubjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetMediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_FWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediums": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "createdFor": {
+      "type": "array"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastSubmittedOn": {
+      "type": "string"
+    },
+    "lastSubmittedBy": {
+      "type": "string"
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "lastPublishedOn": {
+      "type": "string"
+    },
+    "lastPublishedBy": {
+      "type": "string"
+    },
+    "publishError": {
+      "type": "string"
+    },
+    "reviewError": {
+      "type": "string"
+    },
+    "dailySummaryReportEnabled": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "allowAnonymousAccess": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
+    },
+    "termsAndConditions": {
+      "type": "string"
+    },
+    "expectedDuration": {
+      "type": "number"
+    },
+    "completionCriteria": {
+      "type": "object"
+    },
+    "collaborators": {
+      "type": "array"
+    },
+    "semanticVersion": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "default": "1.1"
+    },
+    "setType": {
+      "type": "string",
+      "enum": [
+        "materialised",
+        "dynamic"
+      ],
+      "default": "materialised"
+    },
+    "setCriteria": {
+      "type": "object"
+    },
+    "feedback": {
+      "type": "object"
+    },
+    "scoringMode": {
+      "type": "string",
+      "enum": [
+        "system",
+        "none"
+      ]
+    },
+    "qumlVersion": {
+      "type": "number",
+      "default": 1.1
+    },
+    "timeLimits": {
+      "type": "object",
+      "properties": {
+        "questionSet": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "question": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "showTimer": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "showHints": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "showFeedback": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "showSolutions": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "complexityLevel" : {
+      "description": "Cognitive processes involved to answer the question set.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "remember",
+          "understand",
+          "apply",
+          "analyse",
+          "evaluate",
+          "create"
+        ]
+      }
+    },
+    "navigationMode": {
+      "type": "string",
+      "enum": [
+        "linear",
+        "non-linear"
+      ],
+      "default": "non-linear"
+    },
+    "allowSkip": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
+    },
+    "outcomeProcessing": {
+      "type": "object"
+    },
+    "requiresSubmit": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "summaryType": {
+      "type": "string",
+      "enum": [
+        "Complete",
+        "Score",
+        "Duration",
+        "Score & Duration"
+      ]
+    },
+    "shuffle": {
+      "type": "boolean",
+      "default": true
+    },
+    "totalQuestions": {
+      "type": "number"
+    },
+    "maxQuestions": {
+      "type": "number"
+    },
+    "containsUserData": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "maxAttempts": {
+      "type": "number"
+    },
+    "instructions": {
+      "description": "Instructions on how to understand, attempt or how the question will be evaluated.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Instructions as HTML string when the question is used in only one language."
+        },
+        {
+          "type": "object",
+          "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "outcomeDeclaration": {
+      "type": "object",
+      "description": "External Property"
+    },
+    "requestChanges": {
+      "type": "string"
+    },
+    "generateDIALCodes": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "rejectComment": {
+      "type": "string"
+    },
+    "allowBranching": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "branchingLogic": {
+      "type": "object",
+      "description": "Store rules for dependent question"
+    },
+    "allowScoring": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "accessibility": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "origin": {
+      "type": "string"
+    },
+    "originData": {
+      "type": "object"
+    },
+    "trackable": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "string",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "default": "No"
+        },
+        "autoBatch": {
+          "type": "string",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "default": "No"
+        }
+      },
+      "default": {
+        "enabled": "No",
+        "autoBatch": "No"
+      },
+      "additionalProperties": false
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "scoreCutoffType": {
+      "type": "string",
+      "enum": [
+        "AssessmentLevel",
+        "SectionLevel"
+      ],
+      "default": "AssessmentLevel"
+    },
+    "subTitle": {
+      "type": "string"
+    },
+    "minimumPassPercentage": {
+      "type": "number"
+    },
+    "migrationVersion": {
+      "type": "number"
+    },
+    "artifactUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "creator": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

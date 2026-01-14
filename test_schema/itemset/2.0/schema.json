@@ -1,0 +1,137 @@
+{
+    "$id": "itemset-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ItemSet",
+    "type": "object",
+    "required": [
+        "name",
+        "code"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 5
+        },
+        "code": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "maxScore": {
+            "type": "number"
+        },
+        "type": {
+            "type": "string",
+            "enum": [
+                "materialised"
+            ],
+            "default": "materialised"
+        },
+        "owner": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Draft",
+                "Review",
+                "Live",
+                "Retired"
+            ],
+            "default": "Draft"
+        },
+        "prevState": {
+            "type": "string"
+        },
+        "pkgVersion": {
+            "type": "number"
+        },
+        "version": {
+            "type": "number",
+            "default": 2
+        },
+        "language": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "English",
+                    "Hindi",
+                    "Assamese",
+                    "Bengali",
+                    "Gujarati",
+                    "Kannada",
+                    "Malayalam",
+                    "Marathi",
+                    "Nepali",
+                    "Odia",
+                    "Punjabi",
+                    "Tamil",
+                    "Telugu",
+                    "Urdu",
+                    "Sanskrit",
+                    "Maithili",
+                    "Other"
+                ]
+            },
+            "default": ["English"]
+        },
+        "channel": {
+            "type": "string"
+        },
+        "framework": {
+            "type": "string"
+        },
+        "subject" : {
+            "type": "array"
+        },
+        "medium" : {
+            "type": "array"
+        },
+        "board" : {
+            "type": "string"
+        },
+        "gradeLevel" : {
+            "type": "array"
+        },
+        "topic" : {
+            "type": "array"
+        },
+
+        "createdFor": {
+            "type": "array"
+        },
+        "createdBy": {
+            "type": "string"
+        },
+        "lastUpdatedBy": {
+            "type": "string"
+        },
+        "lastSubmittedBy": {
+            "type": "string"
+        },
+        "publisher": {
+            "type": "string"
+        },
+        "lastPublishedBy": {
+            "type": "string"
+        },
+
+        "createdOn": {
+            "type": "string"
+        },
+        "lastUpdatedOn": {
+            "type": "string"
+        },
+        "lastStatusChangedOn": {
+            "type": "string"
+        },
+        "lastSubmittedOn": {
+            "type": "string"
+        },
+        "lastPublishedOn": {
+            "type": "string"
+        }
+    }
+}

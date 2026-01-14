@@ -1,46 +1,56 @@
 {
   "objectType": "AssessmentItem",
-  "version": "disable",
-  "versionCheckMode": "OFF",
-  "frameworkCategories": [],
-  "orgFrameworkTerms": [],
-  "targetFrameworkTerms": [],
+  "relations": {
+    "itemSet": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["ItemSet"]
+    }
+  },
   "restrictProps": {
-    "create" : [
+    "create": [
       "status"
     ],
     "update": [
-      "identifier", "name"
+      "visibility",
+      "code",
+      "status",
+      "mimeType",
+      "objectType"
     ]
   },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": ["board", "medium", "subject", "gradeLevel", "topic"],
+  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
+  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+  "cacheEnabled": false,
+  "schema_restrict_api": false,
   "external": {
-    "tableName": "",
+    "tableName": "question_data",
     "properties": {
+      "body": {
+        "type": "blob"
+      },
+      "editorstate": {
+        "type": "blob"
+      },
       "question": {
         "type": "blob"
       },
-      "editorState": {
-        "type": "blob"
+      "last_updated_on": {
+          "type": "timestamp"
       },
       "solutions": {
         "type": "blob"
-      },
-      "body": {
-        "type": "blob"
       }
     },
-    "primaryKey": [
-      "identifier"
-    ]
+    "primaryKey": ["question_id"]
   },
-  "relations": {
-    "concepts": {
-      "type": "associatedTo",
-      "direction": "out",
-      "objects": [
-        "Concept"
-      ]
-    }
-  },
-  "schema_restrict_api": false
+  "PII_Fields": {
+    "user": {
+      "createdBy": ["creator"]
+    },
+    "org": {}
+  }
 }
