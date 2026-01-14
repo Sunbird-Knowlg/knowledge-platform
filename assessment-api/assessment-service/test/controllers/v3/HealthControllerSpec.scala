@@ -10,7 +10,7 @@ import play.api.test.Helpers.{OK, status}
 class HealthControllerSpec extends BaseSpec {
 
 	"return api health status report - successful response" in {
-		val controller = app.injector.instanceOf[controllers.HealthController]
+		val controller = app.injector.instanceOf[assessment.controllers.HealthController]
 		val result = controller.health()(FakeRequest())
 		isOK(result)
 		status(result)(Helpers.defaultAwaitTimeout) must equalTo(OK)

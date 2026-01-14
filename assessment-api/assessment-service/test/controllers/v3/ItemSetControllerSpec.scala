@@ -9,7 +9,7 @@ import play.api.test.Helpers.{OK, defaultAwaitTimeout, status}
 @RunWith(classOf[JUnitRunner])
 class ItemSetControllerSpec extends BaseSpec {
 
-	val controller = app.injector.instanceOf[controllers.v3.ItemSetController]
+	val controller = app.injector.instanceOf[assessment.controllers.v3.ItemSetController]
 
 	"create should create an itemset successfully for given valid request" in {
 		val result = controller.create()(FakeRequest())

@@ -9,7 +9,7 @@ import play.api.test.Helpers.{OK, defaultAwaitTimeout, status}
 @RunWith(classOf[JUnitRunner])
 class AssessmentItemControllerSpec extends BaseSpec {
 
-	val controller = app.injector.instanceOf[controllers.v3.AssessmentItemController]
+	val controller = app.injector.instanceOf[assessment.controllers.v3.AssessmentItemController]
 
 	"create should create an assessment item successfully for given valid request" in {
 		val result = controller.create()(FakeRequest())

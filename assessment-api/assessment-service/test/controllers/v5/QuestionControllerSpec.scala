@@ -9,7 +9,7 @@ import play.api.test.Helpers.{OK, defaultAwaitTimeout, status}
 @RunWith(classOf[JUnitRunner])
 class QuestionControllerSpec extends BaseSpec {
 
-  val controller = app.injector.instanceOf[controllers.v5.QuestionController]
+  val controller = app.injector.instanceOf[assessment.controllers.v5.QuestionController]
 
   "create should create an question successfully for given valid request" in {
     val result = controller.create()(FakeRequest())
