@@ -239,7 +239,7 @@ object AssessmentV5Manager {
   def pushInstructionEvent(identifier: String, node: Node, requestId: String, featureName: String)(implicit oec: OntologyEngineContext): Unit = {
     val (actor, context, objData, eData) = generateInstructionEventMetadata(identifier.replace(".img", ""), node, requestId, featureName)
     val beJobRequestEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor.asJava, context.asJava, objData.asJava, eData)
-    val topic: String = Platform.getString("kafka.topics.instruction", "sunbirddev.learning.job.request")
+    val topic: String = Platform.getString("kafka.publish.request.topic", "sunbirddev.knowlg.publish.job.request")
     if (StringUtils.isBlank(beJobRequestEvent)) throw new ClientException("BE_JOB_REQUEST_EXCEPTION", "Event is not generated properly.")
     oec.kafkaClient.send(beJobRequestEvent, topic)
   }
