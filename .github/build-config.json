@@ -3,6 +3,7 @@
   "services": {
     "content_service": false,
     "taxonomy_service": false,
+    "assessment_service": false,
     "search_service": true,
     "knowlg_service": true
   }

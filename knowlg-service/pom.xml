@@ -168,17 +168,6 @@
             <artifactId>netty-resolver</artifactId>
             <version>${netty.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>4.1.68.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-resolver-dns-native-macos</artifactId>
-            <version>4.1.68.Final</version>
-            <classifier>osx-aarch_64</classifier>
-        </dependency>
         
         <!-- Jackson dependencies -->
         <dependency>
@@ -266,6 +255,18 @@
         <dependency>
             <groupId>org.sunbird</groupId>
             <artifactId>taxonomy-controllers</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
+            <artifactId>assessment-actors</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
+            <artifactId>assessment-controllers</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>

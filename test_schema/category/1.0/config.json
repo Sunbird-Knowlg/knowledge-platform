@@ -1,0 +1,27 @@
+{
+  "objectType": "Category",
+  "version": "disable",
+  "versionCheckMode": "OFF",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "restrictProps": {
+    "create" : [
+      "status"
+    ],
+    "update": [
+      "identifier", "name"
+    ]
+  },
+  "external": {},
+  "relations": {
+    "terms": {
+      "type": "hasSequenceMember",
+      "direction": "out",
+      "objects": [
+        "Term"
+      ]
+    }
+  },
+  "schema_restrict_api": false
+}

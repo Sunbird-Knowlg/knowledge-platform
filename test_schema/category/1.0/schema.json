@@ -1,0 +1,54 @@
+{
+    "$id": "category-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Category",
+    "type": "object",
+    "required": [
+        "name",
+        "code",
+        "orgIdFieldName",
+        "targetIdFieldName",
+        "searchIdFieldName",
+        "searchLabelFieldName"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 5
+        },
+        "code": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Live",
+                "Retired"
+            ],
+            "default": "Live"
+        },
+        "description": {
+            "type": "string"
+        },
+        "identifier": {
+            "type": "string"
+        },
+        "trackable": {
+            "type": "boolean",
+            "default": false
+        },
+        "orgIdFieldName": {
+            "type": "string"
+        },
+        "targetIdFieldName": {
+            "type": "string"
+        },
+        "searchIdFieldName": {
+            "type": "string"
+        },
+        "searchLabelFieldName": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": true
+}
