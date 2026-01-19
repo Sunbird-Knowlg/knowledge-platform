@@ -12,7 +12,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.service.common.DACConfigurationConstants
 import org.sunbird.graph.utils.ScalaJsonUtils
-import org.sunbird.managers.HierarchyManager
+import org.sunbird.managers.content.HierarchyManager
 
 import scala.concurrent.{ExecutionContext, Future}
 

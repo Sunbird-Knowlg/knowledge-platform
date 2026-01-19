@@ -12,8 +12,8 @@ import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.managers.HierarchyManager.hierarchyPrefix
-import org.sunbird.managers.{AssessmentManager, CopyManager, HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.questionset.HierarchyManager.hierarchyPrefix
+import org.sunbird.managers.questionset.{AssessmentManager, CopyManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.RequestUtil
 
 import java.util

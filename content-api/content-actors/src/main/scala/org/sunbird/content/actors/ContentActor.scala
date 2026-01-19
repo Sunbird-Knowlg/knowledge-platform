@@ -18,9 +18,9 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.managers.HierarchyManager
+import org.sunbird.managers.content.HierarchyManager
 import scala.jdk.CollectionConverters._
-import org.sunbird.managers.HierarchyManager.hierarchyPrefix
+import org.sunbird.managers.content.HierarchyManager.hierarchyPrefix
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.util.RequestUtil
 

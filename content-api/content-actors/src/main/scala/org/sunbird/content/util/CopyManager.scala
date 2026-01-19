@@ -22,7 +22,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
-import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.content.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.mimetype.mgr.impl.H5PMimeTypeMgrImpl
 

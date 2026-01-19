@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.MapUtils

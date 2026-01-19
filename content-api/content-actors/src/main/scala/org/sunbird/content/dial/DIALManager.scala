@@ -11,7 +11,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.kafka.client.KafkaClient
-import org.sunbird.managers.HierarchyManager
+import org.sunbird.managers.content.HierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.io.File

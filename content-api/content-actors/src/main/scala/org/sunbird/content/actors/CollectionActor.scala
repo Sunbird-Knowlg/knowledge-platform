@@ -4,7 +4,7 @@ import javax.inject.Inject
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.managers.{HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.content.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.HierarchyConstants
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import java.io.{File, IOException}
 import com.datastax.driver.core.{ResultSet, Session}

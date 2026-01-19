@@ -9,7 +9,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.utils.ScalaJsonUtils
-import org.sunbird.managers.HierarchyManager
+import org.sunbird.managers.content.HierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
 
 import javax.inject.Inject
