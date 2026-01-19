@@ -21,7 +21,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.schema.SchemaValidatorFactory
 import org.sunbird.schema.dto.ValidationResult
-import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.content.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 import scala.annotation.tailrec
 

@@ -12,7 +12,8 @@ import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.questionset.HierarchyManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
-import org.sunbird.utils.{AssessmentErrorCodes, RequestUtil}
+import org.sunbird.utils.AssessmentErrorCodes
+import org.sunbird.utils.questionset.RequestUtil
 
 import java.util
 import java.util.UUID

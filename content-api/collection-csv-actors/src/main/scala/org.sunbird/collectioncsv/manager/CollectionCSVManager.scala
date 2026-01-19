@@ -15,8 +15,8 @@ import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.managers.content.UpdateHierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.HierarchyConstants
-import org.sunbird.utils.HierarchyConstants.MIME_TYPE
+import org.sunbird.utils.content.HierarchyConstants
+import org.sunbird.utils.content.HierarchyConstants.MIME_TYPE
 
 import java.io.{File, FileOutputStream, IOException, OutputStreamWriter}
 import java.nio.charset.StandardCharsets
