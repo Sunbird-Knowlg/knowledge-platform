@@ -1,4 +1,4 @@
-package org.sunbird.utils
+package org.sunbird.utils.content
 
 object HierarchyErrorCodes {
     val ERR_INVALID_ROOT_ID: String = "ERR_INVALID_ROOT_ID"

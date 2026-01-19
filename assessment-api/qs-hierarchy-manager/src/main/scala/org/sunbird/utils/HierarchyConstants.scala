@@ -1,4 +1,4 @@
-package org.sunbird.utils
+package org.sunbird.utils.questionset
 
 object HierarchyConstants {
     val DATA: String = "data"

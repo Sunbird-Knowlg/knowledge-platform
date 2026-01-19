@@ -14,7 +14,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.managers.content.UpdateHierarchyManager.{fetchHierarchy, shouldImageBeDeleted}
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.content.{HierarchyConstants, HierarchyErrorCodes}
 
 
 import scala.concurrent.{ExecutionContext, Future}
