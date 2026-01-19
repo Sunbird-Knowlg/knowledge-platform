@@ -28,9 +28,9 @@
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>${CLOUD_STORE_GROUP_ID}</groupId>
-            <artifactId>${CLOUD_STORE_ARTIFACT_ID}</artifactId>
-            <version>${CLOUD_STORE_VERSION}</version>
+            <groupId>org.sunbird</groupId>
+            <artifactId>cloud-store-sdk_2.13</artifactId>
+            <version>1.4.9</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.jamesmurty.util</groupId>
@@ -143,6 +143,12 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-core</artifactId>
             <version>2.9.1</version>
+        </dependency>
+        <!-- Required for AWS IAM role-based authentication (web identity tokens) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sts</artifactId>
+            <version>2.20.0</version>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
