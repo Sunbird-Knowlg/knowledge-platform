@@ -1,4 +1,4 @@
-package org.sunbird.utils
+package org.sunbird.utils.questionset
 
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.Request

@@ -11,7 +11,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.questionset.{AssessmentManager, CopyManager}
-import org.sunbird.utils.RequestUtil
+import org.sunbird.utils.questionset.RequestUtil
 
 import java.util
 import javax.inject.Inject

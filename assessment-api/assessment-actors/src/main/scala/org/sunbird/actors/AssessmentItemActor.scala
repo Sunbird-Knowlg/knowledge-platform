@@ -11,7 +11,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.RequestUtil
+import org.sunbird.utils.questionset.RequestUtil
 import org.sunbird.managers.questionset.AssessmentManager
 import org.sunbird.validators.AssessmentItemValidator
 import org.sunbird.utils.JavaJsonUtils

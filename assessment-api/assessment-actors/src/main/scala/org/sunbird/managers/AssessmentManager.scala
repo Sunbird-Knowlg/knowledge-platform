@@ -11,7 +11,7 @@ import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
-import org.sunbird.utils.RequestUtil
+import org.sunbird.utils.questionset.RequestUtil
 
 import java.util
 import scala.collection.JavaConverters
