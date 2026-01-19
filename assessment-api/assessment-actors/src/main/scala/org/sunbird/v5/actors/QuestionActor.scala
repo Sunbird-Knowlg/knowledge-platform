@@ -10,7 +10,7 @@ import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
-import org.sunbird.managers.CopyManager
+import org.sunbird.managers.questionset.CopyManager
 import org.sunbird.utils.{AssessmentErrorCodes, RequestUtil}
 import org.sunbird.v5.managers.AssessmentV5Manager
 

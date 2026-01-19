@@ -13,8 +13,8 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
-import org.sunbird.managers.HierarchyManager.hierarchyPrefix
-import org.sunbird.managers.{CopyManager, HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.questionset.HierarchyManager.hierarchyPrefix
+import org.sunbird.managers.questionset.{CopyManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.{AssessmentErrorCodes, RequestUtil}
 import org.sunbird.v5.managers.AssessmentV5Manager
 

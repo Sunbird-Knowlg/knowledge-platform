@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.content
 
 import java.util
 

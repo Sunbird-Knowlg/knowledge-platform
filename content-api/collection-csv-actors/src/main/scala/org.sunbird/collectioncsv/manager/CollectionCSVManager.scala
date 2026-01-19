@@ -13,7 +13,7 @@ import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.{ClientException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.managers.UpdateHierarchyManager
+import org.sunbird.managers.content.UpdateHierarchyManager
 import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.HierarchyConstants
 import org.sunbird.utils.HierarchyConstants.MIME_TYPE
