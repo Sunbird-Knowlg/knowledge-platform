@@ -13,7 +13,8 @@ import org.sunbird.graph.path.DataSubGraph
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.mangers.FrameworkManager
 import org.sunbird.utils.{CategoryCache, FrameworkCache}
-import org.sunbird.utils.{Constants, RequestUtil}
+import org.sunbird.utils.Constants
+import org.sunbird.utils.taxonomy.RequestUtil
 
 import java.util
 import javax.inject.Inject
