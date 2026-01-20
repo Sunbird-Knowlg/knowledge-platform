@@ -63,13 +63,20 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	}
 
 	def create(request: Request): Future[Response] = {
-		populateDefaultersForCreation(request)
-		RequestUtil.restrictProperties(request)
-		DataNode.create(request, dataModifier).map(node => {
-			ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
-				.put("versionKey", node.getMetadata.get("versionKey"))
+		populateDefaultersForCreation(request).flatMap(_ => {
+			RequestUtil.restrictProperties(request)
+			DataNode.create(request, dataModifier).map(node => {
+				ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
+					.put("versionKey", node.getMetadata.get("versionKey"))
+			})
 		})
 	}
+
+  // ... (keep getProcessIdStatus, read, privateRead, update, upload, copy, uploadPreSignedUrl, retire, discard, flag, acceptFlag, linkDIALCode, reserveDialCode, releaseDialCode, importContent, reviewContent, publishContent as is - I am only replacing the lines I target)
+  // Wait, replace_file_content replaces a block. I should only target the block containing `create`, `populateDefaultersForCreation` and `setDefaultLicense`.
+  // But they are separated by many methods.
+  // I must use multi_replace_file_content.
+
 
 	def getProcessIdStatus(request: Request): Future[Response] = {
 			val apiId: String = "sunbird.dialcode.batch.read"
@@ -236,18 +243,51 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}).flatMap(f => f)
 	}
 
-	def populateDefaultersForCreation(request: Request) = {
+	def populateDefaultersForCreation(request: Request): Future[Unit] = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)
 		setDefaultLicense(request)
 	}
 
-	private def setDefaultLicense(request: Request): Unit = {
+	private def setDefaultLicense(request: Request): Future[Unit] = {
 		if (StringUtils.isEmpty(request.getRequest.getOrDefault("license", "").asInstanceOf[String])) {
-			val cacheKey = "channel_" + request.getRequest.getOrDefault("channel", "").asInstanceOf[String] + "_license"
-			val defaultLicense = RedisCache.get(cacheKey, null, 0)
-			if (StringUtils.isNotEmpty(defaultLicense)) request.getRequest.put("license", defaultLicense)
-			else println("Default License is not available for channel: " + request.getRequest.getOrDefault("channel", "").asInstanceOf[String])
-		}
+			val channelId = request.getRequest.getOrDefault("channel", "").asInstanceOf[String]
+			val cacheKey = "channel_" + channelId + "_license"
+			var defaultLicense = ""
+            try {
+			    defaultLicense = RedisCache.get(cacheKey, null, 0)
+            } catch {
+                case e: Exception =>
+                    TelemetryManager.error("Error fetching license from Redis: " + e.getMessage, e)
+            }
+
+			if (StringUtils.isNotEmpty(defaultLicense)) {
+                request.getRequest.put("license", defaultLicense)
+                Future.successful(())
+            } else {
+                val readReq = new Request(request)
+                readReq.put(ContentConstants.IDENTIFIER, channelId)
+                readReq.put("fields", new util.ArrayList[String](){{ add("defaultLicense") }})
+                DataNode.read(readReq).map(node => {
+                    val license = node.getMetadata.getOrDefault("defaultLicense", "").asInstanceOf[String]
+                    if (StringUtils.isNotEmpty(license)) {
+                        request.getRequest.put("license", license)
+                        try {
+                            RedisCache.set(cacheKey, license, 0)
+                        } catch {
+                            case e: Exception =>
+                                TelemetryManager.error("Error setting license to Redis: " + e.getMessage, e)
+                        }
+                    } else {
+                        println("Default License is not available for channel: " + channelId)
+                    }
+                }).recover {
+                    case e: Exception =>
+                        TelemetryManager.error("Error fetching channel from DB: " + e.getMessage, e)
+                }.map(_ => ())
+            }
+		} else {
+            Future.successful(())
+        }
 	}
 
 	def populateDefaultersForUpdation(request: Request) = {

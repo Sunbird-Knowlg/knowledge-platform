@@ -74,6 +74,9 @@ object FrameworkManager {
     val nodes = subGraph.getNodes
     val relations = subGraph.getRelations
     val node = nodes.get(id)
+    if (null == node) {
+       throw new ClientException("ERR_NODE_NOT_FOUND", s"Node with ID '$id' not found in SubGraph. Available nodes: ${nodes.keySet()}")
+    }
     val metadata = node.getMetadata
     val objectType = node.getObjectType.toLowerCase().replace("image", "")
     val channel = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]

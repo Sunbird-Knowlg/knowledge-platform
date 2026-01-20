@@ -12,8 +12,8 @@ public class IdentifierTest {
     }
 
     @Test
-    public void getUniqueIdFromNeo4jId() throws Exception {
-        String id = Identifier.getUniqueIdFromNeo4jId(System.currentTimeMillis());
+    public void getUniqueIdFromGraphId() throws Exception {
+        String id = Identifier.getUniqueIdFromGraphId(System.currentTimeMillis());
         Assert.assertTrue(StringUtils.endsWith(id, "1"));
     }
 

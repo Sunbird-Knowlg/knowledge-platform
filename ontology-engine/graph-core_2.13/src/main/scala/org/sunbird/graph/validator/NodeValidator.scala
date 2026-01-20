@@ -17,12 +17,15 @@ import scala.concurrent.{ExecutionContext, Future}
 object NodeValidator {
 
     def validate(graphId: String, identifiers: util.List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, Node]] = {
+        println(s"DEBUG: NodeValidator.validate called. GraphID: $graphId, Identifiers: $identifiers")
         val nodes = getDataNodes(graphId, identifiers)
 
         nodes.map(dataNodes => {
+            println(s"DEBUG: NodeValidator - getDataNodes returned ${dataNodes.size} nodes. IDs: ${dataNodes.map(_.getIdentifier)}")
             if (dataNodes.size != identifiers.size) {
                 val dbNodeIds = dataNodes.map(node => node.getIdentifier).toList
                 val invalidIds = identifiers.toList.filter(id => !dbNodeIds.contains(id))
+                println(s"DEBUG: NodeValidator - Invalid IDs: $invalidIds")
                 throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier " + invalidIds)
             } else {
                 new util.HashMap[String, Node](dataNodes.map(node => node.getIdentifier -> node).toMap.asJava)
@@ -33,19 +36,26 @@ object NodeValidator {
     }
 
     private def getDataNodes(graphId: String, identifiers: util.List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
-        val searchCriteria = new SearchCriteria
-        val mc = if (identifiers.size == 1)
-            MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_EQUAL, identifiers.get(0))))
-        else
-            MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_IN, identifiers), new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")))
-        searchCriteria.addMetadata(mc)
-        searchCriteria.setCountQuery(false)
-        try {
-            val nodes = oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
-            nodes
-        } catch {
-            case e: Exception =>
-                throw new ServerException(GraphErrorCodes.ERR_GRAPH_PROCESSING_ERROR.toString, "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
+        if (identifiers.size() == 1) {
+            System.out.println("NodeValidator: Singular lookup for identifier: " + identifiers.get(0))
+            oec.graphService.getNodeByUniqueId(graphId, identifiers.get(0), false, new org.sunbird.common.dto.Request())
+                .map(node => util.Arrays.asList(node))
+                .recover {
+                    case e: ResourceNotFoundException => util.Arrays.asList()
+                }
+        } else {
+            val searchCriteria = new SearchCriteria
+            val mc = MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_IN, identifiers)))
+            // Removed status check for debugging: new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")
+            searchCriteria.addMetadata(mc)
+            searchCriteria.setCountQuery(false)
+            searchCriteria.getParams.put("identifiers", identifiers)
+            try {
+                oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
+            } catch {
+                case e: Exception =>
+                    throw new ServerException(GraphErrorCodes.ERR_GRAPH_PROCESSING_ERROR.toString, "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
+            }
         }
     }
 }

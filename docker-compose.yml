@@ -1,33 +1,39 @@
 version: "3.0"
 services:
-  sunbird-neo4j:
-    image: neo4j:3.3.0
-    container_name: "sunbird_neo4j"
+  sunbird-yugabyte:
+    image: yugabytedb/yugabyte:latest
+    container_name: "sunbird_yugabyte"
     ports:
-      - 7473:7473
-      - 7474:7474
-      - 7687:7687
+      - 9042:9042  # YCQL (Cassandra-compatible) port
+      - 5434:5433  # YSQL (PostgreSQL-compatible) port - mapped to 5434
+      - 7001:7000  # Master webserver (mapped to 7001 to avoid conflicts)
+      - 9001:9000  # Master RPC (mapped to 9001 to avoid conflicts)
     volumes:
-      - $sunbird_dbs_path/neo4j/data:/var/lib/neo4j/data
-      - $sunbird_dbs_path/neo4j/logs:/var/lib/neo4j/logs
-      - $sunbird_dbs_path/neo4j/plugins:/var/lib/neo4j/plugins
-    environment:
-      NEO4J_AUTH: none
-      NEO4J_dbms_connector_https_advertised__address: "localhost:7473"
-      NEO4J_dbms_connector_http_advertised__address: "localhost:7474"
-      NEO4J_dbms_connector_bolt_advertised__address: "localhost:7687"
+      - $sunbird_dbs_path/yugabyte/data:/home/yugabyte/yb_data
+    command: ["bin/yugabyted", "start", "--daemon=false", "--ui=false"]
+    healthcheck:
+      test: ["CMD", "bin/yugabyted", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-  sunbird-cassandra:
-    image: cassandra:3.11.11
-    container_name: "sunbird_cassandra"
+  sunbird-janusgraph:
+    image: janusgraph/janusgraph:1.1.0
+    container_name: "sunbird_janusgraph"
     ports:
-      - 9042:9042
+      - 8182:8182  # Gremlin Server port
     depends_on:
-      - sunbird-neo4j
+      sunbird-yugabyte:
+        condition: service_healthy
     volumes:
-      - $sunbird_dbs_path/cassandra/data:/var/lib/cassandra
-      - $sunbird_dbs_path/cassandra/logs:/opt/cassandra/logs
-      - $sunbird_dbs_path/cassandra/backups:/mnt/backups
+      - $sunbird_dbs_path/janusgraph/data:/var/lib/janusgraph/data
+      - $sunbird_dbs_path/janusgraph/logs:/var/lib/janusgraph/logs
+    environment:
+      - JANUS_PROPS_TEMPLATE=cql
+      - janusgraph.storage.backend=cql
+      - janusgraph.storage.hostname=sunbird-yugabyte
+      - janusgraph.storage.port=9042
+      - janusgraph.storage.cql.keyspace=janusgraph
 
   sunbird-redis: 
     image: redis:6.0.8

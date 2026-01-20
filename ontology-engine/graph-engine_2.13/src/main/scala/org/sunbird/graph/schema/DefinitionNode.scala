@@ -112,6 +112,17 @@ object DefinitionNode {
           dbNode.setExternalData(inputNode.getExternalData)
       }
       if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
+      if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
+      
+      // Fix: specific array fields retrieved as Strings from DB need to be converted to Lists
+      val arrayFields = List("ownershipType", "language", "audience", "os")
+      arrayFields.foreach(field => {
+        if (dbNode.getMetadata.containsKey(field) && dbNode.getMetadata.get(field).isInstanceOf[String]) {
+             val value = dbNode.getMetadata.get(field).asInstanceOf[String]
+             dbNode.getMetadata.put(field, java.util.Arrays.asList(value))
+        }
+      })
+
       val validatedNode = if (!skipValidation) categoryDefinition.validate(dbNode, "update") else Future(dbNode)
       validatedNode.map(node => {
         if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.put(prop, null))
@@ -212,7 +223,11 @@ object DefinitionNode {
       node.getMetadata.entrySet().asScala.map(entry => {
         if (jsonPropList.contains(entry.getKey)) {
           entry.getValue match {
-            case value: String => entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
+            case value: String => try {
+              entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
+            } catch {
+              case e: Exception => entry
+            }
             case _ => entry
           }
         }
