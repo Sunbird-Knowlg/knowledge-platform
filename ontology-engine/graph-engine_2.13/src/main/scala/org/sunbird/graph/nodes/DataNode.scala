@@ -176,7 +176,7 @@ object DataNode {
                 val map = new util.HashMap[String, AnyRef]
                 map.put("startNodeId", rel.getStartNodeId)
                 map.put("endNodeId", rel.getEndNodeId)
-                map.put("relation", rel.getRelationType)
+                map.put("relationType", rel.getRelationType)
                 if (MapUtils.isNotEmpty(rel.getMetadata)) map.put("relMetadata", rel.getMetadata)
                 else map.put("relMetadata", new util.HashMap[String,AnyRef]())
                 list.add(map)

@@ -8,7 +8,7 @@ import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.schema.DefinitionFactory
-import org.sunbird.graph.service.operation.{Neo4JBoltGraphOperations, Neo4JBoltSearchOperations}
+import org.sunbird.graph.service.operation.{JanusGraphOperations, GraphSearchOperations}
 
 import scala.concurrent.ExecutionContext
 
@@ -21,7 +21,7 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         request.put(GraphDACParams.end_node_id.name, endNode.getIdentifier)
         request.put(GraphDACParams.metadata.name, metadata)
         try {
-            Neo4JBoltGraphOperations.createRelation(graphId, startNode.getIdentifier, endNode.getIdentifier, getRelationType, request)
+            JanusGraphOperations.createRelation(graphId, startNode.getIdentifier, endNode.getIdentifier, getRelationType, request)
         } catch {
             case e: Exception =>
                 e.getMessage;

@@ -35,8 +35,6 @@ trait PropAsEdgeValidator extends IDefinition {
                         } else {
                             throw new ClientException("ERR_INVALID_EDGE_PROPERTY", key + " given datatype is invalid.")
                         }
-                    } else {
-                        throw new ClientException("ERR_EMPTY_EDGE_PROPERTY_LIST", "The list to validate input is empty.")
                     }
                 })
             }
