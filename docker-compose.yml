@@ -28,6 +28,8 @@ services:
     volumes:
       - $sunbird_dbs_path/janusgraph/data:/var/lib/janusgraph/data
       - $sunbird_dbs_path/janusgraph/logs:/var/lib/janusgraph/logs
+      - /Users/sanketikam4/janusgraph-cql.properties:/opt/janusgraph/conf/janusgraph-cql.properties
+      - /Users/sanketikam4/janus-data:/data
     environment:
       - JANUS_PROPS_TEMPLATE=cql
       - janusgraph.storage.backend=cql
@@ -65,3 +67,7 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper  
+
+networks:
+  default:
+    name: janus-net
