@@ -12,6 +12,7 @@ import org.sunbird.common.dto.Request
 import scala.jdk.CollectionConverters._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -117,9 +118,20 @@ object DefinitionNode {
       // Fix: specific array fields retrieved as Strings from DB need to be converted to Lists
       val arrayFields = List("ownershipType", "language", "audience", "os")
       arrayFields.foreach(field => {
-        if (dbNode.getMetadata.containsKey(field) && dbNode.getMetadata.get(field).isInstanceOf[String]) {
-             val value = dbNode.getMetadata.get(field).asInstanceOf[String]
-             dbNode.getMetadata.put(field, java.util.Arrays.asList(value))
+        if (dbNode.getMetadata.containsKey(field)) {
+          val value = dbNode.getMetadata.get(field)
+          if (value.isInstanceOf[String]) {
+            val strVal = value.asInstanceOf[String]
+            try {
+               val list = ScalaJsonUtils.deserialize[List[String]](strVal)
+               dbNode.getMetadata.put(field, list.asJava)
+            } catch {
+               case _: Exception =>
+                   dbNode.getMetadata.put(field, java.util.Arrays.asList(strVal))
+            }
+          } else if (value.isInstanceOf[Array[String]]) {
+            dbNode.getMetadata.put(field, java.util.Arrays.asList(value.asInstanceOf[Array[String]]: _*))
+          }
         }
       })
 

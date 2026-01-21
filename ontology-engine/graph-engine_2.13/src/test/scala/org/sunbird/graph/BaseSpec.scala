@@ -4,6 +4,7 @@ import java.io.File
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
+import redis.embedded.RedisServer
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.Platform
@@ -41,6 +42,14 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
     def setUpEmbeddedGraph(): Unit = {
         if (null == graph) {
             graph = JanusGraphFactory.build.set("storage.backend", "inmemory").open
+            val mgmt = graph.asInstanceOf[org.janusgraph.core.JanusGraph].openManagement()
+            mgmt.makePropertyKey("keywords").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
+            mgmt.makePropertyKey("gradeLevel").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
+            mgmt.makePropertyKey("language").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
+            mgmt.makePropertyKey("audience").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
+            mgmt.makePropertyKey("os").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
+            mgmt.makePropertyKey("resourceType").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
+            mgmt.commit()
             g = graph.traversal
             val driverUtil = classOf[DriverUtil]
             val field: Field = driverUtil.getDeclaredField("graphTraversalSourceMap")
@@ -57,9 +66,12 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra("/cassandra-unit.yaml", 100000L)
     }
 
+    var redisServer: RedisServer = _
+
     override def beforeAll(): Unit = {
         setUpEmbeddedGraph()
         setUpEmbeddedCassandra()
+        setupRedis()
         setupGraphData()
         createRelationData()
         executeCassandraQuery(script_1, script_2, script_3, script_4, script_5, script_6, script_7, script_8, script_9, script_10, script_11, script_12, script_13)
@@ -73,6 +85,14 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
         if(null != session && !session.isClosed)
             session.close()
         EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+        if (null != redisServer) {
+            redisServer.stop()
+        }
+    }
+
+    def setupRedis(): Unit = {
+        redisServer = new RedisServer(6379)
+        redisServer.start()
     }
 
     def executeCassandraQuery(queries: String*): Unit = {
@@ -110,9 +130,9 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
     }
 
     def createRelationData(): Unit = {
-        g.addV("domain").property("identifier","Num:C3:SC2").property("code","Num:C3:SC2").property("keywords", util.Arrays.asList("Subconcept","Class 3")).property("IL_SYS_NODE_TYPE","DATA_NODE").property("subject","numeracy").property("channel","in.ekstep").property("description","Multiplication").property("versionKey","1484389136575").property("gradeLevel", util.Arrays.asList("Grade 3","Grade 4")).property("IL_FUNC_OBJECT_TYPE","Concept").property("name","Multiplication").property("lastUpdatedOn","2016-06-15T17:15:45.951+0000").property("IL_UNIQUE_ID","Num:C3:SC2").property("status","Live").next()
+        g.addV("domain").property("identifier","Num:C3:SC2").property("code","Num:C3:SC2").property("keywords", "Subconcept").property("keywords", "Class 3").property("IL_SYS_NODE_TYPE","DATA_NODE").property("subject","numeracy").property("channel","in.ekstep").property("description","Multiplication").property("versionKey","1484389136575").property("gradeLevel", "Grade 3").property("gradeLevel", "Grade 4").property("IL_FUNC_OBJECT_TYPE","Concept").property("name","Multiplication").property("lastUpdatedOn","2016-06-15T17:15:45.951+0000").property("IL_UNIQUE_ID","Num:C3:SC2").property("status","Live").next()
 
-        g.addV("domain").property("code","31d521da-61de-4220-9277-21ca7ce8335c").property("previewUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("downloadUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar").property("channel","in.ekstep").property("language", util.Arrays.asList("English")).property("variants","{\"spine\":{\"ecarUrl\":\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790848197_do_11232724509261824014_2.0_spine.ecar\",\"size\":890.0}}").property("mimeType","application/pdf").property("streamingUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("idealScreenSize","normal").property("createdOn","2017-09-07T13:24:20.720+0000").property("contentDisposition","inline").property("artifactUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("contentEncoding","identity").property("lastUpdatedOn","2017-09-07T13:25:53.595+0000").property("SYS_INTERNAL_LAST_UPDATED_ON","2017-09-07T13:27:28.417+0000").property("contentType","Resource").property("lastUpdatedBy","Ekstep").property("audience", util.Arrays.asList("Student")).property("visibility","Default").property("os", util.Arrays.asList("All")).property("IL_SYS_NODE_TYPE","DATA_NODE").property("consumerId","e84015d2-a541-4c07-a53f-e31d4553312b").property("mediaType","content").property("osId","org.ekstep.quiz.app").property("lastPublishedBy","Ekstep").property("pkgVersion",2).property("versionKey","1504790848417").property("license","Creative Commons Attribution (CC BY)").property("idealScreenDensity","hdpi").property("s3Key","ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar").property("size",4864851).property("lastPublishedOn","2017-09-07T13:27:27.410+0000").property("createdBy","390").property("compatibilityLevel",4).property("IL_FUNC_OBJECT_TYPE","Content").property("name","Untitled Content").property("publisher","EkStep").property("IL_UNIQUE_ID","do_11232724509261824014").property("status","Live").property("resourceType", util.Arrays.asList("Study material")).next()
+        g.addV("domain").property("code","31d521da-61de-4220-9277-21ca7ce8335c").property("previewUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("downloadUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar").property("channel","in.ekstep").property("language", "English").property("variants","{\"spine\":{\"ecarUrl\":\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790848197_do_11232724509261824014_2.0_spine.ecar\",\"size\":890.0}}").property("mimeType","application/pdf").property("streamingUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("idealScreenSize","normal").property("createdOn","2017-09-07T13:24:20.720+0000").property("contentDisposition","inline").property("artifactUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("contentEncoding","identity").property("lastUpdatedOn","2017-09-07T13:25:53.595+0000").property("SYS_INTERNAL_LAST_UPDATED_ON","2017-09-07T13:27:28.417+0000").property("contentType","Resource").property("lastUpdatedBy","Ekstep").property("audience", "Student").property("visibility","Default").property("os", "All").property("IL_SYS_NODE_TYPE","DATA_NODE").property("consumerId","e84015d2-a541-4c07-a53f-e31d4553312b").property("mediaType","content").property("osId","org.ekstep.quiz.app").property("lastPublishedBy","Ekstep").property("pkgVersion",2).property("versionKey","1504790848417").property("license","Creative Commons Attribution (CC BY)").property("idealScreenDensity","hdpi").property("s3Key","ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar").property("size",4864851).property("lastPublishedOn","2017-09-07T13:27:27.410+0000").property("createdBy","390").property("compatibilityLevel",4).property("IL_FUNC_OBJECT_TYPE","Content").property("name","Untitled Content").property("publisher","EkStep").property("IL_UNIQUE_ID","do_11232724509261824014").property("status","Live").property("resourceType", "Study material").next()
         g.tx().commit()
     }
 
