@@ -24,7 +24,7 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 object UpdateHierarchyManager {
-    val neo4jCreateTypes: java.util.List[String] = Platform.getStringList("neo4j_objecttypes_enabled", List("Question").asJava)
+    val graphCreateTypes: java.util.List[String] = Platform.getStringList("graph_objecttypes_enabled", List("Question").asJava)
 
     @throws[Exception]
     def updateHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -251,7 +251,7 @@ object UpdateHierarchyManager {
         val createRequest: Request = new Request(request)
         createRequest.setRequest(metadata)
         createRequest.getContext.put(HierarchyConstants.VERSION, schemaVersion)
-        if (neo4jCreateTypes.contains(objectType)) {
+        if (graphCreateTypes.contains(objectType)) {
             createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, objectType.toLowerCase)
             DataNode.create(createRequest).map(node => {
                 node.setGraphId(HierarchyConstants.TAXONOMY_ID)
@@ -281,7 +281,7 @@ object UpdateHierarchyManager {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
             val createRequest: Request = new Request(request)
             createRequest.setRequest(metadata)
-            if (neo4jCreateTypes.contains(objectType)) {
+            if (graphCreateTypes.contains(objectType)) {
                 createRequest.getContext.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
                 createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, objectType.toLowerCase().replace("image",""))
                 createRequest.getContext.put(HierarchyConstants.OBJECT_TYPE, objectType)

@@ -44,7 +44,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         println("Response: " + JsonUtils.serialize(response))
     }
 
-    it should "create an eventset and store it in neo4j" in {
+    it should "create an eventset and store it in the graph" in {
         val eventNode = getEventNode()
         val eventSetNode = getEventSetNode()
         enrichFrameworkMasterCategoryMap()
@@ -84,7 +84,7 @@ class TestEventSetActor extends BaseSpec with MockFactory {
         assert(response.get("versionKey") != null)
     }
 
-    it should "update an eventset and store it in neo4j" in {
+    it should "update an eventset and store it in the graph" in {
         val eventNode = getEventNode()
         val eventSetNode = getEventSetCollectionNode()
         enrichFrameworkMasterCategoryMap()

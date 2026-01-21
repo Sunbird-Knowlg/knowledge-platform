@@ -38,8 +38,13 @@ public class DriverUtil {
 				+ StringUtils.lowerCase(graphOperation.name());
 		TelemetryManager.log("Driver Configuration Key: " + driverKey);
 
+		// DEBUG: Print keys
+		System.out.println("DEBUG: Requesting key: " + driverKey);
+		System.out.println("DEBUG: Available keys: " + graphTraversalSourceMap.keySet());
+
 		GraphTraversalSource g = graphTraversalSourceMap.get(driverKey);
 		if (null == g) {
+			System.out.println("DEBUG: Key mismatch! Loading remote source.");
 			g = loadGraphTraversalSource(graphId, graphOperation, driverKey);
 			graphTraversalSourceMap.put(driverKey, g);
 		}

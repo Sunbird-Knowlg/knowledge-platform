@@ -541,10 +541,7 @@ public class NodeAsyncOperations {
                         if (value instanceof Map) {
                             value = JsonUtils.serialize(value);
                         } else if (value instanceof List) {
-                            List<?> listValue = (List<?>) value;
-                            if (CollectionUtils.isNotEmpty(listValue) && listValue.get(0) instanceof Map) {
-                                value = JsonUtils.serialize(value);
-                            }
+                            value = JsonUtils.serialize(value);
                         }
                         entry.setValue(value);
                     } catch (Exception e) {

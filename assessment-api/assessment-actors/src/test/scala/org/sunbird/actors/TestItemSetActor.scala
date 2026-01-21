@@ -19,7 +19,7 @@ class TestItemSetActor extends BaseSpec with MockFactory {
     testUnknownOperation(Props(new ItemSetActor()), getItemSetRequest())
   }
 
-  it should "create a itemSetNode and store it in neo4j" in {
+  it should "create a itemSetNode and store it in the graph" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
