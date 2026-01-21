@@ -1,166 +1,127 @@
 package org.sunbird.graph
 
-//import com.datastax.driver.core.Session
-
+import java.io.File
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-import org.mockito.Mockito._
-import org.neo4j.driver.v1._
-import org.neo4j.graphdb.GraphDatabaseService
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll, Matchers}
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.Platform
+import org.sunbird.graph.service.util.DriverUtil
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.schema.FrameworkMasterCategoryMap
-import org.testcontainers.containers.FixedHostPortGenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
-
-import java.io.File
-import java.time.Duration
-import java.util.concurrent.TimeUnit
+import org.apache.tinkerpop.gremlin.structure.Graph
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
+import org.janusgraph.core.JanusGraphFactory
+import java.lang.reflect.Field
+import java.util
+import scala.collection.JavaConverters._
 
 class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll {
 
-  var driver: Driver = null
-  var graphDb: Session = _
-  var session: com.datastax.driver.core.Session = null
-  implicit val oec: OntologyEngineContext = new OntologyEngineContext
+    var graph: Graph = _
+    var g: GraphTraversalSource = _
+    var session: com.datastax.driver.core.Session = null
+    implicit val oec: OntologyEngineContext = new OntologyEngineContext
 
-  private val script_1 = "CREATE KEYSPACE IF NOT EXISTS content_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
-  private val script_2 = "CREATE TABLE IF NOT EXISTS content_store.content_data (content_id text, last_updated_on timestamp,body blob,oldBody blob,screenshots blob,stageIcons blob,externallink text,PRIMARY KEY (content_id));"
-  private val script_3 = "CREATE KEYSPACE IF NOT EXISTS hierarchy_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
-  private val script_4 = "CREATE TABLE IF NOT EXISTS hierarchy_store.content_hierarchy (identifier text, hierarchy text, relational_metadata text, PRIMARY KEY (identifier));"
-  private val script_5 = "CREATE KEYSPACE IF NOT EXISTS category_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
-  private val script_6 = "CREATE TABLE IF NOT EXISTS category_store.category_definition_data (identifier text, objectmetadata map<text, text>, forms map<text,text> ,PRIMARY KEY (identifier));"
-  private val script_7 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_content_all', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
-  private val script_8 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:course_collection_all', {'config': '{}', 'schema': '{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"}},\"default\":{\"enabled\":\"No\",\"autoBatch\":\"No\"},\"additionalProperties\":false},\"additionalCategories\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"default\":\"Textbook\"}},\"userConsent\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}}}'});"
-  private val script_9 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:course_content_all',{'config': '{}', 'schema': '{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"}},\"default\":{\"enabled\":\"No\",\"autoBatch\":\"No\"},\"additionalProperties\":false},\"additionalCategories\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"default\":\"Textbook\"}},\"userConsent\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}}}'});"
-  private val script_10 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_collection_all', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
-  private val script_11 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_content_in.ekstep', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
-  private val script_12 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_collection_in.ekstep', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
-  private val script_13 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:practice-question_question_all', {'config': '{}', 'schema': '{}'});"
-  private val configFile = ConfigFactory.load()
-  private val graphDirectory = configFile.getString("graph.dir")
-  val hostHttpsPort = 7473
-  val hostHttpPort = 7474
-  val hostBoltPort = 7687
-  val neo4jContainer: FixedHostPortGenericContainer[_] = new FixedHostPortGenericContainer("neo4j:3.5.0")
+    private val script_1 = "CREATE KEYSPACE IF NOT EXISTS content_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
+    private val script_2 = "CREATE TABLE IF NOT EXISTS content_store.content_data (content_id text, last_updated_on timestamp,body blob,oldBody blob,screenshots blob,stageIcons blob,externallink text,PRIMARY KEY (content_id));"
+    private val script_3 = "CREATE KEYSPACE IF NOT EXISTS hierarchy_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
+    private val script_4 = "CREATE TABLE IF NOT EXISTS hierarchy_store.content_hierarchy (identifier text, hierarchy text, relational_metadata text, PRIMARY KEY (identifier));"
+    private val script_5 = "CREATE KEYSPACE IF NOT EXISTS category_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
+    private val script_6 = "CREATE TABLE IF NOT EXISTS category_store.category_definition_data (identifier text, objectmetadata map<text, text>, forms map<text,text> ,PRIMARY KEY (identifier));"
+    private val script_7 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_content_all', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
+    private val script_8 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:course_collection_all', {'config': '{}', 'schema': '{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"}},\"default\":{\"enabled\":\"No\",\"autoBatch\":\"No\"},\"additionalProperties\":false},\"additionalCategories\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"default\":\"Textbook\"}},\"userConsent\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}}}'});"
+    private val script_9 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:course_content_all',{'config': '{}', 'schema': '{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"No\"}},\"default\":{\"enabled\":\"No\",\"autoBatch\":\"No\"},\"additionalProperties\":false},\"additionalCategories\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"default\":\"Textbook\"}},\"userConsent\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}}}'});"
+    private val script_10 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_collection_all', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
+    private val script_11 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_content_in.ekstep', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
+    private val script_12 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:learning-resource_collection_in.ekstep', {'config': '{}', 'schema': '{\"properties\":{\"audience\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"Student\",\"Teacher\"]},\"default\":[\"Student\"]},\"mimeType\":{\"type\":\"string\",\"enum\":[\"application/vnd.ekstep.ecml-archive\",\"application/vnd.ekstep.html-archive\",\"application/vnd.ekstep.h5p-archive\",\"application/pdf\",\"video/mp4\",\"video/webm\"]}}}'});"
+    private val script_13 = "INSERT INTO category_store.category_definition_data (identifier, objectmetadata) VALUES ('obj-cat:practice-question_question_all', {'config': '{}', 'schema': '{}'});"
 
-  def setUpEmbeddedNeo4j(): Unit = {
-    if (null == graphDb) {
-      val graphDir = new File(graphDirectory)
-      if (!graphDir.exists()) {
-        graphDir.mkdirs()
-      }
-
-      neo4jContainer.withFixedExposedPort(hostHttpsPort, hostHttpsPort)
-      neo4jContainer.withFixedExposedPort(hostHttpPort, hostHttpPort)
-      neo4jContainer.withFixedExposedPort(hostBoltPort, hostBoltPort)
-      neo4jContainer.withEnv("NEO4J_dbms_directories_data", graphDirectory)
-      neo4jContainer.withEnv("NEO4J_dbms_security_auth__enabled", "false")
-      neo4jContainer.withCommand("neo4j", "console")
-      neo4jContainer.withStartupTimeout(Duration.ofSeconds(60))
-      neo4jContainer.waitingFor(Wait.forListeningPort())
-      neo4jContainer.start()
-      Thread.sleep(20000)
-
-      val httpAddress = s"http://localhost:$hostHttpPort"
-      val boltAddress = s"bolt://localhost:$hostBoltPort"
-
-      val config = Config.builder()
-        .withConnectionTimeout(30, TimeUnit.SECONDS)
-        .withMaxTransactionRetryTime(1, TimeUnit.MINUTES)
-        .build()
-
-      driver = GraphDatabase.driver(boltAddress, config)
-      graphDb = driver.session()
-    }
-  }
-
-  private def registerShutdownHook(graphDb: GraphDatabaseService): Unit = {
-    Runtime.getRuntime.addShutdownHook(new Thread() {
-      override def run(): Unit = {
-        try {
-          tearEmbeddedNeo4JSetup
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
+    def setUpEmbeddedGraph(): Unit = {
+        if (null == graph) {
+            graph = JanusGraphFactory.build.set("storage.backend", "inmemory").open
+            g = graph.traversal
+            val driverUtil = classOf[DriverUtil]
+            val field: Field = driverUtil.getDeclaredField("graphTraversalSourceMap")
+            field.setAccessible(true)
+            val graphTraversalSourceMap = new util.HashMap[String, GraphTraversalSource]()
+            graphTraversalSourceMap.put("domain_read", g)
+            graphTraversalSourceMap.put("domain_write", g)
+            field.set(null, graphTraversalSourceMap)
         }
-      }
-    })
-  }
-
-
-  @throws[Exception]
-  private def tearEmbeddedNeo4JSetup(): Unit = {
-    if (null != graphDb) graphDb.close()
-    Thread.sleep(2000)
-    deleteEmbeddedNeo4j(new File(Platform.config.getString("graph.dir")))
-  }
-
-  private def deleteEmbeddedNeo4j(emDb: File): Unit = {
-    try {
-      if (emDb.exists() && emDb.isDirectory)
-        FileUtils.deleteDirectory(emDb)
-    } catch {
-      case e: Exception =>
-        e.printStackTrace()
-    }
-  }
-
-
-  def setUpEmbeddedCassandra(): Unit = {
-    System.setProperty("cassandra.unsafesystem", "true")
-    EmbeddedCassandraServerHelper.startEmbeddedCassandra("/cassandra-unit.yaml", 100000L)
-  }
-
-  override def beforeAll(): Unit = {
-    setUpEmbeddedNeo4j()
-    setUpEmbeddedCassandra()
-    executeNeo4jQuery("UNWIND [{IL_UNIQUE_ID: \"board\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"board\",orgIdFieldName: \"boardIds\",targetIdFieldName: \"targetBoardIds\",searchIdFieldName: \"se_boardIds\",searchLabelFieldName: \"se_boards\",status: \"Live\"},{IL_UNIQUE_ID: \"subject\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"subject\",orgIdFieldName: \"subjectIds\",targetIdFieldName: \"targetSubjectIds\",searchIdFieldName: \"se_subjectIds\",searchLabelFieldName: \"se_subjects\",status: \"Live\"},{IL_UNIQUE_ID: \"gradeLevel\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"gradeLevel\",orgIdFieldName: \"gradeLevelIds\",targetIdFieldName: \"targetGradeLevelIds\",searchIdFieldName: \"se_gradeLevelIds\",searchLabelFieldName: \"se_gradeLevels\",status: \"Live\"},{IL_UNIQUE_ID: \"medium\",IL_FUNC_OBJECT_TYPE: \"Category\",IL_SYS_NODE_TYPE: \"DATA_NODE\",code: \"medium\",orgIdFieldName: \"mediumIds\",targetIdFieldName: \"targetMediumIds\",searchIdFieldName: \"se_mediumIds\",searchLabelFieldName: \"se_mediums\",status: \"Live\"}" +
-      ",{identifier:\"obj-cat:course_collection_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:course\",targetObjectType:\"Collection\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:course_collection_all\"},{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Content\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_content_all\"},{identifier:\"obj-cat:learning-resource_content_all\",name:\"LearningResource\",description:\"Learning resource\",categoryId:\"obj-cat:learningresource\",targetObjectType:\"Collection\",status:\"Live\",objectMetadata:\"{\\\"config\\\":{},\\\"schema\\\":{\\\"properties\\\":{\\\"trackable\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"enabled\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"},\\\"autoBatch\\\":{\\\"type\\\":\\\"string\\\",\\\"enum\\\":[\\\"Yes\\\",\\\"No\\\"],\\\"default\\\":\\\"Yes\\\"}},\\\"default\\\":{\\\"enabled\\\":\\\"Yes\\\",\\\"autoBatch\\\":\\\"Yes\\\"},\\\"additionalProperties\\\":false}}}}\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"ObjectCategoryDefinition\",IL_UNIQUE_ID:\"obj-cat:learning-resource_collection_all\"}" +
-      ",{owner:\"in.ekstep\",code:\"NCF\",IL_SYS_NODE_TYPE:\"DATA_NODE\",apoc_json:\"{\\\"batch\\\": true}\",consumerId:\"9393568c-3a56-47dd-a9a3-34da3c821638\",channel:\"in.ekstep\",description:\"NCF \",type:\"K-12\",createdOn:\"2018-01-23T09:53:50.189+0000\",versionKey:\"1545195552163\",apoc_text:\"APOC\",appId:\"dev.sunbird.portal\",IL_FUNC_OBJECT_TYPE:\"Framework\",name:\"State (Uttar Pradesh)\",lastUpdatedOn:\"2018-12-19T04:59:12.163+0000\",IL_UNIQUE_ID:\"NCF\",status:\"Live\",apoc_num:1}" +
-      ",{code:\"cbse\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"CBSE\",IL_UNIQUE_ID:\"ncf_board_cbse\",status:\"Live\"}" +
-      ",{code:\"english\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"English\",IL_UNIQUE_ID:\"ncf_medium_english\",status:\"Live\"}" +
-      ",{code:\"english\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"English\",IL_UNIQUE_ID:\"ncf_subject_cbse\",status:\"Live\"}" +
-      ",{code:\"grade1\",IL_SYS_NODE_TYPE:\"DATA_NODE\",IL_FUNC_OBJECT_TYPE:\"Term\",name:\"Class 1\",IL_UNIQUE_ID:\"ncf_gradelevel_grade1\",status:\"Live\"}" +
-      ",{owner:\"in.ekstep\",code:\"tpd\",IL_SYS_NODE_TYPE:\"DATA_NODE\",apoc_json:\"{\\\"batch\\\": true}\",consumerId:\"9393568c-3a56-47dd-a9a3-34da3c821638\",channel:\"in.ekstep\",description:\"NCF \",type:\"K-12\",createdOn:\"2018-01-23T09:53:50.189+0000\",versionKey:\"1545195552163\",apoc_text:\"APOC\",appId:\"dev.sunbird.portal\",IL_FUNC_OBJECT_TYPE:\"Framework\",name:\"State (Uttar Pradesh)\",lastUpdatedOn:\"2018-12-19T04:59:12.163+0000\",IL_UNIQUE_ID:\"tpd\",status:\"Live\",apoc_num:1}]  as row CREATE (n:domain) SET n += row;")
-    executeCassandraQuery(script_1, script_2, script_3, script_4, script_5, script_6, script_7, script_8, script_9, script_10, script_11, script_12, script_13)
-  }
-
-  override def afterAll(): Unit = {
-    //        tearEmbeddedNeo4JSetup()
-    if (neo4jContainer != null) {
-      neo4jContainer.stop()
     }
 
-    if (null != session && !session.isClosed)
-      session.close()
-    EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
-  }
-
-
-  def executeCassandraQuery(queries: String*): Unit = {
-    if (null == session || session.isClosed) {
-      session = CassandraConnector.getSession
+    def setUpEmbeddedCassandra(): Unit = {
+        System.setProperty("cassandra.unsafesystem", "true")
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra("/cassandra-unit.yaml", 100000L)
     }
-    for (query <- queries) {
-      session.execute(query)
+
+    override def beforeAll(): Unit = {
+        setUpEmbeddedGraph()
+        setUpEmbeddedCassandra()
+        setupGraphData()
+        createRelationData()
+        executeCassandraQuery(script_1, script_2, script_3, script_4, script_5, script_6, script_7, script_8, script_9, script_10, script_11, script_12, script_13)
     }
-  }
 
-  def createRelationData(): Unit = {
-    graphDb.run("UNWIND [{identifier:\"Num:C3:SC2\",code:\"Num:C3:SC2\",keywords:[\"Subconcept\",\"Class 3\"],IL_SYS_NODE_TYPE:\"DATA_NODE\",subject:\"numeracy\",channel:\"in.ekstep\",description:\"Multiplication\",versionKey:\"1484389136575\",gradeLevel:[\"Grade 3\",\"Grade 4\"],IL_FUNC_OBJECT_TYPE:\"Concept\",name:\"Multiplication\",lastUpdatedOn:\"2016-06-15T17:15:45.951+0000\",IL_UNIQUE_ID:\"Num:C3:SC2\",status:\"Live\"}, {code:\"31d521da-61de-4220-9277-21ca7ce8335c\",previewUrl:\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf\",downloadUrl:\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar\",channel:\"in.ekstep\",language:[\"English\"],variants:\"{\\\"spine\\\":{\\\"ecarUrl\\\":\\\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790848197_do_11232724509261824014_2.0_spine.ecar\\\",\\\"size\\\":890.0}}\",mimeType:\"application/pdf\",streamingUrl:\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf\",idealScreenSize:\"normal\",createdOn:\"2017-09-07T13:24:20.720+0000\",contentDisposition:\"inline\",artifactUrl:\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf\",contentEncoding:\"identity\",lastUpdatedOn:\"2017-09-07T13:25:53.595+0000\",SYS_INTERNAL_LAST_UPDATED_ON:\"2017-09-07T13:27:28.417+0000\",contentType:\"Resource\",lastUpdatedBy:\"Ekstep\",audience:[\"Student\"],visibility:\"Default\",os:[\"All\"],IL_SYS_NODE_TYPE:\"DATA_NODE\",consumerId:\"e84015d2-a541-4c07-a53f-e31d4553312b\",mediaType:\"content\",osId:\"org.ekstep.quiz.app\",lastPublishedBy:\"Ekstep\",pkgVersion:2,versionKey:\"1504790848417\",license:\"Creative Commons Attribution (CC BY)\",idealScreenDensity:\"hdpi\",s3Key:\"ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar\",size:4864851,lastPublishedOn:\"2017-09-07T13:27:27.410+0000\",createdBy:\"390\",compatibilityLevel:4,IL_FUNC_OBJECT_TYPE:\"Content\",name:\"Untitled Content\",publisher:\"EkStep\",IL_UNIQUE_ID:\"do_11232724509261824014\",status:\"Live\",resourceType:[\"Study material\"]}] as row CREATE (n:domain) SET n += row")
-  }
+    override def afterAll(): Unit = {
+        if (null != graph) {
+            graph.close()
+            DriverUtil.closeConnections()
+        }
+        if(null != session && !session.isClosed)
+            session.close()
+        EmbeddedCassandraServerHelper.cleanEmbeddedCassandra()
+    }
 
-  def createBulkNodes(): Unit = {
-    graphDb.run("UNWIND [{nodeId:'do_0000123'},{nodeId:'do_0000234'},{nodeId:'do_0000345'}] as row with row.nodeId as Id CREATE (n:domain{IL_UNIQUE_ID:Id});")
-  }
+    def executeCassandraQuery(queries: String*): Unit = {
+        if(null == session || session.isClosed){
+            session = CassandraConnector.getSession
+        }
+        for(query <- queries) {
+            session.execute(query)
+        }
+    }
 
-  def executeNeo4jQuery(query: String): Unit = {
-    graphDb.run(query)
-  }
+    def setupGraphData(): Unit = {
+      // Boards, Subjects, GradeLevels, Mediums
+      g.addV("domain").property("IL_UNIQUE_ID", "board").property("IL_FUNC_OBJECT_TYPE", "Category").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("code", "board").property("orgIdFieldName", "boardIds").property("targetIdFieldName", "targetBoardIds").property("searchIdFieldName", "se_boardIds").property("searchLabelFieldName", "se_boards").property("status", "Live").next()
+      g.addV("domain").property("IL_UNIQUE_ID", "subject").property("IL_FUNC_OBJECT_TYPE", "Category").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("code", "subject").property("orgIdFieldName", "subjectIds").property("targetIdFieldName", "targetSubjectIds").property("searchIdFieldName", "se_subjectIds").property("searchLabelFieldName", "se_subjects").property("status", "Live").next()
+      g.addV("domain").property("IL_UNIQUE_ID", "gradeLevel").property("IL_FUNC_OBJECT_TYPE", "Category").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("code", "gradeLevel").property("orgIdFieldName", "gradeLevelIds").property("targetIdFieldName", "targetGradeLevelIds").property("searchIdFieldName", "se_gradeLevelIds").property("searchLabelFieldName", "se_gradeLevels").property("status", "Live").next()
+      g.addV("domain").property("IL_UNIQUE_ID", "medium").property("IL_FUNC_OBJECT_TYPE", "Category").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("code", "medium").property("orgIdFieldName", "mediumIds").property("targetIdFieldName", "targetMediumIds").property("searchIdFieldName", "se_mediumIds").property("searchLabelFieldName", "se_mediums").property("status", "Live").next()
+
+      // Object Categories
+      g.addV("domain").property("IL_UNIQUE_ID", "obj-cat:course_collection_all").property("identifier", "obj-cat:course_collection_all").property("name", "LearningResource").property("description", "Learning resource").property("categoryId", "obj-cat:course").property("targetObjectType", "Collection").property("status", "Live").property("objectMetadata", "{\"config\":{},\"schema\":{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\",\"autoBatch\":\"Yes\"},\"additionalProperties\":false}}}}").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "ObjectCategoryDefinition").next()
+      g.addV("domain").property("IL_UNIQUE_ID", "obj-cat:learning-resource_content_all").property("identifier", "obj-cat:learning-resource_content_all").property("name", "LearningResource").property("description", "Learning resource").property("categoryId", "obj-cat:learningresource").property("targetObjectType", "Content").property("status", "Live").property("objectMetadata", "{\"config\":{},\"schema\":{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\",\"autoBatch\":\"Yes\"},\"additionalProperties\":false}}}}").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "ObjectCategoryDefinition").next()
+      g.addV("domain").property("IL_UNIQUE_ID", "obj-cat:learning-resource_collection_all").property("identifier", "obj-cat:learning-resource_collection_all").property("name", "LearningResource").property("description", "Learning resource").property("categoryId", "obj-cat:learningresource").property("targetObjectType", "Collection").property("status", "Live").property("objectMetadata", "{\"config\":{},\"schema\":{\"properties\":{\"trackable\":{\"type\":\"object\",\"properties\":{\"enabled\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"},\"autoBatch\":{\"type\":\"string\",\"enum\":[\"Yes\",\"No\"],\"default\":\"Yes\"}},\"default\":{\"enabled\":\"Yes\",\"autoBatch\":\"Yes\"},\"additionalProperties\":false}}}}").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "ObjectCategoryDefinition").next()
+
+      // Frameworks and Terms
+      g.addV("domain").property("IL_UNIQUE_ID", "NCF").property("owner", "in.ekstep").property("code", "NCF").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("apoc_json", "{\"batch\": true}").property("consumerId", "9393568c-3a56-47dd-a9a3-34da3c821638").property("channel", "in.ekstep").property("description", "NCF ").property("type", "K-12").property("createdOn", "2018-01-23T09:53:50.189+0000").property("versionKey", "1545195552163").property("apoc_text", "APOC").property("appId", "dev.sunbird.portal").property("IL_FUNC_OBJECT_TYPE", "Framework").property("name", "State (Uttar Pradesh)").property("lastUpdatedOn", "2018-12-19T04:59:12.163+0000").property("status", "Live").property("apoc_num", 1).next()
+
+      g.addV("domain").property("code", "cbse").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "Term").property("name", "CBSE").property("IL_UNIQUE_ID", "ncf_board_cbse").property("status", "Live").next()
+      g.addV("domain").property("code", "english").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "Term").property("name", "English").property("IL_UNIQUE_ID", "ncf_medium_english").property("status", "Live").next()
+      g.addV("domain").property("code", "english").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "Term").property("name", "English").property("IL_UNIQUE_ID", "ncf_subject_cbse").property("status", "Live").next()
+      g.addV("domain").property("code", "grade1").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("IL_FUNC_OBJECT_TYPE", "Term").property("name", "Class 1").property("IL_UNIQUE_ID", "ncf_gradelevel_grade1").property("status", "Live").next()
+
+      g.addV("domain").property("IL_UNIQUE_ID", "tpd").property("owner", "in.ekstep").property("code", "tpd").property("IL_SYS_NODE_TYPE", "DATA_NODE").property("apoc_json", "{\"batch\": true}").property("consumerId", "9393568c-3a56-47dd-a9a3-34da3c821638").property("channel", "in.ekstep").property("description", "NCF ").property("type", "K-12").property("createdOn", "2018-01-23T09:53:50.189+0000").property("versionKey", "1545195552163").property("apoc_text", "APOC").property("appId", "dev.sunbird.portal").property("IL_FUNC_OBJECT_TYPE", "Framework").property("name", "State (Uttar Pradesh)").property("lastUpdatedOn", "2018-12-19T04:59:12.163+0000").property("status", "Live").property("apoc_num", 1).next()
+
+      g.tx().commit()
+    }
+
+    def createRelationData(): Unit = {
+        g.addV("domain").property("identifier","Num:C3:SC2").property("code","Num:C3:SC2").property("keywords", util.Arrays.asList("Subconcept","Class 3")).property("IL_SYS_NODE_TYPE","DATA_NODE").property("subject","numeracy").property("channel","in.ekstep").property("description","Multiplication").property("versionKey","1484389136575").property("gradeLevel", util.Arrays.asList("Grade 3","Grade 4")).property("IL_FUNC_OBJECT_TYPE","Concept").property("name","Multiplication").property("lastUpdatedOn","2016-06-15T17:15:45.951+0000").property("IL_UNIQUE_ID","Num:C3:SC2").property("status","Live").next()
+
+        g.addV("domain").property("code","31d521da-61de-4220-9277-21ca7ce8335c").property("previewUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("downloadUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar").property("channel","in.ekstep").property("language", util.Arrays.asList("English")).property("variants","{\"spine\":{\"ecarUrl\":\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790848197_do_11232724509261824014_2.0_spine.ecar\",\"size\":890.0}}").property("mimeType","application/pdf").property("streamingUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("idealScreenSize","normal").property("createdOn","2017-09-07T13:24:20.720+0000").property("contentDisposition","inline").property("artifactUrl","https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf").property("contentEncoding","identity").property("lastUpdatedOn","2017-09-07T13:25:53.595+0000").property("SYS_INTERNAL_LAST_UPDATED_ON","2017-09-07T13:27:28.417+0000").property("contentType","Resource").property("lastUpdatedBy","Ekstep").property("audience", util.Arrays.asList("Student")).property("visibility","Default").property("os", util.Arrays.asList("All")).property("IL_SYS_NODE_TYPE","DATA_NODE").property("consumerId","e84015d2-a541-4c07-a53f-e31d4553312b").property("mediaType","content").property("osId","org.ekstep.quiz.app").property("lastPublishedBy","Ekstep").property("pkgVersion",2).property("versionKey","1504790848417").property("license","Creative Commons Attribution (CC BY)").property("idealScreenDensity","hdpi").property("s3Key","ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar").property("size",4864851).property("lastPublishedOn","2017-09-07T13:27:27.410+0000").property("createdBy","390").property("compatibilityLevel",4).property("IL_FUNC_OBJECT_TYPE","Content").property("name","Untitled Content").property("publisher","EkStep").property("IL_UNIQUE_ID","do_11232724509261824014").property("status","Live").property("resourceType", util.Arrays.asList("Study material")).next()
+        g.tx().commit()
+    }
+
+	def createBulkNodes(): Unit ={
+        g.addV("domain").property("IL_UNIQUE_ID", "do_0000123").property("identifier", "do_0000123").property("graphId", "domain").next()
+        g.addV("domain").property("IL_UNIQUE_ID", "do_0000234").property("identifier", "do_0000234").property("graphId", "domain").next()
+        g.addV("domain").property("IL_UNIQUE_ID", "do_0000345").property("identifier", "do_0000345").property("graphId", "domain").next()
+		g.tx().commit()
+	}
 
   def enrichFrameworkMasterCategoryMap() = {
     val node = new Node()

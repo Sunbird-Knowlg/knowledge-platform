@@ -5,7 +5,7 @@ import org.sunbird.common.dto.{Property, Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.dac.model.{Node, SearchCriteria, SubGraph}
 import org.sunbird.graph.external.ExternalPropsManager
-import org.sunbird.graph.service.operation.{GraphAsyncOperations, Neo4JBoltSearchOperations, NodeAsyncOperations, SearchAsyncOperations}
+import org.sunbird.graph.service.operation.{GraphAsyncOperations, GraphSearchOperations, NodeAsyncOperations, SearchAsyncOperations}
 import org.sunbird.graph.util.CSPMetaUtil
 
 import java.lang
@@ -96,7 +96,7 @@ class GraphService {
         ExternalPropsManager.deleteProps(request)
     }
     def checkCyclicLoop(graphId:String, endNodeId: String, startNodeId: String, relationType: String) = {
-        Neo4JBoltSearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
+        GraphSearchOperations.checkCyclicLoop(graphId, endNodeId, relationType, startNodeId)
     }
 
     def removeRelation(graphId: String, relationMap: java.util.List[java.util.Map[String, AnyRef]]) = {

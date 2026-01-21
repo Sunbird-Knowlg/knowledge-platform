@@ -2,6 +2,7 @@ package org.sunbird.cassandra;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
+import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.QueryOptions;
 import com.datastax.driver.core.Session;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class CassandraConnector {
 
 	/** Cassandra Session Map. */
-	private static Map<String,Session> sessionMap=new HashMap<String, Session>();
+	private static Map<String, Session> sessionMap = new HashMap<String, Session>();
 
 	static {
 		if (Platform.getBoolean("service.db.cassandra.enabled", true))
@@ -62,9 +63,18 @@ public class CassandraConnector {
 		List<InetSocketAddress> addressList = getSocketAddress(connectionInfo);
 		try {
 			if (null != level) {
-				sessionMap.put(sessionKey.toLowerCase(), Cluster.builder().addContactPointsWithPorts(addressList).withQueryOptions(new QueryOptions().setConsistencyLevel(level)).build().connect());
+				sessionMap.put(sessionKey.toLowerCase(), Cluster.builder()
+						.addContactPointsWithPorts(addressList)
+						.withQueryOptions(new QueryOptions().setConsistencyLevel(level))
+						.withoutJMXReporting()
+						.withProtocolVersion(ProtocolVersion.V4)
+						.build().connect());
 			} else {
-				sessionMap.put(sessionKey.toLowerCase(), Cluster.builder().addContactPointsWithPorts(addressList).build().connect());
+				sessionMap.put(sessionKey.toLowerCase(), Cluster.builder()
+						.addContactPointsWithPorts(addressList)
+						.withoutJMXReporting()
+						.withProtocolVersion(ProtocolVersion.V4)
+						.build().connect());
 			}
 
 			registerShutdownHook();
@@ -82,10 +92,19 @@ public class CassandraConnector {
 	private static List<String> getConnectionInfo(String sessionKey) {
 		List<String> connectionInfo = null;
 		switch (sessionKey) {
-			case "lp": connectionInfo = Arrays.asList(Platform.config.getString("cassandra.lp.connection").split(","));break;
-			case "lpa": connectionInfo = Arrays.asList(Platform.config.getString("cassandra.lpa.connection").split(","));break;
-			case "sunbird": connectionInfo = Arrays.asList(Platform.config.getString("cassandra.sunbird.connection").split(","));break;
-			case "platform-courses": connectionInfo = Arrays.asList(Platform.config.getString("cassandra.connection.platform_courses").split(","));break;
+			case "lp":
+				connectionInfo = Arrays.asList(Platform.config.getString("cassandra.lp.connection").split(","));
+				break;
+			case "lpa":
+				connectionInfo = Arrays.asList(Platform.config.getString("cassandra.lpa.connection").split(","));
+				break;
+			case "sunbird":
+				connectionInfo = Arrays.asList(Platform.config.getString("cassandra.sunbird.connection").split(","));
+				break;
+			case "platform-courses":
+				connectionInfo = Arrays
+						.asList(Platform.config.getString("cassandra.connection.platform_courses").split(","));
+				break;
 		}
 		if (null == connectionInfo || connectionInfo.isEmpty())
 			connectionInfo = new ArrayList<>(Arrays.asList("localhost:9042"));
@@ -109,36 +128,36 @@ public class CassandraConnector {
 		return connectionList;
 	}
 
-
 	/**
 	 * Close connection with the cluster.
 	 *
 	 */
-    public static void close() {
-        sessionMap.entrySet().stream().forEach(stream -> stream.getValue().close());
-    }
+	public static void close() {
+		sessionMap.entrySet().stream().forEach(stream -> stream.getValue().close());
+	}
 
 	/**
 	 * Register JVM shutdown hook to close cassandra open session.
 	 */
-    private static void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                TelemetryManager.log("Shutting down Cassandra connector session");
-                CassandraConnector.close();
-            }
-        });
-    }
+	private static void registerShutdownHook() {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				TelemetryManager.log("Shutting down Cassandra connector session");
+				CassandraConnector.close();
+			}
+		});
+	}
 
 	/**
-	 * This Method Returns the value of Consistency Level for Multi Node/DC Cassandra Cluster.
+	 * This Method Returns the value of Consistency Level for Multi Node/DC
+	 * Cassandra Cluster.
+	 * 
 	 * @return ConsistencyLevel
 	 */
 	private static ConsistencyLevel getConsistencyLevel(String clusterName) {
 		String key = "cassandra." + clusterName + ".consistency.level";
-		String consistencyLevel = Platform.config.hasPath(key) ?
-				Platform.config.getString(key) : null;
+		String consistencyLevel = Platform.config.hasPath(key) ? Platform.config.getString(key) : null;
 		if (StringUtils.isNotBlank(consistencyLevel))
 			return ConsistencyLevel.valueOf(consistencyLevel.toUpperCase());
 		return null;
