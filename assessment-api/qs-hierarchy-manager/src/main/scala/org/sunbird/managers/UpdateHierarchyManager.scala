@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import java.util
 import java.util.concurrent.CompletionException
@@ -16,7 +16,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.questionset.{HierarchyConstants, HierarchyErrorCodes}
 
 import scala.collection.convert.ImplicitConversions._
 import scala.jdk.CollectionConverters._

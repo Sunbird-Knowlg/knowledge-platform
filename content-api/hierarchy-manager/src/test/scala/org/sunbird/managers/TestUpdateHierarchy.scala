@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.content
 
 import java.util
 
@@ -8,7 +8,7 @@ import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.utils.HierarchyConstants
+import org.sunbird.utils.content.HierarchyConstants
 
 class TestUpdateHierarchy extends BaseSpec {
 

@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import org.scalatest.{Outcome}
 
@@ -8,7 +8,7 @@ import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.utils.HierarchyConstants
+import org.sunbird.utils.questionset.HierarchyConstants
 
 import scala.collection.convert.ImplicitConversions._
 import scala.jdk.CollectionConverters._

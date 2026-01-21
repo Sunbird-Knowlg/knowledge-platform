@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.collections4.MapUtils
@@ -13,7 +13,8 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.{AssessmentConstants, BranchingUtil, HierarchyConstants}
+import org.sunbird.utils.{AssessmentConstants, BranchingUtil}
+import org.sunbird.utils.questionset.HierarchyConstants
 
 import java.util
 import java.util.concurrent.{CompletionException}

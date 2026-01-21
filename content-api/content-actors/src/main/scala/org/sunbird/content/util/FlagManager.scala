@@ -14,7 +14,7 @@ import org.sunbird.graph.external.ExternalPropsManager
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.HierarchyConstants
+import org.sunbird.utils.content.HierarchyConstants
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 

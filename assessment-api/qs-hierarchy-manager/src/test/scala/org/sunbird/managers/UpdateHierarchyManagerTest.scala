@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import java.util
 import org.apache.commons.collections4.MapUtils
@@ -6,7 +6,7 @@ import org.parboiled.common.StringUtils
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.dto.Request
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.utils.HierarchyConstants
+import org.sunbird.utils.questionset.HierarchyConstants
 
 import scala.concurrent.ExecutionContext
 

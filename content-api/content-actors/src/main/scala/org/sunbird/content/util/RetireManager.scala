@@ -20,7 +20,7 @@ import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.parseq.Task
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.HierarchyConstants
+import org.sunbird.utils.content.HierarchyConstants
 
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer

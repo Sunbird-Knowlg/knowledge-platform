@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.content
 
 import java.util.concurrent.CompletionException
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
@@ -16,7 +16,7 @@ import org.sunbird.schema.dto.ValidationResult
 import org.sunbird.schema.{ISchemaValidator, SchemaValidatorFactory}
 import scala.jdk.CollectionConverters._
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.content.{HierarchyBackwardCompatibilityUtil, HierarchyConstants, HierarchyErrorCodes}
 
 import scala.collection.convert.ImplicitConversions._
 import scala.collection.mutable

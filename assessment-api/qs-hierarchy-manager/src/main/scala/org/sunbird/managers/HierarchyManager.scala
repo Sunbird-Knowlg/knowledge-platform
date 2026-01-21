@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import java.util
 import java.util.concurrent.CompletionException
@@ -20,7 +20,7 @@ import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.{CollectionUtils, MapUtils}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.telemetry.logger.TelemetryManager
-import org.sunbird.utils.{HierarchyConstants, HierarchyErrorCodes}
+import org.sunbird.utils.questionset.{HierarchyConstants, HierarchyErrorCodes}
 
 object HierarchyManager {
 

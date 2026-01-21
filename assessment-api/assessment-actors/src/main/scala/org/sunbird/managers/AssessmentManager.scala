@@ -1,4 +1,4 @@
-package org.sunbird.managers
+package org.sunbird.managers.questionset
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -11,7 +11,7 @@ import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
-import org.sunbird.utils.RequestUtil
+import org.sunbird.utils.questionset.RequestUtil
 
 import java.util
 import scala.collection.JavaConverters

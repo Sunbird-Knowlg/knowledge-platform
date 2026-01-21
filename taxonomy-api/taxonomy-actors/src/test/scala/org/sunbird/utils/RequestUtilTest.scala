@@ -7,7 +7,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.utils.RequestUtil
+import org.sunbird.utils.taxonomy.RequestUtil
 
 
 class RequestUtilTest extends FlatSpec with Matchers with AsyncMockFactory {
