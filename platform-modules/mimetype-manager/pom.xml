@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.sunbird</groupId>
             <artifactId>cloud-store-sdk_2.13</artifactId>
-            <version>1.4.9</version>
+            <version>1.4.10</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.jamesmurty.util</groupId>
@@ -145,11 +145,11 @@
             <version>2.9.1</version>
         </dependency>
         <!-- Required for AWS IAM role-based authentication (web identity tokens) -->
-        <dependency>
+        <!-- <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sts</artifactId>
             <version>2.20.0</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_${scala.maj.version}</artifactId>
