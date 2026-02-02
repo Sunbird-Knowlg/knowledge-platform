@@ -18,7 +18,7 @@ services:
       retries: 10
 
   sunbird-janusgraph:
-    image: janusgraph/janusgraph:1.1.0
+    image: docker.io/bitnamilegacy/janusgraph:1.1.0-debian-12-r21
     container_name: "sunbird_janusgraph"
     ports:
       - 8182:8182  # Gremlin Server port
@@ -26,16 +26,20 @@ services:
       sunbird-yugabyte:
         condition: service_healthy
     volumes:
-      - $sunbird_dbs_path/janusgraph/data:/var/lib/janusgraph/data
-      - $sunbird_dbs_path/janusgraph/logs:/var/lib/janusgraph/logs
-      - /Users/sanketikam4/janusgraph-cql.properties:/opt/janusgraph/conf/janusgraph-cql.properties
+      - $sunbird_dbs_path/janusgraph/data:/bitnami/janusgraph/data
+      - $sunbird_dbs_path/janusgraph/logs:/bitnami/janusgraph/logs
+      - /Users/sanketikam4/janusgraph-cql.properties:/opt/bitnami/janusgraph/conf/janusgraph-cql.properties
       - /Users/sanketikam4/janus-data:/data
+      - ./gremlin-server.yaml:/opt/bitnami/janusgraph/conf/gremlin-server.yaml
     environment:
-      - JANUS_PROPS_TEMPLATE=cql
-      - janusgraph.storage.backend=cql
-      - janusgraph.storage.hostname=sunbird-yugabyte
-      - janusgraph.storage.port=9042
-      - janusgraph.storage.cql.keyspace=janusgraph
+      - JANUSGRAPH_STORAGE_BACKEND=cql
+      - JANUSGRAPH_STORAGE_HOSTNAME=sunbird-yugabyte
+      - JANUSGRAPH_STORAGE_PORT=9042
+      - JANUSGRAPH_CFG_storage_cql_keyspace=janusgraph
+      - JANUSGRAPH_CFG_storage_directory=/bitnami/janusgraph/data
+    entrypoint:
+      - /opt/bitnami/janusgraph/bin/janusgraph-server.sh
+      - /opt/bitnami/janusgraph/conf/gremlin-server.yaml
 
   sunbird-redis: 
     image: redis:6.0.8

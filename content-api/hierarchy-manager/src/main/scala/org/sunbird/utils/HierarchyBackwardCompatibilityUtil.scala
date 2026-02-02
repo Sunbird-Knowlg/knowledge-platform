@@ -22,8 +22,17 @@ object HierarchyBackwardCompatibilityUtil {
 
     def setContentAndCategoryTypes(input: util.Map[String, AnyRef], objType: String = ""): Unit = {
         if(StringUtils.isBlank(objType) || objectTypes.contains(objType)) {
-            val contentType = input.get("contentType").asInstanceOf[String]
-            val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
+            val contentType = input.get("contentType") match {
+                case s: String => s
+                case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
+                case _ => ""
+            }
+            val primaryCategory = input.get("primaryCategory") match {
+                case s: String => s
+                case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
+                case _ => ""
+            }
+
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
                 case (x: String, y: String) => (x, y)
                 case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],

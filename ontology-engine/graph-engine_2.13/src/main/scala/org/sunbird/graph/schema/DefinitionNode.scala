@@ -25,11 +25,29 @@ object DefinitionNode {
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
       schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+    val arrayFields = List("os", "filter", "audience", "badgeAssertions", "targets", "contentCredits", "releaseNotes", "resources", "objects", "organization", "createdFor", "attributions", "collaborators", "voiceCredits", "soundCredits", "imageCredits", "language", "languageCode", "words", "text", "ageGroup", "category", "genre", "theme", "themes", "scaffolding", "feedback", "feedbackType", "skills", "keywords", "domain", "dialcodes", "data", "learningObjective", "me_totalDialcode", "flagReasons", "flaggedBy", "flags", "pragma", "publishChecklist", "rejectReasons", "ownershipType", "organisation", "childNodes", "assets", "leafNodes", "unitIdentifiers", "questionCategories", "certTemplate", "subject", "medium", "gradeLevel", "topic", "subDomains", "subjectCodes", "textbook_name", "level1Name", "level1Concept", "level2Name", "level2Concept", "level3Name", "level3Concept", "monitorable", "additionalCategories", "batches", "plugins", "learningOutcome", "catalogPaths", "competencies", "sharedWith", "subTitles", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds", "targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds", "se_FWIds", "se_boardIds", "se_subjectIds", "se_mediumIds", "se_topicIds", "se_gradeLevelIds", "se_boards", "se_subjects", "se_mediums", "se_topics", "se_gradeLevels", "transcripts", "accessibility", "taxonomyPaths_v2", "competencies_v3", "complexityLevel")
+    arrayFields.foreach(field => {
+      if (request.getRequest.containsKey(field)) {
+         val value = request.getRequest.get(field)
+         if (value == null) {
+            request.getRequest.remove(field)
+         } else if (value.isInstanceOf[String] && StringUtils.equalsIgnoreCase("null", value.asInstanceOf[String])) {
+            request.getRequest.remove(field)
+         }
+      }
+    })
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
-    definition.validateRequest(request)
-    val inputNode = definition.getNode(request.getRequest)
-    updateRelationMetadata(inputNode)
-    definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
+    val skipValidation: Boolean = if (request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false
+    if (skipValidation) {
+        val inputNode = definition.getNode(request.getRequest)
+        updateRelationMetadata(inputNode)
+        Future(inputNode)
+    } else {
+        definition.validateRequest(request)
+        val inputNode = definition.getNode(request.getRequest)
+        updateRelationMetadata(inputNode)
+        definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
+    }
   }
 
   def getExternalProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
@@ -116,27 +134,32 @@ object DefinitionNode {
       if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
       
       // Fix: specific array fields retrieved as Strings from DB need to be converted to Lists
-      val arrayFields = List("ownershipType", "language", "audience", "os")
+      val arrayFields = List("os", "filter", "audience", "badgeAssertions", "targets", "contentCredits", "releaseNotes", "resources", "objects", "organization", "createdFor", "attributions", "collaborators", "voiceCredits", "soundCredits", "imageCredits", "language", "languageCode", "words", "text", "ageGroup", "category", "genre", "theme", "themes", "scaffolding", "feedback", "feedbackType", "skills", "keywords", "domain", "dialcodes", "data", "learningObjective", "me_totalDialcode", "flagReasons", "flaggedBy", "flags", "pragma", "publishChecklist", "rejectReasons", "ownershipType", "organisation", "childNodes", "assets", "leafNodes", "unitIdentifiers", "questionCategories", "certTemplate", "subject", "medium", "gradeLevel", "topic", "subDomains", "subjectCodes", "textbook_name", "level1Name", "level1Concept", "level2Name", "level2Concept", "level3Name", "level3Concept", "monitorable", "additionalCategories", "batches", "plugins", "learningOutcome", "catalogPaths", "competencies", "sharedWith", "subTitles", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds", "targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds", "se_FWIds", "se_boardIds", "se_subjectIds", "se_mediumIds", "se_topicIds", "se_gradeLevelIds", "se_boards", "se_subjects", "se_mediums", "se_topics", "se_gradeLevels", "transcripts", "accessibility", "taxonomyPaths_v2", "competencies_v3", "complexityLevel")
       arrayFields.foreach(field => {
         if (dbNode.getMetadata.containsKey(field)) {
           val value = dbNode.getMetadata.get(field)
-          if (value.isInstanceOf[String]) {
-            val strVal = value.asInstanceOf[String]
-            try {
-               val list = ScalaJsonUtils.deserialize[List[String]](strVal)
-               dbNode.getMetadata.put(field, list.asJava)
-            } catch {
-               case _: Exception =>
-                   dbNode.getMetadata.put(field, java.util.Arrays.asList(strVal))
-            }
-          } else if (value.isInstanceOf[Array[String]]) {
-            dbNode.getMetadata.put(field, java.util.Arrays.asList(value.asInstanceOf[Array[String]]: _*))
+          value match {
+            case null => dbNode.getMetadata.remove(field)
+            case s: String if StringUtils.equalsIgnoreCase("null", s) => dbNode.getMetadata.remove(field)
+            case s: String =>
+              try {
+                val list = ScalaJsonUtils.deserialize[List[String]](s)
+                dbNode.getMetadata.put(field, list.asJava)
+              } catch {
+                case _: Exception =>
+                  dbNode.getMetadata.put(field, java.util.Arrays.asList(s))
+              }
+            case arr: Array[String] =>
+              dbNode.getMetadata.put(field, java.util.Arrays.asList(arr: _*))
+            case _ =>
           }
         }
       })
 
+      org.sunbird.telemetry.logger.TelemetryManager.info(s"DefinitionNode: Before Validation Status: ${dbNode.getMetadata.get("status")} for Node: $identifier")
       val validatedNode = if (!skipValidation) categoryDefinition.validate(dbNode, "update") else Future(dbNode)
       validatedNode.map(node => {
+          org.sunbird.telemetry.logger.TelemetryManager.info(s"DefinitionNode: After Validation Status: ${node.getMetadata.get("status")} for Node: $identifier")
         if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.put(prop, null))
         node
       })
@@ -286,6 +309,32 @@ object DefinitionNode {
 
   def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
     val futures = nodes.map(node => {
+      // Fix: specific array fields retrieved as Strings from DB need to be converted to Lists
+      val arrayFields = List("os", "filter", "audience", "badgeAssertions", "targets", "contentCredits", "releaseNotes", "resources", "objects", "organization", "createdFor", "attributions", "collaborators", "voiceCredits", "soundCredits", "imageCredits", "language", "languageCode", "words", "text", "ageGroup", "category", "genre", "theme", "themes", "scaffolding", "feedback", "feedbackType", "skills", "keywords", "domain", "dialcodes", "data", "learningObjective", "me_totalDialcode", "flagReasons", "flaggedBy", "flags", "pragma", "publishChecklist", "rejectReasons", "ownershipType", "organisation", "childNodes", "assets", "leafNodes", "unitIdentifiers", "questionCategories", "certTemplate", "subject", "medium", "gradeLevel", "topic", "subDomains", "subjectCodes", "textbook_name", "level1Name", "level1Concept", "level2Name", "level2Concept", "level3Name", "level3Concept", "monitorable", "additionalCategories", "batches", "plugins", "learningOutcome", "catalogPaths", "competencies", "sharedWith", "subTitles", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds", "targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds", "se_FWIds", "se_boardIds", "se_subjectIds", "se_mediumIds", "se_topicIds", "se_gradeLevelIds", "se_boards", "se_subjects", "se_mediums", "se_topics", "se_gradeLevels", "transcripts", "accessibility", "taxonomyPaths_v2", "competencies_v3", "complexityLevel")
+      arrayFields.foreach(field => {
+        if (node.getMetadata.containsKey(field)) {
+          val value = node.getMetadata.get(field)
+          if (null == value) {
+            node.getMetadata.remove(field)
+          } else if (value.isInstanceOf[String]) {
+             if (StringUtils.equalsIgnoreCase("null", value.asInstanceOf[String])) {
+                node.getMetadata.remove(field)
+             } else {
+            val strVal = value.asInstanceOf[String]
+            try {
+               val list = ScalaJsonUtils.deserialize[List[String]](strVal)
+                if (null == list) node.getMetadata.remove(field) else node.getMetadata.put(field, list.asJava)
+             } catch {
+                case _: Exception =>
+                    node.getMetadata.put(field, java.util.Arrays.asList(strVal))
+             }
+           }
+          } else if (value.isInstanceOf[Array[String]]) {
+            node.getMetadata.put(field, java.util.Arrays.asList(value.asInstanceOf[Array[String]]: _*))
+          }
+        }
+      })
+
       val ocd = ObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
       definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }

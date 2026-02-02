@@ -226,11 +226,11 @@ object HierarchyManager {
                             getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
                                 updateLatestLeafNodes(children, leafNodesMap)
                                 hierarchy.put("children", children)
+                                ResponseHandler.OK.put("questionSet", hierarchy)
                             })
-                            ResponseHandler.OK.put("questionSet", hierarchy)
                         } else
-                            ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
-                    })
+                            Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
+                    }).flatMap(f => f)
                 } else {
                     Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
                 }

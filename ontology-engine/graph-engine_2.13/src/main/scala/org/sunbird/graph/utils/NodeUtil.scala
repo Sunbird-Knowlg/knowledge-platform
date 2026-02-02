@@ -178,7 +178,16 @@ object NodeUtil {
     def getLanguageCodes(node: Node): util.List[String] = {
         val value = node.getMetadata.get("language")
         val languages:util.List[String] = value match {
-            case value: String => List(value).asJava
+            case value: String => 
+                if (value.startsWith("[") && value.endsWith("]")) {
+                    try {
+                        JsonUtils.deserialize(value, classOf[util.List[String]])
+                    } catch {
+                        case _: Exception => List(value).asJava
+                    }
+                } else {
+                    List(value).asJava
+                }
             case value: util.List[String] => value
             case value: Array[String] => value.filter((lng: String) => StringUtils.isNotBlank(lng)).toList.asJava
             case _ => new util.ArrayList[String]()

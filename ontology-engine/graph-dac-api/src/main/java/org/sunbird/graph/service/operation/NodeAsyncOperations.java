@@ -69,7 +69,7 @@ public class NodeAsyncOperations {
             GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
-                if (TXN_LOG_ENABLED) {
+                if (isLogEnabled(node)) {
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
                     g = tx.traversal();
@@ -195,7 +195,7 @@ public class NodeAsyncOperations {
             JanusGraphTransaction tx = null;
 
             try {
-                if (TXN_LOG_ENABLED) {
+                if (isLogEnabled(node)) {
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
                     g = tx.traversal();
@@ -248,6 +248,8 @@ public class NodeAsyncOperations {
                 node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
 
                 // Process primitive data
+                TelemetryManager.info("NodeAsyncOperations: Upserting Node with Status: "
+                        + node.getMetadata().get("status") + " | ID: " + identifier);
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Update all properties
@@ -285,7 +287,7 @@ public class NodeAsyncOperations {
                     tx.rollback();
                 TelemetryManager.error("Error upserting node: " + e.getMessage(), e);
                 if (e instanceof MiddlewareException) {
-                    throw e;
+                    throw (MiddlewareException) e;
                 } else {
                     throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                             "Error! Something went wrong while upserting node object. ", e);
@@ -314,7 +316,7 @@ public class NodeAsyncOperations {
             GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
-                if (TXN_LOG_ENABLED) {
+                if (false) { // Disable logging for Root Node updates to avoid noise
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
                     g = tx.traversal();
@@ -451,6 +453,9 @@ public class NodeAsyncOperations {
             if (MapUtils.isEmpty(updatedMetadata))
                 return new HashMap<>(); // Nothing to update
 
+            TelemetryManager.info("NodeAsyncOperations: updateNodes called for IDs: " + identifiers + " with keys: "
+                    + updatedMetadata.keySet());
+
             GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
@@ -481,6 +486,12 @@ public class NodeAsyncOperations {
                         Vertex vertex = vertexIter.next();
                         GraphTraversal<Vertex, Vertex> traversal = g.V(vertex.id());
 
+                        // Log the name field if present in metadata for debugging
+                        if (metadata.containsKey("name")) {
+                            TelemetryManager.info("NodeAsyncOperations: Updating name for " + identifier + " to: "
+                                    + metadata.get("name"));
+                        }
+
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                             if (entry.getValue() != null) {
@@ -496,11 +507,18 @@ public class NodeAsyncOperations {
                                 traversal.property(entry.getKey(), value);
                             }
                         }
-                        traversal.next();
 
-                        // Convert to Node object
-                        Node node = JanusGraphNodeUtil.getNode(graphId, vertex);
+                        // Execute the update and get the updated vertex
+                        Vertex updatedVertex = traversal.next();
+
+                        // Convert to Node object using the UPDATED vertex reference
+                        Node node = JanusGraphNodeUtil.getNode(graphId, updatedVertex);
                         updatedNodes.put(identifier, node);
+
+                        // Log confirmation if name was updated
+                        if (metadata.containsKey("name")) {
+                            TelemetryManager.info("NodeAsyncOperations: Name updated successfully for " + identifier);
+                        }
                     }
                 }
 
@@ -583,5 +601,19 @@ public class NodeAsyncOperations {
         if (null == request)
             throw new ClientException(DACErrorCodeConstants.INVALID_REQUEST.name(),
                     DACErrorMessageConstants.INVALID_REQUEST + " | [Invalid or 'null' Request Object.]");
+    }
+
+    private static boolean isLogEnabled(Node node) {
+        if (null != node && StringUtils.equalsIgnoreCase(node.getObjectType(), "root"))
+            return false;
+        if (null != node && null != node.getMetadata()) {
+            return isLogEnabled(node.getMetadata());
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean isLogEnabled(Map<String, Object> metadata) {
+        return TXN_LOG_ENABLED;
     }
 }

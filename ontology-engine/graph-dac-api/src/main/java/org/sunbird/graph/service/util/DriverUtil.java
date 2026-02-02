@@ -20,17 +20,17 @@ import org.sunbird.graph.service.common.DACErrorMessageConstants;
 import org.sunbird.graph.service.common.GraphOperation;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal;
 
 public class DriverUtil {
 
-	private static Map<String, GraphTraversalSource> graphTraversalSourceMap = new HashMap<>();
-	private static Map<String, Cluster> clusterMap = new HashMap<>();
-	private static Map<String, JanusGraph> janusGraphMap = new HashMap<>();
+	private static Map<String, GraphTraversalSource> graphTraversalSourceMap = new ConcurrentHashMap<>();
+	private static Map<String, Cluster> clusterMap = new ConcurrentHashMap<>();
+	private static Map<String, JanusGraph> janusGraphMap = new ConcurrentHashMap<>();
 
 	public static GraphTraversalSource getGraphTraversalSource(String graphId, GraphOperation graphOperation) {
 		TelemetryManager.log("Get GraphTraversalSource for Graph Id: " + graphId);
@@ -42,13 +42,10 @@ public class DriverUtil {
 		System.out.println("DEBUG: Requesting key: " + driverKey);
 		System.out.println("DEBUG: Available keys: " + graphTraversalSourceMap.keySet());
 
-		GraphTraversalSource g = graphTraversalSourceMap.get(driverKey);
-		if (null == g) {
-			System.out.println("DEBUG: Key mismatch! Loading remote source.");
-			g = loadGraphTraversalSource(graphId, graphOperation, driverKey);
-			graphTraversalSourceMap.put(driverKey, g);
-		}
-		return g;
+		return graphTraversalSourceMap.computeIfAbsent(driverKey, key -> {
+			System.out.println("DEBUG: Key mismatch! Loading remote source for key: " + key);
+			return loadGraphTraversalSource(graphId, graphOperation, key);
+		});
 	}
 
 	private static GraphTraversalSource loadGraphTraversalSource(String graphId, GraphOperation graphOperation,
@@ -142,7 +139,7 @@ public class DriverUtil {
 			throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
 					DACErrorMessageConstants.INVALID_GRAPH_ID + " | [Graph Id: " + graphId + "]");
 
-		String routeUrl = "localhost:8182";
+		String routeUrl = Platform.config.getString("route.all");
 		String baseKey = DACConfigurationConstants.DEFAULT_ROUTE_PROP_PREFIX
 				+ StringUtils.lowerCase(graphOperation.name())
 				+ DACConfigurationConstants.DOT;
@@ -166,13 +163,7 @@ public class DriverUtil {
 	 */
 	public static JanusGraph getJanusGraph(String graphId) {
 		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
-
-		JanusGraph graph = janusGraphMap.get(graphId);
-		if (null == graph) {
-			graph = loadJanusGraph(graphId);
-			janusGraphMap.put(graphId, graph);
-		}
-		return graph;
+		return janusGraphMap.computeIfAbsent(graphId, key -> loadJanusGraph(key));
 	}
 
 	private static JanusGraph loadJanusGraph(String graphId) {
@@ -186,22 +177,69 @@ public class DriverUtil {
 		String storageHostname = Platform.config.hasPath("graph.storage.hostname")
 				? Platform.config.getString("graph.storage.hostname")
 				: route.split(":")[0];
+		if ("janusgraph".equals(storageHostname))
+			storageHostname = Platform.config.getString("graph.storage.hostname");
 
 		// Build configuration properties map
+		// Build configuration properties map
+		java.util.Map<String, Object> props = new java.util.HashMap<>();
+		props.put("storage.backend", storageBackend);
+		props.put("storage.hostname", storageHostname);
+		if (Platform.config.hasPath("graph.storage.port")) {
+			props.put("storage.port", Platform.config.getString("graph.storage.port"));
+		} else if ("localhost".equals(storageHostname)) {
+			// Fallback: If forced to localhost and no port specified, default to 9042 but
+			// log warning
+			// Assuming 9042 is standard, but user mentioned 8082. Rely on config first.
+		}
+		props.put("log.learning_graph_events.backend", "default");
+
+		if (Platform.config.hasPath("graph")) {
+			java.util.Set<java.util.Map.Entry<String, com.typesafe.config.ConfigValue>> entries = Platform.config
+					.getConfig("graph").entrySet();
+			for (java.util.Map.Entry<String, com.typesafe.config.ConfigValue> entry : entries) {
+				props.put(entry.getKey(), entry.getValue().unwrapped());
+			}
+		}
+
+		if (!props.containsKey("storage.cql.local-datacenter")) {
+			props.put("storage.cql.local-datacenter", "datacenter1");
+		}
+
+		// Force consistency level to ONE to avoid issues with remote port forwarding
+		// (internal IPs unreachable)
+		if (!props.containsKey("storage.cql.read-consistency-level")) {
+			props.put("storage.cql.read-consistency-level", "ONE");
+		}
+		if (!props.containsKey("storage.cql.write-consistency-level")) {
+			props.put("storage.cql.write-consistency-level", "ONE");
+		}
+
+		System.out.println("DEBUG: JanusGraph Config: " + props);
+
 		org.apache.commons.configuration2.MapConfiguration conf = new org.apache.commons.configuration2.MapConfiguration(
-				new java.util.HashMap<String, Object>() {
-					{
-						put("storage.backend", storageBackend);
-						put("storage.hostname", storageHostname);
-						// Enable Transaction Log for CDC
-						put("log.learning_graph_events.backend", "default");
-					}
-				});
+				props);
 
 		// Create and open JanusGraph
 		JanusGraph graph = JanusGraphFactory.open(conf);
 
 		TelemetryManager.log("JanusGraph instance loaded for Graph Id: " + graphId);
+		registerJanusGraphShutdownHook(graph);
 		return graph;
+	}
+
+	private static void registerJanusGraphShutdownHook(JanusGraph graph) {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				TelemetryManager.log("Closing JanusGraph instance...");
+				try {
+					if (null != graph)
+						graph.close();
+				} catch (Exception e) {
+					TelemetryManager.error("Error closing JanusGraph instance", e);
+				}
+			}
+		});
 	}
 }

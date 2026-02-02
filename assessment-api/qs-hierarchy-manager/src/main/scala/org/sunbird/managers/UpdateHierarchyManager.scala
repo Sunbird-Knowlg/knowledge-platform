@@ -100,9 +100,11 @@ object UpdateHierarchyManager {
             if(StringUtils.equalsIgnoreCase("1.1",request.getContext.get("version").toString) && StringUtils.equalsIgnoreCase("1.0", schemaVersion))
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "QuestionSet can't support update hierarchy operation because it is not having data in QuML 1.1 format.")
             val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new java.util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], schemaVersion)
-            if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.QUESTIONSET_MIME_TYPE)) {
-                TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
-                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
+            val foundMimeType = metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String]
+            val expectedMimeType = HierarchyConstants.QUESTIONSET_MIME_TYPE
+            if (!StringUtils.equals(StringUtils.trim(foundMimeType), expectedMimeType)) {
+                TelemetryManager.error(s"UpdateHierarchyManager :: Invalid MimeType. RootId: $identifier. Found: '$foundMimeType' (len: ${if(foundMimeType!=null) foundMimeType.length else 0}), Expected: '$expectedMimeType' (len: ${expectedMimeType.length})")
+                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, s"Invalid MimeType for Root Node Identifier : $identifier. Found: '$foundMimeType' (len: ${if(foundMimeType!=null) foundMimeType.length else 0})")
             }
             if(!CollectionUtils.containsAny(Platform.getStringList("root_node_visibility", List("Default").asJava), metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String])) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Visibility found for Root node id: " + identifier)
@@ -191,6 +193,7 @@ object UpdateHierarchyManager {
 
     private def updateNodesModifiedInNodeList(nodeList: List[Node], nodesModified: java.util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
+        TelemetryManager.info("UpdateHierarchyManager: updateNodesModifiedInNodeList called for RootId: " + request.getContext.get(HierarchyConstants.ROOT_ID))
         val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
                 .map(nodeModified => {
                     val objectType = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.OBJECT_TYPE, "").asInstanceOf[String]

@@ -13,6 +13,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.sunbird.cassandra.CassandraConnector
 import org.sunbird.common.Platform
 import org.scalatest._
+import org.scalatest.matchers.should.Matchers
 import org.sunbird.graph.service.util.DriverUtil
 
 import scala.jdk.CollectionConverters._
@@ -152,8 +153,9 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with B
         g.tx().commit()
     }
 
-    override protected def withFixture(test: NoArgTest): Outcome = {
-        val outcome = super.withFixture(test)
-        outcome
-    }
+    // TODO: Fix withFixture for AsyncFlatSpec compatibility
+    // override protected def withFixture(test: NoArgTest): Outcome = {
+    //     val outcome = super.withFixture(test)
+    //     outcome
+    // }
 }
