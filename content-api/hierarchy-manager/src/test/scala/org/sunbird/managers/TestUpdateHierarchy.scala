@@ -12,6 +12,7 @@ import org.sunbird.common.Platform
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.utils.HierarchyConstants
 
+
 class TestUpdateHierarchy extends BaseSpec {
 
     private val KEYSPACE_CREATE_SCRIPT = "CREATE KEYSPACE IF NOT EXISTS hierarchy_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
