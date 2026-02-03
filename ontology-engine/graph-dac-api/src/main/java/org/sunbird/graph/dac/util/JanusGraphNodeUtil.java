@@ -66,23 +66,11 @@ public class JanusGraphNodeUtil {
             } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
                 // Skip graphId as it's internal
                 if (value instanceof List) {
-                    List<?> list = (List<?>) value;
-                    if (list.size() > 0) {
-                        Object obj = list.get(0);
-                        if (obj instanceof String) {
-                            value = list.toArray(new String[0]);
-                        } else if (obj instanceof Number) {
-                            value = list.toArray(new Number[0]);
-                        } else if (obj instanceof Boolean) {
-                            value = list.toArray(new Boolean[0]);
-                        } else {
-                            value = list.toArray();
-                        }
-                    } else {
-                        value = new String[0];
-                    }
+                    // Keep as List to match Neo4j behavior
+                    metadata.put(key, new ArrayList<>((List<?>) value));
+                } else {
+                    metadata.put(key, value);
                 }
-                metadata.put(key, value);
             }
         }
         node.setMetadata(metadata);
@@ -153,23 +141,11 @@ public class JanusGraphNodeUtil {
                 node.setObjectType(value.toString());
             } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
                 if (value instanceof List) {
-                    List<?> list = (List<?>) value;
-                    if (list.size() > 0) {
-                        Object obj = list.get(0);
-                        if (obj instanceof String) {
-                            value = list.toArray(new String[0]);
-                        } else if (obj instanceof Number) {
-                            value = list.toArray(new Number[0]);
-                        } else if (obj instanceof Boolean) {
-                            value = list.toArray(new Boolean[0]);
-                        } else {
-                            value = list.toArray();
-                        }
-                    } else {
-                        value = new String[0];
-                    }
+                    // Keep as List to match Neo4j behavior
+                    metadata.put(key, new ArrayList<>((List<?>) value));
+                } else {
+                    metadata.put(key, value);
                 }
-                metadata.put(key, value);
             }
         }
         node.setMetadata(metadata);

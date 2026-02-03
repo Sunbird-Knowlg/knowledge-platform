@@ -23,11 +23,19 @@ object ReviewManager {
 			
 			// Log what's in the original request
 			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Original request fields: " + request.getRequest)
+			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Current node name: " + node.getMetadata.get("name"))
 			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Enriched metadata from mimetype manager: " + result)
+			
+			// Preserve the existing node's name if not provided in the request
+			// This prevents "Untitled Content" or other default values from overwriting the actual name
+			if (!request.getRequest.containsKey("name") && node.getMetadata.containsKey("name")) {
+				org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Preserving existing name: " + node.getMetadata.get("name"))
+				updateReq.put("name", node.getMetadata.get("name"))
+			}
 			
 			// Merge request metadata with enriched metadata from mimetype manager
 			// This preserves fields like 'name' from the original request
-			updateReq.putAll(request.getRequest)  // First, add all request fields
+			updateReq.putAll(request.getRequest)  // First, add all request fields (will override preserved name if provided)
 			updateReq.putAll(result.asJava)       // Then, override with enriched metadata (status, lastSubmittedOn, reviewError)
 			
 			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Final metadata to update: " + updateReq.getRequest)

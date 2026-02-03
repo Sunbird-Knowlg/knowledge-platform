@@ -181,7 +181,12 @@ object UpdateHierarchyManager {
                 val rootNode = getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
                 childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
-                node.setObjectType(node.getMetadata.getOrDefault("objectType", "").asInstanceOf[String])
+                // CRITICAL FIX: Ensure objectType is not null or empty before setting it
+                val objectType = node.getMetadata.getOrDefault("objectType", "").asInstanceOf[String]
+                if (StringUtils.isBlank(objectType)) {
+                    throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Object Type is mandatory for node with identifier: ${child.get(HierarchyConstants.IDENTIFIER)}")
+                }
+                node.setObjectType(objectType)
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)
             }
@@ -409,13 +414,19 @@ object UpdateHierarchyManager {
             val index = child._2 + 1
             val tempNode = getTempNode(nodeList, id)
             if (null != tempNode && StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, tempNode.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-                populateHierarchyRelatedData(tempNode, depth, index, parent)
-                val nxtEnrichedNodeList = tempNode :: enrichedNodeList
+                // CRITICAL FIX: Validate objectType before adding to list
+                if (null == tempNode.getObjectType || StringUtils.isBlank(tempNode.getObjectType)) {
+                    TelemetryManager.error(s"UpdateHierarchyManager: Node ${tempNode.getIdentifier} has null/blank objectType, skipping")
+                    Future(enrichedNodeList)
+                } else {
+                    populateHierarchyRelatedData(tempNode, depth, index, parent)
+                    val nxtEnrichedNodeList = tempNode :: enrichedNodeList
                 if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(child._1, Map[String, Int]())))
                     updateHierarchyRelatedData(request, hierarchyStructure.getOrDefault(child._1, Map[String, Int]()),
                         tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, nxtEnrichedNodeList)
                 else
                     Future(nxtEnrichedNodeList)
+                }
             } else {
                 getQuestionNode(id, HierarchyConstants.TAXONOMY_ID, request.getContext.getOrElse("version", "1.0").asInstanceOf[String]).map(node => {
                     val requestVersion: Double = request.getContext.getOrElse("version", "1.0").asInstanceOf[String].toDouble

@@ -51,7 +51,7 @@ object HierarchyManager {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!getChildNodes(rootNodeMap).contains(unitId)) {
+            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
@@ -88,7 +88,7 @@ object HierarchyManager {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!getChildNodes(rootNodeMap).contains(unitId)) {
+            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
@@ -314,7 +314,7 @@ object HierarchyManager {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val childNodes = new java.util.ArrayList[String]()
-        childNodes.addAll(getChildNodes(rootNode.getMetadata).asJava)
+        childNodes.addAll(rootNode.getMetadata.get("childNodes").asInstanceOf[Array[String]].toList.asJava)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
         if(operation.equalsIgnoreCase("remove"))
@@ -368,7 +368,7 @@ object HierarchyManager {
             req.put("relational_metadata",ScalaJsonUtils.serialize(updatedCollRM))
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
             req.put("identifier", rootNode.getIdentifier)
-            oec.graphService.saveExternalProps(req).map(_ => ResponseHandler.OK())
+            oec.graphService.saveExternalProps(req)
         }).flatMap(f => f).recoverWith {
             case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
                     Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessages.asScala.mkString(",")))
@@ -711,15 +711,5 @@ object HierarchyManager {
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).map(_.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].asScala.toList).getOrElse(List())
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
             throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType "+childNode.get("objectType")+" found for : "+childNode.get("identifier") + "| Please provide children having one of the objectType from "+ configObjTypes.asJava)
-    }
-    private def getChildNodes(data: java.util.Map[String, AnyRef]): List[String] = {
-        if (null != data) {
-            data.get("childNodes") match {
-                case s: String => if (StringUtils.startsWith(s, "[") && StringUtils.endsWith(s, "]")) JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList else List(s)
-                case a: Array[String] => a.toList
-                case l: java.util.List[_] => l.asScala.toList.map(_.toString)
-                case _ => List.empty
-            }
-        } else List.empty
     }
 }

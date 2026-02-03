@@ -247,10 +247,18 @@ public class NodeAsyncOperations {
                 String versionKey = Identifier.getUniqueIdFromTimestamp();
                 node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
 
+                // Log name field before processing
+                TelemetryManager.info("NodeAsyncOperations.upsertNode: Name BEFORE setPrimitiveData for " + identifier
+                        + ": " + node.getMetadata().get("name"));
+
                 // Process primitive data
                 TelemetryManager.info("NodeAsyncOperations: Upserting Node with Status: "
                         + node.getMetadata().get("status") + " | ID: " + identifier);
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
+
+                // Log name field after processing
+                TelemetryManager.info("NodeAsyncOperations.upsertNode: Name AFTER setPrimitiveData for " + identifier
+                        + ": " + metadata.get("name"));
 
                 // Update all properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
@@ -265,16 +273,60 @@ public class NodeAsyncOperations {
                             value = list.toArray();
                         }
                         traversal.property(entry.getKey(), value);
+
+                        // Log when setting the name property
+                        if ("name".equals(entry.getKey())) {
+                            TelemetryManager.info(
+                                    "NodeAsyncOperations.upsertNode: Setting name property in Gremlin traversal for "
+                                            + identifier + ": " + value);
+                        }
                     }
                 }
 
                 // Execute traversal
-                traversal.next();
+                TelemetryManager.info("NodeAsyncOperations.upsertNode: Executing Gremlin traversal for " + identifier);
+                Vertex updatedVertex = (Vertex) traversal.next();
 
-                if (null != tx)
-                    tx.commit();
-                else
-                    g.tx().commit();
+                // Verify the name was set on the vertex
+                Object nameOnVertex = updatedVertex.property("name").isPresent()
+                        ? updatedVertex.property("name").value()
+                        : null;
+                TelemetryManager.info("NodeAsyncOperations.upsertNode: Name on vertex AFTER traversal execution for "
+                        + identifier + ": " + nameOnVertex);
+
+                try {
+                    if (null != tx) {
+                        TelemetryManager
+                                .info("NodeAsyncOperations.upsertNode: Committing transaction (tx) for " + identifier);
+                        tx.commit();
+                        TelemetryManager
+                                .info("NodeAsyncOperations.upsertNode: Transaction (tx) committed successfully for "
+                                        + identifier);
+
+                        // CRITICAL: Force flush to ensure write is immediately visible
+                        // Without this, logged transactions may not be immediately readable
+                        // Increased to 200ms to ensure CSPMetaUtil and other read paths get fresh data
+                        try {
+                            Thread.sleep(200); // Increased delay for full propagation
+                            TelemetryManager
+                                    .info("NodeAsyncOperations.upsertNode: Waited for backend flush for " + identifier);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                    } else {
+                        TelemetryManager
+                                .info("NodeAsyncOperations.upsertNode: Committing transaction (g.tx()) for "
+                                        + identifier);
+                        g.tx().commit();
+                        TelemetryManager
+                                .info("NodeAsyncOperations.upsertNode: Transaction (g.tx()) committed successfully for "
+                                        + identifier);
+                    }
+                } catch (Exception commitEx) {
+                    TelemetryManager.error("NodeAsyncOperations.upsertNode: EXCEPTION during commit for " + identifier
+                            + ": " + commitEx.getMessage(), commitEx);
+                    throw commitEx;
+                }
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);

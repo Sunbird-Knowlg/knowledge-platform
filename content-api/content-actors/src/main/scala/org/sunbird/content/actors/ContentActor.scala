@@ -216,6 +216,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(readReq).map(node => {
+			// Log the node name immediately after reading from database
+			org.sunbird.telemetry.logger.TelemetryManager.info(s"ContentActor.reviewContent: Node read from DB - ID: $identifier, Name: ${node.getMetadata.get("name")}")
+			
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))

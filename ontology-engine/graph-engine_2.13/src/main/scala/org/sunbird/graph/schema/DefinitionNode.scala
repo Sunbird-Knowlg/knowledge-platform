@@ -344,10 +344,13 @@ object DefinitionNode {
 
   def updateJsonPropsInNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
     nodes.map(node => {
-      val schema = node.getObjectType.toLowerCase.replace("image", "")
-      val jsonProps = fetchJsonProps(graphId, version, schema)
-      val metadata = node.getMetadata
-      metadata.asScala.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
+      // CRITICAL FIX: Add null check for objectType to prevent NPE
+      if (null != node.getObjectType && StringUtils.isNotBlank(node.getObjectType)) {
+        val schema = node.getObjectType.toLowerCase.replace("image", "")
+        val jsonProps = fetchJsonProps(graphId, version, schema)
+        val metadata = node.getMetadata
+        metadata.asScala.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
+      }
     })
   }
 

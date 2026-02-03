@@ -101,16 +101,15 @@ object UpdateHierarchyManager {
         req.put(HierarchyConstants.MODE, HierarchyConstants.EDIT_MODE)
         DataNode.read(req).map(rootNode => {
             val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new java.util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String])
-            if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.COLLECTION_MIME_TYPE) && !StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], "application/vnd.sunbird.questionset")) {
+            if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.COLLECTION_MIME_TYPE)) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
-                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier + ". Found: " + metadata.get(HierarchyConstants.MIME_TYPE))
+                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
             }
             //Todo: Remove if not required
-            //Todo: Remove if not required
-            // if (null == metadata.get(HierarchyConstants.VERSION) || metadata.get(HierarchyConstants.VERSION).asInstanceOf[Number].intValue < 2) {
-            //     TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Content Version for Root node id: " + identifier)
-            //     throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "The collection version is not up to date " + identifier)
-            // }
+            if (null == metadata.get(HierarchyConstants.VERSION) || metadata.get(HierarchyConstants.VERSION).asInstanceOf[Number].intValue < 2) {
+                TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Content Version for Root node id: " + identifier)
+                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "The collection version is not up to date " + identifier)
+            }
             val originData = metadata.getOrDefault("originData", new java.util.HashMap[String, AnyRef]()).asInstanceOf[java.util.Map[String, AnyRef]]
             if (StringUtils.equalsIgnoreCase(originData.getOrElse("copyType", "").asInstanceOf[String], HierarchyConstants.COPY_TYPE_SHALLOW))
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "Hierarchy update is not allowed for partially (shallow) copied content : " + identifier)
@@ -249,7 +248,6 @@ object UpdateHierarchyManager {
         metadata.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
         metadata.put(HierarchyConstants.AUDIENCE, rootNode.getMetadata.get(HierarchyConstants.AUDIENCE) )
         val createRequest: Request = new Request(request)
-        createRequest.getContext.put("skipValidation", true.asInstanceOf[AnyRef])
         //TODO: Remove the Populate category mapping before updating for backward
         HierarchyBackwardCompatibilityUtil.setContentAndCategoryTypes(metadata)
         createRequest.setRequest(metadata)
@@ -276,8 +274,7 @@ object UpdateHierarchyManager {
         val nodesToValidate = nodeList.filter(node => StringUtils.equals(HierarchyConstants.PARENT, node.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String]) || StringUtils.equalsAnyIgnoreCase(rootId, node.getIdentifier)).toList
         DefinitionNode.updateJsonPropsInNodes(nodeList.toList, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
         //TODO: Use actual object schema instead of collection, when another object with visibility parent introduced.
-        // DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
-        Future(nodesToValidate)
+        DefinitionNode.validateContentNodes(nodesToValidate, HierarchyConstants.TAXONOMY_ID, HierarchyConstants.COLLECTION_SCHEMA_NAME, HierarchyConstants.SCHEMA_VERSION)
     }
 
     def constructHierarchy(list: List[java.util.Map[String, AnyRef]]): java.util.Map[String, AnyRef] = {
@@ -468,32 +465,23 @@ object UpdateHierarchyManager {
         updatedHierarchy.put(HierarchyConstants.IDENTIFIER, rootId)
         updatedHierarchy.put(HierarchyConstants.CHILDREN, children)
         val req = new Request(request)
+        req.getContext.put(HierarchyConstants.IDENTIFIER, rootId)
+        val metadata = cleanUpRootData(node)
+        req.getRequest.putAll(metadata)
         req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
         req.put(HierarchyConstants.RELATIONAL_METADATA_COL, ScalaJsonUtils.serialize(reqHierarchy))
         req.put(HierarchyConstants.IDENTIFIER, rootId)
-        val graphId = request.getContext.get(HierarchyConstants.GRAPH_ID).asInstanceOf[String]
-        oec.graphService.updateNodes(graphId, java.util.Collections.singletonList(rootId), cleanUpRootData(node)).flatMap(resp => {
-            oec.graphService.saveExternalProps(req).map(_ => node)
-        })
+        req.put(HierarchyConstants.CHILDREN, new java.util.ArrayList())
+        req.put(HierarchyConstants.CONCEPTS, new java.util.ArrayList())
+        DataNode.update(req)
     }
 
     private def cleanUpRootData(node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.Map[String, AnyRef] = {
-        TelemetryManager.info("UpdateHierarchyManager:: cleanUpRootData:: Before cleanup metadata: " + node.getMetadata.keySet())
         DefinitionNode.getRestrictedProperties(HierarchyConstants.TAXONOMY_ID, HierarchyConstants.SCHEMA_VERSION, HierarchyConstants.OPERATION_UPDATE_HIERARCHY, HierarchyConstants.COLLECTION_SCHEMA_NAME)
           .foreach(key => node.getMetadata.remove(key))
         node.getMetadata.remove(HierarchyConstants.STATUS)
-        node.getMetadata.remove("status")
-        node.getMetadata.remove("Status")
         node.getMetadata.remove(HierarchyConstants.LAST_UPDATED_ON)
         node.getMetadata.remove(HierarchyConstants.LAST_STATUS_CHANGED_ON)
-        node.getMetadata.remove(HierarchyConstants.HIERARCHY)
-        node.getMetadata.remove(HierarchyConstants.RELATIONAL_METADATA_COL)
-        node.getMetadata.remove(HierarchyConstants.CHILDREN)
-        node.getMetadata.remove(HierarchyConstants.CONCEPTS)
-        TelemetryManager.info("UpdateHierarchyManager:: cleanUpRootData:: After cleanup metadata keys: " + node.getMetadata.keySet())
-        if(node.getMetadata.containsKey("status") || node.getMetadata.containsKey("Status")) {
-             TelemetryManager.info("UpdateHierarchyManager:: cleanUpRootData:: CRITICAL WARNING: status key still exists! Value: " + node.getMetadata.get("status"))
-        }
         node.getMetadata
     }
 
