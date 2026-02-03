@@ -51,7 +51,19 @@ object HierarchyManager {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
+            val childNodes = rootNodeMap.get("childNodes")
+            val childrenList: List[String] = childNodes match {
+                case s: String =>
+                    try {
+                        JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
+                    } catch {
+                        case _: Exception => List()
+                    }
+                case a: Array[String] => a.toList
+                case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
+                case _ => List()
+            }
+            if(!childrenList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
@@ -88,7 +100,19 @@ object HierarchyManager {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
+            val childNodes = rootNodeMap.get("childNodes")
+            val childrenList: List[String] = childNodes match {
+                case s: String =>
+                    try {
+                        JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
+                    } catch {
+                        case _: Exception => List()
+                    }
+                case a: Array[String] => a.toList
+                case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
+                case _ => List()
+            }
+            if(!childrenList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
@@ -314,7 +338,19 @@ object HierarchyManager {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val childNodes = new java.util.ArrayList[String]()
-        childNodes.addAll(rootNode.getMetadata.get("childNodes").asInstanceOf[Array[String]].toList.asJava)
+        val nodes = rootNode.getMetadata.get("childNodes")
+        val nodesList: List[String] = nodes match {
+            case s: String =>
+                try {
+                    JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
+                } catch {
+                    case _: Exception => List()
+                }
+            case a: Array[String] => a.toList
+            case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
+            case _ => List()
+        }
+        childNodes.addAll(nodesList.asJava)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
         if(operation.equalsIgnoreCase("remove"))
