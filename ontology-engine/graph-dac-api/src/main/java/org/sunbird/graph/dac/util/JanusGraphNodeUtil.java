@@ -11,6 +11,7 @@ import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.dac.model.Relation;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ import java.util.Map;
  * objects
  */
 public class JanusGraphNodeUtil {
+
+    private static ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Convert a JanusGraph Vertex to a Node object
@@ -68,6 +71,13 @@ public class JanusGraphNodeUtil {
                 if (value instanceof List) {
                     // Keep as List to match Neo4j behavior
                     metadata.put(key, new ArrayList<>((List<?>) value));
+                } else if (value instanceof String && ((String) value).startsWith("[")
+                        && ((String) value).endsWith("]")) {
+                    try {
+                        metadata.put(key, mapper.readValue((String) value, List.class));
+                    } catch (Exception e) {
+                        metadata.put(key, value);
+                    }
                 } else {
                     metadata.put(key, value);
                 }
@@ -143,6 +153,13 @@ public class JanusGraphNodeUtil {
                 if (value instanceof List) {
                     // Keep as List to match Neo4j behavior
                     metadata.put(key, new ArrayList<>((List<?>) value));
+                } else if (value instanceof String && ((String) value).startsWith("[")
+                        && ((String) value).endsWith("]")) {
+                    try {
+                        metadata.put(key, mapper.readValue((String) value, List.class));
+                    } catch (Exception e) {
+                        metadata.put(key, value);
+                    }
                 } else {
                     metadata.put(key, value);
                 }
@@ -297,7 +314,15 @@ public class JanusGraphNodeUtil {
                 } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name())) {
                     node.setObjectType(value.toString());
                 } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
-                    metadata.put(key, value);
+                    if (value instanceof String && ((String) value).startsWith("[") && ((String) value).endsWith("]")) {
+                        try {
+                            metadata.put(key, mapper.readValue((String) value, List.class));
+                        } catch (Exception e) {
+                            metadata.put(key, value);
+                        }
+                    } else {
+                        metadata.put(key, value);
+                    }
                 }
             }
         }

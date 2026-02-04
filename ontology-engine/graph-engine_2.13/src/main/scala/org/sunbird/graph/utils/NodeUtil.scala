@@ -143,11 +143,16 @@ object NodeUtil {
     }
     
     def convertJsonProperties(entry: util.Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
+        val value = entry.getValue
         if(jsonProps.contains(entry.getKey)) {
-            try {JsonUtils.deserialize(entry.getValue.asInstanceOf[String], classOf[Object])} //.readTree(entry.getValue.toString)}
-            catch { case e: Exception => entry.getValue }
+            try {JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object])} //.readTree(entry.getValue.toString)}
+            catch { case e: Exception => value }
         }
-        else entry.getValue
+        else if(value.isInstanceOf[String] && value.asInstanceOf[String].startsWith("[") && value.asInstanceOf[String].endsWith("]")) {
+            try { JsonUtils.deserialize(value.asInstanceOf[String], classOf[util.List[Object]]) }
+            catch { case e: Exception => value }
+        }
+        else value
     }
 
     // TODO: we should get the list from configuration.

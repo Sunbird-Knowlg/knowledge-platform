@@ -31,8 +31,18 @@ object DefinitionNode {
          val value = request.getRequest.get(field)
          if (value == null) {
             request.getRequest.remove(field)
-         } else if (value.isInstanceOf[String] && StringUtils.equalsIgnoreCase("null", value.asInstanceOf[String])) {
-            request.getRequest.remove(field)
+         } else if (value.isInstanceOf[String]) {
+             val strValue = value.asInstanceOf[String]
+             if (StringUtils.equalsIgnoreCase("null", strValue)) {
+                 request.getRequest.remove(field)
+             } else {
+                 try {
+                     val list = ScalaJsonUtils.deserialize[List[String]](strValue)
+                     if (null != list) request.getRequest.put(field, list.asJava)
+                 } catch {
+                     case _: Exception =>
+                 }
+             }
          }
       }
     })

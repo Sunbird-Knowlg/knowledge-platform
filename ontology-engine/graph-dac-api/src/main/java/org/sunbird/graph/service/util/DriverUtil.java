@@ -1,15 +1,7 @@
 package org.sunbird.graph.service.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.driver.Cluster;
-import org.apache.tinkerpop.gremlin.driver.remote.DriverRemoteConnection;
-import org.apache.tinkerpop.gremlin.util.ser.GraphSONMessageSerializerV3;
-import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONMapper;
-import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
-import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyGraph;
-import org.apache.tinkerpop.gremlin.structure.io.binary.TypeSerializerRegistry;
-import org.janusgraph.graphdb.tinkerpop.JanusGraphIoRegistry;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
 import org.sunbird.common.Platform;
@@ -24,12 +16,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.apache.tinkerpop.gremlin.process.traversal.AnonymousTraversalSource.traversal;
-
 public class DriverUtil {
 
 	private static Map<String, GraphTraversalSource> graphTraversalSourceMap = new ConcurrentHashMap<>();
-	private static Map<String, Cluster> clusterMap = new ConcurrentHashMap<>();
 	private static Map<String, JanusGraph> janusGraphMap = new ConcurrentHashMap<>();
 
 	public static GraphTraversalSource getGraphTraversalSource(String graphId, GraphOperation graphOperation) {
@@ -51,33 +40,12 @@ public class DriverUtil {
 	private static GraphTraversalSource loadGraphTraversalSource(String graphId, GraphOperation graphOperation,
 			String driverKey) {
 		TelemetryManager.log("Loading GraphTraversalSource for Graph Id: " + graphId);
-		String route = getRoute(graphId, graphOperation);
 
-		// Configure GraphBinary serializer with JanusGraph IoRegistry to support custom
-		// types
-		// Configure GraphSON serializer with JanusGraph IoRegistry using Builder
-		// pattern
-		// This ensures that the Serializer adds its default modules (like
-		// ResponseMessage serializer)
-		// while we add our custom JanusGraph registry.
-		GraphSONMapper.Builder builder = GraphSONMapper.build().addRegistry(JanusGraphIoRegistry.instance());
-		GraphSONMessageSerializerV3 serializer = new GraphSONMessageSerializerV3(builder);
-
-		Cluster cluster = Cluster.build()
-				.addContactPoint(route.split(":")[0])
-				.port(Integer.parseInt(route.split(":")[1]))
-				.maxWaitForConnection(30000)
-				.maxConnectionPoolSize(DACConfigurationConstants.JANUSGRAPH_MAX_CONNECTION_POOL_SIZE)
-				.minConnectionPoolSize(DACConfigurationConstants.JANUSGRAPH_MIN_CONNECTION_POOL_SIZE)
-				.serializer(serializer)
-				.create();
-
-		clusterMap.put(driverKey, cluster);
-
-		GraphTraversalSource g = traversal().withRemote(DriverRemoteConnection.using(cluster, "g"));
-
-		registerShutdownHook(g, cluster);
-		return g;
+		// Use Embedded JanusGraph instance to ensure Strong Consistency (QUORUM)
+		// This bypasses the Remote Gremlin Server and uses the local Graph instance
+		// directly.
+		JanusGraph graph = getJanusGraph(graphId);
+		return graph.traversal();
 	}
 
 	public static void closeConnections() {
@@ -93,17 +61,6 @@ public class DriverUtil {
 			it.remove();
 		}
 
-		for (Iterator<Map.Entry<String, Cluster>> it = clusterMap.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<String, Cluster> entry = it.next();
-			Cluster cluster = entry.getValue();
-			try {
-				cluster.close();
-			} catch (Exception e) {
-				TelemetryManager.error("Error closing Cluster", e);
-			}
-			it.remove();
-		}
-
 		for (Iterator<Map.Entry<String, JanusGraph>> it = janusGraphMap.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<String, JanusGraph> entry = it.next();
 			JanusGraph graph = entry.getValue();
@@ -114,23 +71,6 @@ public class DriverUtil {
 			}
 			it.remove();
 		}
-	}
-
-	private static void registerShutdownHook(GraphTraversalSource g, Cluster cluster) {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				TelemetryManager.log("Closing JanusGraph connections...");
-				try {
-					if (null != g)
-						g.close();
-					if (null != cluster)
-						cluster.close();
-				} catch (Exception e) {
-					TelemetryManager.error("Error closing connections", e);
-				}
-			}
-		});
 	}
 
 	public static String getRoute(String graphId, GraphOperation graphOperation) {
@@ -206,14 +146,21 @@ public class DriverUtil {
 			props.put("storage.cql.local-datacenter", "datacenter1");
 		}
 
-		// Force consistency level to ONE to avoid issues with remote port forwarding
-		// (internal IPs unreachable)
+		// Force consistency level to QUORUM to ensure Read-Your-Own-Writes consistency
 		if (!props.containsKey("storage.cql.read-consistency-level")) {
-			props.put("storage.cql.read-consistency-level", "ONE");
+			props.put("storage.cql.read-consistency-level", "QUORUM");
 		}
 		if (!props.containsKey("storage.cql.write-consistency-level")) {
-			props.put("storage.cql.write-consistency-level", "ONE");
+			props.put("storage.cql.write-consistency-level", "QUORUM");
 		}
+
+		// Prevent Instance ID collisions when multiple graphs are opened in the same
+		// JVM
+		// by appending a random suffix.
+		// JanusGraph expects a non-negative Short for this configuration.
+		// Using random helps avoid collisions with "zombie" instances from previous
+		// context reloads.
+		props.put("graph.unique-instance-id-suffix", (short) (Math.random() * Short.MAX_VALUE));
 
 		System.out.println("DEBUG: JanusGraph Config: " + props);
 

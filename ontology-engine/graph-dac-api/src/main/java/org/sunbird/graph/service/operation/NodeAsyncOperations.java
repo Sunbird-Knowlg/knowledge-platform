@@ -303,16 +303,6 @@ public class NodeAsyncOperations {
                                 .info("NodeAsyncOperations.upsertNode: Transaction (tx) committed successfully for "
                                         + identifier);
 
-                        // CRITICAL: Force flush to ensure write is immediately visible
-                        // Without this, logged transactions may not be immediately readable
-                        // Increased to 200ms to ensure CSPMetaUtil and other read paths get fresh data
-                        try {
-                            Thread.sleep(200); // Increased delay for full propagation
-                            TelemetryManager
-                                    .info("NodeAsyncOperations.upsertNode: Waited for backend flush for " + identifier);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                        }
                     } else {
                         TelemetryManager
                                 .info("NodeAsyncOperations.upsertNode: Committing transaction (g.tx()) for "
