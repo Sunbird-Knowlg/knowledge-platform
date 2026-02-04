@@ -46,7 +46,7 @@ object HierarchyManager {
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
-        val rootNodeFuture = getRootNode(request)
+        val rootNodeFuture = getRootNode(request, true)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
@@ -95,7 +95,7 @@ object HierarchyManager {
     @throws[Exception]
     def removeLeafNodesFromHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
-        val rootNodeFuture = getRootNode(request)
+        val rootNodeFuture = getRootNode(request, true)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
@@ -265,11 +265,13 @@ object HierarchyManager {
         }
     }
 
-    private def getRootNode(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    private def getRootNode(request: Request, disableCache: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
         req.put("identifier", request.get("rootId").asInstanceOf[String])
         req.put("mode", request.get("mode").asInstanceOf[String])
         req.put("fields",request.get("fields").asInstanceOf[java.util.List[String]])
+        if(disableCache)
+            req.put("disableCache", Option(true))
         DataNode.read(req)
     }
 

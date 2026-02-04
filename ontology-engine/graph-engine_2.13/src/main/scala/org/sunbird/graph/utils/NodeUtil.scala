@@ -185,6 +185,8 @@ object NodeUtil {
                     } catch {
                         case _: Exception => List(value).asJava
                     }
+                } else if(value.startsWith("[L") && !value.endsWith("]")) {
+                    new util.ArrayList[String]()
                 } else {
                     List(value).asJava
                 }
@@ -193,7 +195,11 @@ object NodeUtil {
             case _ => new util.ArrayList[String]()
         }
         if(CollectionUtils.isNotEmpty(languages)){
-            languages.asScala.map(lang => if(Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "").asJava
+            languages.asScala.map(lang => {
+                if(StringUtils.isNotBlank(lang) && !lang.startsWith("[")) {
+                    if (Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else ""
+                } else ""
+            }).asJava
         }else{
             languages
         }
