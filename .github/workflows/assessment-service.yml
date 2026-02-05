@@ -1,5 +1,8 @@
 name: Build and Push Assessment Service Image
 
+permissions:
+  contents: read
+
 on:
   push:
     tags:
