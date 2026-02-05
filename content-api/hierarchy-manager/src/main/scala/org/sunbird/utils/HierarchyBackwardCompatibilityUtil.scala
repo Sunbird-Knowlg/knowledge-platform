@@ -3,7 +3,7 @@ package org.sunbird.utils.content
 import java.util
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 import scala.jdk.CollectionConverters._
 
@@ -75,5 +75,23 @@ object HierarchyBackwardCompatibilityUtil {
         } else {
             metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
         }
+    }
+
+    def deserializeStringifiedLists(input: java.util.Map[String, AnyRef]): Unit = {
+        val keys = input.keySet().asScala.toList
+        keys.foreach(key => {
+            val value = input.get(key)
+            if(value.isInstanceOf[String]) {
+                val strValue = value.asInstanceOf[String]
+                if(strValue.startsWith("[") && strValue.endsWith("]")) {
+                    try {
+                        val list = JsonUtils.deserialize(strValue, classOf[java.util.List[String]])
+                        input.put(key, list)
+                    } catch {
+                        case e: Exception => // ignore
+                    }
+                }
+            }
+        })
     }
 }

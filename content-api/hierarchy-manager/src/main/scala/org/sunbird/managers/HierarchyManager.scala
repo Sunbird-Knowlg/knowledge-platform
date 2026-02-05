@@ -456,7 +456,9 @@ object HierarchyManager {
             if (!ResponseHandler.checkError(response)) {
                 val hierarchyString = response.getResult.asScala.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
                 if (StringUtils.isNotEmpty(hierarchyString)) {
-                    Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).asScala.toMap)
+                    val hierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
+                    HierarchyBackwardCompatibilityUtil.deserializeStringifiedLists(hierarchy)
+                    Future(hierarchy.asScala.toMap)
                 } else
                     Future(Map[String, AnyRef]())
             } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404 && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
@@ -466,7 +468,9 @@ object HierarchyManager {
                     if (!ResponseHandler.checkError(response)) {
                         val hierarchyString = response.getResult.asScala.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
                         if (StringUtils.isNotEmpty(hierarchyString)) {
-                            JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).asScala.toMap
+                            val hierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
+                            HierarchyBackwardCompatibilityUtil.deserializeStringifiedLists(hierarchy)
+                            hierarchy.asScala.toMap
                         } else
                             Map[String, AnyRef]()
                     } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
