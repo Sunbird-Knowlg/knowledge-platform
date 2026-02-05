@@ -20,16 +20,9 @@ object ReviewManager {
 		reviewFuture.map(result => {
 			val updateReq = new Request()
 			updateReq.setContext(request.getContext)
-			
-			// Log what's in the original request
-			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Original request fields: " + request.getRequest)
-			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Current node name: " + node.getMetadata.get("name"))
-			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Enriched metadata from mimetype manager: " + result)
-			
 			// Preserve the existing node's name if not provided in the request
 			// This prevents "Untitled Content" or other default values from overwriting the actual name
 			if (!request.getRequest.containsKey("name") && node.getMetadata.containsKey("name")) {
-				org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Preserving existing name: " + node.getMetadata.get("name"))
 				updateReq.put("name", node.getMetadata.get("name"))
 			}
 			
@@ -38,7 +31,6 @@ object ReviewManager {
 			updateReq.putAll(request.getRequest)  // First, add all request fields (will override preserved name if provided)
 			updateReq.putAll(result.asJava)       // Then, override with enriched metadata (status, lastSubmittedOn, reviewError)
 			
-			org.sunbird.telemetry.logger.TelemetryManager.info("ReviewManager: Final metadata to update: " + updateReq.getRequest)
 			DataNode.update(updateReq).map(node => {
 				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			})

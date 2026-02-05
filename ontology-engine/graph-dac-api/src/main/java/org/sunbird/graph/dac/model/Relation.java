@@ -39,11 +39,6 @@ public class Relation implements Serializable {
 		this.relationType = relationType;
 	}
 
-	// TODO: Add JanusGraph Edge-based constructor when needed
-	// public Relation(String graphId, Edge edge, Vertex startVertex, Vertex endVertex) {
-	//     // Implementation using JanusGraph/Gremlin API
-	// }
-
 	public String getRelationType() {
 		return relationType;
 	}

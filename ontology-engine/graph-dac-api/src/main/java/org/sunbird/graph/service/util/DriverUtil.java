@@ -28,11 +28,13 @@ public class DriverUtil {
 		TelemetryManager.log("Driver Configuration Key: " + driverKey);
 
 		// DEBUG: Print keys
-		System.out.println("DEBUG: Requesting key: " + driverKey);
-		System.out.println("DEBUG: Available keys: " + graphTraversalSourceMap.keySet());
+		// System.out.println("DEBUG: Requesting key: " + driverKey);
+		// System.out.println("DEBUG: Available keys: " +
+		// graphTraversalSourceMap.keySet());
 
 		return graphTraversalSourceMap.computeIfAbsent(driverKey, key -> {
-			System.out.println("DEBUG: Key mismatch! Loading remote source for key: " + key);
+			// System.out.println("DEBUG: Key mismatch! Loading remote source for key: " +
+			// key);
 			return loadGraphTraversalSource(graphId, graphOperation, key);
 		});
 	}

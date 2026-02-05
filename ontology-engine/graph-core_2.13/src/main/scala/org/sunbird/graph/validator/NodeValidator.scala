@@ -17,15 +17,12 @@ import scala.concurrent.{ExecutionContext, Future}
 object NodeValidator {
 
     def validate(graphId: String, identifiers: util.List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, Node]] = {
-        println(s"DEBUG: NodeValidator.validate called. GraphID: $graphId, Identifiers: $identifiers")
         val nodes = getDataNodes(graphId, identifiers)
 
         nodes.map(dataNodes => {
-            println(s"DEBUG: NodeValidator - getDataNodes returned ${dataNodes.size} nodes. IDs: ${dataNodes.map(_.getIdentifier)}")
             if (dataNodes.size != identifiers.size) {
                 val dbNodeIds = dataNodes.map(node => node.getIdentifier).toList
                 val invalidIds = identifiers.toList.filter(id => !dbNodeIds.contains(id))
-                println(s"DEBUG: NodeValidator - Invalid IDs: $invalidIds")
                 throw new ResourceNotFoundException(GraphErrorCodes.ERR_INVALID_NODE.toString, "Node Not Found With Identifier " + invalidIds)
             } else {
                 new util.HashMap[String, Node](dataNodes.map(node => node.getIdentifier -> node).toMap.asJava)

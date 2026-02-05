@@ -181,7 +181,6 @@ object UpdateHierarchyManager {
                 val rootNode = getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
                 childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
-                // CRITICAL FIX: Ensure objectType is not null or empty before setting it
                 val objectType = node.getMetadata.getOrDefault("objectType", "").asInstanceOf[String]
                 if (StringUtils.isBlank(objectType)) {
                     throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Object Type is mandatory for node with identifier: ${child.get(HierarchyConstants.IDENTIFIER)}")
@@ -198,7 +197,6 @@ object UpdateHierarchyManager {
 
     private def updateNodesModifiedInNodeList(nodeList: List[Node], nodesModified: java.util.HashMap[String, AnyRef], request: Request, idMap: mutable.Map[String, String])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
         updateRootNode(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeList, nodesModified)
-        TelemetryManager.info("UpdateHierarchyManager: updateNodesModifiedInNodeList called for RootId: " + request.getContext.get(HierarchyConstants.ROOT_ID))
         val futures = nodesModified.filter(nodeModified => !StringUtils.startsWith(request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String], nodeModified._1))
                 .map(nodeModified => {
                     val objectType = nodeModified._2.asInstanceOf[java.util.HashMap[String, AnyRef]].getOrDefault(HierarchyConstants.OBJECT_TYPE, "").asInstanceOf[String]
@@ -414,7 +412,6 @@ object UpdateHierarchyManager {
             val index = child._2 + 1
             val tempNode = getTempNode(nodeList, id)
             if (null != tempNode && StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, tempNode.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-                // CRITICAL FIX: Validate objectType before adding to list
                 if (null == tempNode.getObjectType || StringUtils.isBlank(tempNode.getObjectType)) {
                     TelemetryManager.error(s"UpdateHierarchyManager: Node ${tempNode.getIdentifier} has null/blank objectType, skipping")
                     Future(enrichedNodeList)

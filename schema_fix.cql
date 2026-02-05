@@ -1,2 +1,0 @@
-ALTER TABLE dev_hierarchy_store.questionset_hierarchy ADD relational_metadata text;
-ALTER TABLE dev_hierarchy_store.content_hierarchy ADD relational_metadata text;

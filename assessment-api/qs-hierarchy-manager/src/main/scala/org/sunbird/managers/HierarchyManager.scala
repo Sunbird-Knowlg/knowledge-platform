@@ -308,19 +308,15 @@ object HierarchyManager {
     }
 
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
-        // CRITICAL DEBUG: Log all nodes before processing
-        TelemetryManager.info(s"HierarchyManager.convertNodeToMap: Processing ${leafNodes.size} nodes")
         leafNodes.zipWithIndex.foreach { case (node, idx) =>
             if (null == node) {
                 TelemetryManager.error(s"HierarchyManager.convertNodeToMap: Node at index $idx is NULL")
             } else {
                 val identifier = if (null != node.getIdentifier) node.getIdentifier else "NULL_IDENTIFIER"
                 val objectType = if (null != node.getObjectType) node.getObjectType else "NULL_OBJECTTYPE"
-                TelemetryManager.info(s"HierarchyManager.convertNodeToMap: Node $idx - ID: $identifier, Type: $objectType")
             }
         }
         leafNodes.map(node => {
-            // CRITICAL FIX: Add comprehensive null checks to prevent NPE
             if (null == node) {
                 TelemetryManager.error("HierarchyManager.convertNodeToMap: Node is null, skipping")
                 new java.util.HashMap[String, AnyRef]() // Return empty map for null nodes

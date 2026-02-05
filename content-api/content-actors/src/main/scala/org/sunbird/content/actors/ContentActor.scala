@@ -72,12 +72,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		})
 	}
 
-  // ... (keep getProcessIdStatus, read, privateRead, update, upload, copy, uploadPreSignedUrl, retire, discard, flag, acceptFlag, linkDIALCode, reserveDialCode, releaseDialCode, importContent, reviewContent, publishContent as is - I am only replacing the lines I target)
-  // Wait, replace_file_content replaces a block. I should only target the block containing `create`, `populateDefaultersForCreation` and `setDefaultLicense`.
-  // But they are separated by many methods.
-  // I must use multi_replace_file_content.
-
-
 	def getProcessIdStatus(request: Request): Future[Response] = {
 			val apiId: String = "sunbird.dialcode.batch.read"
 			val response: Future[Response] = DIALManager.readQRCodesBatchInfo(request)
@@ -216,9 +210,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(readReq).map(node => {
-			// Log the node name immediately after reading from database
-			org.sunbird.telemetry.logger.TelemetryManager.info(s"ContentActor.reviewContent: Node read from DB - ID: $identifier, Name: ${node.getMetadata.get("name")}")
-			
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
