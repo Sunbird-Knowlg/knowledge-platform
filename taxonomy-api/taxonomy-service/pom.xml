@@ -34,7 +34,7 @@
         <play2.version>3.0.5</play2.version>
         <play2.plugin.version>1.0.0-rc5</play2.plugin.version>
         <sbt-compiler.plugin.version>1.0.0</sbt-compiler.plugin.version>
-        <netty.version>4.1.112.Final</netty.version>
+        <netty.version>4.1.124.Final</netty.version>
     </properties>
 
     <dependencyManagement>
