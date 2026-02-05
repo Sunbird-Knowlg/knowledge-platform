@@ -1,4 +1,4 @@
-package org.sunbird.utils
+package org.sunbird.utils.taxonomy
 
 import org.sunbird.common.dto.Request
 import org.sunbird.common.exception.ClientException

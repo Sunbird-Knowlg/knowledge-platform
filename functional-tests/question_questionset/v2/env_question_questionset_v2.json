@@ -1,0 +1,39 @@
+{
+	"id": "9810c07f-64b8-4b7a-9c1f-726c26869a9a",
+	"name": "env_question_questionset_v2",
+	"values": [
+		{
+			"key": "host",
+			"value": "{{ inquiry_host_url }}",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "api_version",
+			"value": "{{ inquiry_api_version }}",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "api_key",
+			"value": "{{ inquiry_api_key }}",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "channel_id",
+			"value": "{{ inquiry_channel_id }}",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "framework_id",
+			"value": "{{ inquiry_framework_id }}",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2024-05-13T07:49:49.767Z",
+	"_postman_exported_using": "Postman/10.24.25"
+}

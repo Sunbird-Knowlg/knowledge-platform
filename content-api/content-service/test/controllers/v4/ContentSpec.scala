@@ -1,5 +1,6 @@
 package controllers.v4
 
+import content.controllers.v4.ContentController
 import controllers.base.BaseSpec
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -17,7 +18,7 @@ class ContentSpec extends BaseSpec {
 
   "Content Controller " should {
     "return success response for create API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Learning Resource"}}}""")
       val fakeRequest = FakeRequest("POST", "/content/v4/create ").withJsonBody(json)
       val result = controller.create()(fakeRequest)
@@ -26,69 +27,69 @@ class ContentSpec extends BaseSpec {
     }
 
     "return success response for update API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.update("do_123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for read API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.read("do_123", None, None)(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for private read API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.privateRead("do_123", None, None)(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for flag API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.flag("do_123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for acceptFlag API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.acceptFlag("do_123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for discard API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.discard("0123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
     "return success response for retire API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.retire("0123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for linkDialCode API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.linkDialCode()(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for presignedUrl upload API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.uploadPreSigned("01234", None)(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for rejectContent API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Learning Resource","status": "Review"}}}""")
       val fakeRequest = FakeRequest("POST", "/content/v4/review/reject/do_123").withJsonBody(json)
       val result = controller.systemUpdate("do_123")(fakeRequest)
@@ -97,21 +98,21 @@ class ContentSpec extends BaseSpec {
     }
 
     "return success response for review API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.review("do_123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
 
     "return success response for reviewReject API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val result = controller.reviewReject("do_123")(FakeRequest())
       isOK(result)
       status(result) must equalTo(OK)
     }
   }
   "return success response for upload API with file" in {
-    val controller = app.injector.instanceOf[controllers.v4.ContentController]
+    val controller = app.injector.instanceOf[ContentController]
     val file = new File("test/resources/sample.pdf")
     val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
     val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
@@ -122,7 +123,7 @@ class ContentSpec extends BaseSpec {
   }
 
   "return success response for upload API with fileUrl" in {
-    val controller = app.injector.instanceOf[controllers.v4.ContentController]
+    val controller = app.injector.instanceOf[ContentController]
     val file = new File("test/resources/sample.pdf")
     val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
     val multipartBody = MultipartFormData(Map[String, Seq[String]]("fileUrl" -> Seq("https://abc.com/content/sample.pdf"), "filePath" -> Seq("/program/id")), files, Seq[BadPart]())
@@ -133,7 +134,7 @@ class ContentSpec extends BaseSpec {
   }
 
   "return success response for upload API with fileUrl and fileFormat" in {
-    val controller = app.injector.instanceOf[controllers.v4.ContentController]
+    val controller = app.injector.instanceOf[ContentController]
     val file = new File("test/resources/sample.pdf")
     val files = Seq[FilePart[TemporaryFile]](FilePart("file", "sample.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
     val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
@@ -144,7 +145,7 @@ class ContentSpec extends BaseSpec {
   }
 
   "return success response for importContent API" in {
-    val controller = app.injector.instanceOf[controllers.v4.ContentController]
+    val controller = app.injector.instanceOf[ContentController]
     val result = controller.importContent()(FakeRequest())
     isOK(result)
     status(result) must equalTo(OK)
@@ -152,7 +153,7 @@ class ContentSpec extends BaseSpec {
 
 
   "return success response for copy API" in {
-    val controller = app.injector.instanceOf[controllers.v4.ContentController]
+    val controller = app.injector.instanceOf[ContentController]
     val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Asset"}}}""")
     val fakeRequest = FakeRequest("POST", "/content/v4/copy/do_123").withJsonBody(json)
     val result = controller.copy("do_123", Option.apply("read"), "shallowCopy")(fakeRequest)
@@ -162,7 +163,7 @@ class ContentSpec extends BaseSpec {
 
   "Content Controller with invalid request " should {
     "return client error response for create API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"content": { "contentType": "TextBook"}}}""")
       val fakeRequest = FakeRequest("POST", "/content/v4/create ").withJsonBody(json)
       val result = controller.create()(fakeRequest)
@@ -172,7 +173,7 @@ class ContentSpec extends BaseSpec {
 
   "Content Controller with invalid request " should {
     "return client error response for create API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"content": { "name": "Resource"}}}""")
       val fakeRequest = FakeRequest("POST", "/content/v4/create ").withJsonBody(json)
       val result = controller.create()(fakeRequest)
@@ -182,7 +183,7 @@ class ContentSpec extends BaseSpec {
 
   "Content Controller with valid request " should {
     "return success response for systemUpdate API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Asset"}}}""")
       val fakeRequest = FakeRequest("POST", "/content/v4/system/update/do_123").withJsonBody(json)
       val result = controller.systemUpdate("do_123")(fakeRequest)
@@ -193,7 +194,7 @@ class ContentSpec extends BaseSpec {
 
   "Content Controller with valid request " should {
     "return success response for dialcode reserve API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"dialcodes": {"count": 5, "qrCodeSpec": { "errorCorrectionLevel": "H" }}}}""".stripMargin)
       val fakeRequest = FakeRequest("POST", "/content/v4/dialcode/reserve/do_123").withJsonBody(json)
       val result = controller.reserveDialCode("do_123")(fakeRequest)
@@ -204,7 +205,7 @@ class ContentSpec extends BaseSpec {
 
   "Content Controller with valid request " should {
     "return success response for dialcode release API" in {
-      val controller = app.injector.instanceOf[controllers.v4.ContentController]
+      val controller = app.injector.instanceOf[ContentController]
       val json: JsValue = Json.parse("""{"request": {"dialcodes": {"count": 1}}}""".stripMargin)
       val fakeRequest = FakeRequest("POST", "/content/v4/dialcode/release/do_123").withJsonBody(json)
       val result = controller.releaseDialCode("do_123")(fakeRequest)

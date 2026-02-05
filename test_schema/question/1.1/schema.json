@@ -1,0 +1,731 @@
+{
+  "$id": "question-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Question",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "mimeType",
+    "primaryCategory",
+    "qumlVersion",
+    "schemaVersion"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 5
+    },
+    "code": {
+      "type": "string",
+      "description": "a unique alphanumeric code"
+    },
+    "description": {
+      "type": "string"
+    },
+    "mimeType": {
+      "type": "string",
+      "enum": [
+        "application/vnd.sunbird.question"
+      ]
+    },
+    "primaryCategory": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "visibility": {
+      "type": "string",
+      "default": "Default",
+      "enum": [
+        "Default",
+        "Parent",
+        "Private",
+        "Protected"
+      ]
+    },
+    "copyright": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "default": "CC BY 4.0"
+    },
+    "appIcon": {
+      "type": "string",
+      "format": "url"
+    },
+    "publishChecklist": {
+      "type": "array"
+    },
+    "publishComment": {
+      "type": "string"
+    },
+    "language": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "English",
+          "Hindi",
+          "Assamese",
+          "Bengali",
+          "Gujarati",
+          "Kannada",
+          "Malayalam",
+          "Marathi",
+          "Nepali",
+          "Odia",
+          "Punjabi",
+          "Tamil",
+          "Telugu",
+          "Urdu",
+          "Sanskrit",
+          "Maithili",
+          "Other"
+        ]
+      },
+      "default": ["English"]
+    },
+    "languageCode": {
+      "type": "array"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Live",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "prevStatus": {
+      "type": "string"
+    },
+    "pkgVersion": {
+      "type": "number"
+    },
+    "versionKey": {
+      "type": "string"
+    },
+    "qumlVersion": {
+      "type": "number",
+      "default": 1.1
+    },
+    "schemaVersion": {
+      "type": "string",
+      "default": "1.1"
+    },
+    "contentEncoding": {
+      "type": "string",
+      "enum": [
+        "gzip",
+        "identity"
+      ],
+      "default": "gzip"
+    },
+    "contentDisposition": {
+      "type": "string",
+      "enum": [
+        "inline",
+        "online",
+        "attachment",
+        "online-only"
+      ],
+      "default": "inline"
+    },
+    "compatibilityLevel": {
+      "type": "number",
+      "default": 5
+    },
+    "artifactUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "publishError": {
+      "type": "string"
+    },
+    "reviewError": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "originData": {
+      "type": "object"
+    },
+    "variants": {
+      "type": "object"
+    },
+    "downloadUrl": {
+      "type": "string",
+      "format": "url"
+    },
+    "migrationVersion": {
+      "type": "number"
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "lastSubmittedOn": {
+      "type": "string"
+    },
+    "lastPublishedOn": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "createdFor": {
+      "type": "array"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastSubmittedBy": {
+      "type": "string"
+    },
+    "lastPublishedBy": {
+      "type": "string"
+    },
+    "publisher": {
+      "type": "string"
+    },
+    "requestChanges": {
+      "type": "string"
+    },
+    "rejectComment": {
+      "type": "string"
+    },
+    "lockKey": {
+      "type": "string"
+    },
+    "consumerId": {
+      "type": "string"
+    },
+    "assets": {
+      "type": "array"
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Student",
+          "Teacher",
+          "Administrator",
+          "Parent"
+        ],
+        "default": "Student"
+      }
+    },
+    "author": {
+      "type": "string"
+    },
+    "complexityLevel" : {
+      "description": "Cognitive processes involved to answer the question set.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "remember",
+          "understand",
+          "apply",
+          "analyse",
+          "evaluate",
+          "create"
+        ]
+      }
+    },
+    "interactionTypes":{
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "choice",
+          "text",
+          "select",
+          "date",
+          "file-upload",
+          "canvas"
+        ]
+      }
+    },
+    "qType": {
+      "type": "string",
+      "enum": [
+        "MCQ",
+        "FTB",
+        "SA",
+        "MCQ-MCA",
+        "MCQ-SCA",
+        "MTF"
+      ]
+    },
+    "editorState": {
+      "type": "object",
+      "description": "Stores editor specific data."
+    },
+    "body": {
+      "description": "Body contains the text, graphics, media objects and interactions that describe the question’s content.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Question body as HTML string when the question is used in only one language."
+        },
+        {
+          "type": "object",
+          "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "answer": {
+      "description": "answer contains the text, graphics, media objects that describe the question’s content.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Answer as HTML string when the answer is used in only one language."
+        },
+        {
+          "type": "object",
+          "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "instructions": {
+      "description": "Instructions on how to understand, attempt or how the question will be evaluated.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Instructions as HTML string when the question is used in only one language."
+        },
+        {
+          "type": "object",
+          "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "feedback": {
+      "description": "Feedback shown to the students after response processing.",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "hints": {
+      "description": "Hints are shown to the students after response processing or when the student requests for hints.",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+
+    },
+    "solutions": {
+      "description": "Solutions to the question.",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "description": "i18n data in map format, where key is the ISO language code and value is string data in the the specified language.",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "media": {
+      "type": "array",
+      "description": "List of media used in the question",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "src"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "enum": ["application", "audio", "font", "example", "image", "message", "model", "multipart", "text", "video"]
+          },
+          "src": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "responseDeclaration": {
+      "description": "Information about answer to the question, when it is correct and optionally, how it is scored.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["cardinality", "type"],
+        "properties": {
+          "cardinality": {
+            "type": "string",
+            "enum": ["single", "multiple"]
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "integer", "boolean", "object", "array"]
+          },
+          "correctResponse": {
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+              "value": {
+                "type": ["string", "number", "integer", "boolean", "object", "array"]
+              }
+            },
+            "additionalProperties": false
+          },
+          "mapping": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "score"],
+              "properties": {
+                "value": {
+                  "type": ["string", "number", "integer", "boolean", "object", "array"]
+                },
+                "score": {"type": "number"},
+                "caseSensitive": {"type": "boolean", "default": false}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "interactions": {
+      "type": "object",
+      "description": "Stores interaction data. e.g: options for mcq questions"
+    },
+    "outcomeDeclaration": {
+      "type": "object",
+      "description": "External Property"
+    },
+    "timeLimits": {
+      "type": "object",
+      "properties": {
+        "max": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        }
+      }
+    },
+    "showTimer": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "showFeedback": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "showHints": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "showSolutions": {
+      "type": "boolean",
+      "enum": [
+        true,
+        false
+      ],
+      "default": false
+    },
+    "framework": {
+      "type": "string"
+    },
+    "subject" : {
+      "type": "array"
+    },
+    "medium" : {
+      "type": "array"
+    },
+    "board" : {
+      "type": "string"
+    },
+    "gradeLevel" : {
+      "type": "array"
+    },
+    "topic" : {
+      "type": "array"
+    },
+    "boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "topicsIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetFWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetBoardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetGradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetSubjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetMediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetTopicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_FWIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boardIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjectIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediumIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topicIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevelIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_boards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_subjects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_mediums": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_topics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "se_gradeLevels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "maxScore": {
+      "type": "number"
+    },
+    "attributions": {
+      "type": "array"
+    },
+    "scoringMode": {
+      "type": "string",
+      "enum": [
+        "system",
+        "none"
+      ]
+    },
+    "templateId":{
+      "type": "string"
+    },
+    "dailySummaryReportEnabled": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "allowAnonymousAccess": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "Yes"
+    },
+    "termsAndConditions": {
+      "type": "string"
+    },
+    "expectedDuration": {
+      "type": "number"
+    },
+    "completionCriteria": {
+      "type": "object"
+    },
+    "collaborators": {
+      "type": "array"
+    },
+    "showRemarks": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "remarks": {
+      "type": "object"
+    },
+    "showEvidence": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ]
+    },
+    "evidence": {
+      "type": "object"
+    },
+    "accessibility": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "creator": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -3,7 +3,7 @@ package modules
 import com.google.inject.AbstractModule
 import org.sunbird.actors.{CategoryActor, CategoryInstanceActor, FrameworkActor, HealthActor, LockActor, ObjectCategoryActor, ObjectCategoryDefinitionActor, TermActor}
 import play.api.libs.concurrent.PekkoGuiceSupport
-import utils.ActorNames
+import taxonomy.utils.ActorNames
 
 class TaxonomyModule extends AbstractModule with PekkoGuiceSupport {
 

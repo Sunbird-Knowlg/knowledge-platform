@@ -27,7 +27,8 @@
 				<module>platform-core</module>
 				<module>ontology-engine</module>
 				<module>content-api</module>
-<!--				<module>assessment-api</module>-->
+				<module>knowlg-service</module>
+				<module>assessment-api</module>
 				<module>taxonomy-api</module>
 				<module>platform-modules</module>
 				<module>search-api</module>
@@ -50,6 +51,11 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>3.9.1.2184</version>
+				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>versions-maven-plugin</artifactId>

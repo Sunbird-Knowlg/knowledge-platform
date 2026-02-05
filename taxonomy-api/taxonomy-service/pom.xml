@@ -247,6 +247,12 @@
         </dependency>
         <dependency>
             <groupId>org.sunbird</groupId>
+            <artifactId>taxonomy-controllers</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.sunbird</groupId>
             <artifactId>taxonomy-actors</artifactId>
             <version>1.0-SNAPSHOT</version>
             <type>jar</type>

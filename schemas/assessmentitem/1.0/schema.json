@@ -115,13 +115,13 @@
       "type": "object"
     },
     "options": {
-      "type": "object"
+      "dataType": "object"
     },
     "lhs_options": {
-      "type": "object"
+      "dataType": "object"
     },
     "rhs_options": {
-      "type": "object"
+      "dataType": "object"
     },
     "responses": {
       "type": "object"
@@ -267,7 +267,8 @@
         "SA",
         "LA",
         "REFERENCE",
-        "CuriosityQuestion"
+        "CuriosityQuestion",
+        "mcq"
       ],
       "default": "MCQ"
     },

@@ -6,7 +6,7 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.actors.ObjectCategoryActor
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import play.api.libs.concurrent.PekkoGuiceSupport
-import utils.ActorNames
+import taxonomy.utils.ActorNames
 
 import scala.concurrent.{ExecutionContext, Future}
 

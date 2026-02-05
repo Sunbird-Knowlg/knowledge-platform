@@ -13,7 +13,8 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.utils.{Constants, RequestUtil}
+import org.sunbird.utils.Constants
+import org.sunbird.utils.taxonomy.RequestUtil
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._

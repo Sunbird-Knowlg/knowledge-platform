@@ -10,7 +10,8 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.utils.{Constants, RequestUtil}
+import org.sunbird.utils.Constants
+import org.sunbird.utils.taxonomy.RequestUtil
 import org.sunbird.mangers.FrameworkManager
 import org.sunbird.cache.impl.RedisCache
 

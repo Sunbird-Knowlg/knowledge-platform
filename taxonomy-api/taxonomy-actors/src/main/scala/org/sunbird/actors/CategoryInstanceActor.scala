@@ -11,7 +11,8 @@ import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
-import org.sunbird.utils.{Constants, RequestUtil}
+import org.sunbird.utils.Constants
+import org.sunbird.utils.taxonomy.RequestUtil
 
 import java.util
 import scala.jdk.CollectionConverters._

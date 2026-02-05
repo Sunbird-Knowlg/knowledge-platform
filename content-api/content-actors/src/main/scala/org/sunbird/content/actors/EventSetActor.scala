@@ -11,7 +11,7 @@ import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.util.RequestUtil
-import org.sunbird.utils.HierarchyConstants
+import org.sunbird.utils.content.HierarchyConstants
 
 import java.util
 import javax.inject.Inject
