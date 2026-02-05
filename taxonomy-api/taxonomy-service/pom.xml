@@ -11,16 +11,6 @@
     <artifactId>taxonomy-service</artifactId>
     <packaging>play2</packaging>
 
-    <repositories>
-        <repository>
-            <id>scalaz-bintray</id>
-            <name>Scalaz Bintray - releases</name>
-            <url>https://dl.bintray.com/scalaz/releases/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
     <pluginRepositories>
         <pluginRepository>
             <id>typesafe-releases-plugins</id>
