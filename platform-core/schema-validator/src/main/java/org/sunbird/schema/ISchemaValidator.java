@@ -13,11 +13,13 @@ public interface ISchemaValidator {
     ValidationResult validate(Map<String, Object> data) throws Exception;
 
     Config getConfig();
-    
+
     Map<String, Object> getAllPropsType();
 
     List<String> getJsonProps();
-    
+
     List<String> getAllProps();
+
+    List<String> getArrayProps();
 
 }

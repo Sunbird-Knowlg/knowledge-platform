@@ -24,7 +24,7 @@ import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 
 object UpdateHierarchyManager {
-    val neo4jCreateTypes: java.util.List[String] = Platform.getStringList("neo4j_objecttypes_enabled", List("Question").asJava)
+    val graphCreateTypes: java.util.List[String] = Platform.getStringList("graph_objecttypes_enabled", List("Question").asJava)
 
     @throws[Exception]
     def updateHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -100,9 +100,11 @@ object UpdateHierarchyManager {
             if(StringUtils.equalsIgnoreCase("1.1",request.getContext.get("version").toString) && StringUtils.equalsIgnoreCase("1.0", schemaVersion))
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "QuestionSet can't support update hierarchy operation because it is not having data in QuML 1.1 format.")
             val metadata: java.util.Map[String, AnyRef] = NodeUtil.serialize(rootNode, new java.util.ArrayList[String](), request.getContext.get("schemaName").asInstanceOf[String], schemaVersion)
-            if (!StringUtils.equals(metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String], HierarchyConstants.QUESTIONSET_MIME_TYPE)) {
-                TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid MimeType for Root node id: " + identifier)
-                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, "Invalid MimeType for Root Node Identifier  : " + identifier)
+            val foundMimeType = metadata.get(HierarchyConstants.MIME_TYPE).asInstanceOf[String]
+            val expectedMimeType = HierarchyConstants.QUESTIONSET_MIME_TYPE
+            if (!StringUtils.equals(StringUtils.trim(foundMimeType), expectedMimeType)) {
+                TelemetryManager.error(s"UpdateHierarchyManager :: Invalid MimeType. RootId: $identifier. Found: '$foundMimeType' (len: ${if(foundMimeType!=null) foundMimeType.length else 0}), Expected: '$expectedMimeType' (len: ${expectedMimeType.length})")
+                throw new ClientException(HierarchyErrorCodes.ERR_INVALID_ROOT_ID, s"Invalid MimeType for Root Node Identifier : $identifier. Found: '$foundMimeType' (len: ${if(foundMimeType!=null) foundMimeType.length else 0})")
             }
             if(!CollectionUtils.containsAny(Platform.getStringList("root_node_visibility", List("Default").asJava), metadata.getOrDefault(HierarchyConstants.VISIBILITY, "").asInstanceOf[String])) {
                 TelemetryManager.error("UpdateHierarchyManager.getValidatedRootNode :: Invalid Visibility found for Root node id: " + identifier)
@@ -179,7 +181,11 @@ object UpdateHierarchyManager {
                 val rootNode = getTempNode(nodes, request.getContext.get(HierarchyConstants.ROOT_ID).asInstanceOf[String])
                 childData.put(HierarchyConstants.CHANNEL, rootNode.getMetadata.get(HierarchyConstants.CHANNEL))
                 val node = NodeUtil.deserialize(childData, request.getContext.get(HierarchyConstants.SCHEMA_NAME).asInstanceOf[String], DefinitionNode.getRelationsMap(request))
-                node.setObjectType(node.getMetadata.getOrDefault("objectType", "").asInstanceOf[String])
+                val objectType = node.getMetadata.getOrDefault("objectType", "").asInstanceOf[String]
+                if (StringUtils.isBlank(objectType)) {
+                    throw new ClientException("ERR_UPDATE_QS_HIERARCHY", s"Object Type is mandatory for node with identifier: ${child.get(HierarchyConstants.IDENTIFIER)}")
+                }
+                node.setObjectType(objectType)
                 val updatedNodes = node :: nodes
                 Future(updatedNodes)
             }
@@ -251,7 +257,7 @@ object UpdateHierarchyManager {
         val createRequest: Request = new Request(request)
         createRequest.setRequest(metadata)
         createRequest.getContext.put(HierarchyConstants.VERSION, schemaVersion)
-        if (neo4jCreateTypes.contains(objectType)) {
+        if (graphCreateTypes.contains(objectType)) {
             createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, objectType.toLowerCase)
             DataNode.create(createRequest).map(node => {
                 node.setGraphId(HierarchyConstants.TAXONOMY_ID)
@@ -281,7 +287,7 @@ object UpdateHierarchyManager {
             metadata.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
             val createRequest: Request = new Request(request)
             createRequest.setRequest(metadata)
-            if (neo4jCreateTypes.contains(objectType)) {
+            if (graphCreateTypes.contains(objectType)) {
                 createRequest.getContext.put(HierarchyConstants.IDENTIFIER, tempNode.getIdentifier)
                 createRequest.getContext.put(HierarchyConstants.SCHEMA_NAME, objectType.toLowerCase().replace("image",""))
                 createRequest.getContext.put(HierarchyConstants.OBJECT_TYPE, objectType)
@@ -406,13 +412,18 @@ object UpdateHierarchyManager {
             val index = child._2 + 1
             val tempNode = getTempNode(nodeList, id)
             if (null != tempNode && StringUtils.equalsIgnoreCase(HierarchyConstants.PARENT, tempNode.getMetadata.get(HierarchyConstants.VISIBILITY).asInstanceOf[String])) {
-                populateHierarchyRelatedData(tempNode, depth, index, parent)
-                val nxtEnrichedNodeList = tempNode :: enrichedNodeList
+                if (null == tempNode.getObjectType || StringUtils.isBlank(tempNode.getObjectType)) {
+                    TelemetryManager.error(s"UpdateHierarchyManager: Node ${tempNode.getIdentifier} has null/blank objectType, skipping")
+                    Future(enrichedNodeList)
+                } else {
+                    populateHierarchyRelatedData(tempNode, depth, index, parent)
+                    val nxtEnrichedNodeList = tempNode :: enrichedNodeList
                 if (MapUtils.isNotEmpty(hierarchyStructure.getOrDefault(child._1, Map[String, Int]())))
                     updateHierarchyRelatedData(request, hierarchyStructure.getOrDefault(child._1, Map[String, Int]()),
                         tempNode.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, nxtEnrichedNodeList)
                 else
                     Future(nxtEnrichedNodeList)
+                }
             } else {
                 getQuestionNode(id, HierarchyConstants.TAXONOMY_ID, request.getContext.getOrElse("version", "1.0").asInstanceOf[String]).map(node => {
                     val requestVersion: Double = request.getContext.getOrElse("version", "1.0").asInstanceOf[String].toDouble

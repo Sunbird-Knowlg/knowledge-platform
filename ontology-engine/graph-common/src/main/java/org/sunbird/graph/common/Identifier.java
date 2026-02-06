@@ -19,7 +19,7 @@ public class Identifier {
 				shardId = Platform.config.getString("shard.id");
 	}
 	
-	public static String getUniqueIdFromNeo4jId(long id) {
+	public static String getUniqueIdFromGraphId(long id) {
 		long uid = environmentId + id;
 		return uid + "" + shardId;
 	}

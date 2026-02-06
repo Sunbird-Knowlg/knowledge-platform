@@ -467,6 +467,7 @@ object UpdateHierarchyManager {
         val req = new Request(request)
         req.getContext.put(HierarchyConstants.IDENTIFIER, rootId)
         val metadata = cleanUpRootData(node)
+
         req.getRequest.putAll(metadata)
         req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
         req.put(HierarchyConstants.RELATIONAL_METADATA_COL, ScalaJsonUtils.serialize(reqHierarchy))
@@ -499,6 +500,7 @@ object UpdateHierarchyManager {
     private def updateNodeList(nodeList: List[Node], id: String, metadata: java.util.HashMap[String, AnyRef]): Unit = {
         nodeList.foreach(node => {
             if(node.getIdentifier.startsWith(id)){
+
                 node.getMetadata.putAll(metadata)
             }
         })
