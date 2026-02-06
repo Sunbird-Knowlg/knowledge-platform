@@ -25,7 +25,7 @@ object DefinitionNode {
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
       schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
-      schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
     val arrayFields = definition.fetchArrayProps()
     arrayFields.foreach(field => {

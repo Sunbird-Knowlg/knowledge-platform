@@ -40,7 +40,10 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 
 	def validate(node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext) = {
 		val req = new Request()
-		req.setContext(Map[String, AnyRef]("schemaName" -> node.getObjectType.toLowerCase.replaceAll("image", ""), "version"->"1.0").asJava)
+		val context = new java.util.HashMap[String, AnyRef]()
+		context.put("schemaName", "collection")
+		context.put("version", "1.0")
+		req.setContext(context)
 		req.put("identifier", node.getIdentifier)
 		getCollectionHierarchy(req, node).map(hierarchyString => {
 			val childMap = getChildren(hierarchyString.asInstanceOf[String])
@@ -65,6 +68,7 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 	}
 
 	def getCollectionHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {
+		request.getContext.put("schemaName", "collection")
 		oec.graphService.readExternalProps(request, List("hierarchy")).flatMap(response => {
 			if (ResponseHandler.checkError(response) && !ResponseHandler.isResponseNotFoundError(response)) {
 				throw new ServerException("ERR_COLLECTION_REVIEW", "Unable to fetch hierarchy for identifier:" + rootNode.getIdentifier)
