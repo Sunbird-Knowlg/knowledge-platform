@@ -25,7 +25,9 @@ object DefinitionNode {
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
       schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
-    val arrayFields = List("os", "filter", "audience", "badgeAssertions", "targets", "contentCredits", "releaseNotes", "resources", "objects", "organization", "createdFor", "attributions", "collaborators", "voiceCredits", "soundCredits", "imageCredits", "language", "languageCode", "words", "text", "ageGroup", "category", "genre", "theme", "themes", "scaffolding", "feedback", "feedbackType", "skills", "keywords", "domain", "dialcodes", "data", "learningObjective", "me_totalDialcode", "flagReasons", "flaggedBy", "flags", "pragma", "publishChecklist", "rejectReasons", "ownershipType", "organisation", "childNodes", "assets", "leafNodes", "unitIdentifiers", "questionCategories", "certTemplate", "subject", "medium", "gradeLevel", "topic", "subDomains", "subjectCodes", "textbook_name", "level1Name", "level1Concept", "level2Name", "level2Concept", "level3Name", "level3Concept", "monitorable", "additionalCategories", "batches", "plugins", "learningOutcome", "catalogPaths", "competencies", "sharedWith", "subTitles", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds", "targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds", "se_FWIds", "se_boardIds", "se_subjectIds", "se_mediumIds", "se_topicIds", "se_gradeLevelIds", "se_boards", "se_subjects", "se_mediums", "se_topics", "se_gradeLevels", "transcripts", "accessibility", "taxonomyPaths_v2", "competencies_v3", "complexityLevel")
+      schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
+    val arrayFields = definition.fetchArrayProps()
     arrayFields.foreach(field => {
       if (request.getRequest.containsKey(field)) {
          val value = request.getRequest.get(field)
@@ -46,7 +48,7 @@ object DefinitionNode {
          }
       }
     })
-    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
+
     val skipValidation: Boolean = if (request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false
     if (skipValidation) {
         val inputNode = definition.getNode(request.getRequest)
@@ -143,8 +145,7 @@ object DefinitionNode {
       if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
       if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
       
-      // Fix: specific array fields retrieved as Strings from DB need to be converted to Lists
-      val arrayFields = List("os", "filter", "audience", "badgeAssertions", "targets", "contentCredits", "releaseNotes", "resources", "objects", "organization", "createdFor", "attributions", "collaborators", "voiceCredits", "soundCredits", "imageCredits", "language", "languageCode", "words", "text", "ageGroup", "category", "genre", "theme", "themes", "scaffolding", "feedback", "feedbackType", "skills", "keywords", "domain", "dialcodes", "data", "learningObjective", "me_totalDialcode", "flagReasons", "flaggedBy", "flags", "pragma", "publishChecklist", "rejectReasons", "ownershipType", "organisation", "childNodes", "assets", "leafNodes", "unitIdentifiers", "questionCategories", "certTemplate", "subject", "medium", "gradeLevel", "topic", "subDomains", "subjectCodes", "textbook_name", "level1Name", "level1Concept", "level2Name", "level2Concept", "level3Name", "level3Concept", "monitorable", "additionalCategories", "batches", "plugins", "learningOutcome", "catalogPaths", "competencies", "sharedWith", "subTitles", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds", "targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds", "se_FWIds", "se_boardIds", "se_subjectIds", "se_mediumIds", "se_topicIds", "se_gradeLevelIds", "se_boards", "se_subjects", "se_mediums", "se_topics", "se_gradeLevels", "transcripts", "accessibility", "taxonomyPaths_v2", "competencies_v3", "complexityLevel")
+      val arrayFields = categoryDefinition.fetchArrayProps()
       arrayFields.foreach(field => {
         if (dbNode.getMetadata.containsKey(field)) {
           val value = dbNode.getMetadata.get(field)
@@ -318,9 +319,9 @@ object DefinitionNode {
   }
 
   def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
+    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
     val futures = nodes.map(node => {
-      // Fix: specific array fields retrieved as Strings from DB need to be converted to Lists
-      val arrayFields = List("os", "filter", "audience", "badgeAssertions", "targets", "contentCredits", "releaseNotes", "resources", "objects", "organization", "createdFor", "attributions", "collaborators", "voiceCredits", "soundCredits", "imageCredits", "language", "languageCode", "words", "text", "ageGroup", "category", "genre", "theme", "themes", "scaffolding", "feedback", "feedbackType", "skills", "keywords", "domain", "dialcodes", "data", "learningObjective", "me_totalDialcode", "flagReasons", "flaggedBy", "flags", "pragma", "publishChecklist", "rejectReasons", "ownershipType", "organisation", "childNodes", "assets", "leafNodes", "unitIdentifiers", "questionCategories", "certTemplate", "subject", "medium", "gradeLevel", "topic", "subDomains", "subjectCodes", "textbook_name", "level1Name", "level1Concept", "level2Name", "level2Concept", "level3Name", "level3Concept", "monitorable", "additionalCategories", "batches", "plugins", "learningOutcome", "catalogPaths", "competencies", "sharedWith", "subTitles", "boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds", "targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds", "se_FWIds", "se_boardIds", "se_subjectIds", "se_mediumIds", "se_topicIds", "se_gradeLevelIds", "se_boards", "se_subjects", "se_mediums", "se_topics", "se_gradeLevels", "transcripts", "accessibility", "taxonomyPaths_v2", "competencies_v3", "complexityLevel")
+      val arrayFields = definition.fetchArrayProps()
       arrayFields.foreach(field => {
         if (node.getMetadata.containsKey(field)) {
           val value = node.getMetadata.get(field)
@@ -345,8 +346,8 @@ object DefinitionNode {
         }
       })
 
-      val ocd = ObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
-      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
+
+
       definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
     })
     Future.sequence(futures)

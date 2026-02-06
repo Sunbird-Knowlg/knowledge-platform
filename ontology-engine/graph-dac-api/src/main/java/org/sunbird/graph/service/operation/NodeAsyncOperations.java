@@ -266,14 +266,12 @@ public class NodeAsyncOperations {
                         }
                         traversal.property(entry.getKey(), value);
 
-                        // Log when setting the name property
-                        if ("name".equals(entry.getKey())) {
-                            TelemetryManager.info(
-                                    "NodeAsyncOperations.upsertNode: Setting name property in Gremlin traversal for "
-                                            + identifier + ": " + value);
-                        }
                     }
                 }
+
+                // Execute traversal
+
+                Vertex updatedVertex = (Vertex) traversal.next();
 
                 try {
                     if (null != tx) {
@@ -289,6 +287,7 @@ public class NodeAsyncOperations {
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);
+                TelemetryManager.log("'Upsert Node' Operation Finished. | Node ID: " + identifier);
 
                 return node;
 
@@ -326,7 +325,7 @@ public class NodeAsyncOperations {
             GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
-                if (false) {
+                if (false) { // Disable logging for Root Node updates to avoid noise
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
                     g = tx.traversal();
@@ -496,12 +495,6 @@ public class NodeAsyncOperations {
                         Vertex vertex = vertexIter.next();
                         GraphTraversal<Vertex, Vertex> traversal = g.V(vertex.id());
 
-                        // Log the name field if present in metadata for debugging
-                        if (metadata.containsKey("name")) {
-                            TelemetryManager.info("NodeAsyncOperations: Updating name for " + identifier + " to: "
-                                    + metadata.get("name"));
-                        }
-
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                             if (entry.getValue() != null) {
@@ -525,10 +518,6 @@ public class NodeAsyncOperations {
                         Node node = JanusGraphNodeUtil.getNode(graphId, updatedVertex);
                         updatedNodes.put(identifier, node);
 
-                        // Log confirmation if name was updated
-                        if (metadata.containsKey("name")) {
-                            TelemetryManager.info("NodeAsyncOperations: Name updated successfully for " + identifier);
-                        }
                     }
                 }
 
