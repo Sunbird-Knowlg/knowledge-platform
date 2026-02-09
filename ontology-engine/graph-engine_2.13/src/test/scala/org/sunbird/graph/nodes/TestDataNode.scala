@@ -372,13 +372,13 @@ class TestDataNode extends BaseSpec {
             print(node)
             assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
             val req = new Request(request)
-            req.getContext.put("identifiers", new util.ArrayList[String](){{ add(node.getIdentifier) }})
+            req.put("identifiers", new util.ArrayList[String](){{ add(node.getIdentifier) }})
             req.put("metadata", new util.HashMap[String, AnyRef](){{ put("name", "updated name") }})
             val updateFuture = DataNode.bulkUpdate(req)
             updateFuture map { map => {
                 assert(map.get(node.getIdentifier).getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("updated name"))
             }}
-        }} flatMap(f => f) flatMap(f => f)
+        }} flatMap(f => f)
     }
 
     "update content with valid relations having type assosiatedTo and hasSequenceMember" should "update node with relation" in {

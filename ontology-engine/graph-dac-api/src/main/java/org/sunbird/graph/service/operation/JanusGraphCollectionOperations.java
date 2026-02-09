@@ -33,12 +33,13 @@ public class JanusGraphCollectionOperations {
 	 * Create a collection node and link all members with sequence indices
 	 * Implements Neo4j MERGE behavior for collection node + batch member linking
 	 * 
-	 * @param graphId the graph id
-	 * @param collectionId the collection node identifier
-	 * @param collection the collection node with metadata
-	 * @param members list of member node identifiers
-	 * @param relationType the relation type to link members
-	 * @param indexProperty the property name for sequence index (e.g., "IL_SEQUENCE_INDEX")
+	 * @param graphId       the graph id
+	 * @param collectionId  the collection node identifier
+	 * @param collection    the collection node with metadata
+	 * @param members       list of member node identifiers
+	 * @param relationType  the relation type to link members
+	 * @param indexProperty the property name for sequence index (e.g.,
+	 *                      "IL_SEQUENCE_INDEX")
 	 * @return the created/updated collection Node
 	 */
 	public static Node createCollection(String graphId, String collectionId, Node collection,
@@ -73,12 +74,12 @@ public class JanusGraphCollectionOperations {
 
 		try {
 			String timestamp = DateUtils.formatCurrentDate();
-			
+
 			// Set collection identifier if not already set
 			if (StringUtils.isBlank(collection.getIdentifier())) {
 				collection.setIdentifier(collectionId);
 			}
-			
+
 			// Check if collection node already exists
 			Vertex collectionVertex = g.V()
 					.has(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
@@ -89,22 +90,22 @@ public class JanusGraphCollectionOperations {
 			if (collectionVertex == null) {
 				// ON CREATE - Create new collection node
 				TelemetryManager.log("Creating new collection node: " + collectionId);
-				
+
 				// Generate version key
 				String versionKey = Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp());
-				
+
 				collectionVertex = g.addV(collection.getObjectType())
 						.property(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
 						.property("graphId", graphId)
 						.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), collection.getObjectType())
 						.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
-								StringUtils.isNotBlank(collection.getNodeType()) ? 
-										collection.getNodeType() : SystemNodeTypes.DATA_NODE.name())
+								StringUtils.isNotBlank(collection.getNodeType()) ? collection.getNodeType()
+										: SystemNodeTypes.DATA_NODE.name())
 						.property(GraphDACParams.versionKey.name(), versionKey)
 						.property(AuditProperties.createdOn.name(), timestamp)
 						.property(AuditProperties.lastUpdatedOn.name(), timestamp)
 						.next();
-				
+
 				// Add metadata properties
 				if (collection.getMetadata() != null) {
 					for (Map.Entry<String, Object> entry : collection.getMetadata().entrySet()) {
@@ -113,15 +114,18 @@ public class JanusGraphCollectionOperations {
 						}
 					}
 				}
-				
+
+				if (collection.getMetadata() == null) {
+					collection.setMetadata(new HashMap<>());
+				}
 				collection.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
-				
+
 			} else {
 				// ON MATCH - Update existing collection node
 				TelemetryManager.log("Updating existing collection node: " + collectionId);
-				
+
 				collectionVertex.property(AuditProperties.lastUpdatedOn.name(), timestamp);
-				
+
 				// Update metadata properties
 				if (collection.getMetadata() != null) {
 					for (Map.Entry<String, Object> entry : collection.getMetadata().entrySet()) {
@@ -134,28 +138,29 @@ public class JanusGraphCollectionOperations {
 
 			// Link all members with sequence indices
 			TelemetryManager.log("Linking " + members.size() + " members to collection: " + collectionId);
-			
+
 			int sequenceIndex = 1;
 			for (String memberId : members) {
 				// Create metadata with sequence index
 				Map<String, Object> metadata = new HashMap<>();
 				metadata.put(indexProperty, sequenceIndex);
-				
+
 				// Create edge from collection to member
 				Vertex memberVertex = g.V()
 						.has(SystemProperties.IL_UNIQUE_ID.name(), memberId)
 						.has("graphId", graphId)
 						.tryNext()
 						.orElse(null);
-				
+
 				if (memberVertex != null) {
 					// Check if edge already exists
 					Edge existingEdge = g.V(collectionVertex.id())
 							.outE(relationType)
-							.where(org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inV().hasId(memberVertex.id()))
+							.where(org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inV()
+									.hasId(memberVertex.id()))
 							.tryNext()
 							.orElse(null);
-					
+
 					if (existingEdge != null) {
 						// Update existing edge
 						existingEdge.property(indexProperty, sequenceIndex);
@@ -167,7 +172,7 @@ public class JanusGraphCollectionOperations {
 				} else {
 					TelemetryManager.log("Warning: Member node not found: " + memberId);
 				}
-				
+
 				sequenceIndex++;
 			}
 
@@ -175,10 +180,10 @@ public class JanusGraphCollectionOperations {
 
 			collection.setGraphId(graphId);
 			collection.setIdentifier(collectionId);
-			
-			TelemetryManager.log("'Create Collection' Operation Finished. | Collection ID: " + collectionId + 
+
+			TelemetryManager.log("'Create Collection' Operation Finished. | Collection ID: " + collectionId +
 					", Members: " + members.size());
-			
+
 			return collection;
 
 		} catch (Exception e) {
@@ -197,7 +202,7 @@ public class JanusGraphCollectionOperations {
 	 * Delete a collection node with all its edges (DETACH DELETE)
 	 * Removes the collection node and all incoming/outgoing relationships
 	 * 
-	 * @param graphId the graph id
+	 * @param graphId      the graph id
 	 * @param collectionId the collection node identifier
 	 */
 	public static void deleteCollection(String graphId, String collectionId) {
@@ -222,13 +227,14 @@ public class JanusGraphCollectionOperations {
 					.orElse(null);
 
 			if (collectionVertex == null) {
-				TelemetryManager.log("Collection node not found: " + collectionId + " (already deleted or doesn't exist)");
+				TelemetryManager
+						.log("Collection node not found: " + collectionId + " (already deleted or doesn't exist)");
 				return;
 			}
 
 			// Delete all edges (both incoming and outgoing) - DETACH behavior
 			g.V(collectionVertex.id()).bothE().drop().iterate();
-			
+
 			// Delete the vertex itself
 			g.V(collectionVertex.id()).drop().iterate();
 

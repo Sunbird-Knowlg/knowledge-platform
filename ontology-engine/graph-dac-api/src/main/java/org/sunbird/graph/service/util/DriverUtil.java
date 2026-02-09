@@ -164,8 +164,6 @@ public class DriverUtil {
 		// context reloads.
 		props.put("graph.unique-instance-id-suffix", (short) (Math.random() * Short.MAX_VALUE));
 
-		System.out.println("DEBUG: JanusGraph Config: " + props);
-
 		org.apache.commons.configuration2.MapConfiguration conf = new org.apache.commons.configuration2.MapConfiguration(
 				props);
 

@@ -44,15 +44,12 @@ object NodeValidator {
             val searchCriteria = new SearchCriteria
             searchCriteria.setGraphId(graphId)
             val mc = MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_IN, identifiers)))
-            // Removed status check for debugging: new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")
             searchCriteria.addMetadata(mc)
             searchCriteria.setCountQuery(false)
             searchCriteria.getParams.put("identifiers", identifiers)
-            try {
-                oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
-            } catch {
+            oec.graphService.getNodeByUniqueIds(graphId, searchCriteria).recoverWith {
                 case e: Exception =>
-                    throw new ServerException(GraphErrorCodes.ERR_GRAPH_PROCESSING_ERROR.toString, "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
+                    Future.failed(new ServerException(GraphErrorCodes.ERR_GRAPH_PROCESSING_ERROR.toString, "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage))
             }
         }
     }

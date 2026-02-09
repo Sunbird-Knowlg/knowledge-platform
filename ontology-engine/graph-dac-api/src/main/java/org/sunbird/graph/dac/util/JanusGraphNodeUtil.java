@@ -186,6 +186,15 @@ public class JanusGraphNodeUtil {
         Vertex startVertex = edge.outVertex();
         Vertex endVertex = edge.inVertex();
 
+        if (null != currentVertex) {
+            if (StringUtils.equals(startVertex.id().toString(), currentVertex.id().toString())) {
+                startVertex = currentVertex;
+            }
+            if (StringUtils.equals(endVertex.id().toString(), currentVertex.id().toString())) {
+                endVertex = currentVertex;
+            }
+        }
+
         Object startId = null;
         if (startVertex.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
             startId = startVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value();
