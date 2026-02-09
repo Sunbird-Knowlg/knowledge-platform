@@ -28,8 +28,8 @@ services:
     volumes:
       - $sunbird_dbs_path/janusgraph/data:/bitnami/janusgraph/data
       - $sunbird_dbs_path/janusgraph/logs:/bitnami/janusgraph/logs
-      - /Users/sanketikam4/janusgraph-cql.properties:/opt/bitnami/janusgraph/conf/janusgraph-cql.properties
-      - /Users/sanketikam4/janus-data:/data
+      - ./janusgraph-cql.properties:/opt/bitnami/janusgraph/conf/janusgraph-cql.properties
+      - $sunbird_dbs_path/janusgraph/janus-data:/data
       - ./gremlin-server.yaml:/opt/bitnami/janusgraph/conf/gremlin-server.yaml
     environment:
       - JANUSGRAPH_STORAGE_BACKEND=cql
