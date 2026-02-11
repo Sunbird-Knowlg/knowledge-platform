@@ -3,12 +3,11 @@ package org.sunbird.graph.service.operation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.T;
+
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphTransaction;
+import org.janusgraph.core.JanusGraphVertex;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.common.Platform;
@@ -25,7 +24,7 @@ import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.dac.util.JanusGraphNodeUtil;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
-import org.sunbird.graph.service.common.GraphOperation;
+
 import org.sunbird.graph.service.util.DriverUtil;
 import org.sunbird.telemetry.logger.TelemetryManager;
 import scala.compat.java8.FutureConverters;
@@ -66,18 +65,17 @@ public class NodeAsyncOperations {
                 throw new ClientException(DACErrorCodeConstants.INVALID_NODE.name(),
                         DACErrorMessageConstants.INVALID_NODE + " | [Create Node Operation Failed.]");
 
-            GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
                 if (isLogEnabled(node)) {
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    g = tx.traversal();
                     TelemetryManager
                             .log("Initialized JanusGraph Transaction with Log Identifier: " + TXN_LOG_IDENTIFIER);
                 } else {
-                    g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-                    TelemetryManager.log("GraphTraversalSource Initialized. | [Graph Id: " + graphId + "]");
+                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+                    tx = graph.newTransaction();
+                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
                 }
 
                 // Generate unique identifier if not present
@@ -99,14 +97,14 @@ public class NodeAsyncOperations {
                 // Process primitive data types (serialize complex objects)
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
-                // Create vertex traversal
-                GraphTraversal<Vertex, Vertex> traversal = g.addV(node.getObjectType())
-                        .property(SystemProperties.IL_UNIQUE_ID.name(), identifier)
-                        .property("graphId", graphId)
-                        .property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType())
-                        .property(SystemProperties.IL_SYS_NODE_TYPE.name(),
-                                StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
-                                        : SystemNodeTypes.DATA_NODE.name());
+                // Create vertex using Native API
+                JanusGraphVertex vertex = tx.addVertex(T.label, node.getObjectType());
+                vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
+                vertex.property("graphId", graphId);
+                vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
+                vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                        StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
+                                : SystemNodeTypes.DATA_NODE.name());
 
                 // Add all metadata properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
@@ -115,11 +113,7 @@ public class NodeAsyncOperations {
                         if (value instanceof java.util.List) {
                             java.util.List<?> list = (java.util.List<?>) value;
                             if (list.isEmpty()) {
-                                // If list is empty, we remove the property.
-                                // We use sideEffect to drop property if it exists.
-                                traversal.sideEffect(__.properties(entry.getKey()).drop());
-                                // Do not call property(key, value) as value is empty array which might cause
-                                // error.
+                                // If list is empty, skip property creation
                                 continue;
                             }
                             // Convert to typed array for JanusGraph
@@ -133,17 +127,11 @@ public class NodeAsyncOperations {
                                 value = list.toArray();
                             }
                         }
-                        traversal.property(entry.getKey(), value);
+                        vertex.property(entry.getKey(), value);
                     }
                 }
 
-                // Execute traversal
-                traversal.next();
-
-                if (null != tx)
-                    tx.commit();
-                else
-                    g.tx().commit();
+                tx.commit();
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);
@@ -191,34 +179,33 @@ public class NodeAsyncOperations {
             node.getMetadata().remove(GraphDACParams.versionKey.name());
             TelemetryManager.log("Node Update Operation has been Validated for Node Id: " + node.getIdentifier());
 
-            GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
-
             try {
                 if (isLogEnabled(node)) {
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    g = tx.traversal();
                     TelemetryManager
                             .log("Initialized JanusGraph Transaction with Log Identifier: " + TXN_LOG_IDENTIFIER);
                 } else {
-                    g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-                    TelemetryManager.log("GraphTraversalSource Initialized. | [Graph Id: " + graphId + "]");
+                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+                    tx = graph.newTransaction();
+                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
                 }
 
                 String identifier = node.getIdentifier();
 
-                // Check if node exists
-                Iterator<Vertex> vertexIter = g.V()
+                // Check if node exists using Native Query
+                Iterator<JanusGraphVertex> vertexIter = tx.query()
                         .has(SystemProperties.IL_UNIQUE_ID.name(), identifier)
-                        .has("graphId", graphId);
+                        .has("graphId", graphId)
+                        .vertices().iterator();
 
-                Vertex vertex;
-                boolean isNew = !vertexIter.hasNext();
-
-                GraphTraversal<Vertex, Vertex> traversal;
-
-                if (isNew) {
+                JanusGraphVertex vertex;
+                if (vertexIter.hasNext()) {
+                    // Update existing node
+                    vertex = vertexIter.next();
+                    node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                } else {
                     // Create new node
                     if (StringUtils.isBlank(identifier)) {
                         identifier = Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp());
@@ -229,18 +216,13 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(AuditProperties.createdOn.name(), timestamp);
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), timestamp);
 
-                    traversal = g.addV(node.getObjectType())
-                            .property(SystemProperties.IL_UNIQUE_ID.name(), identifier)
-                            .property("graphId", graphId)
-                            .property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType())
-                            .property(SystemProperties.IL_SYS_NODE_TYPE.name(),
-                                    StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
-                                            : SystemNodeTypes.DATA_NODE.name());
-                } else {
-                    // Update existing node
-                    vertex = vertexIter.next();
-                    node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
-                    traversal = g.V(vertex.id());
+                    vertex = tx.addVertex(T.label, node.getObjectType());
+                    vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
+                    vertex.property("graphId", graphId);
+                    vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
+                    vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                            StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
+                                    : SystemNodeTypes.DATA_NODE.name());
                 }
 
                 // Generate new version key
@@ -259,26 +241,26 @@ public class NodeAsyncOperations {
                         if (value instanceof java.util.List) {
                             java.util.List<?> list = (java.util.List<?>) value;
                             if (list.isEmpty()) {
-                                traversal.sideEffect(__.properties(entry.getKey()).drop());
+                                // For empty list, removing property using Cardinality.single (replacing with
+                                // null/removing)
+                                // or checking if property exists and removing it.
+                                // In JanusGraph native, setting property to null usually implies removal,
+                                // but safe way is to remove existing property if we can't set null.
+                                // However, standard way is accessing property and calling remove().
+                                // Here we can try finding property and removing.
+                                if (vertex.keys().contains(entry.getKey())) {
+                                    vertex.property(entry.getKey()).remove();
+                                }
                                 continue;
                             }
                             value = list.toArray();
                         }
-                        traversal.property(entry.getKey(), value);
-
+                        vertex.property(entry.getKey(), value);
                     }
                 }
 
-                // Execute traversal
-
-                Vertex updatedVertex = (Vertex) traversal.next();
-
                 try {
-                    if (null != tx) {
-                        tx.commit();
-                    } else {
-                        g.tx().commit();
-                    }
+                    tx.commit();
                 } catch (Exception commitEx) {
                     TelemetryManager.error("NodeAsyncOperations.upsertNode: EXCEPTION during commit for " + identifier
                             + ": " + commitEx.getMessage(), commitEx);
@@ -322,47 +304,46 @@ public class NodeAsyncOperations {
                 throw new ClientException(DACErrorCodeConstants.INVALID_REQUEST.name(),
                         DACErrorMessageConstants.INVALID_REQUEST + " | [Upsert Root Node Operation Failed.]");
 
-            GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
                 if (false) { // Disable logging for Root Node updates to avoid noise
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    g = tx.traversal();
                 } else {
-                    g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
+                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+                    tx = graph.newTransaction();
                 }
 
                 String rootId = "root";
 
                 // Check if root node exists
-                Iterator<Vertex> vertexIter = g.V()
+                Iterator<JanusGraphVertex> vertexIter = tx.query()
                         .has(SystemProperties.IL_UNIQUE_ID.name(), rootId)
-                        .has("graphId", graphId);
+                        .has("graphId", graphId)
+                        .vertices().iterator();
 
-                Vertex vertex;
-                GraphTraversal<Vertex, Vertex> traversal;
+                JanusGraphVertex vertex;
                 if (!vertexIter.hasNext()) {
                     // Create root node
-                    traversal = g.addV("ROOT")
-                            .property(SystemProperties.IL_UNIQUE_ID.name(), rootId)
-                            .property("graphId", graphId)
-                            .property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), "ROOT")
-                            .property(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.DATA_NODE.name())
-                            .property(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate())
-                            .property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    vertex = tx.addVertex(T.label, "ROOT");
+                    vertex.property(SystemProperties.IL_UNIQUE_ID.name(), rootId);
+                    vertex.property("graphId", graphId);
+                    vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), "ROOT");
+                    vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.DATA_NODE.name());
+                    vertex.property(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
+                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
                 } else {
                     vertex = vertexIter.next();
-                    traversal = g.V(vertex.id())
-                            .property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
                 }
 
-                vertex = traversal.next();
-
-                if (null != tx)
+                try {
                     tx.commit();
-                else
-                    g.tx().commit();
+                } catch (Exception commitEx) {
+                    TelemetryManager.error("NodeAsyncOperations.upsertRootNode: EXCEPTION during commit for " + rootId
+                            + ": " + commitEx.getMessage(), commitEx);
+                    throw commitEx;
+                }
 
                 Node rootNode = JanusGraphNodeUtil.getNode(graphId, vertex);
                 TelemetryManager.log("'Upsert Root Node' Operation Finished. | Node ID: " + rootId);
@@ -397,32 +378,27 @@ public class NodeAsyncOperations {
                 throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
                         DACErrorMessageConstants.INVALID_IDENTIFIER + " | [Delete Node Operation Failed.]");
 
-            GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
                 if (TXN_LOG_ENABLED) {
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    g = tx.traversal();
                 } else {
-                    g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-                    TelemetryManager.log("GraphTraversalSource Initialized. | [Graph Id: " + graphId + "]");
+                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+                    tx = graph.newTransaction();
+                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
                 }
 
-                // Find and delete the node (this also removes all edges)
-                long deletedCount = g.V()
+                // Find and delete the node
+                Iterator<JanusGraphVertex> vertexIter = tx.query()
                         .has(SystemProperties.IL_UNIQUE_ID.name(), nodeId)
                         .has("graphId", graphId)
-                        .sideEffect(__.drop())
-                        .count()
-                        .next();
+                        .vertices().iterator();
 
-                if (null != tx)
+                if (vertexIter.hasNext()) {
+                    JanusGraphVertex vertex = vertexIter.next();
+                    vertex.remove();
                     tx.commit();
-                else
-                    g.tx().commit();
-
-                if (deletedCount > 0) {
                     TelemetryManager.log("'Delete Node' Operation Finished. | Node ID: " + nodeId);
                     return true;
                 } else {
@@ -465,16 +441,15 @@ public class NodeAsyncOperations {
             TelemetryManager.info("NodeAsyncOperations: updateNodes called for IDs: " + identifiers + " with keys: "
                     + updatedMetadata.keySet());
 
-            GraphTraversalSource g = null;
             JanusGraphTransaction tx = null;
             try {
                 if (TXN_LOG_ENABLED) {
                     JanusGraph graph = DriverUtil.getJanusGraph(graphId);
                     tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    g = tx.traversal();
                 } else {
-                    g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-                    TelemetryManager.log("GraphTraversalSource Initialized. | [Graph Id: " + graphId + "]");
+                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+                    tx = graph.newTransaction();
+                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
                 }
 
                 Map<String, Node> updatedNodes = new HashMap<>();
@@ -487,13 +462,13 @@ public class NodeAsyncOperations {
 
                 // Update each node
                 for (String identifier : identifiers) {
-                    Iterator<Vertex> vertexIter = g.V()
+                    Iterator<JanusGraphVertex> vertexIter = tx.query()
                             .has(SystemProperties.IL_UNIQUE_ID.name(), identifier)
-                            .has("graphId", graphId);
+                            .has("graphId", graphId)
+                            .vertices().iterator();
 
                     if (vertexIter.hasNext()) {
-                        Vertex vertex = vertexIter.next();
-                        GraphTraversal<Vertex, Vertex> traversal = g.V(vertex.id());
+                        JanusGraphVertex vertex = vertexIter.next();
 
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
@@ -502,29 +477,31 @@ public class NodeAsyncOperations {
                                 if (value instanceof java.util.List) {
                                     java.util.List<?> list = (java.util.List<?>) value;
                                     if (list.isEmpty()) {
-                                        traversal.sideEffect(__.properties(entry.getKey()).drop());
+                                        if (vertex.keys().contains(entry.getKey())) {
+                                            vertex.property(entry.getKey()).remove();
+                                        }
                                         continue;
                                     }
                                     value = list.toArray();
                                 }
-                                traversal.property(entry.getKey(), value);
+                                vertex.property(entry.getKey(), value);
                             }
                         }
 
-                        // Execute the update and get the updated vertex
-                        Vertex updatedVertex = traversal.next();
-
                         // Convert to Node object using the UPDATED vertex reference
-                        Node node = JanusGraphNodeUtil.getNode(graphId, updatedVertex);
+                        Node node = JanusGraphNodeUtil.getNode(graphId, vertex);
                         updatedNodes.put(identifier, node);
-
                     }
                 }
 
-                if (null != tx)
+                try {
                     tx.commit();
-                else
-                    g.tx().commit();
+                } catch (Exception commitEx) {
+                    TelemetryManager
+                            .error("NodeAsyncOperations.updateNodes: EXCEPTION during commit: " + commitEx.getMessage(),
+                                    commitEx);
+                    throw commitEx;
+                }
 
                 TelemetryManager.log("'Update Nodes' Operation Finished. | Updated count: " + updatedNodes.size());
                 return updatedNodes;
@@ -540,11 +517,6 @@ public class NodeAsyncOperations {
     }
 
     // Helper methods
-
-    private static Node setPrimitiveData(Node node) {
-        node.setMetadata(setPrimitiveData(node.getMetadata()));
-        return node;
-    }
 
     private static Map<String, Object> setPrimitiveData(Map<String, Object> metadata) {
         if (metadata == null) {

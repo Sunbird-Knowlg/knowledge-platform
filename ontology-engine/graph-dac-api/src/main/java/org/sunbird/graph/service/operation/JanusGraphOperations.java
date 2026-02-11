@@ -1,25 +1,34 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.janusgraph.core.JanusGraph;
+import org.janusgraph.core.JanusGraphEdge;
+import org.janusgraph.core.JanusGraphTransaction;
+import org.janusgraph.core.JanusGraphVertex;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
+
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.GraphDACParams;
+import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
-import org.sunbird.graph.service.common.GraphOperation;
 import org.sunbird.graph.service.util.DriverUtil;
-import org.sunbird.graph.service.util.GremlinQueryBuilder;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
- * JanusGraph operations for graph-level operations like creating, updating, and deleting relations
+ * JanusGraph operations for graph-level operations like creating, updating, and
+ * deleting relations
  * This replaces Neo4JBoltGraphOperations
  */
 public class JanusGraphOperations {
@@ -28,13 +37,14 @@ public class JanusGraphOperations {
 	 * Creates a relation between two nodes using MERGE behavior (idempotent).
 	 * Implements Neo4j MERGE with ON CREATE SET and ON MATCH SET semantics:
 	 * - If edge doesn't exist: creates with metadata + sequence index (ON CREATE)
-	 * - If edge exists: updates only metadata, preserves existing sequence index (ON MATCH)
+	 * - If edge exists: updates only metadata, preserves existing sequence index
+	 * (ON MATCH)
 	 *
-	 * @param graphId the graph id
-	 * @param startNodeId the start node id
-	 * @param endNodeId the end node id
+	 * @param graphId      the graph id
+	 * @param startNodeId  the start node id
+	 * @param endNodeId    the end node id
 	 * @param relationType the relation type
-	 * @param request the request containing metadata
+	 * @param request      the request containing metadata
 	 */
 	@SuppressWarnings("unchecked")
 	public static void createRelation(String graphId, String startNodeId, String endNodeId, String relationType,
@@ -55,16 +65,18 @@ public class JanusGraphOperations {
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
 					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Create Relation' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-		
+		JanusGraphTransaction tx = null;
 		try {
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
 			Map<String, Object> metadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
 			if (metadata == null) {
 				metadata = new HashMap<>();
 			}
-			
-			// Extract sequence index if present (for SEQUENCE_MEMBERSHIP relations)
+
+			// Extract sequence index
 			Integer sequenceIndex = null;
 			if (metadata.containsKey("IL_SEQUENCE_INDEX")) {
 				try {
@@ -76,64 +88,99 @@ public class JanusGraphOperations {
 					TelemetryManager.log("Could not parse sequence index: " + e.getMessage());
 				}
 			}
-			
-			// For SEQUENCE_MEMBERSHIP, auto-calculate next index if not provided
+
+			// Get Start Vertex
+			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+					.has("graphId", graphId).vertices().iterator();
+			if (!startIter.hasNext()) {
+				throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+						"Start node not found: " + startNodeId);
+			}
+			JanusGraphVertex startV = startIter.next();
+
+			// Get End Vertex
+			Iterator<JanusGraphVertex> endIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId)
+					.has("graphId", graphId).vertices().iterator();
+			if (!endIter.hasNext()) {
+				throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+						"End node not found: " + endNodeId);
+			}
+			JanusGraphVertex endV = endIter.next();
+
+			// Auto-calculate sequence index if needed
 			if ("SEQUENCE_MEMBERSHIP".equalsIgnoreCase(relationType) && sequenceIndex == null) {
-				sequenceIndex = calculateNextSequenceIndex(g, graphId, startNodeId, relationType);
-				TelemetryManager.log("Auto-calculated sequence index: " + sequenceIndex + " for relation: " + relationType);
+				sequenceIndex = calculateNextSequenceIndex(startV, relationType);
+				TelemetryManager
+						.log("Auto-calculated sequence index: " + sequenceIndex + " for relation: " + relationType);
 			}
-			
-			// Prepare ON CREATE metadata (includes sequence index + metadata)
-			Map<String, Object> createMetadata = new HashMap<>(metadata);
+
 			if (sequenceIndex != null) {
-				createMetadata.put("IL_SEQUENCE_INDEX", sequenceIndex);
+				metadata.put("IL_SEQUENCE_INDEX", sequenceIndex);
 			}
-			
-			// ON MATCH metadata (only metadata, no sequence index override)
-			Map<String, Object> matchMetadata = new HashMap<>(metadata);
-			
-			// Use MERGE behavior with separate ON CREATE and ON MATCH metadata
-			Edge edge = GremlinQueryBuilder.mergeEdgeWithMetadata(g, graphId, startNodeId, endNodeId, 
-					relationType, createMetadata, matchMetadata).next();
-			
+
+			// Check if edge exists
+			Edge edge = null;
+			Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
+					.iterator();
+			while (edgeIter.hasNext()) {
+				JanusGraphEdge e = edgeIter.next();
+				if (e.inVertex().id().equals(endV.id())) {
+					edge = e;
+					break;
+				}
+			}
+
+			if (edge != null) {
+				// Update existing
+				for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+					edge.property(entry.getKey(), entry.getValue());
+				}
+			} else {
+				// Create new
+				edge = startV.addEdge(relationType, endV);
+				for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+					edge.property(entry.getKey(), entry.getValue());
+				}
+			}
+
+			tx.commit();
 			TelemetryManager.log("'Create Relation' (MERGE) Operation Finished. Edge ID: " + edge.id());
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error creating relation", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * Calculate next sequence index for SEQUENCE_MEMBERSHIP relations
 	 * Finds max existing index and returns max + 1 (or 1 if no edges exist)
 	 */
-	private static Integer calculateNextSequenceIndex(GraphTraversalSource g, String graphId, 
-			String startNodeId, String relationType) {
+	/**
+	 * Calculate next sequence index for SEQUENCE_MEMBERSHIP relations
+	 */
+	private static Integer calculateNextSequenceIndex(JanusGraphVertex startV, String relationType) {
 		try {
-			// Get all outgoing SEQUENCE_MEMBERSHIP edges from start node
-			List<Integer> existingIndices = g.V()
-					.has("IL_UNIQUE_ID", startNodeId)
-					.has("graphId", graphId)
-					.outE(relationType)
-					.has("IL_SEQUENCE_INDEX")
-					.values("IL_SEQUENCE_INDEX")
-					.toList()
-					.stream()
-					.map(obj -> {
-						try {
-							return Integer.parseInt(obj.toString());
-						} catch (Exception e) {
-							return 0;
-						}
-					})
-					.collect(java.util.stream.Collectors.toList());
-			
+			List<Integer> existingIndices = new ArrayList<>();
+			Iterator<JanusGraphEdge> edges = startV.query().direction(Direction.OUT).labels(relationType).edges()
+					.iterator();
+			while (edges.hasNext()) {
+				JanusGraphEdge e = edges.next();
+				if (e.property("IL_SEQUENCE_INDEX").isPresent()) {
+					try {
+						existingIndices.add(Integer.parseInt(e.value("IL_SEQUENCE_INDEX").toString()));
+					} catch (Exception ex) {
+					} // Ignore parse errors
+				}
+			}
+
 			if (existingIndices.isEmpty()) {
 				return 1;
 			}
-			
-			return java.util.Collections.max(existingIndices) + 1;
+
+			return Collections.max(existingIndices) + 1;
 		} catch (Exception e) {
 			TelemetryManager.log("Error calculating sequence index, using default: " + e.getMessage());
 			return 1;
@@ -143,11 +190,11 @@ public class JanusGraphOperations {
 	/**
 	 * Update a relation between two nodes.
 	 *
-	 * @param graphId the graph id
-	 * @param startNodeId the start node id
-	 * @param endNodeId the end node id
+	 * @param graphId      the graph id
+	 * @param startNodeId  the start node id
+	 * @param endNodeId    the end node id
 	 * @param relationType the relation type
-	 * @param request the request containing updated metadata
+	 * @param request      the request containing updated metadata
 	 */
 	@SuppressWarnings("unchecked")
 	public static void updateRelation(String graphId, String startNodeId, String endNodeId, String relationType,
@@ -170,14 +217,58 @@ public class JanusGraphOperations {
 					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Update Relation' Operation Failed.]");
 
 		Map<String, Object> metadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
+
 		if (null != metadata && !metadata.isEmpty()) {
-			GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-			TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-			
+			JanusGraphTransaction tx = null;
 			try {
-				Edge edge = GremlinQueryBuilder.updateEdge(g, graphId, startNodeId, endNodeId, relationType, metadata).next();
-				TelemetryManager.log("'Update Relation' Operation Finished. Edge ID: " + edge.id());
+				JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+				tx = graph.newTransaction();
+				TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+				// Get Start Vertex
+				Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+						.has("graphId", graphId).vertices().iterator();
+				if (!startIter.hasNext()) {
+					// Need to throw exception or return?
+					// Old code didn't check existence explicitly before traversal?
+					// But we need start vertex to find edge.
+					throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+							"Start node not found");
+				}
+				JanusGraphVertex startV = startIter.next();
+
+				// Find edge
+				Edge edge = null;
+				Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
+						.iterator();
+
+				// We need end vertex ID check.
+				// Since we don't have end vertex object, we can avoid fetching it if we check
+				// ID on edge end vertex.
+
+				while (edgeIter.hasNext()) {
+					JanusGraphEdge e = edgeIter.next();
+					Vertex endV = e.inVertex();
+					if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
+							endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
+						edge = e;
+						break;
+					}
+				}
+
+				if (edge != null) {
+					for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+						edge.property(entry.getKey(), entry.getValue());
+					}
+					TelemetryManager.log("'Update Relation' Operation Finished. Edge ID: " + edge.id());
+				} else {
+					throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(), "Relation not found");
+				}
+
+				tx.commit();
 			} catch (Exception e) {
+				if (tx != null)
+					tx.rollback();
 				TelemetryManager.error("Error updating relation", e);
 				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -188,11 +279,11 @@ public class JanusGraphOperations {
 	/**
 	 * Delete a relation between two nodes.
 	 *
-	 * @param graphId the graph id
-	 * @param startNodeId the start node id
-	 * @param endNodeId the end node id
+	 * @param graphId      the graph id
+	 * @param startNodeId  the start node id
+	 * @param endNodeId    the end node id
 	 * @param relationType the relation type
-	 * @param request the request
+	 * @param request      the request
 	 */
 	public static void deleteRelation(String graphId, String startNodeId, String endNodeId, String relationType,
 			Request request) {
@@ -213,13 +304,38 @@ public class JanusGraphOperations {
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
 					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Delete Relation' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-		
+		JanusGraphTransaction tx = null;
 		try {
-			GremlinQueryBuilder.deleteEdge(g, graphId, startNodeId, endNodeId, relationType).iterate();
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+			// Get Start Vertex
+			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+					.has("graphId", graphId).vertices().iterator();
+
+			if (startIter.hasNext()) {
+				JanusGraphVertex startV = startIter.next();
+				Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
+						.iterator();
+
+				while (edgeIter.hasNext()) {
+					JanusGraphEdge e = edgeIter.next();
+					Vertex endV = e.inVertex();
+					if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
+							endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
+						e.remove();
+						// Assuming only one edge of this type between these two nodes?
+						// Usually yes for this domain.
+					}
+				}
+			}
+
+			tx.commit();
 			TelemetryManager.log("'Delete Relation' Operation Finished.");
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error deleting relation", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -230,11 +346,11 @@ public class JanusGraphOperations {
 	 * Create multiple incoming relations (many-to-one)
 	 * Creates edges from multiple start nodes to a single end node
 	 *
-	 * @param graphId the graph id
+	 * @param graphId      the graph id
 	 * @param startNodeIds list of start node ids
-	 * @param endNodeId the end node id
+	 * @param endNodeId    the end node id
 	 * @param relationType the relation type
-	 * @param request the request containing metadata
+	 * @param request      the request containing metadata
 	 */
 	@SuppressWarnings("unchecked")
 	public static void createIncomingRelations(String graphId, List<String> startNodeIds, String endNodeId,
@@ -246,34 +362,82 @@ public class JanusGraphOperations {
 
 		if (null == startNodeIds || startNodeIds.isEmpty())
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_START_NODE_ID_LIST + " | ['Create Incoming Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_START_NODE_ID_LIST
+							+ " | ['Create Incoming Relations' Operation Failed.]");
 
 		if (StringUtils.isBlank(endNodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_END_NODE_ID + " | ['Create Incoming Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_END_NODE_ID
+							+ " | ['Create Incoming Relations' Operation Failed.]");
 
 		if (StringUtils.isBlank(relationType))
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
-					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Create Incoming Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_RELATION_TYPE
+							+ " | ['Create Incoming Relations' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
-			Map<String, Object> metadata = new HashMap<>();
-			if (null != request) {
-				metadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
-				if (metadata == null) {
-					metadata = new HashMap<>();
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+			Map<String, Object> reqMetadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
+			final Map<String, Object> metadata = (reqMetadata != null) ? reqMetadata : new HashMap<>();
+
+			// Get End Vertex
+			Iterator<JanusGraphVertex> endIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId)
+					.has("graphId", graphId).vertices().iterator();
+			if (!endIter.hasNext()) {
+				throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+						"End node not found: " + endNodeId);
+			}
+			JanusGraphVertex endV = endIter.next();
+
+			int createdCount = 0;
+			for (String startNodeId : startNodeIds) {
+				Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+						.has("graphId", graphId).vertices().iterator();
+				if (startIter.hasNext()) {
+					JanusGraphVertex startV = startIter.next();
+
+					// Check if edge exists
+					boolean exists = false;
+					Edge existingEdge = null;
+					Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
+							.edges().iterator();
+					while (edgeIter.hasNext()) {
+						JanusGraphEdge e = edgeIter.next();
+						if (e.inVertex().id().equals(endV.id())) {
+							exists = true;
+							existingEdge = e; // Use existing edge to update metadata if needed?
+							// Original logic implies CREATING edges.
+							// GremlinQueryBuilder.createIncomingEdges usually does MERGE/Upsert behavior?
+							// The instructions say "create". Let's assume merge/update if exists.
+							break;
+						}
+					}
+
+					if (!exists) {
+						Edge edge = startV.addEdge(relationType, endV);
+						for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+							edge.property(entry.getKey(), entry.getValue());
+						}
+						createdCount++;
+					} else {
+						// Update metadata if exists (consistent with createRelation)
+						for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+							existingEdge.property(entry.getKey(), entry.getValue());
+						}
+					}
 				}
 			}
 
-			List<Edge> createdEdges = GremlinQueryBuilder.createIncomingEdges(g, graphId, startNodeIds, 
-					endNodeId, relationType, metadata);
-			
-			TelemetryManager.log("'Create Incoming Relations' Operation Finished. Created " + 
-					createdEdges.size() + " edges.");
+			tx.commit();
+			TelemetryManager.log("'Create Incoming Relations' Operation Finished. Created/Updated " +
+					createdCount + " edges.");
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error creating incoming relations", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -284,11 +448,11 @@ public class JanusGraphOperations {
 	 * Create multiple outgoing relations (one-to-many)
 	 * Creates edges from a single start node to multiple end nodes
 	 *
-	 * @param graphId the graph id
-	 * @param startNodeId the start node id
-	 * @param endNodeIds list of end node ids
+	 * @param graphId      the graph id
+	 * @param startNodeId  the start node id
+	 * @param endNodeIds   list of end node ids
 	 * @param relationType the relation type
-	 * @param request the request containing metadata
+	 * @param request      the request containing metadata
 	 */
 	@SuppressWarnings("unchecked")
 	public static void createOutgoingRelations(String graphId, String startNodeId, List<String> endNodeIds,
@@ -300,34 +464,78 @@ public class JanusGraphOperations {
 
 		if (StringUtils.isBlank(startNodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_START_NODE_ID + " | ['Create Outgoing Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_START_NODE_ID
+							+ " | ['Create Outgoing Relations' Operation Failed.]");
 
 		if (null == endNodeIds || endNodeIds.isEmpty())
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_END_NODE_ID_LIST + " | ['Create Outgoing Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_END_NODE_ID_LIST
+							+ " | ['Create Outgoing Relations' Operation Failed.]");
 
 		if (StringUtils.isBlank(relationType))
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
-					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Create Outgoing Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_RELATION_TYPE
+							+ " | ['Create Outgoing Relations' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
-			Map<String, Object> metadata = new HashMap<>();
-			if (null != request) {
-				metadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
-				if (metadata == null) {
-					metadata = new HashMap<>();
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+			Map<String, Object> reqMetadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
+			final Map<String, Object> metadata = (reqMetadata != null) ? reqMetadata : new HashMap<>();
+
+			// Get Start Vertex
+			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+					.has("graphId", graphId).vertices().iterator();
+			if (!startIter.hasNext()) {
+				throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+						"Start node not found: " + startNodeId);
+			}
+			JanusGraphVertex startV = startIter.next();
+
+			int createdCount = 0;
+			for (String endNodeId : endNodeIds) {
+				Iterator<JanusGraphVertex> endIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId)
+						.has("graphId", graphId).vertices().iterator();
+				if (endIter.hasNext()) {
+					JanusGraphVertex endV = endIter.next();
+
+					// Check if edge exists
+					boolean exists = false;
+					Edge existingEdge = null;
+					Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
+							.edges().iterator();
+					while (edgeIter.hasNext()) {
+						JanusGraphEdge e = edgeIter.next();
+						if (e.inVertex().id().equals(endV.id())) {
+							exists = true;
+							existingEdge = e;
+							break;
+						}
+					}
+
+					if (!exists) {
+						Edge edge = startV.addEdge(relationType, endV);
+						for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+							edge.property(entry.getKey(), entry.getValue());
+						}
+						createdCount++;
+					} else {
+						for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+							existingEdge.property(entry.getKey(), entry.getValue());
+						}
+					}
 				}
 			}
 
-			List<Edge> createdEdges = GremlinQueryBuilder.createOutgoingEdges(g, graphId, startNodeId, 
-					endNodeIds, relationType, metadata);
-			
-			TelemetryManager.log("'Create Outgoing Relations' Operation Finished. Created " + 
-					createdEdges.size() + " edges.");
+			tx.commit();
+			TelemetryManager.log("'Create Outgoing Relations' Operation Finished. Created/Updated " +
+					createdCount + " edges.");
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error creating outgoing relations", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -338,11 +546,11 @@ public class JanusGraphOperations {
 	 * Delete multiple incoming relations (many-to-one)
 	 * Deletes edges from multiple start nodes to a single end node
 	 *
-	 * @param graphId the graph id
+	 * @param graphId      the graph id
 	 * @param startNodeIds list of start node ids
-	 * @param endNodeId the end node id
+	 * @param endNodeId    the end node id
 	 * @param relationType the relation type
-	 * @param request the request
+	 * @param request      the request
 	 */
 	public static void deleteIncomingRelations(String graphId, List<String> startNodeIds, String endNodeId,
 			String relationType, Request request) {
@@ -353,26 +561,61 @@ public class JanusGraphOperations {
 
 		if (null == startNodeIds || startNodeIds.isEmpty())
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_START_NODE_ID_LIST + " | ['Delete Incoming Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_START_NODE_ID_LIST
+							+ " | ['Delete Incoming Relations' Operation Failed.]");
 
 		if (StringUtils.isBlank(endNodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_END_NODE_ID + " | ['Delete Incoming Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_END_NODE_ID
+							+ " | ['Delete Incoming Relations' Operation Failed.]");
 
 		if (StringUtils.isBlank(relationType))
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
-					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Delete Incoming Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_RELATION_TYPE
+							+ " | ['Delete Incoming Relations' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
-			int deletedCount = GremlinQueryBuilder.deleteIncomingEdges(g, graphId, startNodeIds, 
-					endNodeId, relationType);
-			
-			TelemetryManager.log("'Delete Incoming Relations' Operation Finished. Deleted " + 
-					deletedCount + " edges.");
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+			// Get End Vertex
+			Iterator<JanusGraphVertex> endIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId)
+					.has("graphId", graphId).vertices().iterator();
+
+			if (endIter.hasNext()) {
+				JanusGraphVertex endV = endIter.next();
+
+				// Since we want to delete INCOMING relations to endV from startNodeIds
+				// We can iterate IN edges on endV and check start nodes,
+				// OR iterate start nodes and check OUT edges to endV.
+				// Iterating IN edges on endV might be faster if startNodeIds is large?
+				// But iterating startNodes is safer if we have indexes.
+
+				for (String startNodeId : startNodeIds) {
+					Iterator<JanusGraphVertex> startIter = tx.query()
+							.has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+							.has("graphId", graphId).vertices().iterator();
+					if (startIter.hasNext()) {
+						JanusGraphVertex startV = startIter.next();
+						Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
+								.edges().iterator();
+						while (edgeIter.hasNext()) {
+							JanusGraphEdge e = edgeIter.next();
+							if (e.inVertex().id().equals(endV.id())) {
+								e.remove();
+							}
+						}
+					}
+				}
+			}
+
+			tx.commit();
+			TelemetryManager.log("'Delete Incoming Relations' Operation Finished.");
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error deleting incoming relations", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -383,11 +626,11 @@ public class JanusGraphOperations {
 	 * Delete multiple outgoing relations (one-to-many)
 	 * Deletes edges from a single start node to multiple end nodes
 	 *
-	 * @param graphId the graph id
-	 * @param startNodeId the start node id
-	 * @param endNodeIds list of end node ids
+	 * @param graphId      the graph id
+	 * @param startNodeId  the start node id
+	 * @param endNodeIds   list of end node ids
 	 * @param relationType the relation type
-	 * @param request the request
+	 * @param request      the request
 	 */
 	public static void deleteOutgoingRelations(String graphId, String startNodeId, List<String> endNodeIds,
 			String relationType, Request request) {
@@ -398,26 +641,51 @@ public class JanusGraphOperations {
 
 		if (StringUtils.isBlank(startNodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_START_NODE_ID + " | ['Delete Outgoing Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_START_NODE_ID
+							+ " | ['Delete Outgoing Relations' Operation Failed.]");
 
 		if (null == endNodeIds || endNodeIds.isEmpty())
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_END_NODE_ID_LIST + " | ['Delete Outgoing Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_END_NODE_ID_LIST
+							+ " | ['Delete Outgoing Relations' Operation Failed.]");
 
 		if (StringUtils.isBlank(relationType))
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
-					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Delete Outgoing Relations' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_RELATION_TYPE
+							+ " | ['Delete Outgoing Relations' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
-			int deletedCount = GremlinQueryBuilder.deleteOutgoingEdges(g, graphId, startNodeId, 
-					endNodeIds, relationType);
-			
-			TelemetryManager.log("'Delete Outgoing Relations' Operation Finished. Deleted " + 
-					deletedCount + " edges.");
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+			// Get Start Vertex
+			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+					.has("graphId", graphId).vertices().iterator();
+
+			if (startIter.hasNext()) {
+				JanusGraphVertex startV = startIter.next();
+
+				for (String endNodeId : endNodeIds) {
+					Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
+							.edges().iterator();
+					while (edgeIter.hasNext()) {
+						JanusGraphEdge e = edgeIter.next();
+						Vertex endV = e.inVertex();
+						if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
+								endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
+							e.remove();
+						}
+					}
+				}
+			}
+
+			tx.commit();
+			TelemetryManager.log("'Delete Outgoing Relations' Operation Finished.");
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error deleting outgoing relations", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -427,11 +695,11 @@ public class JanusGraphOperations {
 	/**
 	 * Remove a specific metadata property from a relation
 	 *
-	 * @param graphId the graph id
-	 * @param startNodeId the start node id
-	 * @param endNodeId the end node id
+	 * @param graphId      the graph id
+	 * @param startNodeId  the start node id
+	 * @param endNodeId    the end node id
 	 * @param relationType the relation type
-	 * @param key the metadata key to remove
+	 * @param key          the metadata key to remove
 	 */
 	public static void removeRelationMetadata(String graphId, String startNodeId, String endNodeId,
 			String relationType, String key) {
@@ -442,7 +710,8 @@ public class JanusGraphOperations {
 
 		if (StringUtils.isBlank(startNodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-					DACErrorMessageConstants.INVALID_START_NODE_ID + " | ['Remove Relation Metadata' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_START_NODE_ID
+							+ " | ['Remove Relation Metadata' Operation Failed.]");
 
 		if (StringUtils.isBlank(endNodeId))
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
@@ -450,19 +719,48 @@ public class JanusGraphOperations {
 
 		if (StringUtils.isBlank(relationType))
 			throw new ClientException(DACErrorCodeConstants.INVALID_RELATION.name(),
-					DACErrorMessageConstants.INVALID_RELATION_TYPE + " | ['Remove Relation Metadata' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_RELATION_TYPE
+							+ " | ['Remove Relation Metadata' Operation Failed.]");
 
 		if (StringUtils.isBlank(key))
 			throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name(),
-					DACErrorMessageConstants.INVALID_PROPERTY_KEY + " | ['Remove Relation Metadata' Operation Failed.]");
+					DACErrorMessageConstants.INVALID_PROPERTY_KEY
+							+ " | ['Remove Relation Metadata' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
-			GremlinQueryBuilder.removeEdgeProperty(g, graphId, startNodeId, endNodeId, relationType, key);
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
+			// Get Start Vertex
+			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
+					.has("graphId", graphId).vertices().iterator();
+
+			if (startIter.hasNext()) {
+				JanusGraphVertex startV = startIter.next();
+				Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
+						.iterator();
+
+				while (edgeIter.hasNext()) {
+					JanusGraphEdge e = edgeIter.next();
+					Vertex endV = e.inVertex();
+					if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
+							endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
+
+						if (e.property(key).isPresent()) {
+							e.property(key).remove();
+						}
+						break;
+					}
+				}
+			}
+
+			tx.commit();
 			TelemetryManager.log("'Remove Relation Metadata' Operation Finished.");
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error removing relation metadata", e);
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);

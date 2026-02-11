@@ -1,9 +1,14 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import org.janusgraph.core.JanusGraph;
+import org.janusgraph.core.JanusGraphEdge;
+import org.janusgraph.core.JanusGraphTransaction;
+import org.janusgraph.core.JanusGraphVertex;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.ServerException;
@@ -15,11 +20,11 @@ import org.sunbird.graph.dac.enums.SystemNodeTypes;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
-import org.sunbird.graph.service.common.GraphOperation;
 import org.sunbird.graph.service.util.DriverUtil;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -69,10 +74,12 @@ public class JanusGraphCollectionOperations {
 			throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name(),
 					DACErrorMessageConstants.INVALID_INDEX_PROPERTY + " | ['Create Collection' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
 			String timestamp = DateUtils.formatCurrentDate();
 
 			// Set collection identifier if not already set
@@ -81,11 +88,12 @@ public class JanusGraphCollectionOperations {
 			}
 
 			// Check if collection node already exists
-			Vertex collectionVertex = g.V()
-					.has(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
-					.has("graphId", graphId)
-					.tryNext()
-					.orElse(null);
+			JanusGraphVertex collectionVertex = null;
+			Iterator<JanusGraphVertex> colIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
+					.has("graphId", graphId).vertices().iterator();
+			if (colIter.hasNext()) {
+				collectionVertex = colIter.next();
+			}
 
 			if (collectionVertex == null) {
 				// ON CREATE - Create new collection node
@@ -94,17 +102,16 @@ public class JanusGraphCollectionOperations {
 				// Generate version key
 				String versionKey = Identifier.getIdentifier(graphId, Identifier.getUniqueIdFromTimestamp());
 
-				collectionVertex = g.addV(collection.getObjectType())
-						.property(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
-						.property("graphId", graphId)
-						.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), collection.getObjectType())
-						.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
-								StringUtils.isNotBlank(collection.getNodeType()) ? collection.getNodeType()
-										: SystemNodeTypes.DATA_NODE.name())
-						.property(GraphDACParams.versionKey.name(), versionKey)
-						.property(AuditProperties.createdOn.name(), timestamp)
-						.property(AuditProperties.lastUpdatedOn.name(), timestamp)
-						.next();
+				collectionVertex = tx.addVertex();
+				collectionVertex.property(SystemProperties.IL_UNIQUE_ID.name(), collectionId);
+				collectionVertex.property("graphId", graphId);
+				collectionVertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), collection.getObjectType());
+				collectionVertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+						StringUtils.isNotBlank(collection.getNodeType()) ? collection.getNodeType()
+								: SystemNodeTypes.DATA_NODE.name());
+				collectionVertex.property(GraphDACParams.versionKey.name(), versionKey);
+				collectionVertex.property(AuditProperties.createdOn.name(), timestamp);
+				collectionVertex.property(AuditProperties.lastUpdatedOn.name(), timestamp);
 
 				// Add metadata properties
 				if (collection.getMetadata() != null) {
@@ -123,7 +130,6 @@ public class JanusGraphCollectionOperations {
 			} else {
 				// ON MATCH - Update existing collection node
 				TelemetryManager.log("Updating existing collection node: " + collectionId);
-
 				collectionVertex.property(AuditProperties.lastUpdatedOn.name(), timestamp);
 
 				// Update metadata properties
@@ -145,21 +151,26 @@ public class JanusGraphCollectionOperations {
 				Map<String, Object> metadata = new HashMap<>();
 				metadata.put(indexProperty, sequenceIndex);
 
-				// Create edge from collection to member
-				Vertex memberVertex = g.V()
-						.has(SystemProperties.IL_UNIQUE_ID.name(), memberId)
-						.has("graphId", graphId)
-						.tryNext()
-						.orElse(null);
+				// Get Member Vertex
+				JanusGraphVertex memberVertex = null;
+				Iterator<JanusGraphVertex> memIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), memberId)
+						.has("graphId", graphId).vertices().iterator();
+				if (memIter.hasNext()) {
+					memberVertex = memIter.next();
+				}
 
 				if (memberVertex != null) {
 					// Check if edge already exists
-					Edge existingEdge = g.V(collectionVertex.id())
-							.outE(relationType)
-							.where(org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.inV()
-									.hasId(memberVertex.id()))
-							.tryNext()
-							.orElse(null);
+					Edge existingEdge = null;
+					Iterator<JanusGraphEdge> edgeIter = collectionVertex.query().direction(Direction.OUT)
+							.labels(relationType).edges().iterator();
+					while (edgeIter.hasNext()) {
+						JanusGraphEdge e = edgeIter.next();
+						if (e.inVertex().id().equals(memberVertex.id())) {
+							existingEdge = e;
+							break;
+						}
+					}
 
 					if (existingEdge != null) {
 						// Update existing edge
@@ -176,7 +187,7 @@ public class JanusGraphCollectionOperations {
 				sequenceIndex++;
 			}
 
-			g.tx().commit();
+			tx.commit();
 
 			collection.setGraphId(graphId);
 			collection.setIdentifier(collectionId);
@@ -187,12 +198,9 @@ public class JanusGraphCollectionOperations {
 			return collection;
 
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error creating collection", e);
-			try {
-				g.tx().rollback();
-			} catch (Exception rollbackEx) {
-				TelemetryManager.error("Error rolling back transaction", rollbackEx);
-			}
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
 		}
@@ -215,16 +223,19 @@ public class JanusGraphCollectionOperations {
 			throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
 					DACErrorMessageConstants.INVALID_COLLECTION_NODE_ID + " | ['Delete Collection' Operation Failed.]");
 
-		GraphTraversalSource g = DriverUtil.getGraphTraversalSource(graphId, GraphOperation.WRITE);
-		TelemetryManager.log("GraphTraversalSource Initialised. | [Graph Id: " + graphId + "]");
-
+		JanusGraphTransaction tx = null;
 		try {
+			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+			tx = graph.newTransaction();
+			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+
 			// Find the collection node
-			Vertex collectionVertex = g.V()
-					.has(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
-					.has("graphId", graphId)
-					.tryNext()
-					.orElse(null);
+			JanusGraphVertex collectionVertex = null;
+			Iterator<JanusGraphVertex> iter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), collectionId)
+					.has("graphId", graphId).vertices().iterator();
+			if (iter.hasNext()) {
+				collectionVertex = iter.next();
+			}
 
 			if (collectionVertex == null) {
 				TelemetryManager
@@ -232,23 +243,23 @@ public class JanusGraphCollectionOperations {
 				return;
 			}
 
-			// Delete all edges (both incoming and outgoing) - DETACH behavior
-			g.V(collectionVertex.id()).bothE().drop().iterate();
+			// Delete all edges (both incoming and outgoing)
+			Iterator<JanusGraphEdge> edges = collectionVertex.query().direction(Direction.BOTH).edges().iterator();
+			while (edges.hasNext()) {
+				edges.next().remove();
+			}
 
 			// Delete the vertex itself
-			g.V(collectionVertex.id()).drop().iterate();
+			collectionVertex.remove();
 
-			g.tx().commit();
+			tx.commit();
 
 			TelemetryManager.log("'Delete Collection' Operation Finished. | Collection ID: " + collectionId);
 
 		} catch (Exception e) {
+			if (null != tx)
+				tx.rollback();
 			TelemetryManager.error("Error deleting collection", e);
-			try {
-				g.tx().rollback();
-			} catch (Exception rollbackEx) {
-				TelemetryManager.error("Error rolling back transaction", rollbackEx);
-			}
 			throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 					DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
 		}

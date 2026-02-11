@@ -1,7 +1,6 @@
 package org.sunbird.graph.service.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
 import org.sunbird.common.Platform;
@@ -18,51 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DriverUtil {
 
-	private static Map<String, GraphTraversalSource> graphTraversalSourceMap = new ConcurrentHashMap<>();
 	private static Map<String, JanusGraph> janusGraphMap = new ConcurrentHashMap<>();
 
-	public static GraphTraversalSource getGraphTraversalSource(String graphId, GraphOperation graphOperation) {
-		TelemetryManager.log("Get GraphTraversalSource for Graph Id: " + graphId);
-		String driverKey = graphId + DACConfigurationConstants.UNDERSCORE
-				+ StringUtils.lowerCase(graphOperation.name());
-		TelemetryManager.log("Driver Configuration Key: " + driverKey);
-
-		// DEBUG: Print keys
-		// System.out.println("DEBUG: Requesting key: " + driverKey);
-		// System.out.println("DEBUG: Available keys: " +
-		// graphTraversalSourceMap.keySet());
-
-		return graphTraversalSourceMap.computeIfAbsent(driverKey, key -> {
-			// System.out.println("DEBUG: Key mismatch! Loading remote source for key: " +
-			// key);
-			return loadGraphTraversalSource(graphId, graphOperation, key);
-		});
-	}
-
-	private static GraphTraversalSource loadGraphTraversalSource(String graphId, GraphOperation graphOperation,
-			String driverKey) {
-		TelemetryManager.log("Loading GraphTraversalSource for Graph Id: " + graphId);
-
-		// Use Embedded JanusGraph instance to ensure Strong Consistency (QUORUM)
-		// This bypasses the Remote Gremlin Server and uses the local Graph instance
-		// directly.
-		JanusGraph graph = getJanusGraph(graphId);
-		return graph.traversal();
-	}
-
 	public static void closeConnections() {
-		for (Iterator<Map.Entry<String, GraphTraversalSource>> it = graphTraversalSourceMap.entrySet().iterator(); it
-				.hasNext();) {
-			Map.Entry<String, GraphTraversalSource> entry = it.next();
-			GraphTraversalSource g = entry.getValue();
-			try {
-				g.close();
-			} catch (Exception e) {
-				TelemetryManager.error("Error closing GraphTraversalSource", e);
-			}
-			it.remove();
-		}
-
 		for (Iterator<Map.Entry<String, JanusGraph>> it = janusGraphMap.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<String, JanusGraph> entry = it.next();
 			JanusGraph graph = entry.getValue();
