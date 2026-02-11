@@ -151,7 +151,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
           getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
           getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
           getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
-          val subGraph: Future[SubGraph] = DataSubGraph.read(request)
+          val subGraph: Future[SubGraph] = DataSubGraph.read(getFrameworkReq)
           subGraph.map(data => {
             val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data, true)
             CategoryCache.setFramework(frameworkId, frameworkHierarchy)

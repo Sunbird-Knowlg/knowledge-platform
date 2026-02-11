@@ -3,7 +3,7 @@ package org.sunbird.utils.content
 import java.util
 
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.graph.dac.model.Node
 import scala.jdk.CollectionConverters._
 
@@ -22,8 +22,17 @@ object HierarchyBackwardCompatibilityUtil {
 
     def setContentAndCategoryTypes(input: util.Map[String, AnyRef], objType: String = ""): Unit = {
         if(StringUtils.isBlank(objType) || objectTypes.contains(objType)) {
-            val contentType = input.get("contentType").asInstanceOf[String]
-            val primaryCategory = input.get("primaryCategory").asInstanceOf[String]
+            val contentType = input.get("contentType") match {
+                case s: String => s
+                case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
+                case _ => ""
+            }
+            val primaryCategory = input.get("primaryCategory") match {
+                case s: String => s
+                case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
+                case _ => ""
+            }
+
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
                 case (x: String, y: String) => (x, y)
                 case ("Resource", y) => (contentType, getCategoryForResource(input.getOrDefault("mimeType", "").asInstanceOf[String],
@@ -66,5 +75,23 @@ object HierarchyBackwardCompatibilityUtil {
         } else {
             metadata.put(HierarchyConstants.OBJECT_TYPE, objectType)
         }
+    }
+
+    def deserializeStringifiedLists(input: java.util.Map[String, AnyRef]): Unit = {
+        val keys = input.keySet().asScala.toList
+        keys.foreach(key => {
+            val value = input.get(key)
+            if(value.isInstanceOf[String]) {
+                val strValue = value.asInstanceOf[String]
+                if(strValue.startsWith("[") && strValue.endsWith("]")) {
+                    try {
+                        val list = JsonUtils.deserialize(strValue, classOf[java.util.List[String]])
+                        input.put(key, list)
+                    } catch {
+                        case e: Exception => // ignore
+                    }
+                }
+            }
+        })
     }
 }
