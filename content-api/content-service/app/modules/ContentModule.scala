@@ -23,6 +23,14 @@ class ContentModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[AppActor](ActorNames.APP_ACTOR)
         bindActor[ObjectActor](ActorNames.OBJECT_ACTOR)
         bindActor[CollectionCSVActor](ActorNames.COLLECTION_CSV_ACTOR)
+        
+        try {
+            org.sunbird.graph.service.util.DriverUtil.closeConnections()
+            println("DriverUtil: Closed existing graph connections to ensure fresh startup.")
+        } catch {
+            case e: Exception => println("DriverUtil: Error occurred while closing connections: " + e.getMessage)
+        }
+        
         println("Initialized application actors...")
         // $COVERAGE-ON
     }

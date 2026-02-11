@@ -197,7 +197,9 @@ object CopyManager {
         FileUtils.copyURLToFile(new URL(fileUrl), file)
         file
     } catch {
-        case e: IOException => throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
+        case e: IOException => 
+            e.printStackTrace()
+            throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url! URL: " + fileUrl + ", Error: " + e.getMessage)
     }
 
     def getBasePath(objectId: String): String = {

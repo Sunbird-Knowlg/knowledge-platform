@@ -33,19 +33,24 @@ object NodeValidator {
     }
 
     private def getDataNodes(graphId: String, identifiers: util.List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
-        val searchCriteria = new SearchCriteria
-        val mc = if (identifiers.size == 1)
-            MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_EQUAL, identifiers.get(0))))
-        else
-            MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_IN, identifiers), new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")))
-        searchCriteria.addMetadata(mc)
-        searchCriteria.setCountQuery(false)
-        try {
-            val nodes = oec.graphService.getNodeByUniqueIds(graphId, searchCriteria)
-            nodes
-        } catch {
-            case e: Exception =>
-                throw new ServerException(GraphErrorCodes.ERR_GRAPH_PROCESSING_ERROR.toString, "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage)
+        if (identifiers.size() == 1) {
+            System.out.println("NodeValidator: Singular lookup for identifier: " + identifiers.get(0))
+            oec.graphService.getNodeByUniqueId(graphId, identifiers.get(0), false, new org.sunbird.common.dto.Request())
+                .map(node => util.Arrays.asList(node))
+                .recover {
+                    case e: ResourceNotFoundException => util.Arrays.asList()
+                }
+        } else {
+            val searchCriteria = new SearchCriteria
+            searchCriteria.setGraphId(graphId)
+            val mc = MetadataCriterion.create(util.Arrays.asList(new Filter(SystemProperties.IL_UNIQUE_ID.name, SearchConditions.OP_IN, identifiers)))
+            searchCriteria.addMetadata(mc)
+            searchCriteria.setCountQuery(false)
+            searchCriteria.getParams.put("identifiers", identifiers)
+            oec.graphService.getNodeByUniqueIds(graphId, searchCriteria).recoverWith {
+                case e: Exception =>
+                    Future.failed(new ServerException(GraphErrorCodes.ERR_GRAPH_PROCESSING_ERROR.toString, "Unable To Fetch Nodes From Graph. Exception is: " + e.getMessage))
+            }
         }
     }
 }

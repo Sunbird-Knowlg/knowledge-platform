@@ -96,10 +96,16 @@ object ChannelManager {
     metadata.putIfAbsent(ChannelConstants.CONTENT_ADDITIONAL_CATEGORIES, CONTENT_ADDITIONAL_CATEGORIES)
     metadata.putIfAbsent(ChannelConstants.COLLECTION_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATEGORIES)
     metadata.putIfAbsent(ChannelConstants.ASSET_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
-    val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
-    metadata.put("primaryCategories", primaryCategories)
-    val additionalCategories = getAdditionalCategories()
-    metadata.put("additionalCategories", additionalCategories)
+    try {
+        val primaryCategories = getChannelPrimaryCategories(metadata.get("identifier").asInstanceOf[String])
+        metadata.put("primaryCategories", primaryCategories)
+        val additionalCategories = getAdditionalCategories()
+        metadata.put("additionalCategories", additionalCategories)
+    } catch {
+        case e: Exception =>
+            // Log error and continue without populating categories
+            System.out.println("Error fetching primary/additional categories: " + e.getMessage)
+    }
   }
 
   def getAdditionalCategories()(implicit httpUtil: HttpUtil): java.util.List[String] = {
