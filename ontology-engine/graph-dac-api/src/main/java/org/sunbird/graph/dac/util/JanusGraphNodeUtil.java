@@ -1,11 +1,10 @@
 package org.sunbird.graph.dac.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Property;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.janusgraph.core.JanusGraphEdge;
+import org.janusgraph.core.JanusGraphElement;
+import org.janusgraph.core.JanusGraphVertex;
+import org.janusgraph.core.JanusGraphVertexProperty;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes;
@@ -34,7 +33,7 @@ public class JanusGraphNodeUtil {
      * @param vertex  the JanusGraph vertex
      * @return Node object representing the vertex
      */
-    public static Node getNode(String graphId, Vertex vertex) {
+    public static Node getNode(String graphId, JanusGraphVertex vertex) {
         if (null == vertex)
             throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
                     "Failed to create node object. Vertex from database is null.");
@@ -53,10 +52,10 @@ public class JanusGraphNodeUtil {
         }
 
         Map<String, Object> metadata = new HashMap<>();
-        Iterator<VertexProperty<Object>> properties = vertex.properties();
+        Iterator<JanusGraphVertexProperty> properties = vertex.query().properties().iterator();
 
         while (properties.hasNext()) {
-            VertexProperty<Object> property = properties.next();
+            JanusGraphVertexProperty property = properties.next();
             String key = property.key();
             Object value = property.value();
 
@@ -86,22 +85,22 @@ public class JanusGraphNodeUtil {
         node.setMetadata(metadata);
 
         // Get outgoing relations
-        Iterator<Edge> outEdges = vertex.edges(Direction.OUT);
+        Iterator<JanusGraphEdge> outEdges = getEdges(vertex, "OUT");
         if (outEdges.hasNext()) {
             List<Relation> outRelations = new ArrayList<>();
             while (outEdges.hasNext()) {
-                Edge edge = outEdges.next();
+                JanusGraphEdge edge = outEdges.next();
                 outRelations.add(createRelation(graphId, edge, vertex));
             }
             node.setOutRelations(outRelations);
         }
 
         // Get incoming relations
-        Iterator<Edge> inEdges = vertex.edges(Direction.IN);
+        Iterator<JanusGraphEdge> inEdges = getEdges(vertex, "IN");
         if (inEdges.hasNext()) {
             List<Relation> inRelations = new ArrayList<>();
             while (inEdges.hasNext()) {
-                Edge edge = inEdges.next();
+                JanusGraphEdge edge = inEdges.next();
                 inRelations.add(createRelation(graphId, edge, vertex));
             }
             node.setInRelations(inRelations);
@@ -117,7 +116,7 @@ public class JanusGraphNodeUtil {
      * @param vertex  the JanusGraph vertex
      * @return Node object representing the vertex without relations
      */
-    public static Node getNodeWithoutRelations(String graphId, Vertex vertex) {
+    public static Node getNodeWithoutRelations(String graphId, JanusGraphVertex vertex) {
         if (null == vertex)
             throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
                     "Failed to create node object. Vertex from database is null.");
@@ -136,10 +135,10 @@ public class JanusGraphNodeUtil {
         }
 
         Map<String, Object> metadata = new HashMap<>();
-        Iterator<VertexProperty<Object>> properties = vertex.properties();
+        Iterator<JanusGraphVertexProperty> properties = vertex.query().properties().iterator();
 
         while (properties.hasNext()) {
-            VertexProperty<Object> property = properties.next();
+            JanusGraphVertexProperty property = properties.next();
             String key = property.key();
             Object value = property.value();
 
@@ -178,13 +177,13 @@ public class JanusGraphNodeUtil {
      * @param currentVertex the current vertex (to determine direction)
      * @return Relation object
      */
-    private static Relation createRelation(String graphId, Edge edge, Vertex currentVertex) {
+    private static Relation createRelation(String graphId, JanusGraphEdge edge, JanusGraphVertex currentVertex) {
         Relation relation = new Relation();
         relation.setRelationType(edge.label());
 
         // Determine start and end nodes based on direction
-        Vertex startVertex = edge.outVertex();
-        Vertex endVertex = edge.inVertex();
+        JanusGraphVertex startVertex = edge.outVertex();
+        JanusGraphVertex endVertex = edge.inVertex();
 
         if (null != currentVertex) {
             if (StringUtils.equals(startVertex.id().toString(), currentVertex.id().toString())) {
@@ -209,10 +208,12 @@ public class JanusGraphNodeUtil {
 
         // Get edge properties as metadata
         Map<String, Object> metadata = new HashMap<>();
-        Iterator<Property<Object>> edgeProperties = edge.properties();
-        while (edgeProperties.hasNext()) {
-            Property<Object> property = edgeProperties.next();
-            metadata.put(property.key(), property.value());
+        Iterator<java.lang.String> keyIterator = edge.keys().iterator();
+        while (keyIterator.hasNext()) {
+            String key = keyIterator.next();
+            if (edge.property(key).isPresent()) {
+                metadata.put(key, edge.value(key));
+            }
         }
         relation.setMetadata(metadata);
 
@@ -225,12 +226,12 @@ public class JanusGraphNodeUtil {
      * @param vertex the JanusGraph vertex
      * @return Map of property key-value pairs
      */
-    public static Map<String, Object> getVertexProperties(Vertex vertex) {
+    public static Map<String, Object> getVertexProperties(JanusGraphVertex vertex) {
         Map<String, Object> properties = new HashMap<>();
-        Iterator<VertexProperty<Object>> propertyIterator = vertex.properties();
+        Iterator<JanusGraphVertexProperty> propertyIterator = vertex.query().properties().iterator();
 
         while (propertyIterator.hasNext()) {
-            VertexProperty<Object> property = propertyIterator.next();
+            JanusGraphVertexProperty property = propertyIterator.next();
             properties.put(property.key(), property.value());
         }
 
@@ -243,16 +244,28 @@ public class JanusGraphNodeUtil {
      * @param edge the JanusGraph edge
      * @return Map of property key-value pairs
      */
-    public static Map<String, Object> getEdgeProperties(Edge edge) {
+    public static Map<String, Object> getEdgeProperties(JanusGraphEdge edge) {
         Map<String, Object> properties = new HashMap<>();
-        Iterator<Property<Object>> propertyIterator = edge.properties();
-
-        while (propertyIterator.hasNext()) {
-            Property<Object> property = propertyIterator.next();
-            properties.put(property.key(), property.value());
+        Iterator<java.lang.String> keyIterator = edge.keys().iterator();
+        while (keyIterator.hasNext()) {
+            String key = keyIterator.next();
+            if (edge.property(key).isPresent()) {
+                properties.put(key, edge.value(key));
+            }
         }
-
         return properties;
+    }
+
+    public static Iterator<JanusGraphEdge> getEdges(JanusGraphVertex vertex, String direction, String... labels) {
+        org.apache.tinkerpop.gremlin.structure.Direction dir;
+        if (StringUtils.equalsIgnoreCase("IN", direction)) {
+            dir = org.apache.tinkerpop.gremlin.structure.Direction.IN;
+        } else if (StringUtils.equalsIgnoreCase("OUT", direction)) {
+            dir = org.apache.tinkerpop.gremlin.structure.Direction.OUT;
+        } else {
+            dir = org.apache.tinkerpop.gremlin.structure.Direction.BOTH;
+        }
+        return vertex.query().direction(dir).labels(labels).edges().iterator();
     }
 
     /**
@@ -261,7 +274,7 @@ public class JanusGraphNodeUtil {
      * @param edge the JanusGraph edge
      * @return Relation object
      */
-    public static Relation getRelation(Edge edge) {
+    public static Relation getRelation(JanusGraphEdge edge) {
         if (edge == null) {
             return null;
         }
@@ -270,8 +283,8 @@ public class JanusGraphNodeUtil {
         relation.setRelationType(edge.label());
 
         // Get start and end node IDs
-        Vertex outVertex = edge.outVertex();
-        Vertex inVertex = edge.inVertex();
+        JanusGraphVertex outVertex = edge.outVertex();
+        JanusGraphVertex inVertex = edge.inVertex();
 
         if (outVertex != null && outVertex.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
             relation.setStartNodeId((String) outVertex.property(SystemProperties.IL_UNIQUE_ID.name()).value());
@@ -304,7 +317,7 @@ public class JanusGraphNodeUtil {
             String key = entry.getKey().toString();
             Object value = entry.getValue();
 
-            if (key.equals(org.apache.tinkerpop.gremlin.structure.T.id.toString()) || key.equals("id")) {
+            if (key.equals("id")) {
                 if (value instanceof Long) {
                     node.setId((Long) value);
                 } else if (value instanceof Number) {
@@ -312,7 +325,7 @@ public class JanusGraphNodeUtil {
                 } else {
                     node.setId(value.hashCode()); // Fallback
                 }
-            } else if (key.equals(org.apache.tinkerpop.gremlin.structure.T.label.toString()) || key.equals("label")) {
+            } else if (key.equals("label")) {
                 // Label is usually objectType, but we rely on properties
             } else {
                 // Properties

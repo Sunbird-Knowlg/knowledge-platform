@@ -7,9 +7,7 @@ import com.datastax.driver.core.ResultSet
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
-import org.apache.tinkerpop.gremlin.structure.Graph
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource
-import org.janusgraph.core.JanusGraphFactory
+import org.janusgraph.core.{JanusGraph, JanusGraphFactory}
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.sunbird.cassandra.CassandraConnector
@@ -20,8 +18,7 @@ import scala.jdk.CollectionConverters._
 
 class BaseSpec extends AsyncFlatSpec with BeforeAndAfterAll with BeforeAndAfterEach {
 
-  var graph: Graph = _
-  var g: GraphTraversalSource = _
+  var graph: JanusGraph = _
   var session: com.datastax.driver.core.Session = null
 
   private val script_1 = "CREATE KEYSPACE IF NOT EXISTS content_store WITH replication = {'class': 'SimpleStrategy','replication_factor': '1'};"
@@ -38,7 +35,7 @@ class BaseSpec extends AsyncFlatSpec with BeforeAndAfterAll with BeforeAndAfterE
   def setUpEmbeddedGraph(): Unit = {
     if (null == graph) {
       graph = JanusGraphFactory.build.set("storage.backend", "inmemory").open
-      val mgmt = graph.asInstanceOf[org.janusgraph.core.JanusGraph].openManagement()
+      val mgmt = graph.openManagement()
       // Define multi-valued properties
       mgmt.makePropertyKey("keywords").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
       mgmt.makePropertyKey("gradeLevel").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
@@ -47,16 +44,6 @@ class BaseSpec extends AsyncFlatSpec with BeforeAndAfterAll with BeforeAndAfterE
       mgmt.makePropertyKey("os").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
       mgmt.makePropertyKey("resourceType").dataType(classOf[String]).cardinality(org.janusgraph.core.Cardinality.LIST).make()
       mgmt.commit()
-      g = graph.traversal
-
-      // Inject into DriverUtil for global access
-      val driverUtil = classOf[DriverUtil]
-      val field: Field = driverUtil.getDeclaredField("graphTraversalSourceMap")
-      field.setAccessible(true)
-      val graphTraversalSourceMap = new util.HashMap[String, GraphTraversalSource]()
-      graphTraversalSourceMap.put("domain_read", g)
-      graphTraversalSourceMap.put("domain_write", g)
-      field.set(null, graphTraversalSourceMap)
     }
   }
 
@@ -98,94 +85,23 @@ class BaseSpec extends AsyncFlatSpec with BeforeAndAfterAll with BeforeAndAfterE
     session.execute(query)
   }
 
-  def createRelationData(): Unit = {
-    // Create test data using Gremlin
-    g.addV("domain")
-      .property("IL_UNIQUE_ID", "Num:C3:SC2")
-      .property("identifier", "Num:C3:SC2")
-      .property("code", "Num:C3:SC2")
-      .property("keywords", "Subconcept")
-      .property("keywords", "Class 3")
-      .property("IL_SYS_NODE_TYPE", "DATA_NODE")
-      .property("subject", "numeracy")
-      .property("channel", "in.ekstep")
-      .property("description", "Multiplication")
-      .property("versionKey", "1484389136575")
-      .property("gradeLevel", "Grade 3")
-      .property("gradeLevel", "Grade 4")
-      .property("IL_FUNC_OBJECT_TYPE", "Concept")
-      .property("name", "Multiplication")
-      .property("lastUpdatedOn", "2016-06-15T17:15:45.951+0000")
-      .property("status", "Live")
-      .next()
 
-    g.addV("domain")
-      .property("IL_UNIQUE_ID", "do_11232724509261824014")
-      .property("code", "31d521da-61de-4220-9277-21ca7ce8335c")
-      .property("previewUrl", "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf")
-      .property("downloadUrl", "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar")
-      .property("channel", "in.ekstep")
-      .property("language", "English")
-      .property("variants", "{\"spine\":{\"ecarUrl\":\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790848197_do_11232724509261824014_2.0_spine.ecar\",\"size\":890.0}}")
-      .property("mimeType", "application/pdf")
-      .property("streamingUrl", "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf")
-      .property("idealScreenSize", "normal")
-      .property("createdOn", "2017-09-07T13:24:20.720+0000")
-      .property("contentDisposition", "inline")
-      .property("artifactUrl", "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf")
-      .property("contentEncoding", "identity")
-      .property("lastUpdatedOn", "2017-09-07T13:25:53.595+0000")
-      .property("SYS_INTERNAL_LAST_UPDATED_ON", "2017-09-07T13:27:28.417+0000")
-      .property("contentType", "Resource")
-      .property("lastUpdatedBy", "Ekstep")
-      .property("audience", "Student")
-      .property("visibility", "Default")
-      .property("os", "All")
-      .property("IL_SYS_NODE_TYPE", "DATA_NODE")
-      .property("consumerId", "e84015d2-a541-4c07-a53f-e31d4553312b")
-      .property("mediaType", "content")
-      .property("osId", "org.ekstep.quiz.app")
-      .property("lastPublishedBy", "Ekstep")
-      .property("pkgVersion", 2)
-      .property("versionKey", "1504790848417")
-      .property("license", "Creative Commons Attribution (CC BY)")
-      .property("idealScreenDensity", "hdpi")
-      .property("s3Key", "ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar")
-      .property("size", 4864851)
-      .property("lastPublishedOn", "2017-09-07T13:27:27.410+0000")
-      .property("createdBy", "390")
-      .property("compatibilityLevel", 4)
-      .property("IL_FUNC_OBJECT_TYPE", "Content")
-      .property("name", "Untitled Content")
-      .property("publisher", "EkStep")
-      .property("status", "Live")
-      .property("resourceType", "Study material")
-      .next()
-
-    // Add framework nodes
-    List("NCF", "K-12", "tpd").foreach { code =>
-      g.addV("domain")
-        .property("IL_UNIQUE_ID", code)
-        .property("owner", "in.ekstep")
-        .property("code", code)
-        .property("IL_SYS_NODE_TYPE", "DATA_NODE")
-        .property("apoc_json", "{\"batch\": true}")
-        .property("consumerId", "9393568c-3a56-47dd-a9a3-34da3c821638")
-        .property("channel", "in.ekstep")
-        .property("description", "NCF ")
-        .property("type", "K-12")
-        .property("createdOn", "2018-01-23T09:53:50.189+0000")
-        .property("versionKey", "1545195552163")
-        .property("apoc_text", "APOC")
-        .property("appId", "dev.sunbird.portal")
-        .property("IL_FUNC_OBJECT_TYPE", "Framework")
-        .property("name", "State (Uttar Pradesh)")
-        .property("lastUpdatedOn", "2018-12-19T04:59:12.163+0000")
-        .property("status", "Live")
-        .property("apoc_num", 1)
-        .next()
+    def createVertex(label: String, properties: Map[String, AnyRef]): Unit = {
+        val vertex = graph.asInstanceOf[org.janusgraph.core.JanusGraphTransaction].addVertex(org.apache.tinkerpop.gremlin.structure.T.label, label)
+        properties.foreach { case (k, v) =>
+          v match {
+            case list: java.util.List[_] => list.asScala.foreach(item => vertex.property(k, item))
+            case _ => vertex.property(k, v)
+          }
+        }
     }
 
-    g.tx().commit()
-  }
+    def createRelationData(): Unit = {
+        // Create test data using Gremlin
+        createVertex("domain", Map[String, AnyRef]("IL_UNIQUE_ID" -> "Num:C3:SC2", "identifier" -> "Num:C3:SC2", "code" -> "Num:C3:SC2", "keywords" -> util.Arrays.asList("Subconcept", "Class 3"), "IL_SYS_NODE_TYPE" -> "DATA_NODE", "subject" -> "numeracy", "channel" -> "in.ekstep", "description" -> "Multiplication", "versionKey" -> "1484389136575", "gradeLevel" -> util.Arrays.asList("Grade 3", "Grade 4"), "IL_FUNC_OBJECT_TYPE" -> "Concept", "name" -> "Multiplication", "lastUpdatedOn" -> "2016-06-15T17:15:45.951+0000", "status" -> "Live"))
+
+        createVertex("domain", Map[String, AnyRef]("IL_UNIQUE_ID" -> "do_11232724509261824014", "code" -> "31d521da-61de-4220-9277-21ca7ce8335c", "previewUrl" -> "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf", "downloadUrl" -> "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar", "channel" -> "in.ekstep", "language" -> util.Arrays.asList("English"), "variants" -> "{\"spine\":{\"ecarUrl\":\"https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/ecar_files/do_11232724509261824014/untitled-content_1504790848197_do_11232724509261824014_2.0_spine.ecar\",\"size\":890.0}}", "mimeType" -> "application/pdf", "streamingUrl" -> "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf", "idealScreenSize" -> "normal", "createdOn" -> "2017-09-07T13:24:20.720+0000", "contentDisposition" -> "inline", "artifactUrl" -> "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_11232724509261824014/object-oriented-javascript.pdf", "contentEncoding" -> "identity", "lastUpdatedOn" -> "2017-09-07T13:25:53.595+0000", "SYS_INTERNAL_LAST_UPDATED_ON" -> "2017-09-07T13:27:28.417+0000", "contentType" -> "Resource", "lastUpdatedBy" -> "Ekstep", "audience" -> util.Arrays.asList("Student"), "visibility" -> "Default", "os" -> util.Arrays.asList("All"), "IL_SYS_NODE_TYPE" -> "DATA_NODE", "consumerId" -> "e84015d2-a541-4c07-a53f-e31d4553312b", "mediaType" -> "content", "osId" -> "org.ekstep.quiz.app", "lastPublishedBy" -> "Ekstep", "pkgVersion" -> 2.asInstanceOf[AnyRef], "versionKey" -> "1504790848417", "license" -> "Creative Commons Attribution (CC BY)", "idealScreenDensity" -> "hdpi", "s3Key" -> "ecar_files/do_11232724509261824014/untitled-content_1504790847410_do_11232724509261824014_2.0.ecar", "size" -> 4864851.asInstanceOf[AnyRef], "lastPublishedOn" -> "2017-09-07T13:27:27.410+0000", "createdBy" -> "390", "compatibilityLevel" -> 4.asInstanceOf[AnyRef], "IL_FUNC_OBJECT_TYPE" -> "Content", "name" -> "Untitled Content", "publisher" -> "EkStep", "status" -> "Live", "resourceType" -> util.Arrays.asList("Study material")))
+
+        graph.tx().commit()
+    }
 }

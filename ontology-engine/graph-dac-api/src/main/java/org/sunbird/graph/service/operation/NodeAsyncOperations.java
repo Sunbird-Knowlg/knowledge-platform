@@ -3,7 +3,6 @@ package org.sunbird.graph.service.operation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.structure.T;
 
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphTransaction;
@@ -98,7 +97,7 @@ public class NodeAsyncOperations {
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Create vertex using Native API
-                JanusGraphVertex vertex = tx.addVertex(T.label, node.getObjectType());
+                JanusGraphVertex vertex = tx.addVertex(node.getObjectType());
                 vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
                 vertex.property("graphId", graphId);
                 vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
@@ -216,7 +215,7 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(AuditProperties.createdOn.name(), timestamp);
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), timestamp);
 
-                    vertex = tx.addVertex(T.label, node.getObjectType());
+                    vertex = tx.addVertex(node.getObjectType());
                     vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
                     vertex.property("graphId", graphId);
                     vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
@@ -325,7 +324,7 @@ public class NodeAsyncOperations {
                 JanusGraphVertex vertex;
                 if (!vertexIter.hasNext()) {
                     // Create root node
-                    vertex = tx.addVertex(T.label, "ROOT");
+                    vertex = tx.addVertex("ROOT");
                     vertex.property(SystemProperties.IL_UNIQUE_ID.name(), rootId);
                     vertex.property("graphId", graphId);
                     vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), "ROOT");

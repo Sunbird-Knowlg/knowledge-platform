@@ -3,15 +3,14 @@ package org.sunbird.graph.service.operation;
 import org.apache.commons.lang3.StringUtils;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphVertex;
+import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.common.enums.GraphDACParams;
 import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
+import org.sunbird.graph.dac.util.JanusGraphNodeUtil;
 import org.sunbird.graph.service.util.DriverUtil;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
@@ -106,7 +105,7 @@ public class GraphSearchOperations {
         return cyclicLoopMap;
     }
 
-    private static boolean checkCycleRecursive(Vertex currentV, String targetNodeId, String relationType,
+    private static boolean checkCycleRecursive(JanusGraphVertex currentV, String targetNodeId, String relationType,
             Set<String> visited, int depth, int maxDepth) {
         if (depth > maxDepth) {
             return false;
@@ -141,10 +140,10 @@ public class GraphSearchOperations {
             visited.add(currentId);
         }
 
-        Iterator<Edge> edges = currentV.edges(Direction.OUT, relationType);
+        Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(currentV, "OUT", relationType);
         while (edges.hasNext()) {
-            Edge edge = edges.next();
-            Vertex nextV = edge.inVertex();
+            JanusGraphEdge edge = edges.next();
+            JanusGraphVertex nextV = edge.inVertex();
             if (checkCycleRecursive(nextV, targetNodeId, relationType, visited, depth + 1, maxDepth)) {
                 return true;
             }

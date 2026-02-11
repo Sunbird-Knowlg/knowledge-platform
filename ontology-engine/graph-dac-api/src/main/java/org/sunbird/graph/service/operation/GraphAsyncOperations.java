@@ -2,9 +2,6 @@ package org.sunbird.graph.service.operation;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
@@ -102,9 +99,8 @@ public class GraphAsyncOperations {
 						// Checking 'IL_SEQUENCE_INDEX' is in metadata.
 
 						// Check if edge exists
-						Edge edge = null;
-						Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
-								.edges().iterator();
+						JanusGraphEdge edge = null;
+						Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 						while (edgeIter.hasNext()) {
 							JanusGraphEdge e = edgeIter.next();
 							if (e.inVertex().id().equals(endV.id())) {
@@ -180,13 +176,12 @@ public class GraphAsyncOperations {
 
 						if (startIter.hasNext()) {
 							JanusGraphVertex startV = startIter.next();
-							Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT)
-									.labels(relationType).edges()
-									.iterator();
+							Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT",
+									relationType);
 
 							while (edgeIter.hasNext()) {
 								JanusGraphEdge e = edgeIter.next();
-								Vertex endV = e.inVertex();
+								JanusGraphVertex endV = e.inVertex();
 								if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
 										endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
 									e.remove();
@@ -281,10 +276,11 @@ public class GraphAsyncOperations {
 			nodeMap.put(nodeId, node);
 
 			if (depth > 0) {
-				Iterator<JanusGraphEdge> edges = vertex.query().direction(Direction.BOTH).edges().iterator();
+				Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(vertex, "BOTH");
 				while (edges.hasNext()) {
 					JanusGraphEdge edge = edges.next();
-					Vertex otherV = edge.inVertex().id().equals(vertex.id()) ? edge.outVertex() : edge.inVertex();
+					JanusGraphVertex otherV = edge.inVertex().id().equals(vertex.id()) ? edge.outVertex()
+							: edge.inVertex();
 
 					String otherNodeId = null;
 					if (otherV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
@@ -294,13 +290,13 @@ public class GraphAsyncOperations {
 					if (StringUtils.isNotBlank(otherNodeId)) {
 						// Extract Relation
 						String startNodeId = null;
-						Vertex outV = edge.outVertex();
+						JanusGraphVertex outV = edge.outVertex();
 						if (outV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
 							startNodeId = outV.value(SystemProperties.IL_UNIQUE_ID.name()).toString();
 						}
 
 						String endNodeId = null;
-						Vertex inV = edge.inVertex();
+						JanusGraphVertex inV = edge.inVertex();
 						if (inV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent()) {
 							endNodeId = inV.value(SystemProperties.IL_UNIQUE_ID.name()).toString();
 						}
@@ -328,7 +324,7 @@ public class GraphAsyncOperations {
 		}
 	}
 
-	private static void enrichRelationWithNodeProps(Relation relation, Vertex outV, Vertex inV) {
+	private static void enrichRelationWithNodeProps(Relation relation, JanusGraphVertex outV, JanusGraphVertex inV) {
 		if (outV.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).isPresent()) {
 			relation.setStartNodeObjectType(outV
 					.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name()).value().toString());

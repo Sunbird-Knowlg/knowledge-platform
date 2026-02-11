@@ -1,6 +1,5 @@
 package org.sunbird.graph.service.operation;
 
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,21 +24,19 @@ public class NodeAsyncOperationsTest extends BaseTest {
 
     @BeforeClass
     public static void setUp() {
-        GraphTraversalSource infoG = graph.traversal();
-        // Create initial test node
-        if (!infoG.V().has("IL_UNIQUE_ID", "do_000000123").hasNext()) {
-            infoG.addV("domain")
-                    .property("IL_UNIQUE_ID", "do_000000123")
-                    .property("graphId", "domain") // Added graphId property
-                    .property("name", "Test Node")
-                    .property("IL_SYS_NODE_TYPE", "DATA_NODE")
-                    .property("IL_FUNC_OBJECT_TYPE", "Content")
-                    .next();
-        }
-        infoG.tx().commit();
+        org.janusgraph.core.JanusGraphTransaction tx = graph.newTransaction();
         try {
-            infoG.close();
+            if (!tx.query().has("IL_UNIQUE_ID", "do_000000123").vertices().iterator().hasNext()) {
+                org.janusgraph.core.JanusGraphVertex v = tx.addVertex("domain");
+                v.property("IL_UNIQUE_ID", "do_000000123");
+                v.property("graphId", "domain");
+                v.property("name", "Test Node");
+                v.property("IL_SYS_NODE_TYPE", "DATA_NODE");
+                v.property("IL_FUNC_OBJECT_TYPE", "Content");
+            }
+            tx.commit();
         } catch (Exception e) {
+            tx.rollback();
         }
     }
 
@@ -189,19 +186,18 @@ public class NodeAsyncOperationsTest extends BaseTest {
 
     @Test
     public void testDeleteWithValidID() throws Exception {
-        GraphTraversalSource infoG = graph.traversal();
-        // Ensure node exists first
-        if (!infoG.V().has("IL_UNIQUE_ID", "do_000000123").hasNext()) {
-            infoG.addV("domain")
-                    .property("IL_UNIQUE_ID", "do_000000123")
-                    .property("graphId", "domain") // Added graphId
-                    .property("IL_SYS_NODE_TYPE", "DATA_NODE")
-                    .next();
-        }
-        infoG.tx().commit();
+        org.janusgraph.core.JanusGraphTransaction tx = graph.newTransaction();
         try {
-            infoG.close();
+            // Ensure node exists first
+            if (!tx.query().has("IL_UNIQUE_ID", "do_000000123").vertices().iterator().hasNext()) {
+                org.janusgraph.core.JanusGraphVertex v = tx.addVertex("domain");
+                v.property("IL_UNIQUE_ID", "do_000000123");
+                v.property("graphId", "domain");
+                v.property("IL_SYS_NODE_TYPE", "DATA_NODE");
+            }
+            tx.commit();
         } catch (Exception e) {
+            tx.rollback();
         }
 
         Future<Boolean> resultFuture2 = NodeAsyncOperations.deleteNode("domain", "do_000000123", new Request());

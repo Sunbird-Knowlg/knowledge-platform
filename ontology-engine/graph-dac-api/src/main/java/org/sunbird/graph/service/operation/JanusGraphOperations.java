@@ -1,13 +1,11 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
+import org.sunbird.graph.dac.util.JanusGraphNodeUtil;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 
@@ -119,9 +117,8 @@ public class JanusGraphOperations {
 			}
 
 			// Check if edge exists
-			Edge edge = null;
-			Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
-					.iterator();
+			JanusGraphEdge edge = null;
+			Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 			while (edgeIter.hasNext()) {
 				JanusGraphEdge e = edgeIter.next();
 				if (e.inVertex().id().equals(endV.id())) {
@@ -137,7 +134,7 @@ public class JanusGraphOperations {
 				}
 			} else {
 				// Create new
-				edge = startV.addEdge(relationType, endV);
+				edge = (JanusGraphEdge) startV.addEdge(relationType, endV);
 				for (Map.Entry<String, Object> entry : metadata.entrySet()) {
 					edge.property(entry.getKey(), entry.getValue());
 				}
@@ -158,14 +155,10 @@ public class JanusGraphOperations {
 	 * Calculate next sequence index for SEQUENCE_MEMBERSHIP relations
 	 * Finds max existing index and returns max + 1 (or 1 if no edges exist)
 	 */
-	/**
-	 * Calculate next sequence index for SEQUENCE_MEMBERSHIP relations
-	 */
 	private static Integer calculateNextSequenceIndex(JanusGraphVertex startV, String relationType) {
 		try {
 			List<Integer> existingIndices = new ArrayList<>();
-			Iterator<JanusGraphEdge> edges = startV.query().direction(Direction.OUT).labels(relationType).edges()
-					.iterator();
+			Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 			while (edges.hasNext()) {
 				JanusGraphEdge e = edges.next();
 				if (e.property("IL_SEQUENCE_INDEX").isPresent()) {
@@ -238,9 +231,8 @@ public class JanusGraphOperations {
 				JanusGraphVertex startV = startIter.next();
 
 				// Find edge
-				Edge edge = null;
-				Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
-						.iterator();
+				JanusGraphEdge edge = null;
+				Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 
 				// We need end vertex ID check.
 				// Since we don't have end vertex object, we can avoid fetching it if we check
@@ -248,7 +240,7 @@ public class JanusGraphOperations {
 
 				while (edgeIter.hasNext()) {
 					JanusGraphEdge e = edgeIter.next();
-					Vertex endV = e.inVertex();
+					JanusGraphVertex endV = e.inVertex();
 					if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
 							endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
 						edge = e;
@@ -316,12 +308,11 @@ public class JanusGraphOperations {
 
 			if (startIter.hasNext()) {
 				JanusGraphVertex startV = startIter.next();
-				Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
-						.iterator();
+				Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 
 				while (edgeIter.hasNext()) {
 					JanusGraphEdge e = edgeIter.next();
-					Vertex endV = e.inVertex();
+					JanusGraphVertex endV = e.inVertex();
 					if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
 							endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
 						e.remove();
@@ -402,9 +393,8 @@ public class JanusGraphOperations {
 
 					// Check if edge exists
 					boolean exists = false;
-					Edge existingEdge = null;
-					Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
-							.edges().iterator();
+					JanusGraphEdge existingEdge = null;
+					Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 					while (edgeIter.hasNext()) {
 						JanusGraphEdge e = edgeIter.next();
 						if (e.inVertex().id().equals(endV.id())) {
@@ -418,7 +408,7 @@ public class JanusGraphOperations {
 					}
 
 					if (!exists) {
-						Edge edge = startV.addEdge(relationType, endV);
+						JanusGraphEdge edge = (JanusGraphEdge) startV.addEdge(relationType, endV);
 						for (Map.Entry<String, Object> entry : metadata.entrySet()) {
 							edge.property(entry.getKey(), entry.getValue());
 						}
@@ -504,9 +494,8 @@ public class JanusGraphOperations {
 
 					// Check if edge exists
 					boolean exists = false;
-					Edge existingEdge = null;
-					Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
-							.edges().iterator();
+					JanusGraphEdge existingEdge = null;
+					Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 					while (edgeIter.hasNext()) {
 						JanusGraphEdge e = edgeIter.next();
 						if (e.inVertex().id().equals(endV.id())) {
@@ -517,7 +506,7 @@ public class JanusGraphOperations {
 					}
 
 					if (!exists) {
-						Edge edge = startV.addEdge(relationType, endV);
+						JanusGraphEdge edge = (JanusGraphEdge) startV.addEdge(relationType, endV);
 						for (Map.Entry<String, Object> entry : metadata.entrySet()) {
 							edge.property(entry.getKey(), entry.getValue());
 						}
@@ -599,10 +588,9 @@ public class JanusGraphOperations {
 							.has("graphId", graphId).vertices().iterator();
 					if (startIter.hasNext()) {
 						JanusGraphVertex startV = startIter.next();
-						Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
-								.edges().iterator();
-						while (edgeIter.hasNext()) {
-							JanusGraphEdge e = edgeIter.next();
+						Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
+						while (edges.hasNext()) {
+							JanusGraphEdge e = edges.next();
 							if (e.inVertex().id().equals(endV.id())) {
 								e.remove();
 							}
@@ -668,11 +656,10 @@ public class JanusGraphOperations {
 				JanusGraphVertex startV = startIter.next();
 
 				for (String endNodeId : endNodeIds) {
-					Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType)
-							.edges().iterator();
+					Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 					while (edgeIter.hasNext()) {
 						JanusGraphEdge e = edgeIter.next();
-						Vertex endV = e.inVertex();
+						JanusGraphVertex endV = e.inVertex();
 						if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
 								endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
 							e.remove();
@@ -739,12 +726,11 @@ public class JanusGraphOperations {
 
 			if (startIter.hasNext()) {
 				JanusGraphVertex startV = startIter.next();
-				Iterator<JanusGraphEdge> edgeIter = startV.query().direction(Direction.OUT).labels(relationType).edges()
-						.iterator();
+				Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 
 				while (edgeIter.hasNext()) {
 					JanusGraphEdge e = edgeIter.next();
-					Vertex endV = e.inVertex();
+					JanusGraphVertex endV = e.inVertex();
 					if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
 							endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
 

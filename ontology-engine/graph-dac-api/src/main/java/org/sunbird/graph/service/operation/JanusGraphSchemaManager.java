@@ -1,7 +1,7 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
+
 import org.janusgraph.core.Cardinality;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.PropertyKey;
@@ -23,9 +23,10 @@ public class JanusGraphSchemaManager {
 
 	/**
 	 * Create a unique index (constraint) on a property for a given graph
-	 * Equivalent to Neo4j: CREATE CONSTRAINT ON (n:graphId) ASSERT n.property IS UNIQUE
+	 * Equivalent to Neo4j: CREATE CONSTRAINT ON (n:graphId) ASSERT n.property IS
+	 * UNIQUE
 	 * 
-	 * @param graphId the graph identifier (used as vertex label)
+	 * @param graphId       the graph identifier (used as vertex label)
 	 * @param indexProperty the property name to index
 	 */
 	public static void createUniqueIndex(String graphId, String indexProperty) {
@@ -42,7 +43,7 @@ public class JanusGraphSchemaManager {
 
 		try {
 			JanusGraphManagement mgmt = graph.openManagement();
-			
+
 			// Check if property key already exists
 			PropertyKey propertyKey = mgmt.getPropertyKey(indexProperty);
 			if (propertyKey == null) {
@@ -53,30 +54,30 @@ public class JanusGraphSchemaManager {
 						.make();
 				TelemetryManager.log("Created property key: " + indexProperty);
 			}
-			
+
 			// Check if unique index already exists
 			String indexName = "unique_" + graphId + "_" + indexProperty;
 			JanusGraphIndex existingIndex = mgmt.getGraphIndex(indexName);
-			
+
 			if (existingIndex == null) {
 				// Create unique composite index
-				mgmt.buildIndex(indexName, Vertex.class)
+				mgmt.buildIndex(indexName, org.janusgraph.core.JanusGraphVertex.class)
 						.addKey(propertyKey)
 						.unique()
 						.buildCompositeIndex();
-				
+
 				TelemetryManager.log("Created unique index: " + indexName + " on property: " + indexProperty);
 			} else {
 				TelemetryManager.log("Unique index already exists: " + indexName);
 			}
-			
+
 			mgmt.commit();
-			
+
 			// Wait for index to be available (async process in JanusGraph)
 			ManagementSystem.awaitGraphIndexStatus(graph, indexName)
 					.timeout(60, java.time.temporal.ChronoUnit.SECONDS)
 					.call();
-			
+
 			TelemetryManager.log("'Create Unique Index' Operation Finished. | Index: " + indexName);
 
 		} catch (Exception e) {
@@ -90,7 +91,7 @@ public class JanusGraphSchemaManager {
 	 * Create a composite index on a property for a given graph
 	 * Equivalent to Neo4j: CREATE INDEX ON :graphId(property)
 	 * 
-	 * @param graphId the graph identifier (used as vertex label)
+	 * @param graphId       the graph identifier (used as vertex label)
 	 * @param indexProperty the property name to index
 	 */
 	public static void createCompositeIndex(String graphId, String indexProperty) {
@@ -107,7 +108,7 @@ public class JanusGraphSchemaManager {
 
 		try {
 			JanusGraphManagement mgmt = graph.openManagement();
-			
+
 			// Check if property key already exists
 			PropertyKey propertyKey = mgmt.getPropertyKey(indexProperty);
 			if (propertyKey == null) {
@@ -118,29 +119,29 @@ public class JanusGraphSchemaManager {
 						.make();
 				TelemetryManager.log("Created property key: " + indexProperty);
 			}
-			
+
 			// Check if composite index already exists
 			String indexName = "composite_" + graphId + "_" + indexProperty;
 			JanusGraphIndex existingIndex = mgmt.getGraphIndex(indexName);
-			
+
 			if (existingIndex == null) {
 				// Create composite index (non-unique)
-				mgmt.buildIndex(indexName, Vertex.class)
+				mgmt.buildIndex(indexName, org.janusgraph.core.JanusGraphVertex.class)
 						.addKey(propertyKey)
 						.buildCompositeIndex();
-				
+
 				TelemetryManager.log("Created composite index: " + indexName + " on property: " + indexProperty);
 			} else {
 				TelemetryManager.log("Composite index already exists: " + indexName);
 			}
-			
+
 			mgmt.commit();
-			
+
 			// Wait for index to be available (async process in JanusGraph)
 			ManagementSystem.awaitGraphIndexStatus(graph, indexName)
 					.timeout(60, java.time.temporal.ChronoUnit.SECONDS)
 					.call();
-			
+
 			TelemetryManager.log("'Create Composite Index' Operation Finished. | Index: " + indexName);
 
 		} catch (Exception e) {
@@ -154,9 +155,9 @@ public class JanusGraphSchemaManager {
 	 * Create a mixed index on a property for full-text search capabilities
 	 * Uses external indexing backend (Elasticsearch, Solr, Lucene)
 	 * 
-	 * @param graphId the graph identifier
+	 * @param graphId       the graph identifier
 	 * @param indexProperty the property name to index
-	 * @param indexBackend the backend name (e.g., "search" for Elasticsearch)
+	 * @param indexBackend  the backend name (e.g., "search" for Elasticsearch)
 	 */
 	public static void createMixedIndex(String graphId, String indexProperty, String indexBackend) {
 		if (StringUtils.isBlank(graphId))
@@ -176,7 +177,7 @@ public class JanusGraphSchemaManager {
 
 		try {
 			JanusGraphManagement mgmt = graph.openManagement();
-			
+
 			// Check if property key already exists
 			PropertyKey propertyKey = mgmt.getPropertyKey(indexProperty);
 			if (propertyKey == null) {
@@ -187,25 +188,25 @@ public class JanusGraphSchemaManager {
 						.make();
 				TelemetryManager.log("Created property key: " + indexProperty);
 			}
-			
+
 			// Check if mixed index already exists
 			String indexName = "mixed_" + graphId + "_" + indexProperty;
 			JanusGraphIndex existingIndex = mgmt.getGraphIndex(indexName);
-			
+
 			if (existingIndex == null) {
 				// Create mixed index with external backend
-				mgmt.buildIndex(indexName, Vertex.class)
+				mgmt.buildIndex(indexName, org.janusgraph.core.JanusGraphVertex.class)
 						.addKey(propertyKey)
 						.buildMixedIndex(indexBackend);
-				
-				TelemetryManager.log("Created mixed index: " + indexName + " on property: " + indexProperty + 
+
+				TelemetryManager.log("Created mixed index: " + indexName + " on property: " + indexProperty +
 						" with backend: " + indexBackend);
 			} else {
 				TelemetryManager.log("Mixed index already exists: " + indexName);
 			}
-			
+
 			mgmt.commit();
-			
+
 			TelemetryManager.log("'Create Mixed Index' Operation Finished. | Index: " + indexName);
 
 		} catch (Exception e) {
@@ -218,7 +219,7 @@ public class JanusGraphSchemaManager {
 	/**
 	 * Drop an index by name
 	 * 
-	 * @param graphId the graph identifier
+	 * @param graphId   the graph identifier
 	 * @param indexName the name of the index to drop
 	 */
 	public static void dropIndex(String graphId, String indexName) {
@@ -235,26 +236,26 @@ public class JanusGraphSchemaManager {
 
 		try {
 			JanusGraphManagement mgmt = graph.openManagement();
-			
+
 			JanusGraphIndex index = mgmt.getGraphIndex(indexName);
-			
+
 			if (index != null) {
 				// Disable index first
 				mgmt.updateIndex(index, org.janusgraph.core.schema.SchemaAction.DISABLE_INDEX).get();
 				mgmt.commit();
-				
+
 				// Wait for index to be disabled
 				ManagementSystem.awaitGraphIndexStatus(graph, indexName)
 						.status(org.janusgraph.core.schema.SchemaStatus.DISABLED)
 						.timeout(60, java.time.temporal.ChronoUnit.SECONDS)
 						.call();
-				
+
 				// Drop index after disabling
 				mgmt = graph.openManagement();
 				index = mgmt.getGraphIndex(indexName);
 				mgmt.updateIndex(index, org.janusgraph.core.schema.SchemaAction.DROP_INDEX).get();
 				mgmt.commit();
-				
+
 				TelemetryManager.log("Dropped index: " + indexName);
 			} else {
 				TelemetryManager.log("Index not found: " + indexName);
@@ -283,16 +284,17 @@ public class JanusGraphSchemaManager {
 
 		try {
 			JanusGraphManagement mgmt = graph.openManagement();
-			
-			Iterable<JanusGraphIndex> indices = mgmt.getGraphIndexes(Vertex.class);
+
+			Iterable<JanusGraphIndex> indices = mgmt
+					.getGraphIndexes(org.janusgraph.core.JanusGraphVertex.class);
 			java.util.List<String> indexNames = new java.util.ArrayList<>();
-			
+
 			for (JanusGraphIndex index : indices) {
 				indexNames.add(index.name());
 			}
-			
+
 			mgmt.commit();
-			
+
 			TelemetryManager.log("Found " + indexNames.size() + " indices for graph: " + graphId);
 			return indexNames;
 

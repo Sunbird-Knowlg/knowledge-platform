@@ -2,9 +2,6 @@ package org.sunbird.graph.service.operation;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
@@ -324,7 +321,7 @@ public class SearchAsyncOperations {
         }
     }
 
-    private static boolean matchesMetadata(Vertex v, List<MetadataCriterion> criteriaList) {
+    private static boolean matchesMetadata(JanusGraphVertex v, List<MetadataCriterion> criteriaList) {
         for (MetadataCriterion mc : criteriaList) {
             if (!checkMetadataCriterion(v, mc))
                 return false;
@@ -332,7 +329,7 @@ public class SearchAsyncOperations {
         return true;
     }
 
-    private static boolean checkMetadataCriterion(Vertex v, MetadataCriterion mc) {
+    private static boolean checkMetadataCriterion(JanusGraphVertex v, MetadataCriterion mc) {
         // Op: AND or OR. Default AND.
         boolean isOr = StringUtils.equalsIgnoreCase(SearchConditions.LOGICAL_OR, mc.getOp());
 
@@ -369,7 +366,7 @@ public class SearchAsyncOperations {
         }
     }
 
-    private static boolean checkFilter(Vertex v, Filter f) {
+    private static boolean checkFilter(JanusGraphVertex v, Filter f) {
         String prop = f.getProperty();
         if ("identifier".equals(prop))
             prop = SystemProperties.IL_UNIQUE_ID.name();
@@ -429,7 +426,7 @@ public class SearchAsyncOperations {
         return String.valueOf(v1).compareTo(String.valueOf(v2));
     }
 
-    private static boolean matchesRelations(Vertex v, List<RelationCriterion> relations, String graphId) {
+    private static boolean matchesRelations(JanusGraphVertex v, List<RelationCriterion> relations, String graphId) {
         for (RelationCriterion rc : relations) {
             if (!checkRelation(v, rc))
                 return false;
@@ -437,21 +434,13 @@ public class SearchAsyncOperations {
         return true;
     }
 
-    private static boolean checkRelation(Vertex v, RelationCriterion rc) {
-        String dir = rc.getDirection() != null ? rc.getDirection().name() : "OUT";
-        Direction d;
-        if ("IN".equalsIgnoreCase(dir))
-            d = Direction.IN;
-        else if ("BOTH".equalsIgnoreCase(dir))
-            d = Direction.BOTH;
-        else
-            d = Direction.OUT;
-
-        Iterator<Edge> edges = v.edges(d, rc.getName());
+    private static boolean checkRelation(JanusGraphVertex v, RelationCriterion rc) {
+        Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(v,
+                rc.getDirection() != null ? rc.getDirection().name() : "OUT", rc.getName());
         while (edges.hasNext()) {
-            Edge e = edges.next();
+            JanusGraphEdge e = edges.next();
             // Check Other Vertex Filters
-            Vertex other = e.inVertex().equals(v) ? e.outVertex() : e.inVertex();
+            JanusGraphVertex other = e.inVertex().equals(v) ? e.outVertex() : e.inVertex();
 
             // Apply RC filters on 'other'
             boolean match = true;
@@ -604,9 +593,9 @@ public class SearchAsyncOperations {
                 while (vertexIter.hasNext()) {
                     JanusGraphVertex vertex = vertexIter.next();
                     // Get all OUT edges
-                    Iterator<Edge> edgeIter = vertex.edges(Direction.OUT);
+                    Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(vertex, "OUT");
                     while (edgeIter.hasNext()) {
-                        Edge edge = edgeIter.next();
+                        JanusGraphEdge edge = edgeIter.next();
                         Relation relation = JanusGraphNodeUtil.getRelation(edge);
                         relations.add(relation);
                     }
@@ -661,7 +650,7 @@ public class SearchAsyncOperations {
                 tx = graph.newTransaction();
                 TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
 
-                Edge edge = null;
+                JanusGraphEdge edge = null;
                 // Get start vertex
                 Iterator<JanusGraphVertex> startIter = tx.query()
                         .has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
@@ -671,11 +660,11 @@ public class SearchAsyncOperations {
                 if (startIter.hasNext()) {
                     JanusGraphVertex startV = startIter.next();
                     // Find edge to end vertex
-                    Iterator<Edge> edges = startV.edges(Direction.OUT, relationType);
+                    Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 
                     while (edges.hasNext()) {
-                        Edge e = edges.next();
-                        Vertex endV = e.inVertex();
+                        JanusGraphEdge e = edges.next();
+                        JanusGraphVertex endV = e.inVertex();
                         if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
                                 endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
                             edge = e;
@@ -761,11 +750,11 @@ public class SearchAsyncOperations {
 
                 if (startIter.hasNext()) {
                     JanusGraphVertex startV = startIter.next();
-                    Iterator<Edge> edges = startV.edges(Direction.OUT, relationType);
+                    Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(startV, "OUT", relationType);
 
                     while (edges.hasNext()) {
-                        Edge e = edges.next();
-                        Vertex endV = e.inVertex();
+                        JanusGraphEdge e = edges.next();
+                        JanusGraphVertex endV = e.inVertex();
                         if (endV.property(SystemProperties.IL_UNIQUE_ID.name()).isPresent() &&
                                 endV.value(SystemProperties.IL_UNIQUE_ID.name()).equals(endNodeId)) {
                             // Found edge, get property

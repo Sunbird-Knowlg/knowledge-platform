@@ -14,6 +14,11 @@ import scala.concurrent.Future
 
 class TestDataNode extends BaseSpec {
 
+    override def createVertex(label: String, properties: Map[String, AnyRef]): Unit = {
+        val vertex = graph.asInstanceOf[org.janusgraph.core.JanusGraphTransaction].addVertex(org.apache.tinkerpop.gremlin.structure.T.label, label)
+        properties.foreach { case (k, v) => vertex.property(k, v) }
+    }
+
     def getContextMap(): java.util.Map[String, AnyRef] = {
         new util.HashMap[String, AnyRef](){{
             put("graph_id", "domain")
@@ -250,8 +255,9 @@ class TestDataNode extends BaseSpec {
             print(node)
             assert(node.getMetadata.get("name").asInstanceOf[String].equalsIgnoreCase("testResource"))
             // Gremlin: Create concept node
-            g.addV("domain").property("IL_UNIQUE_ID", "Num:C3:SC2").property("identifier", "Num:C3:SC2").property("name", "Multiplication").property("IL_FUNC_OBJECT_TYPE", "Concept").property("IL_SYS_NODE_TYPE", "DATA_NODE").next()
-            g.tx().commit()
+            // Gremlin: Create concept node
+            createVertex("domain", Map[String, AnyRef]("IL_UNIQUE_ID" -> "Num:C3:SC2", "identifier" -> "Num:C3:SC2", "name" -> "Multiplication", "IL_FUNC_OBJECT_TYPE" -> "Concept", "IL_SYS_NODE_TYPE" -> "DATA_NODE"))
+            graph.tx().commit()
 
             val req = new Request(request)
             req.getContext.put("identifier", node.getIdentifier)
@@ -395,9 +401,10 @@ class TestDataNode extends BaseSpec {
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             // Gremlin: Create related nodes
-            g.addV("domain").property("IL_UNIQUE_ID", "do_123").property("identifier", "do_123").property("IL_FUNC_OBJECT_TYPE", "Content").property("IL_SYS_NODE_TYPE", "DATA_NODE").next()
-            g.addV("domain").property("IL_UNIQUE_ID", "do_234").property("identifier", "do_234").property("IL_FUNC_OBJECT_TYPE", "Content").property("IL_SYS_NODE_TYPE", "DATA_NODE").next()
-            g.tx().commit()
+            // Gremlin: Create related nodes
+            createVertex("domain", Map[String, AnyRef]("IL_UNIQUE_ID" -> "do_123", "identifier" -> "do_123", "IL_FUNC_OBJECT_TYPE" -> "Content", "IL_SYS_NODE_TYPE" -> "DATA_NODE"))
+            createVertex("domain", Map[String, AnyRef]("IL_UNIQUE_ID" -> "do_234", "identifier" -> "do_234", "IL_FUNC_OBJECT_TYPE" -> "Content", "IL_SYS_NODE_TYPE" -> "DATA_NODE"))
+            graph.tx().commit()
 
             val req = new Request(request)
             req.getContext.put("identifier", node.getIdentifier)
@@ -430,8 +437,9 @@ class TestDataNode extends BaseSpec {
         val future: Future[Node] = DataNode.create(request)
         future map {node => {assert(null != node)
             // Gremlin: Create related node
-            g.addV("domain").property("IL_UNIQUE_ID", "do_897").property("identifier", "do_897").property("IL_FUNC_OBJECT_TYPE", "Content").property("IL_SYS_NODE_TYPE", "DATA_NODE").next()
-            g.tx().commit()
+            // Gremlin: Create related node
+            createVertex("domain", Map[String, AnyRef]("IL_UNIQUE_ID" -> "do_897", "identifier" -> "do_897", "IL_FUNC_OBJECT_TYPE" -> "Content", "IL_SYS_NODE_TYPE" -> "DATA_NODE"))
+            graph.tx().commit()
 
             val req = new Request(request)
             req.getContext.put("identifier", node.getIdentifier)

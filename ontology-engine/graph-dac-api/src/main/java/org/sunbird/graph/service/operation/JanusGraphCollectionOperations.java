@@ -2,9 +2,6 @@ package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
@@ -20,6 +17,7 @@ import org.sunbird.graph.dac.enums.SystemNodeTypes;
 import org.sunbird.graph.dac.model.Node;
 import org.sunbird.graph.service.common.DACErrorCodeConstants;
 import org.sunbird.graph.service.common.DACErrorMessageConstants;
+import org.sunbird.graph.dac.util.JanusGraphNodeUtil;
 import org.sunbird.graph.service.util.DriverUtil;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
@@ -161,9 +159,9 @@ public class JanusGraphCollectionOperations {
 
 				if (memberVertex != null) {
 					// Check if edge already exists
-					Edge existingEdge = null;
-					Iterator<JanusGraphEdge> edgeIter = collectionVertex.query().direction(Direction.OUT)
-							.labels(relationType).edges().iterator();
+					JanusGraphEdge existingEdge = null;
+					Iterator<JanusGraphEdge> edgeIter = JanusGraphNodeUtil.getEdges(collectionVertex, "OUT",
+							relationType);
 					while (edgeIter.hasNext()) {
 						JanusGraphEdge e = edgeIter.next();
 						if (e.inVertex().id().equals(memberVertex.id())) {
@@ -177,7 +175,7 @@ public class JanusGraphCollectionOperations {
 						existingEdge.property(indexProperty, sequenceIndex);
 					} else {
 						// Create new edge
-						Edge edge = collectionVertex.addEdge(relationType, memberVertex);
+						JanusGraphEdge edge = (JanusGraphEdge) collectionVertex.addEdge(relationType, memberVertex);
 						edge.property(indexProperty, sequenceIndex);
 					}
 				} else {
@@ -244,7 +242,7 @@ public class JanusGraphCollectionOperations {
 			}
 
 			// Delete all edges (both incoming and outgoing)
-			Iterator<JanusGraphEdge> edges = collectionVertex.query().direction(Direction.BOTH).edges().iterator();
+			Iterator<JanusGraphEdge> edges = JanusGraphNodeUtil.getEdges(collectionVertex, "BOTH");
 			while (edges.hasNext()) {
 				edges.next().remove();
 			}
