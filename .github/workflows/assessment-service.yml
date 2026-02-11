@@ -1,7 +1,9 @@
 name: Build and Push Assessment Service Image
 
+# GITHUB_TOKEN needs packages: write to push to ghcr.io (GitHub Container Registry)
 permissions:
   contents: read
+  packages: write
 
 on:
   push:
