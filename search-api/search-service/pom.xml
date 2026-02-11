@@ -162,16 +162,10 @@
       <version>2.0.16</version>
     </dependency>
     <dependency>
-      <groupId>org.playframework</groupId>
-      <artifactId>play-netty-server_${scala.major.version}</artifactId>
-      <version>${play2.version}</version>
-      <scope>runtime</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>io.netty</groupId>
-          <artifactId>netty-handler</artifactId>
-        </exclusion>
-      </exclusions>
+        <groupId>org.playframework</groupId>
+        <artifactId>play-pekko-http-server_${scala.major.version}</artifactId>
+        <version>${play2.version}</version>
+        <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
