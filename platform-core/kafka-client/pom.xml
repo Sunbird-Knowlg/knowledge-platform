@@ -11,7 +11,7 @@
     <artifactId>kafka-client</artifactId>
 
     <properties>
-        <kafka.client.version>3.7.1</kafka.client.version>
+        <kafka.client.version>3.9.1</kafka.client.version>
     </properties>
 
     <dependencies>

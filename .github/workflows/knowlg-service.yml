@@ -1,5 +1,10 @@
 name: Build and Push Knowlg Service Image
 
+# GITHUB_TOKEN needs packages: write to push to ghcr.io (GitHub Container Registry)
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     tags:

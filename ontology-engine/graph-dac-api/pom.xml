@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.3.2</version>
+			<version>3.18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.sunbird</groupId>
@@ -31,6 +31,14 @@
 		</dependency>
 		<!-- JanusGraph Dependencies -->
 		<dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-codec</artifactId>
+        <version>4.1.129.Final</version>
+    </dependency> 
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-java8-compat_${scala.maj.version}</artifactId>
+			<version>0.9.0</version>
 			<groupId>org.janusgraph</groupId>
 			<artifactId>janusgraph-core</artifactId>
 			<version>1.0.0</version>
