@@ -467,34 +467,12 @@ object UpdateHierarchyManager {
         val metadata = cleanUpRootData(node)
 
         req.getRequest.putAll(metadata)
+        req.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
+        req.put(HierarchyConstants.RELATIONAL_METADATA_COL, ScalaJsonUtils.serialize(reqHierarchy))
         req.put(HierarchyConstants.IDENTIFIER, rootId)
         req.put(HierarchyConstants.CHILDREN, new java.util.ArrayList())
         req.put(HierarchyConstants.CONCEPTS, new java.util.ArrayList())
-        DataNode.update(req).flatMap(updatedNode => {
-            val hierarchyReq = new Request(request)
-            
-            // Determine the correct identifier for saving hierarchy
-            val nodeStatus = updatedNode.getMetadata.getOrDefault(HierarchyConstants.STATUS, "").asInstanceOf[String]
-            val saveIdentifier = if (CollectionUtils.containsAny(HierarchyConstants.HIERARCHY_LIVE_STATUS, nodeStatus)) {
-                // For published content, save to .img identifier
-                if (!updatedNode.getIdentifier.endsWith(HierarchyConstants.IMAGE_SUFFIX))
-                    updatedNode.getIdentifier + HierarchyConstants.IMAGE_SUFFIX
-                else
-                    updatedNode.getIdentifier
-            } else {
-                // For unpublished content, use the node identifier as-is
-                updatedNode.getIdentifier
-            }
-            
-
-            
-            hierarchyReq.put(HierarchyConstants.IDENTIFIER, saveIdentifier)
-            updatedHierarchy.put(HierarchyConstants.IDENTIFIER, saveIdentifier)
-            hierarchyReq.put(HierarchyConstants.HIERARCHY, ScalaJsonUtils.serialize(updatedHierarchy))
-            hierarchyReq.put(HierarchyConstants.RELATIONAL_METADATA_COL, ScalaJsonUtils.serialize(reqHierarchy))
-            hierarchyReq.getContext.put(HierarchyConstants.SCHEMA_NAME, HierarchyConstants.COLLECTION_SCHEMA_NAME)
-            oec.graphService.saveExternalProps(hierarchyReq).map(_ => updatedNode)
-        })
+        DataNode.update(req)
     }
 
     private def cleanUpRootData(node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.Map[String, AnyRef] = {

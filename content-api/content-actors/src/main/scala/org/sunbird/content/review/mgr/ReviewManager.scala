@@ -20,17 +20,7 @@ object ReviewManager {
 		reviewFuture.map(result => {
 			val updateReq = new Request()
 			updateReq.setContext(request.getContext)
-			// Preserve the existing node's name if not provided in the request
-			// This prevents "Untitled Content" or other default values from overwriting the actual name
-			if (!request.getRequest.containsKey("name") && node.getMetadata.containsKey("name")) {
-				updateReq.put("name", node.getMetadata.get("name"))
-			}
-			
-			// Merge request metadata with enriched metadata from mimetype manager
-			// This preserves fields like 'name' from the original request
-			updateReq.putAll(request.getRequest)  // First, add all request fields (will override preserved name if provided)
-			updateReq.putAll(result.asJava)       // Then, override with enriched metadata (status, lastSubmittedOn, reviewError)
-			
+			updateReq.putAll(result.asJava)
 			DataNode.update(updateReq).map(node => {
 				ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
 			})
