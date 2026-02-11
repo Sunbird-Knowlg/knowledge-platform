@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.3.2</version>
+			<version>3.18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
@@ -38,7 +38,7 @@
 		<dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec</artifactId>
-            <version>4.1.68.Final</version>
+            <version>4.1.129.Final</version>
         </dependency> 
 		<dependency>
 			<groupId>org.scala-lang.modules</groupId>

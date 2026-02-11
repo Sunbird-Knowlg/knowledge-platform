@@ -1,5 +1,8 @@
 name: Build and Push Search Service Image
 
+permissions:
+  contents: read
+  
 on:
   push:
     tags:
