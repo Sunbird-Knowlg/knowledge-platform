@@ -3,6 +3,7 @@ package org.sunbird.graph.service.util;
 import org.apache.commons.lang3.StringUtils;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
+import org.janusgraph.core.JanusGraphTransaction;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.service.common.DACConfigurationConstants;
@@ -130,6 +131,15 @@ public class DriverUtil {
 		TelemetryManager.log("JanusGraph instance loaded for Graph Id: " + graphId);
 		registerJanusGraphShutdownHook(graph);
 		return graph;
+	}
+
+	public static JanusGraphTransaction beginTransaction(String graphId) {
+		JanusGraph graph = getJanusGraph(graphId);
+		JanusGraphTransaction tx = graph.buildTransaction().logIdentifier("learning_graph_events").start();
+		TelemetryManager
+				.log("Initialized JanusGraph Transaction with Log Identifier: learning_graph_events | [Graph Id: "
+						+ graphId + "]");
+		return tx;
 	}
 
 	private static void registerJanusGraphShutdownHook(JanusGraph graph) {

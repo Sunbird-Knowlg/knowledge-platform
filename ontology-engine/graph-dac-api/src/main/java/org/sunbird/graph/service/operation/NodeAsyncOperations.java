@@ -4,12 +4,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
 import org.sunbird.common.DateUtils;
 import org.sunbird.common.JsonUtils;
-import org.sunbird.common.Platform;
+
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.common.exception.MiddlewareException;
@@ -42,11 +41,6 @@ import java.util.stream.Collectors;
  */
 public class NodeAsyncOperations {
 
-    private static final boolean TXN_LOG_ENABLED = Platform.config.hasPath("graph.txn.enable_log")
-            ? Platform.config.getBoolean("graph.txn.enable_log")
-            : false;
-    private static final String TXN_LOG_IDENTIFIER = "learning_graph_events";
-
     /**
      * Add a new node to the graph.
      *
@@ -66,16 +60,7 @@ public class NodeAsyncOperations {
 
             JanusGraphTransaction tx = null;
             try {
-                if (isLogEnabled(node)) {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    TelemetryManager
-                            .log("Initialized JanusGraph Transaction with Log Identifier: " + TXN_LOG_IDENTIFIER);
-                } else {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.newTransaction();
-                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
-                }
+                tx = DriverUtil.beginTransaction(graphId);
 
                 // Generate unique identifier if not present
                 String identifier = node.getIdentifier();
@@ -180,16 +165,7 @@ public class NodeAsyncOperations {
 
             JanusGraphTransaction tx = null;
             try {
-                if (isLogEnabled(node)) {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                    TelemetryManager
-                            .log("Initialized JanusGraph Transaction with Log Identifier: " + TXN_LOG_IDENTIFIER);
-                } else {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.newTransaction();
-                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
-                }
+                tx = DriverUtil.beginTransaction(graphId);
 
                 String identifier = node.getIdentifier();
 
@@ -305,13 +281,7 @@ public class NodeAsyncOperations {
 
             JanusGraphTransaction tx = null;
             try {
-                if (false) { // Disable logging for Root Node updates to avoid noise
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                } else {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.newTransaction();
-                }
+                tx = DriverUtil.beginTransaction(graphId);
 
                 String rootId = "root";
 
@@ -379,14 +349,7 @@ public class NodeAsyncOperations {
 
             JanusGraphTransaction tx = null;
             try {
-                if (TXN_LOG_ENABLED) {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                } else {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.newTransaction();
-                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
-                }
+                tx = DriverUtil.beginTransaction(graphId);
 
                 // Find and delete the node
                 Iterator<JanusGraphVertex> vertexIter = tx.query()
@@ -442,14 +405,7 @@ public class NodeAsyncOperations {
 
             JanusGraphTransaction tx = null;
             try {
-                if (TXN_LOG_ENABLED) {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.buildTransaction().logIdentifier(TXN_LOG_IDENTIFIER).start();
-                } else {
-                    JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                    tx = graph.newTransaction();
-                    TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
-                }
+                tx = DriverUtil.beginTransaction(graphId);
 
                 Map<String, Node> updatedNodes = new HashMap<>();
 
@@ -573,17 +529,4 @@ public class NodeAsyncOperations {
                     DACErrorMessageConstants.INVALID_REQUEST + " | [Invalid or 'null' Request Object.]");
     }
 
-    private static boolean isLogEnabled(Node node) {
-        if (null != node && StringUtils.equalsIgnoreCase(node.getObjectType(), "root"))
-            return false;
-        if (null != node && null != node.getMetadata()) {
-            return isLogEnabled(node.getMetadata());
-        } else {
-            return false;
-        }
-    }
-
-    private static boolean isLogEnabled(Map<String, Object> metadata) {
-        return TXN_LOG_ENABLED;
-    }
 }
