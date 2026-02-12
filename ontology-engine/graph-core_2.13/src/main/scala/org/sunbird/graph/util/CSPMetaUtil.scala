@@ -16,7 +16,6 @@ object CSPMetaUtil {
   private[this] val logger = LoggerFactory.getLogger(classOf[CSPMetaUtil])
 
   def updateAbsolutePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
-    logger.info("CSPMetaUtil ::: updateAbsolutePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]()).asScala.toList
     val absolutePath = Platform.getString("cloudstorage.read_base_path", "") + java.io.File.separator + Platform.getString("cloud_storage_container", "")
@@ -65,7 +64,6 @@ object CSPMetaUtil {
   }
 
   def updateRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
-    logger.info("CSPMetaUtil ::: updateRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val cspMeta: java.util.List[String] = Platform.getStringList("cloudstorage.metadata.list", new java.util.ArrayList[String]())
     val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
@@ -85,7 +83,6 @@ object CSPMetaUtil {
   }
 
   def saveExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
-    logger.info("CSPMetaUtil ::: saveExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
     val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
@@ -99,7 +96,6 @@ object CSPMetaUtil {
   }
 
   def updateExternalRelativePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
-    logger.info("CSPMetaUtil ::: updateExternalRelativePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     val validCSPSource: List[String] = Platform.getStringList("cloudstorage.write_base_path", new java.util.ArrayList[String]()).asScala.toList
     val basePaths: Array[String] = validCSPSource.map(source => source + java.io.File.separator + Platform.getString("cloud_storage_container", "")).toArray
@@ -116,7 +112,6 @@ object CSPMetaUtil {
 
   def updateExternalAbsolutePath(data: java.util.Map[String, AnyRef]): java.util.Map[String, AnyRef] = {
     //No need to check the metadata fields because that will be taken care while writing data.
-    logger.info("CSPMetaUtil ::: updateExternalAbsolutePath util.Map[String, AnyRef] ::: data before url replace :: " + data)
     val relativePathPrefix: String = Platform.getString("cloudstorage.relative_path_prefix", "")
     //Not Implemented logic based on external field key, because while writing data it is not considered.
     //val extFieldList = Platform.getStringList("cloudstorage.external_field_list", new java.util.ArrayList[String]()).asScala.toList
@@ -127,7 +122,6 @@ object CSPMetaUtil {
       ).asJava
       updatedMeta
     } else data
-    logger.info("CSPMetaUtil ::: updateExternalAbsolutePath util.Map[String, AnyRef] ::: data before url replace :: " + returnData)
     returnData
   }
 
