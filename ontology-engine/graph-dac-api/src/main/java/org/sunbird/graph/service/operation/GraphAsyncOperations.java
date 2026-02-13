@@ -2,7 +2,7 @@ package org.sunbird.graph.service.operation;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.janusgraph.core.JanusGraph;
+
 import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
@@ -45,9 +45,7 @@ public class GraphAsyncOperations {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				JanusGraphTransaction tx = null;
 				try {
-					JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-					tx = graph.newTransaction();
-					TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+					tx = DriverUtil.beginTransaction(graphId);
 
 					for (Map<String, Object> relData : relationData) {
 						String startNodeId = (String) relData.get(GraphDACParams.startNodeId.name());
@@ -158,9 +156,7 @@ public class GraphAsyncOperations {
 			CompletableFuture<Response> future = CompletableFuture.supplyAsync(() -> {
 				JanusGraphTransaction tx = null;
 				try {
-					JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-					tx = graph.newTransaction();
-					TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+					tx = DriverUtil.beginTransaction(graphId);
 
 					for (Map<String, Object> relData : relationData) {
 						String startNodeId = (String) relData.get(GraphDACParams.startNodeId.name());
@@ -227,9 +223,7 @@ public class GraphAsyncOperations {
 			CompletableFuture<SubGraph> future = CompletableFuture.supplyAsync(() -> {
 				JanusGraphTransaction tx = null;
 				try {
-					JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-					tx = graph.newTransaction();
-					TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+					tx = DriverUtil.beginTransaction(graphId);
 
 					Map<String, Node> nodeMap = new HashMap<>();
 					Set<Relation> relations = new HashSet<>();

@@ -1,7 +1,7 @@
 package org.sunbird.graph.service.operation;
 
 import org.apache.commons.lang3.StringUtils;
-import org.janusgraph.core.JanusGraph;
+
 import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
@@ -65,9 +65,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			Map<String, Object> metadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
 			if (metadata == null) {
@@ -214,9 +212,7 @@ public class JanusGraphOperations {
 		if (null != metadata && !metadata.isEmpty()) {
 			JanusGraphTransaction tx = null;
 			try {
-				JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-				tx = graph.newTransaction();
-				TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+				tx = DriverUtil.beginTransaction(graphId);
 
 				// Get Start Vertex
 				Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
@@ -298,9 +294,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			// Get Start Vertex
 			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
@@ -368,9 +362,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			Map<String, Object> reqMetadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
 			final Map<String, Object> metadata = (reqMetadata != null) ? reqMetadata : new HashMap<>();
@@ -469,9 +461,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			Map<String, Object> reqMetadata = (Map<String, Object>) request.get(GraphDACParams.metadata.name());
 			final Map<String, Object> metadata = (reqMetadata != null) ? reqMetadata : new HashMap<>();
@@ -565,9 +555,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			// Get End Vertex
 			Iterator<JanusGraphVertex> endIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), endNodeId)
@@ -644,9 +632,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			// Get Start Vertex
 			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)
@@ -716,9 +702,7 @@ public class JanusGraphOperations {
 
 		JanusGraphTransaction tx = null;
 		try {
-			JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-			tx = graph.newTransaction();
-			TelemetryManager.log("JanusGraph Transaction Initialised. | [Graph Id: " + graphId + "]");
+			tx = DriverUtil.beginTransaction(graphId);
 
 			// Get Start Vertex
 			Iterator<JanusGraphVertex> startIter = tx.query().has(SystemProperties.IL_UNIQUE_ID.name(), startNodeId)

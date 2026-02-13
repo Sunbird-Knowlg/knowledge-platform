@@ -78,9 +78,6 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
     HierarchyManager.getHierarchy(request).map(resp => {
       if (StringUtils.equalsIgnoreCase(resp.getResponseCode.toString, "OK")) {
         var hierarchyMap = resp.getResult.get("questionSet").asInstanceOf[util.Map[String, AnyRef]]
-        if (MapUtils.isEmpty(hierarchyMap)) {
-            hierarchyMap = resp.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]]
-        }
         if (MapUtils.isNotEmpty(hierarchyMap)) {
             val hStr: String = JsonUtils.serialize(hierarchyMap)
             val regex = """\"identifier\":\"(.*?)\.img\""""

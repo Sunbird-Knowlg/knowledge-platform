@@ -46,23 +46,13 @@ object HierarchyManager {
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
-        val rootNodeFuture = getRootNode(request, true)
+        val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             val childNodes = rootNodeMap.get("childNodes")
-            val childrenList: List[String] = childNodes match {
-                case s: String =>
-                    try {
-                        JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
-                    } catch {
-                        case _: Exception => List()
-                    }
-                case a: Array[String] => a.toList
-                case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
-                case _ => List()
-            }
+            val childrenList: List[String] = getList(childNodes)
             if(!childrenList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -95,23 +85,13 @@ object HierarchyManager {
     @throws[Exception]
     def removeLeafNodesFromHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request)
-        val rootNodeFuture = getRootNode(request, true)
+        val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
             val childNodes = rootNodeMap.get("childNodes")
-            val childrenList: List[String] = childNodes match {
-                case s: String =>
-                    try {
-                        JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
-                    } catch {
-                        case _: Exception => List()
-                    }
-                case a: Array[String] => a.toList
-                case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
-                case _ => List()
-            }
+            val childrenList: List[String] = getList(childNodes)
             if(!childrenList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
@@ -265,13 +245,11 @@ object HierarchyManager {
         }
     }
 
-    private def getRootNode(request: Request, disableCache: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    private def getRootNode(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val req = new Request(request)
         req.put("identifier", request.get("rootId").asInstanceOf[String])
         req.put("mode", request.get("mode").asInstanceOf[String])
         req.put("fields",request.get("fields").asInstanceOf[java.util.List[String]])
-        if(disableCache)
-            req.put("disableCache", Option(true))
         DataNode.read(req)
     }
 
@@ -341,17 +319,7 @@ object HierarchyManager {
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val childNodes = new java.util.ArrayList[String]()
         val nodes = rootNode.getMetadata.get("childNodes")
-        val nodesList: List[String] = nodes match {
-            case s: String =>
-                try {
-                    JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
-                } catch {
-                    case _: Exception => List()
-                }
-            case a: Array[String] => a.toList
-            case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
-            case _ => List()
-        }
+        val nodesList: List[String] = getList(nodes)
         childNodes.addAll(nodesList.asJava)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
@@ -753,5 +721,18 @@ object HierarchyManager {
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).map(_.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].asScala.toList).getOrElse(List())
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
             throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType "+childNode.get("objectType")+" found for : "+childNode.get("identifier") + "| Please provide children having one of the objectType from "+ configObjTypes.asJava)
+    }
+    private def getList(value: Any): List[String] = {
+        value match {
+            case s: String =>
+                try {
+                    JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
+                } catch {
+                    case _: Exception => List()
+                }
+            case a: Array[String] => a.toList
+            case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
+            case _ => List()
+        }
     }
 }
