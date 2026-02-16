@@ -31,60 +31,13 @@ public class JanusGraphNodeUtil {
      * 
      * @param graphId the graph identifier
      * @param vertex  the JanusGraph vertex
-     * @return Node object representing the vertex
+     * @return Node object representing the vertex with relations
      */
     public static Node getNode(String graphId, JanusGraphVertex vertex) {
-        if (null == vertex)
-            throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
-                    "Failed to create node object. Vertex from database is null.");
+        // Get base node without relations
+        Node node = getNodeWithoutRelations(graphId, vertex);
 
-        Node node = new Node();
-        node.setGraphId(graphId);
-
-        // Convert vertex ID to long
-        Object vertexId = vertex.id();
-        if (vertexId instanceof Long) {
-            node.setId((Long) vertexId);
-        } else if (vertexId instanceof Number) {
-            node.setId(((Number) vertexId).longValue());
-        } else {
-            node.setId(vertexId.hashCode());
-        }
-
-        Map<String, Object> metadata = new HashMap<>();
-        Iterator<JanusGraphVertexProperty> properties = vertex.query().properties().iterator();
-
-        while (properties.hasNext()) {
-            JanusGraphVertexProperty property = properties.next();
-            String key = property.key();
-            Object value = property.value();
-
-            if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
-                node.setIdentifier(value.toString());
-            } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name())) {
-                node.setNodeType(value.toString());
-            } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name())) {
-                node.setObjectType(value.toString());
-            } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
-                // Skip graphId as it's internal
-                if (value instanceof List) {
-                    // Keep as List to match Neo4j behavior
-                    metadata.put(key, new ArrayList<>((List<?>) value));
-                } else if (value instanceof String && ((String) value).startsWith("[")
-                        && ((String) value).endsWith("]")) {
-                    try {
-                        metadata.put(key, mapper.readValue((String) value, List.class));
-                    } catch (Exception e) {
-                        metadata.put(key, value);
-                    }
-                } else {
-                    metadata.put(key, value);
-                }
-            }
-        }
-        node.setMetadata(metadata);
-
-        // Get outgoing relations
+        // Add outgoing relations
         Iterator<JanusGraphEdge> outEdges = getEdges(vertex, "OUT");
         if (outEdges.hasNext()) {
             List<Relation> outRelations = new ArrayList<>();
@@ -95,7 +48,7 @@ public class JanusGraphNodeUtil {
             node.setOutRelations(outRelations);
         }
 
-        // Get incoming relations
+        // Add incoming relations
         Iterator<JanusGraphEdge> inEdges = getEdges(vertex, "IN");
         if (inEdges.hasNext()) {
             List<Relation> inRelations = new ArrayList<>();

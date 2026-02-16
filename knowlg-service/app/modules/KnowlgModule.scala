@@ -45,7 +45,6 @@ class KnowlgModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[QuestionV5Actor](ActorNames.QUESTION_V5_ACTOR)
         bindActor[QuestionSetV5Actor](ActorNames.QUESTION_SET_V5_ACTOR)
         
-        
         println("Initialized application actors from content-actors, taxonomy-actors, and assessment-actors JARs...")
         // $COVERAGE-ON
     }
