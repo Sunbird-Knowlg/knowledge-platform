@@ -43,10 +43,7 @@ jobs:
 
       - name: Build Knowledge Platform
         run: |
-          mvn clean install -DskipTests=true \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          mvn clean install -DskipTests=true
 
   test-content:
     needs: build
@@ -63,10 +60,7 @@ jobs:
       - name: Run Content Service Tests
         working-directory: content-api/content-service/
         run: |
-          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report
 
       - name: Upload Content Test Results
         if: always()
@@ -99,10 +93,7 @@ jobs:
       - name: Run Taxonomy Tests
         working-directory: taxonomy-api/taxonomy-service/
         run: |
-          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report
 
       - name: Upload Taxonomy Test Results
         if: always()
@@ -135,10 +126,7 @@ jobs:
       - name: Run Search Tests
         working-directory: search-api/search-service
         run: |
-          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID}  \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report
 
       - name: Upload Search Test Results
         if: always()
@@ -173,9 +161,6 @@ jobs:
         working-directory: content-api/content-service
         run: |
           mvn sonar:sonar \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION} \
           -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
           -Dsonar.organization=sunbird-knowlg-1 \
           -Dsonar.host.url=https://sonarcloud.io \
@@ -198,9 +183,6 @@ jobs:
         working-directory: taxonomy-api/taxonomy-service
         run: |
           mvn sonar:sonar \
-          -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-          -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-          -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION} \
           -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
           -Dsonar.organization=sunbird-knowlg-1 \
           -Dsonar.host.url=https://sonarcloud.io \
@@ -225,15 +207,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: search-api/search-service
         run: |
-          mvn clean compile \
-            -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-            -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-            -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION}
+          mvn clean compile
 
           mvn sonar:sonar \
-            -DCLOUD_STORE_GROUP_ID=${CLOUD_STORE_GROUP_ID} \
-            -DCLOUD_STORE_ARTIFACT_ID=${CLOUD_STORE_ARTIFACT_ID} \
-            -DCLOUD_STORE_VERSION=${CLOUD_STORE_VERSION} \
             -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
             -Dsonar.organization=sunbird-knowlg-1 \
             -Dsonar.host.url=https://sonarcloud.io \
