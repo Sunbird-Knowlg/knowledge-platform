@@ -221,24 +221,6 @@ public class JanusGraphNodeUtil {
     }
 
     /**
-     * Extract properties from a Vertex as a Map
-     * 
-     * @param vertex the JanusGraph vertex
-     * @return Map of property key-value pairs
-     */
-    public static Map<String, Object> getVertexProperties(JanusGraphVertex vertex) {
-        Map<String, Object> properties = new HashMap<>();
-        Iterator<JanusGraphVertexProperty> propertyIterator = vertex.query().properties().iterator();
-
-        while (propertyIterator.hasNext()) {
-            JanusGraphVertexProperty property = propertyIterator.next();
-            properties.put(property.key(), property.value());
-        }
-
-        return properties;
-    }
-
-    /**
      * Extract properties from an Edge as a Map
      * 
      * @param edge the JanusGraph edge
