@@ -47,12 +47,17 @@ public class DriverUtil {
 	 * @param graphId the graph identifier
 	 * @return JanusGraph instance
 	 */
-	public static synchronized JanusGraph getJanusGraph(String graphId) {
+	public static JanusGraph getJanusGraph(String graphId) {
 		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
 		JanusGraph graph = janusGraphMap.get(graphId);
 		if (graph == null) {
-			graph = loadJanusGraph(graphId);
-			janusGraphMap.put(graphId, graph);
+			synchronized (DriverUtil.class) {
+				graph = janusGraphMap.get(graphId);
+				if (graph == null) {
+					graph = loadJanusGraph(graphId);
+					janusGraphMap.put(graphId, graph);
+				}
+			}
 		}
 		return graph;
 	}
