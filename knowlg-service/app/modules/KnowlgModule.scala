@@ -45,12 +45,6 @@ class KnowlgModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[QuestionV5Actor](ActorNames.QUESTION_V5_ACTOR)
         bindActor[QuestionSetV5Actor](ActorNames.QUESTION_SET_V5_ACTOR)
         
-        try {
-            org.sunbird.graph.service.util.DriverUtil.closeConnections()
-            println("DriverUtil: Closed existing graph connections to ensure fresh startup.")
-        } catch {
-            case e: Exception => println("DriverUtil: Error occurred while closing connections: " + e.getMessage)
-        }
         
         println("Initialized application actors from content-actors, taxonomy-actors, and assessment-actors JARs...")
         // $COVERAGE-ON
