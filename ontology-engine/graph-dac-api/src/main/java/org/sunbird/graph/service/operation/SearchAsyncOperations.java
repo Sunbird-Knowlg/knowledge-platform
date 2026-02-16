@@ -47,6 +47,56 @@ import java.util.stream.StreamSupport;
 public class SearchAsyncOperations {
 
     /**
+     * Helper class to hold vertex and its transaction together.
+     */
+    private static class VertexWithTransaction {
+        final JanusGraphVertex vertex;
+        final JanusGraphTransaction transaction;
+        
+        VertexWithTransaction(JanusGraphVertex vertex, JanusGraphTransaction transaction) {
+            this.vertex = vertex;
+            this.transaction = transaction;
+        }
+    }
+
+    /**
+     * Helper method to get a vertex by its unique identifier with its transaction.
+     * Extracts common logic used by getNodeByUniqueId and getNodeProperty.
+     *
+     * @param graphId the graph id
+     * @param identifier the node unique identifier
+     * @param operationName name of the operation for error messages
+     * @return VertexWithTransaction containing the found vertex and its transaction
+     * @throws ClientException if graphId or identifier is invalid
+     * @throws ResourceNotFoundException if node is not found
+     */
+    private static VertexWithTransaction getVertexByUniqueId(String graphId, String identifier, String operationName) {
+        if (StringUtils.isBlank(graphId))
+            throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
+                    DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['" + operationName + "' Operation Failed.]");
+
+        if (StringUtils.isBlank(identifier))
+            throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
+                    DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['" + operationName + "' Operation Failed.]");
+
+        JanusGraph graph = DriverUtil.getJanusGraph(graphId);
+        JanusGraphTransaction tx = graph.newTransaction();
+        TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
+
+        Iterator<JanusGraphVertex> vertexIter = tx.query()
+                .has(SystemProperties.IL_UNIQUE_ID.name(), identifier)
+                .has("graphId", graphId)
+                .vertices().iterator();
+
+        if (!vertexIter.hasNext()) {
+            throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
+                    "Node not found with id: " + identifier + " | ['" + operationName + "' Operation Failed.]");
+        }
+
+        return new VertexWithTransaction(vertexIter.next(), tx);
+    }
+
+    /**
      * Get a node by its unique identifier.
      *
      * @param graphId the graph id
@@ -57,33 +107,13 @@ public class SearchAsyncOperations {
      */
     public static Future<Node> getNodeByUniqueId(String graphId, String nodeId, Boolean getTags, Request request) {
         return FutureConverters.toScala(CompletableFuture.supplyAsync(() -> {
-            if (StringUtils.isBlank(graphId))
-                throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
-                        DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Node By Unique Id' Operation Failed.]");
-
-            if (StringUtils.isBlank(nodeId))
-                throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-                        DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node By Unique Id' Operation Failed.]");
-
             JanusGraphTransaction tx = null;
             try {
-                JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                tx = graph.newTransaction();
-                TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
-
-                Iterator<JanusGraphVertex> vertexIter = tx.query()
-                        .has(SystemProperties.IL_UNIQUE_ID.name(), nodeId)
-                        .has("graphId", graphId)
-                        .vertices().iterator();
-
-                if (!vertexIter.hasNext()) {
-                    throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
-                            "Node not found with id: " + nodeId + " | ['Get Node By Unique Id' Operation Failed.]");
-                }
-
-                JanusGraphVertex vertex = vertexIter.next();
+                VertexWithTransaction vt = getVertexByUniqueId(graphId, nodeId, "Get Node By Unique Id");
+                tx = vt.transaction;
+                JanusGraphVertex vertex = vt.vertex;
+                
                 Node node;
-
                 if (getTags != null && getTags) {
                     // Get node with relations (tags)
                     node = JanusGraphNodeUtil.getNode(graphId, vertex);
@@ -121,35 +151,15 @@ public class SearchAsyncOperations {
      */
     public static Future<Property> getNodeProperty(String graphId, String identifier, String property) {
         return FutureConverters.toScala(CompletableFuture.supplyAsync(() -> {
-            if (StringUtils.isBlank(graphId))
-                throw new ClientException(DACErrorCodeConstants.INVALID_GRAPH.name(),
-                        DACErrorMessageConstants.INVALID_GRAPH_ID + " | ['Get Node Property' Operation Failed.]");
-
-            if (StringUtils.isBlank(identifier))
-                throw new ClientException(DACErrorCodeConstants.INVALID_IDENTIFIER.name(),
-                        DACErrorMessageConstants.INVALID_IDENTIFIER + " | ['Get Node Property' Operation Failed.]");
-
             if (StringUtils.isBlank(property))
                 throw new ClientException(DACErrorCodeConstants.INVALID_PROPERTY.name(),
                         "Invalid property name. | ['Get Node Property' Operation Failed.]");
 
             JanusGraphTransaction tx = null;
             try {
-                JanusGraph graph = DriverUtil.getJanusGraph(graphId);
-                tx = graph.newTransaction();
-                TelemetryManager.log("JanusGraph Transaction Initialized. | [Graph Id: " + graphId + "]");
-
-                Iterator<JanusGraphVertex> vertexIter = tx.query()
-                        .has(SystemProperties.IL_UNIQUE_ID.name(), identifier)
-                        .has("graphId", graphId)
-                        .vertices().iterator();
-
-                if (!vertexIter.hasNext()) {
-                    throw new ResourceNotFoundException(DACErrorCodeConstants.NOT_FOUND.name(),
-                            "Node not found with id: " + identifier + " | ['Get Node Property' Operation Failed.]");
-                }
-
-                JanusGraphVertex vertex = vertexIter.next();
+                VertexWithTransaction vt = getVertexByUniqueId(graphId, identifier, "Get Node Property");
+                tx = vt.transaction;
+                JanusGraphVertex vertex = vt.vertex;
 
                 // Check if property exists
                 if (!vertex.keys().contains(property)) {
