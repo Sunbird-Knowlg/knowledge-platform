@@ -308,36 +308,17 @@ object HierarchyManager {
     }
 
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
-        leafNodes.zipWithIndex.foreach { case (node, idx) =>
-            if (null == node) {
-                TelemetryManager.error(s"HierarchyManager.convertNodeToMap: Node at index $idx is NULL")
-            } else {
-                val identifier = if (null != node.getIdentifier) node.getIdentifier else "NULL_IDENTIFIER"
-                val objectType = if (null != node.getObjectType) node.getObjectType else "NULL_OBJECTTYPE"
-            }
-        }
         leafNodes.map(node => {
-            if (null == node) {
-                TelemetryManager.error("HierarchyManager.convertNodeToMap: Node is null, skipping")
-                new java.util.HashMap[String, AnyRef]() // Return empty map for null nodes
-            } else if (null == node.getIdentifier || StringUtils.isBlank(node.getIdentifier)) {
-                TelemetryManager.error("HierarchyManager.convertNodeToMap: Node has null or blank identifier, skipping")
-                new java.util.HashMap[String, AnyRef]() // Return empty map for nodes with null identifier
-            } else if (null == node.getObjectType || StringUtils.isBlank(node.getObjectType)) {
-                TelemetryManager.error(s"HierarchyManager.convertNodeToMap: Node ${node.getIdentifier} has null or blank objectType, skipping")
-                new java.util.HashMap[String, AnyRef]() // Return empty map for nodes with null objectType
-            } else {
-                val updatedNode: Node = if (node.getObjectType.equalsIgnoreCase("QuestionSet")
-                  && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
-                    val extData = if (null != node.getExternalData) node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava else Map().asJava
-                    node.getMetadata.putAll(extData)
-                    node
-                } else node
-                val schemaVersion = updatedNode.getMetadata.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
-                val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(updatedNode, null, updatedNode.getObjectType.toLowerCase().replace("image", ""), schemaVersion)
-                nodeMap.keySet().removeAll(keyTobeRemoved)
-                nodeMap
-            }
+            val updatedNode: Node = if (node.getObjectType.equalsIgnoreCase("QuestionSet")
+                && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
+                val extData = if (null != node.getExternalData) node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava else Map().asJava
+                node.getMetadata.putAll(extData)
+                node
+            } else node
+            val schemaVersion = updatedNode.getMetadata.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
+            val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(updatedNode, null, updatedNode.getObjectType.toLowerCase().replace("image", ""), schemaVersion)
+            nodeMap.keySet().removeAll(keyTobeRemoved)
+            nodeMap
         }).filter(map => !map.isEmpty).asJava
     }
 
