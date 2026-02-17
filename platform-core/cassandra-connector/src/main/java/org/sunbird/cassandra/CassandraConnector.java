@@ -107,6 +107,7 @@ public class CassandraConnector {
 	public static void close() {
 		if (null != session && !session.isClosed())
 			session.close();
+		session = null;
 	}
 
 	/**
