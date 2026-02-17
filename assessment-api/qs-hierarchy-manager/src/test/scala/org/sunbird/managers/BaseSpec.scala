@@ -50,7 +50,6 @@ class BaseSpec extends AsyncFlatSpec with Matchers with BeforeAndAfterAll with B
     override def afterAll(): Unit = {
         if (null != graph) {
             graph.close()
-            DriverUtil.closeConnections()
         }
         if (null != session && !session.isClosed)
             session.close()

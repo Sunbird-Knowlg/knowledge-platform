@@ -12,26 +12,12 @@ import org.sunbird.graph.service.common.DACErrorMessageConstants;
 import org.sunbird.graph.service.common.GraphOperation;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DriverUtil {
 
-	private static Map<String, JanusGraph> janusGraphMap = new ConcurrentHashMap<>();
-
-	public static void closeConnections() {
-		for (Iterator<Map.Entry<String, JanusGraph>> it = janusGraphMap.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<String, JanusGraph> entry = it.next();
-			JanusGraph graph = entry.getValue();
-			try {
-				graph.close();
-			} catch (Exception e) {
-				TelemetryManager.error("Error closing JanusGraph", e);
-			}
-			it.remove();
-		}
-	}
+	private static Map<String, JanusGraph> janusGraphMap = new HashMap<>();
 
 	public static String getRoute(String graphId, GraphOperation graphOperation) {
 		// Checking Graph Id for 'null' or 'Empty'
@@ -63,7 +49,17 @@ public class DriverUtil {
 	 */
 	public static JanusGraph getJanusGraph(String graphId) {
 		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
-		return janusGraphMap.computeIfAbsent(graphId, key -> loadJanusGraph(key));
+		JanusGraph graph = janusGraphMap.get(graphId);
+		if (graph == null) {
+			synchronized (DriverUtil.class) {
+				graph = janusGraphMap.get(graphId);
+				if (graph == null) {
+					graph = loadJanusGraph(graphId);
+					janusGraphMap.put(graphId, graph);
+				}
+			}
+		}
+		return graph;
 	}
 
 	private static JanusGraph loadJanusGraph(String graphId) {
