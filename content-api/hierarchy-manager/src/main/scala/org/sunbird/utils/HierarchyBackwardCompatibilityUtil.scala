@@ -20,18 +20,18 @@ object HierarchyBackwardCompatibilityUtil {
         "video/webm", "video/x-youtube", "video/mp4")
     val objectTypes = List("Content", "Collection")
 
+    private def getStringValue(input: util.Map[String, AnyRef], key: String): String = {
+        input.get(key) match {
+            case s: String => s
+            case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
+            case _ => ""
+        }
+    }
+
     def setContentAndCategoryTypes(input: util.Map[String, AnyRef], objType: String = ""): Unit = {
         if(StringUtils.isBlank(objType) || objectTypes.contains(objType)) {
-            val contentType = input.get("contentType") match {
-                case s: String => s
-                case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
-                case _ => ""
-            }
-            val primaryCategory = input.get("primaryCategory") match {
-                case s: String => s
-                case l: java.util.List[_] => if (l.isEmpty) "" else l.get(0).toString
-                case _ => ""
-            }
+            val contentType = getStringValue(input, "contentType")
+            val primaryCategory = getStringValue(input, "primaryCategory")
 
             val (updatedContentType, updatedPrimaryCategory): (String, String) = (contentType, primaryCategory) match {
                 case (x: String, y: String) => (x, y)

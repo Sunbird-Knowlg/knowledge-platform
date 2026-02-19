@@ -31,60 +31,13 @@ public class JanusGraphNodeUtil {
      * 
      * @param graphId the graph identifier
      * @param vertex  the JanusGraph vertex
-     * @return Node object representing the vertex
+     * @return Node object representing the vertex with relations
      */
     public static Node getNode(String graphId, JanusGraphVertex vertex) {
-        if (null == vertex)
-            throw new ServerException(GraphDACErrorCodes.ERR_GRAPH_NULL_DB_NODE.name(),
-                    "Failed to create node object. Vertex from database is null.");
+        // Get base node without relations
+        Node node = getNodeWithoutRelations(graphId, vertex);
 
-        Node node = new Node();
-        node.setGraphId(graphId);
-
-        // Convert vertex ID to long
-        Object vertexId = vertex.id();
-        if (vertexId instanceof Long) {
-            node.setId((Long) vertexId);
-        } else if (vertexId instanceof Number) {
-            node.setId(((Number) vertexId).longValue());
-        } else {
-            node.setId(vertexId.hashCode());
-        }
-
-        Map<String, Object> metadata = new HashMap<>();
-        Iterator<JanusGraphVertexProperty> properties = vertex.query().properties().iterator();
-
-        while (properties.hasNext()) {
-            JanusGraphVertexProperty property = properties.next();
-            String key = property.key();
-            Object value = property.value();
-
-            if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
-                node.setIdentifier(value.toString());
-            } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name())) {
-                node.setNodeType(value.toString());
-            } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name())) {
-                node.setObjectType(value.toString());
-            } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
-                // Skip graphId as it's internal
-                if (value instanceof List) {
-                    // Keep as List to match Neo4j behavior
-                    metadata.put(key, new ArrayList<>((List<?>) value));
-                } else if (value instanceof String && ((String) value).startsWith("[")
-                        && ((String) value).endsWith("]")) {
-                    try {
-                        metadata.put(key, mapper.readValue((String) value, List.class));
-                    } catch (Exception e) {
-                        metadata.put(key, value);
-                    }
-                } else {
-                    metadata.put(key, value);
-                }
-            }
-        }
-        node.setMetadata(metadata);
-
-        // Get outgoing relations
+        // Add outgoing relations
         Iterator<JanusGraphEdge> outEdges = getEdges(vertex, "OUT");
         if (outEdges.hasNext()) {
             List<Relation> outRelations = new ArrayList<>();
@@ -95,7 +48,7 @@ public class JanusGraphNodeUtil {
             node.setOutRelations(outRelations);
         }
 
-        // Get incoming relations
+        // Add incoming relations
         Iterator<JanusGraphEdge> inEdges = getEdges(vertex, "IN");
         if (inEdges.hasNext()) {
             List<Relation> inRelations = new ArrayList<>();
@@ -221,24 +174,6 @@ public class JanusGraphNodeUtil {
     }
 
     /**
-     * Extract properties from a Vertex as a Map
-     * 
-     * @param vertex the JanusGraph vertex
-     * @return Map of property key-value pairs
-     */
-    public static Map<String, Object> getVertexProperties(JanusGraphVertex vertex) {
-        Map<String, Object> properties = new HashMap<>();
-        Iterator<JanusGraphVertexProperty> propertyIterator = vertex.query().properties().iterator();
-
-        while (propertyIterator.hasNext()) {
-            JanusGraphVertexProperty property = propertyIterator.next();
-            properties.put(property.key(), property.value());
-        }
-
-        return properties;
-    }
-
-    /**
      * Extract properties from an Edge as a Map
      * 
      * @param edge the JanusGraph edge
@@ -301,54 +236,4 @@ public class JanusGraphNodeUtil {
         return relation;
     }
 
-    /**
-     * Convert an elementMap (from Gremlin) to a Node object.
-     * Handles ReferenceVertex scenarios by using the projected map.
-     */
-    public static Node getNodeFromElementMap(String graphId, Map<Object, Object> elementMap) {
-        Node node = new Node();
-        node.setGraphId(graphId);
-        Map<String, Object> metadata = new HashMap<>();
-
-        if (elementMap == null)
-            return node;
-
-        for (Map.Entry<Object, Object> entry : elementMap.entrySet()) {
-            String key = entry.getKey().toString();
-            Object value = entry.getValue();
-
-            if (key.equals("id")) {
-                if (value instanceof Long) {
-                    node.setId((Long) value);
-                } else if (value instanceof Number) {
-                    node.setId(((Number) value).longValue());
-                } else {
-                    node.setId(value.hashCode()); // Fallback
-                }
-            } else if (key.equals("label")) {
-                // Label is usually objectType, but we rely on properties
-            } else {
-                // Properties
-                if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_UNIQUE_ID.name())) {
-                    node.setIdentifier(value.toString());
-                } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_SYS_NODE_TYPE.name())) {
-                    node.setNodeType(value.toString());
-                } else if (StringUtils.equalsIgnoreCase(key, SystemProperties.IL_FUNC_OBJECT_TYPE.name())) {
-                    node.setObjectType(value.toString());
-                } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
-                    if (value instanceof String && ((String) value).startsWith("[") && ((String) value).endsWith("]")) {
-                        try {
-                            metadata.put(key, mapper.readValue((String) value, List.class));
-                        } catch (Exception e) {
-                            metadata.put(key, value);
-                        }
-                    } else {
-                        metadata.put(key, value);
-                    }
-                }
-            }
-        }
-        node.setMetadata(metadata);
-        return node;
-    }
 }

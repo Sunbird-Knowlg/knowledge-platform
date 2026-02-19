@@ -1,6 +1,6 @@
 package org.sunbird.v5.actors
 
-import org.apache.commons.collections4.{CollectionUtils, MapUtils}
+import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.apache.pekko.actor.AbstractActor
@@ -77,24 +77,19 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   def getHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     HierarchyManager.getHierarchy(request).map(resp => {
       if (StringUtils.equalsIgnoreCase(resp.getResponseCode.toString, "OK")) {
-        var hierarchyMap = resp.getResult.get("questionSet").asInstanceOf[util.Map[String, AnyRef]]
-        if (MapUtils.isEmpty(hierarchyMap)) {
-            hierarchyMap = resp.getResult.get("content").asInstanceOf[util.Map[String, AnyRef]]
+        val hierarchyMap = resp.getResult.get("questionSet").asInstanceOf[util.Map[String, AnyRef]]
+        val hStr: String = JsonUtils.serialize(hierarchyMap)
+        val regex = """\"identifier\":\"(.*?)\.img\""""
+        val pattern = regex.r
+        val updateHStr = pattern.replaceAllIn(hStr, m => s""""identifier":"${m.group(1)}"""")
+        val updatedHierarchyMap = JsonUtils.deserialize[util.Map[String, AnyRef]](updateHStr, classOf[util.Map[String, AnyRef]])
+        val schemaVersion = updatedHierarchyMap.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
+        val updateHierarchy = if (StringUtils.equalsIgnoreCase("1.0", schemaVersion)) AssessmentV5Manager.getTransformedHierarchy(updatedHierarchyMap) else {
+          updatedHierarchyMap
         }
-        if (MapUtils.isNotEmpty(hierarchyMap)) {
-            val hStr: String = JsonUtils.serialize(hierarchyMap)
-            val regex = """\"identifier\":\"(.*?)\.img\""""
-            val pattern = regex.r
-            val updateHStr = pattern.replaceAllIn(hStr, m => s""""identifier":"${m.group(1)}"""")
-            val updatedHierarchyMap = JsonUtils.deserialize[util.Map[String, AnyRef]](updateHStr, classOf[util.Map[String, AnyRef]])
-            val schemaVersion = updatedHierarchyMap.getOrDefault("schemaVersion", "1.0").asInstanceOf[String]
-            val updateHierarchy = if (StringUtils.equalsIgnoreCase("1.0", schemaVersion)) AssessmentV5Manager.getTransformedHierarchy(updatedHierarchyMap) else {
-              updatedHierarchyMap
-            }
-            resp.getResult.remove("questionSet")
-            resp.put("questionset", updateHierarchy)
-            resp
-        } else resp
+        resp.getResult.remove("questionSet")
+        resp.put("questionset", updateHierarchy)
+        resp
       } else resp
     })
   }

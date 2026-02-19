@@ -26,7 +26,6 @@ public class BaseTest {
     public static void tearDown() {
         if (graph != null) {
             graph.close();
-            DriverUtil.closeConnections(); // Clear map
         }
     }
 

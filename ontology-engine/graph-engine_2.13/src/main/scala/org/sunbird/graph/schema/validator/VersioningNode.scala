@@ -131,19 +131,8 @@ trait VersioningNode extends IDefinition {
     }
 
     def getCachedNode(identifier: String, ttl: Integer)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
-        val nodeStringFuture: Future[String] = try {
-            RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
-        } catch {
-            case e: Exception =>
-                TelemetryManager.error("Error fetching from RedisCache: " + e.getMessage, e)
-                Future.successful(null)
-        }
-
-        nodeStringFuture.recover {
-            case e: Exception =>
-                TelemetryManager.error("Error in RedisCache future: " + e.getMessage, e)
-                null
-        }.map(nodeString => {
+        val nodeStringFuture: Future[String] = RedisCache.getAsync(identifier, nodeCacheAsyncHandler, ttl)
+        nodeStringFuture.map(nodeString => {
             if (null != nodeString && !nodeString.asInstanceOf[String].isEmpty) {
                 val nodeMap: util.Map[String, AnyRef] = JsonUtils.deserialize(nodeString.asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
                 val node: Node = NodeUtil.deserialize(nodeMap, getSchemaName(), schemaValidator.getConfig

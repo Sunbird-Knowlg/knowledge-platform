@@ -3,6 +3,7 @@ package org.sunbird.graph.service.util;
 import org.apache.commons.lang3.StringUtils;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphFactory;
+import org.janusgraph.core.JanusGraphTransaction;
 import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ClientException;
 import org.sunbird.graph.service.common.DACConfigurationConstants;
@@ -11,26 +12,12 @@ import org.sunbird.graph.service.common.DACErrorMessageConstants;
 import org.sunbird.graph.service.common.GraphOperation;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DriverUtil {
 
-	private static Map<String, JanusGraph> janusGraphMap = new ConcurrentHashMap<>();
-
-	public static void closeConnections() {
-		for (Iterator<Map.Entry<String, JanusGraph>> it = janusGraphMap.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<String, JanusGraph> entry = it.next();
-			JanusGraph graph = entry.getValue();
-			try {
-				graph.close();
-			} catch (Exception e) {
-				TelemetryManager.error("Error closing JanusGraph", e);
-			}
-			it.remove();
-		}
-	}
+	private static Map<String, JanusGraph> janusGraphMap = new HashMap<>();
 
 	public static String getRoute(String graphId, GraphOperation graphOperation) {
 		// Checking Graph Id for 'null' or 'Empty'
@@ -62,7 +49,17 @@ public class DriverUtil {
 	 */
 	public static JanusGraph getJanusGraph(String graphId) {
 		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
-		return janusGraphMap.computeIfAbsent(graphId, key -> loadJanusGraph(key));
+		JanusGraph graph = janusGraphMap.get(graphId);
+		if (graph == null) {
+			synchronized (DriverUtil.class) {
+				graph = janusGraphMap.get(graphId);
+				if (graph == null) {
+					graph = loadJanusGraph(graphId);
+					janusGraphMap.put(graphId, graph);
+				}
+			}
+		}
+		return graph;
 	}
 
 	private static JanusGraph loadJanusGraph(String graphId) {
@@ -130,6 +127,15 @@ public class DriverUtil {
 		TelemetryManager.log("JanusGraph instance loaded for Graph Id: " + graphId);
 		registerJanusGraphShutdownHook(graph);
 		return graph;
+	}
+
+	public static JanusGraphTransaction beginTransaction(String graphId) {
+		JanusGraph graph = getJanusGraph(graphId);
+		JanusGraphTransaction tx = graph.buildTransaction().logIdentifier("learning_graph_events").start();
+		TelemetryManager
+				.log("Initialized JanusGraph Transaction with Log Identifier: learning_graph_events | [Graph Id: "
+						+ graphId + "]");
+		return tx;
 	}
 
 	private static void registerJanusGraphShutdownHook(JanusGraph graph) {
