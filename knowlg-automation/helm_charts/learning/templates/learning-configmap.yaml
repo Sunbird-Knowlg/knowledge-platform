@@ -283,15 +283,14 @@ data:
     # Max count to be reserved against a content
     learnig.reserve_dialcode.max_count=2500
 
-    cassandra.lp.connection="{{ .Values.cassandra_connection }}"
-    cassandra.lpa.connection="{{ .Values.cassandra_connection }}"
+    cassandra.connection="{{ .Values.cassandra_connection }}"
 
     compositesearch.index.name="compositesearch"
 
     #restrict.metadata.objectTypes="Content,ContentImage,AssessmentItem,Channel,Framework,Category,CategoryInstance,Term,Concept,Dimension,Domain"
 
     # Consistency Level for Multi Node Cassandra cluster
-    cassandra.lp.consistency.level=QUORUM
+    cassandra.consistency.level=QUORUM
 
     # Redis Cache Configuration
     content.cache.ttl=86400

@@ -205,12 +205,11 @@ data:
     dialcode.object_type="{{ .Values.dialocode_object_type}}"
     
     # Cassandra Configuration
-    cassandra.lp.connection="{{ .Values.cassandra_connection }}"
-    cassandra.lpa.connection="{{ .Values.cassandra_connection }}"
+    cassandra.connection="{{ .Values.cassandra_connection }}"
 
 
     # Consistency Level for Multi Node Cassandra cluster
-    #cassandra.lp.consistency.level=QUORUM
+    #cassandra.consistency.level=QUORUM
 
     #Kafka Configuration
     kafka {
