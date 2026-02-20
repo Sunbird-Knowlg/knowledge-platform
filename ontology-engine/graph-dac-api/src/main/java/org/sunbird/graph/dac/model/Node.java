@@ -7,8 +7,10 @@ import org.sunbird.graph.common.enums.SystemProperties;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Node implements Serializable {
 
@@ -26,6 +28,13 @@ public class Node implements Serializable {
 	private List<Relation> deletedRelations;
     private Map<String, Node> relationNodes;
 	private Map<String, Object> externalData;
+	/**
+	 * Tracks the set of metadata property keys that were explicitly requested for update.
+	 * When non-null and non-empty, only these properties (plus system-generated ones)
+	 * should be written to the graph database during upsert, avoiding unnecessary
+	 * re-writes of unchanged properties.
+	 */
+	private Set<String> updatedFields;
 
     public Node() {
         addedRelations = new ArrayList<>();
@@ -175,6 +184,22 @@ public class Node implements Serializable {
 
     public String getArtifactUrl() {
         return (String) this.metadata.getOrDefault("artifactUrl", "");
+    }
+
+    /**
+     * Returns the set of metadata keys that were explicitly updated by the request.
+     * When null or empty, all metadata should be written (backward-compatible behavior).
+     */
+    public Set<String> getUpdatedFields() {
+        return updatedFields;
+    }
+
+    /**
+     * Sets the metadata keys that were explicitly updated by the request.
+     * @param updatedFields set of property keys that changed
+     */
+    public void setUpdatedFields(Set<String> updatedFields) {
+        this.updatedFields = updatedFields;
     }
 
 }

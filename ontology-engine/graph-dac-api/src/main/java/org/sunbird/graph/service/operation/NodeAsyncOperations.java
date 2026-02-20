@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -176,9 +177,11 @@ public class NodeAsyncOperations {
                         .vertices().iterator();
 
                 JanusGraphVertex vertex;
+                boolean isExistingNode = false;
                 if (vertexIter.hasNext()) {
                     // Update existing node
                     vertex = vertexIter.next();
+                    isExistingNode = true;
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
                 } else {
                     // Create new node
@@ -209,29 +212,45 @@ public class NodeAsyncOperations {
                         + node.getMetadata().get("status") + " | ID: " + identifier);
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
-                // Update all properties
+                // Determine which properties to write.
+                // If updatedFields is set (update flow), only write those properties + system-generated ones.
+                // If updatedFields is null/empty (create flow or legacy), write all properties.
+                Set<String> updatedFields = node.getUpdatedFields();
+                boolean isPartialUpdate = (isExistingNode && updatedFields != null && !updatedFields.isEmpty());
+
+                if (isPartialUpdate) {
+                    // Add system-generated properties that must always be written
+                    updatedFields.add(GraphDACParams.versionKey.name());
+                    updatedFields.add(AuditProperties.lastUpdatedOn.name());
+                    TelemetryManager.info("NodeAsyncOperations: Partial update for Node ID: " + identifier
+                            + " | Updating only fields: " + updatedFields);
+                }
+
+                // Update properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                    if (entry.getValue() != null) {
-                        Object value = entry.getValue();
-                        if (value instanceof java.util.List) {
-                            java.util.List<?> list = (java.util.List<?>) value;
-                            if (list.isEmpty()) {
-                                // For empty list, removing property using Cardinality.single (replacing with
-                                // null/removing)
-                                // or checking if property exists and removing it.
-                                // In JanusGraph native, setting property to null usually implies removal,
-                                // but safe way is to remove existing property if we can't set null.
-                                // However, standard way is accessing property and calling remove().
-                                // Here we can try finding property and removing.
-                                if (vertex.keys().contains(entry.getKey())) {
-                                    vertex.property(entry.getKey()).remove();
-                                }
-                                continue;
-                            }
-                            value = list.toArray();
-                        }
-                        vertex.property(entry.getKey(), value);
+                    // Skip properties not in the update set (for partial updates)
+                    if (isPartialUpdate && !updatedFields.contains(entry.getKey())) {
+                        continue;
                     }
+                    if (entry.getValue() == null) {
+                        // Null value means property should be removed (e.g. removeProps)
+                        if (vertex.keys().contains(entry.getKey())) {
+                            vertex.property(entry.getKey()).remove();
+                        }
+                        continue;
+                    }
+                    Object value = entry.getValue();
+                    if (value instanceof java.util.List) {
+                        java.util.List<?> list = (java.util.List<?>) value;
+                        if (list.isEmpty()) {
+                            if (vertex.keys().contains(entry.getKey())) {
+                                vertex.property(entry.getKey()).remove();
+                            }
+                            continue;
+                        }
+                        value = list.toArray();
+                    }
+                    vertex.property(entry.getKey(), value);
                 }
 
                 try {
@@ -500,20 +519,28 @@ public class NodeAsyncOperations {
 
     private static void setRequestContextToNode(Node node, Request request) {
         if (null != request && null != request.getContext()) {
+            Set<String> updatedFields = node.getUpdatedFields();
+
             String channel = (String) request.getContext().get(GraphDACParams.CHANNEL_ID.name());
             TelemetryManager.log("Channel from request: " + channel + " for content: " + node.getIdentifier());
-            if (StringUtils.isNotBlank(channel))
+            if (StringUtils.isNotBlank(channel)) {
                 node.getMetadata().put(GraphDACParams.channel.name(), channel);
+                if (updatedFields != null) updatedFields.add(GraphDACParams.channel.name());
+            }
 
             String consumerId = (String) request.getContext().get(GraphDACParams.CONSUMER_ID.name());
             TelemetryManager.log("ConsumerId from request: " + consumerId + " for content: " + node.getIdentifier());
-            if (StringUtils.isNotBlank(consumerId))
+            if (StringUtils.isNotBlank(consumerId)) {
                 node.getMetadata().put(GraphDACParams.consumerId.name(), consumerId);
+                if (updatedFields != null) updatedFields.add(GraphDACParams.consumerId.name());
+            }
 
             String appId = (String) request.getContext().get(GraphDACParams.APP_ID.name());
             TelemetryManager.log("App Id from request: " + appId + " for content: " + node.getIdentifier());
-            if (StringUtils.isNotBlank(appId))
+            if (StringUtils.isNotBlank(appId)) {
                 node.getMetadata().put(GraphDACParams.appId.name(), appId);
+                if (updatedFields != null) updatedFields.add(GraphDACParams.appId.name());
+            }
         }
     }
 

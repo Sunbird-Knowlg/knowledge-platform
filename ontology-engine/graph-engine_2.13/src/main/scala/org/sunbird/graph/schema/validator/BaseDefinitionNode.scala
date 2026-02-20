@@ -60,7 +60,13 @@ class BaseDefinitionNode(graphId: String, schemaName: String, version: String = 
 
     override def getNode(identifier: String, operation: String, mode: String, versioning: Option[String] = None, disableCache: Option[Boolean] = None)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
         val request: Request = new Request()
-        val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, false, request)
+        // Fetch with relations (getTags=true) for:
+        //   - "update": so the relation diff logic in setRelationship() can correctly
+        //     determine which relations to add/delete by comparing existing vs requested.
+        //   - "read": so relation-derived metadata (questions, concepts, collections, etc.)
+        //     is populated in the read response via NodeUtil.getRelationMap().
+        val fetchRelations = StringUtils.equalsIgnoreCase(operation, "update") || StringUtils.equalsIgnoreCase(operation, "read")
+        val node: Future[Node] = oec.graphService.getNodeByUniqueId(graphId, identifier, fetchRelations, request)
         node
     }
 

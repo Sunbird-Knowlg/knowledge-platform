@@ -105,6 +105,17 @@ object DefinitionNode {
         inputNode.getMetadata.put("versionKey", dbNode.getMetadata.getOrDefault("versionKey", ""))
         dbNode.getMetadata.remove("isImageNodeCreated")
       }
+      
+        // Track which properties are being updated by the request
+      val updatedFieldsSet = new java.util.HashSet[String]()
+      if (MapUtils.isNotEmpty(inputNode.getMetadata)) {
+        updatedFieldsSet.addAll(inputNode.getMetadata.keySet())
+      }
+      if (!removeProps.isEmpty) {
+        updatedFieldsSet.addAll(removeProps)
+      }
+      dbNode.setUpdatedFields(updatedFieldsSet)
+
       dbNode.getMetadata.putAll(inputNode.getMetadata)
       if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
         if (MapUtils.isNotEmpty(dbNode.getExternalData))

@@ -170,11 +170,15 @@ object DataNode {
         if (CollectionUtils.isEmpty(node.getAddedRelations) && CollectionUtils.isEmpty(node.getDeletedRelations)) {
             Future(new Response)
         } else {
-            if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
+            val removeFuture: Future[Response] = if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
                 oec.graphService.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
-            if (CollectionUtils.isNotEmpty(node.getAddedRelations))
-                oec.graphService.createRelation(graphId,getRelationMap(node.getAddedRelations))
-            Future(new Response)
+            else Future(new Response)
+
+            removeFuture.flatMap(_ => {
+                if (CollectionUtils.isNotEmpty(node.getAddedRelations))
+                    oec.graphService.createRelation(graphId, getRelationMap(node.getAddedRelations))
+                else Future(new Response)
+            })
         }
     }
 
