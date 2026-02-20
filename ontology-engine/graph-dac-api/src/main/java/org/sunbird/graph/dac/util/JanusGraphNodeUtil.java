@@ -159,6 +159,25 @@ public class JanusGraphNodeUtil {
         relation.setStartNodeId(startId != null ? startId.toString() : null);
         relation.setEndNodeId(endId != null ? endId.toString() : null);
 
+        // Populate objectType, name, and node metadata from vertices
+        // These are required by NodeUtil.getRelationMap() to build the relation lookup key
+        // (e.g., "associatedTo_out_AssessmentItem" -> "questions") and by
+        // NodeUtil.populateRelationMaps() to populate name, description, status fields.
+        relation.setStartNodeObjectType(getVertexStringProperty(startVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
+        relation.setEndNodeObjectType(getVertexStringProperty(endVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
+        relation.setStartNodeName(getVertexStringProperty(startVertex, "name"));
+        relation.setEndNodeName(getVertexStringProperty(endVertex, "name"));
+
+        Map<String, Object> startNodeMeta = new HashMap<>();
+        startNodeMeta.put("description", getVertexStringProperty(startVertex, "description"));
+        startNodeMeta.put("status", getVertexStringProperty(startVertex, "status"));
+        relation.setStartNodeMetadata(startNodeMeta);
+
+        Map<String, Object> endNodeMeta = new HashMap<>();
+        endNodeMeta.put("description", getVertexStringProperty(endVertex, "description"));
+        endNodeMeta.put("status", getVertexStringProperty(endVertex, "status"));
+        relation.setEndNodeMetadata(endNodeMeta);
+
         // Get edge properties as metadata
         Map<String, Object> metadata = new HashMap<>();
         Iterator<java.lang.String> keyIterator = edge.keys().iterator();
@@ -171,6 +190,18 @@ public class JanusGraphNodeUtil {
         relation.setMetadata(metadata);
 
         return relation;
+    }
+
+    /**
+     * Safely read a string property from a JanusGraph vertex.
+     * Returns null if the property is not present.
+     */
+    private static String getVertexStringProperty(JanusGraphVertex vertex, String key) {
+        if (vertex != null && vertex.property(key).isPresent()) {
+            Object val = vertex.property(key).value();
+            return val != null ? val.toString() : null;
+        }
+        return null;
     }
 
     /**

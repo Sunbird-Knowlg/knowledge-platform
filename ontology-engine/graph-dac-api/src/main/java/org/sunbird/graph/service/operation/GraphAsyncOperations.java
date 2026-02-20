@@ -50,10 +50,10 @@ public class GraphAsyncOperations {
 					for (Map<String, Object> relData : relationData) {
 						String startNodeId = (String) relData.get(GraphDACParams.startNodeId.name());
 						String endNodeId = (String) relData.get(GraphDACParams.endNodeId.name());
-						String relationType = (String) relData.get(GraphDACParams.relationType.name());
+						String relationType = (String) relData.get("relation");
 						@SuppressWarnings("unchecked")
 						Map<String, Object> metadata = (Map<String, Object>) relData
-								.get(GraphDACParams.metadata.name());
+								.get("relMetadata");
 
 						if (metadata == null) {
 							metadata = new HashMap<>();
@@ -161,7 +161,7 @@ public class GraphAsyncOperations {
 					for (Map<String, Object> relData : relationData) {
 						String startNodeId = (String) relData.get(GraphDACParams.startNodeId.name());
 						String endNodeId = (String) relData.get(GraphDACParams.endNodeId.name());
-						String relationType = (String) relData.get(GraphDACParams.relationType.name());
+						String relationType = (String) relData.get("relation");
 
 						// Logic from JanusGraphOperations.deleteRelation adapted
 

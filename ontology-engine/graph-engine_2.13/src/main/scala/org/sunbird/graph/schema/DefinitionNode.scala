@@ -12,7 +12,6 @@ import org.sunbird.common.dto.Request
 import scala.jdk.CollectionConverters._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
-import org.sunbird.graph.utils.ScalaJsonUtils
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,39 +26,10 @@ object DefinitionNode {
       schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
 
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
-    val arrayFields = definition.fetchArrayProps()
-    arrayFields.foreach(field => {
-      if (request.getRequest.containsKey(field)) {
-         val value = request.getRequest.get(field)
-         if (value == null) {
-            request.getRequest.remove(field)
-         } else if (value.isInstanceOf[String]) {
-             val strValue = value.asInstanceOf[String]
-             if (StringUtils.equalsIgnoreCase("null", strValue)) {
-                 request.getRequest.remove(field)
-             } else {
-                 try {
-                     val list = ScalaJsonUtils.deserialize[List[String]](strValue)
-                     if (null != list) request.getRequest.put(field, list.asJava)
-                 } catch {
-                     case _: Exception =>
-                 }
-             }
-         }
-      }
-    })
-
-    val skipValidation: Boolean = if (request.getContext.containsKey("skipValidation")) request.getContext.get("skipValidation").asInstanceOf[Boolean] else false
-    if (skipValidation) {
-        val inputNode = definition.getNode(request.getRequest)
-        updateRelationMetadata(inputNode)
-        Future(inputNode)
-    } else {
-        definition.validateRequest(request)
-        val inputNode = definition.getNode(request.getRequest)
-        updateRelationMetadata(inputNode)
-        definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
-    }
+    definition.validateRequest(request)
+    val inputNode = definition.getNode(request.getRequest)
+    updateRelationMetadata(inputNode)
+    definition.validate(inputNode, "create", setDefaultValue) recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def getExternalProps(graphId: String, version: String, schemaName: String, ocd: ObjectCategoryDefinition = ObjectCategoryDefinition())(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
@@ -135,6 +105,17 @@ object DefinitionNode {
         inputNode.getMetadata.put("versionKey", dbNode.getMetadata.getOrDefault("versionKey", ""))
         dbNode.getMetadata.remove("isImageNodeCreated")
       }
+      
+        // Track which properties are being updated by the request
+      val updatedFieldsSet = new java.util.HashSet[String]()
+      if (MapUtils.isNotEmpty(inputNode.getMetadata)) {
+        updatedFieldsSet.addAll(inputNode.getMetadata.keySet())
+      }
+      if (!removeProps.isEmpty) {
+        updatedFieldsSet.addAll(removeProps)
+      }
+      dbNode.setUpdatedFields(updatedFieldsSet)
+
       dbNode.getMetadata.putAll(inputNode.getMetadata)
       if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
         if (MapUtils.isNotEmpty(dbNode.getExternalData))
@@ -143,34 +124,8 @@ object DefinitionNode {
           dbNode.setExternalData(inputNode.getExternalData)
       }
       if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
-      if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.remove(prop))
-      
-      val arrayFields = categoryDefinition.fetchArrayProps()
-      arrayFields.foreach(field => {
-        if (dbNode.getMetadata.containsKey(field)) {
-          val value = dbNode.getMetadata.get(field)
-          value match {
-            case null => dbNode.getMetadata.remove(field)
-            case s: String if StringUtils.equalsIgnoreCase("null", s) => dbNode.getMetadata.remove(field)
-            case s: String =>
-              try {
-                val list = ScalaJsonUtils.deserialize[List[String]](s)
-                dbNode.getMetadata.put(field, list.asJava)
-              } catch {
-                case _: Exception =>
-                  dbNode.getMetadata.put(field, java.util.Arrays.asList(s))
-              }
-            case arr: Array[String] =>
-              dbNode.getMetadata.put(field, java.util.Arrays.asList(arr: _*))
-            case _ =>
-          }
-        }
-      })
-
-      org.sunbird.telemetry.logger.TelemetryManager.info(s"DefinitionNode: Before Validation Status: ${dbNode.getMetadata.get("status")} for Node: $identifier")
       val validatedNode = if (!skipValidation) categoryDefinition.validate(dbNode, "update") else Future(dbNode)
       validatedNode.map(node => {
-          org.sunbird.telemetry.logger.TelemetryManager.info(s"DefinitionNode: After Validation Status: ${node.getMetadata.get("status")} for Node: $identifier")
         if (!removeProps.isEmpty) removeProps.asScala.foreach(prop => dbNode.getMetadata.put(prop, null))
         node
       })
@@ -269,11 +224,7 @@ object DefinitionNode {
       node.getMetadata.entrySet().asScala.map(entry => {
         if (jsonPropList.contains(entry.getKey)) {
           entry.getValue match {
-            case value: String => try {
-              entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
-            } catch {
-              case e: Exception => entry
-            }
+            case value: String => entry.setValue(JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object]))
             case _ => entry
           }
         }
@@ -319,35 +270,9 @@ object DefinitionNode {
   }
 
   def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
-    val definition = DefinitionFactory.getDefinition(graphId, schemaName, version)
     val futures = nodes.map(node => {
-      val arrayFields = definition.fetchArrayProps()
-      arrayFields.foreach(field => {
-        if (node.getMetadata.containsKey(field)) {
-          val value = node.getMetadata.get(field)
-          if (null == value) {
-            node.getMetadata.remove(field)
-          } else if (value.isInstanceOf[String]) {
-             if (StringUtils.equalsIgnoreCase("null", value.asInstanceOf[String])) {
-                node.getMetadata.remove(field)
-             } else {
-            val strVal = value.asInstanceOf[String]
-            try {
-               val list = ScalaJsonUtils.deserialize[List[String]](strVal)
-                if (null == list) node.getMetadata.remove(field) else node.getMetadata.put(field, list.asJava)
-             } catch {
-                case _: Exception =>
-                    node.getMetadata.put(field, java.util.Arrays.asList(strVal))
-             }
-           }
-          } else if (value.isInstanceOf[Array[String]]) {
-            node.getMetadata.put(field, java.util.Arrays.asList(value.asInstanceOf[Array[String]]: _*))
-          }
-        }
-      })
-
-
-
+      val ocd = ObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
+      val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
       definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
     })
     Future.sequence(futures)
@@ -355,13 +280,10 @@ object DefinitionNode {
 
   def updateJsonPropsInNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
     nodes.map(node => {
-      // CRITICAL FIX: Add null check for objectType to prevent NPE
-      if (null != node.getObjectType && StringUtils.isNotBlank(node.getObjectType)) {
-        val schema = node.getObjectType.toLowerCase.replace("image", "")
-        val jsonProps = fetchJsonProps(graphId, version, schema)
-        val metadata = node.getMetadata
-        metadata.asScala.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
-      }
+      val schema = node.getObjectType.toLowerCase.replace("image", "")
+      val jsonProps = fetchJsonProps(graphId, version, schema)
+      val metadata = node.getMetadata
+      metadata.asScala.filter(entry => jsonProps.contains(entry._1)).map(entry => node.getMetadata.put(entry._1, convertJsonProperties(entry, jsonProps)))
     })
   }
 
