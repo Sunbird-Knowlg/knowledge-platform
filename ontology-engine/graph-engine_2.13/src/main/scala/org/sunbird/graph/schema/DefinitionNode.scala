@@ -24,6 +24,7 @@ object DefinitionNode {
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
       schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
+
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
     definition.validateRequest(request)
     val inputNode = definition.getNode(request.getRequest)
@@ -104,6 +105,17 @@ object DefinitionNode {
         inputNode.getMetadata.put("versionKey", dbNode.getMetadata.getOrDefault("versionKey", ""))
         dbNode.getMetadata.remove("isImageNodeCreated")
       }
+      
+        // Track which properties are being updated by the request
+      val updatedFieldsSet = new java.util.HashSet[String]()
+      if (MapUtils.isNotEmpty(inputNode.getMetadata)) {
+        updatedFieldsSet.addAll(inputNode.getMetadata.keySet())
+      }
+      if (!removeProps.isEmpty) {
+        updatedFieldsSet.addAll(removeProps)
+      }
+      dbNode.setUpdatedFields(updatedFieldsSet)
+
       dbNode.getMetadata.putAll(inputNode.getMetadata)
       if (MapUtils.isNotEmpty(inputNode.getExternalData)) {
         if (MapUtils.isNotEmpty(dbNode.getExternalData))

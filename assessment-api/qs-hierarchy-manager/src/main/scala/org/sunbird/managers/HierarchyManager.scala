@@ -226,11 +226,11 @@ object HierarchyManager {
                             getLatestLeafNodes(leafNodeIds).map(leafNodesMap => {
                                 updateLatestLeafNodes(children, leafNodesMap)
                                 hierarchy.put("children", children)
+                                ResponseHandler.OK.put("questionSet", hierarchy)
                             })
-                            ResponseHandler.OK.put("questionSet", hierarchy)
                         } else
-                            ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist")
-                    })
+                            Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
+                    }).flatMap(f => f)
                 } else {
                     Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
                 }
@@ -310,7 +310,7 @@ object HierarchyManager {
     def convertNodeToMap(leafNodes: List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): java.util.List[java.util.Map[String, AnyRef]] = {
         leafNodes.map(node => {
             val updatedNode: Node = if (node.getObjectType.equalsIgnoreCase("QuestionSet")
-              && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
+                && node.getMetadata.getOrDefault("visibility", "Parent").asInstanceOf[String].equalsIgnoreCase("Parent")) {
                 val extData = if (null != node.getExternalData) node.getExternalData.filter(entry => !externalKeys.contains(entry._1)).asJava else Map().asJava
                 node.getMetadata.putAll(extData)
                 node
@@ -319,7 +319,7 @@ object HierarchyManager {
             val nodeMap:java.util.Map[String,AnyRef] = NodeUtil.serialize(updatedNode, null, updatedNode.getObjectType.toLowerCase().replace("image", ""), schemaVersion)
             nodeMap.keySet().removeAll(keyTobeRemoved)
             nodeMap
-        })
+        }).filter(map => !map.isEmpty).asJava
     }
 
     def addChildrenToUnit(children: java.util.List[java.util.Map[String,AnyRef]], unitId:String, leafNodes: java.util.List[java.util.Map[String, AnyRef]], leafNodeIds: java.util.List[String], request: Request): Unit = {

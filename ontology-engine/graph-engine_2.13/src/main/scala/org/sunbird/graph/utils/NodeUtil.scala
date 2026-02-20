@@ -143,11 +143,16 @@ object NodeUtil {
     }
     
     def convertJsonProperties(entry: util.Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
+        val value = entry.getValue
         if(jsonProps.contains(entry.getKey)) {
-            try {JsonUtils.deserialize(entry.getValue.asInstanceOf[String], classOf[Object])} //.readTree(entry.getValue.toString)}
-            catch { case e: Exception => entry.getValue }
+            try {JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object])} //.readTree(entry.getValue.toString)}
+            catch { case e: Exception => value }
         }
-        else entry.getValue
+        else if(value.isInstanceOf[String] && value.asInstanceOf[String].startsWith("[") && value.asInstanceOf[String].endsWith("]")) {
+            try { JsonUtils.deserialize(value.asInstanceOf[String], classOf[util.List[Object]]) }
+            catch { case e: Exception => value }
+        }
+        else value
     }
 
     // TODO: we should get the list from configuration.
@@ -178,13 +183,28 @@ object NodeUtil {
     def getLanguageCodes(node: Node): util.List[String] = {
         val value = node.getMetadata.get("language")
         val languages:util.List[String] = value match {
-            case value: String => List(value).asJava
+            case value: String => 
+                if (value.startsWith("[") && value.endsWith("]")) {
+                    try {
+                        JsonUtils.deserialize(value, classOf[util.List[String]])
+                    } catch {
+                        case _: Exception => List(value).asJava
+                    }
+                } else if(value.startsWith("[L") && !value.endsWith("]")) {
+                    new util.ArrayList[String]()
+                } else {
+                    List(value).asJava
+                }
             case value: util.List[String] => value
             case value: Array[String] => value.filter((lng: String) => StringUtils.isNotBlank(lng)).toList.asJava
             case _ => new util.ArrayList[String]()
         }
         if(CollectionUtils.isNotEmpty(languages)){
-            languages.asScala.map(lang => if(Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else "").asJava
+            languages.asScala.map(lang => {
+                if(StringUtils.isNotBlank(lang) && !lang.startsWith("[")) {
+                    if (Platform.config.hasPath("languageCode." + lang.toLowerCase)) Platform.config.getString("languageCode." + lang.toLowerCase) else ""
+                } else ""
+            }).asJava
         }else{
             languages
         }

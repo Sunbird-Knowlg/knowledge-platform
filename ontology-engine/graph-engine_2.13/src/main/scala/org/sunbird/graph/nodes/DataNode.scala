@@ -19,6 +19,8 @@ import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 
+import org.sunbird.telemetry.logger.TelemetryManager
+
 object DataNode {
   
   private val SYSTEM_UPDATE_ALLOWED_CONTENT_STATUS = List("Live", "Unlisted")
@@ -77,25 +79,33 @@ object DataNode {
     @throws[Exception]
     def list(request: Request, objectType: Option[String] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.List[Node]] = {
         val identifiers:util.List[String] = request.get("identifiers").asInstanceOf[util.List[String]]
-
+        
         if(null == identifiers || identifiers.isEmpty) {
             throw new ClientException(ErrorCodes.ERR_BAD_REQUEST.name(), "identifiers is mandatory")
         } else {
+            TelemetryManager.info(s"DataNode.list: graphId=${request.graphId}, identifiers=$identifiers, objectType=$objectType")
+            if (identifiers.size() > 0) {
+                 TelemetryManager.info(s"DataNode.list: First ID '${identifiers.get(0)}' length: ${identifiers.get(0).length}")
+            }
             val mc: MetadataCriterion = MetadataCriterion.create(new util.ArrayList[Filter](){{
                 if(identifiers.size() == 1)
                     add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_EQUAL, identifiers.get(0)))
                 if(identifiers.size() > 1)
                     add(new Filter(SystemProperties.IL_UNIQUE_ID.name(), SearchConditions.OP_IN, identifiers))
-                new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired")
+                add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
             }})
 
             val searchCriteria =  new SearchCriteria {{
                 addMetadata(mc)
                 setCountQuery(false)
+                setGraphId(request.graphId)
               if (objectType.nonEmpty)
                 setObjectType(objectType.get)
             }}
-            oec.graphService.getNodeByUniqueIds(request.graphId, searchCriteria)
+            oec.graphService.getNodeByUniqueIds(request.graphId, searchCriteria).map(nodes => {
+                TelemetryManager.info(s"DataNode.list: graphService returned ${if (nodes == null) "null" else nodes.size()} nodes")
+                nodes
+            })
         }
     }
 
@@ -160,11 +170,15 @@ object DataNode {
         if (CollectionUtils.isEmpty(node.getAddedRelations) && CollectionUtils.isEmpty(node.getDeletedRelations)) {
             Future(new Response)
         } else {
-            if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
+            val removeFuture: Future[Response] = if (CollectionUtils.isNotEmpty(node.getDeletedRelations))
                 oec.graphService.removeRelation(graphId, getRelationMap(node.getDeletedRelations))
-            if (CollectionUtils.isNotEmpty(node.getAddedRelations))
-                oec.graphService.createRelation(graphId,getRelationMap(node.getAddedRelations))
-            Future(new Response)
+            else Future(new Response)
+
+            removeFuture.flatMap(_ => {
+                if (CollectionUtils.isNotEmpty(node.getAddedRelations))
+                    oec.graphService.createRelation(graphId, getRelationMap(node.getAddedRelations))
+                else Future(new Response)
+            })
         }
     }
 

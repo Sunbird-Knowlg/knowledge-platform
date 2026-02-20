@@ -23,6 +23,7 @@ class ContentModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[AppActor](ActorNames.APP_ACTOR)
         bindActor[ObjectActor](ActorNames.OBJECT_ACTOR)
         bindActor[CollectionCSVActor](ActorNames.COLLECTION_CSV_ACTOR)
+        
         println("Initialized application actors...")
         // $COVERAGE-ON
     }

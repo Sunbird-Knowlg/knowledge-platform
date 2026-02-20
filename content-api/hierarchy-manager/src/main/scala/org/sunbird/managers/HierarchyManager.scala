@@ -51,7 +51,9 @@ object HierarchyManager {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "add", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
+            val childNodes = rootNodeMap.get("childNodes")
+            val childrenList: List[String] = getList(childNodes)
+            if(!childrenList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
@@ -88,7 +90,9 @@ object HierarchyManager {
             val unitId = request.get("unitId").asInstanceOf[String]
             val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
             validateShallowCopied(rootNodeMap, "remove", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
-            if(!rootNodeMap.get("childNodes").asInstanceOf[Array[String]].toList.contains(unitId)) {
+            val childNodes = rootNodeMap.get("childNodes")
+            val childrenList: List[String] = getList(childNodes)
+            if(!childrenList.contains(unitId)) {
                 Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "unitId " + unitId + " does not exist")}
             }else {
                 val hierarchyFuture = fetchHierarchy(request, rootNode.getIdentifier)
@@ -314,7 +318,9 @@ object HierarchyManager {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val childNodes = new java.util.ArrayList[String]()
-        childNodes.addAll(rootNode.getMetadata.get("childNodes").asInstanceOf[Array[String]].toList.asJava)
+        val nodes = rootNode.getMetadata.get("childNodes")
+        val nodesList: List[String] = getList(nodes)
+        childNodes.addAll(nodesList.asJava)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
         if(operation.equalsIgnoreCase("remove"))
@@ -418,7 +424,9 @@ object HierarchyManager {
             if (!ResponseHandler.checkError(response)) {
                 val hierarchyString = response.getResult.asScala.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
                 if (StringUtils.isNotEmpty(hierarchyString)) {
-                    Future(JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).asScala.toMap)
+                    val hierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
+                    HierarchyBackwardCompatibilityUtil.deserializeStringifiedLists(hierarchy)
+                    Future(hierarchy.asScala.toMap)
                 } else
                     Future(Map[String, AnyRef]())
             } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404 && Platform.config.hasPath("collection.image.migration.enabled") && Platform.config.getBoolean("collection.image.migration.enabled")) {
@@ -428,7 +436,9 @@ object HierarchyManager {
                     if (!ResponseHandler.checkError(response)) {
                         val hierarchyString = response.getResult.asScala.toMap.getOrElse("hierarchy", "").asInstanceOf[String]
                         if (StringUtils.isNotEmpty(hierarchyString)) {
-                            JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]]).asScala.toMap
+                            val hierarchy = JsonUtils.deserialize(hierarchyString, classOf[java.util.Map[String, AnyRef]])
+                            HierarchyBackwardCompatibilityUtil.deserializeStringifiedLists(hierarchy)
+                            hierarchy.asScala.toMap
                         } else
                             Map[String, AnyRef]()
                     } else if (ResponseHandler.checkError(response) && response.getResponseCode.code() == 404)
@@ -711,5 +721,18 @@ object HierarchyManager {
         val configObjTypes: List[String] = outRelations.find(_.keySet.contains("children")).map(_.getOrElse("children", Map()).asInstanceOf[java.util.Map[String, AnyRef]].getOrDefault("objects", new util.ArrayList[String]()).asInstanceOf[java.util.List[String]].asScala.toList).getOrElse(List())
         if(configObjTypes.nonEmpty && !configObjTypes.contains(childNode.getOrDefault("objectType", "").asInstanceOf[String]))
             throw new ClientException("ERR_INVALID_CHILDREN", "Invalid Children objectType "+childNode.get("objectType")+" found for : "+childNode.get("identifier") + "| Please provide children having one of the objectType from "+ configObjTypes.asJava)
+    }
+    private def getList(value: Any): List[String] = {
+        value match {
+            case s: String =>
+                try {
+                    JsonUtils.deserialize(s, classOf[java.util.List[String]]).asScala.toList
+                } catch {
+                    case _: Exception => List()
+                }
+            case a: Array[String] => a.toList
+            case l: java.util.List[_] => l.asInstanceOf[java.util.List[String]].asScala.toList
+            case _ => List()
+        }
     }
 }

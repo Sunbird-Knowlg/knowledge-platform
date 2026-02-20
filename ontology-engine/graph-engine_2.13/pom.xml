@@ -44,15 +44,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-bolt</artifactId>
-            <version>3.5.0</version>
+            <groupId>org.janusgraph</groupId>
+            <artifactId>janusgraph-inmemory</artifactId>
+            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-graphdb-api</artifactId>
-            <version>3.5.0</version>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.33</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -61,12 +61,7 @@
             <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j</artifactId>
-            <version>3.5.0</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.cassandraunit</groupId>
             <artifactId>cassandra-unit</artifactId>
@@ -98,6 +93,12 @@
             <artifactId>netty-codec</artifactId>
             <version>4.1.68.Final</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.13.0</version>
+            <scope>test</scope>
         </dependency>  
         <dependency>
             <groupId>io.netty</groupId>
@@ -105,24 +106,7 @@
             <version>4.1.100.Final</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-kernel</artifactId>
-            <version>3.5.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-lucene-index</artifactId>
-            <version>3.5.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo4j-configuration</artifactId>
-            <version>3.5.0</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>com.dimafeng</groupId>
             <artifactId>testcontainers-scala_2.13</artifactId>
@@ -133,6 +117,12 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>1.17.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.codemonstur</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>1.4.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
