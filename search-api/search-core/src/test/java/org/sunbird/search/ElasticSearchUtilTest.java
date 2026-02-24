@@ -4,7 +4,7 @@
 package org.sunbird.search;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.search.client.ElasticSearchUtil;
@@ -198,15 +198,15 @@ public class ElasticSearchUtilTest extends BaseSearchTest {
 
 	private static Set<String> getTags() {
 		Set<String> list = new HashSet<String>();
-		int count = RandomUtils.nextInt(9);
+		int count = RandomUtils.nextInt(0, 9);
 		for (int i = 0; i < count; i++) {
-			list.add(tags[RandomUtils.nextInt(8)]);
+			list.add(tags[RandomUtils.nextInt(0, 8)]);
 		}
 		return list;
 	}
 
 	private static String getContentType() {
-		return contentTypes[RandomUtils.nextInt(5)];
+		return contentTypes[RandomUtils.nextInt(0, 5)];
 	}
 
 	/**

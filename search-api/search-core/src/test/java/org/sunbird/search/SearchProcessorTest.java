@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.sunbird.search.dto.SearchDTO;
@@ -100,7 +100,7 @@ public class SearchProcessorTest extends BaseSearchTest {
     private static String[] contentTypes = new String[] { "Story", "Worksheet", "Game", "Collection", "Asset" };
 
     private static String getContentType() {
-        return contentTypes[RandomUtils.nextInt(5)];
+        return contentTypes[RandomUtils.nextInt(0, 5)];
     }
 
     private static String[] tags = new String[] { "hindi story", "NCERT", "Pratham", "एकस्टेप", "हिन्दी",
@@ -108,9 +108,9 @@ public class SearchProcessorTest extends BaseSearchTest {
 
     private static Set<String> getTags() {
         Set<String> list = new HashSet<String>();
-        int count = RandomUtils.nextInt(9);
+        int count = RandomUtils.nextInt(0, 9);
         for (int i = 0; i < count; i++) {
-            list.add(tags[RandomUtils.nextInt(8)]);
+            list.add(tags[RandomUtils.nextInt(0, 8)]);
         }
         return list;
     }
