@@ -4,7 +4,7 @@ import org.apache.pekko.actor.ActorRef;
 import org.apache.pekko.actor.ActorSystem;
 import org.apache.pekko.actor.Props;
 import org.apache.pekko.pattern.Patterns;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.*;
 import org.sunbird.common.JsonUtils;
@@ -274,32 +274,32 @@ public class SearchBaseActorTest {
     }
 
     private static String getContentType() {
-        return contentTypes[RandomUtils.nextInt(3)];
+        return contentTypes[RandomUtils.nextInt(0, 3)];
     }
 
     private static Set<String> getTags() {
         Set<String> list = new HashSet<String>();
-        int count = RandomUtils.nextInt(9);
+        int count = RandomUtils.nextInt(0, 9);
         for (int i=0; i<count; i++) {
-            list.add(keywords[RandomUtils.nextInt(8)]);
+            list.add(keywords[RandomUtils.nextInt(0, 8)]);
         }
         return list;
     }
 
     private static Set<String> getAgeGroup() {
         Set<String> list = new HashSet<String>();
-        int count = RandomUtils.nextInt(2);
+        int count = RandomUtils.nextInt(0, 2);
         for (int i=0; i<count; i++) {
-            list.add(ageGroup[RandomUtils.nextInt(6)]);
+            list.add(ageGroup[RandomUtils.nextInt(0, 6)]);
         }
         return list;
     }
 
     private static Set<String> getGradeLevel() {
         Set<String> list = new HashSet<String>();
-        int count = RandomUtils.nextInt(2);
+        int count = RandomUtils.nextInt(0, 2);
         for (int i=0; i<count; i++) {
-            list.add(gradeLevel[RandomUtils.nextInt(6)]);
+            list.add(gradeLevel[RandomUtils.nextInt(0, 6)]);
         }
         return list;
     }
