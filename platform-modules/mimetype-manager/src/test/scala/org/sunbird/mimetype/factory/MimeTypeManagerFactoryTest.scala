@@ -1,9 +1,14 @@
 package org.sunbird.mimetype.factory
 
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.mimetype.mgr.impl.{AssetMimeTypeMgrImpl, CollectionMimeTypeMgrImpl, DefaultMimeTypeMgrImpl, DocumentMimeTypeMgrImpl, EcmlMimeTypeMgrImpl, H5PMimeTypeMgrImpl, HtmlMimeTypeMgrImpl, PluginMimeTypeMgrImpl, YouTubeMimeTypeMgrImpl}
 
-class MimeTypeManagerFactoryTest extends FlatSpec with Matchers {
+class MimeTypeManagerFactoryTest extends FlatSpec with Matchers with MockFactory {
+
+	implicit val ss: StorageService = mock[StorageService]
+
 
 	"getManager with mimeType text/x-url" should "give instance of YouTubeMimeTypeMgrImpl" in {
 		val mgr = MimeTypeManagerFactory.getManager("TextBook", "text/x-url")

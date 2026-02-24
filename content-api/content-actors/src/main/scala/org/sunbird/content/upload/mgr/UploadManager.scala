@@ -17,6 +17,7 @@ import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.kafka.client.KafkaClient
 
 import scala.collection.Map
@@ -28,7 +29,7 @@ object UploadManager {
 	private val CONTENT_ARTIFACT_ONLINE_SIZE: Double = Platform.getDouble("content.artifact.size.for_online", 209715200.asInstanceOf[Double])
 	private val ENABLE_ASSET_ENRICHMENT = Platform.getBoolean("asset_enrichment.enable", true)
 
-	def upload(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+	def upload(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
 		val identifier: String = node.getIdentifier
 		val fileUrl: String = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
 		val file = request.getRequest.get("file").asInstanceOf[File]

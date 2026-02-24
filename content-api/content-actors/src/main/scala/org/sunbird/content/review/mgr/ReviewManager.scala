@@ -1,5 +1,6 @@
 package org.sunbird.content.review.mgr
 
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -12,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ReviewManager {
 
-	def review(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+	def review(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
 		val identifier: String = node.getIdentifier
 		val mimeType = node.getMetadata().getOrDefault("mimeType", "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(node.getObjectType, mimeType)

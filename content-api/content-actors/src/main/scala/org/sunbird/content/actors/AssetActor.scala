@@ -1,7 +1,6 @@
 package org.sunbird.content.actors
 
-import com.google.inject.Singleton
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
