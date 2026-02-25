@@ -78,6 +78,7 @@ object ApiId {
 	val UPDATE_HIERARCHY_V4 = "api.collection.hierarchy.update"
 	val GET_HIERARCHY_V4 = "api.collection.hierarchy.get"
 	val SYSTEM_UPDATE_COLLECTION = "api.collection.system.update"
+	val UPDATE_HIERARCHY_RELATION_V4 = "api.collection.hierarchy.update.relation"
 	val REVIEW_COLLECTION = "api.collection.review"
     val REJECT_COLLECTION = "api.collection.review.reject"
 

@@ -79,6 +79,7 @@ PATCH    /collection/v4/system/update/:identifier            content.controllers
 POST     /collection/v4/reject/:identifier          content.controllers.v4.CollectionController.reviewReject(identifier:String)
 POST     /collection/v4/publish/:identifier         content.controllers.v4.CollectionController.publish(identifier:String)
 POST     /collection/v4/unlisted/publish/:identifier  content.controllers.v4.CollectionController.publishUnlisted(identifier:String)
+POST     /collection/v4/hierarchy/update/relation/:identifier  content.controllers.v4.CollectionController.updateHierarchyRelationships(identifier:String)
 
 # Content v4 APIs
 POST      /content/v4/create                       content.controllers.v4.ContentController.create()
