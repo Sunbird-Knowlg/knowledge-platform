@@ -36,13 +36,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  pull-requests: read # allows SonarCloud to decorate PRs with analysis results
+  contents: read       # allows the workflow to read repository contents
+  pull-requests: read  # allows SonarCloud to decorate PRs with analysis results
 
 jobs:
   Analysis:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Analyze with SonarCloud
 
         # You can pin the exact commit or the version.
