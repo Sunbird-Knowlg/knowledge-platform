@@ -53,7 +53,7 @@ class AuditHistoryController @Inject()(@Named(ActorNames.AUDIT_HISTORY_ACTOR) au
       fields.add("logRecord")
       fields.add("summary")
     }
-    else if (StringUtils.equalsIgnoreCase("3.0", versionId)) fields.add("logRecord")
+    else if ("3.0".equalsIgnoreCase(versionId)) fields.add("logRecord")
     else fields.add("summary")
     TelemetryManager.log("returning the search criteria fields: " + fields.size)
     fields
