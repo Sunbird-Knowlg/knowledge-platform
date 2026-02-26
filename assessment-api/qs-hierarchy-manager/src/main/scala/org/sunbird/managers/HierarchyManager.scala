@@ -74,12 +74,12 @@ object HierarchyManager {
                                         throw new ClientException("ERR_OBJECT_VALIDATION", s"Children with identifier ${filteredChildNodes.map(node => node.getIdentifier.replace(".img", "")).asJava} can't be added because they don't have data in QuML ${rootNodeQumlVer} format.")
                                 }
                                 updateHierarchyData(unitId, hierarchy, leafNodes, rootNode, request, "add").map(node => ResponseHandler.OK.put("rootId", node.getIdentifier.replaceAll(imgSuffix, "")))
-                            }).flatMap(f => f)
+                            }).flatten
                         }
-                    }).flatMap(f => f)
+                    }).flatten
                 }
             }
-        }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+        }).flatten recoverWith {case e: CompletionException => throw e.getCause}
     }
 
     @throws[Exception]
@@ -104,10 +104,10 @@ object HierarchyManager {
                         if(hierarchy.isEmpty){
                             Future{ResponseHandler.ERROR(ResponseCode.SERVER_ERROR, ResponseCode.SERVER_ERROR.name(), "hierarchy is empty")}
                         } else updateHierarchyData(unitId, hierarchy, null, rootNode, request, "remove").map(node => ResponseHandler.OK.put("rootId", node.getIdentifier.replaceAll(imgSuffix, "")))
-                    }).flatMap(f => f)
+                    }).flatten
                 }
             }
-        }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+        }).flatten recoverWith {case e: CompletionException => throw e.getCause}
     }
 
     def attachLeafToRootNode(request: Request, rootNode: Node, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -149,10 +149,10 @@ object HierarchyManager {
                                     .put("children", request.get("children"))
                             } else response
                         })
-                    }).flatMap(f => f)
-                }).flatMap(f => f)
+                    }).flatten
+                }).flatten
             }
-        }).flatMap(f => f)
+        }).flatten
     }
 
     def updateRootHierarchy(hierarchy: java.util.Map[String, AnyRef], leafNodes: List[Node], rootNode: Node, request: Request, operation: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {
@@ -212,8 +212,8 @@ object HierarchyManager {
                         ResponseHandler.OK.put("questionSet", metadata)
                     }
                 })
-            }).flatMap(f => f)
-        }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException => {
+            }).flatten
+        }).flatten recoverWith { case e: ResourceNotFoundException => {
             val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
             searchResponse.map(rootHierarchy => {
                 if(!rootHierarchy.isEmpty && StringUtils.isNotEmpty(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])){
@@ -230,11 +230,11 @@ object HierarchyManager {
                             })
                         } else
                             Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
-                    }).flatMap(f => f)
+                    }).flatten
                 } else {
                     Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
                 }
-            }).flatMap(f => f)
+            }).flatten
         }
         }
     }
@@ -511,7 +511,7 @@ object HierarchyManager {
                 Future(Map[String, AnyRef]())
             else
                 throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA", "Error while fetching hierarchy from cassandra")
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     def getCassandraHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, AnyRef]] = {
@@ -557,9 +557,9 @@ object HierarchyManager {
                     } else {
                         Future(new util.HashMap[String, AnyRef]())
                     }
-                }).flatMap(f => f)
+                }).flatten
             }
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     def searchRootIdInElasticSearch(rootId: String)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
@@ -683,7 +683,7 @@ object HierarchyManager {
                     val updatedMap = leafNodeMap ++ imageLeafNodeMap
                     updatedMap.asJava
                 })
-            }).flatMap(f => f)
+            }).flatten
         } else {
             Future{new util.HashMap[String, AnyRef]()}
         }

@@ -137,7 +137,7 @@ import scala.concurrent.ExecutionContext
 				  .one().getString("hierarchy")
 				assert(StringUtils.isNotEmpty(hierarchy))
 			})
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	"updateHierarchy with section without children" should "update the hierarchy structure for questionset" in {
@@ -172,7 +172,7 @@ import scala.concurrent.ExecutionContext
 				  .one().getString("hierarchy")
 				assert(StringUtils.isNotEmpty(hierarchy))
 			})
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 }*/

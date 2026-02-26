@@ -58,7 +58,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 						ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
 					})
 				} else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category identifier")
-			}).flatMap(f => f)
+			}).flatten
 		} else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
 	}
 

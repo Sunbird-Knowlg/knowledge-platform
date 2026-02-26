@@ -138,7 +138,7 @@ object DIALManager {
 			}).toList
 			val updatedNodes: Future[List[Node]] = Future.sequence(futureList)
 			getResponse(requestMap, updatedNodes, result)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def linkCollection(objectId: String, requestMap: Map[String, List[String]], reqContext: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -213,7 +213,7 @@ object DIALManager {
 					requestMap.keys.toList.diff(identifiers)
 				}
 			} else throw new ResourceNotFoundException(DIALErrors.ERR_DIALCODE_LINK, DIALErrors.ERR_CONTENT_NOT_FOUND_MSG + requestMap.keySet.asJava)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def getResponse(requestMap: Map[String, List[String]], updatedNodes: Future[List[Node]], invalidIds: List[String])(implicit ec: ExecutionContext): Future[Response] = {

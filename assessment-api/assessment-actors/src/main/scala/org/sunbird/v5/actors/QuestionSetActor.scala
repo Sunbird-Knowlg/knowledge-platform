@@ -119,7 +119,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
       val date = DateUtils.formatCurrentDate
       updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
       updateHierarchyNodes(updateReq, node, Map("status" -> "Review", "hierarchy" -> updatedHierarchy), nodeIds)
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def reject(request: Request): Future[Response] = {
@@ -195,7 +195,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
       DataNode.update(request).map(node => {
         ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
       })
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def importQuestionSet(request: Request): Future[Response] = importMgr.importObject(request)

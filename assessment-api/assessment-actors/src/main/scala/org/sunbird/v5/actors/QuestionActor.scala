@@ -72,7 +72,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends Abstr
       DataNode.update(request).map(node => {
         ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
       })
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def listQuestions(request: Request): Future[Response] = {
@@ -118,7 +118,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends Abstr
       DataNode.update(updateRequest).map(node => {
         ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
       })
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def reject(request: Request): Future[Response] = {
