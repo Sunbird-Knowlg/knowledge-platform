@@ -9,6 +9,7 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, SearchConditions, SearchCriteria}
 import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.service.operation.SearchAsyncOperations
+import org.sunbird.telemetry.logger.TelemetryManager
 import scala.jdk.CollectionConverters._
 
 import scala.collection.convert.ImplicitConversions._
@@ -34,7 +35,7 @@ object NodeValidator {
 
     private def getDataNodes(graphId: String, identifiers: util.List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
         if (identifiers.size() == 1) {
-            System.out.println("NodeValidator: Singular lookup for identifier: " + identifiers.get(0))
+            TelemetryManager.debug("NodeValidator: Singular lookup for identifier: " + identifiers.get(0))
             oec.graphService.getNodeByUniqueId(graphId, identifiers.get(0), false, new org.sunbird.common.dto.Request())
                 .map(node => util.Arrays.asList(node))
                 .recover {
