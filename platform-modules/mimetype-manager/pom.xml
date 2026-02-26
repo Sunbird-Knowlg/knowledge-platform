@@ -134,6 +134,18 @@
             <version>4.4.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.playframework</groupId>
+            <artifactId>play_${scala.major.version}</artifactId>
+            <version>${play2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.playframework</groupId>
+            <artifactId>play-guice_${scala.major.version}</artifactId>
+            <version>${play2.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
