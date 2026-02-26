@@ -1,5 +1,0 @@
-echo "Enter the environment to deploy in: [Options azure/local]"
-read x
-echo "Terraform destroying $x infra"
-terraform -chdir=$x destroy $1 
-terraform -chdir=$x destroy $1 

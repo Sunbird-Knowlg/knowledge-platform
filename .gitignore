@@ -1,6 +1,0 @@
-.DS_Store
-**/target/**
-**/.idea/**
-**/*.iml
-**/application.conf
-*.conf

@@ -152,7 +152,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put("fields", new util.ArrayList[String])
 		DataNode.read(readReq).map(node => {
-			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+			if (null != node && StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
 		}).flatMap(f => f)
@@ -210,7 +210,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(readReq).map(node => {
-			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+			if (null != node && StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
@@ -228,7 +228,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
 		DataNode.read(readReq).map(node => {
-			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+			if (null != node && StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Publish Operation Can't Be Applied On Node Under Processing State")
