@@ -15,6 +15,8 @@ class KafkaClient {
 	private val producer = createProducer()
 	private val consumer = createConsumer()
 
+	registerShutdownHook()
+
 	protected def getProducer: Producer[Long, String] = producer
 	protected def getConsumer: Consumer[Long, String] = consumer
 
@@ -33,6 +35,33 @@ class KafkaClient {
 	def validate(topic: String): Boolean = {
 		val topics = getConsumer.listTopics
 		topics.keySet.contains(topic)
+	}
+
+	/**
+	 * Closes the Kafka producer and consumer, flushing any pending messages first.
+	 * Safe to call multiple times.
+	 */
+	def close(): Unit = {
+		try {
+			if (producer != null) {
+				producer.flush()
+				producer.close()
+			}
+		} catch {
+			case e: Exception => TelemetryManager.error("Error closing KafkaProducer: " + e.getMessage, e)
+		}
+		try {
+			if (consumer != null) consumer.close()
+		} catch {
+			case e: Exception => TelemetryManager.error("Error closing KafkaConsumer: " + e.getMessage, e)
+		}
+	}
+
+	private def registerShutdownHook(): Unit = {
+		Runtime.getRuntime.addShutdownHook(new Thread(() => {
+			TelemetryManager.log("Shutting down KafkaClient — closing producer and consumer")
+			close()
+		}))
 	}
 
 	private def createProducer(): KafkaProducer[Long, String] = {
