@@ -69,16 +69,20 @@ public class StorageModule extends AbstractModule {
 
         StorageConfig.Builder builder = StorageConfig.builder(storageTypeEnum).authType(authType);
 
+        // The 'storageKey' (Azure Account Name) is required even for OIDC
+        // to construct the correct service URL (e.g. https://<account_name>.blob.core.windows.net)
+        String storageKey = config.hasPath("cloud_storage_key")
+                ? config.getString("cloud_storage_key") : "";
+        builder.storageKey(storageKey);
+
         if (authType == StorageConfig.AuthType.ACCESS_KEY) {
-            // Developer / local environment: use static credentials from config
-            String storageKey    = config.hasPath("cloud_storage_key")
-                    ? config.getString("cloud_storage_key") : "";
+            // Developer / local environment: use static secret from config
             String storageSecret = config.hasPath("cloud_storage_secret")
                     ? config.getString("cloud_storage_secret") : "";
-            builder.storageKey(storageKey).storageSecret(storageSecret);
+            builder.storageSecret(storageSecret);
         }
         // For OIDC / IAM: the Azure SDK resolves credentials automatically via Workload Identity
-        // or Managed Identity — no static credentials needed.
+        // or Managed Identity — no static secret needed.
 
         return StorageServiceFactory.getStorageService(builder.build());
     }
