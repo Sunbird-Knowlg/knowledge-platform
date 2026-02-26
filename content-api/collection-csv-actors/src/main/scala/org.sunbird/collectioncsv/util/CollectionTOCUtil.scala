@@ -55,8 +55,9 @@ object CollectionTOCUtil {
       returnDIALCodes.asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef]).map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
     }
     catch {
-      case e:Exception => println("CollectionTOCUtil: validateDIALCodes --> exception: " + e.getMessage)
-        List.empty
+      case e: Exception =>
+        TelemetryManager.error("CollectionTOCUtil: validateDIALCodes --> exception: " + e.getMessage, e)
+        throw new ServerException("ERR_DIALCODE_VALIDATION", "Error while parsing DIAL code validation response: " + e.getMessage)
     }
   }
 
@@ -94,8 +95,9 @@ object CollectionTOCUtil {
       contentList ++ questionSetList
     }
     catch {
-      case ex:Exception => TelemetryManager.info("CollectionTOCUtil --> searchLinkedContents --> Exception:: " + ex.getMessage)
-          List.empty
+      case ex: Exception =>
+        TelemetryManager.error("CollectionTOCUtil --> searchLinkedContents --> Exception: " + ex.getMessage, ex)
+        throw new ServerException("ERR_LINKED_CONTENT_SEARCH", "Error while parsing linked contents search response: " + ex.getMessage)
     }
   }
 
