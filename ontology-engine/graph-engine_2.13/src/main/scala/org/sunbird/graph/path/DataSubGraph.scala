@@ -47,9 +47,7 @@ object DataSubGraph {
     val identifier: String = request.get("identifier").asInstanceOf[String]
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val schemaVersion = request.getContext.get("version").asInstanceOf[String]
-    var isRoot = false
-    if (isRoot != null && StringUtils.equalsAnyIgnoreCase(request.getContext.get("isRoot").asInstanceOf[String], "true"))
-      isRoot = true
+    val isRoot = Option(request.getContext.get("isRoot")).exists(v => StringUtils.equalsAnyIgnoreCase(v.asInstanceOf[String], "true"))
     val node: Future[Node] = oec.graphService.getNodeByUniqueId(request.graphId, identifier, false, request)
     node.map(n => {
       val newDataMap = new util.HashMap[String, AnyRef]
@@ -82,9 +80,7 @@ object DataSubGraph {
     val identifier: String = request.get("identifier").asInstanceOf[String]
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
     val schemaVersion = request.getContext.get("version").asInstanceOf[String]
-    var isRoot = false
-    if (isRoot != null && StringUtils.equalsAnyIgnoreCase(request.getContext.get("isRoot").asInstanceOf[String], "true"))
-      isRoot = true
+    val isRoot = Option(request.getContext.get("isRoot")).exists(v => StringUtils.equalsAnyIgnoreCase(v.asInstanceOf[String], "true"))
     val node: Future[Node] = oec.graphService.getNodeByUniqueId(request.graphId, identifier, false, request)
     node.map(n => {
       val finalMetadata = serialize(n, null, schemaName, schemaVersion, isRoot)

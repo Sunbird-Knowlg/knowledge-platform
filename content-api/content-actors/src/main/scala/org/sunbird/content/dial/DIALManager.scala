@@ -194,10 +194,7 @@ object DIALManager {
 		updateReq.put(ContentConstants.IDENTIFIER, rootNode.getIdentifier)
 		updateReq.put(DIALConstants.VERSION_KEY, rootNode.getMetadata.get("versionKey"))
 
-		if(!requestMap.contains(objectId))
-			updateReq.put(DIALConstants.DIALCODES, null)
-		else
-			updateReq.put(DIALConstants.DIALCODES, requestMap(objectId).toArray[String])
+		updateReq.put(DIALConstants.DIALCODES, requestMap.get(objectId).map(_.toArray[String]).orNull)
 
 		updateReq
 	}
