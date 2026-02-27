@@ -438,7 +438,7 @@ public class NodeAsyncOperations {
                                     }
                                     value = list.toArray();
                                 }
-                                vertex.property(entry.getKey(), value);
+                                vertex.property(VertexProperty.Cardinality.single, entry.getKey(), value);
                             }
                         }
 
