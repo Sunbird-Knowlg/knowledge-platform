@@ -325,7 +325,7 @@ object HierarchyManager {
             childNodes.addAll(leafNodes)
         if(operation.equalsIgnoreCase("remove"))
             childNodes.removeAll(leafNodes)
-        req.put("childNodes", childNodes.asScala.toList.distinct.toArray)
+        req.put("childNodes", childNodes.asScala.toList.distinct.asJava)
         req.getContext.put("identifier", rootNode.getIdentifier.replaceAll(imgSuffix, ""))
         req.getContext.put("skipValidation", java.lang.Boolean.TRUE)
         DataNode.update(req)
