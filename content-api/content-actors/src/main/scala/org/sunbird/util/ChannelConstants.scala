@@ -20,4 +20,7 @@ object ChannelConstants {
   val categoryKeyList: List[String] = List(CONTENT_PRIMARY_CATEGORIES, COLLECTION_PRIMARY_CATEGORIES, ASSET_PRIMARY_CATEGORIES,
     CONTENT_ADDITIONAL_CATEGORIES, COLLECTION_ADDITIONAL_CATEGORIES, ASSET_ADDITIONAL_CATEGORIES)
 
+  val COMPOSITE_SEARCH_URL_CONFIG_KEY: String = "composite.search.url"
+  val COMPOSITE_SEARCH_URL_DEFAULT: String = "https://dev.sunbirded.org/action/composite/v3/search"
+
 }

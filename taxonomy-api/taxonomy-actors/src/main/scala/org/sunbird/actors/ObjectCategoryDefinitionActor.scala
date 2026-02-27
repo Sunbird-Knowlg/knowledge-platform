@@ -7,6 +7,7 @@ import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.{JsonUtils, Slug}
+import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.OntologyEngineContext
@@ -78,7 +79,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		DataNode.read(request) recoverWith {
 			case e: ResourceNotFoundException => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
-				println("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
+				TelemetryManager.debug("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
 				if (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) && !StringUtils.endsWithIgnoreCase(id, "_all")) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
 					DataNode.read(request)
@@ -87,7 +88,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 			}
 			case e: CompletionException if e.getCause.isInstanceOf[ResourceNotFoundException] => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
-				println("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
+				TelemetryManager.debug("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
 				if (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) && !StringUtils.endsWithIgnoreCase(id, "_all")) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
 					DataNode.read(request)

@@ -3,16 +3,14 @@ package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
-import org.sunbird.common.Slug
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.utils.Constants
-import org.sunbird.utils.taxonomy.RequestUtil
+import org.sunbird.utils.taxonomy.{RequestUtil, TaxonomyUtil}
 
 import java.util
 import scala.jdk.CollectionConverters._
@@ -50,11 +48,11 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     DataNode.read(getFrameworkReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
         validateCategoryObject(request).map(catNode => {
-          request.getRequest.put(Constants.IDENTIFIER, generateIdentifier(frameworkId, catNode.getIdentifier))
+          request.getRequest.put(Constants.IDENTIFIER, TaxonomyUtil.generateIdentifier(frameworkId, catNode.getIdentifier))
           val frameworkList = new util.ArrayList[Map[String, AnyRef]]
           val relationMap = new util.HashMap[String, AnyRef]
           relationMap.put("identifier", frameworkId)
-          relationMap.put("index", getCategoryIndex(node))
+          relationMap.put("index", TaxonomyUtil.getNextSequenceIndex(node))
           frameworkList.add(relationMap)
           request.put("frameworks", frameworkList)
           DataNode.create(request).map(node => {
@@ -64,14 +62,6 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
         }).flatten
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatten
-  }
-
-  private def getCategoryIndex(node: Node): Integer = {
-    val indexList = (node.getOutRelations.asScala ++ node.getInRelations.asScala).filter(r => (StringUtils.equals(r.getRelationType,RelationTypes.SEQUENCE_MEMBERSHIP.relationName()) && StringUtils.equals(r.getStartNodeId, node.getIdentifier)))
-      .map(relation => {
-        relation.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number].intValue()
-      })
-    if (indexList.nonEmpty) indexList.max + 1 else 1
   }
 
   private def read(request: Request): Future[Response] = {
@@ -85,7 +75,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     val categoryId = request.getContext.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String];
     RequestUtil.restrictProperties(request)
     validateCategoryInstanceObject(request)
-    request.getContext.put(Constants.IDENTIFIER, generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], categoryId))
+    request.getContext.put(Constants.IDENTIFIER, TaxonomyUtil.generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], categoryId))
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
     })
@@ -93,7 +83,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
 
   private def retire(request: Request): Future[Response] = {
     validateCategoryInstanceObject(request)
-    request.getContext.put(Constants.IDENTIFIER, generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]))
+    request.getContext.put(Constants.IDENTIFIER, TaxonomyUtil.generateIdentifier(request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String], request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]))
     request.getRequest.put("status", "Retired")
     DataNode.update(request).map(node => {
       ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier).put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
@@ -105,7 +95,7 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for CategoryInstance ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
-    val categoryInstanceId = generateIdentifier(frameworkId, categoryId)
+    val categoryInstanceId = TaxonomyUtil.generateIdentifier(frameworkId, categoryId)
     val getCategoryReq = new Request()
     getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {
       {
@@ -138,12 +128,6 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
       else
         throw new ClientException("ERR_CATEGORY_NOT_FOUND", s"Given category does not belong to master category data")
     })(ec)
-  }
-
-  private def generateIdentifier(scopeId: String, code: String): String = {
-    var id: String = null
-    if (StringUtils.isNotBlank(scopeId)) id = Slug.makeSlug(scopeId + "_" + code)
-    id
   }
 
 }

@@ -272,7 +272,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
                                 TelemetryManager.error("Error setting license to Redis: " + e.getMessage, e)
                         }
                     } else {
-                        println("Default License is not available for channel: " + channelId)
+                        TelemetryManager.warn("Default License is not available for channel: " + channelId)
                     }
                 }).recover {
                     case e: Exception =>
@@ -311,8 +311,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_NAME", "Please Provide Valid File Name.")
 		if (!preSignedObjTypes.contains(`type`))
 			throw new ClientException("ERR_INVALID_PRESIGNED_URL_TYPE", "Invalid pre-signed url type. It should be one of " + StringUtils.join(preSignedObjTypes, ","))
-		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
-			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
+		if(StringUtils.isNotBlank(filePath) && filePath.size > ContentConstants.MAX_FILE_PATH_SIZE)
+			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length " + ContentConstants.MAX_FILE_PATH_SIZE + " or Less ")
 	}
 
 	def dataModifier(node: Node): Node = {

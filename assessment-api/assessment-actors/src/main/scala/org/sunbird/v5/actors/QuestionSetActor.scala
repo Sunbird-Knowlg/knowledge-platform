@@ -21,7 +21,6 @@ import org.sunbird.v5.managers.AssessmentV5Manager
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -11,7 +11,7 @@ import org.sunbird.graph.dac.model.{Node, SubGraph}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.path.DataSubGraph
 import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
-import org.sunbird.mangers.FrameworkManager
+import org.sunbird.managers.FrameworkManager
 import org.sunbird.utils.{CategoryCache, FrameworkCache}
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.RequestUtil
