@@ -34,8 +34,8 @@ object DataNode {
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     createRelations(request.graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatMap(f => f) recoverWith { case e: CompletionException => Future.failed(e.getCause) }
-        }).flatMap(f => f)
+            }).flatten recoverWith { case e: CompletionException => Future.failed(e.getCause) }
+        }).flatten
     }
 
     @throws[Exception]
@@ -49,8 +49,8 @@ object DataNode {
                     updateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
                     updateRelations(request.graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatMap(f => f)  recoverWith { case e: CompletionException => Future.failed(e.getCause) }
-        }).flatMap(f => f) recoverWith { case e: CompletionException => Future.failed(e.getCause) }
+            }).flatten  recoverWith { case e: CompletionException => Future.failed(e.getCause) }
+        }).flatten recoverWith { case e: CompletionException => Future.failed(e.getCause) }
     }
 
     @throws[Exception]
@@ -70,7 +70,7 @@ object DataNode {
                 populateExternalProperties(fields, node, request, extPropNameList)
             else
                 Future(node)
-        }).flatMap(f => f) recoverWith {
+        }).flatten recoverWith {
           case e: CompletionException => Future.failed(e.getCause)
         }
     }
@@ -160,7 +160,7 @@ object DataNode {
             Future {
                 node
             }
-        }).flatMap(f => f)
+        }).flatten
     }
 
     private def updateRelations(graphId: String, node: Node, context: util.Map[String, AnyRef])(implicit ec: ExecutionContext, oec: OntologyEngineContext) : Future[Response] = {
@@ -298,7 +298,7 @@ object DataNode {
         populateExternalProperties(nodeList.asScala.toList, fields, request, extPropNameList)
       else
         Future(nodeList.asScala.toList)
-    }).flatMap(f => f) recoverWith {
+    }).flatten recoverWith {
       case e: CompletionException => Future.failed(e.getCause)
     }
   }

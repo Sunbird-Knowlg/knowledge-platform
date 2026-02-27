@@ -130,7 +130,7 @@ object DefinitionNode {
         node
       })
 
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def postProcessor(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Node = {

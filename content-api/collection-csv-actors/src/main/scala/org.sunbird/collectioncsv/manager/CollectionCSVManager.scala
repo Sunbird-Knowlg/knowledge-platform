@@ -93,6 +93,7 @@ object CollectionCSVManager extends CollectionInputFileReader  {
     val maxAllowedContentSize = Platform.getInteger(CollectionTOCConstants.SUNBIRD_TOC_MAX_FIRST_LEVEL_UNITS,30)
 
     val csvFile: File = new File(collectionTocFileName)
+    var fos: FileOutputStream = null
     var out: OutputStreamWriter = null
     var csvPrinter: CSVPrinter = null
     try{
@@ -100,7 +101,11 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       TelemetryManager.info("CollectionCSVManager:createFileAndStore -> Creating file for CSV at Location: " + csvFile.getAbsolutePath)
       touch(csvFile)
 
-      out = new OutputStreamWriter(new FileOutputStream(csvFile), StandardCharsets.UTF_8)
+      // Assign FileOutputStream to its own variable before passing it to
+      // OutputStreamWriter so the finally block can close fos independently
+      // if the OutputStreamWriter constructor throws.
+      fos = new FileOutputStream(csvFile)
+      out = new OutputStreamWriter(fos, StandardCharsets.UTF_8)
       out.write(ByteOrderMark.UTF_BOM)
 
       val csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader().withRecordSeparator(System.lineSeparator()).withQuoteMode(QuoteMode.NON_NUMERIC)
@@ -176,6 +181,9 @@ object CollectionCSVManager extends CollectionInputFileReader  {
       try {
         if (csvPrinter != null) csvPrinter.close()
         if (out != null) out.close()
+        // Close fos explicitly in case OutputStreamWriter construction failed
+        // and out was never assigned (in which case fos would otherwise leak).
+        if (fos != null) fos.close()
         if (null != csvFile && csvFile.exists) deleteQuietly(csvFile.getCanonicalFile)
       } catch {
         case e: IOException =>

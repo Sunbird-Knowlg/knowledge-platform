@@ -65,8 +65,8 @@ trait FrameworkValidator extends IDefinition {
           }
         }
         super.validate(node, operation)
-      }).flatMap(f => f)
-    }).flatMap(f => f)
+      }).flatten
+    }).flatten
   }
 
   private def validateAndSetMultiFrameworks(node: Node, orgFwTerms: List[String], targetFwTerms: List[String], masterCategories: List[Map[String, AnyRef]])(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Map[String, AnyRef]] = {
@@ -88,7 +88,7 @@ trait FrameworkValidator extends IDefinition {
       }
      })
      getValidatedTerms(node, targetFwTerms)
-    }).flatMap(f => f)
+    }).flatten
   }
 
 

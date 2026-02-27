@@ -79,4 +79,6 @@ object ContentConstants {
     val RELEASE: String = "release"
     val DRAFT: String = "Draft"
     val LIVE: String = "Live"
+
+    val MAX_FILE_PATH_SIZE: Int = 100
 }
