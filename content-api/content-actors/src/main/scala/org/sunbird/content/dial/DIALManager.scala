@@ -34,9 +34,9 @@ object DIALManager {
 	private val kfClient = new KafkaClient
 	val DIALTOPIC: String = Platform.config.getString("kafka.dial.request.topic")
 	val defaultConfig: Mmap[String, Any] = Mmap(
-		"errorCorrectionLevel" -> "H",
-		"pixelsPerBlock" -> 2,
-		"qrCodeMargin" -> 3,
+		"errorCorrectionLevel" -> DIALConstants.DEFAULT_ERROR_CORRECTION_LEVEL,
+		"pixelsPerBlock" -> DIALConstants.DEFAULT_PIXELS_PER_BLOCK,
+		"qrCodeMargin" -> DIALConstants.DEFAULT_QR_CODE_MARGIN,
 		"textFontName" -> "Verdana",
 		"textFontSize" -> 11,
 		"textCharacterSpacing" -> 0.1,
@@ -138,7 +138,7 @@ object DIALManager {
 			}).toList
 			val updatedNodes: Future[List[Node]] = Future.sequence(futureList)
 			getResponse(requestMap, updatedNodes, result)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def linkCollection(objectId: String, requestMap: Map[String, List[String]], reqContext: util.Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -213,7 +213,7 @@ object DIALManager {
 					requestMap.keys.toList.diff(identifiers)
 				}
 			} else throw new ResourceNotFoundException(DIALErrors.ERR_DIALCODE_LINK, DIALErrors.ERR_CONTENT_NOT_FOUND_MSG + requestMap.keySet.asJava)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def getResponse(requestMap: Map[String, List[String]], updatedNodes: Future[List[Node]], invalidIds: List[String])(implicit ec: ExecutionContext): Future[Response] = {

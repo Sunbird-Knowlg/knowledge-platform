@@ -74,12 +74,12 @@ object HierarchyManager {
                                         response
                                     }
                                 })
-                            }).flatMap(f => f)
-                        }).flatMap(f => f)
+                            }).flatten
+                        }).flatten
                     }
-                }).flatMap(f => f)
+                }).flatten
             }
-        }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+        }).flatten recoverWith {case e: CompletionException => throw e.getCause}
     }
 
     @throws[Exception]
@@ -109,11 +109,11 @@ object HierarchyManager {
                                     response
                                 }
                             })
-                        }).flatMap(f => f)
+                        }).flatten
                     }
-                }).flatMap(f => f)
+                }).flatten
             }
-        }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+        }).flatten recoverWith {case e: CompletionException => throw e.getCause}
     }
 
     @throws[Exception]
@@ -172,9 +172,9 @@ object HierarchyManager {
                             ResponseHandler.OK.put("content", metadata)
                         }
                     })
-                }).flatMap(f => f)
-            }).flatMap(f => f)
-        }).flatMap(f => f) recoverWith { case e: ResourceNotFoundException =>
+                }).flatten
+            }).flatten
+        }).flatten recoverWith { case e: ResourceNotFoundException =>
             val searchResponse = searchRootIdInElasticSearch(request.get("rootId").asInstanceOf[String])
             searchResponse.map(rootHierarchy => {
                 if(!rootHierarchy.isEmpty && StringUtils.isNotEmpty(rootHierarchy.asInstanceOf[util.HashMap[String, AnyRef]].get("identifier").asInstanceOf[String])){
@@ -199,7 +199,7 @@ object HierarchyManager {
                 } else {
                     Future(ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "rootId " + request.get("rootId") + " does not exist"))
                 }
-            }).flatMap(f => f)
+            }).flatten
         }
     }
 
@@ -375,7 +375,7 @@ object HierarchyManager {
             req.put("hierarchy", ScalaJsonUtils.serialize(updatedHierarchy))
             req.put("identifier", rootNode.getIdentifier)
             oec.graphService.saveExternalProps(req)
-        }).flatMap(f => f).recoverWith {
+        }).flatten.recoverWith {
             case clientException: ClientException => if(clientException.getMessage.equalsIgnoreCase("Validation Errors")) {
                     Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, ResponseCode.CLIENT_ERROR.name(), clientException.getMessages.asScala.mkString(",")))
                 } else throw clientException
@@ -450,7 +450,7 @@ object HierarchyManager {
                 Future(Map[String, AnyRef]())
             else
                 throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA", "Error while fetching hierarchy from cassandra")
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
 
@@ -478,9 +478,9 @@ object HierarchyManager {
                         } else
                             Future(Map[String, AnyRef]())
                     } else Future(Map[String, AnyRef]())
-                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+                }).flatten recoverWith { case e: CompletionException => throw e.getCause }
             }
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
 
@@ -530,9 +530,9 @@ object HierarchyManager {
                     } else {
                         Future(new util.HashMap[String, AnyRef]())
                     }
-                }).flatMap(f => f)
+                }).flatten
             }
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     def searchRootIdInElasticSearch(rootId: String)(implicit ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
@@ -671,7 +671,7 @@ object HierarchyManager {
                     val updatedMap = leafNodeMap ++ imageLeafNodeMap
                     updatedMap.asJava
                 })
-            }).flatMap(f => f)
+            }).flatten
         } else {
             Future{new util.HashMap[String, AnyRef]()}
         }

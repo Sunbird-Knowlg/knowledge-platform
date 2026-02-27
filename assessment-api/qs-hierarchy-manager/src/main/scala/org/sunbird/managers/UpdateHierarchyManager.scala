@@ -36,7 +36,7 @@ object UpdateHierarchyManager {
                 val existingChildren = existingHierarchy.getOrElse(HierarchyConstants.CHILDREN, new java.util.ArrayList[java.util.HashMap[String, AnyRef]]()).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
                 val nodes = List(node)
                 addChildNodesInNodeList(existingChildren, request, nodes).map(list => (existingHierarchy, list))
-            }).flatMap(f => f)
+            }).flatten
               .map(result => {
                   val nodes = result._2
                   TelemetryManager.info("NodeList final size: " + nodes.size)
@@ -54,11 +54,11 @@ object UpdateHierarchyManager {
                               if (request.getContext.getOrDefault("shouldImageDelete", false.asInstanceOf[AnyRef]).asInstanceOf[Boolean])
                                   deleteHierarchy(request)
                               Future(response)
-                          }).flatMap(f => f)
-                      }).flatMap(f => f)
-                  }).flatMap(f => f)
+                          }).flatten
+                      }).flatten
+                  }).flatten
               })
-        }).flatMap(f => f).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten.flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     private def validateRequest(request: Request)(implicit ec: ExecutionContext): (java.util.HashMap[String, AnyRef], java.util.HashMap[String, AnyRef]) = {
@@ -142,7 +142,7 @@ object UpdateHierarchyManager {
                     }) recover { case e: ResourceNotFoundException => TelemetryManager.log("No hierarchy is present in cassandra for identifier:" + rootNode.getIdentifier) }
                 }
             } else Future(response.getResult.toMap.getOrElse(HierarchyConstants.HIERARCHY, "").asInstanceOf[String])
-        }).flatMap(f => f)
+        }).flatten
     }
 
     private def addChildNodesInNodeList(childrenMaps: java.util.List[java.util.Map[String, AnyRef]], request: Request, nodes: scala.collection.immutable.List[Node])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[scala.collection.immutable.List[Node]] = {
@@ -153,7 +153,7 @@ object UpdateHierarchyManager {
                         addChildNodesInNodeList(child.get(HierarchyConstants.CHILDREN).asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]], request, modifiedList)
                     } else
                         Future(modifiedList)
-                }).flatMap(f => f)
+                }).flatten
             }).toList
             Future.sequence(futures).map(f => f.flatten.distinct)
         } else {
@@ -394,7 +394,7 @@ object UpdateHierarchyManager {
                     put(HierarchyConstants.CHILD_NODES, new java.util.ArrayList[String](childNodeIds))
                 })
                 validateNodes(finalEnrichedNodeList, rootId, request).map(result => HierarchyManager.convertNodeToMap(finalEnrichedNodeList))
-            }).flatMap(f => f)
+            }).flatten
         } else {
             updateNodeList(nodeList, rootId, new java.util.HashMap[String, AnyRef]() {
                 {
@@ -441,7 +441,7 @@ object UpdateHierarchyManager {
                         updateHierarchyRelatedData(request, hierarchyStructure.getOrDefault(id, Map[String, Int]()), node.getMetadata.get(HierarchyConstants.DEPTH).asInstanceOf[Int] + 1, id, nodeList, hierarchyStructure, nxtEnrichedNodeList)
                     } else
                         Future(nxtEnrichedNodeList)
-                }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+                }).flatten recoverWith { case e: CompletionException => throw e.getCause }
             }
         })
         if (CollectionUtils.isNotEmpty(futures)) {

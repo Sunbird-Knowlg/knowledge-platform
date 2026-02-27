@@ -45,7 +45,7 @@ object UploadManager {
 				updateNode(request, node.getIdentifier, mediaType, node.getObjectType, result + (ContentConstants.ARTIFACT_BASE_PATH -> filePath.get))
 			else
 				updateNode(request, node.getIdentifier, mediaType, node.getObjectType, result)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def updateNode(request: Request, identifier: String, mediaType: String, objectType: String, result: Map[String, AnyRef])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {

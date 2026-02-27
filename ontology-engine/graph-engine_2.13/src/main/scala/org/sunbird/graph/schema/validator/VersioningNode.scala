@@ -46,7 +46,7 @@ trait VersioningNode extends IDefinition {
                 getEditableNode(identifier, node)
             else
                 Future{node}
-        }).flatMap(f => f)
+        }).flatten
     }
 
     private def getNodeToRead(identifier: String, mode: String, disableCache: Option[Boolean])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
@@ -141,7 +141,7 @@ trait VersioningNode extends IDefinition {
             } else {
                 super.getNode(identifier, "read", null)
             }
-        }).flatMap(f => f)
+        }).flatten
     }
 
     private def nodeCacheAsyncHandler(objKey: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[String] = {
@@ -151,7 +151,7 @@ trait VersioningNode extends IDefinition {
                 val nodeMap = NodeUtil.serialize(node, null, node.getObjectType.toLowerCase().replace("image", ""), getSchemaVersion())
                 Future(ScalaJsonUtils.serialize(nodeMap))
             } else Future("")
-        }).flatMap(f => f)
+        }).flatten
     }
     
     private def getSchemaNameFromMimeType(node: Node) : String = {

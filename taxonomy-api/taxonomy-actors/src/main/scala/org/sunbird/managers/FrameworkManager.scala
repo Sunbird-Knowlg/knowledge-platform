@@ -1,4 +1,4 @@
-package org.sunbird.mangers
+package org.sunbird.managers
 
 import java.util
 import org.apache.commons.lang3.StringUtils
@@ -157,7 +157,7 @@ object FrameworkManager {
         Future(Map[String, AnyRef]())
       else
         throw new ServerException("ERR_WHILE_FETCHING_HIERARCHY_FROM_CASSANDRA", "Error while fetching hierarchy from cassandra")
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def copyHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -234,7 +234,7 @@ object FrameworkManager {
         })
         ResponseHandler.OK.put("node_id", frameworkId)
       })
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   private def getRequestMap(request: Request, metadata: util.Map[String, AnyRef], objectId: String, relationDef: Map[String, AnyRef]): Request = {

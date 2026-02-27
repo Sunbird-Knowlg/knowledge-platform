@@ -155,7 +155,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def copy(request: Request): Future[Response] = {
@@ -215,7 +215,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
 			else ReviewManager.review(request, node)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def publishContent(request: Request): Future[Response] = {
@@ -234,7 +234,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Publish Operation Can't Be Applied On Node Under Processing State")
 			node.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
 			PublishManager.publish(request, node)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def populateDefaultersForCreation(request: Request): Future[Unit] = {
@@ -272,7 +272,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
                                 TelemetryManager.error("Error setting license to Redis: " + e.getMessage, e)
                         }
                     } else {
-                        println("Default License is not available for channel: " + channelId)
+                        TelemetryManager.warn("Default License is not available for channel: " + channelId)
                     }
                 }).recover {
                     case e: Exception =>
@@ -311,8 +311,8 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			throw new ClientException("ERR_CONTENT_INVALID_FILE_NAME", "Please Provide Valid File Name.")
 		if (!preSignedObjTypes.contains(`type`))
 			throw new ClientException("ERR_INVALID_PRESIGNED_URL_TYPE", "Invalid pre-signed url type. It should be one of " + StringUtils.join(preSignedObjTypes, ","))
-		if(StringUtils.isNotBlank(filePath) && filePath.size > 100)
-			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length 100 or Less ")
+		if(StringUtils.isNotBlank(filePath) && filePath.size > ContentConstants.MAX_FILE_PATH_SIZE)
+			throw new ClientException("ERR_CONTENT_INVALID_FILE_PATH", "Please provide valid filepath of character length " + ContentConstants.MAX_FILE_PATH_SIZE + " or Less ")
 	}
 
 	def dataModifier(node: Node): Node = {
@@ -385,7 +385,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				val identifier: String = node.getIdentifier.replace(".img", "")
 				ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 			})
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 }

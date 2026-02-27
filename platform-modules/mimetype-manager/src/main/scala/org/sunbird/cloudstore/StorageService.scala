@@ -4,6 +4,7 @@ import org.apache.tika.Tika
 import org.sunbird.cloud.storage.IStorageService
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.io.File
 import javax.inject.{Inject, Singleton}
@@ -94,9 +95,9 @@ class StorageService @Inject()(storageService: IStorageService) {
         try {
             getService.getUri(getContainerName, key, false)
         } catch {
-            case e: Exception =>
-                println("StorageService --> getUri --> Exception: " + e.getMessage)
-                ""
+            case e:Exception =>
+              TelemetryManager.error("StorageService --> getUri --> Exception: " + e.getMessage, e)
+              ""
         }
 
     def getMimeType(fileName: String): String = new Tika().detect(fileName)

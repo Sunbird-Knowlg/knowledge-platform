@@ -25,7 +25,7 @@ trait VersionKeyValidator extends IDefinition {
             isValidVersionkey(node).map(isValid => {
                 if(!isValid)throw new ClientException(ResponseCode.CLIENT_ERROR.name, "Invalid version Key")
                 else super.validate(node, operation)
-            }).flatMap(f => f)
+            }).flatten
         } else {
             super.validate(node, operation)
         }

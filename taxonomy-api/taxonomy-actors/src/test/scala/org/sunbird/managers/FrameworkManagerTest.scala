@@ -6,7 +6,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
 
 import java.util
-import org.sunbird.mangers.FrameworkManager._
+import org.sunbird.managers.FrameworkManager._
 
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.ExecutionContext

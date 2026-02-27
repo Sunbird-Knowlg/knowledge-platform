@@ -44,7 +44,7 @@ object PublishManager {
 			response.put(ContentConstants.NODE_ID, node.getIdentifier)
 
 			Future(response)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	@throws[Exception]

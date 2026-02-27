@@ -34,7 +34,7 @@ object AssetCopyManager {
         response.put(AssetConstants.VERSION_KEY, copiedNode.getMetadata.get(AssetConstants.VERSION_KEY))
         response
       })
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def copyAsset(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext, ss: StorageService): Future[Node] = {
@@ -42,8 +42,8 @@ object AssetCopyManager {
     copyCreateReq.map(req => {
       DataNode.create(req).map(copiedNode => {
         artifactUpload(node, copiedNode, request)
-      }).flatMap(f => f)
-    }).flatMap(f => f)
+      }).flatten
+    }).flatten
   }
 
   def getCopyRequest(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {

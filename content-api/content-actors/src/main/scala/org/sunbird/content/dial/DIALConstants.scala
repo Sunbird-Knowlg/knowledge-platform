@@ -28,4 +28,9 @@ object DIALConstants {
 	val DIAL_EID: String = "BE_QR_IMAGE_GENERATOR"
 	val batchInfo: String = "batchInfo"
 
+	// QR code generation defaults
+	val DEFAULT_ERROR_CORRECTION_LEVEL: String = "H"
+	val DEFAULT_PIXELS_PER_BLOCK: Int = 2
+	val DEFAULT_QR_CODE_MARGIN: Int = 3
+
 }

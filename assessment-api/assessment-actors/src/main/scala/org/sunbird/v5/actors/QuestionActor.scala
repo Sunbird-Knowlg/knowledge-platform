@@ -17,8 +17,7 @@ import org.sunbird.v5.managers.AssessmentV5Manager
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends AbstractActor {
@@ -46,7 +45,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends Abstr
   }
 
   def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     val extPropNameList:util.List[String] = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String]).asJava
     request.getRequest.put("fields", extPropNameList)
     DataNode.read(request).map(node => {
@@ -72,12 +71,12 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends Abstr
       DataNode.update(request).map(node => {
         ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
       })
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def listQuestions(request: Request): Future[Response] = {
     RequestUtil.validateListRequest(request)
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     DataNode.search(request).map(nodeList => {
       val questionList = nodeList.map(node => AssessmentV5Manager.getQuestionMetadata(node, fields, List().asJava)).asJava
@@ -86,7 +85,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends Abstr
   }
 
   def privateRead(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     val extPropNameList:util.List[String] = DefinitionNode.getExternalProps(request.getContext.get("graph_id").asInstanceOf[String], request.getContext.get("version").asInstanceOf[String], request.getContext.get("schemaName").asInstanceOf[String]).asJava
     request.getRequest.put("fields", extPropNameList)
     if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String]))
@@ -118,7 +117,7 @@ class QuestionActor @Inject()(implicit oec: OntologyEngineContext) extends Abstr
       DataNode.update(updateRequest).map(node => {
         ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
       })
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def reject(request: Request): Future[Response] = {
