@@ -22,6 +22,9 @@ public class CassandraConnector {
 	/** Cassandra Session Map. */
 	private static Map<String, Session> sessionMap = new HashMap<String, Session>();
 
+	/** Guard to prevent registering duplicate JVM shutdown hooks. */
+	private static boolean shutdownHookRegistered = false;
+
 	static {
 		if (Platform.getBoolean("service.db.cassandra.enabled", true))
 			prepareSession("lp", getConsistencyLevel("lp"));
@@ -77,9 +80,11 @@ public class CassandraConnector {
 						.build().connect());
 			}
 
-			registerShutdownHook();
+			if (!shutdownHookRegistered) {
+				registerShutdownHook();
+				shutdownHookRegistered = true;
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			TelemetryManager.error("Error! While Loading Cassandra Properties." + e.getMessage(), e);
 		}
 	}
@@ -129,21 +134,33 @@ public class CassandraConnector {
 	}
 
 	/**
-	 * Close connection with the cluster.
-	 *
+	 * Close all Cassandra sessions gracefully.
+	 * Each session is closed individually so a failure in one does not
+	 * prevent closing the others.
 	 */
 	public static void close() {
-		sessionMap.entrySet().stream().forEach(stream -> stream.getValue().close());
+		sessionMap.forEach((key, session) -> {
+			if (session != null && !session.isClosed()) {
+				try {
+					session.close();
+				} catch (Exception e) {
+					TelemetryManager.error("Error closing Cassandra session for key: " + key + " — " + e.getMessage(), e);
+				}
+			}
+		});
+		sessionMap.clear();
 	}
 
 	/**
-	 * Register JVM shutdown hook to close cassandra open session.
+	 * Register a single JVM shutdown hook to close all open Cassandra sessions.
+	 * Protected by shutdownHookRegistered so it is called only once even when
+	 * prepareSession() is invoked multiple times.
 	 */
 	private static void registerShutdownHook() {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				TelemetryManager.log("Shutting down Cassandra connector session");
+				TelemetryManager.log("Shutting down Cassandra connector — closing all sessions");
 				CassandraConnector.close();
 			}
 		});
