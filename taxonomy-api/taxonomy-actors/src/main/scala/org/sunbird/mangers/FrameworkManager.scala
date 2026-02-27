@@ -70,44 +70,75 @@ object FrameworkManager {
     })
   }
 
-  def getCompleteMetadata(id: String, subGraph: SubGraph, includeRelations: Boolean)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+  /**
+   * Builds and returns the filtered metadata map for a single node in the subgraph.
+   * Applies JSON property conversion, key-name normalisation, and schema field filtering.
+   */
+  private def buildFilteredNodeMetadata(id: String, subGraph: SubGraph): util.Map[String, AnyRef] = {
     val nodes = subGraph.getNodes
-    val relations = subGraph.getRelations
-    val node = nodes.get(id)
-    if (null == node) {
-       throw new ClientException("ERR_NODE_NOT_FOUND", s"Node with ID '$id' not found in SubGraph. Available nodes: ${nodes.keySet()}")
-    }
-    val metadata = node.getMetadata
+    val node  = nodes.get(id)
+    if (null == node)
+      throw new ClientException("ERR_NODE_NOT_FOUND",
+        s"Node with ID '$id' not found in SubGraph. Available nodes: ${nodes.keySet()}")
+
+    val metadata   = node.getMetadata
     val objectType = node.getObjectType.toLowerCase().replace("image", "")
-    val channel = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]
-    val definition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
+    val channel    = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]
+    val definition: ObjectCategoryDefinition =
+      DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
+
     val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, objectType, definition)
-    val updatedMetadata: util.Map[String, AnyRef] = (metadata.entrySet().asScala.filter(entry => null != entry.getValue)
-      .map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, null) -> convertJsonProperties(entry, jsonProps)).toMap ++
-      Map("objectType" -> node.getObjectType, "identifier" -> node.getIdentifier, "languageCode" -> NodeUtil.getLanguageCodes(node))).asJava
+    val updatedMetadata: util.Map[String, AnyRef] =
+      (metadata.entrySet().asScala
+        .filter(entry => null != entry.getValue)
+        .map(entry => handleKeyNames(entry, null) -> convertJsonProperties(entry, jsonProps))
+        .toMap ++ Map(
+          "objectType"   -> node.getObjectType,
+          "identifier"   -> node.getIdentifier,
+          "languageCode" -> NodeUtil.getLanguageCodes(node)
+        )).asJava
 
-    val fields =DefinitionNode.getMetadataFields(node.getGraphId, schemaVersion, objectType, definition)
-    val filteredData: util.Map[String, AnyRef] = if(fields.nonEmpty) updatedMetadata.asScala.filter(entry => fields.contains(entry._1)).asJava else updatedMetadata
+    val fields = DefinitionNode.getMetadataFields(node.getGraphId, schemaVersion, objectType, definition)
+    if (fields.nonEmpty) updatedMetadata.asScala.filter(entry => fields.contains(entry._1)).asJava
+    else updatedMetadata
+  }
 
-    val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
-    val outRelations = relations.asScala.filter((rel: Relation) => {
-      StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
-    }).sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList.asJava
+  /**
+   * Returns the out-relations of a node sorted by their sequence index.
+   */
+  private def sortedOutRelations(id: String, subGraph: SubGraph): util.List[Relation] = {
+    val node      = subGraph.getNodes.get(id)
+    val relations = subGraph.getRelations
+    relations.asScala
+      .filter(rel => StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier))
+      .sortBy(rel => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long)
+      .toList.asJava
+  }
 
-    if(includeRelations){
+  def getCompleteMetadata(id: String, subGraph: SubGraph, includeRelations: Boolean)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+    val filteredData = buildFilteredNodeMetadata(id, subGraph)
+
+    if (includeRelations) {
+      val node       = subGraph.getNodes.get(id)
+      val objectType = node.getObjectType.toLowerCase().replace("image", "")
+      val channel    = node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String]
+      val definition = DefinitionNode.getObjectCategoryDefinition("", objectType, channel)
+      val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
+      val outRelations = sortedOutRelations(id, subGraph)
+
       val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
-      val childHierarchy = relMetadata.map(x => (x._1, x._2.asScala.map(a => {
-        val identifier = a.getOrElse("identifier", "")
-        val childNode = nodes.get(identifier)
-        val index = a.getOrElse("index", 1).asInstanceOf[Number]
-        val metaData = (childNode.getMetadata.asScala ++ Map("index" -> index)).asJava
-        childNode.setMetadata(metaData)
-        if("associations".equalsIgnoreCase(x._1)){
-          getCompleteMetadata(childNode.getIdentifier, subGraph, false)
-        } else {
-          getCompleteMetadata(childNode.getIdentifier, subGraph, true)
-        }
-      }).toList.asJava))
+      val childHierarchy = relMetadata.map { case (relKey, children) =>
+        relKey -> children.asScala.map { a =>
+          val identifier = a.getOrElse("identifier", "")
+          val childNode  = subGraph.getNodes.get(identifier)
+          val index      = a.getOrElse("index", 1).asInstanceOf[Number]
+          childNode.setMetadata((childNode.getMetadata.asScala ++ Map("index" -> index)).asJava)
+          if ("associations".equalsIgnoreCase(relKey))
+            getCompleteMetadata(childNode.getIdentifier, subGraph, includeRelations = false)
+          else
+            getCompleteMetadata(childNode.getIdentifier, subGraph, includeRelations = true)
+        }.toList.asJava
+      }
       (filteredData.asScala ++ childHierarchy).asJava
     } else {
       filteredData
