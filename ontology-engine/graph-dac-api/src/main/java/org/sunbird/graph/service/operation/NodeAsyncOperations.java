@@ -4,6 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
 import org.sunbird.common.DateUtils;
@@ -84,35 +85,17 @@ public class NodeAsyncOperations {
 
                 // Create vertex using Native API
                 JanusGraphVertex vertex = tx.addVertex(node.getObjectType());
-                vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
-                vertex.property("graphId", graphId);
-                vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
-                vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_UNIQUE_ID.name(), identifier);
+                vertex.property(VertexProperty.Cardinality.single, "graphId", graphId);
+                vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_FUNC_OBJECT_TYPE.name(),
+                        node.getObjectType());
+                vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_SYS_NODE_TYPE.name(),
                         StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
                                 : SystemNodeTypes.DATA_NODE.name());
 
-                // Add all metadata properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                     if (entry.getValue() != null) {
-                        Object value = entry.getValue();
-                        if (value instanceof java.util.List) {
-                            java.util.List<?> list = (java.util.List<?>) value;
-                            if (list.isEmpty()) {
-                                // If list is empty, skip property creation
-                                continue;
-                            }
-                            // Convert to typed array for JanusGraph
-                            if (list.get(0) instanceof String) {
-                                value = list.toArray(new String[0]);
-                            } else if (list.get(0) instanceof Integer) {
-                                value = list.toArray(new Integer[0]);
-                            } else if (list.get(0) instanceof Double) {
-                                value = list.toArray(new Double[0]);
-                            } else {
-                                value = list.toArray();
-                            }
-                        }
-                        vertex.property(entry.getKey(), value);
+                        vertex.property(VertexProperty.Cardinality.single, entry.getKey(), entry.getValue());
                     }
                 }
 
@@ -195,10 +178,12 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), timestamp);
 
                     vertex = tx.addVertex(node.getObjectType());
-                    vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
-                    vertex.property("graphId", graphId);
-                    vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
-                    vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_UNIQUE_ID.name(),
+                            identifier);
+                    vertex.property(VertexProperty.Cardinality.single, "graphId", graphId);
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_FUNC_OBJECT_TYPE.name(),
+                            node.getObjectType());
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_SYS_NODE_TYPE.name(),
                             StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
                                     : SystemNodeTypes.DATA_NODE.name());
                 }
@@ -213,7 +198,8 @@ public class NodeAsyncOperations {
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Determine which properties to write.
-                // If updatedFields is set (update flow), only write those properties + system-generated ones.
+                // If updatedFields is set (update flow), only write those properties +
+                // system-generated ones.
                 // If updatedFields is null/empty (create flow or legacy), write all properties.
                 Set<String> updatedFields = node.getUpdatedFields();
                 boolean isPartialUpdate = (isExistingNode && updatedFields != null && !updatedFields.isEmpty());
@@ -226,7 +212,7 @@ public class NodeAsyncOperations {
                             + " | Updating only fields: " + updatedFields);
                 }
 
-                // Update properties
+                // Update properties using VertexProperty.Cardinality.single
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                     // Skip properties not in the update set (for partial updates)
                     if (isPartialUpdate && !updatedFields.contains(entry.getKey())) {
@@ -239,18 +225,7 @@ public class NodeAsyncOperations {
                         }
                         continue;
                     }
-                    Object value = entry.getValue();
-                    if (value instanceof java.util.List) {
-                        java.util.List<?> list = (java.util.List<?>) value;
-                        if (list.isEmpty()) {
-                            if (vertex.keys().contains(entry.getKey())) {
-                                vertex.property(entry.getKey()).remove();
-                            }
-                            continue;
-                        }
-                        value = list.toArray();
-                    }
-                    vertex.property(entry.getKey(), value);
+                    vertex.property(VertexProperty.Cardinality.single, entry.getKey(), entry.getValue());
                 }
 
                 try {
@@ -314,15 +289,20 @@ public class NodeAsyncOperations {
                 if (!vertexIter.hasNext()) {
                     // Create root node
                     vertex = tx.addVertex("ROOT");
-                    vertex.property(SystemProperties.IL_UNIQUE_ID.name(), rootId);
-                    vertex.property("graphId", graphId);
-                    vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), "ROOT");
-                    vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.DATA_NODE.name());
-                    vertex.property(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
-                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_UNIQUE_ID.name(), rootId);
+                    vertex.property(VertexProperty.Cardinality.single, "graphId", graphId);
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_FUNC_OBJECT_TYPE.name(),
+                            "ROOT");
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_SYS_NODE_TYPE.name(),
+                            SystemNodeTypes.DATA_NODE.name());
+                    vertex.property(VertexProperty.Cardinality.single, AuditProperties.createdOn.name(),
+                            DateUtils.formatCurrentDate());
+                    vertex.property(VertexProperty.Cardinality.single, AuditProperties.lastUpdatedOn.name(),
+                            DateUtils.formatCurrentDate());
                 } else {
                     vertex = vertexIter.next();
-                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    vertex.property(VertexProperty.Cardinality.single, AuditProperties.lastUpdatedOn.name(),
+                            DateUtils.formatCurrentDate());
                 }
 
                 try {
@@ -525,21 +505,24 @@ public class NodeAsyncOperations {
             TelemetryManager.log("Channel from request: " + channel + " for content: " + node.getIdentifier());
             if (StringUtils.isNotBlank(channel)) {
                 node.getMetadata().put(GraphDACParams.channel.name(), channel);
-                if (updatedFields != null) updatedFields.add(GraphDACParams.channel.name());
+                if (updatedFields != null)
+                    updatedFields.add(GraphDACParams.channel.name());
             }
 
             String consumerId = (String) request.getContext().get(GraphDACParams.CONSUMER_ID.name());
             TelemetryManager.log("ConsumerId from request: " + consumerId + " for content: " + node.getIdentifier());
             if (StringUtils.isNotBlank(consumerId)) {
                 node.getMetadata().put(GraphDACParams.consumerId.name(), consumerId);
-                if (updatedFields != null) updatedFields.add(GraphDACParams.consumerId.name());
+                if (updatedFields != null)
+                    updatedFields.add(GraphDACParams.consumerId.name());
             }
 
             String appId = (String) request.getContext().get(GraphDACParams.APP_ID.name());
             TelemetryManager.log("App Id from request: " + appId + " for content: " + node.getIdentifier());
             if (StringUtils.isNotBlank(appId)) {
                 node.getMetadata().put(GraphDACParams.appId.name(), appId);
-                if (updatedFields != null) updatedFields.add(GraphDACParams.appId.name());
+                if (updatedFields != null)
+                    updatedFields.add(GraphDACParams.appId.name());
             }
         }
     }
