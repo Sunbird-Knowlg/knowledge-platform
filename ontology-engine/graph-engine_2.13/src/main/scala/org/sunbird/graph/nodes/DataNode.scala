@@ -34,7 +34,7 @@ object DataNode {
                     saveExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType),
                     createRelations(request.graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatten recoverWith { case e: CompletionException => throw e.getCause}
+            }).flatten recoverWith { case e: CompletionException => Future.failed(e.getCause) }
         }).flatten
     }
 
@@ -49,8 +49,8 @@ object DataNode {
                     updateExternalProperties(node.getIdentifier, node.getExternalData, request.getContext, request.getObjectType, request),
                     updateRelations(request.graphId, node, request.getContext))
                 futureList.map(list => result)
-            }).flatten  recoverWith { case e: CompletionException => throw e.getCause}
-        }).flatten recoverWith { case e: CompletionException => throw e.getCause}
+            }).flatten  recoverWith { case e: CompletionException => Future.failed(e.getCause) }
+        }).flatten recoverWith { case e: CompletionException => Future.failed(e.getCause) }
     }
 
     @throws[Exception]
@@ -71,7 +71,7 @@ object DataNode {
             else
                 Future(node)
         }).flatten recoverWith {
-          case e: CompletionException => throw e.getCause
+          case e: CompletionException => Future.failed(e.getCause)
         }
     }
 
@@ -245,7 +245,7 @@ object DataNode {
     newRequest.getContext.put("identifier", identifier)
     // Enrich Hierarchy and Update with the new request
     enrichHierarchy(newRequest, metadata, status, hierarchyKey: String, hierarchyFunc)
-      .flatMap(req => update(req)) recoverWith { case e: CompletionException => throw e.getCause}
+      .flatMap(req => update(req)) recoverWith { case e: CompletionException => Future.failed(e.getCause) }
   }
 
   private def enrichHierarchy(request: Request, metadata: util.Map[String, AnyRef], status: String, hierarchyKey: String, hierarchyFunc: Option[Request => Future[Response]] = None)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Request] = {
@@ -299,7 +299,7 @@ object DataNode {
       else
         Future(nodeList.asScala.toList)
     }).flatten recoverWith {
-      case e: CompletionException => throw e.getCause
+      case e: CompletionException => Future.failed(e.getCause)
     }
   }
 
