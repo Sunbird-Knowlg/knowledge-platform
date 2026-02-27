@@ -17,7 +17,6 @@ import org.sunbird.utils.Constants
 import java.text.SimpleDateFormat
 import java.util.concurrent.CompletionException
 import javax.inject.Inject
-import scala.collection.immutable.{List, Map}
 import scala.concurrent.{ExecutionContext, Future}
 
 class LockActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor{
