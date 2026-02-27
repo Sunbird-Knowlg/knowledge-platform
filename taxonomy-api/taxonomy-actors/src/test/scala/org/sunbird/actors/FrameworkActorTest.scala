@@ -332,6 +332,123 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     subGraphFData
   }
 
+  // ─── Additional tests for readChannelNode / publish helpers ────────────────
+
+  it should "throw ERR_INVALID_CHANNEL_ID when channel node is invalid in 'publishFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    // Return a node whose identifier does NOT match the requested channel
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("wrong_channel")
+    node.setObjectType("Channel")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {{ put("name", "wrong") }})
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.putAll(mutable.Map[String, AnyRef](
+      Constants.IDENTIFIER -> "framework_test",
+      "channel" -> "sunbird"
+    ).asJava)
+    request.setOperation(Constants.PUBLISH_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert("ERR_INVALID_CHANNEL_ID".equals(response.getParams.getErr))
+  }
+
+  it should "throw ERR_INVALID_FRAMEWORK_ID when frameworkId is blank in 'publishFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val channelNode = new Node("domain", "DATA_NODE", "Channel")
+    channelNode.setIdentifier("sunbird")
+    channelNode.setObjectType("Channel")
+    channelNode.setMetadata(new util.HashMap[String, AnyRef]() {{
+      put("identifier", "sunbird")
+      put("name", "Sunbird")
+    }})
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(channelNode)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    // identifier is explicitly blank
+    request.putAll(mutable.Map[String, AnyRef](
+      Constants.IDENTIFIER -> "",
+      "channel" -> "sunbird"
+    ).asJava)
+    request.setOperation(Constants.PUBLISH_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert("ERR_INVALID_FRAMEWORK_ID".equals(response.getParams.getErr))
+  }
+
+  // ─── Additional tests for fetchFrameworkFromStorage / read helpers ──────────
+
+  it should "throw ERR_INVALID_REQUEST when frameworkId is blank in 'readFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.putAll(mutable.Map[String, AnyRef](
+      "identifier" -> "",
+      Constants.CATEGORIES -> ""
+    ).asJava)
+    request.setOperation(Constants.READ_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
+  }
+
+  it should "fall back to DataNode when Cassandra returns empty hierarchy in 'readFramework'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    // Cassandra returns an empty response (no hierarchy)
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response()))
+    val node = getValidNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.putAll(mutable.Map[String, AnyRef](
+      "identifier" -> "framework_test",
+      Constants.CATEGORIES -> ""
+    ).asJava)
+    request.setOperation(Constants.READ_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    // Should succeed by reading from DataNode
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.getResult.containsKey(Constants.FRAMEWORK))
+  }
+
+  // ─── Additional tests for create → readChannelNode helper ─────────────────
+
+  it should "throw ERR_INVALID_CHANNEL_ID when channel node identifier mismatches in 'createFramework'" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    // Node returned has a different identifier than requested channel
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("different_channel")
+    node.setObjectType("Channel")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {{ put("identifier", "different_channel") }})
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.putAll(mutable.Map[String, AnyRef](
+      "name" -> "framework_test",
+      "code" -> "framework_test",
+      "channel" -> "channel_test"
+    ).asJava)
+    request.setOperation(Constants.CREATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("failed".equals(response.getParams.getStatus))
+    assert("ERR_INVALID_CHANNEL_ID".equals(response.getParams.getErr))
+  }
+
   def getSuccessfulResponse(): Response = {
     val response = new Response
     response.setVer("3.0")
