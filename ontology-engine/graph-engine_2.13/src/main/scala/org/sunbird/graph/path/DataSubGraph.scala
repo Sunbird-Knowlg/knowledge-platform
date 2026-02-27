@@ -38,7 +38,6 @@ object DataSubGraph {
     val dataMap = new util.HashMap[String, AnyRef]
     val relMap = new util.HashMap[String, AnyRef]
     readSubGraphData(request, dataMap, relMap).map(sub => {
-      TelemetryManager.debug("subGraphData out " + sub)
       sub
     })
   }
