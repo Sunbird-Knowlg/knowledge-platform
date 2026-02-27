@@ -107,7 +107,6 @@ object DataSubGraph {
         finalMetadata.keySet.retainAll(fields)
       finalMetadata.put("identifier", node.getIdentifier)
     }
-    TelemetryManager.debug("definitionMap  " + definitionMap)
     val relMap: util.Map[String, util.List[util.Map[String, AnyRef]]] = geOutRelationMap(node, updatedMetadataMap, definitionMap)
     finalMetadata.putAll(relMap)
     finalMetadata
