@@ -34,9 +34,9 @@ object DIALManager {
 	private val kfClient = new KafkaClient
 	val DIALTOPIC: String = Platform.config.getString("kafka.dial.request.topic")
 	val defaultConfig: Mmap[String, Any] = Mmap(
-		"errorCorrectionLevel" -> "H",
-		"pixelsPerBlock" -> 2,
-		"qrCodeMargin" -> 3,
+		"errorCorrectionLevel" -> DIALConstants.DEFAULT_ERROR_CORRECTION_LEVEL,
+		"pixelsPerBlock" -> DIALConstants.DEFAULT_PIXELS_PER_BLOCK,
+		"qrCodeMargin" -> DIALConstants.DEFAULT_QR_CODE_MARGIN,
 		"textFontName" -> "Verdana",
 		"textFontSize" -> 11,
 		"textCharacterSpacing" -> 0.1,
