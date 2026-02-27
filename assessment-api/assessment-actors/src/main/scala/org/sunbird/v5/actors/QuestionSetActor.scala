@@ -21,7 +21,7 @@ import org.sunbird.v5.managers.AssessmentV5Manager
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends AbstractActor {
@@ -53,7 +53,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   }
 
   def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       if (StringUtils.equalsIgnoreCase(node.getMetadata.get("visibility").asInstanceOf[String], "Private"))
@@ -63,7 +63,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   }
 
   def privateRead(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
     DataNode.read(request).map(node => {
