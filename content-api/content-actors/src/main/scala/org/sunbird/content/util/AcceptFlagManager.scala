@@ -35,9 +35,9 @@ object AcceptFlagManager {
               response
             }
           })
-        }).flatMap(f => f)
+        }).flatten
       }
-    }).flatMap(f => f)
+    }).flatten
   }
 
   private def createOrUpdateImageNode(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -77,7 +77,7 @@ object AcceptFlagManager {
         } else {
           Future(hierarchyResponse)
         }
-      }).flatMap(f => f)
+      }).flatten
     } else {
       updateNode(request)
     }

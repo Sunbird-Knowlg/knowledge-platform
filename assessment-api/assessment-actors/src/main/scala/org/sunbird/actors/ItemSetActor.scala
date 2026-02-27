@@ -86,7 +86,7 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends Abstr
 					ResponseHandler.OK.put("identifier", node.getIdentifier)
 				}))
 			futureList
-		}).flatMap(f => f).map(f => f.get(1))
+		}).flatten.map(f => f.get(1))
 	}
 
 	def retire(request: Request): Future[Response] = {

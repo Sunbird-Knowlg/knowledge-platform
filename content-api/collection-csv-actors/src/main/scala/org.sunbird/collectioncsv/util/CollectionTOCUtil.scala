@@ -55,7 +55,7 @@ object CollectionTOCUtil {
       returnDIALCodes.asScala.toList.map(rec => rec.asScala.toMap[String,AnyRef]).map(_.getOrElse(CollectionTOCConstants.IDENTIFIER, "")).asInstanceOf[List[String]]
     }
     catch {
-      case e:Exception => println("CollectionTOCUtil: validateDIALCodes --> exception: " + e.getMessage)
+      case e:Exception => TelemetryManager.error("CollectionTOCUtil: validateDIALCodes --> exception: " + e.getMessage, e)
         List.empty
     }
   }

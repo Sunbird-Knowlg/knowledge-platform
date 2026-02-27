@@ -7,7 +7,6 @@ import org.sunbird.graph.common.enums.SystemProperties;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +22,8 @@ public class SearchCriteria implements Serializable {
     private boolean countQuery;
     private int resultSize = 0;
     private int startPosition = 0;
-    private List<String> fields = new LinkedList<String>();
-    private List<Sort> sortOrder = new LinkedList<Sort>();
+    private List<String> fields = new ArrayList<String>();
+    private List<Sort> sortOrder = new ArrayList<Sort>();
 
     Map<String, Object> params = new HashMap<String, Object>();
     int pIndex = 1;
@@ -237,7 +236,7 @@ public class SearchCriteria implements Serializable {
 
     public void sort(Sort sort) {
         if (null == sortOrder)
-            sortOrder = new LinkedList<Sort>();
+            sortOrder = new ArrayList<Sort>();
         sortOrder.add(sort);
     }
 

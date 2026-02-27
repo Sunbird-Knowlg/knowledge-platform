@@ -6,6 +6,7 @@ import org.sunbird.cloud.storage.BaseStorageService
 import org.sunbird.cloud.storage.factory.{StorageConfig, StorageServiceFactory}
 import org.sunbird.common.{Platform, Slug}
 import org.sunbird.common.exception.ServerException
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import java.io.File
 import scala.concurrent.{ExecutionContext, Future}
@@ -97,7 +98,7 @@ class StorageService {
            getService.getUri(getContainerName, key, Option.apply(false))
         } catch {
             case e:Exception =>
-              println("StorageService --> getUri --> Exception: " + e.getMessage)
+              TelemetryManager.error("StorageService --> getUri --> Exception: " + e.getMessage, e)
               ""
         }
     }

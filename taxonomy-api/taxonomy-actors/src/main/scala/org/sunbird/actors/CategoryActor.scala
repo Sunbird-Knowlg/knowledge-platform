@@ -12,7 +12,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.RequestUtil
-import org.sunbird.mangers.FrameworkManager
+import org.sunbird.managers.FrameworkManager
 import org.sunbird.cache.impl.RedisCache
 
 import scala.concurrent.{ExecutionContext, Future}
