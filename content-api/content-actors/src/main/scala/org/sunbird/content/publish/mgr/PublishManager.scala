@@ -1,6 +1,7 @@
 package org.sunbird.content.publish.mgr
 
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.ResponseParams.StatusType
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
@@ -19,7 +20,7 @@ object PublishManager {
 
 	private val kfClient = new KafkaClient
 
-	def publish(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+	def publish(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
 		val identifier: String = node.getIdentifier
 		val mimeType = node.getMetadata.getOrDefault(ContentConstants.MIME_TYPE, "").asInstanceOf[String]
 		val mgr = MimeTypeManagerFactory.getManager(node.getObjectType, mimeType)

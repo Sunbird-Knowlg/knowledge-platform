@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object AssetCopyManager {
 
-  def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
+  def copy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext, ss: StorageService): Future[Response] = {
     request.getContext.put(AssetConstants.ASSET_COPY_SCHEME, request.getRequest.getOrDefault(AssetConstants.ASSET_COPY_SCHEME, ""))
     DataNode.read(request).map(node => {
       if (!StringUtils.equals(node.getObjectType, "Asset"))
@@ -37,7 +37,7 @@ object AssetCopyManager {
     }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
-  def copyAsset(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+  def copyAsset(node: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext, ss: StorageService): Future[Node] = {
     val copyCreateReq: Future[Request] = getCopyRequest(node, request)
     copyCreateReq.map(req => {
       DataNode.create(req).map(copiedNode => {
@@ -63,7 +63,7 @@ object AssetCopyManager {
     }
   }
 
-  def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
+  def artifactUpload(node: Node, copiedNode: Node, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext, ss: StorageService): Future[Node] = {
     val artifactUrl = node.getMetadata.getOrDefault(AssetConstants.ARTIFACT_URL, "").asInstanceOf[String]
     if (StringUtils.isNotBlank(artifactUrl)) {
       val updatedReq = getUpdateRequest(request, copiedNode)

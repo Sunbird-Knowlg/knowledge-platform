@@ -291,16 +291,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- cloud-store-sdk v2.0.0: API module (compile-time only) -->
         <dependency>
-            <groupId>${CLOUD_STORE_GROUP_ID}</groupId>
-            <artifactId>${CLOUD_STORE_ARTIFACT_ID}</artifactId>
-            <version>${CLOUD_STORE_VERSION}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.inject.extensions</groupId>
-                    <artifactId>guice-multibindings</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.sunbird</groupId>
+            <artifactId>cloud-storage-sdk-api</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <!-- cloud-store-sdk v2.0.0: Azure CSP implementation (runtime - ServiceLoader discovery) -->
+        <dependency>
+            <groupId>org.sunbird</groupId>
+            <artifactId>cloud-storage-sdk-azure</artifactId>
+            <version>2.0.0</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>

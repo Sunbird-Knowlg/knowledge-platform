@@ -4,7 +4,7 @@ import scala.jdk.CollectionConverters._
 import java.util
 
 import org.apache.pekko.actor.Props
-import org.apache.hadoop.util.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.Request
