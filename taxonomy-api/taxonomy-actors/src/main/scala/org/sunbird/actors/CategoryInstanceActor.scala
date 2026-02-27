@@ -59,9 +59,9 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
               .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
           })
-        }).flatMap(f => f)
+        }).flatten
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
-    }).flatMap(f => f)
+    }).flatten
   }
 
   private def read(request: Request): Future[Response] = {

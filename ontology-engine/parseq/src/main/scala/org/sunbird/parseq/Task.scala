@@ -21,7 +21,7 @@ object Task {
         } yield (List(result1, result2))
         result.map(futures => {
             Future.sequence(futures)
-        }).flatMap(f => f)
+        }).flatten
     }
 
 }

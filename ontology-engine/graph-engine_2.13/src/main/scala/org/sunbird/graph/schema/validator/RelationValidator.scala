@@ -48,7 +48,7 @@ trait RelationValidator extends IDefinition {
                 node
             }).map(node => {
                 super.validate(node, operation)
-            }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause}
+            }).flatten recoverWith { case e: CompletionException => throw e.getCause}
         } else {
             super.validate(node, operation)
         }

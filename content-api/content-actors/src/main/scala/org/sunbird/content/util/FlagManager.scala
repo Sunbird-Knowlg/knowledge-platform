@@ -57,7 +57,7 @@ object FlagManager {
         response.put("versionKey", flaggedNode.getMetadata.get("versionKey"))
         response
       })
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def updateCollection(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
@@ -75,7 +75,7 @@ object FlagManager {
       }
       val updateNode = DataNode.update(request)
       updateNode
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   private def fetchHierarchy(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {

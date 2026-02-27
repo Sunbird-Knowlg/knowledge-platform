@@ -35,7 +35,7 @@ object NodeValidator {
 
     private def getDataNodes(graphId: String, identifiers: util.List[String])(implicit ec: ExecutionContext, oec: OntologyEngineContext) = {
         if (identifiers.size() == 1) {
-            TelemetryManager.debug("NodeValidator: Singular lookup for identifier: " + identifiers.get(0))
+            TelemetryManager.log("NodeValidator: Singular lookup for identifier: " + identifiers.get(0))
             oec.graphService.getNodeByUniqueId(graphId, identifiers.get(0), false, new org.sunbird.common.dto.Request())
                 .map(node => util.Arrays.asList(node))
                 .recover {

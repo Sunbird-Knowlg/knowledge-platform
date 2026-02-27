@@ -155,7 +155,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def copy(request: Request): Future[Response] = {
@@ -215,7 +215,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
 			else ReviewManager.review(request, node)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def publishContent(request: Request): Future[Response] = {
@@ -234,7 +234,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Publish Operation Can't Be Applied On Node Under Processing State")
 			node.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
 			PublishManager.publish(request, node)
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def populateDefaultersForCreation(request: Request): Future[Unit] = {
@@ -385,7 +385,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				val identifier: String = node.getIdentifier.replace(".img", "")
 				ResponseHandler.OK.put("node_id", identifier).put(ContentConstants.IDENTIFIER, identifier)
 			})
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 }

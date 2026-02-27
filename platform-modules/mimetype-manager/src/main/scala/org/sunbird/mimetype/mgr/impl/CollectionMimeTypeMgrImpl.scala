@@ -61,7 +61,7 @@ class CollectionMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTyp
 				})
 			else
 				Future{List(true)}
-		}).flatMap(f => f)
+		}).flatten
 	}
 
 	def getCollectionHierarchy(request: Request, rootNode: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Any] = {

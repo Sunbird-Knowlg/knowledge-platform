@@ -61,7 +61,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
             ResponseHandler.OK.put(Constants.NODE_ID, frameNode.getIdentifier).put("versionKey", frameNode.getMetadata.get("versionKey"))
           })
         } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-      }).flatMap(f => f)
+      }).flatten
     } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
 
   }
@@ -100,7 +100,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
               ResponseHandler.OK.put(Constants.FRAMEWORK, javaMap)
             }
           }
-        }).flatMap(f => f)
+        }).flatten
       }
     } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
   }
@@ -166,7 +166,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
           })
         } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
       } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    }).flatMap(f => f)
+    }).flatten
   }
 
   //TODO:

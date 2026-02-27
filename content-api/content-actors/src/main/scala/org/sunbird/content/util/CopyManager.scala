@@ -65,7 +65,7 @@ object CopyManager {
                 response.put(ContentConstants.VERSION_KEY, copiedNode.getMetadata.get(ContentConstants.VERSION_KEY))
                 response
             })
-        }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+        }).flatten recoverWith { case e: CompletionException => throw e.getCause }
     }
 
     def copyContent(node: Node, request: Request)(implicit ec: ExecutionContext,  oec: OntologyEngineContext, ss: StorageService): Future[Node] = {
@@ -74,8 +74,8 @@ object CopyManager {
         copyCreateReq.map(req => {
             DataNode.create(req).map(copiedNode => {
                 artifactUpload(node, copiedNode, request)
-            }).flatMap(f => f)
-        }).flatMap(f => f)
+            }).flatten
+        }).flatten
     }
 
     def copyCollection(originNode: Node, request: Request)(implicit ec:ExecutionContext, oec: OntologyEngineContext, ss: StorageService):Future[Node] = {
@@ -93,7 +93,7 @@ object CopyManager {
                     case _ => updateHierarchy(request,node, originNode, originHierarchy, copyType)
                 }
             }).flatMap(f=>f)
-        }).flatMap(f => f) recoverWith {case e: CompletionException => throw e.getCause}
+        }).flatten recoverWith {case e: CompletionException => throw e.getCause}
     }
 
     def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType:String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -289,7 +289,7 @@ object CopyManager {
             } else mimeTypeManager.upload(copiedNode.getIdentifier, copiedNode, node.getMetadata.getOrDefault(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String], None, UploadParams())
             uploadFuture.map(uploadData => {
                 DataNode.update(getUpdateRequest(request, copiedNode, uploadData.getOrElse(ContentConstants.ARTIFACT_URL, "").asInstanceOf[String]))
-            }).flatMap(f => f)
+            }).flatten
         } else Future(copiedNode)
     }
 

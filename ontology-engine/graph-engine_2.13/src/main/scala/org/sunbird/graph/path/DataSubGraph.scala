@@ -60,7 +60,7 @@ object DataSubGraph {
     })
     finalDataMap.asScala.map(entry => {
       val mapData = entry._2.asInstanceOf[java.util.Map[String, AnyRef]].asScala
-      TelemetryManager.debug("mapData  " + mapData.toString())
+      TelemetryManager.log("mapData  " + mapData.toString())
       val outRelations: util.List[Relation] = mapData.getOrElse("outRelations", new util.ArrayList[Relation]).asInstanceOf[util.List[Relation]]
       for (rel <- outRelations.asScala) {
         val subReq = new Request()
@@ -71,7 +71,7 @@ object DataSubGraph {
         subReq.getContext.put("objectType", rel.getEndNodeObjectType)
         subReq.getContext.put("isRoot", "true")
         subReq.put("identifier", rel.getEndNodeId)
-        TelemetryManager.debug("readSubGraphData " + subReq.get("identifier"))
+        TelemetryManager.log("readSubGraphData " + subReq.get("identifier"))
       }
     })
     Future{finalDataMap}

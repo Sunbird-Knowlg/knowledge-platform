@@ -52,7 +52,7 @@ object CopyManager {
         response.put(AssessmentConstants.VERSION_KEY, copiedNode.getMetadata.get(AssessmentConstants.VERSION_KEY))
         response
       })
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
   def validateExistingNode(request: Request, node: Node) = {
@@ -81,8 +81,8 @@ object CopyManager {
           case AssessmentConstants.COPY_TYPE_SHALLOW => updateShallowHierarchy(request, node, originNode, originHierarchy)
           case _ => updateHierarchy(request, node, originNode, originHierarchy, copyType)
         }
-      }).flatMap(f => f)
-    }).flatMap(f => f) recoverWith { case e: CompletionException => throw e.getCause }
+      }).flatten
+    }).flatten recoverWith { case e: CompletionException => throw e.getCause }
   }
 
 
@@ -91,8 +91,8 @@ object CopyManager {
     copyCreateReq.map(req => {
       DataNode.create(req).map(copiedNode => {
         Future(copiedNode)
-      }).flatMap(f => f)
-    }).flatMap(f => f)
+      }).flatten
+    }).flatten
   }
 
   def updateHierarchy(request: Request, node: Node, originNode: Node, originHierarchy: util.Map[String, AnyRef], copyType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -121,8 +121,8 @@ object CopyManager {
             }
           })
         } else Future(node)
-      }).flatMap(f => f)
-    }).flatMap(f => f)
+      }).flatten
+    }).flatten
   }
 
   def prepareHierarchyRequest(originHierarchy: util.Map[String, AnyRef], originNode: Node, node: Node, copyType: String, request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[util.Map[String, AnyRef]] = {

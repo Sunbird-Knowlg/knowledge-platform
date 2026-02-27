@@ -21,7 +21,7 @@ import org.sunbird.v5.managers.AssessmentV5Manager
 
 import java.util
 import javax.inject.Inject
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends AbstractActor {
@@ -53,7 +53,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   }
 
   def read(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     DataNode.read(request).map(node => {
       if (StringUtils.equalsIgnoreCase(node.getMetadata.get("visibility").asInstanceOf[String], "Private"))
@@ -63,7 +63,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   }
 
   def privateRead(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val fields: util.List[String] = JavaConverters.seqAsJavaListConverter(request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null"))).asJava
+    val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
     request.getRequest.put("fields", fields)
     if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
     DataNode.read(request).map(node => {
@@ -118,7 +118,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
       val date = DateUtils.formatCurrentDate
       updateReq.putAll(Map("identifiers" -> nodeIds, "metadata" -> Map("status" -> "Review", "prevStatus" -> node.getMetadata.get("status"), "lastStatusChangedOn" -> date, "lastUpdatedOn" -> date).asJava).asJava)
       updateHierarchyNodes(updateReq, node, Map("status" -> "Review", "hierarchy" -> updatedHierarchy), nodeIds)
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def reject(request: Request): Future[Response] = {
@@ -194,7 +194,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
       DataNode.update(request).map(node => {
         ResponseHandler.OK.putAll(Map("identifier" -> node.getIdentifier.replace(".img", ""), "versionKey" -> node.getMetadata.get("versionKey")).asJava)
       })
-    }).flatMap(f => f)
+    }).flatten
   }
 
   def importQuestionSet(request: Request): Future[Response] = importMgr.importObject(request)
