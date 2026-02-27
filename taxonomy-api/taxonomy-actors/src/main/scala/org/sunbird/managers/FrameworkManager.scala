@@ -1,4 +1,4 @@
-package org.sunbird.mangers
+package org.sunbird.managers
 
 import java.util
 import org.apache.commons.lang3.StringUtils
