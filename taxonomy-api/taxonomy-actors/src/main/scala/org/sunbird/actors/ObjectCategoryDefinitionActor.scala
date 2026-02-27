@@ -79,7 +79,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 		DataNode.read(request) recoverWith {
 			case e: ResourceNotFoundException => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
-				TelemetryManager.debug("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
+				TelemetryManager.log("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
 				if (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) && !StringUtils.endsWithIgnoreCase(id, "_all")) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
 					DataNode.read(request)
@@ -88,7 +88,7 @@ class ObjectCategoryDefinitionActor @Inject()(implicit oec: OntologyEngineContex
 			}
 			case e: CompletionException if e.getCause.isInstanceOf[ResourceNotFoundException] => {
 				val id = request.get(Constants.IDENTIFIER).asInstanceOf[String]
-				TelemetryManager.debug("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
+				TelemetryManager.log("ObjectCategoryDefinitionActor ::: read ::: node not found with id :" + id + " | Fetching node with _all")
 				if (StringUtils.equalsAnyIgnoreCase("POST", requestMethod) && !StringUtils.endsWithIgnoreCase(id, "_all")) {
 					request.put(Constants.IDENTIFIER, id.replace(id.substring(id.lastIndexOf("_") + 1), "all"))
 					DataNode.read(request)
