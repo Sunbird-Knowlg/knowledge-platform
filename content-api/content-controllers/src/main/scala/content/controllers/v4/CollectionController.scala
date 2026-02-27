@@ -228,6 +228,16 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         getResult(ApiId.SYSTEM_UPDATE_COLLECTION, contentActor, contentRequest, version = apiVersion)
     }
 
+    def updateHierarchyRelationships(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.putAll(Map("rootId" -> identifier).asJava)
+        val contentRequest = getRequest(content, headers, "updateHierarchyRelationships")
+        setRequestContext(contentRequest, version, objectType, null)
+        getResult(ApiId.UPDATE_HIERARCHY_RELATION_V4, collectionActor, contentRequest, version = apiVersion)
+    }
+
     def reviewReject(identifier: String) = Action.async { implicit request =>
       val headers = commonHeaders()
       val body = requestBody()

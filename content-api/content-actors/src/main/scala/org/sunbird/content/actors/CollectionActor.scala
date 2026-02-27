@@ -4,7 +4,7 @@ import javax.inject.Inject
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.managers.content.{HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.managers.content.{HierarchyManager, RelationManager, UpdateHierarchyManager}
 import org.sunbird.utils.content.HierarchyConstants
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -20,6 +20,7 @@ class CollectionActor @Inject() (implicit oec: OntologyEngineContext) extends Ba
             case "removeHierarchy" => HierarchyManager.removeLeafNodesFromHierarchy(request)
             case "updateHierarchy" => UpdateHierarchyManager.updateHierarchy(request)
             case "getHierarchy" => HierarchyManager.getHierarchy(request)
+            case "updateHierarchyRelationships" => RelationManager.updateHierarchyRelationships(request)
             case _ => ERROR(request.getOperation)
         }
     }

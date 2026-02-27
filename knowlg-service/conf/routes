@@ -102,6 +102,7 @@ POST      /content/v4/dialcode/release/:identifier  content.controllers.v4.Conte
 POST      /content/v4/publish/:identifier           content.controllers.v4.ContentController.publish(identifier:String)
 POST      /content/v4/unlisted/publish/:identifier  content.controllers.v4.ContentController.publishUnlisted(identifier:String)
 GET      /content/v4/process/status/:processid     content.controllers.v4.ContentController.getProcessIdStatus(processid: String)
+POST     /collection/v4/hierarchy/update/relation/:identifier  content.controllers.v4.CollectionController.updateHierarchyRelationships(identifier:String)
 
 # App v4 APIs
 POST      /app/v4/register                          content.controllers.v4.AppController.register()
