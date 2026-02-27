@@ -12,6 +12,7 @@ import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.JsonUtils
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ListBuffer
@@ -104,7 +105,7 @@ object ChannelManager {
     } catch {
         case e: Exception =>
             // Log error and continue without populating categories
-            System.out.println("Error fetching primary/additional categories: " + e.getMessage)
+            TelemetryManager.error("Error fetching primary/additional categories: " + e.getMessage, e)
     }
   }
 

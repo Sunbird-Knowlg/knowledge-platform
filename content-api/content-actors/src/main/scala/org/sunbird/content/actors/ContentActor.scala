@@ -272,7 +272,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
                                 TelemetryManager.error("Error setting license to Redis: " + e.getMessage, e)
                         }
                     } else {
-                        println("Default License is not available for channel: " + channelId)
+                        TelemetryManager.warn("Default License is not available for channel: " + channelId)
                     }
                 }).recover {
                     case e: Exception =>
