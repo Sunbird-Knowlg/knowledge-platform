@@ -108,7 +108,22 @@ public class JanusGraphNodeUtil {
                 } else if (value instanceof String && ((String) value).startsWith("[")
                         && ((String) value).endsWith("]")) {
                     try {
-                        metadata.put(key, mapper.readValue((String) value, List.class));
+                        List<Object> list = mapper.readValue((String) value,
+                                mapper.getTypeFactory().constructCollectionType(List.class, Object.class));
+                        if (list != null && !list.isEmpty()) {
+                            Object first = list.get(0);
+                            if (first instanceof String) {
+                                metadata.put(key, list.toArray(new String[0]));
+                            } else if (first instanceof Number) {
+                                metadata.put(key, list.toArray(new Number[0]));
+                            } else if (first instanceof Boolean) {
+                                metadata.put(key, list.toArray(new Boolean[0]));
+                            } else {
+                                metadata.put(key, list.toArray(new Object[0]));
+                            }
+                        } else {
+                            metadata.put(key, list != null ? list : value);
+                        }
                     } catch (Exception e) {
                         metadata.put(key, value);
                     }
@@ -163,7 +178,8 @@ public class JanusGraphNodeUtil {
         // These are required by NodeUtil.getRelationMap() to build the relation lookup key
         // (e.g., "associatedTo_out_AssessmentItem" -> "questions") and by
         // NodeUtil.populateRelationMaps() to populate name, description, status fields.
-        relation.setStartNodeObjectType(getVertexStringProperty(startVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
+        relation.setStartNodeObjectType(
+                getVertexStringProperty(startVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
         relation.setEndNodeObjectType(getVertexStringProperty(endVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
         relation.setStartNodeName(getVertexStringProperty(startVertex, "name"));
         relation.setEndNodeName(getVertexStringProperty(endVertex, "name"));
