@@ -51,12 +51,12 @@ object RedisCache extends RedisConnector {
 	 * @return
 	 */
 	def get(key: String, handler: (String) => String = defaultStringHandler, ttl: Int = 0): String = {
-		var data: String = null
+		var data: Option[String] = None
 		if (isRedisEnabled) {
 			try {
 				val jedis = getConnection
 				try {
-					data = jedis.get(key)
+					data = Option(jedis.get(key)).filter(_.nonEmpty)
 				} catch {
 					case e: Exception =>
 						logger.error("Exception Occurred While Fetching String Data from Redis Cache for Key : " + key + "| Exception is:", e)
@@ -66,17 +66,19 @@ object RedisCache extends RedisConnector {
 					logger.error("Redis Connection/Authentication Error for Key : " + key + "| Exception is:", e)
 			}
 		}
-		if (null != handler && (null == data || data.isEmpty)) {
+		if (handler != null && data.isEmpty) {
 			try {
-				data = handler(key)
-				if (null != data && !data.isEmpty)
-					set(key, data, ttl)
+				val fetched = handler(key)
+				if (fetched != null && fetched.nonEmpty) {
+					set(key, fetched, ttl)
+					data = Some(fetched)
+				}
 			} catch {
 				case e: Exception =>
 					logger.error("Exception Occurred While Fetching Data from Handler for Key : " + key + "| Exception is:", e)
 			}
 		}
-		data
+		data.orNull
 	}
 
 	/**
@@ -89,12 +91,12 @@ object RedisCache extends RedisConnector {
 	 * @return Future[String]
 	 */
 	def getAsync(key: String, asyncHandler: (String) => Future[String], ttl: Int = 0)(implicit ec: ExecutionContext): Future[String] = {
-		var data: String = null
+		var data: Option[String] = None
 		if (isRedisEnabled) {
 			try {
 				val jedis = getConnection
 				try {
-					data = jedis.get(key)
+					data = Option(jedis.get(key)).filter(_.nonEmpty)
 				} catch {
 					case e: Exception =>
 						logger.error("Exception Occurred While Fetching String Data from Redis Cache for Key : " + key + "| Exception is:", e)
@@ -104,14 +106,14 @@ object RedisCache extends RedisConnector {
 					logger.error("Redis Connection/Authentication Error for Key : " + key + "| Exception is:", e)
 			}
 		}
-		if (null != asyncHandler && (null == data || data.isEmpty)) {
+		if (asyncHandler != null && data.isEmpty) {
 			val dataFuture: Future[String] = asyncHandler(key)
 			dataFuture.map(value => {
-				if (null != value && !value.isEmpty)
+				if (value != null && value.nonEmpty)
 					set(key, value, ttl)
 				value
 			})
-		} else Future{data}
+		} else Future{data.orNull}
 	}
 
 	/**
@@ -186,12 +188,13 @@ object RedisCache extends RedisConnector {
 	 * @return
 	 */
 	def getList(key: String, handler: (String) => List[String] = defaultListHandler, ttl: Int = 0): List[String] = {
-		var data: List[String] = null
+		var data: Option[List[String]] = None
 		if (isRedisEnabled) {
 			try {
 				val jedis = getConnection
 				try {
-					data = jedis.smembers(key).asScala.toList
+					val result = jedis.smembers(key).asScala.toList
+					if (result.nonEmpty) data = Some(result)
 				} catch {
 					case e: Exception =>
 						logger.error("Exception Occurred While Fetching List Data from Redis Cache for Key : " + key + "| Exception is:", e)
@@ -201,17 +204,19 @@ object RedisCache extends RedisConnector {
 					logger.error("Redis Connection/Authentication Error for Key : " + key + "| Exception is:", e)
 			}
 		}
-		if (null != handler && (null == data || data.isEmpty)) {
+		if (handler != null && data.isEmpty) {
 			try {
-				data = handler(key)
-				if (null != data && !data.isEmpty)
-					saveList(key, data, ttl, false)
+				val fetched = handler(key)
+				if (fetched != null && fetched.nonEmpty) {
+					saveList(key, fetched, ttl, false)
+					data = Some(fetched)
+				}
 			} catch {
 				case e: Exception =>
 					logger.error("Exception Occurred While Fetching Data from Handler for Key : " + key + "| Exception is:", e)
 			}
 		}
-		data
+		data.orNull
 	}
 
 	/**
@@ -224,12 +229,13 @@ object RedisCache extends RedisConnector {
 	 * @return Future[List[String]]
 	 */
 	def getListAsync(key: String, asyncHandler: (String) => Future[List[String]], ttl: Int = 0)(implicit ec: ExecutionContext): Future[List[String]] = {
-		var data: List[String] = null
+		var data: Option[List[String]] = None
 		if (isRedisEnabled) {
 			try {
 				val jedis = getConnection
 				try {
-					data = jedis.smembers(key).asScala.toList
+					val result = jedis.smembers(key).asScala.toList
+					if (result.nonEmpty) data = Some(result)
 				} catch {
 					case e: Exception =>
 						logger.error("Exception Occurred While Fetching List Data from Redis Cache for Key : " + key + "| Exception is:", e)
@@ -239,14 +245,14 @@ object RedisCache extends RedisConnector {
 					logger.error("Redis Connection/Authentication Error for Key : " + key + "| Exception is:", e)
 			}
 		}
-		if (null != asyncHandler && (null == data || data.isEmpty)) {
+		if (asyncHandler != null && data.isEmpty) {
 			val dataFuture = asyncHandler(key)
 			dataFuture.map(value => {
-				if (null != value && !value.isEmpty)
+				if (value != null && value.nonEmpty)
 					saveList(key, value, ttl, false)
 				value
 			})
-		} else Future {data}
+		} else Future {data.orNull}
 	}
 
 	/**
