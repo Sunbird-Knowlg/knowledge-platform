@@ -427,18 +427,7 @@ public class NodeAsyncOperations {
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                             if (entry.getValue() != null) {
-                                Object value = entry.getValue();
-                                if (value instanceof java.util.List) {
-                                    java.util.List<?> list = (java.util.List<?>) value;
-                                    if (list.isEmpty()) {
-                                        if (vertex.keys().contains(entry.getKey())) {
-                                            vertex.property(entry.getKey()).remove();
-                                        }
-                                        continue;
-                                    }
-                                    value = list.toArray();
-                                }
-                                vertex.property(VertexProperty.Cardinality.single, entry.getKey(), value);
+                                vertex.property(VertexProperty.Cardinality.single, entry.getKey(), entry.getValue());
                             }
                         }
 
