@@ -92,7 +92,7 @@ object FrameworkManager {
     val relationDef = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, objectType, definition)
     val outRelations = relations.asScala.filter((rel: Relation) => {
       StringUtils.equals(rel.getStartNodeId.toString(), node.getIdentifier)
-    }).sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).toList.asJava
+    }).sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Number].longValue())(Ordering.Long).toList.asJava
 
     if(includeRelations){
       val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")

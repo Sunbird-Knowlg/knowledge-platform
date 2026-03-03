@@ -72,7 +72,7 @@ class ItemSetActor @Inject() (implicit oec: OntologyEngineContext) extends Abstr
 					updateReq.put("metadata", new util.HashMap[String, AnyRef]() {{put("status", "Review")}})
 					flag = true
 				}
-				val newRels: util.List[util.HashMap[String, AnyRef]] = itemRels.sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Long])(Ordering.Long).map(rel => {
+				val newRels: util.List[util.HashMap[String, AnyRef]] = itemRels.sortBy((rel: Relation) => rel.getMetadata.get("IL_SEQUENCE_INDEX").asInstanceOf[Number].longValue())(Ordering.Long).map(rel => {
 					new util.HashMap[String, AnyRef]() {{put("identifier", rel.getEndNodeId);}}}).toList
 				request.put("items", newRels);
 			}
