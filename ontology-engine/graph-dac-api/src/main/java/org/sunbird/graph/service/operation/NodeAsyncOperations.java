@@ -29,13 +29,14 @@ import org.sunbird.telemetry.logger.TelemetryManager;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Node async operations using JanusGraph/Gremlin
@@ -80,7 +81,7 @@ public class NodeAsyncOperations {
                 String versionKey = Identifier.getUniqueIdFromTimestamp();
                 node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
 
-                // Process primitive data types (serialize complex objects)
+                // Serialize complex objects (Maps, Lists, Arrays) to JSON strings —
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Create vertex using Native API
@@ -93,9 +94,12 @@ public class NodeAsyncOperations {
                         StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
                                 : SystemNodeTypes.DATA_NODE.name());
 
+                // After setPrimitiveData all complex types are JSON strings — use single cardinality.
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                    if (entry.getValue() != null) {
-                        vertex.property(VertexProperty.Cardinality.single, entry.getKey(), entry.getValue());
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    if (value != null) {
+                        vertex.property(VertexProperty.Cardinality.single, key, value);
                     }
                 }
 
@@ -198,11 +202,11 @@ public class NodeAsyncOperations {
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Determine which properties to write.
-                // If updatedFields is set (update flow), only write those properties +
-                // system-generated ones.
-                // If updatedFields is null/empty (create flow or legacy), write all properties.
                 Set<String> updatedFields = node.getUpdatedFields();
-                boolean isPartialUpdate = (isExistingNode && updatedFields != null && !updatedFields.isEmpty());
+                if (updatedFields == null) {
+                    updatedFields = new HashSet<>();
+                }
+                boolean isPartialUpdate = (isExistingNode && !updatedFields.isEmpty());
 
                 if (isPartialUpdate) {
                     // Add system-generated properties that must always be written
@@ -212,29 +216,28 @@ public class NodeAsyncOperations {
                             + " | Updating only fields: " + updatedFields);
                 }
 
-                // Update properties using VertexProperty.Cardinality.single
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                     // Skip properties not in the update set (for partial updates)
                     if (isPartialUpdate && !updatedFields.contains(entry.getKey())) {
                         continue;
                     }
-                    if (entry.getValue() == null) {
-                        // Null value means property should be removed (e.g. removeProps)
-                        if (vertex.keys().contains(entry.getKey())) {
-                            vertex.property(entry.getKey()).remove();
-                        }
+
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+
+                    // Drop all existing vertex properties for this key before writing. To avoid appending values
+                    Iterator<VertexProperty<Object>> it = vertex.properties(key);
+                    while (it.hasNext()) {
+                        it.next().remove();
+                    }
+
+                    if (value == null) {
                         continue;
                     }
-                    vertex.property(VertexProperty.Cardinality.single, entry.getKey(), entry.getValue());
+                    vertex.property(VertexProperty.Cardinality.single, key, value);
                 }
 
-                try {
-                    tx.commit();
-                } catch (Exception commitEx) {
-                    TelemetryManager.error("NodeAsyncOperations.upsertNode: EXCEPTION during commit for " + identifier
-                            + ": " + commitEx.getMessage(), commitEx);
-                    throw commitEx;
-                }
+                tx.commit();
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);
@@ -243,14 +246,20 @@ public class NodeAsyncOperations {
                 return node;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error upserting node: " + e.getMessage(), e);
                 if (e instanceof MiddlewareException) {
                     throw (MiddlewareException) e;
                 } else {
                     throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                            "Error! Something went wrong while upserting node object. ", e);
+                            "Error! Something went wrong while upserting node object: " + e.getMessage(), e);
+                }
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try {
+                        tx.rollback();
+                    } catch (Exception ex) {
+                        TelemetryManager.error("Error performing rollback: " + ex.getMessage(), ex);
+                    }
                 }
             }
         }));
@@ -426,8 +435,12 @@ public class NodeAsyncOperations {
 
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                            if (entry.getValue() != null) {
-                                vertex.property(VertexProperty.Cardinality.single, entry.getKey(), entry.getValue());
+                            String key = entry.getKey();
+                            Object value = entry.getValue();
+                            if (value != null) {
+                                // Drop existing properties before updating to avoid appending
+                                vertex.properties(key).forEachRemaining(vp -> vp.remove());
+                                vertex.property(VertexProperty.Cardinality.single, key, value);
                             }
                         }
 
@@ -466,24 +479,30 @@ public class NodeAsyncOperations {
             return new HashMap<>();
         }
 
-        return metadata.entrySet().stream()
-                .peek(entry -> {
-                    Object value = entry.getValue();
-                    try {
-                        if (value instanceof Map) {
-                            value = JsonUtils.serialize(value);
-                        } else if (value instanceof List) {
-                            value = JsonUtils.serialize(value);
-                        }
-                        entry.setValue(value);
-                    } catch (Exception e) {
-                        TelemetryManager
-                                .error("Exception Occurred While Processing Primitive Data Types | Exception is : "
-                                        + e.getMessage(), e);
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (value != null) {
+                try {
+                    if (value instanceof Map) {
+                        value = JsonUtils.serialize(value);
+                    } else if (value instanceof List) {
+                        // Serialize ALL lists (strings, maps, mixed) to JSON strings.
+                        value = JsonUtils.serialize(value);
+                    } else if (value instanceof Object[]) {
+                        value = JsonUtils.serialize(Arrays.asList((Object[]) value));
                     }
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() != null ? entry.getValue() : "",
-                        (v1, v2) -> v2, HashMap::new));
+                    // String, Number, Boolean pass through unchanged.
+                } catch (Exception e) {
+                    TelemetryManager.error(
+                            "Exception Occurred While Processing Primitive Data Types | Key: " + key
+                                    + " | Exception is : " + e.getMessage(), e);
+                }
+            }
+            result.put(key, value != null ? value : "");
+        }
+        return result;
     }
 
     private static void setRequestContextToNode(Node node, Request request) {
