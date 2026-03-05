@@ -103,17 +103,30 @@ public class JanusGraphNodeUtil {
                 node.setObjectType(value.toString());
             } else if (!StringUtils.equalsIgnoreCase(key, "graphId")) {
                 if (value instanceof List) {
-                    // Keep as List to match Neo4j behavior
                     metadata.put(key, new ArrayList<>((List<?>) value));
-                } else if (value instanceof String && ((String) value).startsWith("[")
-                        && ((String) value).endsWith("]")) {
-                    try {
-                        metadata.put(key, mapper.readValue((String) value, List.class));
-                    } catch (Exception e) {
+                } else {
+                    if (value instanceof String) {
+                        String sv = (String) value;
+                        if (sv.startsWith("[") && sv.endsWith("]")) {
+                            try {
+                                value = mapper.readValue(sv, ArrayList.class);
+                            } catch (Exception ignored) {
+                            }
+                        }
+                    }
+                    if (metadata.containsKey(key)) {
+                        Object existing = metadata.get(key);
+                        if (existing instanceof List) {
+                            ((List<Object>) existing).add(value);
+                        } else {
+                            List<Object> list = new ArrayList<>();
+                            list.add(existing);
+                            list.add(value);
+                            metadata.put(key, list);
+                        }
+                    } else {
                         metadata.put(key, value);
                     }
-                } else {
-                    metadata.put(key, value);
                 }
             }
         }
@@ -158,12 +171,8 @@ public class JanusGraphNodeUtil {
 
         relation.setStartNodeId(startId != null ? startId.toString() : null);
         relation.setEndNodeId(endId != null ? endId.toString() : null);
-
-        // Populate objectType, name, and node metadata from vertices
-        // These are required by NodeUtil.getRelationMap() to build the relation lookup key
-        // (e.g., "associatedTo_out_AssessmentItem" -> "questions") and by
-        // NodeUtil.populateRelationMaps() to populate name, description, status fields.
-        relation.setStartNodeObjectType(getVertexStringProperty(startVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
+        relation.setStartNodeObjectType(
+                getVertexStringProperty(startVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
         relation.setEndNodeObjectType(getVertexStringProperty(endVertex, SystemProperties.IL_FUNC_OBJECT_TYPE.name()));
         relation.setStartNodeName(getVertexStringProperty(startVertex, "name"));
         relation.setEndNodeName(getVertexStringProperty(endVertex, "name"));
