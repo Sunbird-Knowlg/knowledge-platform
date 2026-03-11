@@ -4,6 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
 import org.sunbird.common.DateUtils;
@@ -28,13 +29,14 @@ import org.sunbird.telemetry.logger.TelemetryManager;
 import scala.compat.java8.FutureConverters;
 import scala.concurrent.Future;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Node async operations using JanusGraph/Gremlin
@@ -79,44 +81,34 @@ public class NodeAsyncOperations {
                 String versionKey = Identifier.getUniqueIdFromTimestamp();
                 node.getMetadata().put(GraphDACParams.versionKey.name(), versionKey);
 
-                // Process primitive data types (serialize complex objects)
+                // Serialize complex objects (Maps, Lists, Arrays) to JSON strings —
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Create vertex using Native API
                 JanusGraphVertex vertex = tx.addVertex(node.getObjectType());
-                vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
-                vertex.property("graphId", graphId);
-                vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
-                vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_UNIQUE_ID.name(), identifier);
+                vertex.property(VertexProperty.Cardinality.single, "graphId", graphId);
+                vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_FUNC_OBJECT_TYPE.name(),
+                        node.getObjectType());
+                vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_SYS_NODE_TYPE.name(),
                         StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
                                 : SystemNodeTypes.DATA_NODE.name());
 
-                // Add all metadata properties
+                // After setPrimitiveData all complex types are JSON strings — use single cardinality.
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                    if (entry.getValue() != null) {
-                        Object value = entry.getValue();
-                        if (value instanceof java.util.List) {
-                            java.util.List<?> list = (java.util.List<?>) value;
-                            if (list.isEmpty()) {
-                                // If list is empty, skip property creation
-                                continue;
-                            }
-                            // Convert to typed array for JanusGraph
-                            if (list.get(0) instanceof String) {
-                                value = list.toArray(new String[0]);
-                            } else if (list.get(0) instanceof Integer) {
-                                value = list.toArray(new Integer[0]);
-                            } else if (list.get(0) instanceof Double) {
-                                value = list.toArray(new Double[0]);
-                            } else {
-                                value = list.toArray();
-                            }
-                        }
-                        vertex.property(entry.getKey(), value);
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    if (value != null) {
+                        vertex.property(VertexProperty.Cardinality.single, key, value);
                     }
                 }
 
-                tx.commit();
+                try {
+                    tx.commit();
+                } catch (Exception commitEx) {
+                    TelemetryManager.error("Commit failed for node " + identifier + ": " + commitEx.getMessage(), commitEx);
+                    throw commitEx;
+                }
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);
@@ -125,9 +117,6 @@ public class NodeAsyncOperations {
                 return node;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
-
                 TelemetryManager.error("Error adding node: " + e.getMessage(), e);
                 if (e instanceof MiddlewareException) {
                     throw e;
@@ -140,6 +129,12 @@ public class NodeAsyncOperations {
                 } else {
                     throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                             "Error! Something went wrong while creating node object. ", e);
+                }
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back addNode transaction: " + ex.getMessage(), ex);
+                    }
                 }
             }
         }));
@@ -195,10 +190,12 @@ public class NodeAsyncOperations {
                     node.getMetadata().put(AuditProperties.lastUpdatedOn.name(), timestamp);
 
                     vertex = tx.addVertex(node.getObjectType());
-                    vertex.property(SystemProperties.IL_UNIQUE_ID.name(), identifier);
-                    vertex.property("graphId", graphId);
-                    vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), node.getObjectType());
-                    vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(),
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_UNIQUE_ID.name(),
+                            identifier);
+                    vertex.property(VertexProperty.Cardinality.single, "graphId", graphId);
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_FUNC_OBJECT_TYPE.name(),
+                            node.getObjectType());
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_SYS_NODE_TYPE.name(),
                             StringUtils.isNotBlank(node.getNodeType()) ? node.getNodeType()
                                     : SystemNodeTypes.DATA_NODE.name());
                 }
@@ -213,10 +210,11 @@ public class NodeAsyncOperations {
                 Map<String, Object> metadata = setPrimitiveData(node.getMetadata());
 
                 // Determine which properties to write.
-                // If updatedFields is set (update flow), only write those properties + system-generated ones.
-                // If updatedFields is null/empty (create flow or legacy), write all properties.
                 Set<String> updatedFields = node.getUpdatedFields();
-                boolean isPartialUpdate = (isExistingNode && updatedFields != null && !updatedFields.isEmpty());
+                if (updatedFields == null) {
+                    updatedFields = new HashSet<>();
+                }
+                boolean isPartialUpdate = (isExistingNode && !updatedFields.isEmpty());
 
                 if (isPartialUpdate) {
                     // Add system-generated properties that must always be written
@@ -226,40 +224,28 @@ public class NodeAsyncOperations {
                             + " | Updating only fields: " + updatedFields);
                 }
 
-                // Update properties
                 for (Map.Entry<String, Object> entry : metadata.entrySet()) {
                     // Skip properties not in the update set (for partial updates)
                     if (isPartialUpdate && !updatedFields.contains(entry.getKey())) {
                         continue;
                     }
-                    if (entry.getValue() == null) {
-                        // Null value means property should be removed (e.g. removeProps)
-                        if (vertex.keys().contains(entry.getKey())) {
-                            vertex.property(entry.getKey()).remove();
-                        }
+
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+
+                    // Drop all existing vertex properties for this key before writing. To avoid appending values
+                    Iterator<VertexProperty<Object>> it = vertex.properties(key);
+                    while (it.hasNext()) {
+                        it.next().remove();
+                    }
+
+                    if (value == null) {
                         continue;
                     }
-                    Object value = entry.getValue();
-                    if (value instanceof java.util.List) {
-                        java.util.List<?> list = (java.util.List<?>) value;
-                        if (list.isEmpty()) {
-                            if (vertex.keys().contains(entry.getKey())) {
-                                vertex.property(entry.getKey()).remove();
-                            }
-                            continue;
-                        }
-                        value = list.toArray();
-                    }
-                    vertex.property(entry.getKey(), value);
+                    vertex.property(VertexProperty.Cardinality.single, key, value);
                 }
 
-                try {
-                    tx.commit();
-                } catch (Exception commitEx) {
-                    TelemetryManager.error("NodeAsyncOperations.upsertNode: EXCEPTION during commit for " + identifier
-                            + ": " + commitEx.getMessage(), commitEx);
-                    throw commitEx;
-                }
+                tx.commit();
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);
@@ -268,14 +254,20 @@ public class NodeAsyncOperations {
                 return node;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error upserting node: " + e.getMessage(), e);
                 if (e instanceof MiddlewareException) {
                     throw (MiddlewareException) e;
                 } else {
                     throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
-                            "Error! Something went wrong while upserting node object. ", e);
+                            "Error! Something went wrong while upserting node object: " + e.getMessage(), e);
+                }
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try {
+                        tx.rollback();
+                    } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back upsertNode transaction: " + ex.getMessage(), ex);
+                    }
                 }
             }
         }));
@@ -314,15 +306,20 @@ public class NodeAsyncOperations {
                 if (!vertexIter.hasNext()) {
                     // Create root node
                     vertex = tx.addVertex("ROOT");
-                    vertex.property(SystemProperties.IL_UNIQUE_ID.name(), rootId);
-                    vertex.property("graphId", graphId);
-                    vertex.property(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), "ROOT");
-                    vertex.property(SystemProperties.IL_SYS_NODE_TYPE.name(), SystemNodeTypes.DATA_NODE.name());
-                    vertex.property(AuditProperties.createdOn.name(), DateUtils.formatCurrentDate());
-                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_UNIQUE_ID.name(), rootId);
+                    vertex.property(VertexProperty.Cardinality.single, "graphId", graphId);
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_FUNC_OBJECT_TYPE.name(),
+                            "ROOT");
+                    vertex.property(VertexProperty.Cardinality.single, SystemProperties.IL_SYS_NODE_TYPE.name(),
+                            SystemNodeTypes.DATA_NODE.name());
+                    vertex.property(VertexProperty.Cardinality.single, AuditProperties.createdOn.name(),
+                            DateUtils.formatCurrentDate());
+                    vertex.property(VertexProperty.Cardinality.single, AuditProperties.lastUpdatedOn.name(),
+                            DateUtils.formatCurrentDate());
                 } else {
                     vertex = vertexIter.next();
-                    vertex.property(AuditProperties.lastUpdatedOn.name(), DateUtils.formatCurrentDate());
+                    vertex.property(VertexProperty.Cardinality.single, AuditProperties.lastUpdatedOn.name(),
+                            DateUtils.formatCurrentDate());
                 }
 
                 try {
@@ -339,11 +336,15 @@ public class NodeAsyncOperations {
                 return rootNode;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error upserting root node: " + e.getMessage(), e);
                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                         "Error! Something went wrong while upserting root node. ", e);
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back upsertRootNode transaction: " + ex.getMessage(), ex);
+                    }
+                }
             }
         }));
     }
@@ -388,11 +389,15 @@ public class NodeAsyncOperations {
                 }
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error deleting node: " + e.getMessage(), e);
                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                         "Error! Something went wrong while deleting node. ", e);
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back deleteNode transaction: " + ex.getMessage(), ex);
+                    }
+                }
             }
         }));
     }
@@ -446,19 +451,12 @@ public class NodeAsyncOperations {
 
                         // Update properties
                         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                            if (entry.getValue() != null) {
-                                Object value = entry.getValue();
-                                if (value instanceof java.util.List) {
-                                    java.util.List<?> list = (java.util.List<?>) value;
-                                    if (list.isEmpty()) {
-                                        if (vertex.keys().contains(entry.getKey())) {
-                                            vertex.property(entry.getKey()).remove();
-                                        }
-                                        continue;
-                                    }
-                                    value = list.toArray();
-                                }
-                                vertex.property(entry.getKey(), value);
+                            String key = entry.getKey();
+                            Object value = entry.getValue();
+                            if (value != null) {
+                                // Drop existing properties before updating to avoid appending
+                                vertex.properties(key).forEachRemaining(vp -> vp.remove());
+                                vertex.property(VertexProperty.Cardinality.single, key, value);
                             }
                         }
 
@@ -481,11 +479,15 @@ public class NodeAsyncOperations {
                 return updatedNodes;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error updating nodes: " + e.getMessage(), e);
                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                         "Error! Something went wrong while updating nodes. ", e);
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back updateNodes transaction: " + ex.getMessage(), ex);
+                    }
+                }
             }
         }));
     }
@@ -497,24 +499,27 @@ public class NodeAsyncOperations {
             return new HashMap<>();
         }
 
-        return metadata.entrySet().stream()
-                .peek(entry -> {
-                    Object value = entry.getValue();
-                    try {
-                        if (value instanceof Map) {
-                            value = JsonUtils.serialize(value);
-                        } else if (value instanceof List) {
-                            value = JsonUtils.serialize(value);
-                        }
-                        entry.setValue(value);
-                    } catch (Exception e) {
-                        TelemetryManager
-                                .error("Exception Occurred While Processing Primitive Data Types | Exception is : "
-                                        + e.getMessage(), e);
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (value != null) {
+                try {
+                    if (value instanceof Map) {
+                        value = JsonUtils.serialize(value);
+                    } else if (value instanceof List) {
+                        value = JsonUtils.serialize(value);
+                    } else if (value instanceof Object[]) {
+                        value = JsonUtils.serialize(Arrays.asList((Object[]) value));
                     }
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() != null ? entry.getValue() : "",
-                        (v1, v2) -> v2, HashMap::new));
+                } catch (Exception e) {
+                    TelemetryManager.error("Exception Occurred While Processing Primitive Data Types | Key: " + key
+                            + " | Exception is : " + e.getMessage(), e);
+                }
+            }
+            result.put(key, value);
+        }
+        return result;
     }
 
     private static void setRequestContextToNode(Node node, Request request) {
@@ -525,21 +530,24 @@ public class NodeAsyncOperations {
             TelemetryManager.log("Channel from request: " + channel + " for content: " + node.getIdentifier());
             if (StringUtils.isNotBlank(channel)) {
                 node.getMetadata().put(GraphDACParams.channel.name(), channel);
-                if (updatedFields != null) updatedFields.add(GraphDACParams.channel.name());
+                if (updatedFields != null)
+                    updatedFields.add(GraphDACParams.channel.name());
             }
 
             String consumerId = (String) request.getContext().get(GraphDACParams.CONSUMER_ID.name());
             TelemetryManager.log("ConsumerId from request: " + consumerId + " for content: " + node.getIdentifier());
             if (StringUtils.isNotBlank(consumerId)) {
                 node.getMetadata().put(GraphDACParams.consumerId.name(), consumerId);
-                if (updatedFields != null) updatedFields.add(GraphDACParams.consumerId.name());
+                if (updatedFields != null)
+                    updatedFields.add(GraphDACParams.consumerId.name());
             }
 
             String appId = (String) request.getContext().get(GraphDACParams.APP_ID.name());
             TelemetryManager.log("App Id from request: " + appId + " for content: " + node.getIdentifier());
             if (StringUtils.isNotBlank(appId)) {
                 node.getMetadata().put(GraphDACParams.appId.name(), appId);
-                if (updatedFields != null) updatedFields.add(GraphDACParams.appId.name());
+                if (updatedFields != null)
+                    updatedFields.add(GraphDACParams.appId.name());
             }
         }
     }
