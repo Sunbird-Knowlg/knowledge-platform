@@ -103,7 +103,12 @@ public class NodeAsyncOperations {
                     }
                 }
 
-                tx.commit();
+                try {
+                    tx.commit();
+                } catch (Exception commitEx) {
+                    TelemetryManager.error("Commit failed for node " + identifier + ": " + commitEx.getMessage(), commitEx);
+                    throw commitEx;
+                }
 
                 node.setGraphId(graphId);
                 node.setIdentifier(identifier);
@@ -112,9 +117,6 @@ public class NodeAsyncOperations {
                 return node;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
-
                 TelemetryManager.error("Error adding node: " + e.getMessage(), e);
                 if (e instanceof MiddlewareException) {
                     throw e;
@@ -127,6 +129,12 @@ public class NodeAsyncOperations {
                 } else {
                     throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                             "Error! Something went wrong while creating node object. ", e);
+                }
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back addNode transaction: " + ex.getMessage(), ex);
+                    }
                 }
             }
         }));
@@ -258,7 +266,7 @@ public class NodeAsyncOperations {
                     try {
                         tx.rollback();
                     } catch (Exception ex) {
-                        TelemetryManager.error("Error performing rollback: " + ex.getMessage(), ex);
+                        TelemetryManager.error("Error rolling back upsertNode transaction: " + ex.getMessage(), ex);
                     }
                 }
             }
@@ -328,11 +336,15 @@ public class NodeAsyncOperations {
                 return rootNode;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error upserting root node: " + e.getMessage(), e);
                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                         "Error! Something went wrong while upserting root node. ", e);
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back upsertRootNode transaction: " + ex.getMessage(), ex);
+                    }
+                }
             }
         }));
     }
@@ -377,11 +389,15 @@ public class NodeAsyncOperations {
                 }
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error deleting node: " + e.getMessage(), e);
                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                         "Error! Something went wrong while deleting node. ", e);
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back deleteNode transaction: " + ex.getMessage(), ex);
+                    }
+                }
             }
         }));
     }
@@ -463,11 +479,15 @@ public class NodeAsyncOperations {
                 return updatedNodes;
 
             } catch (Exception e) {
-                if (null != tx)
-                    tx.rollback();
                 TelemetryManager.error("Error updating nodes: " + e.getMessage(), e);
                 throw new ServerException(DACErrorCodeConstants.SERVER_ERROR.name(),
                         "Error! Something went wrong while updating nodes. ", e);
+            } finally {
+                if (null != tx && tx.isOpen()) {
+                    try { tx.rollback(); } catch (Exception ex) {
+                        TelemetryManager.error("Error rolling back updateNodes transaction: " + ex.getMessage(), ex);
+                    }
+                }
             }
         }));
     }
@@ -488,19 +508,16 @@ public class NodeAsyncOperations {
                     if (value instanceof Map) {
                         value = JsonUtils.serialize(value);
                     } else if (value instanceof List) {
-                        // Serialize ALL lists (strings, maps, mixed) to JSON strings.
                         value = JsonUtils.serialize(value);
                     } else if (value instanceof Object[]) {
                         value = JsonUtils.serialize(Arrays.asList((Object[]) value));
                     }
-                    // String, Number, Boolean pass through unchanged.
                 } catch (Exception e) {
-                    TelemetryManager.error(
-                            "Exception Occurred While Processing Primitive Data Types | Key: " + key
-                                    + " | Exception is : " + e.getMessage(), e);
+                    TelemetryManager.error("Exception Occurred While Processing Primitive Data Types | Key: " + key
+                            + " | Exception is : " + e.getMessage(), e);
                 }
             }
-            result.put(key, value != null ? value : "");
+            result.put(key, value);
         }
         return result;
     }
