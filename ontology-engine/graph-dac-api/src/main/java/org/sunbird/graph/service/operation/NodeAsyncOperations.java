@@ -322,6 +322,8 @@ public class NodeAsyncOperations {
                             DateUtils.formatCurrentDate());
                 }
 
+                Node rootNode = JanusGraphNodeUtil.getNode(graphId, vertex);
+
                 try {
                     tx.commit();
                 } catch (Exception commitEx) {
@@ -330,7 +332,6 @@ public class NodeAsyncOperations {
                     throw commitEx;
                 }
 
-                Node rootNode = JanusGraphNodeUtil.getNode(graphId, vertex);
                 TelemetryManager.log("'Upsert Root Node' Operation Finished. | Node ID: " + rootId);
 
                 return rootNode;
