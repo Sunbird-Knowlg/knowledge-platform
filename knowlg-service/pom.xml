@@ -222,18 +222,18 @@
             <version>3.2.2</version>
         </dependency>
         
-        <!-- cloud-storage-sdk v2.0.0: explicit dependency (previously only transitive via content-actors) -->
+        <!-- cloud-storage-sdk v2.0.1: explicit dependency (previously only transitive via content-actors) -->
         <!-- API module — compile-time contract -->
         <dependency>
             <groupId>org.sunbird</groupId>
             <artifactId>cloud-storage-sdk-api</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
         </dependency>
         <!-- Azure CSP implementation — runtime, discovered via Java ServiceLoader -->
         <dependency>
             <groupId>org.sunbird</groupId>
             <artifactId>cloud-storage-sdk-azure</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
             <scope>runtime</scope>
         </dependency>
 
