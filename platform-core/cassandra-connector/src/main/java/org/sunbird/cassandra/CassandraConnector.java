@@ -60,37 +60,73 @@ public class CassandraConnector {
 	 *
 	 * @param sessionKey
 	 * @param level
+	 * Closes all Cluster objects, which releases their sessions, connection pools,
+	 * and driver-internal background threads. Each cluster is closed independently
+	 * so a failure in one does not block the others.
 	 */
-	private static void prepareSession(String sessionKey, ConsistencyLevel level) {
-		List<String> connectionInfo = getConnectionInfo(sessionKey.toLowerCase());
-		List<InetSocketAddress> addressList = getSocketAddress(connectionInfo);
-		try {
-			if (null != level) {
-				sessionMap.put(sessionKey.toLowerCase(), Cluster.builder()
-						.addContactPointsWithPorts(addressList)
-						.withQueryOptions(new QueryOptions().setConsistencyLevel(level))
-						.withoutJMXReporting()
-						.withProtocolVersion(ProtocolVersion.V4)
-						.build().connect());
-			} else {
-				sessionMap.put(sessionKey.toLowerCase(), Cluster.builder()
-						.addContactPointsWithPorts(addressList)
-						.withoutJMXReporting()
-						.withProtocolVersion(ProtocolVersion.V4)
-						.build().connect());
+	public static void close() {
+		clusterMap.forEach((key, cluster) -> {
+			if (cluster != null && !cluster.isClosed()) {
+				try {
+					cluster.close();
+				} catch (Exception e) {
+					TelemetryManager.error(
+							"Error closing Cassandra cluster [" + key + "]: " + e.getMessage(), e);
+				}
 			}
+		});
+		sessionMap.clear();
+		clusterMap.clear();
+	}
 
-			if (!shutdownHookRegistered) {
-				registerShutdownHook();
-				shutdownHookRegistered = true;
+	// Startup retry loop — called only from the static initialiser.
+	private static void prepareSessionWithRetry(String sessionKey, ConsistencyLevel level) {
+		int  attempt = 0;
+		long cap     = RETRY_BASE_MS;
+
+		while (attempt < MAX_STARTUP_RETRIES) {
+			attempt++;
+			try {
+				prepareSession(sessionKey, level);
+				TelemetryManager.log(
+						"Cassandra session ready for [" + sessionKey + "] on attempt " + attempt);
+				return;
+			} catch (Exception e) {
+				TelemetryManager.error("Cassandra connect attempt " + attempt + "/"
+						+ MAX_STARTUP_RETRIES + " failed for [" + sessionKey + "]: "
+						+ e.getMessage(), e);
+
+				if (attempt < MAX_STARTUP_RETRIES) {
+					// Full jitter: sleep = random(0, min(cap, RETRY_MAX_MS))
+					long sleep = (long) (Math.random() * Math.min(cap, RETRY_MAX_MS));
+					try {
+						Thread.sleep(sleep);
+					} catch (InterruptedException ie) {
+						Thread.currentThread().interrupt();
+						TelemetryManager.error(
+								"Cassandra startup retry interrupted for [" + sessionKey + "]", ie);
+						return;
+					}
+					cap = Math.min(cap * 2, RETRY_MAX_MS);
+				}
 			}
+		}
+		TelemetryManager.error("All " + MAX_STARTUP_RETRIES
+				+ " Cassandra startup connect attempts exhausted for [" + sessionKey + "]");
+	}
+
+	// Runtime reconnect — called only from inside the synchronized block in {@link #getSession}.
+	private static void prepareSessionOnce(String sessionKey, ConsistencyLevel level) {
+		try {
+			prepareSession(sessionKey, level);
+			TelemetryManager.log("Cassandra session re-established for [" + sessionKey + "]");
 		} catch (Exception e) {
-			TelemetryManager.error("Error! While Loading Cassandra Properties." + e.getMessage(), e);
+			TelemetryManager.error("Cassandra reconnect attempt failed for ["
+					+ sessionKey + "]: " + e.getMessage(), e);
 		}
 	}
 
 	/**
-	 *
 	 * @param sessionKey
 	 * @return
 	 */
