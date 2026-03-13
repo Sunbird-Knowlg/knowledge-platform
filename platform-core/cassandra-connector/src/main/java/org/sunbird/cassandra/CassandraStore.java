@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.sunbird.cassandra.enums.CassandraParams;
 import org.sunbird.cassandra.store.Constants;
 import org.sunbird.common.exception.ServerException;
+import org.sunbird.telemetry.logger.TelemetryManager;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -58,7 +59,7 @@ public abstract class CassandraStore {
 			objects[i] = idValue;
 			executeQuery(updateQuery, objects);
 		} catch (Exception e) {
-			e.printStackTrace();
+			TelemetryManager.error("Error while updating record for id : " + idValue + " | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while updating record for id : " + idValue, e);
 		}
@@ -73,6 +74,7 @@ public abstract class CassandraStore {
 			Delete.Where delete = QueryBuilder.delete().from(keySpace, table).where(eq(identifier, idValue));
 			CassandraConnector.getSession().execute(delete);
 		} catch (Exception e) {
+			TelemetryManager.error("Error while deleting record for id : " + idValue + " | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while deleting record for id : " + idValue, e);
 		}
@@ -91,6 +93,7 @@ public abstract class CassandraStore {
 			ResultSet results = CassandraConnector.getSession().execute(selectQuery);
 			return results.all();
 		} catch (Exception e) {
+			TelemetryManager.error("Error while fetching record for ID : " + value + " | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while fetching record for ID : " + value, e);
 		}
@@ -110,6 +113,7 @@ public abstract class CassandraStore {
 			ResultSet results = CassandraConnector.getSession().execute(selectQuery);
 			return results.all();
 		} catch (Exception e) {
+			TelemetryManager.error("Error while fetching record for Property : " + propertyName + " | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while fetching record for Property : " + propertyName, e);
 		}
@@ -136,6 +140,7 @@ public abstract class CassandraStore {
 			ResultSet results = CassandraConnector.getSession().execute(selectQuery.allowFiltering());
 			return results.all();
 		} catch (Exception e) {
+			TelemetryManager.error("Error while fetching records | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while fetching records", e);
 		}
@@ -153,6 +158,7 @@ public abstract class CassandraStore {
 			ResultSet results = CassandraConnector.getSession().execute(boundStatement.bind(identifier));
 			return results.all();
 		} catch (Exception e) {
+			TelemetryManager.error("Error while fetching properties for ID : " + idValue + " | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while fetching properties for ID : " + idValue, e);
 		}
@@ -164,6 +170,7 @@ public abstract class CassandraStore {
 			ResultSet results = CassandraConnector.getSession().execute(selectQuery);
 			return results.all();
 		} catch (Exception e) {
+			TelemetryManager.error("Error while fetching all records | " + e.getMessage(), e);
 			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
 					"Error while fetching all records", e);
 		}
@@ -173,7 +180,7 @@ public abstract class CassandraStore {
 		try {
 			if (null == request || request.isEmpty()) {
 				throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(),
-						"Invalid Identifier to read");
+						"Invalid request to upsert.");
 			}
 			Session session = CassandraConnector.getSession();
 			String query = getPreparedStatementFrUpsert(request);
@@ -183,8 +190,8 @@ public abstract class CassandraStore {
 			session.execute(boundStatement.bind(objects));
 
 		} catch (Exception e) {
-			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(), "Error while upsert record",
-					e);
+			TelemetryManager.error("Error while upsert record | " + e.getMessage(), e);
+			throw new ServerException(CassandraParams.ERR_SERVER_ERROR.name(), "Error while upsert record", e);
 		}
 	}
 
