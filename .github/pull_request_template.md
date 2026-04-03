@@ -1,33 +1,37 @@
-Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
+## Jira Ticket
+<!-- Link the Jira ticket this PR addresses: https://project.atlassian.net/browse/KNOWLG-XXXX -->
 
-### Type of change
+## Summary
+<!-- Describe the change and which issue is fixed. Include motivation, context, and any dependencies required. -->
 
-Please choose appropriate options.
-
+## Type of Change
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+- [ ] Refactoring (no functional change)
+- [ ] Documentation update
 
-### How Has This Been Tested?
+## How Has This Been Tested?
+<!-- Describe the tests run to verify your changes. Provide reproduction steps and test configuration details. -->
 
-Please describe the tests that you ran to verify your changes in the below checkboxes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manually tested
 
-- [ ] Ran Test A
-- [ ] Ran Test B
+**Test Configuration:**
+- Java: 11 (Temurin)
+- Scala: 2.13.12
+- Play Framework: 3.0.5
+- Apache Pekko: 1.0.3
 
-**Test Configuration**:
-* Software versions: Java 11, scala-2.12, play-2.7.2
-* Hardware versions: 2 CPU/ 4GB RAM
-
-### Checklist:
-
-- [ ] My code follows the style guidelines of this project
+## Checklist
+- [ ] My code follows the style guidelines of this project (`scalafmt` passes locally)
 - [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
+- [ ] I have commented my code where logic is non-obvious
+- [ ] I have made corresponding changes to documentation if needed
+- [ ] My changes generate no new compiler warnings
+- [ ] I have added/updated tests that prove my fix works or my feature is correct
+- [ ] All new and existing unit tests pass locally (`mvn test -pl <module>`)
 - [ ] Any dependent changes have been merged and published in downstream modules
-
+- [ ] SonarCloud quality gate passes (check PR comment after CI completes)
+- [ ] Code coverage is maintained at or above 80%

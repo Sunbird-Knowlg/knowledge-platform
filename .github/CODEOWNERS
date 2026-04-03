@@ -1,0 +1,44 @@
+# CODEOWNERS
+# Each line is a pattern followed by one or more owners.
+# Owners are notified and required to review PRs that touch matching paths.
+# Last matching pattern takes precedence.
+
+# Default owners for everything not explicitly matched
+* @Sunbird-Knowlg/knowlg-maintainers
+
+# CI/CD and GitHub configuration — DevOps team owns all pipeline changes
+.github/ @Sunbird-Knowlg/knowlg-devops
+build/ @Sunbird-Knowlg/knowlg-devops
+knowlg-automation/ @Sunbird-Knowlg/knowlg-devops
+docker-compose.yml @Sunbird-Knowlg/knowlg-devops
+local-setup.sh @Sunbird-Knowlg/knowlg-devops
+
+# Shared platform-core — platform team
+platform-core/ @Sunbird-Knowlg/knowlg-platform
+
+# Knowledge graph engine — graph/ontology team
+ontology-engine/ @Sunbird-Knowlg/knowlg-graph
+
+# Content API — content team
+content-api/ @Sunbird-Knowlg/knowlg-content
+
+# Assessment API — assessment team
+assessment-api/ @Sunbird-Knowlg/knowlg-assessment
+
+# Taxonomy API — taxonomy team
+taxonomy-api/ @Sunbird-Knowlg/knowlg-taxonomy
+
+# Search API — search team
+search-api/ @Sunbird-Knowlg/knowlg-search
+
+# Knowlg Service — knowlg core team
+knowlg-service/ @Sunbird-Knowlg/knowlg-maintainers
+
+# Platform modules (MIME, import, URL) — platform team
+platform-modules/ @Sunbird-Knowlg/knowlg-platform
+
+# Schema definitions — requires cross-team review
+schemas/ @Sunbird-Knowlg/knowlg-maintainers
+
+# Root POM — requires broad review (affects all modules)
+pom.xml @Sunbird-Knowlg/knowlg-maintainers @Sunbird-Knowlg/knowlg-devops

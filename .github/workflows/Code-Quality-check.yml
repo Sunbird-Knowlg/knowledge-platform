@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - '*'
+
 permissions:
   pull-requests: write
   contents: read
@@ -15,26 +16,102 @@ env:
   CLOUD_STORE_GROUP_ID: ${{ vars.CLOUD_STORE_GROUP_ID }}
   CLOUD_STORE_ARTIFACT_ID: ${{ vars.CLOUD_STORE_ARTIFACT_ID }}
   CLOUD_STORE_VERSION: ${{ vars.CLOUD_STORE_VERSION }}
+  JACOCO_VERSION: "0.8.8"
+  JACOCO_MIN_COVERAGE: "0.80"
 
 jobs:
+  # ─────────────────────────────────────────────
+  # 1. Scala formatting check (Scalafmt)
+  # ─────────────────────────────────────────────
+  scalafmt-check:
+    name: Scala Formatting (Scalafmt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Check Scala formatting
+        run: |
+          mvn scalafmt:check \
+            -Dscalafmt.config=.scalafmt.conf \
+            --no-transfer-progress \
+            || { echo "::error::Scala formatting violations found. Run 'mvn scalafmt:format' locally and commit."; exit 1; }
+
+  # ─────────────────────────────────────────────
+  # 2. OWASP Dependency Vulnerability Check
+  # ─────────────────────────────────────────────
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Cache NVD data
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp
+          key: owasp-nvd-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            owasp-nvd-${{ runner.os }}-
+
+      - name: Run OWASP Dependency Check
+        run: |
+          mvn org.owasp:dependency-check-maven:9.0.9:check \
+            -DfailBuildOnCVSS=9 \
+            -DsuppressionFile=.github/owasp-suppressions.xml \
+            -DnvdApiDelay=6000 \
+            --no-transfer-progress \
+            -DskipSystemScope=true \
+            -DassemblyAnalyzerEnabled=false \
+            -DnodeAnalyzerEnabled=false \
+            -DretireJsAnalyzerEnabled=false \
+            || echo "::warning::OWASP Dependency Check found vulnerabilities. Review report."
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload OWASP Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check-report
+          path: '**/target/dependency-check-report.html'
+          retention-days: 14
+
+  # ─────────────────────────────────────────────
+  # 3. Full project build (compilation gate)
+  # ─────────────────────────────────────────────
   build:
+    name: Build (Compile)
     runs-on: ubuntu-latest
     outputs:
-      maven_cache_key: ${{ runner.os }}-maven-${{ steps.cache.outputs.cache-hit }}
+      maven_cache_key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
 
       - name: Cache Maven packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -42,25 +119,43 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build Knowledge Platform
-        run: |
-          mvn clean install -DskipTests=true
+        run: mvn clean install -DskipTests=true --no-transfer-progress
 
+  # ─────────────────────────────────────────────
+  # 4. Service tests with JaCoCo (parallel)
+  # ─────────────────────────────────────────────
   test-content:
+    name: Test — Content Service
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run Content Service Tests
-        working-directory: content-api/content-service/
+      - name: Restore Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run Content Service Tests with Coverage
+        working-directory: content-api/content-service
         run: |
-          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report
+          mvn clean \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:prepare-agent \
+            test \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:report \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:check \
+            -Djacoco.minimum.coverage=${{ env.JACOCO_MIN_COVERAGE }} \
+            --no-transfer-progress
 
       - name: Upload Content Test Results
         if: always()
@@ -68,6 +163,15 @@ jobs:
         with:
           name: content-test-results
           path: 'content-api/content-service/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload Content Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-coverage-report
+          path: 'content-api/content-service/target/site/jacoco/'
+          retention-days: 7
 
       - name: Publish Content Test Results
         if: always()
@@ -78,22 +182,96 @@ jobs:
           reporter: java-junit
           fail-on-error: true
 
-  test-taxonomy:
+  test-assessment:
+    name: Test — Assessment Service
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run Taxonomy Tests
-        working-directory: taxonomy-api/taxonomy-service/
+      - name: Restore Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run Assessment Service Tests with Coverage
+        working-directory: assessment-api/assessment-service
         run: |
-          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report
+          mvn clean \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:prepare-agent \
+            test \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:report \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:check \
+            -Djacoco.minimum.coverage=${{ env.JACOCO_MIN_COVERAGE }} \
+            --no-transfer-progress
+
+      - name: Upload Assessment Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assessment-test-results
+          path: 'assessment-api/assessment-service/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload Assessment Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assessment-coverage-report
+          path: 'assessment-api/assessment-service/target/site/jacoco/'
+          retention-days: 7
+
+      - name: Publish Assessment Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Assessment Test Results
+          path: assessment-api/assessment-service/target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: true
+
+  test-taxonomy:
+    name: Test — Taxonomy Service
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Restore Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run Taxonomy Service Tests with Coverage
+        working-directory: taxonomy-api/taxonomy-service
+        run: |
+          mvn clean \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:prepare-agent \
+            test \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:report \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:check \
+            -Djacoco.minimum.coverage=${{ env.JACOCO_MIN_COVERAGE }} \
+            --no-transfer-progress
 
       - name: Upload Taxonomy Test Results
         if: always()
@@ -101,6 +279,15 @@ jobs:
         with:
           name: taxonomy-test-results
           path: 'taxonomy-api/taxonomy-service/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload Taxonomy Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: taxonomy-coverage-report
+          path: 'taxonomy-api/taxonomy-service/target/site/jacoco/'
+          retention-days: 7
 
       - name: Publish Taxonomy Test Results
         if: always()
@@ -112,21 +299,37 @@ jobs:
           fail-on-error: true
 
   test-search:
+    name: Test — Search Service
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run Search Tests
+      - name: Restore Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run Search Service Tests with Coverage
         working-directory: search-api/search-service
         run: |
-          mvn clean org.jacoco:jacoco-maven-plugin:0.8.8:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.8:report
+          mvn clean \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:prepare-agent \
+            test \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:report \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:check \
+            -Djacoco.minimum.coverage=${{ env.JACOCO_MIN_COVERAGE }} \
+            --no-transfer-progress
 
       - name: Upload Search Test Results
         if: always()
@@ -134,6 +337,15 @@ jobs:
         with:
           name: search-test-results
           path: 'search-api/search-service/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload Search Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-coverage-report
+          path: 'search-api/search-service/target/site/jacoco/'
+          retention-days: 7
 
       - name: Publish Search Test Results
         if: always()
@@ -144,97 +356,252 @@ jobs:
           reporter: java-junit
           fail-on-error: true
 
+  test-knowlg:
+    name: Test — Knowlg Service
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Restore Maven cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Run Knowlg Service Tests with Coverage
+        working-directory: knowlg-service
+        run: |
+          mvn clean \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:prepare-agent \
+            test \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:report \
+            org.jacoco:jacoco-maven-plugin:${{ env.JACOCO_VERSION }}:check \
+            -Djacoco.minimum.coverage=${{ env.JACOCO_MIN_COVERAGE }} \
+            --no-transfer-progress
+
+      - name: Upload Knowlg Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowlg-test-results
+          path: 'knowlg-service/target/surefire-reports/*.xml'
+          retention-days: 7
+
+      - name: Upload Knowlg Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowlg-coverage-report
+          path: 'knowlg-service/target/site/jacoco/'
+          retention-days: 7
+
+      - name: Publish Knowlg Test Results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Knowlg Test Results
+          path: knowlg-service/target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: true
+
+  # ─────────────────────────────────────────────
+  # 5. SonarCloud analysis (per service, in parallel)
+  # ─────────────────────────────────────────────
   sonar-analysis-content:
+    name: SonarCloud — Content Service
     needs: test-content
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Download Content Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: content-coverage-report
+          path: content-api/content-service/target/site/jacoco/
+
       - name: Run SonarCloud Analysis for Content
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: content-api/content-service
         run: |
           mvn sonar:sonar \
-          -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
-          -Dsonar.organization=sunbird-knowlg-1 \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.coverage.jacoco.xmlReportPaths=content-api/content-service/target/site/jacoco/jacoco.xml
+            -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
+            -Dsonar.organization=sunbird-knowlg-1 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            --no-transfer-progress
 
-  sonar-analysis-taxonomy:
-    needs: test-taxonomy
+  sonar-analysis-assessment:
+    name: SonarCloud — Assessment Service
+    needs: test-assessment
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Download Assessment Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: assessment-coverage-report
+          path: assessment-api/assessment-service/target/site/jacoco/
+
+      - name: Run SonarCloud Analysis for Assessment
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        working-directory: assessment-api/assessment-service
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
+            -Dsonar.organization=sunbird-knowlg-1 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            --no-transfer-progress
+
+  sonar-analysis-taxonomy:
+    name: SonarCloud — Taxonomy Service
+    needs: test-taxonomy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Download Taxonomy Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: taxonomy-coverage-report
+          path: taxonomy-api/taxonomy-service/target/site/jacoco/
+
       - name: Run SonarCloud Analysis for Taxonomy
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: taxonomy-api/taxonomy-service
         run: |
           mvn sonar:sonar \
-          -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
-          -Dsonar.organization=sunbird-knowlg-1 \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.coverage.jacoco.xmlReportPaths=taxonomy-api/taxonomy-service/target/site/jacoco/jacoco.xml
+            -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
+            -Dsonar.organization=sunbird-knowlg-1 \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            --no-transfer-progress
 
   sonar-analysis-search:
+    name: SonarCloud — Search Service
     needs: test-search
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
+
+      - name: Download Search Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: search-coverage-report
+          path: search-api/search-service/target/site/jacoco/
+
       - name: Run SonarCloud Analysis for Search
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         working-directory: search-api/search-service
         run: |
-          mvn clean compile
-
+          mvn clean compile --no-transfer-progress
           mvn sonar:sonar \
             -Dsonar.projectKey=Sunbird-Knowlg_knowledge-platform \
             -Dsonar.organization=sunbird-knowlg-1 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.java.binaries=target/classes \
             -Dsonar.java.test.binaries=target/test-classes \
-            -Dsonar.coverage.jacoco.xmlReportPaths=search-api/search-service/target/site/jacoco/jacoco.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            --no-transfer-progress
 
+  # ─────────────────────────────────────────────
+  # 6. PR summary comment
+  # ─────────────────────────────────────────────
   comment-pr:
-    needs: [sonar-analysis-content, sonar-analysis-taxonomy, sonar-analysis-search]
-    if: github.event_name == 'pull_request'
+    name: PR Summary Comment
+    needs:
+      - scalafmt-check
+      - sonar-analysis-content
+      - sonar-analysis-assessment
+      - sonar-analysis-taxonomy
+      - sonar-analysis-search
+    if: github.event_name == 'pull_request' && always()
     runs-on: ubuntu-latest
     steps:
-      - name: Comment PR with SonarQube Results
-        uses: actions/github-script@v6
+      - name: Comment PR with Quality Results
+        uses: actions/github-script@v7
         with:
           script: |
-            const message = `### SonarCloud Analysis Results 🔍
-            
-            #### Quality Gate Results for Services:
-            - [Content Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform_content)
-            - [Taxonomy Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform_taxonomy)
-            - [Search Service Analysis](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform_search)
-            
-            Please review the analysis results for each service. Ensure all quality gates are passing before merging.`;
-            
+            const formatStatus = (needs, job) => {
+              const result = needs[job]?.result;
+              if (result === 'success') return '✅ Passed';
+              if (result === 'failure') return '❌ Failed';
+              if (result === 'skipped') return '⏭️ Skipped';
+              return '⚠️ Unknown';
+            };
+
+            const message = `### PR Quality Gate Summary
+
+            | Check | Status |
+            |-------|--------|
+            | Scala Formatting (Scalafmt) | ${formatStatus(context.payload.workflow_run ?? {}, 'scalafmt-check')} |
+            | SonarCloud — Content | ${formatStatus(context.payload.workflow_run ?? {}, 'sonar-analysis-content')} |
+            | SonarCloud — Assessment | ${formatStatus(context.payload.workflow_run ?? {}, 'sonar-analysis-assessment')} |
+            | SonarCloud — Taxonomy | ${formatStatus(context.payload.workflow_run ?? {}, 'sonar-analysis-taxonomy')} |
+            | SonarCloud — Search | ${formatStatus(context.payload.workflow_run ?? {}, 'sonar-analysis-search')} |
+
+            #### SonarCloud Dashboards
+            - [Content Service](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform)
+            - [Assessment Service](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform)
+            - [Taxonomy Service](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform)
+            - [Search Service](https://sonarcloud.io/dashboard?id=Sunbird-Knowlg_knowledge-platform)
+
+            > Coverage threshold: **80%** — PRs below this threshold will fail.
+            > Scalafmt: run \`mvn scalafmt:format\` locally if formatting check fails.`;
+
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

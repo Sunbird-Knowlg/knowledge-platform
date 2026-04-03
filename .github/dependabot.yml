@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Maven dependencies
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "maven"
+    groups:
+      jackson:
+        patterns:
+          - "com.fasterxml.jackson*"
+      pekko:
+        patterns:
+          - "org.apache.pekko*"
+      logback:
+        patterns:
+          - "ch.qos.logback*"
+      netty:
+        patterns:
+          - "io.netty*"
+      scala:
+        patterns:
+          - "org.scala-lang*"
+          - "org.scalatest*"
+          - "org.scalamock*"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
