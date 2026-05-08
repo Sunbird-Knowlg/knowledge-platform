@@ -13,8 +13,9 @@ Play Framework APIs for the Sunbird Knowledge Platform. Each service exposes RES
    - [Step 2 — Start infrastructure](#step-2--start-infrastructure)
    - [Step 3 — Initialize YugabyteDB keyspaces](#step-3--initialize-yugabytedb-keyspaces)
    - [Step 4 — Initialize Elasticsearch indices](#step-4--initialize-elasticsearch-indices)
-   - [Step 5 — Build the project](#step-5--build-the-project)
-   - [Step 6 — Run a service](#step-6--run-a-service)
+   - [Step 5 — Seed data](#step-5--seed-data)
+   - [Step 6 — Build the project](#step-6--build-the-project)
+   - [Step 7 — Run a service](#step-7--run-a-service)
 4. [Redis (optional)](#redis-optional)
 5. [Cloud Storage Configuration](#cloud-storage-configuration)
 6. [CI/CD — GitHub Actions](#cicd--github-actions)
@@ -109,7 +110,22 @@ This downloads index and mapping definitions from [sunbird-devops](https://githu
 
 You only need to run this once. Run it again after `docker compose down -v` (which deletes volumes).
 
-### Step 5 — Build the project
+### Step 5 — Populate seed data
+
+After initializing keyspaces (Step 3), populate the database with seed data:
+
+```shell
+# Populate data into the default 'dev' environment
+bash docker/data-seed/scripts/restore-all.sh
+
+# Populate data into a custom environment (e.g., 'sb')
+bash docker/data-seed/scripts/restore-all.sh sb
+
+# Optionally, truncate tables before loading to ensure a clean state
+FORCE_RESET=true bash docker/data-seed/scripts/restore-all.sh
+```
+
+### Step 6 — Build the project
 
 Go back to the repository root and build:
 
@@ -127,7 +143,7 @@ mvn clean install -DskipTests -Pgcp   # Google Cloud Storage
 mvn clean install -DskipTests -Poci   # Oracle Cloud Infrastructure
 ```
 
-### Step 6 — Run a service
+### Step 7 — Run a service
 
 > **Required:** Set [cloud storage environment variables](#cloud-storage-configuration) before starting any service. The `StorageModule` initializes eagerly on startup and the service will fail if the variables are empty. If you don't have real credentials, set placeholder values — storage will only fail when you actually upload/download content:
 > ```shell
