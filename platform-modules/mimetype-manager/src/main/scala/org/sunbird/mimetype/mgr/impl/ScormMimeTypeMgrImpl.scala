@@ -22,13 +22,30 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
             extractPackage(uploadFile, extractionBasePath)
             val manifestFile = new File(extractionBasePath + File.separator + "imsmanifest.xml")
             val xml = scala.xml.XML.loadFile(manifestFile)
-            // Use local name to ignore namespaces
-            val launchFile = (xml \\ "_").find(node => node.label == "resource" && (node \@ "href").nonEmpty)
-              .map(_ \@ "href")
-              .getOrElse("index.html")
+            
+            // Resolve launchFile based on manifest hierarchy
+            val defaultOrgId = (xml \\ "organizations").headOption.map(_ \@ "default").getOrElse("")
+            val orgs = (xml \\ "organization")
+            val org = orgs.find(n => (n \@ "identifier") == defaultOrgId)
+            val item = org.flatMap(n => (n \ "item").headOption)
+            val ref = item.map(_ \@ "identifierref")
+            
+            val launchFile = ref.flatMap { r =>
+                (xml \\ "resource").find(n => (n \@ "identifier") == r).map(_ \@ "href")
+            }.getOrElse("index.html")
 
-            if (!new File(extractionBasePath + File.separator + launchFile).exists()) {
-                TelemetryManager.error("ERR_INVALID_FILE:: " + "Launch file defined in imsmanifest.xml does not exist: " + launchFile)
+            // Validate launchFile containment and existence
+            val combinedFile = new File(extractionBasePath, launchFile)
+            val canonicalBase = new File(extractionBasePath).getCanonicalPath
+            val canonicalLaunch = combinedFile.getCanonicalPath
+
+            if (!canonicalLaunch.startsWith(canonicalBase + File.separator)) {
+                TelemetryManager.error("ERR_INVALID_FILE:: Potential path traversal detected: " + launchFile)
+                throw new ClientException("ERR_INVALID_FILE", "Invalid launch file path!")
+            }
+
+            if (!combinedFile.exists()) {
+                TelemetryManager.error("ERR_INVALID_FILE:: Launch file defined in imsmanifest.xml does not exist: " + launchFile)
                 throw new ClientException("ERR_INVALID_FILE", "The launch file '" + launchFile + "' specified in imsmanifest.xml is missing from the package!")
             }
 
