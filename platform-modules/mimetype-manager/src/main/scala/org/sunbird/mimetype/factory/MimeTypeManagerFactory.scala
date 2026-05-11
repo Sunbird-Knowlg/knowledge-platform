@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.mimetype.mgr.MimeTypeManager
-import org.sunbird.mimetype.mgr.impl.{ApkMimeTypeMgrImpl, AssetMimeTypeMgrImpl, CollectionMimeTypeMgrImpl, DefaultMimeTypeMgrImpl, DocumentMimeTypeMgrImpl, EcmlMimeTypeMgrImpl, H5PMimeTypeMgrImpl, HtmlMimeTypeMgrImpl, PluginMimeTypeMgrImpl, YouTubeMimeTypeMgrImpl}
+import org.sunbird.mimetype.mgr.impl.{ApkMimeTypeMgrImpl, AssetMimeTypeMgrImpl, CollectionMimeTypeMgrImpl, DefaultMimeTypeMgrImpl, DocumentMimeTypeMgrImpl, EcmlMimeTypeMgrImpl, H5PMimeTypeMgrImpl, HtmlMimeTypeMgrImpl, PluginMimeTypeMgrImpl, ScormMimeTypeMgrImpl, YouTubeMimeTypeMgrImpl}
 
 object MimeTypeManagerFactory {
 
@@ -23,6 +23,7 @@ object MimeTypeManagerFactory {
 			"application/vnd.ekstep.content-collection" -> new CollectionMimeTypeMgrImpl,
 			"application/vnd.ekstep.plugin-archive" -> new PluginMimeTypeMgrImpl,
 			"application/vnd.ekstep.h5p-archive" -> new H5PMimeTypeMgrImpl,
+			"application/vnd.ekstep.scorm-archive" -> new ScormMimeTypeMgrImpl,
 			"application/vnd.android.package-archive" -> new ApkMimeTypeMgrImpl
 		)
 		if(ONLINE_MIMETYPES.contains(mimeType))
