@@ -116,13 +116,13 @@ After initializing keyspaces (Step 3), populate the database with seed data:
 
 ```shell
 # Populate data into the default 'dev' environment
-bash docker/data-seed/scripts/restore-all.sh
+bash docker/restore-all.sh
 
 # Populate data into a custom environment (e.g., 'sb')
-bash docker/data-seed/scripts/restore-all.sh sb
+bash docker/restore-all.sh sb
 
 # Optionally, truncate tables before loading to ensure a clean state
-FORCE_RESET=true bash docker/data-seed/scripts/restore-all.sh
+FORCE_RESET=true bash docker/restore-all.sh
 ```
 
 ### Step 6 — Build the project

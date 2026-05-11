@@ -3,7 +3,7 @@ set -e
 
 # Path to the data-seed directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DATA_SEED_DIR="$(dirname "${SCRIPT_DIR}")"
+DATA_SEED_DIR="${SCRIPT_DIR}/data-seed"
 
 # Environment prefix
 ENV=${1:-dev}
@@ -39,5 +39,19 @@ for file in "${DATA_SEED_DIR}"/*.csv; do
     MSYS_NO_PATHCONV=1 docker exec yugabyte /home/yugabyte/bin/ycqlsh -e "COPY $target_table FROM '/tmp/$filename' WITH HEADER=TRUE;"
     echo "  Restored ${target_table}"
 done
+
+# JanusGraph Import
+GRAPH_SNAPSHOT="${DATA_SEED_DIR}/graph_snapshot.json"
+if [ -f "$GRAPH_SNAPSHOT" ]; then
+    echo "Restoring JanusGraph data..."
+    docker cp "$GRAPH_SNAPSHOT" janusgraph:/tmp/graph_snapshot.json
+    docker cp "${DATA_SEED_DIR}/import_graph.groovy" janusgraph:/tmp/import_graph.groovy
+    
+    # Execute Gremlin import
+    docker exec janusgraph bash -c 'HADOOP_GREMLIN_LIBS="" /opt/bitnami/janusgraph/bin/gremlin.sh -e /tmp/import_graph.groovy'
+    echo "Restored JanusGraph data."
+else
+    echo "No graph snapshot found, skipping JanusGraph restoration."
+fi
 
 echo "Data restoration complete."
