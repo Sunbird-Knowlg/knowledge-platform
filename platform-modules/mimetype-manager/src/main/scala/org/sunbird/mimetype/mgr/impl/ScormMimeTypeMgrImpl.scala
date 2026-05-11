@@ -26,6 +26,12 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
             val launchFile = (xml \\ "_").find(node => node.label == "resource" && (node \@ "href").nonEmpty)
               .map(_ \@ "href")
               .getOrElse("index.html")
+
+            if (!new File(extractionBasePath + File.separator + launchFile).exists()) {
+                TelemetryManager.error("ERR_INVALID_FILE:: " + "Launch file defined in imsmanifest.xml does not exist: " + launchFile)
+                throw new ClientException("ERR_INVALID_FILE", "The launch file '" + launchFile + "' specified in imsmanifest.xml is missing from the package!")
+            }
+
             val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
             Future { Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY), "launchFile" -> launchFile) }
         } else {
