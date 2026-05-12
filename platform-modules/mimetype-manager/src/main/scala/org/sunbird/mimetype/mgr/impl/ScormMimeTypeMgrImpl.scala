@@ -21,35 +21,13 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
             val extractionBasePath = getBasePath(objectId)
             extractPackage(uploadFile, extractionBasePath)
             val manifestFile = new File(extractionBasePath + File.separator + "imsmanifest.xml")
-            val xml = scala.xml.XML.loadFile(manifestFile)
             
-            // Resolve launchFile based on manifest hierarchy
-            val defaultOrgId = (xml \\ "organizations").headOption.map(_ \@ "default").getOrElse("")
-            val orgs = (xml \\ "organization")
-            val org = orgs.find(n => (n \@ "identifier") == defaultOrgId)
-            val item = org.flatMap(n => (n \ "item").headOption)
-            val ref = item.map(_ \@ "identifierref")
-            
-            val launchFile = ref.flatMap { r =>
-                (xml \\ "resource").find(n => (n \@ "identifier") == r).map(_ \@ "href")
-            }.getOrElse("index.html")
-
-            // Validate launchFile containment and existence
-            val combinedFile = new File(extractionBasePath, launchFile)
-            val canonicalBase = new File(extractionBasePath).getCanonicalPath
-            val canonicalLaunch = combinedFile.getCanonicalPath
-
-            if (!canonicalLaunch.startsWith(canonicalBase + File.separator)) {
-                TelemetryManager.error("ERR_INVALID_FILE:: Potential path traversal detected: " + launchFile)
-                throw new ClientException("ERR_INVALID_FILE", "Invalid launch file path!")
-            }
-
-            if (!combinedFile.exists()) {
-                TelemetryManager.error("ERR_INVALID_FILE:: Launch file defined in imsmanifest.xml does not exist: " + launchFile)
-                throw new ClientException("ERR_INVALID_FILE", "The launch file '" + launchFile + "' specified in imsmanifest.xml is missing from the package!")
-            }
+            val launchFile = getValidatedLaunchFile(extractionBasePath, manifestFile)
 
             val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
+            node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
+            node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
+            extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
             Future { Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY), "launchFile" -> launchFile) }
         } else {
             TelemetryManager.error("ERR_INVALID_FILE:: " + "Invalid SCORM package structure: imsmanifest.xml not found! with file name: " + uploadFile.getName)
@@ -57,6 +35,38 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
         }
     }
 
+    private def getValidatedLaunchFile(extractionBasePath: String, manifestFile: File): String = {
+        val xml = scala.xml.XML.loadFile(manifestFile)
+        
+        // Resolve launchFile based on manifest hierarchy
+        val defaultOrgId = (xml \\ "organizations").headOption.map(_ \@ "default").getOrElse("")
+        val orgs = (xml \\ "organization")
+        val org = orgs.find(n => (n \@ "identifier") == defaultOrgId)
+        val item = org.flatMap(n => (n \ "item").headOption)
+        val ref = item.map(_ \@ "identifierref")
+        
+        val launchFile = ref.flatMap { r =>
+            (xml \\ "resource").find(n => (n \@ "identifier") == r).map(_ \@ "href")
+        }.getOrElse("index.html")
+
+        // Validate launchFile containment and existence
+        val combinedFile = new File(extractionBasePath, launchFile)
+        val canonicalBase = new File(extractionBasePath).getCanonicalPath
+        val canonicalLaunch = combinedFile.getCanonicalPath
+
+        if (!canonicalLaunch.startsWith(canonicalBase + File.separator)) {
+            TelemetryManager.error("ERR_INVALID_FILE:: Potential path traversal detected: " + launchFile)
+            throw new ClientException("ERR_INVALID_FILE", "Invalid launch file path!")
+        }
+
+        if (!combinedFile.exists()) {
+            TelemetryManager.error("ERR_INVALID_FILE:: Launch file defined in imsmanifest.xml does not exist: " + launchFile)
+            throw new ClientException("ERR_INVALID_FILE", "The launch file '" + launchFile + "' specified in imsmanifest.xml is missing from the package!")
+        }
+        
+        launchFile
+    }
+    
     override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
