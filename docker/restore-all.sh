@@ -48,7 +48,7 @@ if [ -f "$GRAPH_SNAPSHOT" ]; then
     docker cp "${DATA_SEED_DIR}/import_graph.groovy" janusgraph:/tmp/import_graph.groovy
     
     # Execute Gremlin import
-    docker exec janusgraph bash -c 'HADOOP_GREMLIN_LIBS="" /opt/bitnami/janusgraph/bin/gremlin.sh -e /tmp/import_graph.groovy'
+    docker exec -u 0 janusgraph bash -c 'HADOOP_GREMLIN_LIBS="" /opt/bitnami/janusgraph/bin/gremlin.sh -e /tmp/import_graph.groovy'
     echo "Restored JanusGraph data."
 else
     echo "No graph snapshot found, skipping JanusGraph restoration."
