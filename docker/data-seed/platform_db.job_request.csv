@@ -1,1 +1,0 @@
-client_key,request_id,job_id,status,request_data,location,dt_file_created,dt_first_event,dt_last_event,dt_expiration,iteration,dt_job_submitted,dt_job_processing,dt_job_completed,input_events,output_events,file_size,latency,execution_time,err_message,stage,stage_status,job_name
