@@ -3,7 +3,7 @@ package org.sunbird.mimetype.factory
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.mimetype.mgr.impl.{AssetMimeTypeMgrImpl, CollectionMimeTypeMgrImpl, DefaultMimeTypeMgrImpl, DocumentMimeTypeMgrImpl, EcmlMimeTypeMgrImpl, H5PMimeTypeMgrImpl, HtmlMimeTypeMgrImpl, PluginMimeTypeMgrImpl, YouTubeMimeTypeMgrImpl}
+import org.sunbird.mimetype.mgr.impl.{AssetMimeTypeMgrImpl, CollectionMimeTypeMgrImpl, DefaultMimeTypeMgrImpl, DocumentMimeTypeMgrImpl, EcmlMimeTypeMgrImpl, H5PMimeTypeMgrImpl, HtmlMimeTypeMgrImpl, PluginMimeTypeMgrImpl, ScormMimeTypeMgrImpl, YouTubeMimeTypeMgrImpl}
 
 class MimeTypeManagerFactoryTest extends FlatSpec with Matchers with MockFactory {
 
@@ -86,6 +86,12 @@ class MimeTypeManagerFactoryTest extends FlatSpec with Matchers with MockFactory
 		val mgr = MimeTypeManagerFactory.getManager("Resource", "application/vnd.ekstep.h5p-archive")
 		assert(null != mgr)
 		assert(mgr.isInstanceOf[H5PMimeTypeMgrImpl])
+	}
+
+	"getManager with mimeType application/vnd.ekstep.scorm-archive" should "give instance of ScormMimeTypeMgrImpl" in {
+		val mgr = MimeTypeManagerFactory.getManager("Resource", "application/vnd.ekstep.scorm-archive")
+		assert(null != mgr)
+		assert(mgr.isInstanceOf[ScormMimeTypeMgrImpl])
 	}
 
 	"getManager with blank mimeType" should "give instance of DefaultMimeTypeMgrImpl" in {

@@ -112,17 +112,14 @@ You only need to run this once. Run it again after `docker compose down -v` (whi
 
 ### Step 5 — Populate seed data
 
-After initializing keyspaces (Step 3), Populate the database with  seed data:
+Still inside the `docker/` directory, Populate the database with seed data script:
 
 ```shell
 # Populate data into the default 'dev' environment
-bash docker/seed-data.sh
+./seed-data.sh
 
 # Populate data into a custom environment (e.g., 'sb')
-bash docker/seed-data.sh sb
-
-# Optionally, truncate tables before loading to ensure a clean state
-FORCE_RESET=true bash docker/seed-data.sh
+./seed-data.sh sb
 ```
 
 ### Step 6 — Build the project

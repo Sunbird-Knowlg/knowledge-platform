@@ -135,12 +135,19 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 
 	def extractPackage(file: File, basePath: String) = {
 		val zipFile = new ZipFile(file)
+		val baseDirPath = Paths.get(basePath).toAbsolutePath
 		for (entry <- zipFile.entries().asScala) {
-			val path = Paths.get(basePath + File.separator + entry.getName)
-			if (entry.isDirectory) Files.createDirectories(path)
+			val targetPath = Paths.get(basePath + File.separator + entry.getName).toAbsolutePath
+			
+			// Validate that the entry path is within the base directory
+			if (!targetPath.startsWith(baseDirPath)) {
+				throw new ClientException("ERR_INVALID_FILE", "Invalid zip entry path detected: " + entry.getName)
+			}
+			
+			if (entry.isDirectory) Files.createDirectories(targetPath)
 			else {
-				Files.createDirectories(path.getParent)
-				Files.copy(zipFile.getInputStream(entry), path)
+				Files.createDirectories(targetPath.getParent)
+				Files.copy(zipFile.getInputStream(entry), targetPath)
 			}
 		}
 	}

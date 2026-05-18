@@ -1,6 +1,7 @@
 package org.sunbird.mimetype.mgr.impl
 
 import java.io.File
+import javax.xml.parsers.SAXParserFactory
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
@@ -9,7 +10,9 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.models.UploadParams
 import org.sunbird.telemetry.logger.TelemetryManager
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
+import scala.xml.Elem
+import scala.xml.factory.XMLLoader
 
 class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager()(ss) with MimeTypeManager {
 
@@ -17,26 +20,40 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
         validateUploadRequest(objectId, node, uploadFile)
         TelemetryManager.info("SCORM content upload for objectId:: " + objectId)
 
-        if (isValidPackageStructure(uploadFile, List("imsmanifest.xml"))) {
-            val extractionBasePath = getBasePath(objectId)
-            extractPackage(uploadFile, extractionBasePath)
-            val manifestFile = new File(extractionBasePath + File.separator + "imsmanifest.xml")
-            
-            val launchFile = getValidatedLaunchFile(extractionBasePath, manifestFile)
+		if (isValidPackageStructure(uploadFile, List("imsmanifest.xml"))) {
+			val extractionBasePath = getBasePath(objectId)
+			try {
+				blocking {
+					extractPackage(uploadFile, extractionBasePath)
+				}
+				val manifestFile = new File(extractionBasePath + File.separator + "imsmanifest.xml")
+				
+				val launchFile = blocking {
+					getValidatedLaunchFile(extractionBasePath, manifestFile)
+				}
 
-            val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
-            node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
-            node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
-            extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
-            Future { Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY), "launchFile" -> launchFile) }
-        } else {
+				val urls: Array[String] = blocking {
+					uploadArtifactToCloud(uploadFile, objectId, filePath)
+				}
+				node.getMetadata.put("s3Key", urls(IDX_S3_KEY))
+				node.getMetadata.put("artifactUrl", urls(IDX_S3_URL))
+				blocking {
+					extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
+				}
+				Future { Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> urls(IDX_S3_URL), "size" -> getFileSize(uploadFile).asInstanceOf[AnyRef], "s3Key" -> urls(IDX_S3_KEY), "launchFile" -> launchFile) }
+			} finally {
+				delete(new File(extractionBasePath))
+			}
+		} else {
+
+
             TelemetryManager.error("ERR_INVALID_FILE:: " + "Invalid SCORM package structure: imsmanifest.xml not found! with file name: " + uploadFile.getName)
             throw new ClientException("ERR_INVALID_FILE", "Invalid SCORM package: imsmanifest.xml is missing!")
         }
     }
 
     private def getValidatedLaunchFile(extractionBasePath: String, manifestFile: File): String = {
-        val xml = scala.xml.XML.loadFile(manifestFile)
+        val xml = getSecureXml(manifestFile)
         
         // Resolve launchFile based on manifest hierarchy
         val defaultOrgId = (xml \\ "organizations").headOption.map(_ \@ "default").getOrElse("")
@@ -47,7 +64,10 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
         
         val launchFile = ref.flatMap { r =>
             (xml \\ "resource").find(n => (n \@ "identifier") == r).map(_ \@ "href")
-        }.getOrElse("index.html")
+        }.getOrElse {
+            TelemetryManager.error("ERR_INVALID_FILE:: Launch file not found in imsmanifest.xml")
+            throw new ClientException("ERR_INVALID_FILE", "Launch file not found in imsmanifest.xml!")
+        }
 
         // Validate launchFile containment and existence
         val combinedFile = new File(extractionBasePath, launchFile)
@@ -65,6 +85,20 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
         }
         
         launchFile
+    }
+
+    private def getSecureXml(manifestFile: File): Elem = {
+        val spf = SAXParserFactory.newInstance()
+        spf.setNamespaceAware(true)
+        spf.setFeature("http://xml.org/sax/features/external-general-entities", false)
+        spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+        spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        
+        val saxParser = spf.newSAXParser()
+        val xmlLoader = new XMLLoader[Elem] {
+            override def parser = saxParser
+        }
+        xmlLoader.loadFile(manifestFile)
     }
     
     override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
