@@ -13,7 +13,7 @@ Play Framework APIs for the Sunbird Knowledge Platform. Each service exposes RES
    - [Step 2 — Start infrastructure](#step-2--start-infrastructure)
    - [Step 3 — Initialize YugabyteDB keyspaces](#step-3--initialize-yugabytedb-keyspaces)
    - [Step 4 — Initialize Elasticsearch indices](#step-4--initialize-elasticsearch-indices)
-   - [Step 5 — Seed data](#step-5--seed-data)
+   - [Step 5 — Populate Seed data](#step-5--seed-data)
    - [Step 6 — Build the project](#step-6--build-the-project)
    - [Step 7 — Run a service](#step-7--run-a-service)
 4. [Redis (optional)](#redis-optional)
