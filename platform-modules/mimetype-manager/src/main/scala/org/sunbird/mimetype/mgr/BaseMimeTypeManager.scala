@@ -25,7 +25,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	private val CONTENT_FOLDER = "cloud_storage.content.folder"
 	private val ARTIFACT_FOLDER = "cloud_storage.artifact.folder"
 	private val validator = new UrlValidator()
-	protected val extractableMimeTypes = List("application/vnd.ekstep.ecml-archive", "application/vnd.ekstep.html-archive", "application/vnd.ekstep.plugin-archive", "application/vnd.ekstep.h5p-archive")
+	protected val extractableMimeTypes = List("application/vnd.ekstep.ecml-archive", "application/vnd.ekstep.html-archive", "application/vnd.ekstep.plugin-archive", "application/vnd.ekstep.h5p-archive", "application/vnd.ekstep.scorm-archive")
 	protected val extractablePackageExtensions = List(".zip", ".h5p", ".epub")
 	private val H5P_MIMETYPE: String = "application/vnd.ekstep.h5p-archive"
 	private val H5P_LIBRARY_PATH: String = Platform.config.getString("content.h5p.library.path")
@@ -201,6 +201,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 			case "application/vnd.ekstep.html-archive" => baseFolder + File.separator + "html" + File.separator + objectId + DASH + pathSuffix
 			case "application/vnd.ekstep.h5p-archive" => baseFolder + File.separator + "h5p" + File.separator + objectId + DASH + pathSuffix
 			case "application/vnd.ekstep.plugin-archive" => CONTENT_PLUGINS + File.separator + objectId + DASH + pathSuffix
+			case "application/vnd.ekstep.scorm-archive" => baseFolder + File.separator + "scorm" + File.separator + objectId + DASH + pathSuffix
 			case _ => ""
 		}
 	}
