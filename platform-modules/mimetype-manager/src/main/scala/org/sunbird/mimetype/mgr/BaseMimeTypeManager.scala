@@ -135,9 +135,9 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 
 	def extractPackage(file: File, basePath: String) = {
 		val zipFile = new ZipFile(file)
-		val baseDirPath = Paths.get(basePath).toAbsolutePath
+		val baseDirPath = Paths.get(basePath).toAbsolutePath.normalize()
 		for (entry <- zipFile.entries().asScala) {
-			val targetPath = Paths.get(basePath + File.separator + entry.getName).toAbsolutePath
+			val targetPath = Paths.get(basePath + File.separator + entry.getName).toAbsolutePath.normalize()
 			
 			// Validate that the entry path is within the base directory
 			if (!targetPath.startsWith(baseDirPath)) {

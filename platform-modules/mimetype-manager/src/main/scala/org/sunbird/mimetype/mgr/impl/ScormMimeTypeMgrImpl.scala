@@ -69,6 +69,10 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
             throw new ClientException("ERR_INVALID_FILE", "Launch file not found in imsmanifest.xml!")
         }
 
+        if (launchFile.isEmpty) {
+            throw new ClientException("ERR_INVALID_FILE", "Invalid launch file path!")
+        }
+
         // Validate launchFile containment and existence
         val combinedFile = new File(extractionBasePath, launchFile)
         val canonicalBase = new File(extractionBasePath).getCanonicalPath
@@ -79,9 +83,9 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
             throw new ClientException("ERR_INVALID_FILE", "Invalid launch file path!")
         }
 
-        if (!combinedFile.exists()) {
-            TelemetryManager.error("ERR_INVALID_FILE:: Launch file defined in imsmanifest.xml does not exist: " + launchFile)
-            throw new ClientException("ERR_INVALID_FILE", "The launch file '" + launchFile + "' specified in imsmanifest.xml is missing from the package!")
+        if (!combinedFile.exists() || combinedFile.isDirectory) {
+            TelemetryManager.error("ERR_INVALID_FILE:: Launch file defined in imsmanifest.xml does not exist or is a directory: " + launchFile)
+            throw new ClientException("ERR_INVALID_FILE", "The launch file '" + launchFile + "' specified in imsmanifest.xml is missing or invalid!")
         }
         
         launchFile
@@ -93,6 +97,7 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
         spf.setFeature("http://xml.org/sax/features/external-general-entities", false)
         spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false)
         spf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
         
         val saxParser = spf.newSAXParser()
         val xmlLoader = new XMLLoader[Elem] {
@@ -100,7 +105,7 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
         }
         xmlLoader.loadFile(manifestFile)
     }
-    
+
     override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)
         val file = copyURLToFile(objectId, fileUrl)
@@ -108,12 +113,12 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
     }
 
     override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-        validate(node, "| [SCORM file should be uploaded for further processing!]")
+        validate(node, "[SCORM file should be uploaded for further processing!]")
         Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
     }
 
     override def publish(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
-        validate(node, "| [SCORM file should be uploaded for further processing!]")
+        validate(node, "[SCORM file should be uploaded for further processing!]")
         Future(getEnrichedPublishMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
     }
 }
