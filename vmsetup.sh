@@ -1,10 +1,15 @@
 #!/bin/bash
 sudo apt update
 sudo apt install redis-server -y
-curl -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.17.13-amd64.deb
-sudo dpkg -i elasticsearch-7.17.13-amd64.deb
-sudo service elasticsearch start
-#sudo service elasticsearch status
+curl -O https://artifacts.opensearch.org/releases/bundle/opensearch/2.19.5/opensearch-2.19.5-linux-x64.deb
+sudo dpkg -i opensearch-2.19.5-linux-x64.deb
+if sudo grep -q '^plugins.security.disabled:' /etc/opensearch/opensearch.yml; then
+  sudo sed -i 's/^plugins.security.disabled:.*/plugins.security.disabled: true/' /etc/opensearch/opensearch.yml
+else
+  printf '\nplugins.security.disabled: true\n' | sudo tee -a /etc/opensearch/opensearch.yml >/dev/null
+fi
+sudo systemctl start opensearch
+#sudo systemctl status opensearch
 # This should go to the test cases - Start
 redis-cli SADD edge_license "CC BY-NC-SA 4.0"
 redis-cli SADD edge_license "CC BY-NC 4.0"
