@@ -11,11 +11,6 @@ permissions:
   checks: write
   statuses: write
 
-env:
-  CLOUD_STORE_GROUP_ID: ${{ vars.CLOUD_STORE_GROUP_ID }}
-  CLOUD_STORE_ARTIFACT_ID: ${{ vars.CLOUD_STORE_ARTIFACT_ID }}
-  CLOUD_STORE_VERSION: ${{ vars.CLOUD_STORE_VERSION }}
-
 jobs:
   build:
     runs-on: ubuntu-latest

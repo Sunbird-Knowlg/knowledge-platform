@@ -37,15 +37,16 @@ services:
         condition: service_healthy
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    image: opensearchproject/opensearch:2.19.5
     container_name: sunbird_es
     ports:
       - "9200:9200"
-      - "9300:9300"
+      - "9600:9600"
     environment:
       - discovery.type=single-node
+      - plugins.security.disabled=true
     volumes:
-      - es-data:/usr/share/elasticsearch/data
+      - es-data:/usr/share/opensearch/data
 
   kafka:
     image: docker.io/sanketikahub/kafka:4.0.0

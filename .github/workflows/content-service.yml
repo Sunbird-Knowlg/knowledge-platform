@@ -67,19 +67,13 @@ jobs:
       # Step 4: Build the project
       - name: Build Content Service
         run: |
-          mvn clean install -DskipTests=true \
-            -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
-            -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
-            -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
+          mvn clean install -DskipTests=true
 
       # Step 5: Package the project
       - name: Package Content Service
         run: |
           cd content-api
-          mvn play2:dist -pl content-service \
-            -DCLOUD_STORE_GROUP_ID=${{ vars.CLOUD_STORE_GROUP_ID }} \
-            -DCLOUD_STORE_ARTIFACT_ID=${{ vars.CLOUD_STORE_ARTIFACT_ID }} \
-            -DCLOUD_STORE_VERSION=${{ vars.CLOUD_STORE_VERSION }}
+          mvn play2:dist -pl content-service
 
       # Step 6: Build Docker image
       - name: Build Docker Image
