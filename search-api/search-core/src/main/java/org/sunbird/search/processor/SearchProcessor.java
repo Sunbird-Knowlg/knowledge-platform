@@ -64,6 +64,12 @@ public class SearchProcessor {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Future<Map<String, Object>> processSearch(SearchDTO searchDTO, boolean includeResults)
 			throws Exception {
+		// Hybrid mode runs two queries and fuses their ranks; route out before
+		// the single-query path. SearchProcessor is re-entrant — HybridSearchExecutor
+		// will call this method back twice with mode flipped to text and semantic.
+		if (SearchConstants.SEARCH_MODE_HYBRID.equals(searchDTO.getSearchMode())) {
+			return org.sunbird.search.processor.HybridSearchExecutor.execute(searchDTO, this);
+		}
 		List<Map<String, Object>> groupByFinalList = new ArrayList<Map<String, Object>>();
 		SearchSourceBuilder query = processSearchQuery(searchDTO, groupByFinalList, true);
 		Future<SearchResponse> searchResponse = ElasticSearchUtil.search(

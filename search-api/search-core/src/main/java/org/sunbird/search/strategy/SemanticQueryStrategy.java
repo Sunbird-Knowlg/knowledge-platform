@@ -104,19 +104,22 @@ public class SemanticQueryStrategy implements QueryStrategy {
         QueryBuilder nested = QueryBuilders.nestedQuery(vectorPath, innerBool,
                 org.apache.lucene.search.join.ScoreMode.Max);
 
-        // Compose with the existing filter/soft/implicit logic by reusing the
-        // processor's helpers: build a regular text-shape QueryBuilder, strip
-        // its "query" leg (text), keep only filters. Cheapest path is to wrap
-        // the nested kNN as a bool must, then attach the same filter set the
-        // text path uses for properties.
+        // Compose filters from the existing text-mode bool. Strategy:
+        //  - filter()  → kept as filter (no scoring impact)
+        //  - mustNot() → kept as mustNot
+        //  - must() excluding full-text legs → demoted to filter (kNN owns scoring)
+        //  - should() → dropped entirely
+        //
+        // Soft constraints and OR-operation property clauses live in should() and
+        // are scoring boosts; they have no meaning when kNN owns the score. The
+        // OR-semantics limitation for filters in semantic mode is documented in
+        // docs/semantic-search/API_SPEC.md.
         BoolQueryBuilder finalBool = QueryBuilders.boolQuery().must(nested);
         QueryBuilder existing = processor.buildTextQuery(dto);
         if (existing instanceof BoolQueryBuilder) {
             BoolQueryBuilder bx = (BoolQueryBuilder) existing;
             for (QueryBuilder f : bx.filter())  finalBool.filter(f);
             for (QueryBuilder m : bx.mustNot()) finalBool.mustNot(m);
-            // Add other must clauses except the original text full-text match: we
-            // intentionally drop the full-text part to avoid double-scoring.
             for (QueryBuilder m : bx.must()) {
                 if (!isFullTextLeg(m)) finalBool.filter(m);
             }
@@ -125,8 +128,16 @@ public class SemanticQueryStrategy implements QueryStrategy {
     }
 
     private boolean isFullTextLeg(QueryBuilder q) {
+        // OpenSearch QueryBuilder names from getName() / getWriteableName().
+        // multi_match → multi_match; MatchQueryBuilder → match;
+        // QueryStringQueryBuilder → query_string; MatchPhraseQueryBuilder → match_phrase;
+        // SimpleQueryStringQueryBuilder → simple_query_string.
         String name = q.getName() == null ? "" : q.getName();
-        return name.equals("multi_match") || name.equals("match") || name.equals("query_string");
+        return name.equals("multi_match")
+                || name.equals("match")
+                || name.equals("match_phrase")
+                || name.equals("query_string")
+                || name.equals("simple_query_string");
     }
 
     private String extractQueryString(SearchDTO dto) {

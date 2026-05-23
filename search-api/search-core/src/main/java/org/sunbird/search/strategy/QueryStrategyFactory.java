@@ -37,6 +37,7 @@ public class QueryStrategyFactory {
                     ? Platform.config.getLong("semantic_search.embedding_cache.ttl_seconds") : 300L;
             EmbeddingCache cache = new EmbeddingCache(cacheEnabled, cacheSize, cacheTtl);
             register(new SemanticQueryStrategy(cache));
+            register(new HybridQueryStrategy());
         }
     }
 
