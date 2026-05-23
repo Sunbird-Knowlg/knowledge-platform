@@ -234,7 +234,14 @@ public class SearchProcessor {
 
 		searchSourceBuilder.size(searchDTO.getLimit());
 		searchSourceBuilder.from(searchDTO.getOffset());
-		QueryBuilder query = getSearchQuery(searchDTO);
+		QueryBuilder query;
+		try {
+			query = org.sunbird.search.strategy.QueryStrategyFactory
+					.get(searchDTO.getSearchMode())
+					.build(searchDTO, this);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to build query for mode=" + searchDTO.getSearchMode(), e);
+		}
 		if (searchDTO.isFuzzySearch())
 			relevanceSort = true;
 
@@ -913,6 +920,15 @@ public class SearchProcessor {
         }
         return aggregationList;
     }
+
+	/**
+	 * Exposed for QueryStrategy implementations. TextQueryStrategy delegates here
+	 * so existing behaviour is unchanged; semantic / hybrid strategies in later
+	 * phases build their own QueryBuilder without going through this method.
+	 */
+	public QueryBuilder buildTextQuery(SearchDTO searchDTO) {
+		return getSearchQuery(searchDTO);
+	}
 
 	private QueryBuilder getSearchQuery(SearchDTO searchDTO) {
 		BoolQueryBuilder boolQuery = new BoolQueryBuilder();

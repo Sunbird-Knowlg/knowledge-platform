@@ -118,4 +118,21 @@ public class SearchConstants {
 
     public static final String objectId = "objectId";
     public static final String traversal = "traversal";
+
+    // Semantic search request keys
+    public static final String search_mode = "search_mode";
+    public static final String semantic = "semantic";
+
+    // Semantic search modes
+    public static final String SEARCH_MODE_TEXT     = "text";
+    public static final String SEARCH_MODE_SEMANTIC = "semantic";
+    public static final String SEARCH_MODE_HYBRID   = "hybrid";
+
+    // Semantic search errors
+    public static final String ERR_SEMANTIC_QUERY_REQUIRED   = "ERR_SEMANTIC_QUERY_REQUIRED";
+    public static final String ERR_SEMANTIC_DISABLED         = "ERR_SEMANTIC_DISABLED";
+    public static final String ERR_INVALID_SEARCH_MODE       = "ERR_INVALID_SEARCH_MODE";
+    public static final String ERR_SEMANTIC_K_TOO_HIGH       = "ERR_SEMANTIC_K_TOO_HIGH";
+    public static final String ERR_SEMANTIC_K_INVALID        = "ERR_SEMANTIC_K_INVALID";
+    public static final String ERR_SEMANTIC_MIN_SCORE_INVALID = "ERR_SEMANTIC_MIN_SCORE_INVALID";
 }

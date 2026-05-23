@@ -20,6 +20,9 @@ public class SearchDTO {
     private Map<String, Object> softConstraints = new HashMap<String, Object>();
     private List<Map<String, Object>> aggregations = new ArrayList<>();
     private List<Map> implicitFilterProperties;
+    // Phase 1: semantic-search mode dispatch. Default "text" preserves existing behaviour.
+    private String searchMode = "text";
+    private Map<String, Object> semanticParams = new HashMap<>();
 
 
 
@@ -119,5 +122,21 @@ public class SearchDTO {
 
     public void setImplicitFilterProperties(List<Map> implicitFilterProperties) {
         this.implicitFilterProperties = implicitFilterProperties;
+    }
+
+    public String getSearchMode() {
+        return searchMode;
+    }
+
+    public void setSearchMode(String searchMode) {
+        this.searchMode = (searchMode == null || searchMode.isEmpty()) ? "text" : searchMode;
+    }
+
+    public Map<String, Object> getSemanticParams() {
+        return semanticParams;
+    }
+
+    public void setSemanticParams(Map<String, Object> semanticParams) {
+        this.semanticParams = semanticParams == null ? new HashMap<>() : semanticParams;
     }
 }

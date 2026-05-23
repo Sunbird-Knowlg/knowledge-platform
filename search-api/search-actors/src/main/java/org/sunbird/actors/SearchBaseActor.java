@@ -347,6 +347,15 @@ public abstract class SearchBaseActor extends AbstractActor {
             if (fuzzySearch != null) {
                 searchObj.setFuzzySearch(fuzzySearch);
             }
+
+            // Phase 1: parse search_mode (default text) and the optional semantic block.
+            // Validation of values happens in the strategy layer.
+            String searchMode = (String) req.get(SearchConstants.search_mode);
+            searchObj.setSearchMode(searchMode);
+            Object semanticObj = req.get(SearchConstants.semantic);
+            if (semanticObj instanceof Map) {
+                searchObj.setSemanticParams((Map<String, Object>) semanticObj);
+            }
         } catch (ClassCastException e) {
             e.printStackTrace();
             throw new ClientException(SearchConstants.ERR_COMPOSITE_SEARCH_INVALID_PARAMS,
