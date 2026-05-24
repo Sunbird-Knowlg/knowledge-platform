@@ -453,7 +453,7 @@ components:
         identifier: { type: string }
         objectType: { type: string }
         name:       { type: string }
-        description:{ type: string, nullable: true }
+        description: { type: string, nullable: true }
         score:      { type: number, format: float }
         score_components:
           $ref: '#/components/schemas/ScoreComponents'
