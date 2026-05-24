@@ -120,36 +120,47 @@ public class SemanticQueryStrategy implements QueryStrategy {
         // BoolQueryBuilder, which would cause us to silently drop all filters.
         // Fuzzy is a text-only relevance boost and is meaningless when kNN owns
         // scoring, so override is safe.
+        // Build the inherited filter set by RE-running the text query builder
+        // against a DTO whose properties have had the full-text leg removed.
+        // The previous approach — building the full text query and trying to
+        // strip the text leg by inspecting QueryBuilder names — failed because
+        // getAllFieldsPropertyQuery wraps multi_match inside a BoolQueryBuilder,
+        // which getName() reports as "bool", not "multi_match". The wrapped leg
+        // then slipped through and was demoted to a filter clause, where the
+        // should-only bool's implicit minimum_should_match=1 turned every query
+        // term into a hard filter requirement and excluded all docs.
         BoolQueryBuilder finalBool = QueryBuilders.boolQuery().must(nested);
         boolean savedFuzzy = dto.isFuzzySearch();
+        @SuppressWarnings("rawtypes")
+        List<Map> savedProps = dto.getProperties();
         try {
             if (savedFuzzy) dto.setFuzzySearch(false);
+            @SuppressWarnings("rawtypes")
+            List<Map> filterProps = new java.util.ArrayList<>();
+            if (savedProps != null) {
+                for (Map p : savedProps) {
+                    Object pn = p.get("propertyName");
+                    if (!"*".equals(pn)) filterProps.add(p);
+                }
+            }
+            dto.setProperties(filterProps);
             QueryBuilder existing = processor.buildTextQuery(dto);
             if (existing instanceof BoolQueryBuilder) {
                 BoolQueryBuilder bx = (BoolQueryBuilder) existing;
                 for (QueryBuilder f : bx.filter())  finalBool.filter(f);
                 for (QueryBuilder m : bx.mustNot()) finalBool.mustNot(m);
-                for (QueryBuilder m : bx.must()) {
-                    if (!isFullTextLeg(m)) finalBool.filter(m);
-                }
+                // Every remaining must is a property filter (full-text leg
+                // already excluded). Demote to filter so kNN owns scoring.
+                for (QueryBuilder m : bx.must())   finalBool.filter(m);
+                // Implicit-filter shoulds inherited from getSearchQuery — keep
+                // as filters so they constrain rather than just boost.
+                for (QueryBuilder s : bx.should()) finalBool.filter(s);
             }
         } finally {
+            dto.setProperties(savedProps);
             if (savedFuzzy) dto.setFuzzySearch(true);
         }
         return finalBool;
-    }
-
-    private boolean isFullTextLeg(QueryBuilder q) {
-        // OpenSearch QueryBuilder names from getName() / getWriteableName().
-        // multi_match → multi_match; MatchQueryBuilder → match;
-        // QueryStringQueryBuilder → query_string; MatchPhraseQueryBuilder → match_phrase;
-        // SimpleQueryStringQueryBuilder → simple_query_string.
-        String name = q.getName() == null ? "" : q.getName();
-        return name.equals("multi_match")
-                || name.equals("match")
-                || name.equals("match_phrase")
-                || name.equals("query_string")
-                || name.equals("simple_query_string");
     }
 
     private String extractQueryString(SearchDTO dto) {
