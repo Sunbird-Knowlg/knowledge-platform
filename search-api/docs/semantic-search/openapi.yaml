@@ -1,0 +1,503 @@
+openapi: 3.0.3
+info:
+  title: Knowlg Search API — /v3/search
+  version: "1.1.0"
+  description: |
+    Composite search over the `compositesearch` OpenSearch alias.
+
+    Three search modes:
+      - **text**     — existing keyword search (default; unchanged contract)
+      - **semantic** — nested kNN on int8-quantized chunk vectors
+      - **hybrid**   — text + semantic ran in parallel, fused via RRF
+
+    Semantic and hybrid require `semantic_search.enabled = true` on the server.
+servers:
+  - url: http://localhost:9000
+    description: local dev
+  - url: https://{domain}
+    description: cluster ingress
+    variables:
+      domain:
+        default: example.com
+
+paths:
+  /v3/search:
+    post:
+      operationId: search
+      summary: Composite search
+      description: |
+        Text, semantic, or hybrid search across the compositesearch index.
+        Existing clients omit `search_mode` and `semantic` and get unchanged behavior.
+      tags: [search]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchEnvelope'
+            examples:
+              text_basic:
+                summary: Default text search
+                value:
+                  request:
+                    query: "fractions"
+                    filters: { status: ["Live"], objectType: ["Content","Collection"] }
+                    limit: 10
+              filters_only:
+                summary: Filters-only, no query
+                value:
+                  request:
+                    filters: { status: ["Live"], channel: "0145017576228454407" }
+                    limit: 20
+              with_facets_sort_projection:
+                summary: Facets + sort + projection
+                value:
+                  request:
+                    query: "course"
+                    filters: { status: ["Live"] }
+                    fields:  [identifier, name, description, contentType, board]
+                    facets:  [objectType, contentType, board, status]
+                    sort_by: { lastUpdatedOn: desc }
+                    limit: 20
+                    offset: 0
+              fuzzy:
+                summary: Fuzzy / relevance-scored
+                value:
+                  request:
+                    query: "frations"
+                    filters: { status: ["Live"] }
+                    fuzzy: true
+                    limit: 10
+              exists:
+                summary: exists / not_exists
+                value:
+                  request:
+                    filters: { status: ["Live"] }
+                    exists: [artifactUrl]
+                    not_exists: [variants]
+                    limit: 10
+              soft_constraints:
+                summary: Soft constraints (mode = soft)
+                value:
+                  request:
+                    query: "physics"
+                    filters: { status: ["Live"] }
+                    mode: "soft"
+                    softConstraints: { board: 2, subject: 3 }
+                    limit: 10
+              multi_level_aggregation:
+                summary: Multi-level aggregations
+                value:
+                  request:
+                    filters: { status: ["Live"] }
+                    aggregations: [ { l1: objectType, l2: contentType } ]
+                    limit: 0
+              collection_mode:
+                summary: Collection mode (child expansion)
+                value:
+                  request:
+                    query: "course"
+                    filters: { objectType: ["Collection"], status: ["Live"] }
+                    mode: "collection"
+                    limit: 10
+              semantic:
+                summary: Semantic kNN
+                value:
+                  request:
+                    query: "fractions for class 5"
+                    filters: { status: ["Live"] }
+                    search_mode: "semantic"
+                    semantic: { k: 50, min_score: 0.0 }
+                    limit: 20
+              semantic_pinned_version:
+                summary: Semantic with schema_version filter
+                value:
+                  request:
+                    query: "introduction to algebra"
+                    filters: { status: ["Live"], objectType: ["Content"] }
+                    search_mode: "semantic"
+                    semantic: { k: 100, schema_versions: ["1.0"] }
+                    limit: 20
+              hybrid:
+                summary: Hybrid mode (RRF)
+                value:
+                  request:
+                    query: "fractions for class 5"
+                    filters: { status: ["Live"] }
+                    search_mode: "hybrid"
+                    semantic: { k: 100, rrf_k: 60 }
+                    limit: 20
+              text_explicit:
+                summary: Explicit text mode (legacy-equivalent)
+                value:
+                  request:
+                    query: "physics"
+                    search_mode: "text"
+                    limit: 10
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+              examples:
+                text_response:
+                  summary: Text-mode response
+                  value:
+                    id: api.v1.search
+                    ver: "1.0"
+                    ts: "2026-05-24T10:30:01Z"
+                    params:
+                      msgid: "9f..."
+                      resmsgid: "0a..."
+                      status: successful
+                      search_mode: text
+                      degraded: false
+                      search_ms: 41
+                    result:
+                      count: 1250
+                      results:
+                        - identifier: do_123
+                          name: "Intro to Fractions"
+                          objectType: Content
+                      facets:
+                        - name: objectType
+                          values: [ { name: Content, count: 800 }, { name: Collection, count: 450 } ]
+                semantic_response:
+                  summary: Semantic-mode response
+                  value:
+                    id: api.v1.search
+                    ver: "1.0"
+                    params:
+                      status: successful
+                      search_mode: semantic
+                      degraded: false
+                      embedding_ms: 142
+                      search_ms: 87
+                    result:
+                      count: 38
+                      results:
+                        - identifier: do_213
+                          name: "Intro to Fractions"
+                          score: 0.913
+                      facets: []
+                hybrid_response:
+                  summary: Hybrid-mode response
+                  value:
+                    params:
+                      status: successful
+                      search_mode: hybrid
+                      degraded: false
+                      embedding_ms: 0
+                      search_ms: 124
+                      fusion_ms: 3
+                    result:
+                      count: 57
+                      results:
+                        - identifier: do_213
+                          name: "Intro to Fractions"
+                          score: 0.0312
+                          score_components:
+                            text_rank: 4
+                            semantic_rank: 1
+                            text_score: 12.5
+                            semantic_score: 0.913
+                degraded_response:
+                  summary: Semantic requested, embedding API failed → degrade to text
+                  value:
+                    params:
+                      status: successful
+                      search_mode: text
+                      degraded: true
+                      degraded_reason: embedding_unavailable
+                      embedding_ms: 5001
+                      search_ms: 41
+                    result:
+                      count: 1200
+                      results: []
+        '400':
+          description: Bad request (validation, semantic gating)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                semantic_query_required:
+                  value:
+                    params:
+                      status: failed
+                      err: ERR_SEMANTIC_QUERY_REQUIRED
+                      errmsg: "query is required for semantic search"
+                invalid_mode:
+                  value:
+                    params: { status: failed, err: ERR_INVALID_SEARCH_MODE, errmsg: "Unsupported search_mode: vector" }
+                k_too_high:
+                  value:
+                    params: { status: failed, err: ERR_SEMANTIC_K_TOO_HIGH, errmsg: "semantic.k must be <= 1000" }
+        '503':
+          description: Semantic search disabled on server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                semantic_disabled:
+                  value:
+                    params: { status: failed, err: ERR_SEMANTIC_DISABLED, errmsg: "search_mode=semantic is not enabled on this server" }
+
+components:
+  schemas:
+    SearchEnvelope:
+      type: object
+      required: [request]
+      properties:
+        id:     { type: string, example: api.v1.search }
+        ver:    { type: string, example: "1.0" }
+        ts:     { type: string, format: date-time }
+        params: { $ref: '#/components/schemas/RequestParams' }
+        request: { $ref: '#/components/schemas/SearchRequest' }
+
+    RequestParams:
+      type: object
+      properties:
+        msgid: { type: string }
+        cid:   { type: string, description: consumer id }
+
+    SearchRequest:
+      type: object
+      description: |
+        All fields are optional unless noted. Existing text-search fields kept
+        unchanged. New: `search_mode`, `semantic`.
+      properties:
+        query:
+          type: string
+          description: |
+            Free text. Optional in text mode (filters-only search is allowed).
+            Required when `search_mode` is `semantic` or `hybrid`.
+          example: "fractions for class 5"
+        filters:
+          type: object
+          additionalProperties: true
+          description: |
+            Map of field → value (or array of values). Supports EQ, RANGE, exists, IN/NOT_IN.
+          example:
+            status: [Live]
+            objectType: [Content, Collection]
+            board: [CBSE]
+        fields:
+          type: array
+          items: { type: string }
+          description: Projection — limits returned source fields.
+          example: [identifier, name, description, contentType, board]
+        facets:
+          type: array
+          items: { type: string }
+          maxItems: 20
+          description: |
+            Fields to compute term-aggregation facets for. Whitelisted server-side
+            via `search.allowed.facet.fields`.
+          example: [objectType, contentType, board, subject]
+        sort_by:
+          type: object
+          additionalProperties: { type: string, enum: [asc, desc] }
+          description: |
+            Field → order. Up to 5 fields. Honored in text mode and explicitly in
+            semantic mode; ignored in hybrid (RRF score takes precedence).
+          example: { lastUpdatedOn: desc, name: asc }
+        limit:   { type: integer, default: 100, maximum: 10000 }
+        offset:  { type: integer, default: 0, minimum: 0 }
+        fuzzy:
+          type: boolean
+          default: false
+          description: |
+            Text-only flag. Wraps the bool query with function_score for relevance
+            boosting. Has no effect in semantic mode; affects only the text leg of
+            hybrid.
+        traversal:
+          type: boolean
+          default: false
+          description: Word-chains mode (text-only).
+        mode:
+          type: string
+          enum: [soft, collection]
+          description: |
+            Independent of `search_mode`. `soft` enables soft-constraint boosting;
+            `collection` triggers child-collection expansion after search.
+        softConstraints:
+          type: object
+          additionalProperties: { type: integer }
+          description: Boost weights per field; activated when `mode = soft`.
+        aggregations:
+          type: array
+          items:
+            type: object
+            additionalProperties: { type: string }
+          description: Multi-level term aggregations (l1, l2, l3...).
+          example: [ { l1: objectType, l2: contentType } ]
+        exists:
+          type: array
+          items: { type: string }
+          maxItems: 10
+        not_exists:
+          type: array
+          items: { type: string }
+        search_mode:
+          type: string
+          enum: [text, semantic, hybrid]
+          default: text
+          description: |
+            Dispatches the query builder. New in v1.1. Defaults to `text` so
+            legacy clients are unaffected.
+        semantic:
+          $ref: '#/components/schemas/SemanticParams'
+
+    SemanticParams:
+      type: object
+      description: |
+        Knobs for the semantic / hybrid path. Ignored when `search_mode = text`.
+      properties:
+        k:
+          type: integer
+          default: 50
+          minimum: 1
+          maximum: 1000
+          description: kNN top-k per shard.
+        min_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          default: 0.0
+          description: Drop chunks below this cosine score.
+        schema_versions:
+          type: array
+          items: { type: string }
+          description: |
+            Filter on `chunks.schema_version`. Use during reindex transitions to
+            pin to specific embedding generations.
+          example: ["1.0"]
+        rrf_k:
+          type: integer
+          default: 60
+          minimum: 1
+          description: Reciprocal-rank-fusion constant. Hybrid only.
+        vector_field:
+          type: string
+          default: "chunks.embedding"
+          description: Override for A/B vector-field testing.
+
+    SearchResponse:
+      type: object
+      properties:
+        id:    { type: string }
+        ver:   { type: string }
+        ts:    { type: string }
+        params: { $ref: '#/components/schemas/ResponseParams' }
+        result:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: |
+                Total matched docs (text) or fused union size (hybrid) or kNN
+                hit-set size (semantic).
+            results:
+              type: array
+              items: { $ref: '#/components/schemas/SearchHit' }
+            facets:
+              type: array
+              items: { $ref: '#/components/schemas/Facet' }
+            aggregations:
+              type: object
+              additionalProperties: true
+              description: Present only when `request.aggregations` was sent.
+
+    ResponseParams:
+      type: object
+      properties:
+        msgid:    { type: string }
+        resmsgid: { type: string }
+        status:
+          type: string
+          enum: [successful, failed]
+        err:      { type: string, nullable: true }
+        errmsg:   { type: string, nullable: true }
+        search_mode:
+          type: string
+          enum: [text, semantic, hybrid]
+          description: |
+            Echo of the mode actually executed. May differ from request when
+            degraded.
+        degraded:
+          type: boolean
+          description: |
+            true when a semantic/hybrid request fell back to text (embedding API
+            unavailable, breaker open, or semantic disabled).
+        degraded_reason:
+          type: string
+          nullable: true
+          enum: [embedding_unavailable, semantic_disabled, circuit_open]
+        embedding_ms: { type: integer, description: 0 on cache hit }
+        search_ms:    { type: integer }
+        fusion_ms:    { type: integer, description: hybrid only }
+
+    SearchHit:
+      type: object
+      additionalProperties: true
+      description: |
+        Document source projected per `request.fields`. Always includes
+        `identifier` and `objectType`. In semantic and hybrid modes, `score` is
+        cosine similarity (semantic) or fused RRF score (hybrid).
+      properties:
+        identifier: { type: string }
+        objectType: { type: string }
+        name:       { type: string }
+        description:{ type: string, nullable: true }
+        score:      { type: number, format: float }
+        score_components:
+          $ref: '#/components/schemas/ScoreComponents'
+
+    ScoreComponents:
+      type: object
+      description: Present only in hybrid mode.
+      properties:
+        text_rank:      { type: integer, nullable: true }
+        semantic_rank:  { type: integer, nullable: true }
+        text_score:     { type: number, format: float, nullable: true }
+        semantic_score: { type: number, format: float, nullable: true }
+
+    Facet:
+      type: object
+      properties:
+        name:   { type: string }
+        values:
+          type: array
+          items:
+            type: object
+            properties:
+              name:  { type: string }
+              count: { type: integer }
+
+    ErrorResponse:
+      type: object
+      properties:
+        id:  { type: string }
+        ver: { type: string }
+        ts:  { type: string }
+        params:
+          type: object
+          properties:
+            status: { type: string, enum: [failed] }
+            err:
+              type: string
+              enum:
+                - ERR_SEMANTIC_QUERY_REQUIRED
+                - ERR_SEMANTIC_DISABLED
+                - ERR_INVALID_SEARCH_MODE
+                - ERR_SEMANTIC_K_TOO_HIGH
+                - ERR_SEMANTIC_K_INVALID
+                - ERR_SEMANTIC_MIN_SCORE_INVALID
+                - ERR_COMPOSITE_SEARCH_INVALID_PARAMS
+                - ERR_ACCESS_DENIED
+            errmsg: { type: string }
