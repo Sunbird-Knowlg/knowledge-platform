@@ -6,15 +6,15 @@ import org.sunbird.search.processor.SearchProcessor;
 import org.sunbird.search.util.SearchConstants;
 
 /**
- * Marker strategy for hybrid mode. The actual execution path lives in
- * {@link org.sunbird.search.processor.HybridSearchExecutor} because hybrid
- * needs to issue two searches and fuse the ranked lists — something the
- * single-{@code QueryBuilder} contract of {@link QueryStrategy} cannot express.
+ * Hybrid strategy. The full execution path (two searches + RRF) lives in
+ * {@link org.sunbird.search.processor.HybridSearchExecutor}, which is dispatched
+ * by SearchProcessor.processSearch.
  *
- * SearchProcessor.processSearch checks the mode first and routes through
- * HybridSearchExecutor when it is {@code hybrid}, so {@link #build} is never
- * called in practice. It exists only so QueryStrategyFactory can validate the
- * mode string and surface a clean error for misconfigured deployments.
+ * For leaf paths that only need a single QueryBuilder — processCount, the
+ * public processSearchQuery overloads called from outside the actor, the
+ * collection-mode fetch — falling back to the text query is correct. Hybrid
+ * fusion is only meaningful when results are returned to the caller and can be
+ * fused; count/exists/collection-children paths just need the filter set.
  */
 public class HybridQueryStrategy implements QueryStrategy {
 
@@ -25,7 +25,8 @@ public class HybridQueryStrategy implements QueryStrategy {
 
     @Override
     public QueryBuilder build(SearchDTO dto, SearchProcessor processor) {
-        throw new UnsupportedOperationException(
-                "HybridQueryStrategy is dispatched via HybridSearchExecutor, not QueryStrategy.build()");
+        // Leaf-level fallback: behave like text. Avoids breaking processCount,
+        // getCollectionsResult, and any external processSearchQuery callers.
+        return processor.buildTextQuery(dto);
     }
 }

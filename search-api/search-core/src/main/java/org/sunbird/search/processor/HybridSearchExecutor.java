@@ -49,8 +49,13 @@ public final class HybridSearchExecutor {
         SearchDTO textDto = cloneWithMode(dto, SearchConstants.SEARCH_MODE_TEXT);
         SearchDTO semDto  = cloneWithMode(dto, SearchConstants.SEARCH_MODE_SEMANTIC);
 
-        Future<Map<String, Object>> textF = processor.processSearch(textDto, true);
-        Future<Map<String, Object>> semF  = processor.processSearch(semDto, true);
+        // SearchProcessor.relevanceSort is mutable per-request state. Running
+        // both legs in parallel on the same processor would race on that flag,
+        // flipping the sort order non-deterministically. Use fresh instances.
+        SearchProcessor textProcessor = new SearchProcessor();
+        SearchProcessor semProcessor  = new SearchProcessor();
+        Future<Map<String, Object>> textF = textProcessor.processSearch(textDto, true);
+        Future<Map<String, Object>> semF  = semProcessor.processSearch(semDto, true);
 
         int rrfK = readRrfK(dto);
         int limit  = dto.getLimit() <= 0 ? 50 : dto.getLimit();

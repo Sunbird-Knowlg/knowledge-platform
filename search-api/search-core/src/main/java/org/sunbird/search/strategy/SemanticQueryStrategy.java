@@ -114,15 +114,27 @@ public class SemanticQueryStrategy implements QueryStrategy {
         // are scoring boosts; they have no meaning when kNN owns the score. The
         // OR-semantics limitation for filters in semantic mode is documented in
         // docs/semantic-search/API_SPEC.md.
+        //
+        // Force-disable fuzzy on the inherited build: when fuzzySearch=true,
+        // prepareFilteredSearchQuery returns a FunctionScoreQueryBuilder, not a
+        // BoolQueryBuilder, which would cause us to silently drop all filters.
+        // Fuzzy is a text-only relevance boost and is meaningless when kNN owns
+        // scoring, so override is safe.
         BoolQueryBuilder finalBool = QueryBuilders.boolQuery().must(nested);
-        QueryBuilder existing = processor.buildTextQuery(dto);
-        if (existing instanceof BoolQueryBuilder) {
-            BoolQueryBuilder bx = (BoolQueryBuilder) existing;
-            for (QueryBuilder f : bx.filter())  finalBool.filter(f);
-            for (QueryBuilder m : bx.mustNot()) finalBool.mustNot(m);
-            for (QueryBuilder m : bx.must()) {
-                if (!isFullTextLeg(m)) finalBool.filter(m);
+        boolean savedFuzzy = dto.isFuzzySearch();
+        try {
+            if (savedFuzzy) dto.setFuzzySearch(false);
+            QueryBuilder existing = processor.buildTextQuery(dto);
+            if (existing instanceof BoolQueryBuilder) {
+                BoolQueryBuilder bx = (BoolQueryBuilder) existing;
+                for (QueryBuilder f : bx.filter())  finalBool.filter(f);
+                for (QueryBuilder m : bx.mustNot()) finalBool.mustNot(m);
+                for (QueryBuilder m : bx.must()) {
+                    if (!isFullTextLeg(m)) finalBool.filter(m);
+                }
             }
+        } finally {
+            if (savedFuzzy) dto.setFuzzySearch(true);
         }
         return finalBool;
     }
