@@ -294,4 +294,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.IMPORT_CONTENT, contentActor, contentRequest)
     }
 
+    def triggerEnrich() = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        body.putAll(headers)
+        val enrichRequest = getRequest(body, headers, "triggerEnrich")
+        setRequestContext(enrichRequest, version, objectType, schemaName)
+        getResult(ApiId.TRIGGER_ENRICH, contentActor, enrichRequest)
+    }
+
 }

@@ -6,6 +6,7 @@ object ApiId {
 	final val APPLICATION_SERVICE_HEALTH = "api.content.service.health"
 
 	//Content APIs
+	val TRIGGER_ENRICH = "api.content.enrich"
 	val CREATE_CONTENT = "api.content.create"
 	val READ_CONTENT = "api.content.read"
 	val READ_PRIVATE_CONTENT = "api.content.private.read"

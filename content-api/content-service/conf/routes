@@ -13,6 +13,7 @@ POST      /content/v3/upload/:identifier         content.controllers.v3.ContentC
 POST      /content/v3/copy/:identifier           content.controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
 POST     /content/v3/dialcode/link               content.controllers.v3.ContentController.linkDialCode()
 POST     /content/v3/import                 content.controllers.v3.ContentController.importContent()
+POST     /content/v3/enrich                 content.controllers.v3.ContentController.triggerEnrich()
 POST     /content/v3/flag/:identifier           content.controllers.v3.ContentController.flag(identifier:String)
 POST     /content/v3/bundle                     content.controllers.v3.ContentController.bundle()
 POST     /content/v3/flag/accept/:identifier    content.controllers.v3.ContentController.acceptFlag(identifier:String)
