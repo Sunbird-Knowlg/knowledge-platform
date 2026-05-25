@@ -76,11 +76,15 @@ public class SearchProcessor {
 				SearchConstants.COMPOSITE_SEARCH_INDEX,
 				query);
 
+		final boolean isSemantic = SearchConstants.SEARCH_MODE_SEMANTIC.equals(searchDTO.getSearchMode());
 		return searchResponse.map(new Mapper<SearchResponse, Map<String, Object>>() {
 			public Map<String, Object> apply(SearchResponse searchResult) {
 				Map<String, Object> resp = new HashMap<>();
 				if (includeResults) {
-					if (searchDTO.isFuzzySearch()) {
+					// Semantic mode always surfaces the cosine score so callers
+					// can see kNN relevance; text mode keeps prior contract
+					// (score only when fuzzy was requested).
+					if (searchDTO.isFuzzySearch() || isSemantic) {
 						List<Map> results = ElasticSearchUtil.getDocumentsFromSearchResultWithScore(searchResult);
 						resp.put("results", results);
 					} else {
@@ -249,6 +253,10 @@ public class SearchProcessor {
 			throw new RuntimeException("Failed to build query for mode=" + searchDTO.getSearchMode(), e);
 		}
 		if (searchDTO.isFuzzySearch())
+			relevanceSort = true;
+		// Semantic mode: kNN owns ranking, so skip the default name/lastUpdatedOn
+		// sort. Explicit sort_by from the request is still honored below.
+		if (SearchConstants.SEARCH_MODE_SEMANTIC.equals(searchDTO.getSearchMode()))
 			relevanceSort = true;
 
 		searchSourceBuilder.query(query);
