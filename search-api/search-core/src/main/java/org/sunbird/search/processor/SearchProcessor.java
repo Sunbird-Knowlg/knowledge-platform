@@ -261,6 +261,15 @@ public class SearchProcessor {
 
 		searchSourceBuilder.query(query);
 
+		if (SearchConstants.SEARCH_MODE_SEMANTIC.equals(searchDTO.getSearchMode())
+				&& searchDTO.getSemanticParams() != null) {
+			Object msObj = searchDTO.getSemanticParams().get("min_score");
+			if (msObj instanceof Number) {
+				float ms = ((Number) msObj).floatValue();
+				if (ms > 0f) searchSourceBuilder.minScore(ms);
+			}
+		}
+
 		if (sortBy && !relevanceSort
 				&& (null == searchDTO.getSoftConstraints() || searchDTO.getSoftConstraints().isEmpty())) {
 			Map<String, String> sorting = searchDTO.getSortBy();
