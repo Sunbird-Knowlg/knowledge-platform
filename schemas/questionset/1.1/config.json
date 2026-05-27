@@ -21,7 +21,7 @@
     }
   },
   "version": "enable",
-  "versionCheckMode": "ON",
+  "versionCheckMode": "OFF",
   "frameworkCategories": [
     "board",
     "medium",
@@ -45,7 +45,7 @@
     "targetTopicIds"
   ],
   "cacheEnabled": false,
-  "schema_restrict_api": true,
+  "schema_restrict_api": false,
   "restrictProps": {
     "create": [
       "children",
@@ -72,7 +72,9 @@
       "rejectComment"
     ]
   },
-  "oneOfProps": ["instructions"],
+  "oneOfProps": [
+    "instructions"
+  ],
   "external": {
     "tableName": "questionset_hierarchy",
     "properties": {
@@ -92,9 +94,10 @@
   },
   "PII_Fields": {
     "user": {
-      "createdBy": ["creator"]
+      "createdBy": [
+        "creator"
+      ]
     },
-    "org": {
-    }
+    "org": {}
   }
 }

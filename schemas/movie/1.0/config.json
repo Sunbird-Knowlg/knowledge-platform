@@ -1,0 +1,43 @@
+{
+  "objectType": "Movie",
+  "relations": {
+    "boxSet": {
+      "type": "hasSequenceMember",
+      "direction": "in",
+      "objects": ["BoxSet"]
+    }
+  },
+  "restrictProps": {
+    "create" : [
+      "identifier","status", "objectType"
+    ],
+    "update" : [
+      "director", "runTime", "maturityRating", "identifier", "status"
+    ]
+  },
+  "version": "enable",
+  "versionCheckMode": "ON",
+  "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
+  "cacheEnabled": false,
+  "schema_restrict_api": true,
+  "external": {
+    "tableName": "movie_data",
+    "properties": {
+      "summaries": {
+        "type": "string"
+      },
+      "synopsis": {
+        "type": "blob"
+      },
+      "awards": {
+        "type": "string"
+      },
+      "story": {
+        "type": "text"
+      }
+    },
+    "primaryKey": ["movie_id"]
+  }
+}

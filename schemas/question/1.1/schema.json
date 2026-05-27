@@ -17,8 +17,7 @@
       "minLength": 5
     },
     "code": {
-      "type": "string",
-      "description": "a unique alphanumeric code"
+      "type": "string"
     },
     "description": {
       "type": "string"
@@ -89,7 +88,9 @@
           "Other"
         ]
       },
-      "default": ["English"]
+      "default": [
+        "English"
+      ]
     },
     "languageCode": {
       "type": "array"
@@ -236,7 +237,7 @@
     "author": {
       "type": "string"
     },
-    "complexityLevel" : {
+    "complexityLevel": {
       "description": "Cognitive processes involved to answer the question set.",
       "type": "array",
       "items": {
@@ -251,7 +252,7 @@
         ]
       }
     },
-    "interactionTypes":{
+    "interactionTypes": {
       "type": "array",
       "items": {
         "type": "string",
@@ -363,7 +364,6 @@
           }
         ]
       }
-
     },
     "solutions": {
       "description": "Solutions to the question.",
@@ -388,13 +388,28 @@
       "description": "List of media used in the question",
       "items": {
         "type": "object",
-        "required": ["id", "type", "src"],
+        "required": [
+          "id",
+          "type",
+          "src"
+        ],
         "properties": {
           "id": {
             "type": "string"
           },
           "type": {
-            "enum": ["application", "audio", "font", "example", "image", "message", "model", "multipart", "text", "video"]
+            "enum": [
+              "application",
+              "audio",
+              "font",
+              "example",
+              "image",
+              "message",
+              "model",
+              "multipart",
+              "text",
+              "video"
+            ]
           },
           "src": {
             "type": "string"
@@ -414,22 +429,44 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["cardinality", "type"],
+        "required": [
+          "cardinality",
+          "type"
+        ],
         "properties": {
           "cardinality": {
             "type": "string",
-            "enum": ["single", "multiple"]
+            "enum": [
+              "single",
+              "multiple"
+            ]
           },
           "type": {
             "type": "string",
-            "enum": ["string", "number", "integer", "boolean", "object", "array"]
+            "enum": [
+              "string",
+              "number",
+              "integer",
+              "boolean",
+              "object",
+              "array"
+            ]
           },
           "correctResponse": {
             "type": "object",
-            "required": ["value"],
+            "required": [
+              "value"
+            ],
             "properties": {
               "value": {
-                "type": ["string", "number", "integer", "boolean", "object", "array"]
+                "type": [
+                  "string",
+                  "number",
+                  "integer",
+                  "boolean",
+                  "object",
+                  "array"
+                ]
               }
             },
             "additionalProperties": false
@@ -438,13 +475,28 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["value", "score"],
+              "required": [
+                "value",
+                "score"
+              ],
               "properties": {
                 "value": {
-                  "type": ["string", "number", "integer", "boolean", "object", "array"]
+                  "type": [
+                    "string",
+                    "number",
+                    "integer",
+                    "boolean",
+                    "object",
+                    "array"
+                  ]
                 },
-                "score": {"type": "number"},
-                "caseSensitive": {"type": "boolean", "default": false}
+                "score": {
+                  "type": "number"
+                },
+                "caseSensitive": {
+                  "type": "boolean",
+                  "default": false
+                }
               },
               "additionalProperties": false
             }
@@ -507,19 +559,19 @@
     "framework": {
       "type": "string"
     },
-    "subject" : {
+    "subject": {
       "type": "array"
     },
-    "medium" : {
+    "medium": {
       "type": "array"
     },
-    "board" : {
+    "board": {
       "type": "string"
     },
-    "gradeLevel" : {
+    "gradeLevel": {
       "type": "array"
     },
-    "topic" : {
+    "topic": {
       "type": "array"
     },
     "boardIds": {
@@ -667,7 +719,7 @@
         "none"
       ]
     },
-    "templateId":{
+    "templateId": {
       "type": "string"
     },
     "dailySummaryReportEnabled": {
@@ -726,6 +778,5 @@
     "creator": {
       "type": "string"
     }
-  },
-  "additionalProperties": false
+  }
 }
