@@ -16,7 +16,7 @@ import org.sunbird.common.Platform
 
 import scala.concurrent.ExecutionContext
 
-class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
+class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: ActorRef, @Named(ActorNames.ENRICH_ACTOR) enrichActor: ActorRef, loggingAction: LoggingAction, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends SearchBaseController(cc) {
 
     val apiVersion = "3.0"
 
@@ -56,6 +56,12 @@ class SearchController @Inject()(@Named(ActorNames.SEARCH_ACTOR) searchActor: Ac
             internalReq.getContext.put(SearchConstants.setDefaultVisibility, "false")
             getResult(mgr.search(internalReq, searchActor), ApiId.APPLICATION_PRIVATE_SEARCH)
         }
+    }
+
+    def triggerEnrich() = Action.async { implicit request =>
+        val internalReq = getRequest(ApiId.TRIGGER_ENRICH)
+        setHeaderContext(internalReq)
+        getResult(ApiId.TRIGGER_ENRICH, enrichActor, internalReq)
     }
 
     def count() = Action.async { implicit request =>

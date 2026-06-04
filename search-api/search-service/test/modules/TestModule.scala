@@ -15,6 +15,7 @@ class TestModule extends AbstractModule with PekkoGuiceSupport{
         bindActor[TestActor](ActorNames.HEALTH_ACTOR)
         bindActor[TestActor](ActorNames.SEARCH_ACTOR)
         bindActor[TestActor](ActorNames.AUDIT_HISTORY_ACTOR)
+        bindActor[TestActor](ActorNames.ENRICH_ACTOR)
         println("Initialized application actors for search-service")
     }
 }

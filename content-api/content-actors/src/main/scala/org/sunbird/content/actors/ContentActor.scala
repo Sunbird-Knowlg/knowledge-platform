@@ -58,7 +58,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "rejectContent" => rejectContent(request)
 			case "publishContent" => publishContent(request)
 			case "processStatus" => getProcessIdStatus(request)
-			case "triggerEnrich" => triggerEnrich(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -362,8 +361,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			ResponseHandler.OK.put(ContentConstants.IDENTIFIER, identifier).put(ContentConstants.STATUS, "success")
 		})
 	}
-
-	def triggerEnrich(request: Request): Future[Response] = EnrichManager.triggerEnrich(request)
 
 	def rejectContent(request: Request): Future[Response] = {
 		RequestUtil.validateRequest(request)
