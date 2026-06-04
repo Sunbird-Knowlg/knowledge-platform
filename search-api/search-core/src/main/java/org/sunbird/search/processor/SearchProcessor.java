@@ -47,6 +47,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Builds and executes OpenSearch queries for text, semantic (kNN), and hybrid
+ * (RRF-fused) search modes.
+ *
+ * <p>Mode routing in {@link #processSearch}:
+ * <ul>
+ *   <li><b>text</b> — builds a BoolQuery inline and submits synchronously.</li>
+ *   <li><b>semantic</b> — offloads the blocking embedding HTTP call to
+ *       {@link SemanticEmbeddingPool}, then submits the kNN query asynchronously.</li>
+ *   <li><b>hybrid</b> — delegates to {@link HybridSearchExecutor}, which runs
+ *       text and semantic legs in parallel and fuses results with Reciprocal Rank Fusion.</li>
+ * </ul>
+ *
+ * <p>{@link #buildTextQuery} is package-accessible so {@link org.sunbird.search.strategy.QueryStrategy}
+ * implementations can reuse filter, soft-constraint, and implicit-filter composition
+ * without duplicating logic.
+ */
 public class SearchProcessor {
 
 	private ObjectMapper mapper = new ObjectMapper();
@@ -62,6 +79,21 @@ public class SearchProcessor {
 	public SearchProcessor(String indexName) {
 	}
 
+	/**
+	 * Executes a search request and returns a future containing the response map
+	 * with {@code results}, {@code count}, and optionally {@code facets}.
+	 *
+	 * <p>Mode dispatch:
+	 * <ul>
+	 *   <li>hybrid — routes to {@link HybridSearchExecutor} (parallel text + semantic, RRF fusion)</li>
+	 *   <li>semantic — offloads embedding call to {@link SemanticEmbeddingPool}, applies
+	 *       {@code min_score} if set in {@link org.sunbird.search.dto.SearchDTO#getSemanticParams()}</li>
+	 *   <li>text — inline BoolQuery path (pre-existing behaviour, unchanged)</li>
+	 * </ul>
+	 *
+	 * @param searchDTO      fully-populated search descriptor including search_mode and semantic params
+	 * @param includeResults true to populate {@code results}; false for count-only use cases
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Future<Map<String, Object>> processSearch(SearchDTO searchDTO, boolean includeResults)
 			throws Exception {

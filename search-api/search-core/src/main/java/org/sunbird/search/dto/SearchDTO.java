@@ -124,18 +124,29 @@ public class SearchDTO {
         this.implicitFilterProperties = implicitFilterProperties;
     }
 
+    /**
+     * Returns the search mode: {@code "text"} (default), {@code "semantic"}, or {@code "hybrid"}.
+     * Drives strategy selection in {@link org.sunbird.search.strategy.QueryStrategyFactory}.
+     */
     public String getSearchMode() {
         return searchMode;
     }
 
+    /** Null or blank value defaults to {@code "text"}. */
     public void setSearchMode(String searchMode) {
         this.searchMode = (searchMode == null || searchMode.isEmpty()) ? "text" : searchMode;
     }
 
+    /**
+     * Per-request semantic tuning parameters (e.g. {@code k}, {@code min_score},
+     * {@code vector_field}, {@code rrf_k}, {@code schema_versions}).
+     * Never null — defaults to an empty map so callers can do {@code getOrDefault} safely.
+     */
     public Map<String, Object> getSemanticParams() {
         return semanticParams;
     }
 
+    /** Null map is normalised to an empty map to avoid NPE in strategy implementations. */
     public void setSemanticParams(Map<String, Object> semanticParams) {
         this.semanticParams = semanticParams == null ? new HashMap<>() : semanticParams;
     }

@@ -23,6 +23,13 @@ public class HybridQueryStrategy implements QueryStrategy {
         return SearchConstants.SEARCH_MODE_HYBRID;
     }
 
+    /**
+     * Leaf-level fallback — returns the text query so that {@code processCount},
+     * collection-hierarchy fetches, and any external {@code processSearchQuery} callers
+     * continue to work correctly. The full hybrid path (parallel text + semantic legs
+     * fused via RRF) is executed by {@link org.sunbird.search.processor.HybridSearchExecutor},
+     * which intercepts before this strategy is reached in {@code processSearch}.
+     */
     @Override
     public QueryBuilder build(SearchDTO dto, SearchProcessor processor) {
         // Leaf-level fallback: behave like text. Avoids breaking processCount,

@@ -48,6 +48,23 @@ public class SemanticQueryStrategy implements QueryStrategy {
         return SearchConstants.SEARCH_MODE_SEMANTIC;
     }
 
+    /**
+     * Builds a nested kNN query for semantic search.
+     *
+     * <ol>
+     *   <li>Extracts the query string from the {@code propertyName="*"} property entry.</li>
+     *   <li>Embeds the query text via {@link org.sunbird.search.embedding.EmbeddingClientFactory},
+     *       backed by an in-process LRU+TTL cache.</li>
+     *   <li>Quantizes the float vector to int8 bytes via {@link org.sunbird.search.quantization.QuantizationStrategyFactory}.</li>
+     *   <li>Builds an OpenSearch kNN JSON query against the configured {@code vector_field}.</li>
+     *   <li>Inherits all existing filters (property filters, must-not, implicit-filter should clauses)
+     *       from the text query path, demoting text-scoring clauses to filters so kNN owns ranking.</li>
+     *   <li>Applies optional {@code schema_versions} filter on the nested path.</li>
+     * </ol>
+     *
+     * @throws org.sunbird.common.exception.ClientException if the query string is missing
+     *         ({@code ERR_SEMANTIC_QUERY_REQUIRED}), or if {@code k} is out of range.
+     */
     @Override
     public QueryBuilder build(SearchDTO dto, SearchProcessor processor) {
         String query = extractQueryString(dto);
