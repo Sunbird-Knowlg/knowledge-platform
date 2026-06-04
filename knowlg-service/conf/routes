@@ -137,10 +137,7 @@ POST   /collection/v4/review/:identifier            content.controllers.v4.Colle
 POST   /collection/v4/dialcode/reserve/:identifier  content.controllers.v4.CollectionController.reserveDialCode(identifier:String)
 POST   /collection/v4/dialcode/release/:identifier  content.controllers.v4.CollectionController.releaseDialCode(identifier:String)
 
-# Search APIs
-POST     /v3/search                         controllers.SearchController.search()
-POST     /v3/private/search                 controllers.SearchController.privateSearch()
-POST     /v3/count                          controllers.SearchController.count()
+# Search - Enrich API
 POST     /v3/enrich                         controllers.SearchController.triggerEnrich()
 
 # Taxonomy Health API
