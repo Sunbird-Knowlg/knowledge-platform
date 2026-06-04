@@ -14,10 +14,25 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
+/**
+ * Triggers on-demand content enrichment by publishing a {@code BE_JOB_REQUEST} Kafka event
+ * for each requested identifier. The downstream content-enrichment job consumes these events
+ * and updates enriched metadata (embeddings, transcripts, summaries, etc.) asynchronously.
+ *
+ * Each identifier is validated against the graph store before the event is emitted.
+ * Partial Kafka send failures are tolerated: the response reports succeeded and failed
+ * identifiers separately.
+ */
 object EnrichManager {
 
   private val kfClient = new KafkaClient
 
+  /**
+   * Validates identifiers, resolves each content node's objectType from its mimeType,
+   * and emits a Kafka enrichment event per valid identifier.
+   *
+   * @return response with `count` (succeeded), `identifiers` (succeeded list), `failed` (Kafka failures)
+   */
   def triggerEnrich(request: Request)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Response] = {
     val identifiers = request.get("identifiers") match {
       case list: util.List[_] => list.asScala.map(_.toString).filter(_.nonEmpty).toList
