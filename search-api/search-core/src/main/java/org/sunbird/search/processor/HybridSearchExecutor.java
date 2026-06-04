@@ -33,8 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *  - facets: borrows the text leg's facets (broader population)
  *
  * Deferred: response-level {@code score_components} surfacing, parallel-only
- * latency budget enforcement, fuzziness flag propagation. Tracked under
- * Phase 3+ in docs/semantic-search/IMPLEMENTATION_PLAN.md.
+ * latency budget enforcement, fuzziness flag propagation.
  */
 public final class HybridSearchExecutor {
 
