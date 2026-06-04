@@ -54,6 +54,7 @@ class EnrichSpec extends BaseSpec {
             val fakeRequest = FakeRequest("POST", "/content/v3/enrich")
             val result = controller.triggerEnrich()(fakeRequest)
             hasClientError(result)
+            status(result) must equalTo(BAD_REQUEST)
         }
 
         "response contains api id api.content.enrich" in {
