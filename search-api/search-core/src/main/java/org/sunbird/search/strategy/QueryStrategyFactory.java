@@ -65,12 +65,11 @@ public class QueryStrategyFactory {
         return strategy;
     }
 
-    // TODO: Phase 4 — add EmbeddingCircuitBreaker wrapping SemanticQueryStrategy.
+    // TODO: Add EmbeddingCircuitBreaker wrapping SemanticQueryStrategy.
     // Without it, a sustained embedding-service outage causes every semantic/hybrid
     // request to throw a RuntimeException (500). The breaker should open after N
     // consecutive failures within a window and route to TextQueryStrategy with
     // params.degraded=true until the embedding service recovers.
-    // Tracked in IMPLEMENTATION_PLAN.md Phase 4 — Observability + ops.
 
     /** Test-only. Do not call from production code paths. */
     static synchronized void resetForTest() {
