@@ -73,7 +73,6 @@ public class SemanticQueryStrategy implements QueryStrategy {
                     "query is required for semantic search");
         }
 
-        // Defensive: initialize semanticParams if null
         Map<String, Object> semanticParams = dto.getSemanticParams();
         if (semanticParams == null) {
             semanticParams = new java.util.HashMap<>();

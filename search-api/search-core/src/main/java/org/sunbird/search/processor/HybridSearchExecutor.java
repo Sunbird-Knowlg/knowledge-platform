@@ -110,14 +110,12 @@ public final class HybridSearchExecutor {
                 },
                 rrfK);
 
-        // Pagination on the fused list.
         int total = fused.size();
         int end = Math.min(offset + limit, total);
         if (offset >= total) {
             return emptyShape(total, textResp);
         }
 
-        // Build response payload and surface score_components.
         List<Map<String, Object>> shaped = new ArrayList<>(end - offset);
         for (int i = offset; i < end; i++) {
             RrfFusion.FusedHit<Map<String, Object>> fh = fused.get(i);

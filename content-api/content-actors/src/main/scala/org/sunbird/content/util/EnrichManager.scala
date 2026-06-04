@@ -43,7 +43,6 @@ object EnrichManager {
 
     val topic = Platform.getString("kafka.publish.request.topic", "sunbirddev.publish.job.request")
 
-    // Read each node to validate existence and derive objectType + mimeType
     val readFutures: List[Future[(String, Option[(String, String)])]] = identifiers.map { id =>
       val readReq = new Request(request)
       readReq.put(ContentConstants.IDENTIFIER, id)
