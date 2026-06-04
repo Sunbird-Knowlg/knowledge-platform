@@ -23,20 +23,20 @@ class EnrichSpec extends BaseSpec {
 
         "return client error for empty identifiers list" in {
             val response = post("/v3/enrich", """{"request": {"identifiers": []}}""")
-            hasClientError(response)
             status(response) must equalTo(BAD_REQUEST)
+            contentAsString(response) must contain("CLIENT_ERROR")
         }
 
         "return client error when identifiers field is missing" in {
             val response = post("/v3/enrich", """{"request": {}}""")
-            hasClientError(response)
             status(response) must equalTo(BAD_REQUEST)
+            contentAsString(response) must contain("CLIENT_ERROR")
         }
 
         "return client error when request body is missing" in {
             val response = post("/v3/enrich", """{}""")
-            hasClientError(response)
             status(response) must equalTo(BAD_REQUEST)
+            contentAsString(response) must contain("CLIENT_ERROR")
         }
 
         "response contains api id api.content.enrich" in {
