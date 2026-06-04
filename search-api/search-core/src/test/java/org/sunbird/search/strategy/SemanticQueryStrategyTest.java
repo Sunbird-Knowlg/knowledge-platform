@@ -30,6 +30,7 @@ public class SemanticQueryStrategyTest {
         FakeEmbeddingClient(int dims) { this.dims = dims; }
         @Override public String getName() { return "openai"; }
         @Override public String getVersion() { return "test"; }
+        @Override public String getModelId() { return "test-model"; }
         @Override public int getDimensions() { return dims; }
         @Override
         public float[] embed(String text) {
@@ -142,6 +143,7 @@ public class SemanticQueryStrategyTest {
         EmbeddingClientFactory.overrideForTest(new EmbeddingClient() {
             @Override public String getName() { return "fail"; }
             @Override public String getVersion() { return "0"; }
+            @Override public String getModelId() { return "fail-model"; }
             @Override public int getDimensions() { return 4; }
             @Override public float[] embed(String text) { throw new RuntimeException("network error"); }
             @Override public List<float[]> embedBatch(List<String> texts) { return null; }
