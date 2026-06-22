@@ -20,6 +20,21 @@
       "type": "string",
       "minLength": 5
     },
+    "launchFile": {
+      "type": "string"
+    },
+    "scoList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "identifier": { "type": "string" },
+          "title": { "type": "string" },
+          "href": { "type": "string" },
+          "parameters": { "type": "string" }
+        }
+      }
+    },
     "code": {
       "type": "string"
     },
