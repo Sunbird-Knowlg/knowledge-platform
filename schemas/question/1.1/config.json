@@ -4,34 +4,81 @@
     "questionSet": {
       "type": "hasSequenceMember",
       "direction": "in",
-      "objects": ["QuestionSet", "QuestionSetImage"]
+      "objects": [
+        "QuestionSet",
+        "QuestionSetImage"
+      ]
     }
   },
   "restrictProps": {
-    "create" : [
-      "status", "schemaVersion"
+    "create": [
+      "status",
+      "schemaVersion"
     ],
-    "update" : [
-      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    "update": [
+      "visibility",
+      "code",
+      "status",
+      "mimeType",
+      "qumlVersion",
+      "schemaVersion"
     ],
-    "review" : [
-      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    "review": [
+      "visibility",
+      "code",
+      "status",
+      "mimeType",
+      "qumlVersion",
+      "schemaVersion"
     ],
-    "publish" : [
-      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+    "publish": [
+      "visibility",
+      "code",
+      "status",
+      "mimeType",
+      "qumlVersion",
+      "schemaVersion"
     ],
     "reject": [
-      "visibility", "code", "status", "mimeType", "qumlVersion", "schemaVersion"
+      "visibility",
+      "code",
+      "status",
+      "mimeType",
+      "qumlVersion",
+      "schemaVersion"
     ]
   },
   "version": "enable",
   "versionCheckMode": "ON",
-  "frameworkCategories": ["board","medium","subject","gradeLevel","topic"],
-  "orgFrameworkTerms": ["boardIds", "gradeLevelIds", "subjectIds", "mediumIds", "topicsIds"],
-  "targetFrameworkTerms": ["targetFWIds", "targetBoardIds", "targetGradeLevelIds", "targetSubjectIds", "targetMediumIds", "targetTopicIds"],
+  "frameworkCategories": [
+    "board",
+    "medium",
+    "subject",
+    "gradeLevel",
+    "topic"
+  ],
+  "orgFrameworkTerms": [
+    "boardIds",
+    "gradeLevelIds",
+    "subjectIds",
+    "mediumIds",
+    "topicsIds"
+  ],
+  "targetFrameworkTerms": [
+    "targetFWIds",
+    "targetBoardIds",
+    "targetGradeLevelIds",
+    "targetSubjectIds",
+    "targetMediumIds",
+    "targetTopicIds"
+  ],
   "cacheEnabled": false,
-  "schema_restrict_api": true,
-  "oneOfProps": ["body","answer","instructions"],
+  "schema_restrict_api": false,
+  "oneOfProps": [
+    "body",
+    "answer",
+    "instructions"
+  ],
   "external": {
     "tableName": "question_data",
     "properties": {
@@ -69,13 +116,16 @@
         "type": "string"
       }
     },
-    "primaryKey": ["identifier"]
+    "primaryKey": [
+      "identifier"
+    ]
   },
   "PII_Fields": {
     "user": {
-      "createdBy": ["creator"]
+      "createdBy": [
+        "creator"
+      ]
     },
-    "org": {
-    }
+    "org": {}
   }
 }
