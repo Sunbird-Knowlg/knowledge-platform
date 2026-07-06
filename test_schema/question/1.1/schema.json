@@ -273,7 +273,8 @@
         "SA",
         "MCQ-MCA",
         "MCQ-SCA",
-        "MTF"
+        "MTF",
+        "BOOL"
       ]
     },
     "editorState": {
