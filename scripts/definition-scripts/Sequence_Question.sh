@@ -4,7 +4,7 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
 --data-raw '{
   "request": {
     "objectCategoryDefinition": {
-      "categoryId": "obj-cat:ftb-question",
+      "categoryId": "obj-cat:sequence-question",
       "targetObjectType": "Question",
       "objectMetadata": {
         "config": {},
@@ -12,7 +12,7 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
           "properties": {
             "interactionTypes": {
               "type": "array",
-              "items": { "type": "string", "enum": ["text"] }
+              "items": { "type": "string", "enum": ["order"] }
             },
             "mimeType": {
               "type": "string",
@@ -20,11 +20,11 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
             },
             "primaryCategory": {
               "type": "string",
-              "enum": ["FTB Question"]
+              "enum": ["Sequence Question"]
             },
             "qType": {
               "type": "string",
-              "enum": ["FTB"]
+              "enum": ["SEQ"]
             }
           }
         }

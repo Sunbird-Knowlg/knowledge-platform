@@ -450,7 +450,10 @@
       "type": "string",
       "enum": [
         "system",
-        "none"
+        "none",
+        "responseProcessing",
+        "offline",
+        "external"
       ]
     },
     "qumlVersion": {

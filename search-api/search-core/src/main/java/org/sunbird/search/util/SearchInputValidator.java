@@ -34,7 +34,8 @@ public class SearchInputValidator {
             "subject", "artifactUrl", "downloadUrl", "variants", "pkgVersion",
             "audience", "license", "language", "lastPublishedOn", "identifier",
             "createdOn", "lastUpdatedOn", "resourceType", "appIcon", "posterImage",
-            "visibility", "compatibilityLevel", "mediaType", "origin", "rating"
+            "visibility", "compatibilityLevel", "mediaType", "origin", "rating",
+            "originData"
     ));
 
     private static final Set<String> ALLOWED_FACET_FIELDS;

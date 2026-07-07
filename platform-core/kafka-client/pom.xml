@@ -11,7 +11,7 @@
     <artifactId>kafka-client</artifactId>
 
     <properties>
-        <kafka.client.version>3.9.1</kafka.client.version>
+        <kafka.client.version>3.9.2</kafka.client.version>
     </properties>
 
     <dependencies>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>io.github.embeddedkafka</groupId>
             <artifactId>embedded-kafka_${scala.maj.version}</artifactId>
-            <version>3.4.0</version>
+            <version>3.9.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

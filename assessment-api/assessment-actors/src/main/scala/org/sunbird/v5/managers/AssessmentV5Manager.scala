@@ -23,6 +23,7 @@ import scala.collection.convert.ImplicitConversions._
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 object AssessmentV5Manager {
 
@@ -30,6 +31,13 @@ object AssessmentV5Manager {
   val supportedVersions: java.util.List[Number] = Platform.config.getNumberList("v5_supported_qumlVersions")
   val skipValidation: Boolean = Platform.getBoolean("assessment.skip.validation", false)
   val validStatus = List("Draft", "Review")
+
+  // Derived from config — used to validate that a node meets the platform's minimum QuML version requirement.
+  val minSupportedVersion: Double = supportedVersions.asScala.map(_.doubleValue()).min
+
+  // Fixed format boundary in the QuML spec: 1.1 is when the interaction/responseDeclaration schema changed.
+  // Used only in data-migration transforms (1.0 → 1.1), NOT for platform version validation.
+  private val QUML_1_1_FORMAT_VERSION: Double = 1.1
 
   def validateAndGetVersion(ver: AnyRef): AnyRef = {
     if (supportedVersions.contains(ver)) ver else throw new ClientException(AssessmentErrorCodes.ERR_REQUEST_DATA_VALIDATION, s"Platform doesn't support quml version ${ver} | Currently Supported quml version are: ${supportedVersions}")
@@ -72,7 +80,8 @@ object AssessmentV5Manager {
     metadata
   }
 
-  def getQuestionMetadata(node: Node, fields: util.List[String], extFields: util.List[String])(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
+  def getQuestionMetadata(node: Node, fields: util.List[String], extFields: util.List[String],
+                          lang: String = "")(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
     val version: AnyRef = node.getMetadata.getOrDefault("schemaVersion", 1.0.asInstanceOf[AnyRef])
     val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, List().asJava, node.getObjectType.toLowerCase.replace("Image", ""), version.toString)
     val updatedMeta = if (version.toString == "1.0") getTransformedQuestionMetadata(metadata) else convertOneOfProps(node, metadata)
@@ -80,7 +89,92 @@ object AssessmentV5Manager {
       updatedMeta.keySet.retainAll(fields)
     else updatedMeta.keySet().removeAll(extFields)
     updatedMeta.put("identifier", node.getIdentifier.replace(".img", ""))
+    if (StringUtils.isNotBlank(lang)) filterByLanguage(updatedMeta, lang)
     updatedMeta
+  }
+
+  private val systemDefaultLang: String = Platform.getString("platform.default.language", "en")
+  // Fields whose value is directly an i18n map: { "en": "...", "hi": "..." }
+  private val directI18nFields: Set[String] = Set("body", "instructions", "answer")
+  // Fields whose value is an id-keyed map of i18n values: { "<id>": "..." | { "en": "...", "hi": "..." } }
+  private val keyedI18nFields: Set[String] = Set("hints", "feedback", "solutions")
+
+  // Resolve an i18n value to the requested language, falling back to the system default.
+  // Returns null when there is nothing to resolve (plain single-language string or unrelated value),
+  // signalling the caller to leave the original value untouched.
+  private def resolveI18n(value: AnyRef, lang: String): AnyRef = value match {
+    case m: util.Map[_, _] =>
+      val i18n = m.asInstanceOf[util.Map[String, AnyRef]]
+      Option(i18n.get(lang)).orElse(Option(i18n.get(systemDefaultLang))).orNull
+    case s: String =>
+      // Defensive: the read path normally deserializes oneOf props to maps, but if that step
+      // was skipped/failed the value can arrive as a JSON-encoded i18n map string. Parse it so
+      // we never leak a raw i18n blob to the client; plain HTML strings won't parse and are left as-is.
+      Try(JsonUtils.deserialize(s, classOf[util.Map[String, AnyRef]])).toOption.flatMap { parsed =>
+        if (parsed != null && (parsed.containsKey(lang) || parsed.containsKey(systemDefaultLang)))
+          Option(parsed.get(lang)).orElse(Option(parsed.get(systemDefaultLang)))
+        else None
+      }.orNull
+    case _ => null
+  }
+
+  private[managers] def filterByLanguage(metadata: util.Map[String, AnyRef], lang: String): Unit = {
+    directI18nFields.foreach { field =>
+      if (metadata.containsKey(field)) {
+        val resolved = resolveI18n(metadata.get(field), lang)
+        if (resolved != null) metadata.put(field, resolved)
+      }
+    }
+    keyedI18nFields.foreach { field =>
+      metadata.get(field) match {
+        case m: util.Map[_, _] =>
+          val keyed = m.asInstanceOf[util.Map[String, AnyRef]]
+          keyed.keySet().asScala.toList.foreach { id =>
+            val resolved = resolveI18n(keyed.get(id), lang)
+            if (resolved != null) keyed.put(id, resolved)
+          }
+        case _ =>
+      }
+    }
+    if (metadata.containsKey("interactions")) {
+      metadata.get("interactions") match {
+        case intMap: util.Map[_, _] =>
+          intMap.asInstanceOf[util.Map[String, AnyRef]].values().asScala.foreach {
+            case obj: util.Map[_, _] =>
+              val interaction = obj.asInstanceOf[util.Map[String, AnyRef]]
+              interaction.getOrDefault("options", null) match {
+                case flat: util.List[_] =>
+                  filterOptionLabels(flat.asInstanceOf[util.List[util.Map[String, AnyRef]]], lang)
+                case sides: util.Map[_, _] =>
+                  val sidesMap = sides.asInstanceOf[util.Map[String, AnyRef]]
+                  Seq("left", "right").foreach { side =>
+                    sidesMap.getOrDefault(side, null) match {
+                      case list: util.List[_] =>
+                        filterOptionLabels(list.asInstanceOf[util.List[util.Map[String, AnyRef]]], lang)
+                      case _ =>
+                    }
+                  }
+                case _ =>
+              }
+            case _ =>
+          }
+        case _ =>
+      }
+    }
+  }
+
+  private[managers] def filterOptionLabels(options: util.List[util.Map[String, AnyRef]], lang: String): Unit = {
+    options.asScala.foreach { opt =>
+      Seq("label", "hint").foreach { key =>
+        opt.get(key) match {
+          case m: util.Map[_, _] =>
+            val i18n = m.asInstanceOf[util.Map[String, AnyRef]]
+            val v = Option(i18n.get(lang)).orElse(Option(i18n.get(systemDefaultLang))).orNull
+            if (v != null) opt.put(key, v)
+          case _ =>
+        }
+      }
+    }
   }
 
   def getValidateNodeForReject(request: Request, errCode: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
@@ -133,29 +227,116 @@ object AssessmentV5Manager {
 
   def validateQuestionNodeForReview(request: Request, node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): List[String] = {
     val messages = ListBuffer[String]()
-    //TODO: Refactor this method to use schema level configuration to get all property which need to be validated during review and publish
-    //TODO: Extract type of each property from schema and validate. Also resolve oneOf props
     val metadata = node.getMetadata
     if (StringUtils.isBlank(metadata.getOrDefault("body", "").asInstanceOf[String]))
-      messages += s"""body"""
-    /*if (StringUtils.isBlank(metadata.getOrDefault("answer", "").asInstanceOf[String]))
-      messages += s"""answer"""*/
+      messages += "body"
     if (null != metadata.get("interactionTypes")) {
-      if (StringUtils.isBlank(metadata.getOrElse("responseDeclaration", "").asInstanceOf[String])) messages += s"""responseDeclaration"""
-      if (StringUtils.isBlank(metadata.getOrElse("interactions", "").asInstanceOf[String])) messages += s"""interactions"""
-      if (StringUtils.isBlank(metadata.getOrElse("outcomeDeclaration", "").asInstanceOf[String])) messages += s"""outcomeDeclaration"""
+      if (StringUtils.isBlank(metadata.getOrElse("responseDeclaration", "").asInstanceOf[String])) messages += "responseDeclaration"
+      if (StringUtils.isBlank(metadata.getOrElse("interactions", "").asInstanceOf[String])) messages += "interactions"
+      if (StringUtils.isBlank(metadata.getOrElse("outcomeDeclaration", "").asInstanceOf[String])) messages += "outcomeDeclaration"
+      if (messages.isEmpty) {
+        val qType = metadata.getOrDefault("qType", "").asInstanceOf[String]
+        val rd = JsonUtils.deserialize(metadata.getOrElse("responseDeclaration", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
+        val interactions = JsonUtils.deserialize(metadata.getOrElse("interactions", "{}").asInstanceOf[String], classOf[java.util.Map[String, AnyRef]])
+        qType.toUpperCase match {
+          case "FTB"         => messages ++= validateFTB(rd, interactions)
+          case "MTF"         => messages ++= validateMTF(rd, interactions)
+          case "SEQ" | "REO" => messages ++= validateOrdered(rd, interactions)
+          case _             =>
+        }
+      }
     } else {
       if (StringUtils.isBlank(metadata.getOrDefault("answer", "").asInstanceOf[String]))
-        messages += s"""answer"""
+        messages += "answer"
     }
     messages.toList
+  }
+
+  private[managers] def validateFTB(rd: util.Map[String, AnyRef], interactions: util.Map[String, AnyRef]): List[String] = {
+    val errs = ListBuffer[String]()
+    rd.keySet().asScala.foreach { key =>
+      val resp = rd.get(key).asInstanceOf[util.Map[String, AnyRef]]
+      if (!StringUtils.equalsIgnoreCase("single", resp.getOrDefault("cardinality", "").asInstanceOf[String]))
+        errs += s"responseDeclaration.$key.cardinality must be 'single' for FTB"
+      if (!StringUtils.equalsIgnoreCase("string", resp.getOrDefault("type", "").asInstanceOf[String]))
+        errs += s"responseDeclaration.$key.type must be 'string' for FTB"
+      val cv = resp.getOrDefault("correctResponse", new util.HashMap[String, AnyRef]())
+                 .asInstanceOf[util.Map[String, AnyRef]].getOrDefault("value", null)
+      if (cv == null || cv.toString.isBlank) errs += s"responseDeclaration.$key.correctResponse.value is required"
+      val intType = interactions.getOrDefault(key, new util.HashMap[String, AnyRef]())
+                      .asInstanceOf[util.Map[String, AnyRef]].getOrDefault("type", "").asInstanceOf[String]
+      if (!StringUtils.equalsIgnoreCase("text", intType)) errs += s"interactions.$key.type must be 'text' for FTB"
+    }
+    errs.toList
+  }
+
+  private[managers] def validateMTF(rd: util.Map[String, AnyRef], interactions: util.Map[String, AnyRef]): List[String] = {
+    val errs = ListBuffer[String]()
+    if (rd.size() != 1) errs += "MTF must have exactly one responseDeclaration entry"
+    rd.keySet().asScala.foreach { key =>
+      val resp = rd.get(key).asInstanceOf[util.Map[String, AnyRef]]
+      if (!StringUtils.equalsIgnoreCase("single", resp.getOrDefault("cardinality", "").asInstanceOf[String]))
+        errs += s"responseDeclaration.$key.cardinality must be 'single' for MTF"
+      if (!StringUtils.equalsIgnoreCase("map", resp.getOrDefault("type", "").asInstanceOf[String]))
+        errs += s"responseDeclaration.$key.type must be 'map' for MTF"
+      val correctVal = resp.getOrDefault("correctResponse", new util.HashMap[String, AnyRef]())
+                         .asInstanceOf[util.Map[String, AnyRef]]
+                         .getOrDefault("value", null)
+      val correctMap: util.Map[String, AnyRef] = if (correctVal != null && correctVal.isInstanceOf[util.Map[_, _]])
+        correctVal.asInstanceOf[util.Map[String, AnyRef]] else null
+      if (correctMap == null || correctMap.isEmpty) errs += s"responseDeclaration.$key.correctResponse.value must be a non-empty map"
+      val opts = interactions.getOrDefault(key, new util.HashMap[String, AnyRef]())
+                   .asInstanceOf[util.Map[String, AnyRef]]
+                   .getOrDefault("options", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val left  = opts.getOrDefault("left",  new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+      val right = opts.getOrDefault("right", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+      if (left.isEmpty)  errs += s"interactions.$key.options.left must be non-empty for MTF"
+      if (right.isEmpty) errs += s"interactions.$key.options.right must be non-empty for MTF"
+      if (correctMap != null && !left.isEmpty && !right.isEmpty) {
+        val leftVals  = left.asScala.map(_.getOrDefault("value", "").asInstanceOf[String]).toSet
+        val rightVals = right.asScala.map(_.getOrDefault("value", "").asInstanceOf[String]).toSet
+        correctMap.keySet().asScala.foreach(k => if (!leftVals.contains(k))  errs += s"correctResponse key '$k' not in left options")
+        correctMap.values().asScala.foreach(v => if (!rightVals.contains(v.asInstanceOf[String])) errs += s"correctResponse value '$v' not in right options")
+        val rhsUsed = correctMap.values().asScala.toList
+        if (rhsUsed.size != rhsUsed.toSet.size) errs += "correctResponse.value violates one-to-one constraint (duplicate RHS)"
+      }
+    }
+    errs.toList
+  }
+
+  private[managers] def validateOrdered(rd: util.Map[String, AnyRef], interactions: util.Map[String, AnyRef]): List[String] = {
+    val errs = ListBuffer[String]()
+    if (rd.size() != 1) errs += "Sequence/Reorder must have exactly one responseDeclaration entry"
+    rd.keySet().asScala.foreach { key =>
+      val resp = rd.get(key).asInstanceOf[util.Map[String, AnyRef]]
+      if (!StringUtils.equalsIgnoreCase("ordered", resp.getOrDefault("cardinality", "").asInstanceOf[String]))
+        errs += s"responseDeclaration.$key.cardinality must be 'ordered'"
+      val rType = resp.getOrDefault("type", "").asInstanceOf[String].toLowerCase
+      if (rType != "string" && rType != "integer") errs += s"responseDeclaration.$key.type must be 'string' or 'integer'"
+      val correctArr = resp.getOrDefault("correctResponse", new util.HashMap[String, AnyRef]())
+                         .asInstanceOf[util.Map[String, AnyRef]]
+                         .getOrDefault("value", null)
+      val correctList: util.List[AnyRef] = if (correctArr != null && correctArr.isInstanceOf[util.List[_]])
+        correctArr.asInstanceOf[util.List[AnyRef]] else null
+      if (correctList == null || correctList.isEmpty) errs += s"responseDeclaration.$key.correctResponse.value must be a non-empty array"
+      val options = interactions.getOrDefault(key, new util.HashMap[String, AnyRef]())
+                      .asInstanceOf[util.Map[String, AnyRef]]
+                      .getOrDefault("options", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+      if (options.isEmpty) errs += s"interactions.$key.options must be non-empty"
+      if (correctList != null && !options.isEmpty) {
+        if (correctList.size() != options.size()) errs += s"correctResponse length (${correctList.size}) must equal options length (${options.size})"
+        val optVals = options.asScala.map(_.getOrDefault("value", "").asInstanceOf[String]).toSet
+        correctList.asScala.foreach(v => if (!optVals.contains(v.asInstanceOf[String])) errs += s"correctResponse value '$v' not in options")
+      }
+    }
+    errs.toList
   }
 
   def validateHierarchy(request: Request, children: util.List[util.Map[String, AnyRef]], rootUserId: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Unit = {
     children.toList.foreach(content => {
       val version: Double = content.getOrDefault("qumlVersion", 1.0.asInstanceOf[AnyRef]).asInstanceOf[Double]
-      if (version < 1.1)
-        throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, s"Children Object with identifier ${content.get("identifier").toString} doesn't have data in QuML 1.1 format.")
+      if (version < minSupportedVersion)
+        throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, s"Children Object with identifier ${content.get("identifier").toString} doesn't have data in QuML $minSupportedVersion format.")
       if ((StringUtils.equalsAnyIgnoreCase(content.getOrDefault("visibility", "").asInstanceOf[String], "Default")
         && !StringUtils.equals(rootUserId, content.getOrDefault("createdBy", "").asInstanceOf[String]))
         && !StringUtils.equalsIgnoreCase(content.getOrDefault("status", "").asInstanceOf[String], "Live"))
@@ -231,8 +412,8 @@ object AssessmentV5Manager {
       if (StringUtils.equalsAnyIgnoreCase(node.getMetadata.getOrDefault("status", "").asInstanceOf[String], "Processing"))
         throw new ClientException(errCode, s"${node.getObjectType.replace("Image", "")} having Processing status can't be sent for publish.")
       val version: Double = node.getMetadata.getOrDefault("qumlVersion", 1.0.asInstanceOf[AnyRef]).asInstanceOf[Double]
-      if (version < 1.1)
-        throw new ClientException(errCode, s"${node.getObjectType().replace("Image", "")} can't be sent for publish as data is not in QuML 1.1 format.")
+      if (version < minSupportedVersion)
+        throw new ClientException(errCode, s"${node.getObjectType().replace("Image", "")} can't be sent for publish as data is not in QuML $minSupportedVersion format.")
       node
     })
   }
@@ -340,12 +521,15 @@ object AssessmentV5Manager {
           val answer = """<div class="anwser-container">answer_div</div>""".replace("answer_div", answerList.mkString(""))
           answer
         }
+        case _ => ""
       }
       answerData
     } else data.getOrDefault("answer", "").asInstanceOf[String]
   }
 
   def processInteractions(data: util.Map[String, AnyRef]): Unit = {
+    val version = Try(data.getOrDefault("qumlVersion", 1.0.asInstanceOf[AnyRef]).toString.toDouble).getOrElse(1.0)
+    if (version >= QUML_1_1_FORMAT_VERSION) return
     val interactions: util.Map[String, AnyRef] = data.getOrDefault("interactions", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
     if (!interactions.isEmpty) {
       val validation = interactions.getOrElse("validation", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
@@ -368,6 +552,7 @@ object AssessmentV5Manager {
 
   def processResponseDeclaration(data: util.Map[String, AnyRef]): Unit = {
     val outcomeDeclaration = new util.HashMap[String, AnyRef]()
+    val version = Try(data.getOrDefault("qumlVersion", 1.0.asInstanceOf[AnyRef]).toString.toDouble).getOrElse(1.0)
     // Remove responseDeclaration metadata for Subjective Question
     if (StringUtils.equalsIgnoreCase("Subjective Question", data.getOrDefault("primaryCategory", "").toString)) {
       data.remove("responseDeclaration")
@@ -387,20 +572,22 @@ object AssessmentV5Manager {
           outcomeDeclaration.put("maxScore", maxScore.asJava)
           //remove outcome from correctResponse
           responseData.getOrDefault("correctResponse", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]].remove("outcomes")
-          // type cast value. data type mismatch seen in quml 1.0 data where type and data was integer but integer data was populated as string
-          try {
-            if (StringUtils.equalsIgnoreCase("integer", responseData.getOrDefault("type", "").asInstanceOf[String])
-              && StringUtils.equalsIgnoreCase("single", responseData.getOrDefault("cardinality", "").asInstanceOf[String])) {
-              val correctResp: util.Map[String, AnyRef] = responseData.getOrDefault("correctResponse", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
-              val correctKey: String = correctResp.getOrDefault("value", "0").asInstanceOf[String]
-              correctResp.put("value", correctKey.toInt.asInstanceOf[AnyRef])
+          // type cast value — v1.0 only: integer type with single cardinality stored value as string
+          if (version < QUML_1_1_FORMAT_VERSION) {
+            try {
+              if (StringUtils.equalsIgnoreCase("integer", responseData.getOrDefault("type", "").asInstanceOf[String])
+                && StringUtils.equalsIgnoreCase("single", responseData.getOrDefault("cardinality", "").asInstanceOf[String])) {
+                val correctResp: util.Map[String, AnyRef] = responseData.getOrDefault("correctResponse", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]]
+                val correctKey: String = correctResp.getOrDefault("value", "0").asInstanceOf[String]
+                correctResp.put("value", correctKey.toInt.asInstanceOf[AnyRef])
+              }
+            } catch {
+              case e: NumberFormatException => e.printStackTrace()
             }
-          } catch {
-            case e: NumberFormatException => e.printStackTrace()
           }
-          //update mapping
+          //update mapping — v1.0 only: mapping used {response, outcomes.score}; v1.1 uses {value, score} directly
           val mappingData = responseData.getOrElse("mapping", List[util.Map[String, AnyRef]]().asJava).asInstanceOf[util.List[util.Map[String, AnyRef]]]
-          if (!mappingData.isEmpty) {
+          if (version < QUML_1_1_FORMAT_VERSION && !mappingData.isEmpty) {
             val updatedMapping = mappingData.asScala.toList.map(mapData => {
               Map[String, AnyRef]("value" -> mapData.get("response"), "score" -> mapData.getOrDefault("outcomes", Map[String, AnyRef]().asJava).asInstanceOf[util.Map[String, AnyRef]].get("score")).asJava
             }).asJava

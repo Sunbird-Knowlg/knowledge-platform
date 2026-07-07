@@ -261,7 +261,9 @@
           "select",
           "date",
           "file-upload",
-          "canvas"
+          "canvas",
+          "match",
+          "order"
         ]
       }
     },
@@ -274,6 +276,8 @@
         "MCQ-MCA",
         "MCQ-SCA",
         "MTF",
+        "SEQ",
+        "REO",
         "BOOL"
       ]
     },
@@ -419,11 +423,11 @@
         "properties": {
           "cardinality": {
             "type": "string",
-            "enum": ["single", "multiple"]
+            "enum": ["single", "multiple", "ordered"]
           },
           "type": {
             "type": "string",
-            "enum": ["string", "number", "integer", "boolean", "object", "array"]
+            "enum": ["string", "number", "integer", "boolean", "object", "array", "map"]
           },
           "correctResponse": {
             "type": "object",
@@ -451,12 +455,42 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       }
     },
     "interactions": {
       "type": "object",
-      "description": "Stores interaction data. e.g: options for mcq questions"
+      "description": "Stores interaction data for the question.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["choice", "text", "select", "date", "file-upload", "canvas", "match", "order"]
+          },
+          "options": {
+            "oneOf": [
+              {
+                "type": "array",
+                "description": "Flat array for text/order interactions",
+                "items": { "$ref": "#/definitions/interactionOption" }
+              },
+              {
+                "type": "object",
+                "description": "Left/right arrays for match interactions",
+                "properties": {
+                  "left":  { "type": "array", "items": { "$ref": "#/definitions/interactionOption" } },
+                  "right": { "type": "array", "items": { "$ref": "#/definitions/interactionOption" } }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "validation": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
     },
     "outcomeDeclaration": {
       "type": "object",
@@ -665,7 +699,10 @@
       "type": "string",
       "enum": [
         "system",
-        "none"
+        "none",
+        "responseProcessing",
+        "offline",
+        "external"
       ]
     },
     "templateId":{
@@ -726,6 +763,28 @@
     },
     "creator": {
       "type": "string"
+    }
+  },
+  "definitions": {
+    "interactionOption": {
+      "type": "object",
+      "required": ["value"],
+      "properties": {
+        "value": { "type": "string" },
+        "label": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "object", "additionalProperties": { "type": "string" } }
+          ]
+        },
+        "hint": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "object", "additionalProperties": { "type": "string" } }
+          ]
+        }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false

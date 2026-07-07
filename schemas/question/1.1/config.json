@@ -67,6 +67,9 @@
       },
       "feedback": {
         "type": "string"
+      },
+      "pairs": {
+        "type": "string"
       }
     },
     "primaryKey": ["identifier"]

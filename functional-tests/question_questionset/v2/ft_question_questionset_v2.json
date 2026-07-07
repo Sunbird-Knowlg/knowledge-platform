@@ -21086,6 +21086,683 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "question_ftb_v2",
+			"item": [
+				{
+					"name": "ftb_create_single_blank_en_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"FTB created\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); pm.collectionVariables.set(\"ftb_question_identifier\", j.result.identifier); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"question\": {\n      \"name\": \"FT_FTB_Single_Blank\",\n      \"code\": \"{{$randomUUID}}\",\n      \"mimeType\": \"application/vnd.sunbird.question\",\n      \"primaryCategory\": \"FTB Question\",\n      \"qType\": \"FTB\",\n      \"visibility\": \"Default\",\n      \"interactionTypes\": [\n        \"text\"\n      ],\n      \"body\": \"<p>The capital of France is [[response1]]</p>\",\n      \"responseDeclaration\": {\n        \"response1\": {\n          \"cardinality\": \"single\",\n          \"type\": \"string\",\n          \"correctResponse\": {\n            \"value\": \"Paris\"\n          },\n          \"mapping\": [\n            {\n              \"value\": \"Paris\",\n              \"score\": 1,\n              \"caseSensitive\": false\n            }\n          ]\n        }\n      },\n      \"interactions\": {\n        \"response1\": {\n          \"type\": \"text\",\n          \"validation\": {\n            \"required\": \"Yes\"\n          }\n        }\n      },\n      \"outcomeDeclaration\": {\n        \"maxScore\": {\n          \"cardinality\": \"single\",\n          \"type\": \"integer\",\n          \"defaultValue\": 1\n        }\n      },\n      \"maxScore\": 1\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ftb_create_multilingual_en_hi_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"FTB i18n created\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); pm.collectionVariables.set(\"ftb_i18n_identifier\", j.result.identifier); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"question\": {\n      \"name\": \"FT_FTB_Bilingual\",\n      \"code\": \"{{$randomUUID}}\",\n      \"mimeType\": \"application/vnd.sunbird.question\",\n      \"primaryCategory\": \"FTB Question\",\n      \"qType\": \"FTB\",\n      \"visibility\": \"Default\",\n      \"interactionTypes\": [\n        \"text\"\n      ],\n      \"body\": {\n        \"en\": \"<p>Capital of France is [[response1]]</p>\",\n        \"hi\": \"<p>\\u092b\\u094d\\u0930\\u093e\\u0902\\u0938 \\u0915\\u0940 \\u0930\\u093e\\u091c\\u0927\\u093e\\u0928\\u0940 [[response1]] \\u0939\\u0948</p>\"\n      },\n      \"responseDeclaration\": {\n        \"response1\": {\n          \"cardinality\": \"single\",\n          \"type\": \"string\",\n          \"correctResponse\": {\n            \"value\": \"Paris\"\n          }\n        }\n      },\n      \"interactions\": {\n        \"response1\": {\n          \"type\": \"text\"\n        }\n      },\n      \"outcomeDeclaration\": {\n        \"maxScore\": {\n          \"cardinality\": \"single\",\n          \"type\": \"integer\",\n          \"defaultValue\": 1\n        }\n      },\n      \"maxScore\": 1\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ftb_read_lang_en_body_is_string_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"FTB lang=en body is string\", function () { var j = pm.response.json(); pm.expect(typeof j.result.question.body).to.eql(\"string\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/read/{{ftb_i18n_identifier}}?fields=body&lang=en",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"read",
+								"{{ftb_i18n_identifier}}"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "body"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ftb_read_lang_hi_returns_hindi_body_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"FTB lang=hi body contains Hindi text\", function () { var j = pm.response.json(); pm.expect(j.result.question.body).to.include(\"राजधानी\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/read/{{ftb_i18n_identifier}}?fields=body&lang=hi",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"read",
+								"{{ftb_i18n_identifier}}"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "body"
+								},
+								{
+									"key": "lang",
+									"value": "hi"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ftb_review_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"FTB review successful\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/review/{{ftb_question_identifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"review",
+								"{{ftb_question_identifier}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "question_mtf_v2",
+			"item": [
+				{
+					"name": "mtf_create_single_language_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"MTF created\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); pm.collectionVariables.set(\"mtf_question_identifier\", j.result.identifier); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"question\": {\n      \"name\": \"FT_MTF_Q1\",\n      \"code\": \"{{$randomUUID}}\",\n      \"mimeType\": \"application/vnd.sunbird.question\",\n      \"primaryCategory\": \"Match The Following Question\",\n      \"qType\": \"MTF\",\n      \"visibility\": \"Default\",\n      \"interactionTypes\": [\n        \"match\"\n      ],\n      \"body\": \"<p>Match the capitals</p>\",\n      \"responseDeclaration\": {\n        \"response1\": {\n          \"cardinality\": \"single\",\n          \"type\": \"map\",\n          \"correctResponse\": {\n            \"value\": {\n              \"A\": \"1\",\n              \"B\": \"2\"\n            }\n          }\n        }\n      },\n      \"interactions\": {\n        \"response1\": {\n          \"type\": \"match\",\n          \"options\": {\n            \"left\": [\n              {\n                \"value\": \"A\",\n                \"label\": \"France\"\n              },\n              {\n                \"value\": \"B\",\n                \"label\": \"Germany\"\n              }\n            ],\n            \"right\": [\n              {\n                \"value\": \"1\",\n                \"label\": \"Paris\"\n              },\n              {\n                \"value\": \"2\",\n                \"label\": \"Berlin\"\n              }\n            ]\n          }\n        }\n      },\n      \"outcomeDeclaration\": {\n        \"maxScore\": {\n          \"cardinality\": \"single\",\n          \"type\": \"integer\",\n          \"defaultValue\": 2\n        }\n      },\n      \"maxScore\": 2\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mtf_read_lang_en_labels_are_strings_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"MTF lang=en option labels are strings\", function () { var j = pm.response.json(); var left = j.result.question.interactions.response1.options.left; pm.expect(typeof left[0].label).to.eql(\"string\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/read/{{mtf_question_identifier}}?fields=body,interactions,responseDeclaration&lang=en",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"read",
+								"{{mtf_question_identifier}}"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "body,interactions,responseDeclaration"
+								},
+								{
+									"key": "lang",
+									"value": "en"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mtf_review_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"MTF review successful\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/review/{{mtf_question_identifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"review",
+								"{{mtf_question_identifier}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "question_seq_v2",
+			"item": [
+				{
+					"name": "seq_create_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"SEQ created\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); pm.collectionVariables.set(\"seq_question_identifier\", j.result.identifier); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"question\": {\n      \"name\": \"FT_SEQ_Q1\",\n      \"code\": \"{{$randomUUID}}\",\n      \"mimeType\": \"application/vnd.sunbird.question\",\n      \"primaryCategory\": \"Sequence Question\",\n      \"qType\": \"SEQ\",\n      \"visibility\": \"Default\",\n      \"interactionTypes\": [\n        \"order\"\n      ],\n      \"body\": \"<p>Arrange in order</p>\",\n      \"responseDeclaration\": {\n        \"response1\": {\n          \"cardinality\": \"ordered\",\n          \"type\": \"string\",\n          \"correctResponse\": {\n            \"value\": [\n              \"A\",\n              \"B\",\n              \"C\"\n            ]\n          }\n        }\n      },\n      \"interactions\": {\n        \"response1\": {\n          \"type\": \"order\",\n          \"options\": [\n            {\n              \"value\": \"A\",\n              \"label\": \"Step 1\"\n            },\n            {\n              \"value\": \"B\",\n              \"label\": \"Step 2\"\n            },\n            {\n              \"value\": \"C\",\n              \"label\": \"Step 3\"\n            }\n          ]\n        }\n      },\n      \"outcomeDeclaration\": {\n        \"maxScore\": {\n          \"cardinality\": \"single\",\n          \"type\": \"integer\",\n          \"defaultValue\": 3\n        }\n      },\n      \"maxScore\": 3\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "seq_create_mismatched_array_length_400",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 for length mismatch\", function () { pm.response.to.have.status(400); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"question\": {\n      \"name\": \"FT_SEQ_BAD\",\n      \"code\": \"{{$randomUUID}}\",\n      \"mimeType\": \"application/vnd.sunbird.question\",\n      \"primaryCategory\": \"Sequence Question\",\n      \"qType\": \"SEQ\",\n      \"visibility\": \"Default\",\n      \"interactionTypes\": [\n        \"order\"\n      ],\n      \"body\": \"<p>Arrange</p>\",\n      \"responseDeclaration\": {\n        \"response1\": {\n          \"cardinality\": \"ordered\",\n          \"type\": \"string\",\n          \"correctResponse\": {\n            \"value\": [\n              \"A\",\n              \"B\"\n            ]\n          }\n        }\n      },\n      \"interactions\": {\n        \"response1\": {\n          \"type\": \"order\",\n          \"options\": [\n            {\n              \"value\": \"A\"\n            },\n            {\n              \"value\": \"B\"\n            },\n            {\n              \"value\": \"C\"\n            }\n          ]\n        }\n      },\n      \"outcomeDeclaration\": {\n        \"maxScore\": {\n          \"cardinality\": \"single\",\n          \"type\": \"integer\",\n          \"defaultValue\": 2\n        }\n      },\n      \"maxScore\": 2\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "seq_review_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"SEQ review successful\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/review/{{seq_question_identifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"review",
+								"{{seq_question_identifier}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "question_reo_v2",
+			"item": [
+				{
+					"name": "reo_create_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"REO created\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); pm.collectionVariables.set(\"reo_question_identifier\", j.result.identifier); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"request\": {\n    \"question\": {\n      \"name\": \"FT_REO_Q1\",\n      \"code\": \"{{$randomUUID}}\",\n      \"mimeType\": \"application/vnd.sunbird.question\",\n      \"primaryCategory\": \"Reorder Question\",\n      \"qType\": \"REO\",\n      \"visibility\": \"Default\",\n      \"interactionTypes\": [\n        \"order\"\n      ],\n      \"body\": \"<p>Rearrange items</p>\",\n      \"responseDeclaration\": {\n        \"response1\": {\n          \"cardinality\": \"ordered\",\n          \"type\": \"string\",\n          \"correctResponse\": {\n            \"value\": [\n              \"X\",\n              \"Y\",\n              \"Z\"\n            ]\n          }\n        }\n      },\n      \"interactions\": {\n        \"response1\": {\n          \"type\": \"order\",\n          \"options\": [\n            {\n              \"value\": \"X\",\n              \"label\": \"Item X\"\n            },\n            {\n              \"value\": \"Y\",\n              \"label\": \"Item Y\"\n            },\n            {\n              \"value\": \"Z\",\n              \"label\": \"Item Z\"\n            }\n          ]\n        }\n      },\n      \"outcomeDeclaration\": {\n        \"maxScore\": {\n          \"cardinality\": \"single\",\n          \"type\": \"integer\",\n          \"defaultValue\": 3\n        }\n      },\n      \"maxScore\": 3\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reo_review_200",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () { pm.response.to.have.status(200); });",
+									"pm.test(\"REO review successful\", function () { var j = pm.response.json(); pm.expect(j.params.status).to.eql(\"successful\"); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Channel-Id",
+								"value": "{{channel_id}}",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/question/{{api_version}}/review/{{reo_question_identifier}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"question",
+								"{{api_version}}",
+								"review",
+								"{{reo_question_identifier}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [
@@ -21367,6 +22044,26 @@
 		},
 		{
 			"key": "children_v2_identfier_to_be_removed_2",
+			"value": ""
+		},
+		{
+			"key": "ftb_question_identifier",
+			"value": ""
+		},
+		{
+			"key": "ftb_i18n_identifier",
+			"value": ""
+		},
+		{
+			"key": "mtf_question_identifier",
+			"value": ""
+		},
+		{
+			"key": "seq_question_identifier",
+			"value": ""
+		},
+		{
+			"key": "reo_question_identifier",
 			"value": ""
 		}
 	]

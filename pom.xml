@@ -54,7 +54,7 @@
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-bom</artifactId>
-				<version>4.1.129.Final</version>
+				<version>4.1.133.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -101,7 +101,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-configuration2</artifactId>
-				<version>2.10.1</version>
+				<version>2.15.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.ivy</groupId>
@@ -122,6 +122,65 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>3.18.0</version>
+			</dependency>
+			<!-- Security: reactor-netty CVE-2023-34054, CVE-2023-34062, CVE-2025-22227 -->
+			<dependency>
+				<groupId>io.projectreactor.netty</groupId>
+				<artifactId>reactor-netty-http</artifactId>
+				<version>1.0.39</version>
+			</dependency>
+			<dependency>
+				<groupId>io.projectreactor.netty</groupId>
+				<artifactId>reactor-netty-core</artifactId>
+				<version>1.0.39</version>
+			</dependency>
+			<!-- Security: nimbus-jose-jwt CVE-2023-52428, CVE-2025-53864 -->
+			<dependency>
+				<groupId>com.nimbusds</groupId>
+				<artifactId>nimbus-jose-jwt</artifactId>
+				<version>9.37.4</version>
+			</dependency>
+			<!-- Security: jose4j CVE-2024-29371, CVE-2023-31582, CVE-2023-51775 -->
+			<dependency>
+				<groupId>org.bitbucket.b_c</groupId>
+				<artifactId>jose4j</artifactId>
+				<version>0.9.6</version>
+			</dependency>
+			<!-- Security: plexus-utils CVE-2025-67030 -->
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-utils</artifactId>
+				<version>3.6.1</version>
+			</dependency>
+			<!-- Security: ant CVE-2020-11979, CVE-2021-36373, CVE-2020-1945 -->
+			<dependency>
+				<groupId>org.apache.ant</groupId>
+				<artifactId>ant</artifactId>
+				<version>1.10.14</version>
+			</dependency>
+			<!-- Security: opentelemetry-api CVE-2026-45292 -->
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-api</artifactId>
+				<version>1.62.0</version>
+			</dependency>
+			<!-- Security: jbcrypt CVE-2015-0886 (forces 0.4 over 0.3m from cassandra-all) -->
+			<dependency>
+				<groupId>org.mindrot</groupId>
+				<artifactId>jbcrypt</artifactId>
+				<version>0.4</version>
+			</dependency>
+			<!-- Security: libthrift CVE-2026-43869, CVE-2018-1320, CVE-2019-0205, CVE-2018-11798 -->
+			<dependency>
+				<groupId>org.apache.thrift</groupId>
+				<artifactId>libthrift</artifactId>
+				<version>0.23.0</version>
+			</dependency>
+			<!-- Security: cassandra-all CVE-2025-23015, CVE-2020-17516, CVE-2020-13946 -->
+			<dependency>
+				<groupId>org.apache.cassandra</groupId>
+				<artifactId>cassandra-all</artifactId>
+				<version>3.11.18</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

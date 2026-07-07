@@ -21,7 +21,7 @@
     }
   },
   "version": "enable",
-  "versionCheckMode": "ON",
+  "versionCheckMode": "OFF",
   "frameworkCategories": [
     "board",
     "medium",

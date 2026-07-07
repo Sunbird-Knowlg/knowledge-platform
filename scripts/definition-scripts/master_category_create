@@ -474,3 +474,48 @@ curl --location --request POST '{{host}}/object/category/v4/create' \
         }
     }
 }'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Match The Following Question",
+            "description": "Match The Following Question"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Sequence Question",
+            "description": "Sequence Question — order items in a sequence"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "Reorder Question",
+            "description": "Reorder Question — rearrange items"
+        }
+    }
+}'
+
+curl --location --request POST '{{host}}/object/category/v4/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request": {
+        "objectCategory": {
+            "name": "SCORM Content",
+            "description": "SCORM Content"
+        }
+    }
+}'
+

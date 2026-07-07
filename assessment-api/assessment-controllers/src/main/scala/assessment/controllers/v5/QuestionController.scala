@@ -28,9 +28,10 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_V5_ACTOR) question
 
   def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
     val headers = commonHeaders()
+    val lang = request.getQueryString("lang").getOrElse("")
     val question = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
     question.putAll(headers)
-    question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read")).asJava)
+    question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read"), "lang" -> lang).asJava)
     val questionRequest = getRequest(question, headers, QuestionOperations.readQuestion.toString)
     setRequestContext(questionRequest, defaultVersion, objectType, schemaName)
     getResult(ApiId.READ_QUESTION, questionActor, questionRequest)
@@ -38,9 +39,10 @@ class QuestionController @Inject()(@Named(ActorNames.QUESTION_V5_ACTOR) question
 
   def privateRead(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
     val headers = commonHeaders()
+    val lang = request.getQueryString("lang").getOrElse("")
     val question = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
     question.putAll(headers)
-    question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read")).asJava)
+    question.putAll(Map("identifier" -> identifier, "fields" -> fields.getOrElse(""), "mode" -> mode.getOrElse("read"), "lang" -> lang).asJava)
     val questionRequest = getRequest(question, headers, QuestionOperations.readPrivateQuestion.toString)
     setRequestContext(questionRequest, defaultVersion, objectType, schemaName)
     getResult(ApiId.READ_PRIVATE_QUESTION, questionActor, questionRequest)

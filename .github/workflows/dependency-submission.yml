@@ -1,0 +1,39 @@
+name: Dependency Submission
+
+on:
+  schedule:
+    # 03:00 UTC every Monday — must run before Dependabot scans at 03:30 UTC
+    # so the graph is fresh when Dependabot evaluates vulnerability alerts.
+    - cron: '0 3 * * 1'
+  push:
+    branches: [master]
+    paths:
+      - '**/pom.xml'
+  pull_request:
+    branches: [master]
+    paths:
+      - '**/pom.xml'
+  workflow_dispatch: # allows manual trigger to refresh the graph on demand
+
+# contents: write is required to submit the dependency snapshot to GitHub
+permissions:
+  contents: write
+
+jobs:
+  # Resolves all Maven dependencies (direct + transitive) across all 39 pom.xml
+  # files in the monorepo and submits them to the GitHub Dependency Graph.
+  # Dependabot uses this graph to detect vulnerabilities in transitive deps.
+  submit-maven:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '11'       # matches <release>11</release> in root pom.xml
+          distribution: 'temurin'
+          cache: 'maven'           # reuses the local Maven repository across runs
+
+      - uses: advanced-security/maven-dependency-submission-action@v4
+        # No extra config needed: the action discovers the root pom.xml,
+        # resolves all profiles and submodules, and submits the full graph.

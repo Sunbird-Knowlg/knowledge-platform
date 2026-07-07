@@ -66,6 +66,19 @@
                     <groupId>org.xerial.snappy</groupId>
                     <artifactId>snappy-java</artifactId>
                 </exclusion>
+                <!-- Security: remove htmlunit/async-http-client chains (CRITICAL CVEs) -->
+                <exclusion>
+                    <groupId>org.seleniumhq.selenium</groupId>
+                    <artifactId>htmlunit-driver</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sourceforge.htmlunit</groupId>
+                    <artifactId>htmlunit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.asynchttpclient</groupId>
+                    <artifactId>async-http-client</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -76,13 +89,13 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec</artifactId>
-            <version>4.1.129.Final</version>
+            <version>4.1.133.Final</version>
             <scope>test</scope>
-        </dependency>  
+        </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
-            <version>4.1.129.Final</version>
+            <version>4.1.133.Final</version>
             <scope>test</scope>
         </dependency>  
         <dependency>

@@ -1,11 +1,8 @@
 package org.sunbird.mimetype.mgr.impl
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import java.io.File
 import java.nio.file.Paths
 import javax.xml.parsers.SAXParserFactory
-import play.api.libs.json.Json
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
@@ -14,13 +11,8 @@ import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 import org.sunbird.models.UploadParams
 import org.sunbird.telemetry.logger.TelemetryManager
 import java.util
-import scala.concurrent.{ExecutionContext, Future, blocking}
-import scala.xml.{Elem, NodeSeq}
-import scala.xml.factory.XMLLoader
-
-object ScormMimeTypeMgrImpl {
-    private val mapper: ObjectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
-}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.xml.Elem
 
 class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager()(ss) with MimeTypeManager {
 
@@ -32,12 +24,12 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
                     if (isValidPackageStructure(uploadFile, List("imsmanifest.xml"))) {
                         extractPackage(uploadFile, extractionBasePath)
                         val manifestFile = new File(extractionBasePath + File.separator + "imsmanifest.xml")
-                        
-                        val scoList = getScoList(getSecureXml(manifestFile))
+                        val manifestXml  = getSecureXml(manifestFile)
+                        val scormVersion = detectScormVersion(manifestXml)
+                        val scoList      = getScoList(manifestXml, scormVersion)
 
-                        if (scoList.isEmpty) {
+                        if (scoList.isEmpty)
                             throw new ClientException("ERR_INVALID_FILE", "No SCOs found in imsmanifest.xml!")
-                        }
 
                         // Validate all SCO hrefs up-front
                         scoList.foreach(sco => getValidatedLaunchFile(extractionBasePath, sco.getOrElse("href", "")))
@@ -55,26 +47,47 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
                         val urls: Array[String] = uploadArtifactToCloud(uploadFile, objectId, filePath)
                         
                         extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
-                        
+
                         Future(
                             Map[String, AnyRef](
-                                "identifier"  -> objectId,
-                                "artifactUrl" -> urls(IDX_S3_URL),
-                                "s3Key"       -> urls(IDX_S3_KEY),
-                                "size"        -> getFileSize(uploadFile).asInstanceOf[AnyRef],
-                                "launchFile"  -> launchFile,
-                                "scoList"     -> javaScoList 
+                                "identifier"   -> objectId,
+                                "artifactUrl"  -> urls(IDX_S3_URL),
+                                "s3Key"        -> urls(IDX_S3_KEY),
+                                "size"         -> getFileSize(uploadFile).asInstanceOf[AnyRef],
+                                "launchFile"   -> launchFile,
+                                "scoList"      -> javaScoList,
+                                "scormVersion" -> scormVersion
                             )
                         )
 
                     } else {
-                        TelemetryManager.error("ERR_INVALID_FILE:: " + "Invalid SCORM package structure: imsmanifest.xml not found! with file name: " + uploadFile.getName)
+                        TelemetryManager.error("ERR_INVALID_FILE:: Invalid SCORM package: imsmanifest.xml not found for objectId: " + objectId)
                         throw new ClientException("ERR_INVALID_FILE", "Invalid SCORM package: imsmanifest.xml is missing!")
                     }
                 } finally {
                     delete(new File(extractionBasePath))
                 }
+    }
 
+    private def detectScormVersion(xml: Elem): String = {
+
+        val manifestMeta  = xml \ "metadata"
+        val schema        = (manifestMeta \ "schema").text.trim.toLowerCase
+        val schemaVersion = (manifestMeta \ "schemaversion").text.trim.toLowerCase
+
+
+        if (schema.isEmpty && schemaVersion.isEmpty) return "1.2"
+
+        schemaVersion match {
+            case "1.2"                   => "1.2"
+            case v if v.startsWith("2004") => "2004"
+            case "1.3" if schema == "cam" => "2004" 
+            case _ if schema.contains("adl scorm") => "2004"
+            case _ =>
+                TelemetryManager.error(s"Unsupported SCORM version: schema='$schema' schemaversion='$schemaVersion'")
+                throw new ClientException("ERR_INVALID_FILE",
+                    "Unsupported SCORM version. Only SCORM 1.2 and SCORM 2004 are supported.")
+        }
     }
 
 private def getValidatedLaunchFile(extractionBasePath: String, launchFile: String): String = {
@@ -103,34 +116,41 @@ private def getValidatedLaunchFile(extractionBasePath: String, launchFile: Strin
     launchFile
 }
 
- private def getScoList(xml: Elem): List[Map[String, String]] = {
-    (xml \\ "item").filter(item => (item \@ "identifierref").nonEmpty).map { item =>
-        val ref = item \@ "identifierref"
-        val title = (item \ "title").text
-        val baseHref = (xml \\ "resource")
-          .find(res => (res \@ "identifier") == ref)
-          .map(_ \@ "href")
-          .getOrElse("")
-        
-        val parameters = (item \@ "parameters")
-                        .replace("&#61;", "=") 
-                        .replace("&#64;", "@")  
-                        .replace("&#63;", "?")   
-                        .replace("&amp;", "&")
-                        .replace("&lt;", "<")
-                        .replace("&gt;", ">")
-                        .replace("&quot;", "\"")
-                        .replace("&apos;", "'")
-        val finalHref = if (parameters.nonEmpty) baseHref + parameters else baseHref
+    private def getScoList(xml: Elem, scormVersion: String): List[Map[String, String]] = {
 
-        Map(
-            "identifier" -> (item \@ "identifier"), 
-            "title"      -> title, 
-            "href"       -> finalHref,
-            "parameters" -> parameters 
-        )
-    }.toList
-}
+        val manifestBase  = xml.attributes.find(_.key == "base").map(_.value.text).getOrElse("")
+        val resourcesElem = (xml \ "resources").headOption.getOrElse(<resources/>)
+        val resourcesBase = resourcesElem.attributes.find(_.key == "base").map(_.value.text).getOrElse("")
+
+        (xml \\ "item").filter(item => (item \@ "identifierref").nonEmpty).flatMap { item =>
+            val ref   = item \@ "identifierref"
+            val title = (item \ "title").text
+
+            val resourceNode = (xml \\ "resource").find { res =>
+                (res \@ "identifier") == ref && {
+                    val st = res.attributes.find(_.key == "scormType").map(_.value.text).getOrElse("").trim.toLowerCase
+                    st == "sco" || (st.isEmpty && scormVersion == "1.2")
+                }
+            }
+
+            resourceNode.map { res =>
+                val resourceBase = res.attributes.find(_.key == "base").map(_.value.text).getOrElse("")
+                val rawHref      = res \@ "href"
+
+                val baseHref = manifestBase + resourcesBase + resourceBase + rawHref
+                val parameters = item \@ "parameters"
+                val finalHref  = if (parameters.nonEmpty) baseHref + parameters else baseHref
+
+                Map(
+                    "identifier"          -> (item \@ "identifier"),
+                    "title"               -> title,
+                    "href"                -> finalHref,
+                    "parameters"          -> parameters
+                )
+            }
+        }.toList
+    }
+
     private def getSecureXml(manifestFile: File): Elem = {
         val spf = SAXParserFactory.newInstance()
         spf.setNamespaceAware(true)
@@ -142,8 +162,6 @@ private def getValidatedLaunchFile(extractionBasePath: String, launchFile: Strin
         val saxParser = spf.newSAXParser()
         scala.xml.XML.withSAXParser(saxParser).loadFile(manifestFile)
     }
-
-    
 
     override def upload(objectId: String, node: Node, fileUrl: String, filePath: Option[String], params: UploadParams)(implicit ec: ExecutionContext): Future[Map[String, AnyRef]] = {
         validateUploadRequest(objectId, node, fileUrl)

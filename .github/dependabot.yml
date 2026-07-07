@@ -1,0 +1,67 @@
+version: 2
+updates:
+  # Maven — one entry covers the root pom.xml and all 39 submodule pom.xml files
+  # because Dependabot walks the full module graph from the root.
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:30"   # 30 min after dependency-submission workflow (03:00 UTC)
+      timezone: "UTC" # so Dependabot reads a freshly submitted transitive graph
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Apache Pekko (actor framework replacing Akka)
+      pekko:
+        patterns:
+          - "org.apache.pekko:*"
+      # Play Framework (web layer for all API services)
+      play-framework:
+        patterns:
+          - "com.typesafe.play:*"
+      # Jackson (JSON serialisation across all modules)
+      jackson:
+        patterns:
+          - "com.fasterxml.jackson*:*"
+      # Kafka client (messaging)
+      kafka:
+        patterns:
+          - "org.apache.kafka:*"
+      # Logging stack
+      logging:
+        patterns:
+          - "ch.qos.logback:*"
+          - "org.slf4j:*"
+      # Apache Commons libraries
+      apache-commons:
+        patterns:
+          - "org.apache.commons:*"
+          - "commons-*:*"
+      # Test-only dependencies
+      testing:
+        patterns:
+          - "org.scalatest:*"
+          - "org.scalamock:*"
+    ignore:
+      # Netty is pinned in the root pom.xml BOM to a version that is
+      # compatible with the Play Framework Netty transport. Bumping it
+      # independently breaks the build. Only update Netty when upgrading
+      # Play Framework.
+      - dependency-name: "io.netty:*"
+
+  # GitHub Actions — keeps CI workflow action versions current
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:30"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"

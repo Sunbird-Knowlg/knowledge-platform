@@ -24,7 +24,7 @@ import scala.collection.Map
 
 object UploadManager {
 
-	private val MEDIA_TYPE_LIST = List("image", "video")
+	private val MEDIA_TYPE_LIST = List("image", "video", "audio")
 	private val kfClient = new KafkaClient
 	private val CONTENT_ARTIFACT_ONLINE_SIZE: Double = Platform.getDouble("content.artifact.size.for_online", 209715200.asInstanceOf[Double])
 	private val ENABLE_ASSET_ENRICHMENT = Platform.getBoolean("asset_enrichment.enable", true)
@@ -60,7 +60,7 @@ object UploadManager {
 				updateReq.put("contentDisposition", "online-only")
 			
 			if (StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType)) {
-				if (ENABLE_ASSET_ENRICHMENT) {
+				if (ENABLE_ASSET_ENRICHMENT && !StringUtils.equalsIgnoreCase("audio", mediaType)) {
 					updateReq.put("status", "Processing")
 				} else {
 					updateReq.put("status", "Live")
@@ -68,7 +68,7 @@ object UploadManager {
 			}
 
 			DataNode.update(updateReq).map(node => {
-				if (ENABLE_ASSET_ENRICHMENT && StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType) && null != node)
+				if (ENABLE_ASSET_ENRICHMENT && StringUtils.equalsIgnoreCase("Asset", objectType) && MEDIA_TYPE_LIST.contains(mediaType) && !StringUtils.equalsIgnoreCase("audio", mediaType) && null != node)
 					pushInstructionEvent(identifier, node)
 				getUploadResponse(node)
 			})
