@@ -12,7 +12,7 @@
 	<artifactId>actor-core</artifactId>
 
 	<properties>
-		<pekko.version>1.0.3</pekko.version>
+		<pekko.version>1.6.0</pekko.version>
 	</properties>
 
 	<dependencies>
