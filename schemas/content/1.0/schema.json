@@ -63,6 +63,7 @@
         "application/vnd.ekstep.h5p-archive",
         "application/epub",
         "text/x-url",
+        "text/html",
         "video/x-youtube",
         "application/octet-stream",
         "application/msword",
