@@ -1,0 +1,60 @@
+{
+    "$id": "enrichment-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Enrichment",
+    "type": "object",
+    "required": [
+        "name",
+        "code",
+        "channel"
+    ],
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "code": {
+            "type": "string"
+        },
+        "channel": {
+            "type": "string"
+        },
+        "primaryCategory": {
+            "type": "string",
+            "default": "Enrichment"
+        },
+        "contentId": {
+            "type": "string"
+        },
+        "aiFeatures": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "AI job types run e.g. [\"transcript\", \"quiz\"]"
+        },
+        "transcriptUrl": {
+            "type": "string",
+            "format": "url",
+            "description": "URL to supplementary transcript ECAR zip (all approved VTT files)"
+        },
+        "transcripts": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            },
+            "description": "Denormalized snapshot of all linked Transcript nodes, synced on every status change"
+        },
+        "createdOn": {
+            "type": "string"
+        },
+        "lastUpdatedOn": {
+            "type": "string"
+        },
+        "createdBy": {
+            "type": "string"
+        },
+        "lastUpdatedBy": {
+            "type": "string"
+        }
+    }
+}
