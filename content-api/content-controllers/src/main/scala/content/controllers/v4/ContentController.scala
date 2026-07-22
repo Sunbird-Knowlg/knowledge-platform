@@ -6,8 +6,9 @@ import com.google.inject.Singleton
 import content.controllers.BaseController
 import content.utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
+import org.sunbird.common.exception.ClientException
 import org.sunbird.models.UploadParams
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{AnyContent, ControllerComponents, Request}
 
 
 import scala.concurrent.ExecutionContext
@@ -170,6 +171,78 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
+    def createTranscript(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content: java.util.Map[String, Object] =
+            if (request.body.asMultipartFormData.isDefined) requestTranscriptFormData(identifier)
+            else {
+                val body = requestBody()
+                body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+            }
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "createTranscript")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.CREATE_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    // Multipart mode for createTranscript: a human uploads a VTT file directly
+    // for a given languageCode, instead of triggering AI generation. Separate
+    // from BaseController.requestFormData since that one is scoped to the
+    // whole-content "fileUrl"/"filePath" upload shape, not a language-tagged
+    // caption file.
+    private def requestTranscriptFormData(identifier: String)(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
+        val reqMap = new java.util.HashMap[String, Object]()
+        request.body.asMultipartFormData.foreach { multipartData =>
+            if (multipartData.asFormUrlEncoded.getOrElse("languageCode", Seq()).nonEmpty)
+                reqMap.put("languageCode", multipartData.asFormUrlEncoded("languageCode").head)
+            if (multipartData.files.nonEmpty) {
+                val filePart = multipartData.files.head
+                val file = new java.io.File("/tmp" + java.io.File.separator + identifier + "_" + System.currentTimeMillis + "_" + filePart.filename)
+                filePart.ref.copyTo(file, replace = false)
+                reqMap.put("file", file)
+            }
+        }
+        if (reqMap.containsKey("file")) reqMap
+        else throw new ClientException("ERR_INVALID_DATA", "Please provide a valid VTT file.")
+    }
+
+    def updateTranscript(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "updateTranscript")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.UPDATE_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def approveTranscript(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "approveTranscript")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.APPROVE_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def rejectTranscript(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "rejectTranscript")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.REJECT_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
 
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()

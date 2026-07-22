@@ -13,6 +13,7 @@ import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.content.upload.mgr.UploadManager
+import org.sunbird.content.transcript.mgr.TranscriptManager
 import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -43,6 +44,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readPrivateContent" => privateRead(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "createTranscript" => createTranscript(request)
+			case "updateTranscript" => updateTranscript(request)
+			case "approveTranscript" => approveTranscript(request)
+			case "rejectTranscript" => rejectTranscript(request)
 			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
@@ -155,6 +160,46 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
+		}).flatten
+	}
+
+	def createTranscript(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", new util.ArrayList[String])
+		DataNode.read(readReq).map(node => {
+			TranscriptManager.createTranscript(request, node)
+		}).flatten
+	}
+
+	def updateTranscript(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", new util.ArrayList[String])
+		DataNode.read(readReq).map(node => {
+			TranscriptManager.updateTranscript(request, node)
+		}).flatten
+	}
+
+	def approveTranscript(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", new util.ArrayList[String])
+		DataNode.read(readReq).map(node => {
+			TranscriptManager.approveTranscript(request, node)
+		}).flatten
+	}
+
+	def rejectTranscript(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", new util.ArrayList[String])
+		DataNode.read(readReq).map(node => {
+			TranscriptManager.rejectTranscript(request, node)
 		}).flatten
 	}
 
