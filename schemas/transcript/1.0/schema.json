@@ -7,8 +7,6 @@
         "name",
         "code",
         "status",
-        "languageCode",
-        "language",
         "channel"
     ],
     "properties": {
