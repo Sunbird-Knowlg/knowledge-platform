@@ -163,11 +163,18 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}).flatten
 	}
 
+	// "enrichment" must be requested explicitly here — DataNode.read only
+	// populates node.getOutRelations() for fields it's told to expand.
+	// Reading with an empty fields list left readEnrichmentForContent unable
+	// to see an already-linked Enrichment node, so findOrCreateEnrichment
+	// treated every call as "not found" and created a fresh duplicate.
+	private val TRANSCRIPT_READ_FIELDS = new util.ArrayList[String](){{ add("enrichment") }}
+
 	def createTranscript(request: Request): Future[Response] = {
 		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
 		val readReq = new Request(request)
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
-		readReq.put("fields", new util.ArrayList[String])
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
 		DataNode.read(readReq).map(node => {
 			TranscriptManager.createTranscript(request, node)
 		}).flatten
@@ -177,7 +184,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
 		val readReq = new Request(request)
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
-		readReq.put("fields", new util.ArrayList[String])
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
 		DataNode.read(readReq).map(node => {
 			TranscriptManager.updateTranscript(request, node)
 		}).flatten
@@ -187,7 +194,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
 		val readReq = new Request(request)
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
-		readReq.put("fields", new util.ArrayList[String])
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
 		DataNode.read(readReq).map(node => {
 			TranscriptManager.approveTranscript(request, node)
 		}).flatten
@@ -197,7 +204,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
 		val readReq = new Request(request)
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
-		readReq.put("fields", new util.ArrayList[String])
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
 		DataNode.read(readReq).map(node => {
 			TranscriptManager.rejectTranscript(request, node)
 		}).flatten
