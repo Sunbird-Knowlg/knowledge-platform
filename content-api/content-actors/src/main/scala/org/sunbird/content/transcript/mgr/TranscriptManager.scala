@@ -336,13 +336,25 @@ object TranscriptManager {
         metadata.put("channel", channel)
         metadata.put("contentId", contentNode.getIdentifier)
         metadata.put("aiFeatures", new util.ArrayList[String]())
-        // Wires the edge back to Content — matches Enrichment's own config.json
-        // relation key ("usedByContent", direction in, objects [Content]).
-        metadata.put("usedByContent", util.Arrays.asList(new util.HashMap[String, AnyRef]() {
-          put("identifier", contentNode.getIdentifier)
-        }))
         val createReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, metadata)
-        DataNode.create(createReq)
+        DataNode.create(createReq).flatMap { enrichmentNode =>
+          // Wires the edge from Content -> Enrichment. Must be added via a
+          // Content update, not on Enrichment's own create request: relation
+          // validation checks the edge against the CURRENT node's own
+          // outRelationObjectTypes, and Enrichment's "usedByContent" is
+          // direction "in" (so it's excluded from Enrichment's own out-list
+          // by definition — confirmed via BaseDefinitionNode.relationsSchema,
+          // which filters strictly on direction). Content's own config.json
+          // declares "enrichment" as direction "out", which is where this
+          // edge actually needs to originate from to pass validation.
+          val contentRelMetadata = new util.HashMap[String, AnyRef]()
+          contentRelMetadata.put("enrichment", util.Arrays.asList(new util.HashMap[String, AnyRef]() {
+            put("identifier", enrichmentNode.getIdentifier)
+          }))
+          val contentUpdateReq = buildTypedRequest(ContentConstants.CONTENT_OBJECT_TYPE, ContentConstants.CONTENT_SCHEMA_NAME, channel, contentRelMetadata)
+          contentUpdateReq.getContext.put("identifier", contentNode.getIdentifier)
+          DataNode.update(contentUpdateReq).map(_ => enrichmentNode)
+        }
     }
   }
 
