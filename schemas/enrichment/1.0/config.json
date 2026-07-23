@@ -4,6 +4,7 @@
     "versionCheckMode": "OFF",
     "cacheEnabled": false,
     "schema_restrict_api": false,
+    "frameworkCategories": [],
     "restrictProps": {
         "create": [],
         "update": ["contentId", "channel"]
