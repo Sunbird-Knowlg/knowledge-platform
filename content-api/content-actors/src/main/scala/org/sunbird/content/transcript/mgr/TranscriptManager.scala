@@ -72,10 +72,15 @@ object TranscriptManager {
     }
   }
 
-  // GET /content/v4/enrichment/read/:id — live Enrichment metadata + its
-  // current Transcript list. content/v4/read's own "enrichment" field is a
-  // denormalized snapshot from when the Content->Enrichment edge was last
-  // touched, not a live join — this reads the Enrichment node directly.
+  // GET /content/v4/enrichment/read/:id — live Enrichment metadata + all of
+  // its current child nodes (Transcript today, whatever future AI features
+  // add tomorrow), grouped by objectType. content/v4/read's own "enrichment"
+  // field is a denormalized snapshot from when the Content->Enrichment edge
+  // was last touched, not a live join — this reads the Enrichment node
+  // directly. JanusGraphNodeUtil.getNode fetches every out-edge regardless
+  // of the "fields" list, so grouping by objectType here (instead of
+  // hardcoding a single relation name/type) needs no code change whenever a
+  // new relation is added to enrichment/1.0/config.json.
   def readEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     readEnrichmentForContent(contentNode).flatMap {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
@@ -83,15 +88,14 @@ object TranscriptManager {
         val readReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, "", new util.HashMap[String, AnyRef]())
         readReq.getContext.put("identifier", enrichmentRef.getIdentifier)
         readReq.put("identifier", enrichmentRef.getIdentifier)
-        readReq.put("fields", new util.ArrayList[String](){{ add("transcripts") }})
+        readReq.put("fields", new util.ArrayList[String]())
         DataNode.read(readReq).map { enrichmentNode =>
-          val transcripts = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
-            .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
-            .map(_.getEndNodeMetadata)
-            .asJava
+          val children = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+            .groupBy(_.getEndNodeObjectType)
+            .view.mapValues(_.map(_.getEndNodeMetadata).asJava).toMap.asJava
           ResponseHandler.OK
             .put("enrichment", enrichmentNode.getMetadata)
-            .put("transcripts", transcripts)
+            .put("children", children)
         }
     }
   }
