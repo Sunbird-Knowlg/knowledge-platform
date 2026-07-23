@@ -177,7 +177,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
             if (request.body.asMultipartFormData.isDefined) requestTranscriptFormData(identifier)
             else {
                 val body = requestBody()
-                body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+                body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
             }
         content.putAll(headers)
         content.put("identifier", identifier)
@@ -211,7 +211,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def updateTranscript(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.put("identifier", identifier)
         val contentRequest = getRequest(content, headers, "updateTranscript")
@@ -223,7 +223,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def approveTranscript(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.put("identifier", identifier)
         val contentRequest = getRequest(content, headers, "approveTranscript")
@@ -235,7 +235,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
     def rejectTranscript(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
-        val content = body.getOrDefault(schemaName, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val content = body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.put("identifier", identifier)
         val contentRequest = getRequest(content, headers, "rejectTranscript")
