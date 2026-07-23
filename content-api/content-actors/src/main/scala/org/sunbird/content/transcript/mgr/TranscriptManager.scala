@@ -399,13 +399,25 @@ object TranscriptManager {
     metadata.put("language", new util.ArrayList[String]())
     metadata.put("sourceLanguage", sourceLanguage.asInstanceOf[AnyRef])
     metadata.put("status", "Draft")
-    // Wires the edge back to Enrichment — matches Transcript's own config.json
-    // relation key ("usedByEnrichment", direction in, objects [Enrichment]).
-    metadata.put("usedByEnrichment", util.Arrays.asList(new util.HashMap[String, AnyRef]() {
-      put("identifier", enrichmentIdentifier)
-    }))
     val createReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, metadata)
-    DataNode.create(createReq)
+    DataNode.create(createReq).flatMap { transcriptNode =>
+      // Wires the edge from Enrichment -> Transcript. Must be added via an
+      // Enrichment update, not on Transcript's own create request — same
+      // reason as findOrCreateEnrichment's Content update above: relation
+      // validation checks the edge against the CURRENT node's own
+      // outRelationObjectTypes, and Transcript's "usedByEnrichment" is
+      // direction "in" (excluded from Transcript's own out-list by
+      // definition). Enrichment's own config.json declares "transcripts" as
+      // direction "out", which is where this edge actually needs to
+      // originate from to pass validation.
+      val enrichmentRelMetadata = new util.HashMap[String, AnyRef]()
+      enrichmentRelMetadata.put("transcripts", util.Arrays.asList(new util.HashMap[String, AnyRef]() {
+        put("identifier", transcriptNode.getIdentifier)
+      }))
+      val enrichmentUpdateReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, enrichmentRelMetadata)
+      enrichmentUpdateReq.getContext.put("identifier", enrichmentIdentifier)
+      DataNode.update(enrichmentUpdateReq).map(_ => transcriptNode)
+    }
   }
 
   /** Re-reads the Enrichment node itself fresh (never trusts a caller-held
