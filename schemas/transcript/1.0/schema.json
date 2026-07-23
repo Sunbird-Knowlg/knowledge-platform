@@ -77,10 +77,6 @@
         "lastUpdatedBy": {
             "type": "string"
         },
-        "primaryCategory": {
-            "type": "string",
-            "default": "Transcript"
-        },
         "errorMessage": {
             "type": "string",
             "description": "Set when job fails. Cleared on retry."
