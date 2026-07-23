@@ -48,6 +48,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "updateTranscript" => updateTranscript(request)
 			case "approveTranscript" => approveTranscript(request)
 			case "rejectTranscript" => rejectTranscript(request)
+			case "readEnrichment" => readEnrichment(request)
 			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
@@ -207,6 +208,16 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
 		DataNode.read(readReq).map(node => {
 			TranscriptManager.rejectTranscript(request, node)
+		}).flatten
+	}
+
+	def readEnrichment(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
+		DataNode.read(readReq).map(node => {
+			TranscriptManager.readEnrichment(node)
 		}).flatten
 	}
 

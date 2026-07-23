@@ -244,6 +244,21 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.REJECT_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
+    // GET /content/v4/enrichment/read/:identifier — live Enrichment metadata +
+    // its current Transcript list. content/v4/read's "enrichment" field is a
+    // denormalized snapshot taken when the Content->Enrichment edge was last
+    // touched; this reads the Enrichment node itself so transcripts are current.
+    def readEnrichment(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "readEnrichment")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.READ_ENRICHMENT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()

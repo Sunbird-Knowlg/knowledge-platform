@@ -72,6 +72,30 @@ object TranscriptManager {
     }
   }
 
+  // GET /content/v4/enrichment/read/:id — live Enrichment metadata + its
+  // current Transcript list. content/v4/read's own "enrichment" field is a
+  // denormalized snapshot from when the Content->Enrichment edge was last
+  // touched, not a live join — this reads the Enrichment node directly.
+  def readEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    readEnrichmentForContent(contentNode).flatMap {
+      case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
+      case Some(enrichmentRef) =>
+        val readReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, "", new util.HashMap[String, AnyRef]())
+        readReq.getContext.put("identifier", enrichmentRef.getIdentifier)
+        readReq.put("identifier", enrichmentRef.getIdentifier)
+        readReq.put("fields", new util.ArrayList[String](){{ add("transcripts") }})
+        DataNode.read(readReq).map { enrichmentNode =>
+          val transcripts = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+            .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
+            .map(_.getEndNodeMetadata)
+            .asJava
+          ResponseHandler.OK
+            .put("enrichment", enrichmentNode.getMetadata)
+            .put("transcripts", transcripts)
+        }
+    }
+  }
+
   // PATCH /content/v4/transcript/update/:id — human edits an existing (Review) transcript
   def updateTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
     val contentIdentifier = node.getIdentifier
