@@ -90,7 +90,7 @@ object TranscriptManager {
         readReq.put("identifier", enrichmentRef.getIdentifier)
         readReq.put("fields", new util.ArrayList[String]())
         DataNode.read(readReq).flatMap { enrichmentNode =>
-          val relations = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+          val relations = Option(enrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
           // getEndNodeObjectType/getEndNodeId are real (sourced from the
           // vertex's own IL_FUNC_OBJECT_TYPE/IL_UNIQUE_ID); everything else
           // on the relation object is not (see readTranscriptChildren's
@@ -412,7 +412,7 @@ object TranscriptManager {
   // needs real Transcript data re-reads each child node fully, same as
   // syncEnrichmentTranscriptsFromNode already did below.
   private def readTranscriptChildren(enrichmentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Seq[Node]] = {
-    val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+    val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
       .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
     Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME)))
   }
@@ -488,7 +488,7 @@ object TranscriptManager {
         else List("status", "languageCode", "sourceLanguage", "captionsUrl")
       } catch { case _: Exception => List("status", "languageCode", "sourceLanguage", "captionsUrl") }
 
-    val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+    val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
       .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
 
     Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME))).map { nodes =>
