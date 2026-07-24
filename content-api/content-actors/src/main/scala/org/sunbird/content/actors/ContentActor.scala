@@ -94,12 +94,26 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			}
 	}
 
+	// NodeUtil has no concept of relation cardinality — every relation
+	// serializes as a List, even ones the app enforces as 1:1 itself (like
+	// Content->Enrichment, via findOrCreateEnrichment's find-before-create).
+	// Content-specific, so this stays here rather than in the shared graph
+	// engine, which every object type's every relation goes through.
+	private def unwrapSingleValuedRelation(metadata: util.Map[String, AnyRef], key: String): Unit = {
+		metadata.get(key) match {
+			case list: util.List[_] if !list.isEmpty => metadata.put(key, list.get(0).asInstanceOf[AnyRef])
+			case list: util.List[_] => metadata.remove(key)
+			case _ =>
+		}
+	}
+
 	def read(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put("fields", fields)
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			unwrapSingleValuedRelation(metadata, "enrichment")
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
       if (responseSchemaName.isEmpty) {
@@ -124,6 +138,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			unwrapSingleValuedRelation(metadata, "enrichment")
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 				if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("channel", "").asInstanceOf[String],request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) {

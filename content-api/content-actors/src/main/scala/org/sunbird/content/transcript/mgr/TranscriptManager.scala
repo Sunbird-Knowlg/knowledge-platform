@@ -11,6 +11,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.Identifier
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.kafka.client.KafkaClient
 import org.sunbird.schema.SchemaValidatorFactory
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -72,15 +73,16 @@ object TranscriptManager {
     }
   }
 
-  // GET /content/v4/enrichment/read/:id — live Enrichment metadata + all of
-  // its current child nodes (Transcript today, whatever future AI features
-  // add tomorrow), grouped by objectType. content/v4/read's own "enrichment"
-  // field is a denormalized snapshot from when the Content->Enrichment edge
-  // was last touched, not a live join — this reads the Enrichment node
-  // directly. JanusGraphNodeUtil.getNode fetches every out-edge regardless
-  // of the "fields" list, so grouping by objectType here (instead of
-  // hardcoding a single relation name/type) needs no code change whenever a
-  // new relation is added to enrichment/1.0/config.json.
+  // GET /content/v4/enrichment/read/:id — live Enrichment metadata with
+  // every child relation merged directly onto it under its real schema
+  // field name (e.g. "transcripts" — matches enrichment/1.0/schema.json's
+  // own declared property), not a made-up wrapper. content/v4/read's own
+  // "enrichment" field is a denormalized snapshot from when the
+  // Content->Enrichment edge was last touched, not a live join — this reads
+  // the Enrichment node directly instead. Future AI features need no code
+  // change here as long as they declare their own relation the same way
+  // "transcripts" already does — the field name comes from Enrichment's own
+  // relations config (via getRelationDefinitionMap), not a hardcoded key.
   def readEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     readEnrichmentForContent(contentNode).flatMap {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
@@ -91,23 +93,23 @@ object TranscriptManager {
         readReq.put("fields", new util.ArrayList[String]())
         DataNode.read(readReq).flatMap { enrichmentNode =>
           val relations = Option(enrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
-          // getEndNodeObjectType/getEndNodeId are real (sourced from the
-          // vertex's own IL_FUNC_OBJECT_TYPE/IL_UNIQUE_ID); everything else
-          // on the relation object is not (see readTranscriptChildren's
-          // comment) — re-read each child node fully instead.
-          Future.sequence(relations.map(r => readTypedNode(r.getEndNodeId, r.getEndNodeObjectType, r.getEndNodeObjectType.toLowerCase))).map { childNodes =>
-            val children = childNodes.groupBy(_.getObjectType)
-              .view.mapValues(_.map(_.getMetadata).asJava).toMap.asJava
-            // Enrichment's own "transcripts" field is the denormalized
-            // snapshot syncEnrichmentTranscriptsFromNode writes back (kept
-            // for isEcarReady's use elsewhere) — redundant here now that
-            // "children" already shows every child live, so drop it to
-            // avoid showing the same data twice at different freshness.
+          // getEndNodeObjectType/getEndNodeId/getRelationType are real
+          // (sourced from the vertex's own IL_FUNC_OBJECT_TYPE/IL_UNIQUE_ID
+          // and the edge's own label); everything else on the relation
+          // object is not (see readTranscriptChildren's comment) — re-read
+          // each child node fully instead.
+          val relationDefMap = DefinitionNode.getRelationDefinitionMap(GRAPH_ID, SCHEMA_VERSION, ENRICHMENT_SCHEMA_NAME)
+          Future.sequence(relations.map(r => readTypedNode(r.getEndNodeId, r.getEndNodeObjectType, r.getEndNodeObjectType.toLowerCase).map(node => (r, node)))).map { relNodePairs =>
             val enrichmentMetadata = new util.HashMap[String, AnyRef](enrichmentNode.getMetadata)
-            enrichmentMetadata.remove("transcripts")
-            ResponseHandler.OK
-              .put("enrichment", enrichmentMetadata)
-              .put("children", children)
+            relNodePairs.groupBy { case (r, _) =>
+              val relKey = s"${r.getRelationType}_out_${r.getEndNodeObjectType}"
+              relationDefMap.getOrElse(relKey, r.getEndNodeObjectType).asInstanceOf[String]
+            }.foreach { case (fieldName, pairs) =>
+              // Replaces whatever stale snapshot syncEnrichmentTranscriptsFromNode
+              // last wrote under this same key with the live data just read.
+              enrichmentMetadata.put(fieldName, pairs.map(_._2.getMetadata).asJava)
+            }
+            ResponseHandler.OK.put("enrichment", enrichmentMetadata)
           }
         }
     }
