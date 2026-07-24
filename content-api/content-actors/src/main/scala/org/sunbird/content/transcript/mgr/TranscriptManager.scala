@@ -98,8 +98,15 @@ object TranscriptManager {
           Future.sequence(relations.map(r => readTypedNode(r.getEndNodeId, r.getEndNodeObjectType, r.getEndNodeObjectType.toLowerCase))).map { childNodes =>
             val children = childNodes.groupBy(_.getObjectType)
               .view.mapValues(_.map(_.getMetadata).asJava).toMap.asJava
+            // Enrichment's own "transcripts" field is the denormalized
+            // snapshot syncEnrichmentTranscriptsFromNode writes back (kept
+            // for isEcarReady's use elsewhere) — redundant here now that
+            // "children" already shows every child live, so drop it to
+            // avoid showing the same data twice at different freshness.
+            val enrichmentMetadata = new util.HashMap[String, AnyRef](enrichmentNode.getMetadata)
+            enrichmentMetadata.remove("transcripts")
             ResponseHandler.OK
-              .put("enrichment", enrichmentNode.getMetadata)
+              .put("enrichment", enrichmentMetadata)
               .put("children", children)
           }
         }
