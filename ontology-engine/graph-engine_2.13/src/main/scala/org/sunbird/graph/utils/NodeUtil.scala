@@ -172,19 +172,12 @@ object NodeUtil {
     }
 
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {
-      // relationObjectAttributes' keys almost always read as null here —
-      // Relation.getEndNodeMetadata()/getStartNodeMetadata() are hardcoded
-      // in JanusGraphNodeUtil.createRelation (graph-dac-api) to only ever
-      // contain "description"/"status" off the target vertex, regardless of
-      // what relationFields a schema declares. Filtering nulls here mirrors
-      // serialize()'s existing top-level metadataMap filter (line 28) —
-      // without it every other relationField shows up as a literal null.
       if ("out".equalsIgnoreCase(direction)) {
         val objectType = rel.getEndNodeObjectType.replace("Image", "")
         val relData = Map("identifier" -> rel.getEndNodeId.replace(".img", ""),
           "name" -> rel.getEndNodeName,
           "objectType" -> objectType,
-          "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap.filter(_._2 != null)
+          "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getEndNodeMetadata.get(key))).toMap
         val indexMap = if(rel.getRelationType.equals("hasSequenceMember")) Map("index" -> rel.getMetadata.getOrDefault("IL_SEQUENCE_INDEX",1.asInstanceOf[Number]).asInstanceOf[Number]) else Map()
         val completeRelData = relData ++ indexMap
         completeRelData.asJava
@@ -193,7 +186,7 @@ object NodeUtil {
         val relData = Map("identifier" -> rel.getStartNodeId.replace(".img", ""),
           "name" -> rel.getStartNodeName,
           "objectType" -> objectType,
-          "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap.filter(_._2 != null)
+          "relation" -> rel.getRelationType) ++ relationObjectAttributes(objectType).map(key => (key -> rel.getStartNodeMetadata.get(key))).toMap
         relData.asJava
       }
     }
