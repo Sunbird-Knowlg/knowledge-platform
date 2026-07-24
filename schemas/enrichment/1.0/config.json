@@ -21,13 +21,7 @@
             "objects": ["Transcript"]
         }
     },
-    "relationFields": [
-        "contentId",
-        "aiFeatures",
-        "transcriptUrl",
-        "transcripts",
-        "lastUpdatedOn"
-    ],
+    "relationFields": [],
     "PII_Fields": {
         "user": { "createdBy": ["creator"] },
         "org": {}
