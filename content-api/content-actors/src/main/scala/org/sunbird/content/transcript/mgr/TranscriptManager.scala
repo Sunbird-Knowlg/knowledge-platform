@@ -89,13 +89,19 @@ object TranscriptManager {
         readReq.getContext.put("identifier", enrichmentRef.getIdentifier)
         readReq.put("identifier", enrichmentRef.getIdentifier)
         readReq.put("fields", new util.ArrayList[String]())
-        DataNode.read(readReq).map { enrichmentNode =>
-          val children = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
-            .groupBy(_.getEndNodeObjectType)
-            .view.mapValues(_.map(_.getEndNodeMetadata).asJava).toMap.asJava
-          ResponseHandler.OK
-            .put("enrichment", enrichmentNode.getMetadata)
-            .put("children", children)
+        DataNode.read(readReq).flatMap { enrichmentNode =>
+          val relations = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+          // getEndNodeObjectType/getEndNodeId are real (sourced from the
+          // vertex's own IL_FUNC_OBJECT_TYPE/IL_UNIQUE_ID); everything else
+          // on the relation object is not (see readTranscriptChildren's
+          // comment) — re-read each child node fully instead.
+          Future.sequence(relations.map(r => readTypedNode(r.getEndNodeId, r.getEndNodeObjectType, r.getEndNodeObjectType.toLowerCase))).map { childNodes =>
+            val children = childNodes.groupBy(_.getObjectType)
+              .view.mapValues(_.map(_.getMetadata).asJava).toMap.asJava
+            ResponseHandler.OK
+              .put("enrichment", enrichmentNode.getMetadata)
+              .put("children", children)
+          }
         }
     }
   }
@@ -108,11 +114,11 @@ object TranscriptManager {
     readEnrichmentForContent(node).flatMap {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
       case Some(enrichmentNode) =>
-        findSourceTranscriptRelation(enrichmentNode) match {
-          case None => throw new ClientException("ERR_NO_SOURCE_TRANSCRIPT", "No source transcript found for this content.")
-          case Some(sourceRel) =>
-            val transcriptId = sourceRel.getEndNodeId
-            readTypedNode(transcriptId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME).flatMap { transcriptNode =>
+        readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
+          findSourceTranscript(transcripts) match {
+            case None => throw new ClientException("ERR_NO_SOURCE_TRANSCRIPT", "No source transcript found for this content.")
+            case Some(transcriptNode) =>
+              val transcriptId = transcriptNode.getIdentifier
               val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
               if (!StringUtils.equalsIgnoreCase(status, "Review"))
                 throw new ClientException("ERR_TRANSCRIPT_EDIT_NOT_ALLOWED",
@@ -145,7 +151,7 @@ object TranscriptManager {
                   .put("transcriptId", transcriptId)
                   .put("message", "Transcript updated.")
               }
-            }
+          }
         }
     }
   }
@@ -159,8 +165,7 @@ object TranscriptManager {
     readEnrichmentForContent(node).flatMap {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
       case Some(enrichmentNode) =>
-        val targetRel = resolveTargetTranscriptRelation(enrichmentNode, transcriptId)
-        readTypedNode(targetRel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME).flatMap { transcriptNode =>
+        resolveTargetTranscript(enrichmentNode, transcriptId).flatMap { transcriptNode =>
           val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
           if (!StringUtils.equalsIgnoreCase(status, "Review"))
             throw new ClientException("ERR_TRANSCRIPT_NOT_IN_REVIEW",
@@ -215,8 +220,7 @@ object TranscriptManager {
     readEnrichmentForContent(node).flatMap {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
       case Some(enrichmentNode) =>
-        val targetRel = resolveTargetTranscriptRelation(enrichmentNode, transcriptId)
-        readTypedNode(targetRel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME).flatMap { transcriptNode =>
+        resolveTargetTranscript(enrichmentNode, transcriptId).flatMap { transcriptNode =>
           val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
           if (!StringUtils.equalsIgnoreCase(status, "Review"))
             throw new ClientException("ERR_TRANSCRIPT_NOT_IN_REVIEW",
@@ -255,9 +259,9 @@ object TranscriptManager {
     if (StringUtils.isBlank(artifactUrl) || (!artifactUrl.startsWith("http://") && !artifactUrl.startsWith("https://")))
       throw new ClientException("ERR_MISSING_ARTIFACT_URL", "artifactUrl is required and must be an http/https URL")
 
-    findSourceTranscriptRelation(enrichmentNode) match {
-      case Some(sourceRel) =>
-        readTypedNode(sourceRel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME).flatMap { sourceNode =>
+    readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
+      findSourceTranscript(transcripts) match {
+        case Some(sourceNode) =>
           val status = sourceNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
           if (ACTIVE_STATUSES.contains(status))
             throw new ClientException("ERR_TRANSCRIPT_IN_PROGRESS",
@@ -276,21 +280,21 @@ object TranscriptManager {
               .put("transcriptId", sourceNode.getIdentifier)
               .put("message", "Transcription request accepted.")
           }
-        }
-      case None =>
-        createTranscriptChildNode(enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true).map { transcriptNode =>
-          val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
-          aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
-          val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
-          enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-          DataNode.update(enrichmentReq)
+        case None =>
+          createTranscriptChildNode(enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true).map { transcriptNode =>
+            val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
+            aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
+            val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
+            enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
+            DataNode.update(enrichmentReq)
 
-          maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, transcriptNode.getIdentifier, artifactUrl, mimeType, contentStatus)
-          ResponseHandler.OK
-            .put(ContentConstants.IDENTIFIER, contentIdentifier)
-            .put("transcriptId", transcriptNode.getIdentifier)
-            .put("message", "Transcription request accepted.")
-        }
+            maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, transcriptNode.getIdentifier, artifactUrl, mimeType, contentStatus)
+            ResponseHandler.OK
+              .put(ContentConstants.IDENTIFIER, contentIdentifier)
+              .put("transcriptId", transcriptNode.getIdentifier)
+              .put("message", "Transcription request accepted.")
+          }
+      }
     }
   }
 
@@ -306,38 +310,39 @@ object TranscriptManager {
       case _ => throw new ClientException("ERR_MISSING_FILE", "A VTT file is required for upload mode.")
     }
 
-    val existingRelation: Option[Relation] = findTranscriptRelationByLanguage(enrichmentNode, languageCode)
-    val transcriptNodeFuture: Future[Node] = existingRelation match {
-      case Some(rel) => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME)
-      case None => createTranscriptChildNode(enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false)
-    }
-
-    transcriptNodeFuture.flatMap { transcriptNode =>
-      Future {
-        val folderPath = s"${Platform.getString(CONTENT_FOLDER, "content")}/$contentIdentifier/transcripts/$languageCode"
-        val uploadResult = ss.uploadFile(folderPath, vttFile, Option(false))
-        val captionsUrl = uploadResult(1)
-
-        val updateMetadata = new util.HashMap[String, AnyRef]()
-        updateMetadata.put("captionsUrl", captionsUrl)
-        updateMetadata.put("generatedBy", "human-uploaded")
-        updateMetadata.put("status", "Review")
-        val updateReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, updateMetadata)
-        updateReq.getContext.put("identifier", transcriptNode.getIdentifier)
-        DataNode.update(updateReq)
-
-        val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
-        aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
-        val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
-        enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-        DataNode.update(enrichmentReq)
-
-        ResponseHandler.OK
-          .put(ContentConstants.IDENTIFIER, contentIdentifier)
-          .put("transcriptId", transcriptNode.getIdentifier)
-          .put("message", "Transcript uploaded and pending review.")
+    readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
+      val transcriptNodeFuture: Future[Node] = findTranscriptByLanguage(transcripts, languageCode) match {
+        case Some(t) => Future.successful(t)
+        case None => createTranscriptChildNode(enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false)
       }
-    } andThen { case _ => syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel) }
+
+      transcriptNodeFuture.flatMap { transcriptNode =>
+        Future {
+          val folderPath = s"${Platform.getString(CONTENT_FOLDER, "content")}/$contentIdentifier/transcripts/$languageCode"
+          val uploadResult = ss.uploadFile(folderPath, vttFile, Option(false))
+          val captionsUrl = uploadResult(1)
+
+          val updateMetadata = new util.HashMap[String, AnyRef]()
+          updateMetadata.put("captionsUrl", captionsUrl)
+          updateMetadata.put("generatedBy", "human-uploaded")
+          updateMetadata.put("status", "Review")
+          val updateReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, updateMetadata)
+          updateReq.getContext.put("identifier", transcriptNode.getIdentifier)
+          DataNode.update(updateReq)
+
+          val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
+          aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
+          val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
+          enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
+          DataNode.update(enrichmentReq)
+
+          ResponseHandler.OK
+            .put(ContentConstants.IDENTIFIER, contentIdentifier)
+            .put("transcriptId", transcriptNode.getIdentifier)
+            .put("message", "Transcript uploaded and pending review.")
+        }
+      } andThen { case _ => syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel) }
+    }
   }
 
   private def maybeBackfill(contentIdentifier: String, enrichmentId: String, transcriptId: String,
@@ -396,24 +401,35 @@ object TranscriptManager {
     }
   }
 
-  private def findSourceTranscriptRelation(enrichmentNode: Node): Option[Relation] =
-    Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
-      .find(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE) &&
-        toBool(r.getEndNodeMetadata.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE)))
-
-  private def findTranscriptRelationByLanguage(enrichmentNode: Node, languageCode: String): Option[Relation] =
-    Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
-      .find(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE) &&
-        StringUtils.equalsIgnoreCase(r.getEndNodeMetadata.getOrDefault("languageCode", "").asInstanceOf[String], languageCode))
-
-  private def resolveTargetTranscriptRelation(enrichmentNode: Node, transcriptId: String): Relation = {
-    val relations = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
+  // Relation.getEndNodeMetadata()/getStartNodeMetadata() are hardcoded in
+  // JanusGraphNodeUtil.createRelation (graph-dac-api) to only ever contain
+  // "description"/"status" off the target vertex — confirmed via a direct
+  // JanusGraph query showing the edge itself carries zero properties, and
+  // via that Java source having no other vertex-property reads. Any other
+  // key (sourceLanguage, languageCode, ...) always reads as the default.
+  // Only getEndNodeId()/getEndNodeObjectType() are real (sourced from the
+  // vertex's own IL_UNIQUE_ID/IL_FUNC_OBJECT_TYPE). So every lookup that
+  // needs real Transcript data re-reads each child node fully, same as
+  // syncEnrichmentTranscriptsFromNode already did below.
+  private def readTranscriptChildren(enrichmentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Seq[Node]] = {
+    val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
       .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
-    val matched =
-      if (StringUtils.isNotBlank(transcriptId)) relations.find(r => StringUtils.equalsIgnoreCase(r.getEndNodeId, transcriptId))
-      else relations.find(r => toBool(r.getEndNodeMetadata.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE)))
-    matched.getOrElse(throw new ClientException("ERR_TRANSCRIPT_NOT_FOUND", "No matching Transcript node found under this content's Enrichment."))
+    Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME)))
   }
+
+  private def findSourceTranscript(transcripts: Seq[Node]): Option[Node] =
+    transcripts.find(t => toBool(t.getMetadata.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE)))
+
+  private def findTranscriptByLanguage(transcripts: Seq[Node], languageCode: String): Option[Node] =
+    transcripts.find(t => StringUtils.equalsIgnoreCase(t.getMetadata.getOrDefault("languageCode", "").asInstanceOf[String], languageCode))
+
+  private def resolveTargetTranscript(enrichmentNode: Node, transcriptId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] =
+    readTranscriptChildren(enrichmentNode).map { transcripts =>
+      val matched =
+        if (StringUtils.isNotBlank(transcriptId)) transcripts.find(t => StringUtils.equalsIgnoreCase(t.getIdentifier, transcriptId))
+        else findSourceTranscript(transcripts)
+      matched.getOrElse(throw new ClientException("ERR_TRANSCRIPT_NOT_FOUND", "No matching Transcript node found under this content's Enrichment."))
+    }
 
   private def createTranscriptChildNode(enrichmentIdentifier: String, channel: String, languageCode: String, sourceLanguage: Boolean)
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
