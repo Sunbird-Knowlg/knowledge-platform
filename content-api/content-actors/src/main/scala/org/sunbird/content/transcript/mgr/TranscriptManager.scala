@@ -208,7 +208,7 @@ object TranscriptManager {
 
               ecarFuture.map { _ =>
                 pushEnrichedMetadataApprovedEvent(transcriptNode.getIdentifier, contentIdentifier,
-                  enrichmentNode.getIdentifier, sourceLanguage, languageCode)
+                  enrichmentNode.getIdentifier, sourceLanguage, languageCode, channel)
                 ResponseHandler.OK
                   .put(ContentConstants.IDENTIFIER, contentIdentifier)
                   .put("transcriptId", transcriptNode.getIdentifier)
@@ -283,7 +283,7 @@ object TranscriptManager {
           val resetReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, resetMetadata)
           resetReq.getContext.put("identifier", sourceNode.getIdentifier)
           DataNode.update(resetReq).map { _ =>
-            maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, sourceNode.getIdentifier, artifactUrl, mimeType, contentStatus)
+            maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, sourceNode.getIdentifier, artifactUrl, mimeType, contentStatus, channel)
             ResponseHandler.OK
               .put(ContentConstants.IDENTIFIER, contentIdentifier)
               .put("transcriptId", sourceNode.getIdentifier)
@@ -297,7 +297,7 @@ object TranscriptManager {
             enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
             DataNode.update(enrichmentReq)
 
-            maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, transcriptNode.getIdentifier, artifactUrl, mimeType, contentStatus)
+            maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, transcriptNode.getIdentifier, artifactUrl, mimeType, contentStatus, channel)
             ResponseHandler.OK
               .put(ContentConstants.IDENTIFIER, contentIdentifier)
               .put("transcriptId", transcriptNode.getIdentifier)
@@ -355,12 +355,12 @@ object TranscriptManager {
   }
 
   private def maybeBackfill(contentIdentifier: String, enrichmentId: String, transcriptId: String,
-                             artifactUrl: String, mimeType: String, contentStatus: String): Unit = {
+                             artifactUrl: String, mimeType: String, contentStatus: String, channel: String): Unit = {
     // Content already Live: router will never see a publish event for it, so
     // emit the transcription request directly instead of waiting for
     // enrichment-router to react to enriched.metadata.
     if (StringUtils.equalsIgnoreCase(contentStatus, "Live"))
-      pushTranscriptionRequestEvent(contentIdentifier, enrichmentId, transcriptId, artifactUrl, mimeType)
+      pushTranscriptionRequestEvent(contentIdentifier, enrichmentId, transcriptId, artifactUrl, mimeType, channel)
   }
 
   // ===================== Enrichment / Transcript node helpers =====================
@@ -590,37 +590,73 @@ object TranscriptManager {
 
   // ===================== Kafka event emission =====================
 
-  // Flat JSON matching sunbird_ai_core.kafka.event_schemas.MediaTranscriptionRequest —
-  // NOT the platform's generic telemetry instruction-event envelope.
-  private def pushTranscriptionRequestEvent(contentId: String, enrichmentId: String, transcriptId: String,
-                                             artifactUrl: String, mimeType: String): Unit = {
+  // Standard BE_JOB_REQUEST envelope used platform-wide for job-to-job Kafka
+  // events (same shape VideoEnrichmentHelper.getStreamingEvent builds in
+  // knowledge-platform-jobs) — mirrored on the Python side by
+  // sunbird_ai_core.kafka.event_schemas._wrap_be_job_request. edata carries
+  // the action-specific payload; channel/env live in context, not edata.
+  private def buildBeJobRequestEvent(actorId: String, action: String, objectId: String,
+                                      channel: String, edata: util.Map[String, AnyRef]): util.HashMap[String, AnyRef] = {
+    val ets = System.currentTimeMillis
+    val mid = s"LP.$ets.${util.UUID.randomUUID}"
+
+    val pdata = new util.HashMap[String, AnyRef]()
+    pdata.put("ver", "1.0")
+    pdata.put("id", "org.ekstep.platform")
+
+    val context = new util.HashMap[String, AnyRef]()
+    context.put("pdata", pdata)
+    context.put("channel", channel)
+    context.put("env", Platform.getString("cloud_storage.env", "dev"))
+
+    val actor = new util.HashMap[String, AnyRef]()
+    actor.put("id", actorId)
+    actor.put("type", "System")
+
+    val obj = new util.HashMap[String, AnyRef]()
+    obj.put("ver", "1.0")
+    obj.put("id", objectId)
+
+    val fullEdata = new util.HashMap[String, AnyRef](edata)
+    fullEdata.put("action", action)
+
     val event = new util.HashMap[String, AnyRef]()
-    event.put("contentId", contentId)
-    event.put("enrichmentId", enrichmentId)
-    event.put("transcriptId", transcriptId)
-    event.put("artifactUrl", artifactUrl)
-    event.put("mimeType", mimeType)
+    event.put("eid", "BE_JOB_REQUEST")
+    event.put("ets", ets.asInstanceOf[AnyRef])
+    event.put("mid", mid)
+    event.put("actor", actor)
+    event.put("context", context)
+    event.put("object", obj)
+    event.put("edata", fullEdata)
+    event
+  }
+
+  private def pushTranscriptionRequestEvent(contentId: String, enrichmentId: String, transcriptId: String,
+                                             artifactUrl: String, mimeType: String, channel: String): Unit = {
+    val edata = new util.HashMap[String, AnyRef]()
+    edata.put("contentId", contentId)
+    edata.put("enrichmentId", enrichmentId)
+    edata.put("transcriptId", transcriptId)
+    edata.put("artifactUrl", artifactUrl)
+    edata.put("mimeType", mimeType)
+    val event = buildBeJobRequestEvent("knowlg-service", "media-transcription-request", contentId, channel, edata)
 
     val topic = Platform.getString(TRANSCRIPTION_TOPIC_KEY, DEFAULT_TRANSCRIPTION_TOPIC)
     TelemetryManager.info(s"Pushing media transcription request for $contentId to topic $topic")
     kfClient.send(JsonUtils.serialize(event), topic)
   }
 
-  // Flat JSON matching sunbird_ai_core.kafka.event_schemas.EnrichedMetadataEvent
-  // (contentType=Transcript, action=approved) — consumed by enrichment-router.
+  // Consumed by enrichment-router as sunbird_ai_core.kafka.event_schemas.EnrichedMetadataEvent
+  // (edata.contentType=Transcript, edata.action=approved).
   private def pushEnrichedMetadataApprovedEvent(transcriptId: String, contentId: String, enrichmentId: String,
-                                                 sourceLanguage: Boolean, languageCode: String): Unit = {
-    val data = new util.HashMap[String, AnyRef]()
-    data.put("contentId", contentId)
-    data.put("enrichmentId", enrichmentId)
-    data.put("sourceLanguage", sourceLanguage.asInstanceOf[AnyRef])
-    data.put("languageCode", languageCode)
-
-    val event = new util.HashMap[String, AnyRef]()
-    event.put("id", transcriptId)
-    event.put("contentType", "Transcript")
-    event.put("action", "approved")
-    event.put("data", data)
+                                                 sourceLanguage: Boolean, languageCode: String, channel: String): Unit = {
+    val edata = new util.HashMap[String, AnyRef]()
+    edata.put("contentType", "Transcript")
+    edata.put("contentId", contentId)
+    edata.put("enrichmentId", enrichmentId)
+    edata.put("sourceLanguage", sourceLanguage.asInstanceOf[AnyRef])
+    edata.put("languageCode", languageCode)
+    val event = buildBeJobRequestEvent("knowlg-service", "approved", transcriptId, channel, edata)
 
     val topic = Platform.getString(ENRICHED_METADATA_TOPIC_KEY, DEFAULT_ENRICHED_METADATA_TOPIC)
     TelemetryManager.info(s"Pushing enriched.metadata (Transcript approved) for $transcriptId to topic $topic")
