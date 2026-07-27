@@ -462,9 +462,13 @@ object HierarchyManager {
             existingLeafNodes.map(en => {
                 leafNodeMap.get(en._1).put("index", en._2.get("index").asInstanceOf[Integer])
             })
-            filteredLeafNodes = childList.asScala.filter(existingLeafNode => {
+            // new util.ArrayList(...) — NOT .toList.asJava, which wraps an
+            // immutable Scala List in a java.util.List view; the .add(node)
+            // call below then throws UnsupportedOperationException whenever
+            // the target section already had at least one existing child.
+            filteredLeafNodes = new util.ArrayList[java.util.Map[String, AnyRef]](childList.asScala.filter(existingLeafNode => {
                 !leafNodeIds.contains(existingLeafNode.get("identifier").asInstanceOf[String])
-            }).toList.asJava
+            }).asJavaCollection)
             maxIndex = childMap.values.map(child => child.get("index").asInstanceOf[Integer]).max.asInstanceOf[Integer]
         }
         leafNodeIds.foreach(id => {
