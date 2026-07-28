@@ -260,7 +260,7 @@ object TranscriptManager {
     val contentIdentifier = contentNode.getIdentifier
     val channel = contentNode.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
     val mimeType = contentNode.getMetadata.getOrDefault("mimeType", "").asInstanceOf[String]
-    val artifactUrl = request.getRequest.getOrDefault("artifactUrl", "").asInstanceOf[String]
+    val artifactUrl = contentNode.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String]
     val contentStatus = contentNode.getMetadata.getOrDefault("status", "").asInstanceOf[String]
 
     if (!VALID_MIME_TYPES.contains(mimeType))
