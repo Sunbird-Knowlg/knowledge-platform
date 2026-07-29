@@ -83,7 +83,7 @@ POST     /collection/v4/unlisted/publish/:identifier  content.controllers.v4.Col
 # Content v4 APIs
 POST      /content/v4/create                       content.controllers.v4.ContentController.create()
 PATCH     /content/v4/update/:identifier           content.controllers.v4.ContentController.update(identifier:String)
-GET       /content/v4/read/:identifier             content.controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET       /content/v4/read/:identifier             content.controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String], enrich:Option[String])
 GET       /content/v4/private/read/:identifier     content.controllers.v4.ContentController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
 POST      /content/v4/upload/url/:identifier       content.controllers.v4.ContentController.uploadPreSigned(identifier:String, type: Option[String])
 POST      /content/v4/upload/:identifier           content.controllers.v4.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])

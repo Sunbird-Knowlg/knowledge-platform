@@ -84,8 +84,25 @@ object TranscriptManager {
   // "transcripts" already does — the field name comes from Enrichment's own
   // relations config (via getRelationDefinitionMap), not a hardcoded key.
   def readEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    readEnrichmentForContent(contentNode).flatMap {
+    fetchEnrichmentMetadata(contentNode, requestedKeys = None).map {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
+      case Some(enrichmentMetadata) => ResponseHandler.OK.put("enrichment", enrichmentMetadata)
+    }
+  }
+
+  // GET /content/v4/read/:id?enrich=all|<comma-separated relation field names>
+  // — same live Enrichment join as readEnrichment above, reused so
+  // content/v4/read can embed it opt-in without a second round-trip.
+  // requestedKeys=None means "all" (unfiltered); Some(keys) filters the
+  // grouped relation fields down to just the ones asked for (e.g.
+  // "transcripts") so a future "summary" relation doesn't get returned to
+  // callers who only asked for "transcript". No match / no Enrichment node
+  // for this content -> None, caller decides how to treat that (readEnrichment
+  // above throws; content/v4/read below just omits "enrichment" from the response).
+  def fetchEnrichmentMetadata(contentNode: Node, requestedKeys: Option[Set[String]])
+                              (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[util.Map[String, AnyRef]]] = {
+    readEnrichmentForContent(contentNode).flatMap {
+      case None => Future.successful(None)
       case Some(enrichmentRef) =>
         val readReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, "", new util.HashMap[String, AnyRef]())
         readReq.getContext.put("identifier", enrichmentRef.getIdentifier)
@@ -105,11 +122,12 @@ object TranscriptManager {
               val relKey = s"${r.getRelationType}_out_${r.getEndNodeObjectType}"
               relationDefMap.getOrElse(relKey, r.getEndNodeObjectType).asInstanceOf[String]
             }.foreach { case (fieldName, pairs) =>
-              // Replaces whatever stale snapshot syncEnrichmentTranscriptsFromNode
-              // last wrote under this same key with the live data just read.
-              enrichmentMetadata.put(fieldName, pairs.map(_._2.getMetadata).asJava)
+              if (requestedKeys.forall(_.contains(fieldName)))
+                // Replaces whatever stale snapshot syncEnrichmentTranscriptsFromNode
+                // last wrote under this same key with the live data just read.
+                enrichmentMetadata.put(fieldName, pairs.map(_._2.getMetadata).asJava)
             }
-            ResponseHandler.OK.put("enrichment", enrichmentMetadata)
+            Some(enrichmentMetadata)
           }
         }
     }

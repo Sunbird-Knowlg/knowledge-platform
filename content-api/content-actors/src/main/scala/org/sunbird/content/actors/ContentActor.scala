@@ -107,26 +107,47 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}
 	}
 
+	// "enrich" is opt-in only — absent/blank preserves content/v4/read's
+	// existing behavior (denormalized "enrichment" snapshot, or none) with
+	// zero extra graph reads. "all" or a comma list of relation field names
+	// (e.g. "transcripts") does a live join against the Enrichment node,
+	// same traversal readEnrichment/:identifier already does, just merged
+	// into this response instead of requiring a second call.
 	def read(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put("fields", fields)
-		DataNode.read(request).map(node => {
+		val enrichRaw: String = request.getRequest.getOrDefault("enrich", "").asInstanceOf[String]
+		val enrichRequested: Boolean = StringUtils.isNotBlank(enrichRaw)
+		val requestedEnrichKeys: Option[Set[String]] =
+			if (!enrichRequested || StringUtils.equalsIgnoreCase(enrichRaw.trim, "all")) None
+			else Some(enrichRaw.split(",").map(_.trim).filter(_.nonEmpty).toSet)
+		DataNode.read(request).flatMap(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
 			unwrapSingleValuedRelation(metadata, "enrichment")
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
-			val response: Response = ResponseHandler.OK
-      if (responseSchemaName.isEmpty) {
-        response.put("content", metadata)
-      }
-      else {
-        response.put(responseSchemaName, metadata)
-      }
-			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
-				response
-			}
-			else {
-				throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
+
+			val enrichmentFuture: Future[Unit] =
+				if (!enrichRequested) Future.successful(())
+				else TranscriptManager.fetchEnrichmentMetadata(node, requestedEnrichKeys).map {
+					case Some(enrichmentMetadata) => metadata.put("enrichment", enrichmentMetadata)
+					case None => // no Enrichment node for this content — leave whatever unwrapSingleValuedRelation left in place
+				}
+
+			enrichmentFuture.map { _ =>
+				val response: Response = ResponseHandler.OK
+				if (responseSchemaName.isEmpty) {
+					response.put("content", metadata)
+				}
+				else {
+					response.put(responseSchemaName, metadata)
+				}
+				if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
+					response
+				}
+				else {
+					throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
+				}
 			}
 		})
 	}
