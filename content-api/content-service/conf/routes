@@ -118,7 +118,7 @@ GET       /app/v4/read/:identifier                  content.controllers.v4.AppCo
 POST      /event/v4/create                          content.controllers.v4.EventController.create()
 PATCH     /event/v4/update/:identifier              content.controllers.v4.EventController.update(identifier:String)
 POST      /event/v4/publish/:identifier             content.controllers.v4.EventController.publish(identifier:String)
-GET       /event/v4/read/:identifier                content.controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET       /event/v4/read/:identifier                content.controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String], enrich:Option[String])
 DELETE    /event/v4/discard/:identifier             content.controllers.v4.EventController.discard(identifier:String)
 DELETE    /private/event/v4/retire/:identifier      content.controllers.v4.EventController.retire(identifier:String)
 
