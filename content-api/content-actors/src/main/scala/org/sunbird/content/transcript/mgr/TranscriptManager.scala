@@ -467,7 +467,7 @@ object TranscriptManager {
     metadata.put("code", identifier)
     metadata.put("channel", channel)
     metadata.put("languageCode", languageCode)
-    metadata.put("language", new util.ArrayList[String]())
+    metadata.put("language", "")
     metadata.put("sourceLanguage", sourceLanguage.asInstanceOf[AnyRef])
     metadata.put("status", "Draft")
     val createReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, metadata)

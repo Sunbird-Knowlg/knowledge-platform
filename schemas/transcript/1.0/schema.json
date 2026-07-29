@@ -36,11 +36,8 @@
             "description": "ISO 639-1 language code, e.g. en, hi, ta"
         },
         "language": {
-            "type": "array",
-            "items": {
-                "type": "string"
-            },
-            "description": "Full language name array, e.g. [\"English\"]"
+            "type": "string",
+            "description": "Full language name, e.g. English. One Transcript node is always exactly one language."
         },
         "sourceLanguage": {
             "type": "boolean",
