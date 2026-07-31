@@ -308,7 +308,7 @@ object TranscriptManager {
               .put("message", "Transcription request accepted.")
           }
         case None =>
-          createTranscriptChildNode(enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true).map { transcriptNode =>
+          createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true).map { transcriptNode =>
             val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
             aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
             val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
@@ -340,7 +340,7 @@ object TranscriptManager {
     readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
       val transcriptNodeFuture: Future[Node] = findTranscriptByLanguage(transcripts, languageCode) match {
         case Some(t) => Future.successful(t)
-        case None => createTranscriptChildNode(enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false)
+        case None => createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false)
       }
 
       transcriptNodeFuture.flatMap { transcriptNode =>
@@ -392,7 +392,11 @@ object TranscriptManager {
         val metadata = new util.HashMap[String, AnyRef]()
         metadata.put("identifier", identifier)
         metadata.put("name", s"Enrichment_${contentNode.getIdentifier}")
-        metadata.put("code", identifier)
+        // Enrichment is 1:1 per Content (findOrCreateEnrichment finds-before-creates),
+        // so contentId alone is already unique — the "_enrichment" suffix just makes
+        // it unambiguous in logs/dumps which kind of derived node this is, rather
+        // than duplicating the opaque generated identifier for no reason.
+        metadata.put("code", s"${contentNode.getIdentifier}_enrichment")
         metadata.put("channel", channel)
         metadata.put("contentId", contentNode.getIdentifier)
         metadata.put("aiFeatures", new util.ArrayList[String]())
@@ -458,13 +462,16 @@ object TranscriptManager {
       matched.getOrElse(throw new ClientException("ERR_TRANSCRIPT_NOT_FOUND", "No matching Transcript node found under this content's Enrichment."))
     }
 
-  private def createTranscriptChildNode(enrichmentIdentifier: String, channel: String, languageCode: String, sourceLanguage: Boolean)
+  private def createTranscriptChildNode(contentIdentifier: String, enrichmentIdentifier: String, channel: String, languageCode: String, sourceLanguage: Boolean)
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val identifier = Identifier.getIdentifier(GRAPH_ID, Identifier.getUniqueIdFromTimestamp)
     val metadata = new util.HashMap[String, AnyRef]()
     metadata.put("identifier", identifier)
     metadata.put("name", s"Transcript_$identifier")
-    metadata.put("code", identifier)
+    // One Transcript per (content, language) — languageCode is blank only for
+    // the not-yet-detected source transcript at creation time, so fall back to
+    // "source" there rather than leaving a trailing underscore.
+    metadata.put("code", s"${contentIdentifier}_${if (StringUtils.isNotBlank(languageCode)) languageCode else "source"}")
     metadata.put("channel", channel)
     metadata.put("languageCode", languageCode)
     metadata.put("language", "")
