@@ -7,7 +7,7 @@ GET       /service/health                   content.controllers.HealthController
 # Content APIs.v3.ContentController
 POST      /content/v3/create                content.controllers.v3.ContentController.create()
 PATCH     /content/v3/update/:identifier    content.controllers.v3.ContentController.update(identifier:String)
-GET       /content/v3/read/:identifier      content.controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
+GET       /content/v3/read/:identifier      content.controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String], enrich:Option[String])
 POST      /content/v3/upload/url/:identifier     content.controllers.v3.ContentController.uploadPreSigned(identifier:String, type: Option[String])
 POST      /content/v3/upload/:identifier         content.controllers.v3.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 POST      /content/v3/copy/:identifier           content.controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")

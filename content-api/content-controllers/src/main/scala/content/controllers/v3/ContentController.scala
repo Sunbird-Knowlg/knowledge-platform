@@ -40,13 +40,16 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
      * @param identifier
      * @param mode
      * @param fields
+     * @param enrich Opt-in live Enrichment join: "all" or a comma list of
+     *               relation field names (e.g. "transcripts") — same as v4's
+     *               read. Omitted/blank -> unchanged existing behavior.
      * @return
      */
-    def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+    def read(identifier: String, mode: Option[String], fields: Option[String], enrich: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse(""), "enrich" -> enrich.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
         getResult(ApiId.READ_CONTENT, contentActor, readRequest, true)
