@@ -118,6 +118,12 @@ object TranscriptManager {
           val relationDefMap = DefinitionNode.getRelationDefinitionMap(GRAPH_ID, SCHEMA_VERSION, ENRICHMENT_SCHEMA_NAME)
           Future.sequence(relations.map(r => readTypedNode(r.getEndNodeId, r.getEndNodeObjectType, r.getEndNodeObjectType.toLowerCase).map(node => (r, node)))).map { relNodePairs =>
             val enrichmentMetadata = new util.HashMap[String, AnyRef](enrichmentNode.getMetadata)
+            // getMetadata alone never carries "identifier" (that's node.getIdentifier,
+            // normally injected by NodeUtil.serialize — bypassed here). Without this,
+            // callers acting on a specific child (e.g. approveTranscript/rejectTranscript's
+            // body-level transcriptId, needed for anything but the default source
+            // transcript) have no way to discover that child's real do_... id.
+            enrichmentMetadata.put("identifier", enrichmentNode.getIdentifier)
             relNodePairs.groupBy { case (r, _) =>
               val relKey = s"${r.getRelationType}_out_${r.getEndNodeObjectType}"
               relationDefMap.getOrElse(relKey, r.getEndNodeObjectType).asInstanceOf[String]
@@ -125,7 +131,11 @@ object TranscriptManager {
               if (requestedKeys.forall(_.contains(fieldName)))
                 // Replaces whatever stale snapshot syncEnrichmentTranscriptsFromNode
                 // last wrote under this same key with the live data just read.
-                enrichmentMetadata.put(fieldName, pairs.map(_._2.getMetadata).asJava)
+                enrichmentMetadata.put(fieldName, pairs.map { case (_, node) =>
+                  val childMetadata = new util.HashMap[String, AnyRef](node.getMetadata)
+                  childMetadata.put("identifier", node.getIdentifier)
+                  childMetadata
+                }.asJava)
             }
             Some(enrichmentMetadata)
           }
