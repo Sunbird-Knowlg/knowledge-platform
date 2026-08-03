@@ -94,11 +94,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			}
 	}
 
-	// NodeUtil has no concept of relation cardinality — every relation
-	// serializes as a List, even ones the app enforces as 1:1 itself (like
-	// Content->Enrichment, via findOrCreateEnrichment's find-before-create).
-	// Content-specific, so this stays here rather than in the shared graph
-	// engine, which every object type's every relation goes through.
+	// NodeUtil always serializes relations as a List regardless of real cardinality; Content->Enrichment is 1:1, so unwrap it here instead of in the shared graph engine.
 	private def unwrapSingleValuedRelation(metadata: util.Map[String, AnyRef], key: String): Unit = {
 		metadata.get(key) match {
 			case list: util.List[_] if !list.isEmpty => metadata.put(key, list.get(0).asInstanceOf[AnyRef])
@@ -107,12 +103,6 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}
 	}
 
-	// "enrich" is opt-in only — absent/blank preserves content/v4/read's
-	// existing behavior (denormalized "enrichment" snapshot, or none) with
-	// zero extra graph reads. "all" or a comma list of relation field names
-	// (e.g. "transcripts") does a live join against the Enrichment node,
-	// same traversal readEnrichment/:identifier already does, just merged
-	// into this response instead of requiring a second call.
 	def read(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
@@ -200,11 +190,9 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		}).flatten
 	}
 
-	// "enrichment" must be requested explicitly here — DataNode.read only
-	// populates node.getOutRelations() for fields it's told to expand.
-	// Reading with an empty fields list left readEnrichmentForContent unable
-	// to see an already-linked Enrichment node, so findOrCreateEnrichment
-	// treated every call as "not found" and created a fresh duplicate.
+	// DataNode.read only populates a relation on the returned Node if it's named in
+	// "fields" — without "enrichment" here, findOrCreateEnrichment can never see an
+	// already-linked Enrichment node and creates a duplicate on every call.
 	private val TRANSCRIPT_READ_FIELDS = new util.ArrayList[String](){{ add("enrichment") }}
 
 	def createTranscript(request: Request): Future[Response] = {
