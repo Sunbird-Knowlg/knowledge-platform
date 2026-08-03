@@ -143,18 +143,16 @@ object TranscriptManager {
     }
   }
 
-  // PATCH /content/v4/transcript/update/:id — human edits an existing (Review) transcript
+  // PATCH /content/v4/transcript/update/:id/:transcriptId — human edits an existing (Review) transcript
   def updateTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
     val contentIdentifier = node.getIdentifier
     val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
+    val transcriptIdParam = request.getRequest.getOrDefault("transcriptId", "").asInstanceOf[String]
 
     readEnrichmentForContent(node).flatMap {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
       case Some(enrichmentNode) =>
-        readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
-          findSourceTranscript(transcripts) match {
-            case None => throw new ClientException("ERR_NO_SOURCE_TRANSCRIPT", "No source transcript found for this content.")
-            case Some(transcriptNode) =>
+        resolveTargetTranscript(enrichmentNode, transcriptIdParam).flatMap { transcriptNode =>
               val transcriptId = transcriptNode.getIdentifier
               val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
               if (!StringUtils.equalsIgnoreCase(status, "Review"))
@@ -188,12 +186,11 @@ object TranscriptManager {
                   .put("transcriptId", transcriptId)
                   .put("message", "Transcript updated.")
               }
-          }
         }
     }
   }
 
-  // POST /content/v4/transcript/approve/:id
+  // POST /content/v4/transcript/approve/:id/:transcriptId
   def approveTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
     val contentIdentifier = node.getIdentifier
     val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
@@ -248,7 +245,7 @@ object TranscriptManager {
     }
   }
 
-  // POST /content/v4/transcript/reject/:id
+  // POST /content/v4/transcript/reject/:id/:transcriptId
   def rejectTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val contentIdentifier = node.getIdentifier
     val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
@@ -464,13 +461,20 @@ object TranscriptManager {
   private def findTranscriptByLanguage(transcripts: Seq[Node], languageCode: String): Option[Node] =
     transcripts.find(t => StringUtils.equalsIgnoreCase(t.getMetadata.getOrDefault("languageCode", "").asInstanceOf[String], languageCode))
 
-  private def resolveTargetTranscript(enrichmentNode: Node, transcriptId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] =
+  // transcriptId is a required URL segment on update/approve/reject (not an
+  // optional body field) — no silent fallback to the source transcript here.
+  // A caller that means to act on the source transcript still has to name
+  // it explicitly; ambiguity about which transcript got acted on is exactly
+  // the bug this replaced (updateTranscript used to always hit the source
+  // transcript regardless of what a caller intended).
+  private def resolveTargetTranscript(enrichmentNode: Node, transcriptId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    if (StringUtils.isBlank(transcriptId))
+      throw new ClientException("ERR_MISSING_TRANSCRIPT_ID", "transcriptId is required.")
     readTranscriptChildren(enrichmentNode).map { transcripts =>
-      val matched =
-        if (StringUtils.isNotBlank(transcriptId)) transcripts.find(t => StringUtils.equalsIgnoreCase(t.getIdentifier, transcriptId))
-        else findSourceTranscript(transcripts)
-      matched.getOrElse(throw new ClientException("ERR_TRANSCRIPT_NOT_FOUND", "No matching Transcript node found under this content's Enrichment."))
+      transcripts.find(t => StringUtils.equalsIgnoreCase(t.getIdentifier, transcriptId))
+        .getOrElse(throw new ClientException("ERR_TRANSCRIPT_NOT_FOUND", "No matching Transcript node found under this content's Enrichment."))
     }
+  }
 
   private def createTranscriptChildNode(contentIdentifier: String, enrichmentIdentifier: String, channel: String, languageCode: String, sourceLanguage: Boolean)
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {

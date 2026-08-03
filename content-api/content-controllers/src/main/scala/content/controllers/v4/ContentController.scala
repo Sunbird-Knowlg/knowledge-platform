@@ -214,36 +214,45 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         else throw new ClientException("ERR_INVALID_DATA", "Please provide a valid VTT file.")
     }
 
-    def updateTranscript(identifier: String) = Action.async { implicit request =>
+    // transcriptId identifies which Transcript child under this content's
+    // Enrichment to act on — required in the URL (same nested-resource shape
+    // as getBookmarkHierarchy's :identifier/:bookmarkId), not an optional
+    // body field. Makes the target unambiguous at the routing layer instead
+    // of silently falling back to the source transcript if a body field
+    // were missing/misnamed.
+    def updateTranscript(identifier: String, transcriptId: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
         val content = body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.put("identifier", identifier)
+        content.put("transcriptId", transcriptId)
         val contentRequest = getRequest(content, headers, "updateTranscript")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
         getResult(ApiId.UPDATE_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
-    def approveTranscript(identifier: String) = Action.async { implicit request =>
+    def approveTranscript(identifier: String, transcriptId: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
         val content = body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.put("identifier", identifier)
+        content.put("transcriptId", transcriptId)
         val contentRequest = getRequest(content, headers, "approveTranscript")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
         getResult(ApiId.APPROVE_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
-    def rejectTranscript(identifier: String) = Action.async { implicit request =>
+    def rejectTranscript(identifier: String, transcriptId: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
         val content = body.getOrDefault("transcript", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
         content.put("identifier", identifier)
+        content.put("transcriptId", transcriptId)
         val contentRequest = getRequest(content, headers, "rejectTranscript")
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier)
