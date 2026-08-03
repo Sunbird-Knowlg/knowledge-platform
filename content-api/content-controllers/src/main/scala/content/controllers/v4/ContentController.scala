@@ -48,11 +48,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
       * @param mode Mode to read the data edit or published
       * @param fields List of fields to return in the response
       * @param enrich Opt-in live Enrichment join: "all" or a comma list of
-      *               relation field names (e.g. "transcripts") — same data
-      *               /content/v4/enrichment/read/:identifier returns, merged
-      *               into this response's "enrichment" key instead of
-      *               requiring a second call. Omitted/blank -> unchanged
-      *               existing behavior.
+      *               relation field names (e.g. "transcripts") 
       */
     def read(identifier: String, mode: Option[String], fields: Option[String], enrich: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
@@ -193,11 +189,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.CREATE_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
-    // Multipart mode for createTranscript: a human uploads a VTT file directly
-    // for a given languageCode, instead of triggering AI generation. Separate
-    // from BaseController.requestFormData since that one is scoped to the
-    // whole-content "fileUrl"/"filePath" upload shape, not a language-tagged
-    // caption file.
     private def requestTranscriptFormData(identifier: String)(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
         val reqMap = new java.util.HashMap[String, Object]()
         request.body.asMultipartFormData.foreach { multipartData =>
@@ -214,12 +205,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         else throw new ClientException("ERR_INVALID_DATA", "Please provide a valid VTT file.")
     }
 
-    // transcriptId identifies which Transcript child under this content's
-    // Enrichment to act on — required in the URL (same nested-resource shape
-    // as getBookmarkHierarchy's :identifier/:bookmarkId), not an optional
-    // body field. Makes the target unambiguous at the routing layer instead
-    // of silently falling back to the source transcript if a body field
-    // were missing/misnamed.
     def updateTranscript(identifier: String, transcriptId: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
@@ -259,10 +244,6 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.REJECT_TRANSCRIPT_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
-    // GET /content/v4/enrichment/read/:identifier — live Enrichment metadata +
-    // its current Transcript list. content/v4/read's "enrichment" field is a
-    // denormalized snapshot taken when the Content->Enrichment edge was last
-    // touched; this reads the Enrichment node itself so transcripts are current.
     def readEnrichment(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]

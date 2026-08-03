@@ -41,8 +41,7 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
      * @param mode
      * @param fields
      * @param enrich Opt-in live Enrichment join: "all" or a comma list of
-     *               relation field names (e.g. "transcripts") — same as v4's
-     *               read. Omitted/blank -> unchanged existing behavior.
+     *               relation field names (e.g. "transcripts")
      * @return
      */
     def read(identifier: String, mode: Option[String], fields: Option[String], enrich: Option[String]) = Action.async { implicit request =>
