@@ -2,6 +2,7 @@ package org.sunbird.managers.content
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
+import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
@@ -27,6 +28,8 @@ object RelationManager {
 
     private val primaryKey: java.util.List[String] = java.util.Arrays.asList("relationship_key")
     private val propsMapping: Map[String, String] = Map("node_ids" -> "")
+
+    private val isRedisEnabled: Boolean = Platform.getBoolean("redis.enable", false)
 
 
     def updateHierarchyRelationships(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
@@ -173,26 +176,33 @@ object RelationManager {
         if (CollectionUtils.isEmpty(children)) new java.util.ArrayList[util.Map[String, AnyRef]]() else children
     }
 
+    private def relationshipKey(rootId: String, identifier: String, relationshipType: String): String =
+        if (StringUtils.isNotBlank(rootId)) s"$rootId:$identifier:$relationshipType"
+        else s"$identifier:$relationshipType"
+
     private def storeRelationshipData(
         rootId           : String,
         relationshipType : String,
         dataMap          : Map[String, List[String]]
     )(implicit ec: ExecutionContext): Future[List[Response]] = {
-        val store = ExternalStoreFactory.getExternalStore(
-            s"$relationCacheKeyspace.$relationCacheTable", primaryKey)
+        if (isRedisEnabled) {
+            dataMap.foreach { case (identifier, nodeIds) =>
+                RedisCache.saveList(relationshipKey(rootId, identifier, relationshipType), nodeIds)
+            }
+            Future.successful(List(ResponseHandler.OK))
+        } else {
+            val store = ExternalStoreFactory.getExternalStore(
+                s"$relationCacheKeyspace.$relationCacheTable", primaryKey)
 
-        val futures = dataMap.map { case (identifier, nodeIds) =>
-            val relationshipKey =
-                if (StringUtils.isNotBlank(rootId)) s"$rootId:$identifier:$relationshipType"
-                else s"$identifier:$relationshipType"
-
-            store.update(
-                relationshipKey,
-                List("node_ids"),
-                List(nodeIds.asJava.asInstanceOf[AnyRef]),
-                propsMapping
-            )
+            val futures = dataMap.map { case (identifier, nodeIds) =>
+                store.update(
+                    relationshipKey(rootId, identifier, relationshipType),
+                    List("node_ids"),
+                    List(nodeIds.asJava.asInstanceOf[AnyRef]),
+                    propsMapping
+                )
+            }
+            Future.sequence(futures.toList)
         }
-        Future.sequence(futures.toList)
     }
 }
