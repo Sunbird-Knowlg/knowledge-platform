@@ -2,7 +2,7 @@ package org.sunbird.managers.content
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.cache.impl.RedisCache
+import org.sunbird.cache.impl.HierarchyRelationCache
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
@@ -187,7 +187,7 @@ object RelationManager {
     )(implicit ec: ExecutionContext): Future[List[Response]] = {
         if (isRedisEnabled) {
             dataMap.foreach { case (identifier, nodeIds) =>
-                RedisCache.saveList(relationshipKey(rootId, identifier, relationshipType), nodeIds)
+                HierarchyRelationCache.replaceSet(relationshipKey(rootId, identifier, relationshipType), nodeIds)
             }
             Future.successful(List(ResponseHandler.OK))
         } else {
