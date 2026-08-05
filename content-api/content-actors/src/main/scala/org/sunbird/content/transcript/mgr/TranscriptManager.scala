@@ -374,7 +374,8 @@ object TranscriptManager {
               .put("message", "Transcription request accepted.")
           }
         case None =>
-          createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true).map { transcriptNode =>
+          createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true,
+            existingChildIds = transcripts.map(_.getIdentifier)).map { transcriptNode =>
             val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
             aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
             val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
@@ -406,7 +407,8 @@ object TranscriptManager {
     readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
       val transcriptNodeFuture: Future[Node] = findTranscriptByLanguage(transcripts, languageCode) match {
         case Some(t) => Future.successful(t)
-        case None => createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false)
+        case None => createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false,
+          existingChildIds = transcripts.map(_.getIdentifier))
       }
 
       transcriptNodeFuture.flatMap { transcriptNode =>
@@ -461,7 +463,7 @@ object TranscriptManager {
           )
         case None =>
           createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode,
-            sourceLanguage = false, language = language).map { transcriptNode =>
+            sourceLanguage = false, language = language, existingChildIds = transcripts.map(_.getIdentifier)).map { transcriptNode =>
             ResponseHandler.OK
               .put(ContentConstants.IDENTIFIER, contentIdentifier)
               .put("transcriptId", transcriptNode.getIdentifier)
@@ -574,7 +576,7 @@ object TranscriptManager {
   }
 
   private def createTranscriptChildNode(contentIdentifier: String, enrichmentIdentifier: String, channel: String, languageCode: String,
-                                         sourceLanguage: Boolean, language: String = "")
+                                         sourceLanguage: Boolean, language: String = "", existingChildIds: Seq[String] = Seq())
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val identifier = Identifier.getIdentifier(GRAPH_ID, Identifier.getUniqueIdFromTimestamp)
     val metadata = new util.HashMap[String, AnyRef]()
@@ -600,10 +602,18 @@ object TranscriptManager {
       // definition). Enrichment's own config.json declares "transcripts" as
       // direction "out", which is where this edge actually needs to
       // originate from to pass validation.
+      //
+      // DefinitionNode.setRelationship treats the submitted relation list as
+      // the *complete* desired set for this relation name — any existing
+      // out-relation not resubmitted gets diffed into deletedRelations and
+      // removed. So every sibling Transcript's identifier must be resent
+      // here alongside the new one, or adding a second/third language wipes
+      // every previously-linked Transcript from Enrichment.transcripts.
       val enrichmentRelMetadata = new util.HashMap[String, AnyRef]()
-      enrichmentRelMetadata.put("transcripts", util.Arrays.asList(new util.HashMap[String, AnyRef]() {
-        put("identifier", transcriptNode.getIdentifier)
-      }))
+      val allChildIds = existingChildIds :+ transcriptNode.getIdentifier
+      enrichmentRelMetadata.put("transcripts", allChildIds.map(id => new util.HashMap[String, AnyRef]() {
+        put("identifier", id)
+      }).asJava)
       val enrichmentUpdateReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, enrichmentRelMetadata)
       enrichmentUpdateReq.getContext.put("identifier", enrichmentIdentifier)
       DataNode.update(enrichmentUpdateReq).map(_ => transcriptNode)
