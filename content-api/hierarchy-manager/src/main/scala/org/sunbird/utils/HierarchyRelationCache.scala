@@ -1,4 +1,4 @@
-package org.sunbird.cache.impl
+package org.sunbird.utils.content
 
 import org.slf4j.{Logger, LoggerFactory}
 import org.sunbird.cache.util.RedisConnector
@@ -22,7 +22,7 @@ object HierarchyRelationCache extends RedisConnector {
 				val jedis = getConnection
 				try {
 					jedis.del(key)
-					if (data.nonEmpty) jedis.sadd(key, data: _*)
+					data.foreach(entry => jedis.sadd(key, entry))
 				} catch {
 					case e: Exception =>
 						logger.error("Exception Occurred While Saving Set Data to HierarchyRelationCache for Key : " + key + "| Exception is:", e)

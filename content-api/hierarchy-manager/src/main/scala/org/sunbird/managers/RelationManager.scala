@@ -2,13 +2,13 @@ package org.sunbird.managers.content
 
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
-import org.sunbird.cache.impl.HierarchyRelationCache
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.external.store.ExternalStoreFactory
 import org.sunbird.telemetry.logger.TelemetryManager
+import org.sunbird.utils.content.HierarchyRelationCache
 
 import java.util
 import scala.concurrent.{ExecutionContext, Future}
