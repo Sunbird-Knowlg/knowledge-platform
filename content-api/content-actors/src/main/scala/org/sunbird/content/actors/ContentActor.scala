@@ -14,6 +14,7 @@ import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.content.transcript.mgr.TranscriptManager
+import org.sunbird.content.enrichment.{EnrichmentObjectHandler, EnrichmentObjectValidator}
 import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -44,10 +45,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readPrivateContent" => privateRead(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
-			case "createTranscript" => createTranscript(request)
-			case "updateTranscript" => updateTranscript(request)
-			case "approveTranscript" => approveTranscript(request)
-			case "rejectTranscript" => rejectTranscript(request)
+			case "createObject" => createObject(request)
+			case "updateObject" => updateObject(request)
+			case "approveObject" => approveObject(request)
+			case "rejectObject" => rejectObject(request)
 			case "readEnrichment" => readEnrichment(request)
 			case "retireContent" => retire(request)
 			case "copy" => copy(request)
@@ -195,44 +196,59 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	// already-linked Enrichment node and creates a duplicate on every call.
 	private val TRANSCRIPT_READ_FIELDS = new util.ArrayList[String](){{ add("enrichment") }}
 
-	def createTranscript(request: Request): Future[Response] = {
+	// Generic object/{create,update,approve,reject} — the only entry points
+	// left for Enrichment child objects (Transcript today; any future type
+	// registers its own EnrichmentObjectHandler, no new endpoint needed).
+	// Controller -> here (the "validator" step below, via
+	// EnrichmentObjectValidator) -> whichever handler EnrichmentObjectHandlerRegistry
+	// resolves for the request's objectType.
+
+	def createObject(request: Request): Future[Response] = {
 		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val objectType: String = request.getRequest.getOrDefault("objectType", "").asInstanceOf[String]
+		val handler = EnrichmentObjectValidator.requireHandler(objectType)
+
 		val readReq = new Request(request)
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
-		DataNode.read(readReq).map(node => {
-			TranscriptManager.createTranscript(request, node)
-		}).flatten
+		DataNode.read(readReq).flatMap { contentNode =>
+			TranscriptManager.findOrCreateEnrichment(contentNode).flatMap { enrichmentNode =>
+				handler.create(request, contentNode, enrichmentNode)
+			}
+		}
 	}
 
-	def updateTranscript(request: Request): Future[Response] = {
-		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
-		val readReq = new Request(request)
-		readReq.put(ContentConstants.IDENTIFIER, identifier)
-		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
-		DataNode.read(readReq).map(node => {
-			TranscriptManager.updateTranscript(request, node)
-		}).flatten
-	}
+	def updateObject(request: Request): Future[Response] = objectAction(request)((handler, contentNode, enrichmentNode, objectIdentifier) =>
+		handler.update(request, contentNode, enrichmentNode, objectIdentifier))
 
-	def approveTranscript(request: Request): Future[Response] = {
-		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
-		val readReq = new Request(request)
-		readReq.put(ContentConstants.IDENTIFIER, identifier)
-		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
-		DataNode.read(readReq).map(node => {
-			TranscriptManager.approveTranscript(request, node)
-		}).flatten
-	}
+	def approveObject(request: Request): Future[Response] = objectAction(request)((handler, contentNode, enrichmentNode, objectIdentifier) =>
+		handler.approve(request, contentNode, enrichmentNode, objectIdentifier))
 
-	def rejectTranscript(request: Request): Future[Response] = {
+	def rejectObject(request: Request): Future[Response] = objectAction(request)((handler, contentNode, enrichmentNode, objectIdentifier) =>
+		handler.reject(request, contentNode, enrichmentNode, objectIdentifier))
+
+	// Shared by update/approve/reject: validate objectType + objectIdentifier,
+	// resolve content -> its Enrichment node, then hand off to the caller's
+	// specific handler call. create() doesn't share this — it has no
+	// objectIdentifier yet and needs findOrCreateEnrichment instead of a
+	// plain read.
+	private def objectAction(request: Request)
+	                         (dispatch: (EnrichmentObjectHandler, Node, Node, String) => Future[Response]): Future[Response] = {
 		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val objectType: String = request.getRequest.getOrDefault("objectType", "").asInstanceOf[String]
+		val objectIdentifier: String = EnrichmentObjectValidator.requireObjectIdentifier(
+			request.getRequest.getOrDefault("objectIdentifier", "").asInstanceOf[String])
+		val handler = EnrichmentObjectValidator.requireHandler(objectType)
+
 		val readReq = new Request(request)
 		readReq.put(ContentConstants.IDENTIFIER, identifier)
 		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
-		DataNode.read(readReq).map(node => {
-			TranscriptManager.rejectTranscript(request, node)
-		}).flatten
+		DataNode.read(readReq).flatMap { contentNode =>
+			TranscriptManager.readEnrichmentForContent(contentNode).flatMap {
+				case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
+				case Some(enrichmentNode) => dispatch(handler, contentNode, enrichmentNode, objectIdentifier)
+			}
+		}
 	}
 
 	def readEnrichment(request: Request): Future[Response] = {

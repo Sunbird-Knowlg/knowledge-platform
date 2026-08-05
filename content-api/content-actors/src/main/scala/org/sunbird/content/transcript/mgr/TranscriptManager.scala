@@ -31,10 +31,6 @@ import scala.jdk.CollectionConverters._
  * language gets its own Transcript node linked to that Enrichment. Jobs in
  * the sunbird-ai-platform repo (enrichment-router, caption-generator)
  * consume/produce the same Kafka contracts this class emits/expects.
- *
- * NOTE: this file was rewritten in this pass but has not been compiled or
- * run against a live JanusGraph/Kafka stack in this session — verify via
- * the project's normal sbt build + integration tests before merging.
  */
 object TranscriptManager {
 
@@ -60,29 +56,31 @@ object TranscriptManager {
   private val kfClient = new KafkaClient
 
   // ===================== PUBLIC API =====================
+  // Backing implementation for EnrichmentObjectHandler (TranscriptObjectHandler).
+  // ContentActor's generic object/{create,update,approve,reject} already
+  // resolved contentNode/enrichmentNode (creating Enrichment if needed) and
+  // validated objectType before calling any of these — no per-endpoint
+  // Transcript routes exist anymore, this is reached only through the
+  // generic dispatch.
 
-  // POST /content/v4/transcript/create/:id — JSON body (AI trigger) or multipart (VTT upload)
-  def createTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
-    val contentIdentifier = node.getIdentifier
-    val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
+  // POST /content/v4/object/create/:id — three shapes, discriminated by
+  // request fields: multipart file -> human VTT upload; languageCode alone
+  // (no artifactUrl) -> target-language Draft (absorbed from what
+  // ai-pipeline's enrichment-router used to write directly via JanusGraph);
+  // otherwise -> AI-trigger (re)generation of the source transcript.
+  def createObject(request: Request, contentNode: Node, enrichmentNode: Node)
+                   (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
     val isUpload = request.getRequest.containsKey("file") || request.getRequest.containsKey("fileUrl")
+    val languageCode = request.getRequest.getOrDefault("languageCode", "").asInstanceOf[String]
+    val artifactUrlParam = request.getRequest.getOrDefault("artifactUrl", "").asInstanceOf[String]
 
-    findOrCreateEnrichment(node).flatMap { enrichmentNode =>
-      if (isUpload) createFromUpload(request, node, enrichmentNode)
-      else createFromGeneration(request, node, enrichmentNode)
-    }
+    if (isUpload) createFromUpload(request, contentNode, enrichmentNode)
+    else if (StringUtils.isNotBlank(languageCode) && StringUtils.isBlank(artifactUrlParam))
+      createTargetDraft(request, contentNode, enrichmentNode, languageCode)
+    else createFromGeneration(request, contentNode, enrichmentNode)
   }
 
-  // GET /content/v4/enrichment/read/:id — live Enrichment metadata with
-  // every child relation merged directly onto it under its real schema
-  // field name (e.g. "transcripts" — matches enrichment/1.0/schema.json's
-  // own declared property), not a made-up wrapper. content/v4/read's own
-  // "enrichment" field is a denormalized snapshot from when the
-  // Content->Enrichment edge was last touched, not a live join — this reads
-  // the Enrichment node directly instead. Future AI features need no code
-  // change here as long as they declare their own relation the same way
-  // "transcripts" already does — the field name comes from Enrichment's own
-  // relations config (via getRelationDefinitionMap), not a hardcoded key.
+  // GET /content/v4/enrichment/read/:id — thin wrapper over fetchEnrichmentMetadata below.
   def readEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     fetchEnrichmentMetadata(contentNode, requestedKeys = None).map {
       case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
@@ -90,15 +88,14 @@ object TranscriptManager {
     }
   }
 
-  // GET /content/v4/read/:id?enrich=all|<comma-separated relation field names>
-  // — same live Enrichment join as readEnrichment above, reused so
-  // content/v4/read can embed it opt-in without a second round-trip.
-  // requestedKeys=None means "all" (unfiltered); Some(keys) filters the
-  // grouped relation fields down to just the ones asked for (e.g.
-  // "transcripts") so a future "summary" relation doesn't get returned to
-  // callers who only asked for "transcript". No match / no Enrichment node
-  // for this content -> None, caller decides how to treat that (readEnrichment
-  // above throws; content/v4/read below just omits "enrichment" from the response).
+  // Live Content->Enrichment->children join (also used by content/v4/read's
+  // ?enrich= param) — content/v4/read's own "enrichment" field is otherwise
+  // just a denormalized snapshot from whenever that edge was last touched,
+  // not live data. Child relation fields (e.g. "transcripts") are merged in
+  // under their real schema-declared name via getRelationDefinitionMap, not
+  // a hardcoded key, so a future relation (e.g. "summary") needs no code
+  // change here. requestedKeys=None means "all"; Some(keys) filters to just
+  // those relation fields. No Enrichment node for this content -> None.
   def fetchEnrichmentMetadata(contentNode: Node, requestedKeys: Option[Set[String]])
                               (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[util.Map[String, AnyRef]]] = {
     readEnrichmentForContent(contentNode).flatMap {
@@ -143,139 +140,202 @@ object TranscriptManager {
     }
   }
 
-  // PATCH /content/v4/transcript/update/:id/:transcriptId — human edits an existing (Review) transcript
-  def updateTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
-    val contentIdentifier = node.getIdentifier
-    val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
-    val transcriptIdParam = request.getRequest.getOrDefault("transcriptId", "").asInstanceOf[String]
+  // PATCH /content/v4/object/update/:id/:objectIdentifier — one endpoint, four
+  // shapes, discriminated by which fields the caller sends:
+  //  - "segments" present: human edits an existing Review transcript's text.
+  //  - status="Processing": job reporting it has started work.
+  //  - status="Live"/"Review" (+ artifactUrl/captionsUrl/languageCode/...): job reporting completion.
+  //  - status="Failed" (+ errorMessage): job reporting failure.
+  // This replaces every direct JanusGraph write ai-pipeline's jobs used to
+  // make for these same transitions (Draft->Processing->Review/Live/Failed).
+  def updateObject(request: Request, contentNode: Node, enrichmentNode: Node, objectIdentifier: String)
+                   (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
+    val contentIdentifier = contentNode.getIdentifier
+    val channel = contentNode.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
 
-    readEnrichmentForContent(node).flatMap {
-      case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
-      case Some(enrichmentNode) =>
-        resolveTargetTranscript(enrichmentNode, transcriptIdParam).flatMap { transcriptNode =>
-              val transcriptId = transcriptNode.getIdentifier
-              val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
-              if (!StringUtils.equalsIgnoreCase(status, "Review"))
-                throw new ClientException("ERR_TRANSCRIPT_EDIT_NOT_ALLOWED",
-                  s"Transcript must be in Review status to edit (currently $status).")
+    resolveTargetTranscript(enrichmentNode, objectIdentifier).flatMap { transcriptNode =>
+      val transcriptId = transcriptNode.getIdentifier
+      val segments = request.getRequest.getOrDefault("segments", new util.ArrayList[util.Map[String, AnyRef]]())
+        .asInstanceOf[util.List[util.Map[String, AnyRef]]]
+      val requestedStatus = request.getRequest.getOrDefault("status", "").asInstanceOf[String]
 
-              val segments = request.getRequest.getOrDefault("segments", new util.ArrayList[util.Map[String, AnyRef]]())
-                .asInstanceOf[util.List[util.Map[String, AnyRef]]]
-              if (segments.isEmpty)
-                throw new ClientException("ERR_MISSING_SEGMENTS", "segments array is required.")
-
-              val languageCode = transcriptNode.getMetadata.getOrDefault("languageCode", "en").asInstanceOf[String]
-              val transcriptJson = buildTranscriptJson(transcriptId, languageCode, segments)
-              val vttContent = buildVttContent(segments)
-
-              Future {
-                val (transcriptUrl, captionsUrl) = uploadTranscriptFiles(contentIdentifier, languageCode, transcriptJson, vttContent)
-
-                val updateMetadata = new util.HashMap[String, AnyRef]()
-                updateMetadata.put("artifactUrl", transcriptUrl)
-                updateMetadata.put("captionsUrl", captionsUrl)
-                updateMetadata.put("generatedBy", "human-edited")
-                updateMetadata.put("lastUpdatedOn", Instant.now().toString)
-
-                val updateReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, updateMetadata)
-                updateReq.getContext.put("identifier", transcriptId)
-                DataNode.update(updateReq)
-
-                ResponseHandler.OK
-                  .put(ContentConstants.IDENTIFIER, contentIdentifier)
-                  .put("transcriptId", transcriptId)
-                  .put("message", "Transcript updated.")
-              }
-        }
+      if (!segments.isEmpty) updateBySegmentEdit(contentIdentifier, channel, transcriptNode, segments)
+      else if (StringUtils.equalsIgnoreCase(requestedStatus, "Processing"))
+        updateStatusOnly(contentIdentifier, channel, transcriptId, "Processing")
+      else if (StringUtils.equalsIgnoreCase(requestedStatus, "Failed"))
+        updateFailed(contentIdentifier, enrichmentNode, channel, transcriptId, request)
+      else if (StringUtils.equalsIgnoreCase(requestedStatus, "Live") || StringUtils.equalsIgnoreCase(requestedStatus, "Review"))
+        updateCompletion(contentIdentifier, enrichmentNode, channel, transcriptNode, request, requestedStatus)
+      else
+        throw new ClientException("ERR_INVALID_UPDATE_REQUEST",
+          "Provide either 'segments' (human edit) or a valid 'status' (Processing/Live/Review/Failed) for a job update.")
     }
   }
 
-  // POST /content/v4/transcript/approve/:id/:transcriptId
-  def approveTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
-    val contentIdentifier = node.getIdentifier
-    val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
-    val transcriptId = request.getRequest.getOrDefault("transcriptId", "").asInstanceOf[String]
+  private def updateBySegmentEdit(contentIdentifier: String, channel: String, transcriptNode: Node,
+                                   segments: util.List[util.Map[String, AnyRef]])
+                                  (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
+    val transcriptId = transcriptNode.getIdentifier
+    val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
+    if (!StringUtils.equalsIgnoreCase(status, "Review"))
+      throw new ClientException("ERR_TRANSCRIPT_EDIT_NOT_ALLOWED",
+        s"Transcript must be in Review status to edit (currently $status).")
 
-    readEnrichmentForContent(node).flatMap {
-      case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
-      case Some(enrichmentNode) =>
-        resolveTargetTranscript(enrichmentNode, transcriptId).flatMap { transcriptNode =>
-          val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
-          if (!StringUtils.equalsIgnoreCase(status, "Review"))
-            throw new ClientException("ERR_TRANSCRIPT_NOT_IN_REVIEW",
-              s"Transcript must be in Review status to approve (currently $status).")
+    val languageCode = transcriptNode.getMetadata.getOrDefault("languageCode", "en").asInstanceOf[String]
+    val transcriptJson = buildTranscriptJson(transcriptId, languageCode, segments)
+    val vttContent = buildVttContent(segments)
 
-          val sourceLanguage = toBool(transcriptNode.getMetadata.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE))
-          val languageCode = transcriptNode.getMetadata.getOrDefault("languageCode", "").asInstanceOf[String]
+    Future {
+      val (transcriptUrl, captionsUrl) = uploadTranscriptFiles(contentIdentifier, languageCode, transcriptJson, vttContent)
 
-          val approveMetadata = new util.HashMap[String, AnyRef]()
-          approveMetadata.put("status", "Live")
-          approveMetadata.put("autoApproved", java.lang.Boolean.FALSE)
-          approveMetadata.put("lastUpdatedOn", Instant.now().toString)
+      val updateMetadata = new util.HashMap[String, AnyRef]()
+      updateMetadata.put("artifactUrl", transcriptUrl)
+      updateMetadata.put("captionsUrl", captionsUrl)
+      updateMetadata.put("generatedBy", "human-edited")
+      updateMetadata.put("lastUpdatedOn", Instant.now().toString)
 
-          val approveReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, approveMetadata)
-          approveReq.getContext.put("identifier", transcriptNode.getIdentifier)
+      val updateReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, updateMetadata)
+      updateReq.getContext.put("identifier", transcriptId)
+      DataNode.update(updateReq)
 
-          DataNode.update(approveReq).flatMap { _ =>
-            syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel).flatMap { transcripts =>
-              val allowFailed = Platform.getBoolean(ALLOW_FAILED_LANGUAGES_KEY, true)
-              val ecarFuture: Future[Unit] =
-                if (isEcarReady(transcripts, allowFailed))
-                  buildAndUploadEcar(contentIdentifier, enrichmentNode, transcripts).map { ecarUrl =>
-                    val urlMetadata = new util.HashMap[String, AnyRef]()
-                    urlMetadata.put("transcriptUrl", ecarUrl)
-                    val urlReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, urlMetadata)
-                    urlReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-                    DataNode.update(urlReq)
-                    ()
-                  }
-                else Future.successful(())
-
-              ecarFuture.map { _ =>
-                pushEnrichedMetadataApprovedEvent(transcriptNode.getIdentifier, contentIdentifier,
-                  enrichmentNode.getIdentifier, sourceLanguage, languageCode, channel)
-                ResponseHandler.OK
-                  .put(ContentConstants.IDENTIFIER, contentIdentifier)
-                  .put("transcriptId", transcriptNode.getIdentifier)
-                  .put("message", "Transcript approved.")
-              }
-            }
-          }
-        }
+      ResponseHandler.OK
+        .put(ContentConstants.IDENTIFIER, contentIdentifier)
+        .put("transcriptId", transcriptId)
+        .put("message", "Transcript updated.")
     }
   }
 
-  // POST /content/v4/transcript/reject/:id/:transcriptId
-  def rejectTranscript(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val contentIdentifier = node.getIdentifier
-    val channel = node.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
-    val transcriptId = request.getRequest.getOrDefault("transcriptId", "").asInstanceOf[String]
+  private def updateStatusOnly(contentIdentifier: String, channel: String, transcriptId: String, status: String)
+                               (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val metadata = new util.HashMap[String, AnyRef]()
+    metadata.put("status", status)
+    metadata.put("lastUpdatedOn", Instant.now().toString)
+    val req = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, metadata)
+    req.getContext.put("identifier", transcriptId)
+    DataNode.update(req).map { _ =>
+      ResponseHandler.OK
+        .put(ContentConstants.IDENTIFIER, contentIdentifier)
+        .put("transcriptId", transcriptId)
+        .put("message", s"Transcript marked $status.")
+    }
+  }
 
-    readEnrichmentForContent(node).flatMap {
-      case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
-      case Some(enrichmentNode) =>
-        resolveTargetTranscript(enrichmentNode, transcriptId).flatMap { transcriptNode =>
-          val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
-          if (!StringUtils.equalsIgnoreCase(status, "Review"))
-            throw new ClientException("ERR_TRANSCRIPT_NOT_IN_REVIEW",
-              s"Transcript must be in Review status to reject (currently $status).")
+  private def updateFailed(contentIdentifier: String, enrichmentNode: Node, channel: String, transcriptId: String, request: Request)
+                           (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
+    val errorMessage = request.getRequest.getOrDefault("errorMessage", "").asInstanceOf[String]
+    val metadata = new util.HashMap[String, AnyRef]()
+    metadata.put("status", "Failed")
+    metadata.put("errorMessage", errorMessage)
+    metadata.put("lastUpdatedOn", Instant.now().toString)
+    val req = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, metadata)
+    req.getContext.put("identifier", transcriptId)
+    DataNode.update(req).flatMap { _ =>
+      syncAndMaybeBuildEcar(contentIdentifier, enrichmentNode, channel).map { _ =>
+        ResponseHandler.OK
+          .put(ContentConstants.IDENTIFIER, contentIdentifier)
+          .put("transcriptId", transcriptId)
+          .put("message", "Transcript marked Failed.")
+      }
+    }
+  }
 
-          val rejectMetadata = new util.HashMap[String, AnyRef]()
-          rejectMetadata.put("status", "Draft")
-          rejectMetadata.put("lastUpdatedOn", Instant.now().toString)
+  private def updateCompletion(contentIdentifier: String, enrichmentNode: Node, channel: String, transcriptNode: Node,
+                                request: Request, status: String)
+                               (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
+    val transcriptId = transcriptNode.getIdentifier
+    val sourceLanguage = toBool(transcriptNode.getMetadata.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE))
+    val metadata = new util.HashMap[String, AnyRef]()
+    metadata.put("status", status)
+    metadata.put("errorMessage", null)
+    metadata.put("lastUpdatedOn", Instant.now().toString)
+    metadata.put("generatedOn", Instant.now().toString)
+    metadata.put("autoApproved", java.lang.Boolean.valueOf(StringUtils.equalsIgnoreCase(status, "Live")))
+    Seq("languageCode", "language", "code", "artifactUrl", "captionsUrl", "generatedBy").foreach { key =>
+      val value = request.getRequest.getOrDefault(key, "").asInstanceOf[String]
+      if (StringUtils.isNotBlank(value)) metadata.put(key, value)
+    }
 
-          val rejectReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, rejectMetadata)
-          rejectReq.getContext.put("identifier", transcriptNode.getIdentifier)
+    val req = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, metadata)
+    req.getContext.put("identifier", transcriptId)
 
-          DataNode.update(rejectReq).flatMap { _ =>
-            syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel).map { _ =>
-              ResponseHandler.OK
-                .put(ContentConstants.IDENTIFIER, contentIdentifier)
-                .put("transcriptId", transcriptNode.getIdentifier)
-                .put("message", "Transcript rejected. Status reset to Draft.")
-            }
-          }
+    DataNode.update(req).flatMap { _ =>
+      syncAndMaybeBuildEcar(contentIdentifier, enrichmentNode, channel).map { _ =>
+        if (StringUtils.equalsIgnoreCase(status, "Live")) {
+          val languageCode = request.getRequest.getOrDefault("languageCode",
+            transcriptNode.getMetadata.getOrDefault("languageCode", "").asInstanceOf[String]).asInstanceOf[String]
+          pushEnrichedMetadataApprovedEvent(transcriptId, contentIdentifier, enrichmentNode.getIdentifier, sourceLanguage, languageCode, channel)
         }
+        ResponseHandler.OK
+          .put(ContentConstants.IDENTIFIER, contentIdentifier)
+          .put("transcriptId", transcriptId)
+          .put("message", s"Transcript marked $status.")
+      }
+    }
+  }
+
+  // POST /content/v4/object/approve/:id/:objectIdentifier
+  def approveObject(request: Request, contentNode: Node, enrichmentNode: Node, objectIdentifier: String)
+                    (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] = {
+    val contentIdentifier = contentNode.getIdentifier
+    val channel = contentNode.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
+
+    resolveTargetTranscript(enrichmentNode, objectIdentifier).flatMap { transcriptNode =>
+      val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
+      if (!StringUtils.equalsIgnoreCase(status, "Review"))
+        throw new ClientException("ERR_TRANSCRIPT_NOT_IN_REVIEW",
+          s"Transcript must be in Review status to approve (currently $status).")
+
+      val sourceLanguage = toBool(transcriptNode.getMetadata.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE))
+      val languageCode = transcriptNode.getMetadata.getOrDefault("languageCode", "").asInstanceOf[String]
+
+      val approveMetadata = new util.HashMap[String, AnyRef]()
+      approveMetadata.put("status", "Live")
+      approveMetadata.put("autoApproved", java.lang.Boolean.FALSE)
+      approveMetadata.put("lastUpdatedOn", Instant.now().toString)
+
+      val approveReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, approveMetadata)
+      approveReq.getContext.put("identifier", transcriptNode.getIdentifier)
+
+      DataNode.update(approveReq).flatMap { _ =>
+        syncAndMaybeBuildEcar(contentIdentifier, enrichmentNode, channel).map { _ =>
+          pushEnrichedMetadataApprovedEvent(transcriptNode.getIdentifier, contentIdentifier,
+            enrichmentNode.getIdentifier, sourceLanguage, languageCode, channel)
+          ResponseHandler.OK
+            .put(ContentConstants.IDENTIFIER, contentIdentifier)
+            .put("transcriptId", transcriptNode.getIdentifier)
+            .put("message", "Transcript approved.")
+        }
+      }
+    }
+  }
+
+  // POST /content/v4/object/reject/:id/:objectIdentifier
+  def rejectObject(request: Request, contentNode: Node, enrichmentNode: Node, objectIdentifier: String)
+                   (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val contentIdentifier = contentNode.getIdentifier
+    val channel = contentNode.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
+
+    resolveTargetTranscript(enrichmentNode, objectIdentifier).flatMap { transcriptNode =>
+      val status = transcriptNode.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
+      if (!StringUtils.equalsIgnoreCase(status, "Review"))
+        throw new ClientException("ERR_TRANSCRIPT_NOT_IN_REVIEW",
+          s"Transcript must be in Review status to reject (currently $status).")
+
+      val rejectMetadata = new util.HashMap[String, AnyRef]()
+      rejectMetadata.put("status", "Draft")
+      rejectMetadata.put("lastUpdatedOn", Instant.now().toString)
+
+      val rejectReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, rejectMetadata)
+      rejectReq.getContext.put("identifier", transcriptNode.getIdentifier)
+
+      DataNode.update(rejectReq).flatMap { _ =>
+        syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel).map { _ =>
+          ResponseHandler.OK
+            .put(ContentConstants.IDENTIFIER, contentIdentifier)
+            .put("transcriptId", transcriptNode.getIdentifier)
+            .put("message", "Transcript rejected. Status reset to Draft.")
+        }
+      }
     }
   }
 
@@ -301,7 +361,6 @@ object TranscriptManager {
             throw new ClientException("ERR_TRANSCRIPT_IN_PROGRESS",
               s"A transcription job is already $status for this content.")
 
-          // Draft or Failed — reset to Draft, clear errorMessage, re-trigger.
           val resetMetadata = new util.HashMap[String, AnyRef]()
           resetMetadata.put("status", "Draft")
           resetMetadata.put("errorMessage", null)
@@ -379,6 +438,39 @@ object TranscriptManager {
     }
   }
 
+  // Absorbed from ai-pipeline's enrichment-router, which used to create this
+  // node directly via JanusGraph (no HTTP API previously supported creating
+  // a Draft for anything but the source language). language is the caller's
+  // own display-name lookup (e.g. "Hindi") — passed in rather than
+  // duplicated here, since the job already needs that mapping for its own
+  // purposes and this avoids maintaining the same language-code table twice.
+  private def createTargetDraft(request: Request, contentNode: Node, enrichmentNode: Node, languageCode: String)
+                                (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val contentIdentifier = contentNode.getIdentifier
+    val channel = contentNode.getMetadata.getOrDefault("channel", "").asInstanceOf[String]
+    val language = request.getRequest.getOrDefault("language", "").asInstanceOf[String]
+
+    readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
+      findTranscriptByLanguage(transcripts, languageCode) match {
+        case Some(existing) =>
+          Future.successful(
+            ResponseHandler.OK
+              .put(ContentConstants.IDENTIFIER, contentIdentifier)
+              .put("transcriptId", existing.getIdentifier)
+              .put("message", "Transcript already exists for this language.")
+          )
+        case None =>
+          createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode,
+            sourceLanguage = false, language = language).map { transcriptNode =>
+            ResponseHandler.OK
+              .put(ContentConstants.IDENTIFIER, contentIdentifier)
+              .put("transcriptId", transcriptNode.getIdentifier)
+              .put("message", "Draft transcript created.")
+          }
+      }
+    }
+  }
+
   private def maybeBackfill(contentIdentifier: String, enrichmentId: String, transcriptId: String,
                              artifactUrl: String, mimeType: String, contentStatus: String, channel: String): Unit = {
     // Content already Live: router will never see a publish event for it, so
@@ -390,7 +482,10 @@ object TranscriptManager {
 
   // ===================== Enrichment / Transcript node helpers =====================
 
-  private def findOrCreateEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+  // Public: ContentActor's generic object/{create,update,approve,reject}
+  // dispatch calls this directly before handing off to whichever
+  // EnrichmentObjectHandler matches the request's objectType.
+  def findOrCreateEnrichment(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     readEnrichmentForContent(contentNode).flatMap {
       case Some(existing) => Future.successful(existing)
       case None =>
@@ -429,7 +524,9 @@ object TranscriptManager {
     }
   }
 
-  private def readEnrichmentForContent(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[Node]] = {
+  // Public: also called directly from ContentActor's generic object/
+  // {update,approve,reject} dispatch before it knows which handler to use.
+  def readEnrichmentForContent(contentNode: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[Node]] = {
     val enrichmentRel = Option(contentNode.getOutRelations).map(_.asScala).getOrElse(Seq())
       .find(r => StringUtils.equalsIgnoreCase(r.getRelationType, "associatedTo") &&
         StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, ENRICHMENT_OBJECT_TYPE))
@@ -476,7 +573,8 @@ object TranscriptManager {
     }
   }
 
-  private def createTranscriptChildNode(contentIdentifier: String, enrichmentIdentifier: String, channel: String, languageCode: String, sourceLanguage: Boolean)
+  private def createTranscriptChildNode(contentIdentifier: String, enrichmentIdentifier: String, channel: String, languageCode: String,
+                                         sourceLanguage: Boolean, language: String = "")
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val identifier = Identifier.getIdentifier(GRAPH_ID, Identifier.getUniqueIdFromTimestamp)
     val metadata = new util.HashMap[String, AnyRef]()
@@ -488,7 +586,7 @@ object TranscriptManager {
     metadata.put("code", s"${contentIdentifier}_${if (StringUtils.isNotBlank(languageCode)) languageCode else "source"}")
     metadata.put("channel", channel)
     metadata.put("languageCode", languageCode)
-    metadata.put("language", "")
+    metadata.put("language", language)
     metadata.put("sourceLanguage", sourceLanguage.asInstanceOf[AnyRef])
     metadata.put("status", "Draft")
     val createReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, metadata)
@@ -571,6 +669,27 @@ object TranscriptManager {
           else if (StringUtils.equalsIgnoreCase(status, "Failed") && !allowFailedLanguages) false
           else true
         }
+    }
+  }
+
+  // Shared by approveObject and updateObject's completion/failure paths — a
+  // Transcript status change is exactly when Enrichment.transcripts needs
+  // re-syncing and the ECAR readiness check needs re-running, regardless of
+  // whether the status change came from a human approval or a job report.
+  private def syncAndMaybeBuildEcar(contentIdentifier: String, enrichmentNode: Node, channel: String)
+                                    (implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Unit] = {
+    syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel).flatMap { transcripts =>
+      val allowFailed = Platform.getBoolean(ALLOW_FAILED_LANGUAGES_KEY, true)
+      if (isEcarReady(transcripts, allowFailed))
+        buildAndUploadEcar(contentIdentifier, enrichmentNode, transcripts).map { ecarUrl =>
+          val urlMetadata = new util.HashMap[String, AnyRef]()
+          urlMetadata.put("transcriptUrl", ecarUrl)
+          val urlReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, urlMetadata)
+          urlReq.getContext.put("identifier", enrichmentNode.getIdentifier)
+          DataNode.update(urlReq)
+          ()
+        }
+      else Future.successful(())
     }
   }
 
