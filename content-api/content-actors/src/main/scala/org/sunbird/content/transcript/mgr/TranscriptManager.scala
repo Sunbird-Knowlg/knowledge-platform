@@ -182,7 +182,7 @@ object TranscriptManager {
         s"Transcript must be in Review status to edit (currently $status).")
 
     val languageCode = transcriptNode.getMetadata.getOrDefault("languageCode", "en").asInstanceOf[String]
-    val transcriptJson = buildTranscriptJson(transcriptId, languageCode, segments)
+    val transcriptJson = buildTranscriptJson(segments)
     val vttContent = buildVttContent(segments)
 
     Future {
@@ -873,15 +873,22 @@ object TranscriptManager {
 
   // ===================== VTT / transcript.json builders (unchanged logic) =====================
 
-  private def buildTranscriptJson(identifier: String, lang: String, segments: util.List[util.Map[String, AnyRef]]): String = {
+  // Shape must match ai-pipeline's AI-generated transcript.json exactly
+  // (sunbird_ai_core.segment.Segment: {id: int, start: float, end: float,
+  // text: str}) — this JSON is read back by multilingual_function.py's
+  // segments_from_dicts whenever a human-edited transcript becomes the
+  // multilingual source. Previously this wrote start/end as quoted strings
+  // and omitted "id" entirely, which crashed that parser with KeyError('id').
+  private def buildTranscriptJson(segments: util.List[util.Map[String, AnyRef]]): String = {
     val sb = new StringBuilder
-    sb.append(s"""{"identifier":"$identifier","language":"$lang","generatedBy":"human-edited","segments":[""")
+    sb.append("""{"segments":[""")
     val segList = segments.asScala
     segList.zipWithIndex.foreach { case (seg, idx) =>
-      val start = seg.getOrDefault("start", "").toString
-      val end = seg.getOrDefault("end", "").toString
+      val id = seg.getOrDefault("id", idx.asInstanceOf[AnyRef]).toString.toDouble.toInt
+      val start = seg.getOrDefault("start", "0").toString.toDouble
+      val end = seg.getOrDefault("end", "0").toString.toDouble
       val text = escapeJson(seg.getOrDefault("text", "").asInstanceOf[String])
-      sb.append(s"""{"start":"$start","end":"$end","text":"$text"}""")
+      sb.append(s"""{"id":$id,"start":$start,"end":$end,"text":"$text"}""")
       if (idx < segList.size - 1) sb.append(",")
     }
     sb.append("]}")
