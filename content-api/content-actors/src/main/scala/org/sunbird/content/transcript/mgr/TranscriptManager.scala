@@ -3,7 +3,7 @@ package org.sunbird.content.transcript.mgr
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{JsonUtils, Platform}
+import org.sunbird.common.{JsonUtils, Platform, SafeUrlValidator}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.util.ContentConstants
@@ -186,8 +186,8 @@ object TranscriptManager {
     val vttContent = buildVttContent(segments)
 
     Future {
-      val (transcriptUrl, captionsUrl) = uploadTranscriptFiles(contentIdentifier, languageCode, transcriptJson, vttContent)
-
+      uploadTranscriptFiles(contentIdentifier, languageCode, transcriptJson, vttContent)
+    }.flatMap { case (transcriptUrl, captionsUrl) =>
       val updateMetadata = new util.HashMap[String, AnyRef]()
       updateMetadata.put("artifactUrl", transcriptUrl)
       updateMetadata.put("captionsUrl", captionsUrl)
@@ -196,12 +196,15 @@ object TranscriptManager {
 
       val updateReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, updateMetadata)
       updateReq.getContext.put("identifier", transcriptId)
-      DataNode.update(updateReq)
 
-      ResponseHandler.OK
-        .put(ContentConstants.IDENTIFIER, contentIdentifier)
-        .put("transcriptId", transcriptId)
-        .put("message", "Transcript updated.")
+      // Awaited so a failed write (validation/DB error) reports as an error
+      // response instead of a false "Transcript updated." success.
+      DataNode.update(updateReq).map { _ =>
+        ResponseHandler.OK
+          .put(ContentConstants.IDENTIFIER, contentIdentifier)
+          .put("transcriptId", transcriptId)
+          .put("message", "Transcript updated.")
+      }
     }
   }
 
@@ -374,19 +377,20 @@ object TranscriptManager {
               .put("message", "Transcription request accepted.")
           }
         case None =>
-          createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true,
-            existingChildIds = transcripts.map(_.getIdentifier)).map { transcriptNode =>
+          createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode = "", sourceLanguage = true)
+            .flatMap { transcriptNode =>
             val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
             aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
             val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
             enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-            DataNode.update(enrichmentReq)
 
-            maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, transcriptNode.getIdentifier, artifactUrl, mimeType, contentStatus, channel)
-            ResponseHandler.OK
-              .put(ContentConstants.IDENTIFIER, contentIdentifier)
-              .put("transcriptId", transcriptNode.getIdentifier)
-              .put("message", "Transcription request accepted.")
+            DataNode.update(enrichmentReq).map { _ =>
+              maybeBackfill(contentIdentifier, enrichmentNode.getIdentifier, transcriptNode.getIdentifier, artifactUrl, mimeType, contentStatus, channel)
+              ResponseHandler.OK
+                .put(ContentConstants.IDENTIFIER, contentIdentifier)
+                .put("transcriptId", transcriptNode.getIdentifier)
+                .put("message", "Transcription request accepted.")
+            }
           }
       }
     }
@@ -399,42 +403,64 @@ object TranscriptManager {
     if (StringUtils.isBlank(languageCode))
       throw new ClientException("ERR_MISSING_LANGUAGE_CODE", "languageCode is required for a VTT upload.")
 
-    val vttFile: File = request.getRequest.get("file") match {
-      case f: File => f
-      case _ => throw new ClientException("ERR_MISSING_FILE", "A VTT file is required for upload mode.")
+    // isUpload (createObject, above) triggers on either "file" (a real
+    // multipart upload) or "fileUrl" (a plain JSON body naming a remote VTT
+    // to fetch instead) - both must be handled here, or a fileUrl-only
+    // request always falls through to ERR_MISSING_FILE despite passing the
+    // isUpload check that routed it here in the first place.
+    val (vttFile, isDownloaded) = request.getRequest.get("file") match {
+      case f: File => (f, false)
+      case _ =>
+        val fileUrl = request.getRequest.getOrDefault("fileUrl", "").asInstanceOf[String]
+        if (StringUtils.isBlank(fileUrl))
+          throw new ClientException("ERR_MISSING_FILE", "A VTT file or fileUrl is required for upload mode.")
+        SafeUrlValidator.validate(fileUrl)
+        val downloaded = File.createTempFile("transcript_upload_", ".vtt")
+        FileUtils.copyURLToFile(new URL(fileUrl), downloaded)
+        (downloaded, true)
     }
 
     readTranscriptChildren(enrichmentNode).flatMap { transcripts =>
       val transcriptNodeFuture: Future[Node] = findTranscriptByLanguage(transcripts, languageCode) match {
         case Some(t) => Future.successful(t)
-        case None => createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false,
-          existingChildIds = transcripts.map(_.getIdentifier))
+        case None => createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode, sourceLanguage = false)
       }
 
       transcriptNodeFuture.flatMap { transcriptNode =>
         Future {
-          val folderPath = s"${Platform.getString(CONTENT_FOLDER, "content")}/$contentIdentifier/transcripts/$languageCode"
-          val uploadResult = ss.uploadFile(folderPath, vttFile, Option(false))
-          val captionsUrl = uploadResult(1)
-
+          try {
+            val folderPath = s"${Platform.getString(CONTENT_FOLDER, "content")}/$contentIdentifier/transcripts/$languageCode"
+            ss.uploadFile(folderPath, vttFile, Option(false))(1)
+          } finally {
+            // Only the fileUrl branch's own downloaded temp file - a real
+            // multipart "file" is the caller's (requestObjectFormData's) to
+            // clean up, not ours.
+            if (isDownloaded) vttFile.delete()
+          }
+        }.flatMap { captionsUrl =>
           val updateMetadata = new util.HashMap[String, AnyRef]()
           updateMetadata.put("captionsUrl", captionsUrl)
           updateMetadata.put("generatedBy", "human-uploaded")
           updateMetadata.put("status", "Review")
           val updateReq = buildTypedRequest(TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME, channel, updateMetadata)
           updateReq.getContext.put("identifier", transcriptNode.getIdentifier)
-          DataNode.update(updateReq)
 
-          val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
-          aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
-          val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
-          enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-          DataNode.update(enrichmentReq)
+          // Both writes below must be awaited before responding OK - a
+          // caller acting on "pending review" while the write silently
+          // failed would be misled into thinking the upload succeeded.
+          DataNode.update(updateReq).flatMap { _ =>
+            val aiFeaturesMetadata = new util.HashMap[String, AnyRef]()
+            aiFeaturesMetadata.put("aiFeatures", util.Arrays.asList("transcript"))
+            val enrichmentReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, aiFeaturesMetadata)
+            enrichmentReq.getContext.put("identifier", enrichmentNode.getIdentifier)
 
-          ResponseHandler.OK
-            .put(ContentConstants.IDENTIFIER, contentIdentifier)
-            .put("transcriptId", transcriptNode.getIdentifier)
-            .put("message", "Transcript uploaded and pending review.")
+            DataNode.update(enrichmentReq).map { _ =>
+              ResponseHandler.OK
+                .put(ContentConstants.IDENTIFIER, contentIdentifier)
+                .put("transcriptId", transcriptNode.getIdentifier)
+                .put("message", "Transcript uploaded and pending review.")
+            }
+          }
         }
       } andThen { case _ => syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel) }
     }
@@ -463,7 +489,7 @@ object TranscriptManager {
           )
         case None =>
           createTranscriptChildNode(contentIdentifier, enrichmentNode.getIdentifier, channel, languageCode,
-            sourceLanguage = false, language = language, existingChildIds = transcripts.map(_.getIdentifier)).map { transcriptNode =>
+            sourceLanguage = false, language = language).map { transcriptNode =>
             ResponseHandler.OK
               .put(ContentConstants.IDENTIFIER, contentIdentifier)
               .put("transcriptId", transcriptNode.getIdentifier)
@@ -576,7 +602,7 @@ object TranscriptManager {
   }
 
   private def createTranscriptChildNode(contentIdentifier: String, enrichmentIdentifier: String, channel: String, languageCode: String,
-                                         sourceLanguage: Boolean, language: String = "", existingChildIds: Seq[String] = Seq())
+                                         sourceLanguage: Boolean, language: String = "")
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val identifier = Identifier.getIdentifier(GRAPH_ID, Identifier.getUniqueIdFromTimestamp)
     val metadata = new util.HashMap[String, AnyRef]()
@@ -609,14 +635,28 @@ object TranscriptManager {
       // removed. So every sibling Transcript's identifier must be resent
       // here alongside the new one, or adding a second/third language wipes
       // every previously-linked Transcript from Enrichment.transcripts.
-      val enrichmentRelMetadata = new util.HashMap[String, AnyRef]()
-      val allChildIds = existingChildIds :+ transcriptNode.getIdentifier
-      enrichmentRelMetadata.put("transcripts", allChildIds.map(id => new util.HashMap[String, AnyRef]() {
-        put("identifier", id)
-      }).asJava)
-      val enrichmentUpdateReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, enrichmentRelMetadata)
-      enrichmentUpdateReq.getContext.put("identifier", enrichmentIdentifier)
-      DataNode.update(enrichmentUpdateReq).map(_ => transcriptNode)
+      //
+      // Re-reads the Enrichment node fresh right here instead of trusting a
+      // childIds snapshot the caller read earlier in the same request —
+      // narrows (does not fully eliminate) a real race where two concurrent
+      // creates for different languageCodes each start from the same stale
+      // snapshot and the second write drops the first's newly-linked
+      // Transcript. Closing this fully needs real locking (e.g. a
+      // per-Enrichment lock or an optimistic-concurrency retry), not
+      // attempted here.
+      readTypedNode(enrichmentIdentifier, ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME).flatMap { freshEnrichmentNode =>
+        val freshChildIds = Option(freshEnrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
+          .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
+          .map(_.getEndNodeId)
+        val allChildIds = (freshChildIds :+ transcriptNode.getIdentifier).distinct
+        val enrichmentRelMetadata = new util.HashMap[String, AnyRef]()
+        enrichmentRelMetadata.put("transcripts", allChildIds.map(id => new util.HashMap[String, AnyRef]() {
+          put("identifier", id)
+        }).asJava)
+        val enrichmentUpdateReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, enrichmentRelMetadata)
+        enrichmentUpdateReq.getContext.put("identifier", enrichmentIdentifier)
+        DataNode.update(enrichmentUpdateReq).map(_ => transcriptNode)
+      }
     }
   }
 
@@ -647,7 +687,7 @@ object TranscriptManager {
     val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
       .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
 
-    Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME))).map { nodes =>
+    Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME))).flatMap { nodes =>
       val snapshot: util.List[util.Map[String, AnyRef]] = nodes.map { n =>
         val m: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
         relationFields.foreach(f => m.put(f, n.getMetadata.get(f)))
@@ -659,13 +699,15 @@ object TranscriptManager {
       syncMetadata.put("lastUpdatedOn", Instant.now().toString)
       val syncReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, syncMetadata)
       syncReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-      DataNode.update(syncReq)
 
-      snapshot
+      // Awaited - callers (isEcarReady's caller, readEnrichment) must see
+      // this write actually land before observing the returned snapshot as
+      // authoritative.
+      DataNode.update(syncReq).map(_ => snapshot)
     }
   }
 
-  private def isEcarReady(transcripts: util.List[util.Map[String, AnyRef]], allowFailedLanguages: Boolean): Boolean = {
+  private[mgr] def isEcarReady(transcripts: util.List[util.Map[String, AnyRef]], allowFailedLanguages: Boolean): Boolean = {
     if (transcripts.isEmpty) return false
     val ts = transcripts.asScala
     val sourceOpt = ts.find(t => toBool(t.getOrDefault("sourceLanguage", java.lang.Boolean.FALSE)))
@@ -691,13 +733,12 @@ object TranscriptManager {
     syncEnrichmentTranscripts(enrichmentNode.getIdentifier, channel).flatMap { transcripts =>
       val allowFailed = Platform.getBoolean(ALLOW_FAILED_LANGUAGES_KEY, true)
       if (isEcarReady(transcripts, allowFailed))
-        buildAndUploadEcar(contentIdentifier, enrichmentNode, transcripts).map { ecarUrl =>
+        buildAndUploadEcar(contentIdentifier, enrichmentNode, transcripts).flatMap { ecarUrl =>
           val urlMetadata = new util.HashMap[String, AnyRef]()
           urlMetadata.put("transcriptUrl", ecarUrl)
           val urlReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, urlMetadata)
           urlReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-          DataNode.update(urlReq)
-          ()
+          DataNode.update(urlReq).map(_ => ())
         }
       else Future.successful(())
     }
@@ -811,7 +852,17 @@ object TranscriptManager {
 
     val topic = Platform.getString(TRANSCRIPTION_TOPIC_KEY, DEFAULT_TRANSCRIPTION_TOPIC)
     TelemetryManager.info(s"Pushing media transcription request for $contentId to topic $topic")
-    kfClient.send(JsonUtils.serialize(event), topic)
+    // Isolated: this runs after the DB write it announces has already
+    // succeeded (see maybeBackfill's caller) - a broker hiccup here must not
+    // surface as a failure response for a request whose actual state change
+    // already landed, since a client retry would then hit
+    // ERR_TRANSCRIPT_IN_PROGRESS and mask that the original call worked.
+    try {
+      kfClient.send(JsonUtils.serialize(event), topic)
+    } catch {
+      case e: Exception =>
+        TelemetryManager.error(s"Failed to push media transcription request for $contentId to topic $topic: ${e.getMessage}", e)
+    }
   }
 
   // Consumed by enrichment-router as sunbird_ai_core.kafka.event_schemas.EnrichedMetadataEvent
@@ -828,7 +879,17 @@ object TranscriptManager {
 
     val topic = Platform.getString(ENRICHED_METADATA_TOPIC_KEY, DEFAULT_ENRICHED_METADATA_TOPIC)
     TelemetryManager.info(s"Pushing enriched.metadata (Transcript approved) for $transcriptId to topic $topic")
-    kfClient.send(JsonUtils.serialize(event), topic)
+    // Isolated for the same reason as pushTranscriptionRequestEvent above -
+    // this runs after the Transcript's status has already flipped to Live
+    // and synced; a broker hiccup here must not turn that already-successful
+    // write into a 5xx (a retry would then hit ERR_TRANSCRIPT_NOT_IN_REVIEW,
+    // masking that the original approve/complete call actually succeeded).
+    try {
+      kfClient.send(JsonUtils.serialize(event), topic)
+    } catch {
+      case e: Exception =>
+        TelemetryManager.error(s"Failed to push enriched.metadata approved event for $transcriptId to topic $topic: ${e.getMessage}", e)
+    }
   }
 
   // ===================== generic node request/read helpers =====================
@@ -879,7 +940,7 @@ object TranscriptManager {
   // segments_from_dicts whenever a human-edited transcript becomes the
   // multilingual source. Previously this wrote start/end as quoted strings
   // and omitted "id" entirely, which crashed that parser with KeyError('id').
-  private def buildTranscriptJson(segments: util.List[util.Map[String, AnyRef]]): String = {
+  private[mgr] def buildTranscriptJson(segments: util.List[util.Map[String, AnyRef]]): String = {
     val sb = new StringBuilder
     sb.append("""{"segments":[""")
     val segList = segments.asScala
@@ -887,7 +948,10 @@ object TranscriptManager {
       val id = seg.getOrDefault("id", idx.asInstanceOf[AnyRef]).toString.toDouble.toInt
       val start = seg.getOrDefault("start", "0").toString.toDouble
       val end = seg.getOrDefault("end", "0").toString.toDouble
-      val text = escapeJson(seg.getOrDefault("text", "").asInstanceOf[String])
+      // getOrDefault only substitutes when the key is absent - an explicit
+      // "text": null segment still returns null here, and escapeJson(null)
+      // NPEs on String.replace. Option(...) catches that case too.
+      val text = escapeJson(Option(seg.get("text")).map(_.asInstanceOf[String]).getOrElse(""))
       sb.append(s"""{"id":$id,"start":$start,"end":$end,"text":"$text"}""")
       if (idx < segList.size - 1) sb.append(",")
     }
@@ -895,19 +959,19 @@ object TranscriptManager {
     sb.toString()
   }
 
-  private def buildVttContent(segments: util.List[util.Map[String, AnyRef]]): String = {
+  private[mgr] def buildVttContent(segments: util.List[util.Map[String, AnyRef]]): String = {
     val sb = new StringBuilder
     sb.append("WEBVTT\n\n")
     segments.asScala.zipWithIndex.foreach { case (seg, idx) =>
       val start = formatVttTimestamp(seg.getOrDefault("start", "0").toString)
       val end = formatVttTimestamp(seg.getOrDefault("end", "0").toString)
-      val text = seg.getOrDefault("text", "").asInstanceOf[String]
+      val text = Option(seg.get("text")).map(_.asInstanceOf[String]).getOrElse("")
       sb.append(s"${idx + 1}\n$start --> $end\n$text\n\n")
     }
     sb.toString()
   }
 
-  private def formatVttTimestamp(seconds: String): String = {
+  private[mgr] def formatVttTimestamp(seconds: String): String = {
     try {
       val totalSecs = seconds.toDouble
       val h = (totalSecs / 3600).toInt
@@ -920,7 +984,7 @@ object TranscriptManager {
     }
   }
 
-  private def escapeJson(s: String): String =
+  private[mgr] def escapeJson(s: String): String =
     s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r")
 
   private def writeToTempFile(fileName: String, content: String): File = {
@@ -931,7 +995,7 @@ object TranscriptManager {
     file
   }
 
-  private def toBool(v: AnyRef): Boolean = v match {
+  private[mgr] def toBool(v: AnyRef): Boolean = v match {
     case jb: java.lang.Boolean => jb.booleanValue()
     case s: String => s.equalsIgnoreCase("true")
     case _ => false
