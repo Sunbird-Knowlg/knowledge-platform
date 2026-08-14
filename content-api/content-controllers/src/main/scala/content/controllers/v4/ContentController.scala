@@ -6,6 +6,7 @@ import com.google.inject.Singleton
 import content.controllers.BaseController
 import content.utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
+import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.models.UploadParams
 import play.api.mvc.{AnyContent, ControllerComponents, Request}
@@ -204,7 +205,8 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
             }
             if (multipartData.files.nonEmpty) {
                 val filePart = multipartData.files.head
-                val file = new java.io.File("/tmp" + java.io.File.separator + identifier + "_" + System.currentTimeMillis + "_" + filePart.filename)
+                val tempLocation = Platform.getString("content.upload.temp_location", "/tmp/content")
+                val file = new java.io.File(tempLocation + java.io.File.separator + identifier + "_" + System.currentTimeMillis + "_" + filePart.filename)
                 filePart.ref.copyTo(file, replace = false)
                 reqMap.put("file", file)
             }
