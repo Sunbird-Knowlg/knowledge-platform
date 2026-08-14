@@ -23,7 +23,7 @@ class EventSpec extends BaseSpec {
 
         "return success response for read API" in {
             val controller = app.injector.instanceOf[EventController]
-            val result = controller.read("do_123", None, None)(FakeRequest("POST", "/event/v4/read "))
+            val result = controller.read("do_123", None, None, None)(FakeRequest("POST", "/event/v4/read "))
             isOK(result)
             status(result) must equalTo(OK)
         }

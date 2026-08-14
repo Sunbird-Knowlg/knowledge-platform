@@ -11,9 +11,11 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition, ObjectCategoryDefinitionMap}
+import org.sunbird.schema.SchemaValidatorFactory
 
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
@@ -155,9 +157,18 @@ object NodeUtil {
         else value
     }
 
-    // TODO: we should get the list from configuration.
     private def relationObjectAttributes(objectType: String): List[String] = {
-      if (StringUtils.equalsAnyIgnoreCase("framework", objectType)) List("description", "status", "type") else List("description", "status")
+      val default = if (StringUtils.equalsAnyIgnoreCase("framework", objectType)) List("description", "status", "type") else List("description", "status")
+      // Reads relationFields from the related object type's config.json (e.g. Transcript, Enrichment).
+      // Falls back to the hardcoded default for any object type without relationFields defined, or
+      // if the schema fetch itself fails for any reason — must never break relation traversal for
+      // existing object types that predate this convention.
+      Try {
+        val validator = SchemaValidatorFactory.getInstance(objectType.toLowerCase, "1.0")
+        if (validator.getConfig.hasPath("relationFields"))
+          validator.getConfig.getStringList("relationFields").asScala.toList
+        else default
+      }.getOrElse(default)
     }
 
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {
