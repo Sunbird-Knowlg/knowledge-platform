@@ -126,8 +126,10 @@ object TranscriptManager {
               relationDefMap.getOrElse(relKey, r.getEndNodeObjectType).asInstanceOf[String]
             }.foreach { case (fieldName, pairs) =>
               if (requestedKeys.forall(_.contains(fieldName)))
-                // Replaces whatever stale snapshot syncEnrichmentTranscriptsFromNode
-                // last wrote under this same key with the live data just read.
+                // Reconstructed fresh from the real relation every call -
+                // syncEnrichmentTranscriptsFromNode computes an equivalent
+                // snapshot in-memory but never persists it (see its own
+                // comment), so there's no stale stored value to worry about.
                 enrichmentMetadata.put(fieldName, pairs.map { case (_, node) =>
                   val childMetadata = new util.HashMap[String, AnyRef](node.getMetadata)
                   childMetadata.put("identifier", node.getIdentifier)
@@ -663,10 +665,18 @@ object TranscriptManager {
   /** Re-reads the Enrichment node itself fresh (never trusts a caller-held
    * in-memory Node — it may predate a relation just added by this same
    * request, e.g. a Transcript child created moments earlier), then
-   * re-reads every Transcript child fresh too, and writes the
-   * relationFields-scoped snapshot back onto Enrichment.transcripts — same
-   * denormalization the Python jobs' sync_enrichment_transcripts performs,
-   * kept consistent across both sides.
+   * re-reads every Transcript child fresh and returns a relationFields-
+   * scoped in-memory snapshot (for isEcarReady's caller) — this is NOT
+   * persisted back onto the Enrichment node. "transcripts" is the actual
+   * graph relation name (Enrichment's config.json: relations.transcripts,
+   * direction out, objects [Transcript]); a snapshot entry here has no
+   * "identifier" key (only denormalized metadata fields), so writing it
+   * under that same key gets misread as a relation-set update whose
+   * entries can't resolve an end node, NPEing in
+   * AssociationRelation.validate. Live reads (readEnrichment /
+   * fetchEnrichmentMetadata) already reconstruct the equivalent view
+   * fresh from the real relation each time, so nothing needs this
+   * persisted.
    */
   private def syncEnrichmentTranscripts(enrichmentIdentifier: String, channel: String)
                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
@@ -687,23 +697,12 @@ object TranscriptManager {
     val transcriptRelations = Option(enrichmentNode.getOutRelations).map(_.asScala.toSeq).getOrElse(Seq())
       .filter(r => StringUtils.equalsIgnoreCase(r.getEndNodeObjectType, TRANSCRIPT_OBJECT_TYPE))
 
-    Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME))).flatMap { nodes =>
-      val snapshot: util.List[util.Map[String, AnyRef]] = nodes.map { n =>
+    Future.sequence(transcriptRelations.map(rel => readTypedNode(rel.getEndNodeId, TRANSCRIPT_OBJECT_TYPE, TRANSCRIPT_SCHEMA_NAME))).map { nodes =>
+      nodes.map { n =>
         val m: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]()
         relationFields.foreach(f => m.put(f, n.getMetadata.get(f)))
         m
       }.asJava
-
-      val syncMetadata = new util.HashMap[String, AnyRef]()
-      syncMetadata.put("transcripts", snapshot)
-      syncMetadata.put("lastUpdatedOn", Instant.now().toString)
-      val syncReq = buildTypedRequest(ENRICHMENT_OBJECT_TYPE, ENRICHMENT_SCHEMA_NAME, channel, syncMetadata)
-      syncReq.getContext.put("identifier", enrichmentNode.getIdentifier)
-
-      // Awaited - callers (isEcarReady's caller, readEnrichment) must see
-      // this write actually land before observing the returned snapshot as
-      // authoritative.
-      DataNode.update(syncReq).map(_ => snapshot)
     }
   }
 
