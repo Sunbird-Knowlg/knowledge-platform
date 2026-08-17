@@ -12,7 +12,7 @@ trait RedisConnector {
 	private val HOST = Platform.getString("redis.host", "localhost")
 	private val PORT = Platform.getInteger("redis.port", 6379)
 	private val MAX_CONNECTIONS = Platform.getInteger("redis.maxConnections", 128)
-	private val INDEX = Platform.getInteger("redis.dbIndex", 0)
+	protected val dbIndex: Int = Platform.getInteger("redis.dbIndex", 0)
 	private val PASSWORD: String = Platform.getString("redis.password", "")
 	protected val isEnabled: Boolean = Platform.getBoolean("redis.enable", false)
 
@@ -42,7 +42,7 @@ trait RedisConnector {
 	 */
 	protected def getConnection: Jedis = if (!isEnabled) null else {
 		val jedis = jedisPool.getResource
-		if (INDEX > 0) jedis.select(INDEX)
+		if (dbIndex > 0) jedis.select(dbIndex)
 		jedis
 	}
 
