@@ -27,6 +27,7 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
                         val manifestXml  = getSecureXml(manifestFile)
                         val scormVersion = detectScormVersion(manifestXml)
                         val scoList      = getScoList(manifestXml, scormVersion)
+                        val maxAttempts  = detectMaxAttempts(manifestXml, scormVersion)
 
                         if (scoList.isEmpty)
                             throw new ClientException("ERR_INVALID_FILE", "No SCOs found in imsmanifest.xml!")
@@ -48,17 +49,17 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
                         
                         extractPackageInCloud(objectId, uploadFile, node, "snapshot", false)
 
-                        Future(
-                            Map[String, AnyRef](
-                                "identifier"   -> objectId,
-                                "artifactUrl"  -> urls(IDX_S3_URL),
-                                "s3Key"        -> urls(IDX_S3_KEY),
-                                "size"         -> getFileSize(uploadFile).asInstanceOf[AnyRef],
-                                "launchFile"   -> launchFile,
-                                "scoList"      -> javaScoList,
-                                "scormVersion" -> scormVersion
-                            )
+                        val baseResult = Map[String, AnyRef](
+                            "identifier"   -> objectId,
+                            "artifactUrl"  -> urls(IDX_S3_URL),
+                            "s3Key"        -> urls(IDX_S3_KEY),
+                            "size"         -> getFileSize(uploadFile).asInstanceOf[AnyRef],
+                            "launchFile"   -> launchFile,
+                            "scoList"      -> javaScoList,
+                            "scormVersion" -> scormVersion
                         )
+
+                        Future(maxAttempts.fold(baseResult)(limit => baseResult + ("maxAttempts" -> limit.asInstanceOf[AnyRef])))
 
                     } else {
                         TelemetryManager.error("ERR_INVALID_FILE:: Invalid SCORM package: imsmanifest.xml not found for objectId: " + objectId)
@@ -88,6 +89,12 @@ class ScormMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMana
                 throw new ClientException("ERR_INVALID_FILE",
                     "Unsupported SCORM version. Only SCORM 1.2 and SCORM 2004 are supported.")
         }
+    }
+
+    private def detectMaxAttempts(xml: Elem, scormVersion: String): Option[Int] = {
+        if (scormVersion != "2004") None
+        else (xml \\ "limitConditions").flatMap(_.attribute("attemptLimit").map(_.text.trim)).headOption
+            .flatMap(v => scala.util.Try(v.toInt).toOption)
     }
 
 private def getValidatedLaunchFile(extractionBasePath: String, launchFile: String): String = {
