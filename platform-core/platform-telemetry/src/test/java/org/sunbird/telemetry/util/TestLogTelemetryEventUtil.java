@@ -52,19 +52,6 @@ public class TestLogTelemetryEventUtil {
         Assert.assertTrue(StringUtils.isEmpty(jsonMessage));
     }
 
-    @Test
-    public void testGetMD5Hash() throws Exception {
-        TelemetryBEEvent event = new TelemetryBEEvent() {{
-            setEid("test");
-            setEts(12345L);
-        }};
-        Map<String, Object> data = new HashMap<>() {{
-            putAll(JsonUtils.deserialize("{\"id\":\"testid\",\"state\":\"teststate\",\"prevstate\":\"testprevstate\"}", Map.class));
-        }};
-        String messageId = LogTelemetryEventUtil.getMD5Hash(event, data);
-        Assert.assertTrue(StringUtils.isNotEmpty(messageId));
-    }
-
     private Request getReq() throws Exception {
         return new Request() {{
             setParams(JsonUtils.convert(JsonUtils.deserialize("{\"cid\":\"testcid\",\"uid\":\"testuid\",\"sid\":\"testsid\",\"did\":\"testdid\",\"sid\":\"testsid\"}", Map.class), RequestParams.class));

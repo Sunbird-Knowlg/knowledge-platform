@@ -66,6 +66,7 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/port: "{{ .Values.jobmanager.prom_port }}"
     spec:
+      automountServiceAccountToken: false
       volumes:
       - name: flink-config-volume
         configMap:
@@ -86,6 +87,13 @@ spec:
       - name: {{ .Release.Name }}-jobmanager
         image: "{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "{{ .Values.jobmanager.cpu_requests }}"
+            memory: "{{ .Values.jobmanager.memory_requests }}"
+          limits:
+            cpu: "{{ .Values.jobmanager.cpu_limits }}"
+            memory: "{{ .Values.jobmanager.memory_limits }}"
         workingDir: /opt/flink
         command: ["/opt/flink/bin/standalone-job.sh"]
         args: ["start-foreground",
@@ -150,6 +158,7 @@ spec:
         app: flink
         component: {{ .Release.Name }}-taskmanager
     spec:
+      automountServiceAccountToken: false
       volumes:
       - name: flink-config-volume
         configMap:
@@ -158,7 +167,7 @@ spec:
           - key: flink-conf
             path: flink-conf.yaml
           - key: log4j_console_properties
-            path: log4j-console.properties 
+            path: log4j-console.properties
 #      imagePullSecrets:
 #      - name: {{ .Values.imagepullsecrets }}
       containers:
@@ -168,6 +177,10 @@ spec:
         resources:
           requests:
             cpu: "{{ .Values.taskmanager.cpu_requests }}"
+            memory: "{{ .Values.taskmanager.memory_requests }}"
+          limits:
+            cpu: "{{ .Values.taskmanager.cpu_limits }}"
+            memory: "{{ .Values.taskmanager.memory_limits }}"
         workingDir: {{ .Values.taskmanager.flink_work_dir }}
         command: ["/opt/flink/bin/taskmanager.sh"]
         args: ["start-foreground",

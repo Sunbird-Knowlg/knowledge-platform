@@ -18,6 +18,11 @@
             <version>1.3.3</version>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.16</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
@@ -85,10 +90,13 @@
             <artifactId>json</artifactId>
             <version>20231013</version>
         </dependency>
+        <!-- Security: CVE-2025-66021 (XSS via noscript tag and improper style-tag
+             sanitization). HtmlSanitizer.RICH_TEXT_POLICY uses .allowStyling(), which is
+             directly in this advisory's affected configuration. -->
         <dependency>
             <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
             <artifactId>owasp-java-html-sanitizer</artifactId>
-            <version>20240325.1</version>
+            <version>20260101.1</version>
         </dependency>
         <dependency>
             <groupId>org.powermock</groupId>

@@ -13,6 +13,7 @@ import org.sunbird.common.exception.MiddlewareException;
 import org.sunbird.common.exception.ResourceNotFoundException;
 import org.sunbird.common.exception.ResponseCode;
 import org.sunbird.common.exception.ServerException;
+import org.sunbird.telemetry.logger.TelemetryManager;
 import scala.Function1;
 import scala.concurrent.Future;
 
@@ -62,10 +63,9 @@ public abstract class BaseActor extends AbstractActor {
             params.setErr(mwException.getErrCode());
             response.put("messages", mwException.getMessages());
         } else {
-            e.printStackTrace();
+            TelemetryManager.error("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage(), e);
             params.setErr("ERR_SYSTEM_EXCEPTION");
         }
-        System.out.println("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage());
         params.setErrmsg(setErrMessage(e));
         response.setParams(params);
         setResponseCode(response, e);

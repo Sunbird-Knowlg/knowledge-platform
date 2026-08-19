@@ -15,8 +15,8 @@
 		<scala.maj.version>2.13</scala.maj.version>
 		<scala.version>2.13.12</scala.version>
 		<scalatest.version>3.0.8</scalatest.version>
-		<fasterxml.jackson.version>2.18.6</fasterxml.jackson.version>
-		<logback.version>1.5.25</logback.version>
+		<fasterxml.jackson.version>2.18.10</fasterxml.jackson.version>
+		<logback.version>1.5.38</logback.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -51,10 +51,20 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- Security: netty-codec GHSA-558v-64gr-wgg4, netty-handler GHSA-3qp7-7mw8-wx86 /
+			     GHSA-c653-97m9-rcg9 / GHSA-x4gw-5cx5-pgmh, netty-codec-http/-http2/-redis/-stomp/
+			     -xml/-haproxy, netty-resolver-dns, netty-handler-ssl-ocsp, netty-transport-sctp
+			     (~111 Dependabot alerts, see CVE-2026-44249/44250/44890/44891/44893/45416/45674/
+			     46340/47691/48006/48059/50010/50011/55831/55833/55851/56745/56817/56819/56820/
+			     56821/56822/59901/59902/73507). Real version constraint here is the DataStax
+			     Cassandra driver / cassandra-unit transport (platform-core/cassandra-connector,
+			     content-api/hierarchy-manager), not Play/Pekko HTTP (Pekko HTTP runs over
+			     pekko-stream TCP and does not use Netty). 4.1.137.Final stays on the same
+			     binary-compatible 4.1.x line. -->
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-bom</artifactId>
-				<version>4.1.133.Final</version>
+				<version>4.1.137.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -73,10 +83,12 @@
 				<artifactId>logback-classic</artifactId>
 				<version>${logback.version}</version>
 			</dependency>
+			<!-- Security: at.yawk.lz4:lz4-java is the maintained fork used in place of the
+			     abandoned org.lz4:lz4-java / net.jpountz.lz4:lz4 (excluded across ~8 modules). -->
 			<dependency>
 				<groupId>at.yawk.lz4</groupId>
 				<artifactId>lz4-java</artifactId>
-				<version>1.10.3</version>
+				<version>1.11.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.xerial.snappy</groupId>
@@ -113,10 +125,16 @@
 				<artifactId>zookeeper</artifactId>
 				<version>3.8.6</version>
 			</dependency>
+			<!-- Security: jackson-databind CVE-2026-54512, CVE-2026-54513 (PolymorphicTypeValidator
+			     bypasses); jackson-core GHSA-r7wm-3cxj-wff9 (async parser maxNumberLength bypass).
+			     BOM import replaces the single jackson-core pin so databind and every other
+			     jackson-* artifact in the graph are pinned together. -->
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
 				<version>${fasterxml.jackson.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -182,6 +200,78 @@
 				<artifactId>cassandra-all</artifactId>
 				<version>3.11.18</version>
 			</dependency>
+			<!-- Security: amqp-client CVE-2026-69219, CVE-2026-63337, CVE-2026-69220
+			     (transitive via janusgraph-core -> metrics-graphite) -->
+			<dependency>
+				<groupId>com.rabbitmq</groupId>
+				<artifactId>amqp-client</artifactId>
+				<version>5.34.0</version>
+			</dependency>
+			<!-- Security: okio-jvm GHSA (transitive via cloud-storage-sdk-azure -> azure-core-http-okhttp) -->
+			<dependency>
+				<groupId>com.squareup.okio</groupId>
+				<artifactId>okio-jvm</artifactId>
+				<version>3.18.1</version>
+			</dependency>
+			<!-- Security: httpcore5 CVE-2026-54399, httpcore5-h2 CVE-2026-54428
+			     (transitive via cloud-storage-sdk-azure) -->
+			<dependency>
+				<groupId>org.apache.httpcomponents.core5</groupId>
+				<artifactId>httpcore5</artifactId>
+				<version>5.4.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.core5</groupId>
+				<artifactId>httpcore5-h2</artifactId>
+				<version>5.4.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents.client5</groupId>
+				<artifactId>httpclient5</artifactId>
+				<version>5.6.4</version>
+			</dependency>
+			<!-- Security: log4j-api (transitive via platform-common -> poi-ooxml). Not
+			     upgraded to log4j 3.x, since that line requires Java 17. -->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>2.25.5</version>
+			</dependency>
+			<!-- Security: async-http-client CVE-2024-53990 (critical), CVE-2026-45300.
+			     Retained as a pin even though the play-specs2/fluentlenium chain that
+			     previously pulled this transitively was removed above, in case another
+			     transitive path resolves it in the future. -->
+			<dependency>
+				<groupId>org.asynchttpclient</groupId>
+				<artifactId>async-http-client</artifactId>
+				<version>2.16.1</version>
+			</dependency>
+			<!-- Security: eclipse jetty-http CVE-2026-2332 (request smuggling). 9.4.58 is
+			     the last release published to Maven Central for the 9.4 line (EOL); the
+			     advisory's fixed version 9.4.60 was never published there. -->
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-http</artifactId>
+				<version>9.4.58.v20250814</version>
+			</dependency>
+			<!-- Security: kafka_2.13 CVE-2025-27818 (transitive via embedded-kafka, test scope) -->
+			<dependency>
+				<groupId>org.apache.kafka</groupId>
+				<artifactId>kafka_2.13</artifactId>
+				<version>3.9.2</version>
+			</dependency>
+			<!-- Security: play-test's Helpers$ references org.openqa.selenium.htmlunit.HtmlUnitDriver
+			     as a static field default (WithBrowser support), so the class must resolve at
+			     Helpers$ class-init even though nothing here uses browser testing - fully
+			     excluding htmlunit-driver (as previously done) throws NoClassDefFoundError on
+			     every specs2 test that touches Helpers. Pin to 4.13.0 instead, which pulls the
+			     patched net.sourceforge.htmlunit:htmlunit 2.70.0 (fixes CVE-2023-26119, was <2.70.0). -->
+			<dependency>
+				<groupId>org.seleniumhq.selenium</groupId>
+				<artifactId>htmlunit-driver</artifactId>
+				<version>4.13.0</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -199,6 +289,40 @@
 					<version>2.5</version>
 					<configuration>
 						<generateBackupPoms>false</generateBackupPoms>
+					</configuration>
+				</plugin>
+				<!-- Security regression guard: declared in pluginManagement only (no
+				     execution bound), so it does NOT run as part of the normal build.
+				     Invoke manually with `mvn enforcer:enforce` to catalogue violations
+				     before wiring it into the build lifecycle. requireUpperBoundDeps
+				     catches a stale hardcoded Netty/Jackson version conflicting with the
+				     root BOM (see the Netty/Jackson consolidation work in this pom);
+				     bannedDependencies hard-blocks the libraries this repo already
+				     excludes by hand in ~8 module poms (org.lz4:lz4-java in favor of
+				     at.yawk.lz4, commons-lang in favor of commons-lang3,
+				     commons-configuration in favor of commons-configuration2,
+				     net.sf.json-lib, and the io.appium browser-testing chain outside
+				     test scope; org.seleniumhq.selenium/net.sourceforge.htmlunit are
+				     pinned to patched versions instead of banned - see the
+				     htmlunit-driver dependencyManagement entry above for why). -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.6.3</version>
+					<configuration>
+						<rules>
+							<requireUpperBoundDeps />
+							<bannedDependencies>
+								<excludes>
+									<exclude>org.lz4:lz4-java</exclude>
+									<exclude>commons-lang:commons-lang</exclude>
+									<exclude>commons-configuration:commons-configuration</exclude>
+									<exclude>net.sf.json-lib:json-lib</exclude>
+									<exclude>io.appium:*</exclude>
+								</excludes>
+								<searchTransitive>true</searchTransitive>
+							</bannedDependencies>
+						</rules>
 					</configuration>
 				</plugin>
 				<plugin>

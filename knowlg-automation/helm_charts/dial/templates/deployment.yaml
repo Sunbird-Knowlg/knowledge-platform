@@ -20,6 +20,7 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
+      automountServiceAccountToken: false
       volumes:
         - name: {{ .Chart.Name }}-config
           configMap:

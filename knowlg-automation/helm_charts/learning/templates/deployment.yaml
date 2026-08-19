@@ -19,6 +19,7 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.repository }}:{{ .Values.image_tag }}"

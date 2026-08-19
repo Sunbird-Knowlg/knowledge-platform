@@ -13,11 +13,14 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: {{ .Chart.Name }}
           image: cassandra:3.11.11
           ports:
             - containerPort: {{ .Values.network.port }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
 ---
 apiVersion: v1
 kind: Service
