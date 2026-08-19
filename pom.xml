@@ -266,6 +266,18 @@
 				<artifactId>kafka_2.13</artifactId>
 				<version>3.9.2</version>
 			</dependency>
+			<!-- Security: play-test's Helpers$ references org.openqa.selenium.htmlunit.HtmlUnitDriver
+			     as a static field default (WithBrowser support), so the class must resolve at
+			     Helpers$ class-init even though nothing here uses browser testing - fully
+			     excluding htmlunit-driver (as previously done) throws NoClassDefFoundError on
+			     every specs2 test that touches Helpers. Pin to 4.13.0 instead, which pulls the
+			     patched net.sourceforge.htmlunit:htmlunit 2.70.0 (fixes CVE-2023-26119, was <2.70.0). -->
+			<dependency>
+				<groupId>org.seleniumhq.selenium</groupId>
+				<artifactId>htmlunit-driver</artifactId>
+				<version>4.13.0</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -295,8 +307,10 @@
 				     excludes by hand in ~8 module poms (org.lz4:lz4-java in favor of
 				     at.yawk.lz4, commons-lang in favor of commons-lang3,
 				     commons-configuration in favor of commons-configuration2,
-				     net.sf.json-lib, and the htmlunit/appium/selenium browser-testing
-				     chain outside test scope). -->
+				     net.sf.json-lib, and the io.appium browser-testing chain outside
+				     test scope; org.seleniumhq.selenium/net.sourceforge.htmlunit are
+				     pinned to patched versions instead of banned - see the
+				     htmlunit-driver dependencyManagement entry above for why). -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-enforcer-plugin</artifactId>
@@ -310,9 +324,7 @@
 									<exclude>commons-lang:commons-lang</exclude>
 									<exclude>commons-configuration:commons-configuration</exclude>
 									<exclude>net.sf.json-lib:json-lib</exclude>
-									<exclude>net.sourceforge.htmlunit:*</exclude>
 									<exclude>io.appium:*</exclude>
-									<exclude>org.seleniumhq.selenium:*</exclude>
 								</excludes>
 								<searchTransitive>true</searchTransitive>
 							</bannedDependencies>
