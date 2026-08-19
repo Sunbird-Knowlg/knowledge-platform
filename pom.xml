@@ -15,7 +15,7 @@
 		<scala.maj.version>2.13</scala.maj.version>
 		<scala.version>2.13.12</scala.version>
 		<scalatest.version>3.0.8</scalatest.version>
-		<fasterxml.jackson.version>2.18.6</fasterxml.jackson.version>
+		<fasterxml.jackson.version>2.18.10</fasterxml.jackson.version>
 		<logback.version>1.5.25</logback.version>
 	</properties>
 	<profiles>
@@ -113,10 +113,16 @@
 				<artifactId>zookeeper</artifactId>
 				<version>3.8.6</version>
 			</dependency>
+			<!-- Security: jackson-databind CVE-2026-54512, CVE-2026-54513 (PolymorphicTypeValidator
+			     bypasses); jackson-core GHSA-r7wm-3cxj-wff9 (async parser maxNumberLength bypass).
+			     BOM import replaces the single jackson-core pin so databind and every other
+			     jackson-* artifact in the graph are pinned together. -->
 			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
 				<version>${fasterxml.jackson.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
