@@ -18,27 +18,40 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Security: secrets/inputs are passed via `env:` rather than interpolated
+    # directly into the script -- a value containing shell metacharacters
+    # (e.g. `$(...)`) injected into a `${{ }}`-substituted string would
+    # otherwise execute as part of this script.
     - run: |
-        case "${{ inputs.registry_provider }}" in
+        case "$REGISTRY_PROVIDER" in
           "gcp")
             echo "Using Google Container Registry"
-            echo "${{ inputs.gcp_service_account_key }}" | base64 --decode > $HOME/gcloud-key.json
-            gcloud auth activate-service-account --key-file=$HOME/gcloud-key.json
-            gcloud auth configure-docker ${{ inputs.registry_name }}
-            REGISTRY_URL=$(echo "${{ inputs.registry_url }}" | tr '[:upper:]' '[:lower:]')
+            echo "$GCP_SERVICE_ACCOUNT_KEY" | base64 --decode > "$HOME/gcloud-key.json"
+            gcloud auth activate-service-account --key-file="$HOME/gcloud-key.json"
+            gcloud auth configure-docker "$REGISTRY_NAME"
+            REGISTRY_URL=$(echo "$REGISTRY_URL_INPUT" | tr '[:upper:]' '[:lower:]')
             ;;
           "azure" | "dockerhub")
             echo "Logging in to Container Registry"
-            echo "${{ inputs.registry_password }}" | docker login ${{ inputs.registry_name }} \
-              --username ${{ inputs.registry_username }} --password-stdin
-            REGISTRY_URL=$(echo "${{ inputs.registry_url }}" | tr '[:upper:]' '[:lower:]')
+            echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY_NAME" \
+              --username "$REGISTRY_USERNAME" --password-stdin
+            REGISTRY_URL=$(echo "$REGISTRY_URL_INPUT" | tr '[:upper:]' '[:lower:]')
             ;;
           *)
             echo "Using GitHub Container Registry (GHCR)"
             REPO_NAME_LOWERCASE=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
-            echo "${{ inputs.github_token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_ACTOR" --password-stdin
             REGISTRY_URL="ghcr.io/$REPO_NAME_LOWERCASE"
             ;;
         esac
-        echo "REGISTRY_URL=${REGISTRY_URL}" >> $GITHUB_ENV
+        echo "REGISTRY_URL=${REGISTRY_URL}" >> "$GITHUB_ENV"
       shell: bash
+      env:
+        REGISTRY_PROVIDER: ${{ inputs.registry_provider }}
+        GCP_SERVICE_ACCOUNT_KEY: ${{ inputs.gcp_service_account_key }}
+        REGISTRY_NAME: ${{ inputs.registry_name }}
+        REGISTRY_URL_INPUT: ${{ inputs.registry_url }}
+        REGISTRY_USERNAME: ${{ inputs.registry_username }}
+        REGISTRY_PASSWORD: ${{ inputs.registry_password }}
+        GH_TOKEN: ${{ inputs.github_token }}
+        GH_ACTOR: ${{ github.actor }}
