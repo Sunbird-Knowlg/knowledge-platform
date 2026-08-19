@@ -213,12 +213,6 @@
 				<artifactId>okio-jvm</artifactId>
 				<version>3.18.1</version>
 			</dependency>
-			<!-- Security: azure-identity (transitive via cloud-storage-sdk-azure) -->
-			<dependency>
-				<groupId>com.azure</groupId>
-				<artifactId>azure-identity</artifactId>
-				<version>1.18.4</version>
-			</dependency>
 			<!-- Security: httpcore5 CVE-2026-54399, httpcore5-h2 CVE-2026-54428
 			     (transitive via cloud-storage-sdk-azure) -->
 			<dependency>
