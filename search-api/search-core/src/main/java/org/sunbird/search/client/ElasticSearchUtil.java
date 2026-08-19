@@ -673,7 +673,7 @@ public class ElasticSearchUtil {
 				try {
 					cleanESClient();
 				} catch (Exception e) {
-					e.printStackTrace();
+					TelemetryManager.error("Failed to clean up ES client on shutdown", e);
 				}
 			}
 		});

@@ -25,6 +25,7 @@ import org.sunbird.graph.utils.{NodeUtil, ScalaJsonUtils}
 import org.sunbird.managers.content.{HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.mimetype.mgr.impl.H5PMimeTypeMgrImpl
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -198,8 +199,8 @@ object CopyManager {
         FileUtils.copyURLToFile(new URL(fileUrl), file)
         file
     } catch {
-        case e: IOException => 
-            e.printStackTrace()
+        case e: IOException =>
+            TelemetryManager.error("Failed to copy URL to file: " + fileUrl, e)
             throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url! URL: " + fileUrl + ", Error: " + e.getMessage)
     }
 

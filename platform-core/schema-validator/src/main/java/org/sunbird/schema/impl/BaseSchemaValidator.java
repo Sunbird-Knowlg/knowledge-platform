@@ -16,6 +16,7 @@ import org.sunbird.common.HtmlSanitizer;
 import org.sunbird.common.JsonUtils;
 import org.sunbird.schema.ISchemaValidator;
 import org.sunbird.schema.dto.ValidationResult;
+import org.sunbird.telemetry.logger.TelemetryManager;
 
 import javax.json.JsonReader;
 import javax.json.JsonReaderFactory;
@@ -185,7 +186,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
             });
             return propertyType;
         } catch (Exception e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to fetch property types from schema", e);
         }
         return new HashMap<String, Object>();
     }
@@ -212,7 +213,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
                                                                     .getValue()).get("items")).get("type")))))
                     .map(entry -> entry.getKey()).collect(Collectors.toList());
         } catch (IOException e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to fetch JSON-type properties from schema", e);
         }
         return new ArrayList<>();
     }
@@ -234,7 +235,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
                 propsList.addAll(config.getObject("edge.properties").keySet());
             propsList.addAll(Arrays.asList("objectType", "identifier", "languageCode"));
         } catch (IOException e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to fetch all properties from schema", e);
         }
         return propsList;
     }
@@ -253,7 +254,7 @@ public abstract class BaseSchemaValidator implements ISchemaValidator {
                             (String) ((Map<String, Object>) entry.getValue()).get("type")))
                     .map(entry -> entry.getKey()).collect(Collectors.toList());
         } catch (IOException e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to fetch array-type properties from schema", e);
         }
         return new ArrayList<>();
     }

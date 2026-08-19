@@ -2,6 +2,8 @@ package org.sunbird.telemetry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sunbird.common.Platform;
 import org.sunbird.telemetry.dto.Actor;
 import org.sunbird.telemetry.dto.Context;
@@ -23,6 +25,10 @@ import java.util.Map.Entry;
  *
  */
 public class TelemetryGenerator {
+
+	// Note: TelemetryManager.error() itself calls into this class to build the event
+	// string, so it must not be used here -- that would recurse if serialization keeps failing.
+	private static final Logger logger = LoggerFactory.getLogger(TelemetryGenerator.class);
 
 	private static ObjectMapper mapper = new ObjectMapper();
 	private static final String ENVIRONMENT = Platform.config.hasPath("telemetry_env")?Platform.config.getString("telemetry_env"):"dev";
@@ -267,7 +273,7 @@ public class TelemetryGenerator {
 		try {
 			event = mapper.writeValueAsString(telemetry);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Failed to serialize telemetry event", e);
 		}
 		return event;
 	}
