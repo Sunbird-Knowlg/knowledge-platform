@@ -51,10 +51,20 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- Security: netty-codec GHSA-558v-64gr-wgg4, netty-handler GHSA-3qp7-7mw8-wx86 /
+			     GHSA-c653-97m9-rcg9 / GHSA-x4gw-5cx5-pgmh, netty-codec-http/-http2/-redis/-stomp/
+			     -xml/-haproxy, netty-resolver-dns, netty-handler-ssl-ocsp, netty-transport-sctp
+			     (~111 Dependabot alerts, see CVE-2026-44249/44250/44890/44891/44893/45416/45674/
+			     46340/47691/48006/48059/50010/50011/55831/55833/55851/56745/56817/56819/56820/
+			     56821/56822/59901/59902/73507). Real version constraint here is the DataStax
+			     Cassandra driver / cassandra-unit transport (platform-core/cassandra-connector,
+			     content-api/hierarchy-manager), not Play/Pekko HTTP (Pekko HTTP runs over
+			     pekko-stream TCP and does not use Netty). 4.1.137.Final stays on the same
+			     binary-compatible 4.1.x line. -->
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-bom</artifactId>
-				<version>4.1.133.Final</version>
+				<version>4.1.137.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
