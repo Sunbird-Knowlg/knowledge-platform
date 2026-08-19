@@ -62,22 +62,8 @@
             <artifactId>httpmime</artifactId>
             <version>4.5.10</version>
         </dependency>
-        <dependency>
-            <groupId>net.sf.json-lib</groupId>
-            <artifactId>json-lib</artifactId>
-            <version>2.4</version>
-            <classifier>jdk15</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-collections</groupId>
-                    <artifactId>commons-collections</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>commons-beanutils</groupId>
-                    <artifactId>commons-beanutils</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!-- Security: net.sf.json-lib:json-lib removed (GHSA-wwcp-26wc-3fxm, no upstream fix,
+             abandoned since 2010). Unused: no net.sf.json.* references anywhere in this module. -->
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
