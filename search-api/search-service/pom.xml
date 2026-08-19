@@ -201,11 +201,17 @@
         <!-- Security: fluentlenium-core drags in selenium-remote-driver ->
              htmlunit-driver -> htmlunit (CVE-2023-26119, critical), plus
              io.appium:java-client, org.asynchttpclient:async-http-client
-             (CVE-2024-53990), and eclipse jetty 9.4.50. Nothing in this
-             module uses Play's WithBrowser/fluentlenium browser testing. -->
+             (CVE-2024-53990), and eclipse jetty 9.4.50. play-test ALSO pulls
+             org.seleniumhq.selenium:htmlunit-driver directly (a second,
+             independent path to the same CVE), excluded below. Nothing in
+             this module uses Play's WithBrowser/fluentlenium browser testing. -->
         <exclusion>
           <artifactId>fluentlenium-core</artifactId>
           <groupId>io.fluentlenium</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>htmlunit-driver</artifactId>
+          <groupId>org.seleniumhq.selenium</groupId>
         </exclusion>
       </exclusions>
     </dependency>
