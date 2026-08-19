@@ -285,6 +285,40 @@
 						<generateBackupPoms>false</generateBackupPoms>
 					</configuration>
 				</plugin>
+				<!-- Security regression guard: declared in pluginManagement only (no
+				     execution bound), so it does NOT run as part of the normal build.
+				     Invoke manually with `mvn enforcer:enforce` to catalogue violations
+				     before wiring it into the build lifecycle. requireUpperBoundDeps
+				     catches a stale hardcoded Netty/Jackson version conflicting with the
+				     root BOM (see the Netty/Jackson consolidation work in this pom);
+				     bannedDependencies hard-blocks the libraries this repo already
+				     excludes by hand in ~8 module poms (org.lz4:lz4-java in favor of
+				     at.yawk.lz4, commons-lang in favor of commons-lang3,
+				     commons-configuration in favor of commons-configuration2,
+				     net.sf.json-lib, and the htmlunit/appium/selenium browser-testing
+				     chain outside test scope). -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.6.3</version>
+					<configuration>
+						<rules>
+							<requireUpperBoundDeps />
+							<bannedDependencies>
+								<excludes>
+									<exclude>org.lz4:lz4-java</exclude>
+									<exclude>commons-lang:commons-lang</exclude>
+									<exclude>commons-configuration:commons-configuration</exclude>
+									<exclude>net.sf.json-lib:json-lib</exclude>
+									<exclude>net.sourceforge.htmlunit:*</exclude>
+									<exclude>io.appium:*</exclude>
+									<exclude>org.seleniumhq.selenium:*</exclude>
+								</excludes>
+								<searchTransitive>true</searchTransitive>
+							</bannedDependencies>
+						</rules>
+					</configuration>
+				</plugin>
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>3.3.0</version>
