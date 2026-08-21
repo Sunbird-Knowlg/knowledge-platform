@@ -403,6 +403,8 @@
         "Template",
         "Asset",
         "Plugin",
+        "LearningPath",
+        "Level",
         "LessonPlanUnit",
         "CourseUnit",
         "TextBookUnit",
