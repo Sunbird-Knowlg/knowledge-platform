@@ -38,6 +38,8 @@ jobs:
     needs: check-config
     if: needs.check-config.outputs.should_build == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.push.outputs.image }}
 
     steps:
       # Step 1: Checkout the code
@@ -87,6 +89,20 @@ jobs:
 
       # Step 7: Push Docker Image
       - name: Push Docker Image
+        id: push
         run: |
           docker push $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}
           echo "Pushed Docker image: $REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}"
+          echo "image=$REGISTRY_URL/${IMAGE_NAME}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+  cve-scan:
+    needs: build-and-push
+    if: needs.build-and-push.outputs.image != ''
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+      actions: read
+    uses: ./.github/workflows/cve-scan.yml
+    with:
+      image: ${{ needs.build-and-push.outputs.image }}
