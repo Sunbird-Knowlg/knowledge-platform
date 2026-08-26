@@ -26,6 +26,9 @@ curl -L -X POST '{{host}}/object/category/definition/v4/create' \
                   "parameters": { "type": "string" }
                 }
               }
+            },
+            "maxAttempts": {
+              "type": "number"
             }
           }
         }

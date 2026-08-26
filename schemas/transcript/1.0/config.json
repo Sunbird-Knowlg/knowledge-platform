@@ -1,0 +1,41 @@
+{
+    "objectType": "Transcript",
+    "restrictProps": {
+        "create": [
+            "status"
+        ],
+        "update": [
+            "languageCode",
+            "sourceLanguage",
+            "channel"
+        ]
+    },
+    "relations": {
+        "usedByEnrichment": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Enrichment"]
+        }
+    },
+    "version": "disable",
+    "versionCheckMode": "OFF",
+    "cacheEnabled": false,
+    "schema_restrict_api": false,
+    "frameworkCategories": [],
+    "relationFields": [
+        "status",
+        "languageCode",
+        "language",
+        "sourceLanguage",
+        "artifactUrl",
+        "captionsUrl",
+        "generatedBy",
+        "lastUpdatedOn"
+    ],
+    "PII_Fields": {
+        "user": {
+            "createdBy": ["creator"]
+        },
+        "org": {}
+    }
+}

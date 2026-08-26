@@ -13,6 +13,8 @@ import org.sunbird.content.dial.DIALManager
 import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.content.upload.mgr.UploadManager
+import org.sunbird.content.transcript.mgr.TranscriptManager
+import org.sunbird.content.enrichment.{EnrichmentObjectHandler, EnrichmentObjectValidator}
 import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
@@ -43,6 +45,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "readPrivateContent" => privateRead(request)
 			case "updateContent" => update(request)
 			case "uploadContent" => upload(request)
+			case "createObject" => createObject(request)
+			case "updateObject" => updateObject(request)
+			case "approveObject" => approveObject(request)
+			case "rejectObject" => rejectObject(request)
+			case "readEnrichment" => readEnrichment(request)
 			case "retireContent" => retire(request)
 			case "copy" => copy(request)
 			case "uploadPreSignedUrl" => uploadPreSignedUrl(request)
@@ -88,25 +95,50 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			}
 	}
 
+	// NodeUtil always serializes relations as a List regardless of real cardinality; Content->Enrichment is 1:1, so unwrap it here instead of in the shared graph engine.
+	private def unwrapSingleValuedRelation(metadata: util.Map[String, AnyRef], key: String): Unit = {
+		metadata.get(key) match {
+			case list: util.List[_] if !list.isEmpty => metadata.put(key, list.get(0).asInstanceOf[AnyRef])
+			case list: util.List[_] => metadata.remove(key)
+			case _ =>
+		}
+	}
+
 	def read(request: Request): Future[Response] = {
 		val responseSchemaName: String = request.getContext.getOrDefault(ContentConstants.RESPONSE_SCHEMA_NAME, "").asInstanceOf[String]
 		val fields: util.List[String] = request.get("fields").asInstanceOf[String].split(",").filter(field => StringUtils.isNotBlank(field) && !StringUtils.equalsIgnoreCase(field, "null")).toList.asJava
 		request.getRequest.put("fields", fields)
-		DataNode.read(request).map(node => {
+		val enrichRaw: String = request.getRequest.getOrDefault("enrich", "").asInstanceOf[String]
+		val enrichRequested: Boolean = StringUtils.isNotBlank(enrichRaw)
+		val requestedEnrichKeys: Option[Set[String]] =
+			if (!enrichRequested || StringUtils.equalsIgnoreCase(enrichRaw.trim, "all")) None
+			else Some(enrichRaw.split(",").map(_.trim).filter(_.nonEmpty).toSet)
+		DataNode.read(request).flatMap(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			unwrapSingleValuedRelation(metadata, "enrichment")
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
-			val response: Response = ResponseHandler.OK
-      if (responseSchemaName.isEmpty) {
-        response.put("content", metadata)
-      }
-      else {
-        response.put(responseSchemaName, metadata)
-      }
-			if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
-				response
-			}
-			else {
-				throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
+
+			val enrichmentFuture: Future[Unit] =
+				if (!enrichRequested) Future.successful(())
+				else TranscriptManager.fetchEnrichmentMetadata(node, requestedEnrichKeys).map {
+					case Some(enrichmentMetadata) => metadata.put("enrichment", enrichmentMetadata)
+					case None => // no Enrichment node for this content — leave whatever unwrapSingleValuedRelation left in place
+				}
+
+			enrichmentFuture.map { _ =>
+				val response: Response = ResponseHandler.OK
+				if (responseSchemaName.isEmpty) {
+					response.put("content", metadata)
+				}
+				else {
+					response.put(responseSchemaName, metadata)
+				}
+				if(!StringUtils.equalsIgnoreCase(metadata.get("visibility").asInstanceOf[String],"Private")) {
+					response
+				}
+				else {
+					throw new ClientException("ERR_ACCESS_DENIED", "content visibility is private, hence access denied")
+				}
 			}
 		})
 	}
@@ -118,6 +150,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		if (StringUtils.isBlank(request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) throw new ClientException("ERR_INVALID_CHANNEL", "Please Provide Channel!")
 		DataNode.read(request).map(node => {
 			val metadata: util.Map[String, AnyRef] = NodeUtil.serialize(node, fields, node.getObjectType.toLowerCase.replace("image", ""), request.getContext.get("version").asInstanceOf[String])
+			unwrapSingleValuedRelation(metadata, "enrichment")
 			metadata.put(ContentConstants.IDENTIFIER, node.getIdentifier.replace(".img", ""))
 			val response: Response = ResponseHandler.OK
 				if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("channel", "").asInstanceOf[String],request.getRequest.getOrDefault("channel", "").asInstanceOf[String])) {
@@ -155,6 +188,76 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			if (null != node & StringUtils.isNotBlank(node.getObjectType))
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			UploadManager.upload(request, node)
+		}).flatten
+	}
+
+	// DataNode.read only populates a relation on the returned Node if it's named in
+	// "fields" — without "enrichment" here, findOrCreateEnrichment can never see an
+	// already-linked Enrichment node and creates a duplicate on every call.
+	private val TRANSCRIPT_READ_FIELDS = new util.ArrayList[String](){{ add("enrichment") }}
+
+	// Generic object/{create,update,approve,reject} — the only entry points
+	// left for Enrichment child objects (Transcript today; any future type
+	// registers its own EnrichmentObjectHandler, no new endpoint needed).
+	// Controller -> here (the "validator" step below, via
+	// EnrichmentObjectValidator) -> whichever handler EnrichmentObjectHandlerRegistry
+	// resolves for the request's objectType.
+
+	def createObject(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val objectType: String = request.getRequest.getOrDefault("objectType", "").asInstanceOf[String]
+		val handler = EnrichmentObjectValidator.requireHandler(objectType)
+
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
+		DataNode.read(readReq).flatMap { contentNode =>
+			TranscriptManager.findOrCreateEnrichment(contentNode).flatMap { enrichmentNode =>
+				handler.create(request, contentNode, enrichmentNode)
+			}
+		}
+	}
+
+	def updateObject(request: Request): Future[Response] = objectAction(request)((handler, contentNode, enrichmentNode, objectIdentifier) =>
+		handler.update(request, contentNode, enrichmentNode, objectIdentifier))
+
+	def approveObject(request: Request): Future[Response] = objectAction(request)((handler, contentNode, enrichmentNode, objectIdentifier) =>
+		handler.approve(request, contentNode, enrichmentNode, objectIdentifier))
+
+	def rejectObject(request: Request): Future[Response] = objectAction(request)((handler, contentNode, enrichmentNode, objectIdentifier) =>
+		handler.reject(request, contentNode, enrichmentNode, objectIdentifier))
+
+	// Shared by update/approve/reject: validate objectType + objectIdentifier,
+	// resolve content -> its Enrichment node, then hand off to the caller's
+	// specific handler call. create() doesn't share this — it has no
+	// objectIdentifier yet and needs findOrCreateEnrichment instead of a
+	// plain read.
+	private def objectAction(request: Request)
+	                         (dispatch: (EnrichmentObjectHandler, Node, Node, String) => Future[Response]): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val objectType: String = request.getRequest.getOrDefault("objectType", "").asInstanceOf[String]
+		val objectIdentifier: String = EnrichmentObjectValidator.requireObjectIdentifier(
+			request.getRequest.getOrDefault("objectIdentifier", "").asInstanceOf[String])
+		val handler = EnrichmentObjectValidator.requireHandler(objectType)
+
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
+		DataNode.read(readReq).flatMap { contentNode =>
+			TranscriptManager.readEnrichmentForContent(contentNode).flatMap {
+				case None => throw new ClientException("ERR_NO_ENRICHMENT_FOUND", "No Enrichment node found for this content.")
+				case Some(enrichmentNode) => dispatch(handler, contentNode, enrichmentNode, objectIdentifier)
+			}
+		}
+	}
+
+	def readEnrichment(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put("fields", TRANSCRIPT_READ_FIELDS)
+		DataNode.read(readReq).map(node => {
+			TranscriptManager.readEnrichment(node)
 		}).flatten
 	}
 
