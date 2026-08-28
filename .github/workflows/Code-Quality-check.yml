@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Comment PR with SonarQube Results
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           script: |
             const message = `### SonarCloud Analysis Results 🔍
