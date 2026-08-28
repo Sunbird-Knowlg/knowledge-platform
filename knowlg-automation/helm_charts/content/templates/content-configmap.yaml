@@ -267,7 +267,7 @@ data:
     # ~~~~~
     play.server.netty {
         # Whether the Netty wire should be logged
-        log.wire = true
+        log.wire = false
 
         # If you run Play on Linux, you can use Netty's native socket transport
         # for higher performance with less garbage.
