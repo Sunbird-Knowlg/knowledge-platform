@@ -5,6 +5,7 @@ import org.janusgraph.core.JanusGraphEdge;
 import org.janusgraph.core.JanusGraphElement;
 import org.janusgraph.core.JanusGraphVertex;
 import org.janusgraph.core.JanusGraphVertexProperty;
+import org.sunbird.common.Platform;
 import org.sunbird.common.exception.ServerException;
 import org.sunbird.graph.common.enums.SystemProperties;
 import org.sunbird.graph.dac.enums.GraphDACErrorCodes;
@@ -13,10 +14,13 @@ import org.sunbird.graph.dac.model.Relation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class to convert between JanusGraph Vertex objects and Node model
@@ -25,6 +29,23 @@ import java.util.Map;
 public class JanusGraphNodeUtil {
 
     private static ObjectMapper mapper = new ObjectMapper();
+
+    /**
+     * Property names whose String values must be returned exactly as stored.
+     *
+     * Since df5eaac6 any String property shaped like a JSON array is parsed back
+     * into an ArrayList on read. That restores genuinely list-typed properties
+     * after the Neo4j to JanusGraph migration, but it keys off the value's shape
+     * rather than the field's declared type, so a field the schema declares as a
+     * String is also converted -- it is then read back as an array and fails its
+     * own validation on the next update, leaving the node permanently
+     * un-updatable.
+     *
+     * Listing a field here opts it out of that conversion. The default is empty,
+     * so behaviour is unchanged unless graph.string_only_fields is configured.
+     */
+    private static final Set<String> STRING_ONLY_FIELDS = new HashSet<>(
+            Platform.getStringList("graph.string_only_fields", Arrays.asList()));
 
     /**
      * Convert a JanusGraph Vertex to a Node object
@@ -105,12 +126,13 @@ public class JanusGraphNodeUtil {
                 if (value instanceof List) {
                     metadata.put(key, new ArrayList<>((List<?>) value));
                 } else {
-                    if (value instanceof String) {
+                    if (value instanceof String && !STRING_ONLY_FIELDS.contains(key)) {
                         String sv = (String) value;
                         if (sv.startsWith("[") && sv.endsWith("]")) {
                             try {
                                 value = mapper.readValue(sv, ArrayList.class);
                             } catch (Exception ignored) {
+                                // Not valid JSON -- keep the original String value.
                             }
                         }
                     }
