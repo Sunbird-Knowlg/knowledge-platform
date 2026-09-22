@@ -64,6 +64,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case "publishContent" => publishContent(request)
+			case "refreshBodyContent" => refreshBodyContent(request)
 			case "processStatus" => getProcessIdStatus(request)
 			case _ => ERROR(request.getOperation)
 		}
@@ -337,6 +338,25 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Publish Operation Can't Be Applied On Node Under Processing State")
 			node.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
 			PublishManager.publish(request, node)
+		}).flatten
+	}
+
+	def refreshBodyContent(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault(ContentConstants.IDENTIFIER, "").asInstanceOf[String]
+		val publisher: String = request.getRequest.getOrDefault(ContentConstants.LAST_PUBLISHED_BY, "").asInstanceOf[String]
+
+		if (publisher.isBlank) throw new ClientException("ERR_CONTENT_BLANK_PUBLISHER", "Publisher User Id is blank")
+
+		val readReq = new Request(request)
+		readReq.put(ContentConstants.IDENTIFIER, identifier)
+		readReq.put(ContentConstants.MODE, ContentConstants.EDIT_MODE)
+		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
+			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
+				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Refresh Body Operation Can't Be Applied On Node Under Processing State")
+			node.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
+			PublishManager.refreshBody(request, node)
 		}).flatten
 	}
 

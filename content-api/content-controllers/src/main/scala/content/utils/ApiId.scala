@@ -29,6 +29,7 @@ object ApiId {
 	val REJECT_CONTENT = "api.content.review.reject"
 	val PUBLISH_CONTENT_PUBLIC = "api.content.publish.public"
 	val PUBLISH_CONTENT_UNLSTED = "api.content.publish.unlisted"
+	val REFRESH_BODY_CONTENT = "api.content.refresh.body"
 
 	// Collection APIs
 	val ADD_HIERARCHY = "api.content.hierarchy.add"

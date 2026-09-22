@@ -39,6 +39,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
     case "reviewQuestionSet" => review(request)
     case "rejectQuestionSet" => reject(request)
     case "publishQuestionSet" => publish(request)
+    case "refreshBodyQuestionSet" => refreshBody(request)
     case "retireQuestionSet" => retire(request)
     case "updateQuestionSet" => update(request)
     case "addQuestion" => HierarchyManager.addLeafNodesToHierarchy(request)
@@ -157,6 +158,30 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
         AssessmentV5Manager.pushInstructionEvent(node.getIdentifier, node, requestId, featureName)
         ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "QuestionSet is successfully sent for Publish").asJava)
       })
+    })
+  }
+
+  /**
+   * Refresh Body: re-runs pool-based question selection for a Dynamic QuestionSet without a full
+   * creator-driven publish. Unlike publish(), does not require existing children (the whole point
+   * of a refresh is to populate/replace them) and does not run publish-checklist/hierarchy
+   * validation. Pushes edata.action = "refresh-body" instead of "publish", onto the same
+   * instruction topic; the async DynamicAssessFunction in knowlg-publish picks it up and rebuilds
+   * the QuestionSet's children from the live question pool.
+   */
+  def refreshBody(request: Request): Future[Response] = {
+    val lastPublishedBy: String = request.getRequest.getOrDefault("lastPublishedBy", "").asInstanceOf[String]
+    val requestId = request.getContext().getOrDefault("requestId", "").asInstanceOf[String]
+    val featureName = request.getContext().getOrDefault("featureName", "").asInstanceOf[String]
+    request.getRequest.put("identifier", request.getContext.get("identifier"))
+    request.put("mode", "edit")
+    DataNode.read(request).map(node => {
+      if (StringUtils.equalsAnyIgnoreCase(node.getMetadata.getOrDefault("status", "").asInstanceOf[String], "Processing"))
+        throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, "QuestionSet having Processing status can't be sent for refresh.")
+      if (StringUtils.isNotBlank(lastPublishedBy))
+        node.getMetadata.put("lastPublishedBy", lastPublishedBy)
+      AssessmentV5Manager.pushInstructionEvent(node.getIdentifier, node, requestId, featureName, "refresh-body")
+      ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Refresh Body Event for QuestionSet is successfully sent for processing").asJava)
     })
   }
 
