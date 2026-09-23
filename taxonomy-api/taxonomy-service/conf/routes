@@ -30,6 +30,27 @@ GET       /framework/v3/term/read/:termId                taxonomy.controllers.v3
 PATCH     /framework/v3/term/update/:termId              taxonomy.controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
 DELETE    /framework/v3/term/retire/:termId              taxonomy.controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
 
+# CompetencyFramework API's
+POST      /competency-framework/v3/create                            taxonomy.controllers.v3.CompetencyFrameworkController.createCompetencyFramework()
+GET       /competency-framework/v3/read/:identifier                  taxonomy.controllers.v3.CompetencyFrameworkController.readCompetencyFramework(identifier:String, fields: Option[String],categories: Option[String])
+PATCH     /competency-framework/v3/update/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.updateCompetencyFramework(identifier:String)
+DELETE    /competency-framework/v3/retire/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.retire(identifier:String)
+POST      /competency-framework/v3/publish/:identifier               taxonomy.controllers.v3.CompetencyFrameworkController.publish(identifier:String)
+POST      /competency-framework/v3/sendForReview/:identifier         taxonomy.controllers.v3.CompetencyFrameworkController.sendForReview(identifier:String)
+POST      /competency-framework/v3/reject/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.reject(identifier:String)
+
+# CompetencyFramework Category API's
+POST      /competency-framework/v3/category/create                      taxonomy.controllers.v3.CompetencyFrameworkController.createCategoryInstance(framework: String)
+GET       /competency-framework/v3/category/read/:category              taxonomy.controllers.v3.CategoryInstanceController.readCategoryInstance(category:String, framework: String)
+PATCH     /competency-framework/v3/category/update/:category            taxonomy.controllers.v3.CategoryInstanceController.updateCategoryInstance(category:String, framework: String)
+DELETE    /competency-framework/v3/category/retire/:category            taxonomy.controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
+
+# CompetencyFramework Term API's
+POST      /competency-framework/v3/term/create                      taxonomy.controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
+GET       /competency-framework/v3/term/read/:termId                taxonomy.controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
+PATCH     /competency-framework/v3/term/update/:termId              taxonomy.controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
+DELETE    /competency-framework/v3/term/retire/:termId              taxonomy.controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
+
 # Object Category API's
 POST      /object/category/v4/create                           taxonomy.controllers.v4.ObjectCategoryController.create()
 PATCH     /object/category/v4/update/:identifier               taxonomy.controllers.v4.ObjectCategoryController.update(identifier:String)

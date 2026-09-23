@@ -148,8 +148,8 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
               putAll(request.getContext)
             }
           })
-          getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
-          getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
+          getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME))
+          getFrameworkReq.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION))
           getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
           val subGraph: Future[SubGraph] = DataSubGraph.read(getFrameworkReq)
           subGraph.map(data => {

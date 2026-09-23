@@ -40,6 +40,14 @@ object Constants {
     val CHANNEL_SCHEMA_VERSION = "1.0";
     val PUBLISH_STATUS: String = "publishStatus"
 
+    // Constants For CompetencyFramework
+    val COMPETENCY_FRAMEWORK: String = "competencyFramework"
+    val COMPETENCY_FRAMEWORK_SCHEMA_VERSION = "1.0"
+    val COMPETENCY_FRAMEWORK_SCHEMA_NAME = "competencyframework"
+    val FRAMEWORK_OBJECT_TYPE: String = "frameworkObjectType"
+    val SEND_FOR_REVIEW_FRAMEWORK: String = "sendForReviewFramework"
+    val REJECT_FRAMEWORK: String = "rejectFramework"
+
     val CATEGORY: String = "category";
     val CREATE_CATEGORY: String = "createCategory";
     val READ_CATEGORY: String = "readCategory"

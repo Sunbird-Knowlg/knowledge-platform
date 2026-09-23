@@ -41,8 +41,12 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {{
       putAll(request.getContext)
     }})
-    getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
-    getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
+    val frameworkObjectType = request.getRequest.getOrDefault(Constants.FRAMEWORK_OBJECT_TYPE, Constants.FRAMEWORK).asInstanceOf[String]
+    val (frameworkSchemaName, frameworkSchemaVersion) = if (StringUtils.equalsIgnoreCase(frameworkObjectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME))
+      (Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION)
+    else (Constants.FRAMEWORK_SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_VERSION)
+    getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, frameworkSchemaName)
+    getFrameworkReq.getContext.put(Constants.VERSION, frameworkSchemaVersion)
     getFrameworkReq.put("disableCache", Option(true))
     getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getFrameworkReq).map(node => {
