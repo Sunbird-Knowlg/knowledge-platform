@@ -129,6 +129,9 @@ DELETE  /private/eventset/v4/retire/:identifier  content.controllers.v4.EventSet
 # Object v4 Api's
 GET     /object/v4/read/:identifier              content.controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
 
+# EnrichmentObject v4 Api's
+POST    /object/enrichment/v4/create             content.controllers.v4.EnrichmentObjectController.create()
+
 
 # Collection V4 APIs
 POST   /collection/v4/import/:collectionId           content.controllers.v4.CollectionController.importCollection(collectionId:String)
