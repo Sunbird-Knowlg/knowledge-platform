@@ -1,0 +1,27 @@
+{
+    "$id": "enrichmentobject-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "EnrichmentObject",
+    "type": "object",
+    "required": ["enrichmentObjectType", "parentId"],
+    "properties": {
+        "identifier": { "type": "string" },
+        "enrichmentObjectType": { "type": "string" },
+        "parentId": { "type": "string" },
+        "parentType": { "type": "string" },
+        "derivedFrom": { "type": "string" },
+        "status": {
+            "type": "string",
+            "enum": ["Draft", "Processing", "Review", "Live", "Failed", "Retired"],
+            "default": "Draft"
+        },
+        "channel": { "type": "string", "default": "all" },
+        "generatedBy": { "type": "string" },
+        "autoApproved": { "type": "boolean" },
+        "errorMessage": { "type": "string" },
+        "createdOn": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "lastUpdatedOn": { "type": "string" },
+        "lastUpdatedBy": { "type": "string" }
+    }
+}
