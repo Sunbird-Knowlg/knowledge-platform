@@ -5,6 +5,9 @@ object ApiId {
 	final val APPLICATION_HEALTH = "api.content.health"
 	final val APPLICATION_SERVICE_HEALTH = "api.content.service.health"
 
+	//EnrichmentObject APIs
+	val CREATE_ENRICHMENT_OBJECT = "api.enrichment.create"
+
 	//Content APIs
 	val CREATE_CONTENT = "api.content.create"
 	val READ_CONTENT = "api.content.read"
