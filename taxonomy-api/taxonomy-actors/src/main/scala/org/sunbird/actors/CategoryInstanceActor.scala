@@ -9,6 +9,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.TermBulkManager
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.{RequestUtil, TaxonomyUtil}
 
@@ -62,7 +63,10 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
           DataNode.create(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
               .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
-          })
+          }) recover {
+            case e: ClientException if TermBulkManager.isDuplicateCode(e) =>
+              throw new ClientException("ERR_DUPLICATE_CODE", s"CategoryInstance with code '$code' already exists")
+          }
         }).flatten
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatten

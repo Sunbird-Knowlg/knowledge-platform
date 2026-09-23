@@ -9,6 +9,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.TermBulkManager
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.{RequestUtil, TaxonomyUtil}
 import java.util
@@ -26,6 +27,8 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       case Constants.READ_TERM => read(request)
       case Constants.UPDATE_TERM => update(request)
       case Constants.RETIRE_TERM => retire(request)
+      case Constants.BULK_CREATE_TERM => TermBulkManager.bulkCreateTerm(request)
+      case Constants.BULK_UPDATE_TERM => TermBulkManager.bulkUpdateTerm(request)
       case _ => ERROR(request.getOperation)
     }
   }
@@ -44,6 +47,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
         val identifier = new util.ArrayList[String]
         var codeError = 0
         var serverError = 0
+        var duplicateCodeError = 0
         val index: Integer = TaxonomyUtil.getNextSequenceIndex(node)
         var i: Integer = 0
         val future = requestList.asScala.map(req => {
@@ -59,6 +63,9 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
           DataNode.create(request).map(termNode =>
             identifier.add(termNode.getIdentifier)
           ) recover {
+            case e: ClientException if TermBulkManager.isDuplicateCode(e) =>
+              codeError += 1
+              duplicateCodeError += 1
             case e: ClientException =>
               codeError += 1
             case e: Exception =>
@@ -66,21 +73,23 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
           }
         })
         Future.sequence(future).flatMap { _ =>
-          createResponse(codeError, serverError, identifier, requestList.size)
+          createResponse(codeError, serverError, duplicateCodeError, identifier, requestList.size)
         }
       } else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category")
     })
   }
 
-  private def createResponse(codeError: Int, serverError: Int, identifiers: util.ArrayList[String], size: Int): Future[Response] = {
+  private def createResponse(codeError: Int, serverError: Int, duplicateCodeError: Int, identifiers: util.ArrayList[String], size: Int): Future[Response] = {
     if (codeError == 0 && serverError == 0) {
       Future(ResponseHandler.OK.put(Constants.NODE_ID, identifiers))
     }
     else if (codeError > 0 && serverError == 0) {
+      val (errCode, errMsg) = if (codeError == duplicateCodeError) ("ERR_DUPLICATE_CODE", "Term code already exists")
+        else ("ERR_TERM_CODE_REQUIRED", "Unique code is required for Term")
       if (codeError == size) {
-        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term"))
+        Future(ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, errCode, errMsg))
       } else {
-        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term", Constants.NODE_ID, identifiers))
+        Future(ResponseHandler.ERROR(ResponseCode.PARTIAL_SUCCESS, errCode, errMsg, Constants.NODE_ID, identifiers))
       }
     } else if (codeError == 0 && serverError > 0) {
       if (serverError == size) {
