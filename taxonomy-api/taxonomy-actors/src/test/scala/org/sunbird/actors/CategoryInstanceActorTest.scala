@@ -69,6 +69,52 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     assert(response.get("versionKey") != null)
   }
 
+  it should "resolve the parent framework under the competencyframework schema when frameworkObjectType is set" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("CF1")
+    node.setObjectType("CompetencyFramework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "CF1");
+        put("objectType", "CompetencyFramework")
+        put("name", "CF1")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "CF1", *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val categoryNode = new Node()
+    categoryNode.setIdentifier("competency")
+    categoryNode.setObjectType("Category")
+    categoryNode.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "competency");
+        put("objectType", "Category")
+        put("name", "competency")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "competency", *, *).returns(Future(categoryNode)).anyNumberOfTimes()
+    val categoryNodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(categoryNodes)).anyNumberOfTimes()
+
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryInstanceOfNode()))
+    val loopResult: util.Map[String, Object] = new util.HashMap[String, Object]()
+    loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
+    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
+    (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
+
+    val request = getCategoryInstanceRequest()
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "CF1", "code" -> "competency", "name" -> "Competency", "frameworkObjectType" -> "competencyframework").asJava)
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+
   it should "throw error if category does not belong to master category" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]

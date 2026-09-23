@@ -241,6 +241,35 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
+  it should "return success response for 'publishFramework' when context schemaName is competencyframework" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node("domain", "DATA_NODE", "Channel")
+    node.setIdentifier("sunbird")
+    node.setObjectType("Channel")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "sunbird");
+        put("objectType", "Channel")
+        put("name", "Channel")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val subGraph = getSubGraphData()
+    (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(subGraph)).anyNumberOfTimes()
+    (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+
+    val request = getFrameworkRequest()
+    request.getContext.put(Constants.SCHEMA_NAME, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
+    request.getContext.put(Constants.IDENTIFIER, "framework_test")
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "framework_test", "channel" -> "sunbird").asJava)
+    request.setOperation(Constants.PUBLISH_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+
   it should "return success response for 'readFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]

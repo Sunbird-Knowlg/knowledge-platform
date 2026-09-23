@@ -2,14 +2,17 @@ package org.sunbird.managers
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalamock.scalatest.MockFactory
-import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.{Node, Relation, SubGraph}
+import org.sunbird.common.dto.Request
+import org.sunbird.graph.{GraphService, OntologyEngineContext}
+import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
+import org.sunbird.utils.Constants
 
 import java.util
 import org.sunbird.managers.FrameworkManager._
 
 import scala.collection.convert.ImplicitConversions._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 
 class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
@@ -83,5 +86,55 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     assert(!term2.containsKey("associations"))
   }
 
+  "FrameworkManager.copyHierarchy" should "honor context schemaName instead of the Framework hardcode" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("cf_source")
+    node.setGraphId("domain")
+    node.setObjectType("CompetencyFramework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() { { put("identifier", "cf_source"); put("objectType", "CompetencyFramework"); put("code", "cf_source"); put("name", "cf_source"); put("type", "K-12") } })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node)).anyNumberOfTimes()
+
+    val request = new Request()
+    request.setContext(new util.HashMap[String, AnyRef]() {
+      { put("graph_id", "domain"); put("schemaName", "competencyframework"); put("version", "1.0"); put("objectType", "CompetencyFramework") }
+    })
+    request.putAll(new util.HashMap[String, AnyRef]() { { put(Constants.IDENTIFIER, "cf_source"); put(Constants.CODE, "cf_copy") } })
+    import scala.concurrent.Await
+    import scala.concurrent.duration._
+    val response = Await.result(FrameworkManager.copyHierarchy(request), 10.seconds)
+    assert(response.getResult.containsKey("node_id"))
+  }
+
+  it should "default to the framework schema when context carries no schemaName key at all" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("fw_source")
+    node.setGraphId("domain")
+    node.setObjectType("Framework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() { { put("identifier", "fw_source"); put("objectType", "Framework"); put("code", "fw_source"); put("name", "fw_source"); put("type", "K-12") } })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node)).anyNumberOfTimes()
+
+    val request = new Request()
+    // No "schemaName" key at all -- unlike an actor-level Request (see FrameworkActorTest's note),
+    // copyHierarchy never calls RequestUtil.restrictProperties, so this genuinely exercises the
+    // getOrDefault(SCHEMA_NAME, FRAMEWORK_SCHEMA_NAME) fallback rather than re-reading a pre-set value.
+    request.setContext(new util.HashMap[String, AnyRef]() {
+      { put("graph_id", "domain"); put("version", "1.0"); put("objectType", "Framework") }
+    })
+    request.putAll(new util.HashMap[String, AnyRef]() { { put(Constants.IDENTIFIER, "fw_source"); put(Constants.CODE, "fw_copy") } })
+    import scala.concurrent.Await
+    import scala.concurrent.duration._
+    val response = Await.result(FrameworkManager.copyHierarchy(request), 10.seconds)
+    assert(response.getResult.containsKey("node_id"))
+  }
 
   }
