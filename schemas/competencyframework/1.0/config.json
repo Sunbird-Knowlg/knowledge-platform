@@ -1,5 +1,5 @@
 {
-  "objectType": "Framework",
+  "objectType": "CompetencyFramework",
   "version": "enable",
   "versionCheckMode": "OFF",
   "frameworkCategories": [],
@@ -14,7 +14,7 @@
     ]
   },
   "external": {
-    "tableName": "framework_hierarchy",
+    "tableName": "competencyframework_hierarchy",
     "properties": {
       "hierarchy": {
         "type": "text"

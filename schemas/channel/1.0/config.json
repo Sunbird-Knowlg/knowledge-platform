@@ -23,7 +23,8 @@
       "type": "hasSequenceMember",
       "direction": "out",
       "objects": [
-        "Framework"
+        "Framework",
+        "CompetencyFramework"
       ]
     }
   },
