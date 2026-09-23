@@ -115,10 +115,15 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
 
   @throws[Exception]
   private def retire(request: Request): Future[Response] = {
+    val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     request.getRequest.put("status", "Retired")
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
-    })
+    request.getContext.put("versioning", "disabled")
+    FrameworkManager.deleteImageNodeIfExists(graphId, frameworkId).flatMap(_ =>
+      DataNode.update(request).map(node => {
+        ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
+      })
+    )
   }
 
 
@@ -142,28 +147,40 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
         val description = node.getMetadata.getOrDefault("description", "").asInstanceOf[String]
         request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
         if(StringUtils.isNotBlank(frameworkId)){
-          val getFrameworkReq = new Request()
-          getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {
-            {
-              putAll(request.getContext)
+          val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
+          val publishReq = new Request(request)
+          publishReq.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME))
+          publishReq.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION))
+
+          FrameworkManager.publishFramework(publishReq, frameworkId).flatMap { liveNode =>
+            FrameworkManager.publishDescendants(graphId, frameworkId).flatMap { _ =>
+              val getFrameworkReq = new Request()
+              getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {
+                {
+                  putAll(request.getContext)
+                }
+              })
+              getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME))
+              getFrameworkReq.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION))
+              getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
+              val subGraph: Future[SubGraph] = DataSubGraph.read(getFrameworkReq)
+              subGraph.map(data => {
+                val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data, true)
+                CategoryCache.setFramework(frameworkId, frameworkHierarchy)
+                val hierarchy = ScalaJsonUtils.serialize(frameworkHierarchy)
+                if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
+                  val req = new Request(request)
+                  req.put("hierarchy", hierarchy)
+                  req.put("identifier", frameworkId)
+                  oec.graphService.saveExternalProps(req)
+                } else RedisCache.set("fw:"+frameworkId, hierarchy)
+                ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${frameworkId}' is pushed Successfully!")
+                  .put(Constants.IDENTIFIER, frameworkId)
+                  .put("status", "Live")
+                  .put("version", liveNode.getMetadata.get("version")) // business publish-counter, distinct from Constants.VERSION
+              })
             }
-          })
-          getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME))
-          getFrameworkReq.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION))
-          getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
-          val subGraph: Future[SubGraph] = DataSubGraph.read(getFrameworkReq)
-          subGraph.map(data => {
-            val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data, true)
-            CategoryCache.setFramework(frameworkId, frameworkHierarchy)
-            val hierarchy = ScalaJsonUtils.serialize(frameworkHierarchy)
-            if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
-              val req = new Request(request)
-              req.put("hierarchy", hierarchy)
-              req.put("identifier", frameworkId)
-              oec.graphService.saveExternalProps(req)
-            } else RedisCache.set("fw:"+frameworkId, hierarchy)
-            ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${frameworkId}' is pushed Successfully!")
-          })
+          }
         } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
       } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
     }).flatten
