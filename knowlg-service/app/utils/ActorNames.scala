@@ -14,7 +14,8 @@ object ActorNames {
     final val APP_ACTOR = "appActor"
     final val OBJECT_ACTOR = "objectActor"
     final val COLLECTION_CSV_ACTOR = "collectionCSVActor"
-    
+    final val ENRICHMENT_OBJECT_ACTOR = "enrichmentObjectActor"
+
     // Taxonomy actors
     final val OBJECT_CATEGORY_ACTOR = "objectCategoryActor"
     final val OBJECT_CATEGORY_DEFINITION_ACTOR = "objectCategoryDefinitionActor"
