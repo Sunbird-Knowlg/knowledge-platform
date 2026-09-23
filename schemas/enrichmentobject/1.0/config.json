@@ -1,0 +1,29 @@
+{
+    "objectType": "EnrichmentObject",
+    "restrictProps": {
+        "create": ["status"],
+        "update": ["status", "enrichmentObjectType", "parentId", "parentType", "channel"]
+    },
+    "relations": {
+        "parent": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        },
+        "derivedFrom": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["EnrichmentObject", "Content"]
+        }
+    },
+    "relationFields": [],
+    "version": "disable",
+    "versionCheckMode": "OFF",
+    "cacheEnabled": false,
+    "schema_restrict_api": true,
+    "frameworkCategories": [],
+    "PII_Fields": {
+        "user": { "createdBy": ["creator"] },
+        "org": {}
+    }
+}
