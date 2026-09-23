@@ -5,9 +5,10 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ServerException}
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ServerException}
 import org.sunbird.graph.OntologyEngineContext
-import org.sunbird.graph.dac.model.{Relation, SubGraph}
+import org.sunbird.graph.common.enums.SystemProperties
+import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, Relation, SearchConditions, SearchCriteria, SubGraph}
 import org.sunbird.graph.nodes.DataNode
 
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
@@ -23,6 +24,134 @@ import org.sunbird.utils.Constants
 
 object FrameworkManager {
   val schemaVersion: String = "1.0"
+  private val IMAGE_SUFFIX = ".img"
+
+  /** Fetches a node, tolerating ResourceNotFoundException as None (used for the optional `.img` shadow). */
+  def getOptionalNode(graphId: String, identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[Node]] = {
+    oec.graphService.getNodeByUniqueId(graphId, identifier, true, new Request()).map(node => Option(node)) recover {
+      case e: CompletionException if e.getCause.isInstanceOf[ResourceNotFoundException] => None
+    }
+  }
+
+  /** Hard-deletes `<frameworkId>.img` if it exists (in-progress uncommitted edit) — no-op otherwise. */
+  def deleteImageNodeIfExists(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Boolean] = {
+    getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap {
+      case Some(_) =>
+        val delRequest = new Request()
+        delRequest.setContext(new util.HashMap[String, AnyRef]() {{ put("graph_id", graphId) }})
+        delRequest.put(Constants.IDENTIFIER, frameworkId + IMAGE_SUFFIX)
+        DataNode.deleteNode(delRequest).map(_ => true)
+      case None => Future(false)
+    }
+  }
+
+  private val PROMOTE_EXCLUDE_FIELDS: Set[String] =
+    Set("identifier", "status", "objectType", "versionKey", "prevStatus", "isImageNodeCreated")
+
+  private def filteredImageMetadata(imgNode: Node): util.Map[String, AnyRef] = {
+    // Built as a real (mutable) java.util.HashMap -- the caller adds "version"/"status" onto it afterwards.
+    val result = new util.HashMap[String, AnyRef]()
+    imgNode.getMetadata.asScala.foreach { case (k, v) => if (!PROMOTE_EXCLUDE_FIELDS.contains(k)) result.put(k, v) }
+    result
+  }
+
+  private val SEQUENCE_RELATION = "hasSequenceMember" // matches framework/competencyframework config.json
+
+  /** Distinct target ids of `rels` whose type/objectType match, stripping any lingering ".img" suffix. */
+  private def relationTargetIds(rels: util.List[Relation], useEndSide: Boolean, objectType: String): Set[String] = {
+    if (rels == null) Set.empty
+    else rels.asScala.filter(r =>
+        StringUtils.equals(r.getRelationType, SEQUENCE_RELATION) &&
+        StringUtils.equalsIgnoreCase(
+          (if (useEndSide) r.getEndNodeObjectType else r.getStartNodeObjectType).replace("Image", ""),
+          objectType))
+      .map(r => (if (useEndSide) r.getEndNodeId else r.getStartNodeId).replace(IMAGE_SUFFIX, ""))
+      .toSet
+  }
+
+  private def relationMap(startNodeId: String, endNodeId: String): util.Map[String, AnyRef] = {
+    val m = new util.HashMap[String, AnyRef]()
+    m.put("startNodeId", startNodeId); m.put("endNodeId", endNodeId)
+    m.put("relation", SEQUENCE_RELATION); m.put("relMetadata", new util.HashMap[String, AnyRef]())
+    m
+  }
+
+  /** Diffs one relation type's desired (.img) vs current (live) target set and applies the delta on the
+    * LIVE node. Per-type skip rule (see plan discrepancy D2): if .img carries ZERO edges of this type,
+    * it means this edit session never touched that relation -- leave the live node's edges untouched,
+    * rather than misreading "never touched" as "wants zero".
+   */
+  private def promoteOneRelationType(graphId: String, liveId: String, liveIds: Set[String], imgIds: Set[String],
+                                      endpointIsTarget: Boolean)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] = {
+    if (imgIds.isEmpty) Future(())
+    else {
+      val toAdd = imgIds -- liveIds
+      val toRemove = liveIds -- imgIds
+      def maps(ids: Set[String]) = ids.map(id => if (endpointIsTarget) relationMap(liveId, id) else relationMap(id, liveId)).toList.asJava
+      val addF = if (toAdd.nonEmpty) oec.graphService.createRelation(graphId, maps(toAdd)) else Future(new Response())
+      addF.flatMap(_ => if (toRemove.nonEmpty) oec.graphService.removeRelation(graphId, maps(toRemove)) else Future(new Response())).map(_ => ())
+    }
+  }
+
+  private def promoteRelations(graphId: String, liveNode: Node, imgNodeOpt: Option[Node])
+                               (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] = imgNodeOpt match {
+    case None => Future(())
+    case Some(imgNode) =>
+      val liveCategories = relationTargetIds(liveNode.getOutRelations, useEndSide = true, "CategoryInstance")
+      val imgCategories = relationTargetIds(imgNode.getOutRelations, useEndSide = true, "CategoryInstance")
+      val liveChannels = relationTargetIds(liveNode.getInRelations, useEndSide = false, "Channel")
+      val imgChannels = relationTargetIds(imgNode.getInRelations, useEndSide = false, "Channel")
+      promoteOneRelationType(graphId, liveNode.getIdentifier, liveCategories, imgCategories, endpointIsTarget = true)
+        .flatMap(_ => promoteOneRelationType(graphId, liveNode.getIdentifier, liveChannels, imgChannels, endpointIsTarget = false))
+  }
+
+  def publishFramework(request: Request, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
+    getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap { imgNodeOpt =>
+      oec.graphService.getNodeByUniqueId(graphId, frameworkId, true, new Request(request)).flatMap { liveNode =>
+        promoteRelations(graphId, liveNode, imgNodeOpt).flatMap { _ =>
+          val currentVersion: Int = Option(liveNode.getMetadata.get("version"))
+            .map(_.asInstanceOf[Number].intValue()).getOrElse(0)
+          val updateMetadata: util.Map[String, AnyRef] =
+            imgNodeOpt.map(filteredImageMetadata).getOrElse(new util.HashMap[String, AnyRef]())
+          updateMetadata.put("version", Integer.valueOf(currentVersion + 1)) // business publish-counter, not Constants.VERSION
+          updateMetadata.put("status", "Live")
+
+          val updateReq = new Request(request)
+          updateReq.getContext.put(Constants.IDENTIFIER, frameworkId)
+          updateReq.getContext.put("versioning", "disabled") // update the live node directly, never re-clone .img
+          updateReq.setRequest(updateMetadata)
+          DataNode.update(updateReq).flatMap { updatedLive =>
+            deleteImageNodeIfExists(graphId, frameworkId).map(_ => updatedLive)
+          }
+        }
+      }
+    }
+  }
+
+  def publishDescendants(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, Node]] = {
+    val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {{
+      add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN,
+        new util.ArrayList[String]() {{ add("Term"); add("CategoryInstance") }}))
+      add(new Filter("status", SearchConditions.OP_IN,
+        new util.ArrayList[String]() {{ add("Draft"); add("Review") }}))
+    }})
+    val criteria = new SearchCriteria {{ addMetadata(mc); setCountQuery(false); setGraphId(graphId) }}
+    oec.graphService.getNodeByUniqueIds(graphId, criteria).flatMap { nodes =>
+      val prefix = frameworkId.toLowerCase + "_"
+      val ids: util.List[String] = nodes.asScala
+        .filter(n => Option(n.getIdentifier).exists(_.toLowerCase.startsWith(prefix)))
+        .map(_.getIdentifier).toList.asJava
+      if (ids.isEmpty) Future(new util.HashMap[String, Node]())
+      else {
+        val bulkReq = new Request()
+        bulkReq.setContext(new util.HashMap[String, AnyRef]() {{ put("graph_id", graphId) }})
+        bulkReq.put("identifiers", ids)
+        bulkReq.put("metadata", new util.HashMap[String, AnyRef]() {{ put("status", "Live") }})
+        DataNode.bulkUpdate(bulkReq)
+      }
+    }
+  }
   def validateTranslationMap(request: Request) = {
     val translations: util.Map[String, AnyRef] = Optional.ofNullable(request.get("translations").asInstanceOf[util.HashMap[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
     if (translations.isEmpty) request.getRequest.remove("translations")
@@ -99,7 +228,10 @@ object FrameworkManager {
 
     if(includeRelations){
       val relMetadata = getRelationAsMetadata(relationDef, outRelations, "out")
-      val childHierarchy = relMetadata.map(x => (x._1, x._2.asScala.map(a => {
+      val childHierarchy = relMetadata.map(x => (x._1, x._2.asScala.filter(a => {
+        val childNode = nodes.get(a.getOrElse("identifier", ""))
+        null == childNode || !StringUtils.equalsIgnoreCase(childNode.getMetadata.getOrDefault("status", "").asInstanceOf[String], "Retired")
+      }).map(a => {
         val identifier = a.getOrElse("identifier", "")
         val childNode = nodes.get(identifier)
         val index = a.getOrElse("index", 1).asInstanceOf[Number]

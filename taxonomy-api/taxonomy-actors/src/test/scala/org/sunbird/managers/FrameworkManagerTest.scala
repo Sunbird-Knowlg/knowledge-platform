@@ -2,16 +2,19 @@ package org.sunbird.managers
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalamock.scalatest.MockFactory
-import org.sunbird.common.dto.Request
+import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
 import org.sunbird.utils.Constants
 
 import java.util
+import java.util.concurrent.CompletionException
+import org.sunbird.common.exception.ResourceNotFoundException
 import org.sunbird.managers.FrameworkManager._
 
 import scala.collection.convert.ImplicitConversions._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
@@ -135,6 +138,337 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     import scala.concurrent.duration._
     val response = Await.result(FrameworkManager.copyHierarchy(request), 10.seconds)
     assert(response.getResult.containsKey("node_id"))
+  }
+
+  private def notFoundFailure(): Future[Node] = Future.failed(new CompletionException(
+    new ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))
+
+  private def buildFrameworkNode(identifier: String, objectType: String = "Framework"): Node = {
+    val node = new Node()
+    node.setIdentifier(identifier)
+    node.setGraphId("domain")
+    node.setObjectType(objectType)
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      { put("code", "fw1"); put("objectType", objectType); put("name", "fw1"); put("channel", "sunbird") }
+    })
+    node
+  }
+
+  private def categoryRelation(endId: String): Relation = {
+    val r = new Relation("fw1", "hasSequenceMember", endId)
+    r.setStartNodeObjectType("Framework")
+    r.setEndNodeObjectType("CategoryInstance")
+    r
+  }
+
+  private def channelRelation(startId: String): Relation = {
+    val r = new Relation(startId, "hasSequenceMember", "fw1")
+    r.setStartNodeObjectType("Channel")
+    r.setEndNodeObjectType("Framework")
+    r
+  }
+
+  private def publishRequest(): Request = {
+    val request = new Request()
+    request.setContext(new util.HashMap[String, AnyRef]() {
+      { put("graph_id", "domain"); put("schemaName", "framework"); put("version", "1.0") }
+    })
+    request
+  }
+
+  "FrameworkManager.deleteImageNodeIfExists" should "return true and call deleteNode when .img exists" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode))
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    val result = Await.result(FrameworkManager.deleteImageNodeIfExists("domain", "fw1"), 10.seconds)
+    assert(result)
+  }
+
+  it should "return false and skip deleteNode when .img is absent" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(notFoundFailure())
+    // graphDB.deleteNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+    val result = Await.result(FrameworkManager.deleteImageNodeIfExists("domain", "fw1"), 10.seconds)
+    assert(!result)
+  }
+
+  "FrameworkManager.publishFramework" should "promote .img's metadata onto the live node but never copy identifier/status/objectType/versionKey/prevStatus/isImageNodeCreated" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+
+    val liveNode = buildFrameworkNode("fw1")
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    imgNode.getMetadata.put("status", "Draft")
+    imgNode.getMetadata.put("versionKey", "abc123")
+    imgNode.getMetadata.put("prevStatus", "Live")
+    imgNode.getMetadata.put("isImageNodeCreated", "yes")
+    imgNode.getMetadata.put("description", "edited")
+
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+
+    var submitted: util.Map[String, Object] = null
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      submitted = n.getMetadata
+      Future(n)
+    })
+
+    val result = Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+    assert(submitted.get("description") == "edited")
+    assert("Live".equals(submitted.get("status")))
+    assert(submitted.get("versionKey") == null)
+    assert(submitted.get("prevStatus") == null)
+    assert(submitted.get("isImageNodeCreated") == null)
+    assert(!"FrameworkImage".equals(submitted.get("objectType")))
+  }
+
+  it should "delete .img after a successful promote" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+  }
+
+  it should "treat a missing .img as a legitimate no-op for the metadata-promote sub-step (still increments version/sets Live)" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    // graphDB.deleteNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+    var submitted: util.Map[String, Object] = null
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      submitted = n.getMetadata
+      Future(n)
+    })
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+    assert("Live".equals(submitted.get("status")))
+    assert(submitted.get("version").asInstanceOf[Number].intValue() == 1)
+  }
+
+  it should "increment version by exactly 1 regardless of whether .img existed" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    liveNode.getMetadata.put("version", Integer.valueOf(2))
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    var submitted: util.Map[String, Object] = null
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      submitted = n.getMetadata
+      Future(n)
+    })
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+    assert(submitted.get("version").asInstanceOf[Number].intValue() == 3)
+  }
+
+  it should "createRelation for a category added on .img, without calling removeRelation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    liveNode.setOutRelations(util.Arrays.asList(categoryRelation("catA")))
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    imgNode.setOutRelations(util.Arrays.asList(categoryRelation("catA"), categoryRelation("catB")))
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
+    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
+      assert(rels.size() == 1)
+      assert(rels.get(0).get("startNodeId") == "fw1")
+      assert(rels.get(0).get("endNodeId") == "catB")
+      Future(new Response())
+    })
+    // graphDB.removeRelation is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+  }
+
+  it should "removeRelation for a category removed on .img" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    liveNode.setOutRelations(util.Arrays.asList(categoryRelation("catA"), categoryRelation("catB")))
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    imgNode.setOutRelations(util.Arrays.asList(categoryRelation("catA")))
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
+    (graphDB.removeRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
+      assert(rels.size() == 1)
+      assert(rels.get(0).get("endNodeId") == "catB")
+      Future(new Response())
+    })
+    // graphDB.createRelation is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+  }
+
+  it should "make no relation calls when .img carries zero categories/channels edges (renamed-only edit, idempotent)" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    liveNode.setOutRelations(util.Arrays.asList(categoryRelation("catA")))
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage") // no relations at all -- never touched this session
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
+    // Neither graphDB.createRelation nor graphDB.removeRelation is stubbed: ScalaMock fails if either is called.
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+  }
+
+  it should "diff the channels relation on the 'in' side (channel -> framework edge)" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = buildFrameworkNode("fw1")
+    liveNode.setInRelations(util.Arrays.asList(channelRelation("channelX")))
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    imgNode.setInRelations(util.Arrays.asList(channelRelation("channelY")))
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
+    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
+      assert(rels.get(0).get("startNodeId") == "channelY")
+      assert(rels.get(0).get("endNodeId") == "fw1")
+      Future(new Response())
+    })
+    (graphDB.removeRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
+      assert(rels.get(0).get("startNodeId") == "channelX")
+      assert(rels.get(0).get("endNodeId") == "fw1")
+      Future(new Response())
+    })
+
+    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
+  }
+
+  "FrameworkManager.publishDescendants" should "promote both Draft and Review descendants to Live in one bulkUpdate call" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+
+    def termNode(id: String, status: String): Node = {
+      val n = new Node()
+      n.setIdentifier(id)
+      n.setObjectType("Term")
+      n.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", status) } })
+      n
+    }
+    val draftTerm = termNode("fw1_term_draft", "Draft")
+    val reviewTerm = termNode("fw1_term_review", "Review")
+    val otherFwTerm = termNode("otherfw_term", "Draft")
+    val nodes: util.List[Node] = util.Arrays.asList(draftTerm, reviewTerm, otherFwTerm)
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes))
+
+    var capturedIds: util.List[String] = null
+    var capturedMetadata: util.Map[String, AnyRef] = null
+    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
+      capturedIds = ids
+      capturedMetadata = metadata
+      Future(new util.HashMap[String, Node]())
+    })
+
+    Await.result(FrameworkManager.publishDescendants("domain", "fw1"), 10.seconds)
+    assert(capturedIds.size() == 2)
+    assert(capturedIds.contains("fw1_term_draft"))
+    assert(capturedIds.contains("fw1_term_review"))
+    assert(!capturedIds.contains("otherfw_term"))
+    assert("Live".equals(capturedMetadata.get("status")))
+  }
+
+  it should "make no bulkUpdate call when there are no matching descendants" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]()))
+    // graphDB.updateNodes is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+    val result = Await.result(FrameworkManager.publishDescendants("domain", "fw1"), 10.seconds)
+    assert(result.isEmpty)
+  }
+
+  "FrameworkManager.getCompleteMetadata" should "exclude a Retired child from childHierarchy, keeping active children" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+
+    val fw = new Node()
+    fw.setIdentifier("fw1")
+    fw.setGraphId("domain")
+    fw.setObjectType("Framework")
+    fw.setMetadata(new util.HashMap[String, AnyRef]() { { put("code", "fw1"); put("name", "fw1"); put("channel", "all") } })
+
+    val cat = new Node()
+    cat.setIdentifier("cat1")
+    cat.setGraphId("domain")
+    cat.setObjectType("CategoryInstance")
+    cat.setMetadata(new util.HashMap[String, AnyRef]() { { put("code", "cat1"); put("name", "cat1"); put("status", "Live") } })
+
+    val retiredTerm = new Node()
+    retiredTerm.setIdentifier("term_retired")
+    retiredTerm.setGraphId("domain")
+    retiredTerm.setObjectType("Term")
+    retiredTerm.setMetadata(new util.HashMap[String, AnyRef]() { { put("code", "term_retired"); put("name", "term_retired"); put("status", "Retired") } })
+
+    val draftTerm = new Node()
+    draftTerm.setIdentifier("term_draft")
+    draftTerm.setGraphId("domain")
+    draftTerm.setObjectType("Term")
+    draftTerm.setMetadata(new util.HashMap[String, AnyRef]() { { put("code", "term_draft"); put("name", "term_draft"); put("status", "Draft") } })
+
+    val fwToCat = new Relation("fw1", "hasSequenceMember", "cat1")
+    fwToCat.setStartNodeObjectType("Framework"); fwToCat.setEndNodeObjectType("CategoryInstance")
+    val catToRetired = new Relation("cat1", "hasSequenceMember", "term_retired")
+    catToRetired.setStartNodeObjectType("CategoryInstance"); catToRetired.setEndNodeObjectType("Term")
+    val catToDraft = new Relation("cat1", "hasSequenceMember", "term_draft")
+    catToDraft.setStartNodeObjectType("CategoryInstance"); catToDraft.setEndNodeObjectType("Term")
+
+    val nodeMap: util.Map[String, Node] = new util.HashMap[String, Node]() {
+      { put("fw1", fw); put("cat1", cat); put("term_retired", retiredTerm); put("term_draft", draftTerm) }
+    }
+    val relations: util.List[Relation] = util.Arrays.asList(fwToCat, catToRetired, catToDraft)
+    val subGraph = new SubGraph(nodeMap, relations)
+
+    val result = FrameworkManager.getCompleteMetadata("fw1", subGraph, true)
+    val categories = result.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+    assert(categories.size() == 1)
+    val terms = categories.get(0).getOrDefault("terms", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]]
+    val termIds = terms.map(_.get("identifier")).toSet
+    assert(termIds.contains("term_draft"))
+    assert(!termIds.contains("term_retired"))
   }
 
   }
