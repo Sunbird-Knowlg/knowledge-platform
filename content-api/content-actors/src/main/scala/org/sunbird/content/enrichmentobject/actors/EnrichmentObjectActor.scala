@@ -28,6 +28,8 @@ class EnrichmentObjectActor @Inject() (implicit oec: OntologyEngineContext) exte
       case "listEnrichmentObject" => EnrichmentObjectManager.list(request)
       case "updateEnrichmentObject" =>
         EnrichmentObjectManager.update(request, request.getContext.get("identifier").asInstanceOf[String])
+      case "approveEnrichmentObject" =>
+        EnrichmentObjectManager.approve(request, request.getContext.get("identifier").asInstanceOf[String])
       case _ => ERROR(request.getOperation)
     }
   }

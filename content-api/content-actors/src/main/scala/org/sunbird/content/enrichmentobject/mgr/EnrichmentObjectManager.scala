@@ -28,6 +28,9 @@ object EnrichmentObjectManager {
   private val PARENT_OBJECT_TYPE = "Content"
   private val PARENT_SCHEMA_NAME = "content"
 
+  private val APPROVE_TARGETS = Set("Live", "Review")
+  private val APPROVE_SOURCE_STATUSES = Set("Draft", "Processing", "Review")
+
   /**
    * Creates a new EnrichmentObject under the given parent, or returns an existing
    * match if one is found for the category's declared identity fields.
@@ -106,6 +109,37 @@ object EnrichmentObjectManager {
   }
 
   /**
+   * Moves an EnrichmentObject toward `Live` or `Review`, whichever the caller
+   * requests. Only legal from `Draft`, `Processing`, or `Review` — a node already
+   * `Live` (or `Retired`) can never be approved again. This phase writes the status
+   * only; it does not yet publish a status-transition event.
+   *
+   * @param request the approve request; its metadata's `status` must be `Live` or
+   *                `Review`
+   * @param identifier the EnrichmentObject being approved
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return identifier plus the new status
+   * @throws org.sunbird.common.exception.ResourceNotFoundException if identifier does
+   *         not resolve to a real node
+   * @throws ClientException if the requested target isn't `Live`/`Review`, or the
+   *         node's current status isn't `Draft`/`Processing`/`Review`
+   */
+  def approve(request: Request, identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val targetStatus = request.getRequest.getOrDefault("status", "").asInstanceOf[String]
+    if (!APPROVE_TARGETS.contains(targetStatus))
+      throw new ClientException("ERR_INVALID_STATUS_TRANSITION", "approve only accepts status Live or Review.")
+
+    resolveByIdentifier(identifier).flatMap { existing =>
+      val currentStatus = existing.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
+      if (!APPROVE_SOURCE_STATUSES.contains(currentStatus))
+        throw new ClientException("ERR_APPROVE_NOT_ALLOWED", s"Cannot approve from status '$currentStatus'.")
+
+      writeStatus(identifier, targetStatus).map(toResponse)
+    }
+  }
+
+  /**
    * Lists EnrichmentObjects under a parent, optionally narrowed by any other
    * metadata fields present in the request (e.g. `enrichmentObjectType`, `status`).
    * Retired nodes are excluded unless the caller explicitly filters on `status`.
@@ -148,6 +182,36 @@ object EnrichmentObjectManager {
     readReq.put("identifier", identifier)
     readReq.put("fields", new util.ArrayList[String]())
     DataNode.read(readReq)
+  }
+
+  /**
+   * Writes a new `status` onto an EnrichmentObject. Shared by every status-transition
+   * operation — the caller has already validated the transition is legal before
+   * calling this; it does no validation of its own beyond what `DataNode.update`
+   * enforces.
+   *
+   * @param identifier the EnrichmentObject to update
+   * @param status the new status value
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return the updated node
+   */
+  private def writeStatus(identifier: String, status: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    val context = new util.HashMap[String, AnyRef]()
+    context.put("graph_id", GRAPH_ID)
+    context.put("version", SCHEMA_VERSION)
+    context.put("objectType", OBJECT_TYPE)
+    context.put("schemaName", SCHEMA_NAME)
+    context.put("identifier", identifier)
+
+    val updateReq = new Request()
+    updateReq.setContext(context)
+    updateReq.setObjectType(OBJECT_TYPE)
+    val body = new util.HashMap[String, AnyRef]()
+    body.put("status", status)
+    updateReq.setRequest(body)
+
+    DataNode.update(updateReq)
   }
 
   /**
