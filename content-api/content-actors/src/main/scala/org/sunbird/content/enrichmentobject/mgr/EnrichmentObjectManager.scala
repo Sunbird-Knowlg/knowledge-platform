@@ -7,6 +7,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, SearchConditions, SearchCriteria}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.{CategoryDefinitionValidator, ObjectCategoryDefinition}
+import org.sunbird.util.RequestUtil
 
 import java.util
 import scala.concurrent.{ExecutionContext, Future}
@@ -56,6 +57,76 @@ object EnrichmentObjectManager {
         case None => persist(request, enrichmentObjectType, parentId, parentType, channel)
       }
     }
+  }
+
+  /**
+   * Writes fields onto an existing EnrichmentObject. Rejected outright if the node's
+   * current status is Live. `status` may only be set to `Processing` or `Failed` here —
+   * moving to `Live`/`Review` is exclusively `approve`'s job. Never emits an event.
+   *
+   * @param request the update request; its metadata is the set of fields to write
+   * @param identifier the EnrichmentObject being updated
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return identifier plus the fields that were written
+   * @throws org.sunbird.common.exception.ResourceNotFoundException if identifier does
+   *         not resolve to a real node
+   * @throws ClientException if the node's current status is Live, or if `status` is
+   *         being set to anything other than `Processing`/`Failed`
+   */
+  def update(request: Request, identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    resolveByIdentifier(identifier).flatMap { existing =>
+      val currentStatus = existing.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
+      if (StringUtils.equalsIgnoreCase(currentStatus, "Live"))
+        throw new ClientException("ERR_EDIT_LOCKED", "Cannot update — current status is Live and cannot be edited.")
+
+      val metadata = request.getRequest
+      val requestedStatus = metadata.getOrDefault("status", "").asInstanceOf[String]
+      if (StringUtils.isNotBlank(requestedStatus) && !StringUtils.equalsAnyIgnoreCase(requestedStatus, "Processing", "Failed"))
+        throw new ClientException("ERR_STATUS_TRANSITION_NOT_ALLOWED",
+          "status can only be set to Processing or Failed via update; Live/Review require approve.")
+
+      val requestedFields = metadata.keySet()
+      val context = new util.HashMap[String, AnyRef]()
+      context.put("graph_id", GRAPH_ID)
+      context.put("version", SCHEMA_VERSION)
+      context.put("objectType", OBJECT_TYPE)
+      context.put("schemaName", SCHEMA_NAME)
+      request.setContext(context)
+      request.setObjectType(OBJECT_TYPE)
+      request.getContext.put("identifier", identifier)
+
+      RequestUtil.restrictProperties(request)
+      DataNode.update(request).map { node =>
+        val result = new util.HashMap[String, AnyRef]()
+        result.put("identifier", node.getIdentifier)
+        requestedFields.asScala.foreach(key => result.put(key, node.getMetadata.get(key)))
+        ResponseHandler.OK.putAll(result)
+      }
+    }
+  }
+
+  /**
+   * Reads an existing EnrichmentObject by its own identifier.
+   *
+   * @param identifier the EnrichmentObject to resolve
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return the resolved node
+   * @throws org.sunbird.common.exception.ResourceNotFoundException if identifier does
+   *         not resolve to a real node
+   */
+  private def resolveByIdentifier(identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    val readReq = new Request()
+    val context = new util.HashMap[String, AnyRef]()
+    context.put("graph_id", GRAPH_ID)
+    context.put("version", SCHEMA_VERSION)
+    context.put("objectType", OBJECT_TYPE)
+    context.put("schemaName", SCHEMA_NAME)
+    readReq.setContext(context)
+    readReq.put("identifier", identifier)
+    readReq.put("fields", new util.ArrayList[String]())
+    DataNode.read(readReq)
   }
 
   /**
@@ -197,9 +268,6 @@ object EnrichmentObjectManager {
   private def persist(request: Request, enrichmentObjectType: String, parentId: String, parentType: String, channel: String)
                       (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val metadata = request.getRequest
-    metadata.put("parentType", parentType)
-    metadata.put("status", "Draft")
-    metadata.put("parent", util.Arrays.asList(new util.HashMap[String, AnyRef]() {{ put("identifier", parentId) }}))
 
     val context = new util.HashMap[String, AnyRef]()
     context.put("graph_id", GRAPH_ID)
@@ -209,6 +277,14 @@ object EnrichmentObjectManager {
     if (StringUtils.isNotBlank(channel)) context.put("channel", channel)
     request.setContext(context)
     request.setObjectType(OBJECT_TYPE)
+
+    // Must run before this method's own writes below (parentType/status/parent),
+    // or restrictProperties would see those as caller-supplied and reject them.
+    RequestUtil.restrictProperties(request)
+
+    metadata.put("parentType", parentType)
+    metadata.put("status", "Draft")
+    metadata.put("parent", util.Arrays.asList(new util.HashMap[String, AnyRef]() {{ put("identifier", parentId) }}))
 
     DataNode.create(request).map(toResponse)
   }

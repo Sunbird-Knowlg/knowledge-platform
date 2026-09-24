@@ -35,4 +35,22 @@ class EnrichmentObjectController @Inject() (@Named(ActorNames.ENRICHMENT_OBJECT_
         setRequestContext(enrichmentRequest, version, objectType, schemaName)
         getResult(ApiId.CREATE_ENRICHMENT_OBJECT, enrichmentObjectActor, enrichmentRequest, version = apiVersion)
     }
+
+    /**
+     * Writes fields onto an existing EnrichmentObject, from the payload under the
+     * request's `enrichmentObject` key.
+     *
+     * @param identifier the EnrichmentObject to update
+     * @return identifier plus the fields that were written
+     */
+    def update(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("enrichmentObject", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        val enrichmentRequest = getRequest(content, headers, "updateEnrichmentObject")
+        setRequestContext(enrichmentRequest, version, objectType, schemaName)
+        enrichmentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.UPDATE_ENRICHMENT_OBJECT, enrichmentObjectActor, enrichmentRequest, version = apiVersion)
+    }
 }
