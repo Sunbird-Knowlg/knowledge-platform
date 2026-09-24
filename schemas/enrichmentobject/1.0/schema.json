@@ -9,7 +9,6 @@
         "enrichmentObjectType": { "type": "string" },
         "parentId": { "type": "string" },
         "parentType": { "type": "string" },
-        "derivedFrom": { "type": "string" },
         "status": {
             "type": "string",
             "enum": ["Draft", "Processing", "Review", "Live", "Failed", "Retired"],
