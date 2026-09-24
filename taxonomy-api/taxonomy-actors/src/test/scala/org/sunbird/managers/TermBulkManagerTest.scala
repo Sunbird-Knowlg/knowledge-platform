@@ -23,61 +23,6 @@ import scala.jdk.CollectionConverters._
 
 class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
-  "TermBulkManager.bulkCreateTerm" should "aggregate per-row results with PARTIAL_SUCCESS, translating a duplicate-code collision to ERR_DUPLICATE_CODE and a blank code (real schema validation failure) to ERR_TERM_CODE_REQUIRED" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode())).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
-    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(noLoop()).anyNumberOfTimes()
-    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
-
-    // Row 2 (cm2) never reaches addNode with a blank code -- schema validation rejects it
-    // first (see DataNode.create -> DefinitionNode.validate), so only cm1/cm2 need stubbing.
-    (graphDB.addNode(_: String, _: Node)).expects(*, *).onCall((_: String, n: Node) => n.getIdentifier match {
-      case "ncf_board_cm1" => Future(termNode("ncf_board_cm1", "cm1"))
-      case "ncf_board_cm2" => Future.failed(new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), "Node with this identifier already exists"))
-      case other => Future.failed(new ClientException("ERR_UNEXPECTED_ADD_NODE_CALL", s"unexpected addNode call for $other"))
-    }).anyNumberOfTimes()
-
-    val terms = new util.ArrayList[util.Map[String, AnyRef]]()
-    terms.add(termRow("cm1", "Competency1"))
-    terms.add(termRow("cm2", "Competency2"))
-    terms.add(termRow("", "Competency3")) // blank code -> real DataNode.create schema validation failure, not a stubbed addNode error
-
-    val response = Await.result(TermBulkManager.bulkCreateTerm(bulkCreateRequest("NCF", "board", terms)), 10.seconds)
-
-    assert(response.getResponseCode == ResponseCode.PARTIAL_SUCCESS)
-    val results = response.getResult.get("results").asInstanceOf[util.List[util.Map[String, AnyRef]]]
-    assert(results.get(0).get("index") == 0)
-    assert(results.get(0).get("code") == "cm1")
-    assert(results.get(0).get("identifier") == "ncf_board_cm1")
-    assert(results.get(0).get("status") == "SUCCESS")
-    assert(results.get(1).get("status") == "FAILED")
-    assert(results.get(1).get("errCode") == "ERR_DUPLICATE_CODE")
-    assert(results.get(2).get("status") == "FAILED")
-    assert(results.get(2).get("errCode") == "ERR_TERM_CODE_REQUIRED")
-  }
-
-  it should "return OK with an all-success results array when every row succeeds" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "ncf_board", *, *).returns(Future(categoryInstanceNode())).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
-    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(noLoop()).anyNumberOfTimes()
-    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
-    (graphDB.addNode(_: String, _: Node)).expects(*, *).onCall((_: String, n: Node) => Future(termNode(n.getIdentifier, "cm1"))).anyNumberOfTimes()
-
-    val terms = new util.ArrayList[util.Map[String, AnyRef]]()
-    terms.add(termRow("cm1", "Competency1"))
-
-    val response = Await.result(TermBulkManager.bulkCreateTerm(bulkCreateRequest("NCF", "board", terms)), 10.seconds)
-    assert(response.getResponseCode == ResponseCode.OK)
-  }
-
   "TermBulkManager.bulkUpdateTerm" should "aggregate per-row results, reporting RESOURCE_NOT_FOUND for an identifier that doesn't resolve" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
@@ -205,16 +150,6 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     }
   }
 
-  private def bulkCreateRequest(framework: String, category: String, terms: util.List[util.Map[String, AnyRef]]): Request = {
-    val request = new Request()
-    request.setContext(context())
-    request.setObjectType("Term")
-    request.put("framework", framework)
-    request.put("category", category)
-    request.put("terms", terms)
-    request
-  }
-
   private def bulkUpdateRequest(terms: util.List[util.Map[String, AnyRef]]): Request = {
     val request = new Request()
     request.setContext(context())
@@ -223,32 +158,11 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     request
   }
 
-  private def termRow(code: String, name: String): util.Map[String, AnyRef] = {
-    val m = new util.HashMap[String, AnyRef]()
-    m.put("code", code)
-    m.put("name", name)
-    m
-  }
-
   private def updateRow(identifier: String, fields: (String, AnyRef)*): util.Map[String, AnyRef] = {
     val m = new util.HashMap[String, AnyRef]()
     m.put("identifier", identifier)
     fields.foreach { case (k, v) => m.put(k, v) }
     m
-  }
-
-  private def categoryInstanceNode(): Node = {
-    val node = new Node()
-    node.setIdentifier("ncf_board")
-    node.setObjectType("CategoryInstance")
-    node.setMetadata(new util.HashMap[String, AnyRef]() {
-      {
-        put("identifier", "ncf_board")
-        put("objectType", "CategoryInstance")
-        put("name", "ncf_board")
-      }
-    })
-    node
   }
 
   private def termNode(identifier: String, code: String): Node = {

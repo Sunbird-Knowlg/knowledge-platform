@@ -29,23 +29,6 @@ object TermBulkManager {
   def isDuplicateCode(e: ClientException): Boolean =
     StringUtils.equals(e.getErrCode, DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name())
 
-  def bulkCreateTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val rows: util.List[util.Map[String, AnyRef]] = getBulkRequestData(request, "terms")
-    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
-    val category = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
-    val categoryId = TaxonomyUtil.generateIdentifier(frameworkId, category)
-    validateCategoryInstance(frameworkId, category).flatMap(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryId)) {
-        val startIndex: Integer = TaxonomyUtil.getNextSequenceIndex(node)
-        val futures = rows.asScala.zipWithIndex.map { case (row, i) =>
-          val code = row.getOrDefault(Constants.CODE, "").asInstanceOf[String]
-          createRow(request, categoryId, category, startIndex + i, i, code, row)
-        }
-        Future.sequence(futures.toList).map(results => buildResponse(results.asJava))
-      } else throw new ClientException("ERR_INVALID_CATEGORY_ID", "Please provide valid category")
-    })
-  }
-
   def bulkUpdateTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val rows: util.List[util.Map[String, AnyRef]] = getBulkRequestData(request, "terms")
     val futures = rows.asScala.zipWithIndex.map { case (row, i) => updateOneRow(row, i) }

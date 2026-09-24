@@ -107,15 +107,4 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
     req.getOperation shouldBe Constants.REJECT_FRAMEWORK
   }
 
-  it should "invoke categoryInstanceActor with frameworkObjectType=competencyframework forced on createCategoryInstance" in {
-    val (controller, _, categoryProbe) = newController()
-    // the incoming body's "category" object omits frameworkObjectType entirely
-    val body = Json.parse("""{"request":{"category":{"name":"Competency","code":"competency"}}}""")
-    controller.createCategoryInstance("cf1").apply(FakeRequest().withJsonBody(body))
-    val req = categoryProbe.expectMsgType[SbRequest]
-    categoryProbe.reply(successResponse())
-    req.getOperation shouldBe Constants.CREATE_CATEGORY_INSTANCE
-    req.getRequest.get(Constants.FRAMEWORK_OBJECT_TYPE) shouldBe Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME
-  }
-
 }

@@ -28,7 +28,6 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServic
       case Constants.READ_TERM => read(request)
       case Constants.UPDATE_TERM => update(request)
       case Constants.RETIRE_TERM => retire(request)
-      case Constants.BULK_CREATE_TERM => TermBulkManager.bulkCreateTerm(request)
       case Constants.BULK_UPDATE_TERM => TermBulkManager.bulkUpdateTerm(request)
       case Constants.BULK_VALIDATE_TERM => TermBulkManager.bulkValidateTerm(request)
       case Constants.BULK_COMMIT_TERM => TermBulkManager.bulkCommitTerm(request)
