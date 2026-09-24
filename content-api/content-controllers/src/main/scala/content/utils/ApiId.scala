@@ -7,6 +7,7 @@ object ApiId {
 
 	//EnrichmentObject APIs
 	val CREATE_ENRICHMENT_OBJECT = "api.enrichment.create"
+	val LIST_ENRICHMENT_OBJECT = "api.enrichment.list"
 	val UPDATE_ENRICHMENT_OBJECT = "api.enrichment.update"
 
 	//Content APIs

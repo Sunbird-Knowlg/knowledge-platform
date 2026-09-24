@@ -107,6 +107,28 @@ object EnrichmentObjectManager {
   }
 
   /**
+   * Lists EnrichmentObjects under a parent, optionally narrowed by any other
+   * metadata fields present in the request (e.g. `enrichmentObjectType`, `status`).
+   * Retired nodes are excluded unless the caller explicitly filters on `status`.
+   *
+   * @param request the list request; its metadata must include `parentId` and may
+   *                include any additional metadata fields to filter on
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return the matching EnrichmentObjects and their count
+   * @throws ClientException if `parentId` is missing
+   */
+  def list(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val metadata = request.getRequest
+    val parentId = metadata.getOrDefault("parentId", "").asInstanceOf[String]
+    if (StringUtils.isBlank(parentId))
+      throw new ClientException("ERR_PARENT_ID_REQUIRED", "parentId is required.")
+
+    val filters = metadata.asScala.toMap - "parentId"
+    search(parentId, filters)
+  }
+
+  /**
    * Reads an existing EnrichmentObject by its own identifier.
    *
    * @param identifier the EnrichmentObject to resolve
@@ -247,6 +269,31 @@ object EnrichmentObjectManager {
   }
 
   /**
+   * Searches for EnrichmentObjects under a parent matching the given filter.
+   * Retired nodes are excluded unless `filter` itself specifies `status`.
+   *
+   * @param parentId parent to search under
+   * @param filter field/value pairs to match, in addition to `parentId`
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return the matching EnrichmentObjects and their count
+   */
+  private def search(parentId: String, filter: Map[String, AnyRef])
+                     (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {{
+      add(new Filter("parentId", SearchConditions.OP_EQUAL, parentId))
+      filter.foreach { case (k, v) => add(new Filter(k, SearchConditions.OP_EQUAL, v)) }
+      if (!filter.contains("status")) add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
+    }})
+    val criteria = new SearchCriteria {{ addMetadata(mc); setCountQuery(false); setGraphId(GRAPH_ID); setObjectType(OBJECT_TYPE) }}
+    oec.graphService.getNodeByUniqueIds(GRAPH_ID, criteria).map { nodes =>
+      val results = if (nodes == null) new util.ArrayList[util.Map[String, AnyRef]]()
+      else nodes.asScala.map(toMap).asJava
+      ResponseHandler.OK.put("enrichmentObjects", results).put("count", results.size.asInstanceOf[AnyRef])
+    }
+  }
+
+  /**
    * Persists a new EnrichmentObject node and wires its `parent` relation to the
    * given parentId. Never publishes an event — only the status-transition operations
    * (approve/reject) do.
@@ -292,15 +339,23 @@ object EnrichmentObjectManager {
   /**
    * Converts a persisted node into a response payload.
    *
-   * Every response-producing operation on this manager should route through this
-   * method rather than reimplementing it.
+   * Every single-node response-producing operation on this manager should route
+   * through this method rather than reimplementing it.
    *
    * @param node the persisted or matched node
    * @return the response envelope's result payload
    */
-  private def toResponse(node: Node): Response = {
+  private def toResponse(node: Node): Response = ResponseHandler.OK.putAll(toMap(node))
+
+  /**
+   * Converts a node into its metadata map, plus its identifier.
+   *
+   * @param node the node to convert
+   * @return the node's metadata, with `identifier` included
+   */
+  private def toMap(node: Node): util.Map[String, AnyRef] = {
     val result = new util.HashMap[String, AnyRef](node.getMetadata)
     result.put("identifier", node.getIdentifier)
-    ResponseHandler.OK.putAll(result)
+    result
   }
 }

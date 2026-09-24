@@ -37,6 +37,20 @@ class EnrichmentObjectController @Inject() (@Named(ActorNames.ENRICHMENT_OBJECT_
     }
 
     /**
+     * Lists EnrichmentObjects matching the filter under the request's `enrichmentObject`
+     * key, which must include `parentId`.
+     *
+     * @return the matching EnrichmentObjects and their count
+     */
+    def list() = Action.async { implicit request =>
+        val body = requestBody()
+        val content = body.getOrDefault("enrichmentObject", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val enrichmentRequest = getRequest(content, commonHeaders(), "listEnrichmentObject")
+        setRequestContext(enrichmentRequest, version, objectType, schemaName)
+        getResult(ApiId.LIST_ENRICHMENT_OBJECT, enrichmentObjectActor, enrichmentRequest, version = apiVersion)
+    }
+
+    /**
      * Writes fields onto an existing EnrichmentObject, from the payload under the
      * request's `enrichmentObject` key.
      *
