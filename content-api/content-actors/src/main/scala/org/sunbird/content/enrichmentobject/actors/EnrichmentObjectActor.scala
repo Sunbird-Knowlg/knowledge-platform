@@ -25,6 +25,8 @@ class EnrichmentObjectActor @Inject() (implicit oec: OntologyEngineContext) exte
   override def onReceive(request: Request): Future[Response] = {
     request.getOperation match {
       case "createEnrichmentObject" => EnrichmentObjectManager.create(request)
+      case "updateEnrichmentObject" =>
+        EnrichmentObjectManager.update(request, request.getContext.get("identifier").asInstanceOf[String])
       case _ => ERROR(request.getOperation)
     }
   }

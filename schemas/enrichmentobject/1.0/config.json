@@ -3,7 +3,7 @@
     "categoryField": "enrichmentObjectType",
     "restrictProps": {
         "create": ["status"],
-        "update": ["status", "enrichmentObjectType", "parentId", "parentType", "channel"]
+        "update": ["enrichmentObjectType", "parentId", "parentType", "channel"]
     },
     "relations": {
         "parent": {
