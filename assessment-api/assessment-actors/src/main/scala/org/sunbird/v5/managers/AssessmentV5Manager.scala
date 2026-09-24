@@ -418,6 +418,24 @@ object AssessmentV5Manager {
     })
   }
 
+  /** Minimal refresh-body event — only mid (Kafka key) + action + identifier + objectType, nothing the job doesn't actually read. */
+  def pushRefreshBodyEvent(identifier: String, objectType: String)(implicit oec: OntologyEngineContext): Unit = {
+    val cleanId = identifier.replace(".img", "")
+    val edata = new util.HashMap[String, AnyRef]() {{
+      put("action", "refresh-body")
+      put("metadata", new util.HashMap[String, AnyRef]() {{
+        put("identifier", cleanId)
+        put("objectType", objectType)
+      }})
+    }}
+    val reqMap = new util.HashMap[String, AnyRef]() {{
+      put("mid", s"LP.${System.currentTimeMillis()}.${UUID.randomUUID()}")
+      put("edata", edata)
+    }}
+    val topic: String = Platform.getString("kafka.publish.request.topic", "sunbirddev.knowlg.publish.job.request")
+    oec.kafkaClient.send(JsonUtils.serialize(reqMap), topic)
+  }
+
   @throws[Exception]
   def pushInstructionEvent(identifier: String, node: Node, requestId: String, featureName: String, action: String = "publish")(implicit oec: OntologyEngineContext): Unit = {
     val (actor, context, objData, eData) = generateInstructionEventMetadata(identifier.replace(".img", ""), node, requestId, featureName, action)

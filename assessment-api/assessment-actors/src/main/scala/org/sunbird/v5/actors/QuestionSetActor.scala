@@ -1,5 +1,6 @@
 package org.sunbird.v5.actors
 
+import com.mashape.unirest.http.Unirest
 import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
@@ -161,14 +162,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
     })
   }
 
-  /**
-   * Refresh Body: re-runs pool-based question selection for a Dynamic QuestionSet without a full
-   * creator-driven publish. Unlike publish(), does not require existing children (the whole point
-   * of a refresh is to populate/replace them) and does not run publish-checklist/hierarchy
-   * validation. Pushes edata.action = "refresh-body" instead of "publish", onto the same
-   * instruction topic; the async DynamicAssessFunction in knowlg-publish picks it up and rebuilds
-   * the QuestionSet's children from the live question pool.
-   */
+  /** Refresh Body: re-runs pool selection for a Dynamic QuestionSet; unlike publish(), doesn't require existing children. */
   def refreshBody(request: Request): Future[Response] = {
     val lastPublishedBy: String = request.getRequest.getOrDefault("lastPublishedBy", "").asInstanceOf[String]
     val requestId = request.getContext().getOrDefault("requestId", "").asInstanceOf[String]
@@ -178,11 +172,62 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
     DataNode.read(request).map(node => {
       if (StringUtils.equalsAnyIgnoreCase(node.getMetadata.getOrDefault("status", "").asInstanceOf[String], "Processing"))
         throw new ClientException(AssessmentErrorCodes.ERR_OBJECT_VALIDATION, "QuestionSet having Processing status can't be sent for refresh.")
+      validateSkillPoolCandidates(node)
       if (StringUtils.isNotBlank(lastPublishedBy))
         node.getMetadata.put("lastPublishedBy", lastPublishedBy)
-      AssessmentV5Manager.pushInstructionEvent(node.getIdentifier, node, requestId, featureName, "refresh-body")
+      AssessmentV5Manager.pushRefreshBodyEvent(node.getIdentifier, node.getObjectType)
       ResponseHandler.OK.putAll(Map[String, AnyRef]("identifier" -> node.getIdentifier.replace(".img", ""), "message" -> "Refresh Body Event for QuestionSet is successfully sent for processing").asJava)
     })
+  }
+
+  // Rejects the refresh outright if any tagged skill's pool is below minCriteria x multiplier.
+  private def validateSkillPoolCandidates(node: Node): Unit = {
+    val skills = node.getMetadata.getOrDefault("skill", new util.ArrayList[String]()).asInstanceOf[util.List[String]].asScala.toList
+    if (skills.isEmpty) return
+    val framework = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
+    val categoryField = resolveSkillCategoryField(framework)
+    val threshold = Platform.getInteger("dynamicassess.minCriteria", 2) * Platform.getInteger("dynamicassess.multiplier", 3)
+    val insufficient = skills.filterNot(hasSufficientPoolCandidates(_, categoryField, "Question", threshold))
+    if (insufficient.nonEmpty)
+      throw new ClientException("ERR_SKILL_INSUFFICIENT_POOL", s"Fewer than $threshold Live questions found for skill(s): ${insufficient.mkString(", ")}")
+  }
+
+  // Deepest (highest-index) category code of the declared framework, e.g. "topic"/"skill"; falls back to "skill".
+  private def resolveSkillCategoryField(framework: String): String = {
+    if (framework.isBlank) return "skill"
+    try {
+      val url = Platform.getString("taxonomy.framework.read.url", "https://dev.sunbirded.org/action/framework/v3/read/") + framework
+      val resp = Unirest.get(url).header("Content-Type", "application/json").asString()
+      if (resp.getStatus != 200) return "skill"
+      val body = JsonUtils.deserialize(resp.getBody, classOf[java.util.Map[String, AnyRef]])
+      val result = body.getOrDefault("result", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val fw = result.getOrDefault("framework", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      val categories = fw.getOrDefault("categories", new util.ArrayList[util.Map[String, AnyRef]]()).asInstanceOf[util.List[util.Map[String, AnyRef]]].asScala
+      if (categories.isEmpty) "skill"
+      else categories.maxBy(_.getOrDefault("index", Integer.valueOf(0)).asInstanceOf[Number].intValue()).getOrDefault("code", "skill").asInstanceOf[String]
+    } catch {
+      case _: Exception => "skill"
+    }
+  }
+
+  // Fails open (treats as sufficient) on search errors so a transient outage doesn't block a legitimate refresh.
+  private def hasSufficientPoolCandidates(skill: String, categoryField: String, poolObjectType: String, threshold: Int): Boolean = {
+    try {
+      val filters = new util.HashMap[String, AnyRef]()
+      filters.put("status", util.Arrays.asList("Live"))
+      filters.put("objectType", poolObjectType)
+      filters.put(categoryField, util.Arrays.asList(skill))
+      val reqMap = new util.HashMap[String, AnyRef]()
+      reqMap.put("request", Map("filters" -> filters, "fields" -> util.Arrays.asList("identifier"), "limit" -> Integer.valueOf(1)).asJava)
+      val url = Platform.getString("composite.search.url", "https://dev.sunbirded.org/action/composite/v3/search")
+      val resp = Unirest.post(url).header("Content-Type", "application/json").body(JsonUtils.serialize(reqMap)).asString()
+      if (resp.getStatus != 200) return true
+      val body = JsonUtils.deserialize(resp.getBody, classOf[java.util.Map[String, AnyRef]])
+      val result = body.getOrDefault("result", new util.HashMap[String, AnyRef]()).asInstanceOf[util.Map[String, AnyRef]]
+      result.getOrDefault("count", Integer.valueOf(0)).asInstanceOf[Number].intValue() >= threshold
+    } catch {
+      case _: Exception => true
+    }
   }
 
   def retire(request: Request): Future[Response] = {

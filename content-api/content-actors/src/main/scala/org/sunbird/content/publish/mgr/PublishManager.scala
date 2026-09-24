@@ -2,7 +2,7 @@ package org.sunbird.content.publish.mgr
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.Platform
+import org.sunbird.common.{JsonUtils, Platform}
 import org.sunbird.common.dto.ResponseParams.StatusType
 import org.sunbird.common.dto.{Request, Response, ResponseParams}
 import org.sunbird.common.exception.ClientException
@@ -14,6 +14,7 @@ import org.sunbird.mimetype.factory.MimeTypeManagerFactory
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 
 import java.util
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 object PublishManager {
@@ -23,12 +24,7 @@ object PublishManager {
 	def publish(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] =
 		publishWithAction(request, node, ContentConstants.PUBLISH)
 
-	/**
-	 * Refresh Body: re-runs pool-based question selection for a Content (ECML) without a full
-	 * creator-driven publish. Pushes edata.action = "refresh-body" instead of "publish", onto the
-	 * same instruction topic; the async publish job (RefreshBodyFunction-equivalent) picks it up
-	 * and rebuilds `body` from the live question pool.
-	 */
+	/** Refresh Body: re-runs pool selection for a Content (ECML) without a full publish; pushes action="refresh-body" instead. */
 	def refreshBody(request: Request, node: Node)(implicit oec: OntologyEngineContext, ec: ExecutionContext, ss: StorageService): Future[Response] =
 		publishWithAction(request, node, ContentConstants.REFRESH_BODY)
 
@@ -46,7 +42,7 @@ object PublishManager {
 		val status = node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]
 		if (action == ContentConstants.REFRESH_BODY && (StringUtils.equalsIgnoreCase(status, ContentConstants.DRAFT) || StringUtils.equalsIgnoreCase(status, ContentConstants.REVIEW_STATUS))) {
 			// A Draft/Review node has no live ECAR to refresh yet; just push the trigger, skip mgr.publish's validation/status transition.
-			pushInstructionEvent(identifier, node, action)
+			pushRefreshBodyEvent(identifier, node.getObjectType)
 			val response = new Response
 			val param = new ResponseParams
 			param.setStatus(StatusType.successful.name)
@@ -58,7 +54,8 @@ object PublishManager {
 			val publishFuture: Future[scala.collection.Map[String, AnyRef]] = mgr.publish(identifier, node)
 			publishFuture.map(result => {
 				// Push Instruction Event - Learning code has logic to send publish instruction to different topics based on mimeTypes. That logic is not implemented here due to deprecation of samza jobs.
-				pushInstructionEvent(identifier, node, action)
+				if (action == ContentConstants.REFRESH_BODY) pushRefreshBodyEvent(identifier, node.getObjectType)
+				else pushInstructionEvent(identifier, node, action)
 
 				val response = new Response
 				val param = new ResponseParams
@@ -71,6 +68,24 @@ object PublishManager {
 				Future(response)
 			}).flatten
 		}
+	}
+
+	/** Minimal refresh-body event — only mid (Kafka key) + action + identifier + objectType, nothing the job doesn't actually read. */
+	private def pushRefreshBodyEvent(identifier: String, objectType: String): Unit = {
+		val cleanId = identifier.replace(".img", "")
+		val edata = new util.HashMap[String, AnyRef]() {{
+			put(ContentConstants.ACTION, ContentConstants.REFRESH_BODY)
+			put(ContentConstants.METADATA, new util.HashMap[String, AnyRef]() {{
+				put(ContentConstants.IDENTIFIER, cleanId)
+				put(ContentConstants.OBJECT_TYPE, objectType)
+			}})
+		}}
+		val reqMap = new util.HashMap[String, AnyRef]() {{
+			put("mid", s"LP.${System.currentTimeMillis()}.${UUID.randomUUID()}")
+			put("edata", edata)
+		}}
+		val topic: String = Platform.getString(ContentConstants.KAFKA_PUBLISH_TOPIC, "sunbirddev.publish.job.request")
+		kfClient.send(JsonUtils.serialize(reqMap), topic)
 	}
 
 	@throws[Exception]
