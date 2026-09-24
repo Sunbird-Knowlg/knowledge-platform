@@ -9,8 +9,8 @@ import javax.inject.{Inject, Named}
 import scala.concurrent.ExecutionContext
 
 /**
- * Exposes the EnrichmentObject APIs — create, list, update, upload, approve, and
- * reject — as flat, category-agnostic HTTP endpoints under `/object/enrichment`.
+ * Exposes the EnrichmentObject APIs as flat, category-agnostic HTTP endpoints
+ * under `/object/enrichment`.
  */
 @Singleton
 class EnrichmentObjectController @Inject() (@Named(ActorNames.ENRICHMENT_OBJECT_ACTOR) enrichmentObjectActor: ActorRef, cc: play.api.mvc.ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {

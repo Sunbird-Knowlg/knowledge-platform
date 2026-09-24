@@ -14,11 +14,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 
 /**
- * Implements the generic operations that apply to every EnrichmentObject category:
- * create, list, update, upload, approve, and reject. Category-specific fields are
- * resolved and merged onto the base schema through the platform's
- * ObjectCategoryDefinition mechanism, so this object never branches on which
- * category it is handling.
+ * Implements the generic operations that apply to every EnrichmentObject category.
+ * Category-specific fields are resolved and merged onto the base schema through the
+ * platform's ObjectCategoryDefinition mechanism, so this object never branches on
+ * which category it is handling.
  */
 object EnrichmentObjectManager {
 
