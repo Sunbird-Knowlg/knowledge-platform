@@ -134,6 +134,7 @@ POST    /object/enrichment/v4/create             content.controllers.v4.Enrichme
 POST    /object/enrichment/v4/list               content.controllers.v4.EnrichmentObjectController.list()
 PATCH   /object/enrichment/v4/update/:identifier  content.controllers.v4.EnrichmentObjectController.update(identifier:String)
 POST    /object/enrichment/v4/approve/:identifier content.controllers.v4.EnrichmentObjectController.approve(identifier:String)
+POST    /object/enrichment/v4/reject/:identifier  content.controllers.v4.EnrichmentObjectController.reject(identifier:String)
 
 
 # Collection V4 APIs

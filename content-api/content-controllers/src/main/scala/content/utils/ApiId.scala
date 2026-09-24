@@ -10,6 +10,7 @@ object ApiId {
 	val LIST_ENRICHMENT_OBJECT = "api.enrichment.list"
 	val UPDATE_ENRICHMENT_OBJECT = "api.enrichment.update"
 	val APPROVE_ENRICHMENT_OBJECT = "api.enrichment.approve"
+	val REJECT_ENRICHMENT_OBJECT = "api.enrichment.reject"
 
 	//Content APIs
 	val CREATE_CONTENT = "api.content.create"

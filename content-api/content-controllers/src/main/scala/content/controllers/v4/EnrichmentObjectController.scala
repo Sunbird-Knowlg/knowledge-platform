@@ -84,4 +84,21 @@ class EnrichmentObjectController @Inject() (@Named(ActorNames.ENRICHMENT_OBJECT_
         enrichmentRequest.getContext.put("identifier", identifier)
         getResult(ApiId.APPROVE_ENRICHMENT_OBJECT, enrichmentObjectActor, enrichmentRequest, version = apiVersion)
     }
+
+    /**
+     * Resets an EnrichmentObject to `Draft`, or retires it to `Retired`, from the
+     * target `status` under the request's `enrichmentObject` key.
+     *
+     * @param identifier the EnrichmentObject to reject
+     * @return identifier plus the new status
+     */
+    def reject(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("enrichmentObject", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        val enrichmentRequest = getRequest(content, headers, "rejectEnrichmentObject")
+        setRequestContext(enrichmentRequest, version, objectType, schemaName)
+        enrichmentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.REJECT_ENRICHMENT_OBJECT, enrichmentObjectActor, enrichmentRequest, version = apiVersion)
+    }
 }

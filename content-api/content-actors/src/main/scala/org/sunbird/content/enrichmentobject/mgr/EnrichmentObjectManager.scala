@@ -30,6 +30,7 @@ object EnrichmentObjectManager {
 
   private val APPROVE_TARGETS = Set("Live", "Review")
   private val APPROVE_SOURCE_STATUSES = Set("Draft", "Processing", "Review")
+  private val REJECT_TO_DRAFT_SOURCES = Set("Draft", "Processing", "Review")
 
   /**
    * Creates a new EnrichmentObject under the given parent, or returns an existing
@@ -134,6 +135,41 @@ object EnrichmentObjectManager {
       val currentStatus = existing.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
       if (!APPROVE_SOURCE_STATUSES.contains(currentStatus))
         throw new ClientException("ERR_APPROVE_NOT_ALLOWED", s"Cannot approve from status '$currentStatus'.")
+
+      writeStatus(identifier, targetStatus).map(toResponse)
+    }
+  }
+
+  /**
+   * Resets an EnrichmentObject to `Draft` (reopening it for `update`/`upload`), or
+   * retires it to `Retired` — the only two legal targets, each gated by the node's
+   * current status. This phase writes the status only; it does not yet publish a
+   * status-transition event.
+   *
+   * @param request the reject request; its metadata's `status` must be `Draft` or
+   *                `Retired`
+   * @param identifier the EnrichmentObject being rejected
+   * @param oec graph engine context
+   * @param ec execution context
+   * @return identifier plus the new status
+   * @throws org.sunbird.common.exception.ResourceNotFoundException if identifier does
+   *         not resolve to a real node
+   * @throws ClientException if the requested target isn't `Draft`/`Retired`, `Draft`
+   *         is requested from a status other than `Draft`/`Processing`/`Review`, or
+   *         `Retired` is requested from a status other than `Live`
+   */
+  def reject(request: Request, identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val targetStatus = request.getRequest.getOrDefault("status", "").asInstanceOf[String]
+
+    resolveByIdentifier(identifier).flatMap { existing =>
+      val currentStatus = existing.getMetadata.getOrDefault("status", "Draft").asInstanceOf[String]
+      val allowed = targetStatus match {
+        case "Draft" => REJECT_TO_DRAFT_SOURCES.contains(currentStatus)
+        case "Retired" => StringUtils.equalsIgnoreCase(currentStatus, "Live")
+        case _ => false
+      }
+      if (!allowed)
+        throw new ClientException("ERR_INVALID_STATUS_TRANSITION", s"Cannot reject from status '$currentStatus' to '$targetStatus'.")
 
       writeStatus(identifier, targetStatus).map(toResponse)
     }
