@@ -475,15 +475,14 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   // function of a hand-built ClassificationResult, same testability reasoning as classifyAndValidate.
   // ===================================================================================
 
-  "TermBulkManager.buildCommitFailureResponse" should "return the FULL per-row report (an OK row alongside the FAILED one), not just the failing rows" in {
+  "TermBulkManager.buildCommitFailureResponse" should "drop the clean OK row and return only the FAILED one" in {
     val okRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK")
     val failedRow = TermBulkManager.RowOutcome(1, "create", "competency", "cm3", "FAILED", Some("ERR_DANGLING_ASSOCIATION"), Some("bad"))
     val result = TermBulkManager.ClassificationResult(valid = false, Map("errors" -> 1, "warnings" -> 0), Nil, Nil, Nil, List(okRow, failedRow), Nil, Nil, Nil)
     val response = TermBulkManager.buildCommitFailureResponse(result)
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
-    rows.size shouldBe 2
-    rows.get(0).get("status") shouldBe "OK"
-    rows.get(1).get("status") shouldBe "FAILED"
+    rows.size shouldBe 1
+    rows.get(0).get("status") shouldBe "FAILED"
   }
 
   it should "mark an already-written sibling row FAILED/ERR_COMMIT_PARTIAL_WRITE (not retired/rolled back), alongside the row that actually failed to write" in {
@@ -500,9 +499,11 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     response.getResult.get("summary").asInstanceOf[util.Map[String, AnyRef]].get("errors") shouldBe 1
   }
 
-  "TermBulkManager.buildCommitSuccessResponse" should "report every row's status as SUCCESS (per api-reference.md's commit-success shape), not the classify-time OK" in {
-    val updateRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK")
-    val createRow = TermBulkManager.RowOutcome(1, "create", "competency", "cm3", "OK")
+  "TermBulkManager.buildCommitSuccessResponse" should "report every row's status as SUCCESS (per api-reference.md's commit-success shape), not the classify-time OK -- but only for rows carrying a warning" in {
+    val updateRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK",
+      warnings = List(TermBulkManager.RowIssue("WARN_ORPHAN_TERM", "orphan")))
+    val createRow = TermBulkManager.RowOutcome(1, "create", "competency", "cm3", "OK",
+      warnings = List(TermBulkManager.RowIssue("WARN_ORPHAN_TERM", "orphan")))
     val result = TermBulkManager.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil,
       List(updateRow, createRow), List((sheetRow(1, "competency", "CM3", "cm3"), Nil)), Nil, Nil)
     val response = TermBulkManager.buildCommitSuccessResponse(result)
@@ -510,6 +511,15 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     rows.get(0).get("status") shouldBe "SUCCESS"
     rows.get(1).get("status") shouldBe "SUCCESS"
     rows.get(1).get("termStatus") shouldBe "Review"
+  }
+
+  it should "drop a clean row with no error and no warning entirely" in {
+    val cleanRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK")
+    val result = TermBulkManager.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil,
+      List(cleanRow), Nil, Nil, Nil)
+    val response = TermBulkManager.buildCommitSuccessResponse(result)
+    val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+    rows.size shouldBe 0
   }
 
   // ===================================================================================
@@ -864,7 +874,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     summary.get("updated") shouldBe 1
     summary.get("retired") shouldBe 1
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
-    rows.asScala.map(_.get("status")).toList shouldBe List("SUCCESS", "SUCCESS")
+    rows.size shouldBe 0
     // Phase ordering: every "create" precedes every "associate" (2 -- one for the fresh cm3, one
     // for cm1's own metadata/association patch), which precede the single "retire" bulkUpdate.
     order.count(_ == "create") shouldBe 1
