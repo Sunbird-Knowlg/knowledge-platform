@@ -131,6 +131,7 @@ GET     /object/v4/read/:identifier              content.controllers.v4.ObjectCo
 
 # EnrichmentObject v4 Api's
 POST    /object/enrichment/v4/create             content.controllers.v4.EnrichmentObjectController.create()
+POST    /object/enrichment/v4/list               content.controllers.v4.EnrichmentObjectController.list()
 PATCH   /object/enrichment/v4/update/:identifier  content.controllers.v4.EnrichmentObjectController.update(identifier:String)
 
 
