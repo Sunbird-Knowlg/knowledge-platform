@@ -838,8 +838,10 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
       Future(termNode(n.getIdentifier, n.getIdentifier.split("_").last))
     }).anyNumberOfTimes()
     (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+    var templateUrlSet: String = null
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
-      order += "associate"
+      if (n.getIdentifier == "fw1") templateUrlSet = n.getMetadata.get("templateUrl").asInstanceOf[String]
+      else order += "associate"
       Future(n)
     }).anyNumberOfTimes()
     (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
@@ -871,6 +873,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     order.indexOf("create") should be < order.indexOf("associate")
     order.lastIndexOf("associate") should be < order.indexOf("retire")
     uploadedFileName shouldBe "fw1.xlsx"
+    templateUrlSet shouldBe "https://cdn.example.com/competencyframework/xlsx/fw1.xlsx"
   }
 
   "TermBulkManager.createTemplate" should "upload an .xlsx workbook with the header row, a Category dropdown restricted to attached categories, and a Text-formatted Code column" in {
@@ -883,6 +886,12 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val catNode = categoryInstanceNodeWithCode("cat_competency", "competency")
     val term1 = termNodeWithCategory("fw1_competency_cm1", "competency", "cm1", "CM1", "Live")
     stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode), activeTerms = util.Arrays.asList(term1))
+
+    var templateUrlSet: String = null
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      templateUrlSet = n.getMetadata.get("templateUrl").asInstanceOf[String]
+      Future(n)
+    }).anyNumberOfTimes()
 
     // Production code deletes the temp xlsx in a `finally` right after uploadFile returns (so a
     // real upload never leaks a file), so the workbook must be inspected INSIDE this mocked call,
@@ -917,6 +926,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     categoryCellValue shouldBe "competency"
     codeCellFormat shouldBe "@"
     validationCount should be > 0
+    templateUrlSet shouldBe "https://cdn.example.com/competencyframework/xlsx/terms.xlsx"
   }
 
   "TermBulkManager.downloadTerms" should "return the fileUrl for an already-stored template with no graph/upload calls" in {

@@ -612,10 +612,13 @@ object TermBulkManager {
                 val responseFuture =
                   if (!result.valid) Future(buildCommitFailureResponse(result))
                   else commitClassification(request, graphId, frameworkId, result)
-                responseFuture.andThen {
-                  case scala.util.Success(response) if response.getResponseCode == ResponseCode.OK =>
-                    replaceStoredTemplate(frameworkId, file)
-                  case _ => ()
+                responseFuture.flatMap { response =>
+                  if (response.getResponseCode == ResponseCode.OK) {
+                    replaceStoredTemplate(frameworkId, file) match {
+                      case Some(url) => updateTemplateUrlMetadata(request, graphId, frameworkId, url).map(_ => response)
+                      case None => Future.successful(response)
+                    }
+                  } else Future.successful(response)
                 }.andThen { case _ => FileUtils.deleteQuietly(file) }
               }
             }
@@ -638,16 +641,32 @@ object TermBulkManager {
     }
   }
 
-  private def replaceStoredTemplate(frameworkId: String, committedFile: File)(implicit ss: StorageService): Unit = {
+  private def replaceStoredTemplate(frameworkId: String, committedFile: File)(implicit ss: StorageService): Option[String] = {
     try {
       val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/xlsx")
       val stableFile = new File(committedFile.getParentFile, s"$frameworkId.xlsx")
       FileUtils.copyFile(committedFile, stableFile)
-      try ss.uploadFile(folder, stableFile) finally FileUtils.deleteQuietly(stableFile)
+      val uploaded = try ss.uploadFile(folder, stableFile) finally FileUtils.deleteQuietly(stableFile)
+      Some(uploaded(1))
     } catch {
-      case e: Exception => TelemetryManager.error(s"Failed to replace stored template after commit for framework $frameworkId", e)
+      case e: Exception =>
+        TelemetryManager.error(s"Failed to replace stored template after commit for framework $frameworkId", e)
+        None
     }
   }
+
+  private def updateTemplateUrlMetadata(request: Request, graphId: String, frameworkId: String, url: String)
+                                        (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] =
+    FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
+      val updateReq = new Request(request)
+      updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
+      updateReq.getContext.put("versioning", "disabled")
+      updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("templateUrl", url) }})
+      DataNode.update(updateReq).map(_ => ())
+    } recover {
+      case e: Exception =>
+        TelemetryManager.error(s"Failed to update templateUrl metadata for framework $frameworkId", e)
+    }
 
   private def sequentially[A, B](items: List[A])(f: A => Future[B])(implicit ec: ExecutionContext): Future[List[B]] =
     items.foldLeft(Future.successful(List.empty[B])) { (accFut, item) =>
@@ -720,7 +739,7 @@ object TermBulkManager {
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     if (frameworkId.isEmpty) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide a valid framework identifier")
     fetchAttachedCategories(graphId, frameworkId).flatMap { attachedCategories =>
-      fetchActiveTerms(graphId, frameworkId, attachedCategories).map { activeTerms =>
+      fetchActiveTerms(graphId, frameworkId, attachedCategories).flatMap { activeTerms =>
         val byIdentifier: Map[String, ActiveTerm] = activeTerms.map(t => t.identifier -> t).toMap
         val rows = activeTerms.map { t =>
           val tokens = t.associations.flatMap(byIdentifier.get).map(target => s"${target.category}:${target.code}")
@@ -730,8 +749,10 @@ object TermBulkManager {
         try {
           val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/xlsx")
           val uploaded = ss.uploadFile(folder, xlsxFile)
-          ResponseHandler.OK.put("fileUrl", uploaded(1))
-            .put("ttl", Platform.getString("cloud_storage.upload.url.ttl", "86400"))
+          updateTemplateUrlMetadata(request, graphId, frameworkId, uploaded(1)).map { _ =>
+            ResponseHandler.OK.put("fileUrl", uploaded(1))
+              .put("ttl", Platform.getString("cloud_storage.upload.url.ttl", "86400"))
+          }
         } finally {
           FileUtils.deleteQuietly(xlsxFile)
         }
