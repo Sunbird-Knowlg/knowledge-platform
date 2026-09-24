@@ -440,6 +440,103 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
   }
 
 
+  private def stubFrameworkGate(graphDB: GraphService, status: String): Node = {
+    val node = getValidNode()
+    node.getMetadata.put("status", status)
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    node
+  }
+
+  private def sendForReviewRequest(): Request = {
+    val request = getFrameworkRequest()
+    request.getRequest.put(Constants.IDENTIFIER, "framework_test")
+    request.setOperation(Constants.SEND_FOR_REVIEW_FRAMEWORK)
+    request
+  }
+
+  private def rejectRequest(): Request = {
+    val request = getFrameworkRequest()
+    request.getRequest.put(Constants.IDENTIFIER, "framework_test")
+    request.setOperation(Constants.REJECT_FRAMEWORK)
+    request
+  }
+
+  List("Draft", "Live").foreach { status =>
+    it should s"flip a $status framework to Review on sendForReview" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+        assert("Review".equals(n.getMetadata.get("status")))
+        Future(n)
+      })
+
+      val response = callActor(sendForReviewRequest(), Props(new FrameworkActor()))
+      assert("successful".equals(response.getParams.getStatus))
+      assert("Review".equals(response.get("status")))
+    }
+  }
+
+  List("Review", "Processing", "Retired").foreach { status =>
+    it should s"reject sendForReview with ERR_INVALID_REQUEST naming the status when the framework is $status" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      // graphDB.upsertNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+      val response = callActor(sendForReviewRequest(), Props(new FrameworkActor()))
+      assert("failed".equals(response.getParams.getStatus))
+      assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
+      assert(response.getParams.getErrmsg.contains(status))
+    }
+  }
+
+  it should "flip a Review framework back to Draft on reject, and sweep its own Review-status terms to Draft" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    stubFrameworkGate(graphDB, "Review")
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      assert("Draft".equals(n.getMetadata.get("status")))
+      Future(n)
+    })
+    val reviewTerm = new Node()
+    reviewTerm.setIdentifier("framework_test_term1")
+    reviewTerm.setObjectType("Term")
+    reviewTerm.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", "Review") } })
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(util.Arrays.asList(reviewTerm)))
+    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *)
+      .onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
+        assert(ids.contains("framework_test_term1"))
+        assert("Draft".equals(metadata.get("status")))
+        Future(new util.HashMap[String, Node]())
+      })
+
+    val response = callActor(rejectRequest(), Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert("Draft".equals(response.get("status")))
+  }
+
+  List("Draft", "Live", "Processing", "Retired").foreach { status =>
+    it should s"reject 'reject' with ERR_INVALID_REQUEST naming the status when the framework is $status (not Review)" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      // graphDB.upsertNode/getNodeByUniqueIds/updateNodes are intentionally left un-stubbed.
+
+      val response = callActor(rejectRequest(), Props(new FrameworkActor()))
+      assert("failed".equals(response.getParams.getStatus))
+      assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
+      assert(response.getParams.getErrmsg.contains(status))
+    }
+  }
+
   private def getFrameworkOfNode(): Node = {
     val node = new Node()
     node.setIdentifier("framework_test")

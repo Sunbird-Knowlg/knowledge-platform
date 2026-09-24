@@ -9,7 +9,7 @@ import org.sunbird.utils.Constants
 
 import java.util
 import java.util.concurrent.CompletionException
-import org.sunbird.common.exception.ResourceNotFoundException
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.managers.FrameworkManager._
 
 import scala.collection.convert.ImplicitConversions._
@@ -469,6 +469,102 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     val termIds = terms.map(_.get("identifier")).toSet
     assert(termIds.contains("term_draft"))
     assert(!termIds.contains("term_retired"))
+  }
+
+  "FrameworkManager.getLiveEditNode" should "return the .img node when present" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode))
+    val result = Await.result(FrameworkManager.getLiveEditNode("domain", "fw1"), 10.seconds)
+    assert("fw1.img".equals(result.getIdentifier))
+  }
+
+  it should "fall back to the base node when .img is absent" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(notFoundFailure())
+    val liveNode = buildFrameworkNode("fw1")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode))
+    val result = Await.result(FrameworkManager.getLiveEditNode("domain", "fw1"), 10.seconds)
+    assert("fw1".equals(result.getIdentifier))
+  }
+
+  "FrameworkManager.assertFrameworkEditable" should "throw ERR_FRAMEWORK_REVIEW_IN_PROGRESS naming the status when the live-edit node is Review or Processing" in {
+    List("Review", "Processing").foreach { status =>
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(notFoundFailure())
+      val liveNode = buildFrameworkNode("fw1")
+      liveNode.getMetadata.put("status", status)
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode))
+      val thrown = intercept[ClientException] {
+        Await.result(FrameworkManager.assertFrameworkEditable("domain", "fw1"), 10.seconds)
+      }
+      assert("ERR_FRAMEWORK_REVIEW_IN_PROGRESS".equals(thrown.getErrCode))
+      assert(thrown.getMessage.contains(status))
+    }
+  }
+
+  it should "pass (no exception) when the live-edit node is Draft, Live, or Retired" in {
+    List("Draft", "Live", "Retired").foreach { status =>
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(notFoundFailure())
+      val liveNode = buildFrameworkNode("fw1")
+      liveNode.getMetadata.put("status", status)
+      (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode))
+      Await.result(FrameworkManager.assertFrameworkEditable("domain", "fw1"), 10.seconds) // no exception
+    }
+  }
+
+  "FrameworkManager.rejectFrameworkTermsSweep" should "sweep exactly status==Review Term/CategoryInstance nodes under this framework to Draft, never touching Draft-status terms or another framework's nodes" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+
+    def statusNode(id: String, status: String, objectType: String = "Term"): Node = {
+      val n = new Node()
+      n.setIdentifier(id)
+      n.setObjectType(objectType)
+      n.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", status) } })
+      n
+    }
+    val reviewTerm = statusNode("fw1_term_review", "Review")
+    val reviewCategoryInstance = statusNode("fw1_category_review", "Review", "CategoryInstance")
+    val otherFwReview = statusNode("otherfw_term_review", "Review")
+    val nodes: util.List[Node] = util.Arrays.asList(reviewTerm, reviewCategoryInstance, otherFwReview)
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes))
+
+    var capturedIds: util.List[String] = null
+    var capturedMetadata: util.Map[String, AnyRef] = null
+    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
+      capturedIds = ids
+      capturedMetadata = metadata
+      Future(new util.HashMap[String, Node]())
+    })
+
+    Await.result(FrameworkManager.rejectFrameworkTermsSweep("domain", "fw1"), 10.seconds)
+    assert(capturedIds.size() == 2)
+    assert(capturedIds.contains("fw1_term_review"))
+    assert(capturedIds.contains("fw1_category_review"))
+    assert(!capturedIds.contains("otherfw_term_review"))
+    assert("Draft".equals(capturedMetadata.get("status")))
+  }
+
+  it should "make no bulkUpdate call when nothing under this framework is in Review" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]()))
+    // graphDB.updateNodes is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+    val result = Await.result(FrameworkManager.rejectFrameworkTermsSweep("domain", "fw1"), 10.seconds)
+    assert(result.isEmpty)
   }
 
   }

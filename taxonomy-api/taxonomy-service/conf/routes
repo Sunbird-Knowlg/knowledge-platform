@@ -52,6 +52,10 @@ PATCH     /competency-framework/v3/term/update/:termId              taxonomy.con
 DELETE    /competency-framework/v3/term/retire/:termId              taxonomy.controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
 POST      /competency-framework/v3/term/bulk/create                  taxonomy.controllers.v3.FrameworkTermController.bulkCreateTerm()
 POST      /competency-framework/v3/term/bulk/update                  taxonomy.controllers.v3.FrameworkTermController.bulkUpdateTerm()
+POST      /competency-framework/v3/term/bulk/validate                taxonomy.controllers.v3.FrameworkTermController.bulkValidateTerm()
+POST      /competency-framework/v3/term/bulk/commit                  taxonomy.controllers.v3.FrameworkTermController.bulkCommitTerm()
+POST      /competency-framework/v3/term/bulk/download                taxonomy.controllers.v3.FrameworkTermController.bulkDownloadTerm()
+POST      /competency-framework/v3/term/bulk/template                taxonomy.controllers.v3.FrameworkTermController.bulkTemplateTerm()
 
 # Object Category API's
 POST      /object/category/v4/create                           taxonomy.controllers.v4.ObjectCategoryController.create()

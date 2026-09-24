@@ -75,7 +75,6 @@ class CompetencyFrameworkController @Inject()(
     }
 
 
-    // This returns ERROR(operation), i.e. a CLIENT_ERROR/failed response — expected, not a bug.
     def sendForReview(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()

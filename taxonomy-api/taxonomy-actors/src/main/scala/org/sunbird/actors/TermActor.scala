@@ -2,6 +2,7 @@ package org.sunbird.actors
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.actor.core.BaseActor
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode }
@@ -17,7 +18,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
 
-class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor {
+class TermActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageService) extends BaseActor {
   implicit val ec: ExecutionContext = getContext().dispatcher
 
   private final val TERM_CREATION_LIMIT: Int = if (Platform.config.hasPath("framework.max_term_creation_limit")) Platform.config.getInt("framework.max_term_creation_limit") else 200
@@ -29,6 +30,10 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext) extends BaseActor
       case Constants.RETIRE_TERM => retire(request)
       case Constants.BULK_CREATE_TERM => TermBulkManager.bulkCreateTerm(request)
       case Constants.BULK_UPDATE_TERM => TermBulkManager.bulkUpdateTerm(request)
+      case Constants.BULK_VALIDATE_TERM => TermBulkManager.bulkValidateTerm(request)
+      case Constants.BULK_COMMIT_TERM => TermBulkManager.bulkCommitTerm(request)
+      case Constants.BULK_DOWNLOAD_TERM => TermBulkManager.downloadTerms(request)
+      case Constants.BULK_TEMPLATE_TERM => TermBulkManager.createTemplate(request)
       case _ => ERROR(request.getOperation)
     }
   }

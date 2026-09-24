@@ -41,6 +41,10 @@ object ApiId {
 	final val RETIRE_TERM = "api.taxonomy.term.retire"
 	final val BULK_CREATE_TERM = "api.taxonomy.term.bulk.create"
 	final val BULK_UPDATE_TERM = "api.taxonomy.term.bulk.update"
+	final val BULK_VALIDATE_TERM = "api.taxonomy.term.bulk.validate"
+	final val BULK_COMMIT_TERM = "api.taxonomy.term.bulk.commit"
+	final val BULK_DOWNLOAD_TERM = "api.taxonomy.term.bulk.download"
+	final val BULK_TEMPLATE_TERM = "api.taxonomy.term.bulk.template"
 
 	final val CREATE_LOCK = "api.taxonomy.lock.create"
 	final val REFRESH_LOCK = "api.taxonomy.lock.refresh"
