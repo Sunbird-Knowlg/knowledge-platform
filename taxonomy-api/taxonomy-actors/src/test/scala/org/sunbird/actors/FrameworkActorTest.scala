@@ -450,10 +450,10 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     node
   }
 
-  private def sendForReviewRequest(): Request = {
+  private def reviewRequest(): Request = {
     val request = getFrameworkRequest()
     request.getRequest.put(Constants.IDENTIFIER, "framework_test")
-    request.setOperation(Constants.SEND_FOR_REVIEW_FRAMEWORK)
+    request.setOperation(Constants.REVIEW_FRAMEWORK)
     request
   }
 
@@ -465,7 +465,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
   }
 
   List("Draft", "Live").foreach { status =>
-    it should s"flip a $status framework to Review on sendForReview" in {
+    it should s"flip a $status framework to Review on review" in {
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
       val graphDB = mock[GraphService]
       (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -475,21 +475,21 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
         Future(n)
       })
 
-      val response = callActor(sendForReviewRequest(), Props(new FrameworkActor()))
+      val response = callActor(reviewRequest(), Props(new FrameworkActor()))
       assert("successful".equals(response.getParams.getStatus))
       assert("Review".equals(response.get("status")))
     }
   }
 
   List("Review", "Processing", "Retired").foreach { status =>
-    it should s"reject sendForReview with ERR_INVALID_REQUEST naming the status when the framework is $status" in {
+    it should s"reject review with ERR_INVALID_REQUEST naming the status when the framework is $status" in {
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
       val graphDB = mock[GraphService]
       (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
       stubFrameworkGate(graphDB, status)
       // graphDB.upsertNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
 
-      val response = callActor(sendForReviewRequest(), Props(new FrameworkActor()))
+      val response = callActor(reviewRequest(), Props(new FrameworkActor()))
       assert("failed".equals(response.getParams.getStatus))
       assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
       assert(response.getParams.getErrmsg.contains(status))

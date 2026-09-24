@@ -21,7 +21,7 @@ object ApiId {
 	final val UPDATE_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.update"
 	final val RETIRE_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.retire"
 	final val PUBLISH_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.publish"
-	final val SEND_FOR_REVIEW_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.sendForReview"
+	final val REVIEW_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.review"
 	final val REJECT_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.reject"
 	final val CREATE_COMPETENCY_FRAMEWORK_CATEGORY_INSTANCE = "api.taxonomy.competencyframework.category.instance.create"
 

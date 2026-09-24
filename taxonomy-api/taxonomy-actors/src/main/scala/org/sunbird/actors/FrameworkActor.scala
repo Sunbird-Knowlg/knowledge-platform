@@ -33,21 +33,21 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       case Constants.RETIRE_FRAMEWORK => retire(request)
       case Constants.PUBLISH_FRAMEWORK => publish(request)
       case Constants.COPY_FRAMEWORK => copy(request)
-      case Constants.SEND_FOR_REVIEW_FRAMEWORK => sendForReview(request)
+      case Constants.REVIEW_FRAMEWORK => review(request)
       case Constants.REJECT_FRAMEWORK => reject(request)
       case _ => ERROR(request.getOperation)
     }
   }
 
-  private val SEND_FOR_REVIEW_ALLOWED_STATUSES: Set[String] = Set("Draft", "Live")
+  private val REVIEW_ALLOWED_STATUSES: Set[String] = Set("Draft", "Live")
 
   @throws[Exception]
-  private def sendForReview(request: Request): Future[Response] = {
+  private def review(request: Request): Future[Response] = {
     val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
       val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
-      if (!SEND_FOR_REVIEW_ALLOWED_STATUSES.contains(status))
+      if (!REVIEW_ALLOWED_STATUSES.contains(status))
         throw new ClientException("ERR_INVALID_REQUEST", s"Cannot send framework for review: current status is '$status'")
       val updateReq = new Request(request)
       updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)

@@ -75,15 +75,15 @@ class CompetencyFrameworkController @Inject()(
     }
 
 
-    def sendForReview(identifier: String) = Action.async { implicit request =>
+    def review(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
         val framework = body.getOrDefault(Constants.COMPETENCY_FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         framework.putAll(headers)
         framework.putAll(Map("identifier" -> identifier).asJava)
-        val frameworkRequest = getRequest(framework, headers, Constants.SEND_FOR_REVIEW_FRAMEWORK)
+        val frameworkRequest = getRequest(framework, headers, Constants.REVIEW_FRAMEWORK)
         setRequestContext(frameworkRequest, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION, objectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.SEND_FOR_REVIEW_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
+        getResult(ApiId.REVIEW_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
     def reject(identifier: String) = Action.async { implicit request =>
