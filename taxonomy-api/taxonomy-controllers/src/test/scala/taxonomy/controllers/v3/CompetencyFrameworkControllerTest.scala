@@ -89,13 +89,13 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
     req.getContext.get(Constants.SCHEMA_NAME) shouldBe Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME
   }
 
-  it should "invoke frameworkActor with SEND_FOR_REVIEW_FRAMEWORK op on sendForReview" in {
+  it should "invoke frameworkActor with REVIEW_FRAMEWORK op on review" in {
     val (controller, frameworkProbe, _) = newController()
     val body = Json.parse("""{"request":{}}""")
-    controller.sendForReview("cf1").apply(FakeRequest().withJsonBody(body))
+    controller.review("cf1").apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]
     frameworkProbe.reply(successResponse())
-    req.getOperation shouldBe Constants.SEND_FOR_REVIEW_FRAMEWORK
+    req.getOperation shouldBe Constants.REVIEW_FRAMEWORK
   }
 
   it should "invoke frameworkActor with REJECT_FRAMEWORK op on reject" in {

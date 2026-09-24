@@ -36,7 +36,7 @@ GET       /competency-framework/v3/read/:identifier                  taxonomy.co
 PATCH     /competency-framework/v3/update/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.updateCompetencyFramework(identifier:String)
 DELETE    /competency-framework/v3/retire/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.retire(identifier:String)
 POST      /competency-framework/v3/publish/:identifier               taxonomy.controllers.v3.CompetencyFrameworkController.publish(identifier:String)
-POST      /competency-framework/v3/sendForReview/:identifier         taxonomy.controllers.v3.CompetencyFrameworkController.sendForReview(identifier:String)
+POST      /competency-framework/v3/review/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.review(identifier:String)
 POST      /competency-framework/v3/reject/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.reject(identifier:String)
 
 # CompetencyFramework Category API's
