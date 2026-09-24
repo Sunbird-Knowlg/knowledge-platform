@@ -74,6 +74,10 @@ object Constants {
     val TERM_SCHEMA_NAME: String = "term"
     val BULK_CREATE_TERM: String = "bulkCreateTerm"
     val BULK_UPDATE_TERM: String = "bulkUpdateTerm"
+    val BULK_VALIDATE_TERM: String = "bulkValidateTerm"
+    val BULK_COMMIT_TERM: String = "bulkCommitTerm"
+    val BULK_DOWNLOAD_TERM: String = "bulkDownloadTerm"
+    val BULK_TEMPLATE_TERM: String = "bulkTemplateTerm"
 
     // Constants For Lock
     val LOCK: String = "lock";

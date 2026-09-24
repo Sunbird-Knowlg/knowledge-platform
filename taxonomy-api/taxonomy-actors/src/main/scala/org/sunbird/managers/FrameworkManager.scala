@@ -16,7 +16,7 @@ import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.graph.utils.NodeUtil.{convertJsonProperties, handleKeyNames}
 
 import java.util
-import java.util.{Collections, Optional}
+import java.util.{Collections, Locale, Optional}
 import java.util.concurrent.{CompletionException, Executors}
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -125,6 +125,45 @@ object FrameworkManager {
             deleteImageNodeIfExists(graphId, frameworkId).map(_ => updatedLive)
           }
         }
+      }
+    }
+  }
+
+  def getLiveEditNode(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
+    getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap {
+      case Some(imgNode) => Future(imgNode)
+      case None => oec.graphService.getNodeByUniqueId(graphId, frameworkId, true, new Request())
+    }
+  }
+
+  private val FRAMEWORK_EDIT_BLOCKED_STATUSES: Set[String] = Set("Review", "Processing")
+
+  def assertFrameworkEditable(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] =
+    getLiveEditNode(graphId, frameworkId).map { node =>
+      val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
+      if (FRAMEWORK_EDIT_BLOCKED_STATUSES.contains(status))
+        throw new ClientException("ERR_FRAMEWORK_REVIEW_IN_PROGRESS", s"Cannot validate/commit terms: framework is in '$status'")
+    }
+
+  def rejectFrameworkTermsSweep(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, Node]] = {
+    val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {{
+      add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN,
+        new util.ArrayList[String]() {{ add("Term"); add("CategoryInstance") }}))
+      add(new Filter("status", SearchConditions.OP_EQUAL, "Review"))
+    }})
+    val criteria = new SearchCriteria {{ addMetadata(mc); setCountQuery(false); setGraphId(graphId) }}
+    oec.graphService.getNodeByUniqueIds(graphId, criteria).flatMap { nodes =>
+      val prefix = frameworkId.toLowerCase(Locale.ROOT) + "_"
+      val ids: util.List[String] = nodes.asScala
+        .filter(n => Option(n.getIdentifier).exists(_.toLowerCase(Locale.ROOT).startsWith(prefix)))
+        .map(_.getIdentifier).toList.asJava
+      if (ids.isEmpty) Future(new util.HashMap[String, Node]())
+      else {
+        val bulkReq = new Request()
+        bulkReq.setContext(new util.HashMap[String, AnyRef]() {{ put("graph_id", graphId) }})
+        bulkReq.put("identifiers", ids)
+        bulkReq.put("metadata", new util.HashMap[String, AnyRef]() {{ put("status", "Draft") }})
+        DataNode.bulkUpdate(bulkReq)
       }
     }
   }
