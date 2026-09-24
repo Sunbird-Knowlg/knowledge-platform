@@ -165,7 +165,7 @@ object EnrichmentObjectManager {
                              (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[Node]] = {
     val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {{
       add(new Filter("parentId", SearchConditions.OP_EQUAL, parentId))
-      add(new Filter("primaryCategory", SearchConditions.OP_EQUAL, enrichmentObjectType))
+      add(new Filter("enrichmentObjectType", SearchConditions.OP_EQUAL, enrichmentObjectType))
       add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
       filter.foreach { case (k, v) => add(new Filter(k, SearchConditions.OP_EQUAL, v)) }
     }})
@@ -180,10 +180,9 @@ object EnrichmentObjectManager {
    * given parentId. Never publishes an event — only the status-transition operations
    * (approve/reject) do.
    *
-   * Before persisting, this renames `enrichmentObjectType` to `primaryCategory` in
-   * the request metadata: `primaryCategory` is the field the platform's category
-   * schema-merge actually resolves against, while `enrichmentObjectType` is the
-   * public API name only and is never itself stored.
+   * `enrichmentObjectType` is stored on the node as-is; EnrichmentObject's own
+   * config.json declares it as the schema's `categoryField`, so the platform's
+   * category schema-merge resolves against it directly.
    *
    * @param request the original create request; its metadata is mutated in place
    *                before being persisted
@@ -198,8 +197,6 @@ object EnrichmentObjectManager {
   private def persist(request: Request, enrichmentObjectType: String, parentId: String, parentType: String, channel: String)
                       (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val metadata = request.getRequest
-    metadata.remove("enrichmentObjectType")
-    metadata.put("primaryCategory", enrichmentObjectType)
     metadata.put("parentType", parentType)
     metadata.put("status", "Draft")
     metadata.put("parent", util.Arrays.asList(new util.HashMap[String, AnyRef]() {{ put("identifier", parentId) }}))
@@ -217,11 +214,10 @@ object EnrichmentObjectManager {
   }
 
   /**
-   * Converts a persisted node into a response, renaming `primaryCategory` back to
-   * `enrichmentObjectType` so the internal field name never reaches a caller.
+   * Converts a persisted node into a response payload.
    *
    * Every response-producing operation on this manager should route through this
-   * method rather than reimplementing the rename.
+   * method rather than reimplementing it.
    *
    * @param node the persisted or matched node
    * @return the response envelope's result payload
@@ -229,8 +225,6 @@ object EnrichmentObjectManager {
   private def toResponse(node: Node): Response = {
     val result = new util.HashMap[String, AnyRef](node.getMetadata)
     result.put("identifier", node.getIdentifier)
-    val primaryCategory = result.remove("primaryCategory")
-    if (primaryCategory != null) result.put("enrichmentObjectType", primaryCategory)
     ResponseHandler.OK.putAll(result)
   }
 }

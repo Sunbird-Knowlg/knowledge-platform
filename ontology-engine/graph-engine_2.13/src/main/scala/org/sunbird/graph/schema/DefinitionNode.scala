@@ -12,17 +12,34 @@ import org.sunbird.common.dto.Request
 import scala.jdk.CollectionConverters._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, Relation}
+import org.sunbird.schema.SchemaValidatorFactory
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 object DefinitionNode {
 
+  /**
+   * Resolves the metadata field name a given schema uses to identify its category,
+   * e.g. "primaryCategory" for Content, "enrichmentObjectType" for EnrichmentObject.
+   * Declared per-type via the "categoryField" key in that type's config.json; falls
+   * back to "primaryCategory" if the type declares nothing, or if the lookup fails.
+   */
+  def categoryFieldName(schemaName: String, version: String = "1.0"): String = {
+    try {
+      val validator = SchemaValidatorFactory.getInstance(schemaName.toLowerCase, version)
+      if (validator.getConfig.hasPath("categoryField")) validator.getConfig.getString("categoryField")
+      else "primaryCategory"
+    } catch {
+      case _: Exception => "primaryCategory"
+    }
+  }
+
   def validate(request: Request, setDefaultValue: Boolean = true)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Node] = {
     val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
     val version: String = request.getContext.get("version").asInstanceOf[String]
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault("primaryCategory", "").asInstanceOf[String],
+    val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(request.getRequest.getOrDefault(categoryFieldName(schemaName, version), "").asInstanceOf[String],
       schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
 
     val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
@@ -93,7 +110,7 @@ object DefinitionNode {
     val removeProps = request.getContext.getOrDefault("removeProps", new util.ArrayList[String]()).asInstanceOf[util.List[String]]
     definition.getNode(identifier, "update", null, versioning, None).map(dbNode => {
       val schema = dbNode.getObjectType.toLowerCase.replace("image", "")
-      val primaryCategory: String = if (null != dbNode.getMetadata) dbNode.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+      val primaryCategory: String = if (null != dbNode.getMetadata) dbNode.getMetadata.getOrDefault(categoryFieldName(schema, version), "").asInstanceOf[String] else ""
       val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schema, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
       val categoryDefinition = DefinitionFactory.getDefinition(graphId, schema, version, objectCategoryDefinition)
       categoryDefinition.validateRequest(request)
@@ -137,7 +154,7 @@ object DefinitionNode {
     val graphId: String = request.getContext.get("graph_id").asInstanceOf[String]
     val version: String = request.getContext.get("version").asInstanceOf[String]
     val schemaName: String = request.getContext.get("schemaName").asInstanceOf[String]
-    val primaryCategory: String = if (null != node.getMetadata) node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String] else ""
+    val primaryCategory: String = if (null != node.getMetadata) node.getMetadata.getOrDefault(categoryFieldName(schemaName, version), "").asInstanceOf[String] else ""
     val objectCategoryDefinition: ObjectCategoryDefinition = getObjectCategoryDefinition(primaryCategory, schemaName, request.getContext.getOrDefault("channel", "all").asInstanceOf[String])
     val categoryDefinition = DefinitionFactory.getDefinition(graphId, schemaName, version, objectCategoryDefinition)
     val edgeKey = categoryDefinition.getEdgeKey()
@@ -271,7 +288,8 @@ object DefinitionNode {
 
   def validateContentNodes(nodes: List[Node], graphId: String, schemaName: String, version: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[Node]] = {
     val futures = nodes.map(node => {
-      val ocd = ObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
+      val nodeSchema = node.getObjectType.toLowerCase.replace("image", "")
+      val ocd = ObjectCategoryDefinition(node.getMetadata.getOrDefault(categoryFieldName(nodeSchema, version), "").asInstanceOf[String], node.getObjectType, node.getMetadata.getOrDefault("channel", "all").asInstanceOf[String])
       val definition = DefinitionFactory.getDefinition(graphId, schemaName, version, ocd)
       definition.validate(node, "update") recoverWith { case e: CompletionException => throw e.getCause }
     })
@@ -313,8 +331,9 @@ object DefinitionNode {
 
 
   def getPrimaryCategory(request: java.util.Map[String, AnyRef], schemaName: String, channel: String = "all"): String = {
-    if (null != request && request.containsKey("primaryCategory")) {
-      val categoryName = request.get("primaryCategory").asInstanceOf[String]
+    val field = categoryFieldName(schemaName)
+    if (null != request && request.containsKey(field)) {
+      val categoryName = request.get(field).asInstanceOf[String]
       ObjectCategoryDefinitionMap.prepareCategoryId(categoryName, schemaName, channel)
     } else ""
   }
