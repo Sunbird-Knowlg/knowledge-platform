@@ -122,14 +122,4 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
     getResult(ApiId.BULK_DOWNLOAD_TERM, termActor, termRequest)
   }
 
-  // Plain JSON body, no file -- builds and uploads the xlsx template; bulkDownloadTerm only reads it back.
-  def bulkTemplateTerm() = Action.async { implicit request =>
-    val headers = commonHeaders()
-    val body = requestBody()
-    body.putAll(headers)
-    val termRequest = getRequest(body, headers, Constants.BULK_TEMPLATE_TERM)
-    setRequestContext(termRequest, Constants.TERM_SCHEMA_VERSION, objectType, Constants.TERM_SCHEMA_NAME)
-    getResult(ApiId.BULK_TEMPLATE_TERM, termActor, termRequest)
-  }
-
 }

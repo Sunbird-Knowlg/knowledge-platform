@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.util.CellRangeAddressList
 import org.apache.poi.xssf.usermodel.{XSSFDataValidationHelper, XSSFWorkbook}
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.{Platform, Slug}
+import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.OntologyEngineContext
@@ -14,7 +14,6 @@ import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, SearchConditions, SearchCriteria}
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.service.common.DACErrorCodeConstants
-import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.TaxonomyUtil
 
@@ -552,30 +551,20 @@ object TermBulkManager {
     }
   }
 
-  def bulkCommitTerm(request: Request)(implicit oec: OntologyEngineContext, ss: StorageService, ec: ExecutionContext): Future[Response] = {
+  def bulkCommitTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     if (frameworkId.isEmpty) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide a valid framework identifier")
-    val file = request.getRequest.get("file").asInstanceOf[File]
     FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
       hasPendingReview(graphId, frameworkId).flatMap { pending =>
         if (pending) throw new ClientException("ERR_PENDING_REVIEW_EXISTS", "A previous bulk commit is still awaiting review for this framework")
-        readSheetOrThrow(request, keepFileOnSuccess = true) match {
+        readSheetOrThrow(request) match {
           case TermSheetReader.ParseSuccess(rows, skippedHeaderRows) =>
             fetchAttachedCategories(graphId, frameworkId).flatMap { attachedCategories =>
               fetchActiveTerms(graphId, frameworkId, attachedCategories).flatMap { activeTerms =>
                 val result = classifyAndValidate(frameworkId, rows, activeTerms, attachedCategories, skippedHeaderRows)
-                val responseFuture =
-                  if (!result.valid) Future(buildCommitFailureResponse(result))
-                  else commitClassification(request, graphId, frameworkId, result)
-                responseFuture.flatMap { response =>
-                  if (response.getResponseCode == ResponseCode.OK) {
-                    replaceStoredTemplate(frameworkId, file) match {
-                      case Some(url) => updateTemplateUrlMetadata(request, graphId, frameworkId, url).map(_ => response)
-                      case None => Future.successful(response)
-                    }
-                  } else Future.successful(response)
-                }.andThen { case _ => FileUtils.deleteQuietly(file) }
+                if (!result.valid) Future(buildCommitFailureResponse(result))
+                else commitClassification(request, graphId, frameworkId, result)
               }
             }
         }
@@ -583,46 +572,21 @@ object TermBulkManager {
     }
   }
 
-  private def readSheetOrThrow(request: Request, keepFileOnSuccess: Boolean = false): TermSheetReader.ParseSuccess = {
+  private def readSheetOrThrow(request: Request): TermSheetReader.ParseSuccess = {
     val file = request.getRequest.get("file").asInstanceOf[File]
     val fileName = request.getRequest.getOrDefault("fileName", "").asInstanceOf[String]
     if (file == null) throw new ClientException("ERR_INVALID_DATA", "Please provide a valid file.")
-    TermSheetReader.read(file, fileName) match {
-      case f: TermSheetReader.ParseFailure =>
-        FileUtils.deleteQuietly(file)
-        throw new ClientException(f.errCode, f.errMsg)
-      case s: TermSheetReader.ParseSuccess =>
-        if (!keepFileOnSuccess) FileUtils.deleteQuietly(file)
-        s
-    }
-  }
-
-  private def replaceStoredTemplate(frameworkId: String, committedFile: File)(implicit ss: StorageService): Option[String] = {
     try {
-      val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/xlsx")
-      val stableFile = new File(committedFile.getParentFile, s"$frameworkId.xlsx")
-      FileUtils.copyFile(committedFile, stableFile)
-      val uploaded = try ss.uploadFile(folder, stableFile) finally FileUtils.deleteQuietly(stableFile)
-      Some(uploaded(1))
-    } catch {
-      case e: Exception =>
-        TelemetryManager.error(s"Failed to replace stored template after commit for framework $frameworkId", e)
-        None
+      TermSheetReader.read(file, fileName) match {
+        case f: TermSheetReader.ParseFailure =>
+          throw new ClientException(f.errCode, f.errMsg)
+        case s: TermSheetReader.ParseSuccess =>
+          s
+      }
+    } finally {
+      FileUtils.deleteQuietly(file)
     }
   }
-
-  private def updateTemplateUrlMetadata(request: Request, graphId: String, frameworkId: String, url: String)
-                                        (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] =
-    FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
-      val updateReq = new Request(request)
-      updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
-      updateReq.getContext.put("versioning", "disabled")
-      updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("templateUrl", url) }})
-      DataNode.update(updateReq).map(_ => ())
-    } recover {
-      case e: Exception =>
-        TelemetryManager.error(s"Failed to update templateUrl metadata for framework $frameworkId", e)
-    }
 
   private def sequentially[A, B](items: List[A])(f: A => Future[B])(implicit ec: ExecutionContext): Future[List[B]] =
     items.foldLeft(Future.successful(List.empty[B])) { (accFut, item) =>
@@ -690,7 +654,7 @@ object TermBulkManager {
     }
   }
 
-  def createTemplate(request: Request)(implicit oec: OntologyEngineContext, ss: StorageService, ec: ExecutionContext): Future[Response] = {
+  def downloadTerms(request: Request)(implicit oec: OntologyEngineContext, ss: StorageService, ec: ExecutionContext): Future[Response] = {
     val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     if (frameworkId.isEmpty) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide a valid framework identifier")
@@ -705,26 +669,13 @@ object TermBulkManager {
         try {
           val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/xlsx")
           val uploaded = ss.uploadFile(folder, xlsxFile)
-          updateTemplateUrlMetadata(request, graphId, frameworkId, uploaded(1)).map { _ =>
-            ResponseHandler.OK.put("fileUrl", uploaded(1))
-              .put("ttl", Platform.getString("cloud_storage.upload.url.ttl", "86400"))
-          }
+          Future.successful(ResponseHandler.OK.put("fileUrl", uploaded(1))
+            .put("ttl", Platform.getString("cloud_storage.upload.url.ttl", "86400")))
         } finally {
           FileUtils.deleteQuietly(xlsxFile)
         }
       }
     }
-  }
-
-  def downloadTerms(request: Request)(implicit ss: StorageService, ec: ExecutionContext): Future[Response] = Future {
-    val frameworkId = request.getRequest.getOrDefault(Constants.FRAMEWORK, "").asInstanceOf[String]
-    if (frameworkId.isEmpty) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide a valid framework identifier")
-    val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/xlsx")
-    val key = folder + "/" + Slug.makeSlug(s"$frameworkId.xlsx", true)
-    val url = ss.getUri(key)
-    if (url == null || url.isEmpty)
-      throw new ResourceNotFoundException("ERR_TEMPLATE_NOT_FOUND", s"No template exists yet for framework '$frameworkId'. Call bulk/template or bulk/commit first.")
-    ResponseHandler.OK.put("fileUrl", url).put("ttl", Platform.getString("cloud_storage.upload.url.ttl", "86400"))
   }
 
   private def buildDownloadWorkbook(frameworkId: String, attachedCategories: Set[String], rows: List[(ActiveTerm, List[String])]): File = {
