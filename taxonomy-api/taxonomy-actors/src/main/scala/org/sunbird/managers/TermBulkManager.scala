@@ -500,41 +500,13 @@ object TermBulkManager {
     m
   }
 
-  private def toJavaPlan(result: ClassificationResult): util.Map[String, AnyRef] = {
-    val creates = result.planCreates.map { pc =>
-      val m = new util.HashMap[String, AnyRef]()
-      m.put("category", pc.category); m.put("code", pc.code); m.put("name", pc.name)
-      m.put("associations", pc.associations.asJava)
-      m
-    }.asJava
-    val updates = result.planUpdates.map { pu =>
-      val m = new util.HashMap[String, AnyRef]()
-      m.put("category", pu.category); m.put("code", pu.code); m.put("currentStatus", pu.currentStatus)
-      val changes = new util.HashMap[String, AnyRef]()
-      changes.put("metadata", pu.changes.metadata.asJava)
-      changes.put("associationsAdded", pu.changes.associationsAdded.asJava)
-      changes.put("associationsRemoved", pu.changes.associationsRemoved.asJava)
-      m.put("changes", changes)
-      m
-    }.asJava
-    val retires = result.planRetires.map { pr =>
-      val m = new util.HashMap[String, AnyRef]()
-      m.put("category", pr.category); m.put("code", pr.code)
-      m
-    }.asJava
-    val plan = new util.HashMap[String, AnyRef]()
-    plan.put("creates", creates); plan.put("updates", updates); plan.put("retires", retires)
-    plan
-  }
-
   private def buildValidateResponse(result: ClassificationResult): Response = {
     val response =
       if (result.valid) ResponseHandler.OK
       else ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, "ERR_VALIDATION_FAILED", "One or more rows failed validation")
     response.put("valid", java.lang.Boolean.valueOf(result.valid))
       .put("summary", toJavaSummary(result.summary))
-      .put("plan", toJavaPlan(result))
-      .put("rows", result.rows.map(r => toJavaRow(r)).asJava)
+      .put("rows", result.rows.filter(r => r.errCode.isDefined || r.warnings.nonEmpty).map(r => toJavaRow(r)).asJava)
     if (result.fileWarnings.nonEmpty) response.put("fileWarnings", toJavaWarningList(result.fileWarnings))
     response
   }
@@ -548,17 +520,18 @@ object TermBulkManager {
     val summary = new util.HashMap[String, AnyRef]()
     summary.put("errors", errorCount.asInstanceOf[Integer])
     summary.put("warnings", result.summary.getOrElse("warnings", 0).asInstanceOf[Integer])
-    val rows = result.rows.map { r =>
-      createFailureByIndex.get(r.index) match {
-        case Some((ec, em)) => toJavaRow(r.copy(status = "FAILED", errCode = Some(ec), errMsg = Some(em)))
+    val rows = result.rows.flatMap { r =>
+      val finalRow = createFailureByIndex.get(r.index) match {
+        case Some((ec, em)) => r.copy(status = "FAILED", errCode = Some(ec), errMsg = Some(em))
         case None if rolledBackIndices.contains(r.index) =>
-          toJavaRow(r.copy(status = "FAILED", errCode = Some("ERR_COMMIT_PARTIAL_WRITE"),
+          r.copy(status = "FAILED", errCode = Some("ERR_COMMIT_PARTIAL_WRITE"),
             errMsg = Some("This row was already written before a sibling row in this commit failed. It has " +
               "NOT been rolled back -- retiring it would permanently consume its code, since a " +
               "(framework, category, code) combination can never be reused once written, even for a Retired " +
-              "term. No action is needed for this row.")))
-        case None => toJavaRow(r)
+              "term. No action is needed for this row."))
+        case None => r
       }
+      if (finalRow.errCode.isDefined || finalRow.warnings.nonEmpty) Some(toJavaRow(finalRow)) else None
     }.asJava
     val response = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, errCode, errMsg)
       .put("committed", java.lang.Boolean.FALSE).put("summary", summary).put("rows", rows)
@@ -567,7 +540,7 @@ object TermBulkManager {
   }
 
   private[managers] def buildCommitSuccessResponse(result: ClassificationResult): Response = {
-    val rows = result.rows.map { r =>
+    val rows = result.rows.filter(_.warnings.nonEmpty).map { r =>
       val successRow = r.copy(status = "SUCCESS")
       if (r.rowType == "create") toJavaRow(successRow, Some("Review")) else toJavaRow(successRow)
     }
