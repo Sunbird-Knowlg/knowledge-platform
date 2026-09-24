@@ -66,16 +66,6 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
     getResult(ApiId.RETIRE_TERM, termActor, termRequest)
   }
 
-  // framework/category/terms all come from the JSON body -- no path params.
-  def bulkCreateTerm() = Action.async { implicit request =>
-    val headers = commonHeaders()
-    val body = requestBody()
-    body.putAll(headers)
-    val termRequest = getRequest(body, headers, Constants.BULK_CREATE_TERM)
-    setRequestContext(termRequest, Constants.TERM_SCHEMA_VERSION, objectType, Constants.TERM_SCHEMA_NAME)
-    getResult(ApiId.BULK_CREATE_TERM, termActor, termRequest)
-  }
-
   def bulkUpdateTerm() = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
@@ -122,7 +112,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
     getResult(ApiId.BULK_COMMIT_TERM, termActor, termRequest)
   }
 
-  // Plain JSON body, no file -- same shape as bulkCreateTerm/bulkUpdateTerm.
+  // Plain JSON body, no file -- same shape as bulkUpdateTerm.
   def bulkDownloadTerm() = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()

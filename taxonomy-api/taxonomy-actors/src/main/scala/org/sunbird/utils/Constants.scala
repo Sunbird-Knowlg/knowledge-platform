@@ -72,7 +72,6 @@ object Constants {
     val RETIRE_TERM: String = "retireTerm"
     val TERM_SCHEMA_VERSION: String = "1.0";
     val TERM_SCHEMA_NAME: String = "term"
-    val BULK_CREATE_TERM: String = "bulkCreateTerm"
     val BULK_UPDATE_TERM: String = "bulkUpdateTerm"
     val BULK_VALIDATE_TERM: String = "bulkValidateTerm"
     val BULK_COMMIT_TERM: String = "bulkCommitTerm"

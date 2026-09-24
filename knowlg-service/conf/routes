@@ -181,18 +181,7 @@ POST      /competency-framework/v3/publish/:identifier               taxonomy.co
 POST      /competency-framework/v3/review/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.review(identifier:String)
 POST      /competency-framework/v3/reject/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.reject(identifier:String)
 
-# CompetencyFramework Category API's
-POST      /competency-framework/v3/category/create                      taxonomy.controllers.v3.CompetencyFrameworkController.createCategoryInstance(framework: String)
-GET       /competency-framework/v3/category/read/:category              taxonomy.controllers.v3.CategoryInstanceController.readCategoryInstance(category:String, framework: String)
-PATCH     /competency-framework/v3/category/update/:category            taxonomy.controllers.v3.CategoryInstanceController.updateCategoryInstance(category:String, framework: String)
-DELETE    /competency-framework/v3/category/retire/:category            taxonomy.controllers.v3.CategoryInstanceController.retireCategoryInstance(category:String, framework: String)
-
 # CompetencyFramework Term API's
-POST      /competency-framework/v3/term/create                      taxonomy.controllers.v3.FrameworkTermController.createFrameworkTerm(framework: String, category: String)
-GET       /competency-framework/v3/term/read/:termId                taxonomy.controllers.v3.FrameworkTermController.readFrameworkTerm(termId: String, framework: String, category: String)
-PATCH     /competency-framework/v3/term/update/:termId              taxonomy.controllers.v3.FrameworkTermController.updateFrameworkTerm(termId: String, framework: String, category: String)
-DELETE    /competency-framework/v3/term/retire/:termId              taxonomy.controllers.v3.FrameworkTermController.retireFrameworkTerm(termId: String, framework: String, category: String)
-POST      /competency-framework/v3/term/bulk/create                  taxonomy.controllers.v3.FrameworkTermController.bulkCreateTerm()
 POST      /competency-framework/v3/term/bulk/update                  taxonomy.controllers.v3.FrameworkTermController.bulkUpdateTerm()
 POST      /competency-framework/v3/term/bulk/validate                taxonomy.controllers.v3.FrameworkTermController.bulkValidateTerm()
 POST      /competency-framework/v3/term/bulk/commit                  taxonomy.controllers.v3.FrameworkTermController.bulkCommitTerm()

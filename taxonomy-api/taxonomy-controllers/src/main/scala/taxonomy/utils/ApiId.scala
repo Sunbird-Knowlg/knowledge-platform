@@ -23,7 +23,6 @@ object ApiId {
 	final val PUBLISH_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.publish"
 	final val REVIEW_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.review"
 	final val REJECT_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.reject"
-	final val CREATE_COMPETENCY_FRAMEWORK_CATEGORY_INSTANCE = "api.taxonomy.competencyframework.category.instance.create"
 
 	final val CREATE_CATEGORY = "api.taxonomy.category.create"
 	final val READ_CATEGORY = "api.taxonomy.category.read"
@@ -39,7 +38,6 @@ object ApiId {
 	final val READ_TERM = "api.taxonomy.term.read"
 	final val UPDATE_TERM = "api.taxonomy.term.update"
 	final val RETIRE_TERM = "api.taxonomy.term.retire"
-	final val BULK_CREATE_TERM = "api.taxonomy.term.bulk.create"
 	final val BULK_UPDATE_TERM = "api.taxonomy.term.bulk.update"
 	final val BULK_VALIDATE_TERM = "api.taxonomy.term.bulk.validate"
 	final val BULK_COMMIT_TERM = "api.taxonomy.term.bulk.commit"

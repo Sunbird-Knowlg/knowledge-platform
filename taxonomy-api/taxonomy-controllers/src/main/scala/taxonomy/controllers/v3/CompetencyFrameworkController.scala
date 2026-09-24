@@ -97,15 +97,4 @@ class CompetencyFrameworkController @Inject()(
         getResult(ApiId.REJECT_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
     }
 
-    def createCategoryInstance(framework: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val categoryInstance = body.getOrDefault(Constants.CATEGORY, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        categoryInstance.put(Constants.FRAMEWORK, framework)
-        categoryInstance.put(Constants.FRAMEWORK_OBJECT_TYPE, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        categoryInstance.putAll(headers)
-        val categoryRequest = getRequest(categoryInstance, headers, Constants.CREATE_CATEGORY_INSTANCE)
-        setRequestContext(categoryRequest, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION, "CategoryInstance", Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
-        getResult(ApiId.CREATE_COMPETENCY_FRAMEWORK_CATEGORY_INSTANCE, categoryInstanceActor, categoryRequest)
-    }
 }
