@@ -1,5 +1,6 @@
 {
     "objectType": "EnrichmentObject",
+    "categoryField": "enrichmentObjectType",
     "restrictProps": {
         "create": ["status"],
         "update": ["status", "enrichmentObjectType", "parentId", "parentType", "channel"]
