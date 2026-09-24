@@ -32,7 +32,6 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServic
       case Constants.BULK_VALIDATE_TERM => TermBulkManager.bulkValidateTerm(request)
       case Constants.BULK_COMMIT_TERM => TermBulkManager.bulkCommitTerm(request)
       case Constants.BULK_DOWNLOAD_TERM => TermBulkManager.downloadTerms(request)
-      case Constants.BULK_TEMPLATE_TERM => TermBulkManager.createTemplate(request)
       case _ => ERROR(request.getOperation)
     }
   }

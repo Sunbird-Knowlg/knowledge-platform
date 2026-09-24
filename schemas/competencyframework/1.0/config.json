@@ -10,8 +10,7 @@
       "status"
     ],
     "update": [
-      "identifier",
-      "templateUrl"
+      "identifier"
     ]
   },
   "external": {

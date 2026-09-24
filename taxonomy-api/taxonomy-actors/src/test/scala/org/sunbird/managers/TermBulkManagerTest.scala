@@ -658,7 +658,6 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
   "TermBulkManager.bulkCommitTerm" should "reject with ERR_PENDING_REVIEW_EXISTS when a Term/CategoryInstance under this framework is already in Review" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     stubFrameworkNode(graphDB, "Draft", Nil)
@@ -673,7 +672,6 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
   it should "abort with zero writes when the sheet has even one bad row (all-or-nothing)" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     stubFrameworkNode(graphDB, "Draft", List("cat_competency"))
@@ -688,7 +686,6 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
   it should "NOT compensate (retire) sibling create rows that already wrote -- leave cm1 live, skip phase 2/3 entirely, and report committed:false when one row hits a write-time-only unique-constraint collision classifyAndValidate couldn't have seen" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     stubFrameworkNode(graphDB, "Draft", List("cat_competency"))
@@ -730,14 +727,8 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     byCode("cm2").get("errCode") shouldBe "ERR_DUPLICATE_CODE"
   }
 
-  it should "commit a mixed create+update+retire sheet in order: create (status=Review) -> associate -> retire-by-omission, then replace the stored template with the committed file" in {
+  it should "commit a mixed create+update+retire sheet in order: create (status=Review) -> associate -> retire-by-omission" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    implicit val ss: StorageService = mock[StorageService]
-    var uploadedFileName: String = null
-    (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).onCall((_: String, f: File, _: Option[Boolean]) => {
-      uploadedFileName = f.getName
-      Array[String]("competencyframework/xlsx/fw1.xlsx", "https://cdn.example.com/competencyframework/xlsx/fw1.xlsx")
-    })
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     stubFrameworkNode(graphDB, "Draft", List("cat_competency"))
@@ -762,10 +753,8 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
       Future(termNode(n.getIdentifier, n.getIdentifier.split("_").last))
     }).anyNumberOfTimes()
     (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
-    var templateUrlSet: String = null
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
-      if (n.getIdentifier == "fw1") templateUrlSet = n.getMetadata.get("templateUrl").asInstanceOf[String]
-      else order += "associate"
+      order += "associate"
       Future(n)
     }).anyNumberOfTimes()
     (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
@@ -796,11 +785,9 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     order.count(_ == "retire") shouldBe 1
     order.indexOf("create") should be < order.indexOf("associate")
     order.lastIndexOf("associate") should be < order.indexOf("retire")
-    uploadedFileName shouldBe "fw1.xlsx"
-    templateUrlSet shouldBe "https://cdn.example.com/competencyframework/xlsx/fw1.xlsx"
   }
 
-  "TermBulkManager.createTemplate" should "upload an .xlsx workbook with the header row, a Category dropdown restricted to attached categories, and a Text-formatted Code column" in {
+  "TermBulkManager.downloadTerms" should "upload an .xlsx workbook with the header row, a Category dropdown restricted to attached categories, and a Text-formatted Code column" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -810,12 +797,6 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val catNode = categoryInstanceNodeWithCode("cat_competency", "competency")
     val term1 = termNodeWithCategory("fw1_competency_cm1", "competency", "cm1", "CM1", "Live")
     stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode), activeTerms = util.Arrays.asList(term1))
-
-    var templateUrlSet: String = null
-    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
-      templateUrlSet = n.getMetadata.get("templateUrl").asInstanceOf[String]
-      Future(n)
-    }).anyNumberOfTimes()
 
     // Production code deletes the temp xlsx in a `finally` right after uploadFile returns (so a
     // real upload never leaks a file), so the workbook must be inspected INSIDE this mocked call,
@@ -842,7 +823,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     request.setContext(new util.HashMap[String, AnyRef]() { { put("graph_id", "domain") } })
     request.put("framework", "fw1")
 
-    val response = Await.result(TermBulkManager.createTemplate(request), 10.seconds)
+    val response = Await.result(TermBulkManager.downloadTerms(request), 10.seconds)
     response.getResult.get("fileUrl") shouldBe "https://cdn.example.com/competencyframework/xlsx/terms.xlsx"
     response.getResult.get("ttl") shouldBe "86400"
 
@@ -850,29 +831,5 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     categoryCellValue shouldBe "competency"
     codeCellFormat shouldBe "@"
     validationCount should be > 0
-    templateUrlSet shouldBe "https://cdn.example.com/competencyframework/xlsx/terms.xlsx"
-  }
-
-  "TermBulkManager.downloadTerms" should "return the fileUrl for an already-stored template with no graph/upload calls" in {
-    implicit val ss: StorageService = mock[StorageService]
-    (ss.getUri(_: String)).expects("competencyframework/xlsx/fw1.xlsx")
-      .returns("https://cdn.example.com/competencyframework/xlsx/fw1.xlsx")
-
-    val request = new Request()
-    request.put("framework", "fw1")
-
-    val response = Await.result(TermBulkManager.downloadTerms(request), 10.seconds)
-    response.getResult.get("fileUrl") shouldBe "https://cdn.example.com/competencyframework/xlsx/fw1.xlsx"
-  }
-
-  it should "fail with ERR_TEMPLATE_NOT_FOUND when no template has been stored yet for this framework" in {
-    implicit val ss: StorageService = mock[StorageService]
-    (ss.getUri(_: String)).expects("competencyframework/xlsx/fw1.xlsx").returns("")
-
-    val request = new Request()
-    request.put("framework", "fw1")
-
-    val ex = the[ResourceNotFoundException] thrownBy Await.result(TermBulkManager.downloadTerms(request), 10.seconds)
-    ex.getErrCode shouldBe "ERR_TEMPLATE_NOT_FOUND"
   }
 }

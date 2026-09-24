@@ -64,9 +64,6 @@
     "lastStatusChangedOn": {
       "type": "string"
     },
-    "templateUrl": {
-      "type": "string"
-    },
     "owner": {
       "type": "string"
     },
