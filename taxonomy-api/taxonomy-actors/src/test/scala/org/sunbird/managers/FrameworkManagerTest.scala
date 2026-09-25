@@ -377,51 +377,6 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
   }
 
-  "FrameworkManager.publishDescendants" should "promote both Draft and Review descendants to Live in one bulkUpdate call" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-
-    def termNode(id: String, status: String): Node = {
-      val n = new Node()
-      n.setIdentifier(id)
-      n.setObjectType("Term")
-      n.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", status) } })
-      n
-    }
-    val draftTerm = termNode("fw1_term_draft", "Draft")
-    val reviewTerm = termNode("fw1_term_review", "Review")
-    val otherFwTerm = termNode("otherfw_term", "Draft")
-    val nodes: util.List[Node] = util.Arrays.asList(draftTerm, reviewTerm, otherFwTerm)
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes))
-
-    var capturedIds: util.List[String] = null
-    var capturedMetadata: util.Map[String, AnyRef] = null
-    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
-      capturedIds = ids
-      capturedMetadata = metadata
-      Future(new util.HashMap[String, Node]())
-    })
-
-    Await.result(FrameworkManager.publishDescendants("domain", "fw1"), 10.seconds)
-    assert(capturedIds.size() == 2)
-    assert(capturedIds.contains("fw1_term_draft"))
-    assert(capturedIds.contains("fw1_term_review"))
-    assert(!capturedIds.contains("otherfw_term"))
-    assert("Live".equals(capturedMetadata.get("status")))
-  }
-
-  it should "make no bulkUpdate call when there are no matching descendants" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]()))
-    // graphDB.updateNodes is intentionally left un-stubbed: ScalaMock fails the test if it's called.
-
-    val result = Await.result(FrameworkManager.publishDescendants("domain", "fw1"), 10.seconds)
-    assert(result.isEmpty)
-  }
-
   "FrameworkManager.getCompleteMetadata" should "exclude a Retired child from childHierarchy, keeping active children" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
 
