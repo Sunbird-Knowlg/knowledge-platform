@@ -551,7 +551,7 @@ object TermBulkManager {
   private[managers] def buildCommitSuccessResponse(result: ClassificationResult): Response = {
     val rows = result.rows.filter(_.warnings.nonEmpty).map { r =>
       val successRow = r.copy(status = "SUCCESS")
-      if (r.rowType == "create") toJavaRow(successRow, Some("Review")) else toJavaRow(successRow)
+      if (r.rowType == "create") toJavaRow(successRow, Some("Live")) else toJavaRow(successRow)
     }
     val summary = new util.HashMap[String, AnyRef]()
     summary.put("created", result.creates.size.asInstanceOf[Integer])
@@ -634,9 +634,8 @@ object TermBulkManager {
         validateCategoryInstance(frameworkId, category).flatMap { categoryNode =>
           val startIndex: Int = TaxonomyUtil.getNextSequenceIndex(categoryNode)
           sequentially(categoryRows.sortBy(_.index).zipWithIndex) { case (row, posInCategory) =>
-            createRow(request, categoryId, category, startIndex + posInCategory, row.index, row.code, sheetRowToMap(row),
-              (n: Node) => { n.getMetadata.put(Constants.STATUS, "Review"); n }
-            ).map(m => (row, m))
+            createRow(request, categoryId, category, startIndex + posInCategory, row.index, row.code, sheetRowToMap(row))
+              .map(m => (row, m))
           }
         }
       }.map(_.flatten)

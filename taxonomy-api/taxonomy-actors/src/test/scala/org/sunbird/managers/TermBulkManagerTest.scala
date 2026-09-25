@@ -448,7 +448,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
     rows.get(0).get("status") shouldBe "SUCCESS"
     rows.get(1).get("status") shouldBe "SUCCESS"
-    rows.get(1).get("termStatus") shouldBe "Review"
+    rows.get(1).get("termStatus") shouldBe "Live"
   }
 
   it should "drop a clean row with no error and no warning entirely" in {
@@ -749,7 +749,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     byCode("cm2").get("errCode") shouldBe "ERR_DUPLICATE_CODE"
   }
 
-  it should "commit a mixed create+update+retire sheet in order: create (status=Review) -> associate -> retire-by-omission" in {
+  it should "commit a mixed create+update+retire sheet in order: create (status=Live) -> associate -> retire-by-omission" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()

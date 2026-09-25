@@ -14,7 +14,7 @@
     ]
   },
   "external": {
-    "tableName": "competencyframework_hierarchy",
+    "tableName": "framework_hierarchy",
     "properties": {
       "hierarchy": {
         "type": "text"

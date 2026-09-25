@@ -168,29 +168,6 @@ object FrameworkManager {
     }
   }
 
-  def publishDescendants(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, Node]] = {
-    val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {{
-      add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN,
-        new util.ArrayList[String]() {{ add("Term"); add("CategoryInstance") }}))
-      add(new Filter("status", SearchConditions.OP_IN,
-        new util.ArrayList[String]() {{ add("Draft"); add("Review") }}))
-    }})
-    val criteria = new SearchCriteria {{ addMetadata(mc); setCountQuery(false); setGraphId(graphId) }}
-    oec.graphService.getNodeByUniqueIds(graphId, criteria).flatMap { nodes =>
-      val prefix = frameworkId.toLowerCase + "_"
-      val ids: util.List[String] = nodes.asScala
-        .filter(n => Option(n.getIdentifier).exists(_.toLowerCase.startsWith(prefix)))
-        .map(_.getIdentifier).toList.asJava
-      if (ids.isEmpty) Future(new util.HashMap[String, Node]())
-      else {
-        val bulkReq = new Request()
-        bulkReq.setContext(new util.HashMap[String, AnyRef]() {{ put("graph_id", graphId) }})
-        bulkReq.put("identifiers", ids)
-        bulkReq.put("metadata", new util.HashMap[String, AnyRef]() {{ put("status", "Live") }})
-        DataNode.bulkUpdate(bulkReq)
-      }
-    }
-  }
   def validateTranslationMap(request: Request) = {
     val translations: util.Map[String, AnyRef] = Optional.ofNullable(request.get("translations").asInstanceOf[util.HashMap[String, AnyRef]]).orElse(new util.HashMap[String, AnyRef]())
     if (translations.isEmpty) request.getRequest.remove("translations")
