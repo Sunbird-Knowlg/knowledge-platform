@@ -196,7 +196,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   private def resolveSkillCategoryField(framework: String): String = {
     if (framework.isBlank) return "skill"
     try {
-      val url = Platform.getString("taxonomy.framework.read.url", "https://dev.sunbirded.org/action/framework/v3/read/") + framework
+      val url = Platform.getString("taxonomy.framework.read.url", "http://localhost:9000/framework/v3/read/") + framework
       val resp = Unirest.get(url).header("Content-Type", "application/json").asString()
       if (resp.getStatus != 200) return "skill"
       val body = JsonUtils.deserialize(resp.getBody, classOf[java.util.Map[String, AnyRef]])

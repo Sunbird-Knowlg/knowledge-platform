@@ -379,7 +379,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	private def resolveSkillCategoryField(framework: String): String = {
 		if (framework.isBlank) return "skill"
 		try {
-			val url = Platform.getString("taxonomy.framework.read.url", "https://dev.sunbirded.org/action/framework/v3/read/") + framework
+			val url = Platform.getString("taxonomy.framework.read.url", "http://localhost:9000/framework/v3/read/") + framework
 			val resp = httpUtil.get(url)
 			if (resp.status != 200) return "skill"
 			val body = JsonUtils.deserialize(resp.body, classOf[java.util.Map[String, AnyRef]])
