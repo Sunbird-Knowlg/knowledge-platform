@@ -113,9 +113,10 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
   }
 
   // Plain JSON body, no file -- same shape as bulkUpdateTerm.
-  def bulkDownloadTerm() = Action.async { implicit request =>
+  def bulkDownloadTerm(framework: String) = Action.async { implicit request =>
     val headers = commonHeaders()
     val body = requestBody()
+    body.put(Constants.FRAMEWORK, framework)
     body.putAll(headers)
     val termRequest = getRequest(body, headers, Constants.BULK_DOWNLOAD_TERM)
     setRequestContext(termRequest, Constants.TERM_SCHEMA_VERSION, objectType, Constants.TERM_SCHEMA_NAME)

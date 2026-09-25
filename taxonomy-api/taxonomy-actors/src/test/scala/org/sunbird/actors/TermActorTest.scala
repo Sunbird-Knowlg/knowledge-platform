@@ -375,7 +375,7 @@ class TermActorTest extends BaseSpec with MockFactory{
     request
   }
 
-  // Thin dispatch checks for the 3 new bulk xlsx operations -- full classify/commit/download logic
+  // Thin dispatch checks for the 3 new bulk csv operations -- full classify/commit/download logic
   // is covered in TermBulkManagerTest. A blank framework identifier makes TermBulkManager's own
   // orchestration methods throw ERR_INVALID_FRAMEWORK_ID before touching graphService at all, which
   // is enough to prove the actor actually routed the operation to TermBulkManager (as opposed to

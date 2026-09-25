@@ -1,6 +1,6 @@
 package org.sunbird.managers
 
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter, CSVRecord}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.{FlatSpec, Matchers}
 import org.sunbird.cloudstore.StorageService
@@ -12,7 +12,8 @@ import org.sunbird.graph.service.common.DACErrorCodeConstants
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.utils.taxonomy.TaxonomyUtil
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.{File, FileOutputStream, OutputStreamWriter}
+import java.nio.charset.StandardCharsets
 import java.util
 import java.util.concurrent.CompletionException
 import scala.collection.mutable
@@ -198,7 +199,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
                         assoc: List[String] = Nil, description: String = "",
                         rowErrors: List[TermSheetReader.RowIssue] = Nil,
                         rowWarnings: List[TermSheetReader.RowIssue] = Nil): TermSheetReader.SheetRow =
-    TermSheetReader.SheetRow(idx, category, name, code, description, assoc, false, rowErrors, rowWarnings)
+    TermSheetReader.SheetRow(idx, category, name, code, description, assoc, rowErrors, rowWarnings)
 
   private def activeTerm(id: String, category: String, code: String, name: String, status: String = "Live", description: String = ""): TermBulkManager.ActiveTerm =
     TermBulkManager.ActiveTerm(id, category, code, name, description, status)
@@ -318,6 +319,14 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     result.rows.head.warnings.map(_.code) should contain("WARN_POSSIBLE_UNINTENDED_CODE_CHANGE")
   }
 
+  it should "warn WARN_POSSIBLE_UNINTENDED_CODE_CHANGE for a name+description match even when the create row's category differs from the retiring term's category" in {
+    val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "Infection Control"))
+    val rows = List(sheetRow(0, "skill", "Infection Control", "sk1")) // different category, same name as the retiring term
+    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
+    result.retireIdentifiers shouldBe List("fw1_competency_cm1")
+    result.rows.head.warnings.map(_.code) should contain("WARN_POSSIBLE_UNINTENDED_CODE_CHANGE")
+  }
+
   it should "report a real added/removed association diff for an update row, not the row's whole resolved list" in {
     val active = List(
       TermBulkManager.ActiveTerm("fw1_competency_cm1", "competency", "cm1", "CM1", "", "Live", associations = List("fw1_skill_sk1")),
@@ -382,6 +391,21 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val rows = List(sheetRow(0, "competency", "Infection Control", "cm1b", description = "a completely different description"))
     val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"))
     result.rows.head.warnings.map(_.code) should not contain "WARN_POSSIBLE_UNINTENDED_CODE_CHANGE"
+  }
+
+  it should "flag ERR_DUPLICATE_CODE for a create row whose (Category, Code) matches a previously-retired term's key, fed in via fetchRetiredTermKeys" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    // Same mocking pattern as the fetchActiveTerms tests below -- a retired-status Term node scoped to this framework.
+    val retired = termNodeWithCategory("fw1_competency_cm1", "competency", "cm1", "Old CM1", "Retired")
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(util.Arrays.asList(retired)))
+
+    val retiredKeys = Await.result(TermBulkManager.fetchRetiredTermKeys("domain", "fw1", Set("competency")), 10.seconds)
+    val rows = List(sheetRow(0, "competency", "Brand New Name", "cm1")) // reuses the retired code as a create
+    val result = TermBulkManager.classifyAndValidate("fw1", rows, Nil, Set("competency"), retiredKeys)
+    result.valid shouldBe false
+    result.rows.head.errCode shouldBe Some("ERR_DUPLICATE_CODE")
   }
 
   // ===================================================================================
@@ -573,22 +597,20 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
   private def notFoundFailure(): Future[Node] = Future.failed(new CompletionException(new ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))
 
-  private def buildXlsxFile(rows: List[List[String]]): (File, String) = {
-    val wb = new XSSFWorkbook()
-    val sheet = wb.createSheet("Sheet1")
-    val header = sheet.createRow(0)
-    TermSheetReader.REQUIRED_HEADERS.zipWithIndex.foreach { case (h, i) => header.createCell(i).setCellValue(h) }
-    rows.zipWithIndex.foreach { case (values, r) =>
-      val row = sheet.createRow(r + 1)
-      values.zipWithIndex.foreach { case (v, c) => row.createCell(c).setCellValue(v) }
-    }
-    val file = File.createTempFile("bulkterms", ".xlsx")
+  private def buildCsvFile(rows: List[List[String]]): (File, String) = {
+    val file = File.createTempFile("bulkterms", ".csv")
     file.deleteOnExit()
     val fos = new FileOutputStream(file)
-    try wb.write(fos) finally {
-      fos.close(); wb.close()
+    val out = new OutputStreamWriter(fos, StandardCharsets.UTF_8)
+    var printer: CSVPrinter = null
+    try {
+      printer = new CSVPrinter(out, CSVFormat.DEFAULT)
+      printer.printRecord(TermSheetReader.REQUIRED_HEADERS.asJava)
+      rows.foreach(values => printer.printRecord(values.asJava))
+    } finally {
+      if (printer != null) printer.close() else out.close()
     }
-    (file, "terms.xlsx")
+    (file, "terms.csv")
   }
 
   private def bulkFileRequest(frameworkId: String, file: File, fileName: String): Request = {
@@ -609,7 +631,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     stubFrameworkNode(graphDB, "Review", Nil)
-    val (file, name) = buildXlsxFile(Nil)
+    val (file, name) = buildCsvFile(Nil)
     val thrown = intercept[ClientException] {
       Await.result(TermBulkManager.bulkValidateTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
     }
@@ -621,7 +643,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     stubFrameworkNode(graphDB, "Processing", Nil)
-    val (file, name) = buildXlsxFile(Nil)
+    val (file, name) = buildCsvFile(Nil)
     val thrown = intercept[ClientException] {
       Await.result(TermBulkManager.bulkValidateTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
     }
@@ -635,7 +657,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     stubFrameworkNode(graphDB, "Draft", List("cat_competency"))
     val catNode = categoryInstanceNodeWithCode("cat_competency", "competency")
     stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode))
-    val (file, name) = buildXlsxFile(List(List("competency", "CM1", "cm1", "", "")))
+    val (file, name) = buildCsvFile(List(List("competency", "CM1", "cm1", "", "")))
     val response = Await.result(TermBulkManager.bulkValidateTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
     response.getResponseCode shouldBe ResponseCode.OK
     response.getResult.get("valid") shouldBe true
@@ -649,7 +671,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     stubFrameworkNode(graphDB, "Draft", List("cat_competency"))
     val catNode = categoryInstanceNodeWithCode("cat_competency", "competency")
     stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode))
-    val (file, name) = buildXlsxFile(List(List("unknown-category", "X", "x1", "", "")))
+    val (file, name) = buildCsvFile(List(List("unknown-category", "X", "x1", "", "")))
     val response = Await.result(TermBulkManager.bulkValidateTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
     response.getResponseCode shouldBe ResponseCode.CLIENT_ERROR
     response.getResult.get("valid") shouldBe false
@@ -663,7 +685,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     stubFrameworkNode(graphDB, "Draft", Nil)
     val pending = termNodeWithCategory("fw1_competency_cmR", "competency", "cmR", "R", "Review")
     stubGetNodeByUniqueIds(graphDB, pendingReview = util.Arrays.asList(pending))
-    val (file, name) = buildXlsxFile(Nil)
+    val (file, name) = buildCsvFile(Nil)
     val thrown = intercept[ClientException] {
       Await.result(TermBulkManager.bulkCommitTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
     }
@@ -678,7 +700,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val catNode = categoryInstanceNodeWithCode("cat_competency", "competency")
     stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode))
     // graphDB.addNode/upsertNode/updateNodes are intentionally left un-stubbed: ScalaMock fails the test if any is called.
-    val (file, name) = buildXlsxFile(List(List("competency", "CM1", "cm1", "skill:doesnotexist", "")))
+    val (file, name) = buildCsvFile(List(List("competency", "CM1", "cm1", "skill:doesnotexist", "")))
     val response = Await.result(TermBulkManager.bulkCommitTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
     response.getResponseCode shouldBe ResponseCode.CLIENT_ERROR
     response.getResult.get("committed") shouldBe false
@@ -711,7 +733,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     // permanent-code-uniqueness rule, purely as a side effect of cm2's unrelated write-time failure),
     // and phase 2/3 must never run once phase 1 has any failure.
 
-    val (file, name) = buildXlsxFile(List(
+    val (file, name) = buildCsvFile(List(
       List("competency", "CM1", "cm1", "", ""),
       List("competency", "CM2", "cm2", "", "")
     ))
@@ -764,7 +786,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
       Future(new util.HashMap[String, Node]())
     })
 
-    val (file, name) = buildXlsxFile(List(
+    val (file, name) = buildCsvFile(List(
       List("competency", "New CM1", "cm1", "", "updated"), // update cm1
       List("competency", "CM3", "cm3", "", "") // create cm3
       // cm2 omitted -> retire by omission
@@ -787,7 +809,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     order.lastIndexOf("associate") should be < order.indexOf("retire")
   }
 
-  "TermBulkManager.downloadTerms" should "upload an .xlsx workbook with the header row, a Category dropdown restricted to attached categories, and a Text-formatted Code column" in {
+  "TermBulkManager.downloadTerms" should "upload a .csv file with the header row and one row per active term when the framework already has terms" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -798,25 +820,14 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val term1 = termNodeWithCategory("fw1_competency_cm1", "competency", "cm1", "CM1", "Live")
     stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode), activeTerms = util.Arrays.asList(term1))
 
-    // Production code deletes the temp xlsx in a `finally` right after uploadFile returns (so a
-    // real upload never leaks a file), so the workbook must be inspected INSIDE this mocked call,
-    // while the file still exists on disk -- not after Await.result returns below.
-    var headerValues: List[String] = null
-    var categoryCellValue: String = null
-    var codeCellFormat: String = null
-    var validationCount: Int = -1
+    // Production code deletes the temp csv in a `finally` right after uploadFile returns (so a
+    // real upload never leaks a file), so the file must be inspected INSIDE this mocked call,
+    // while it still exists on disk -- not after Await.result returns below.
+    var records: List[CSVRecord] = null
     (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).onCall((_: String, f: File, _: Option[Boolean]) => {
-      val wb = new XSSFWorkbook(new FileInputStream(f))
-      try {
-        val sheet = wb.getSheetAt(0)
-        val header = sheet.getRow(0)
-        headerValues = (0 until TermSheetReader.REQUIRED_HEADERS.size).map(header.getCell(_).getStringCellValue).toList
-        val dataRow = sheet.getRow(1)
-        categoryCellValue = dataRow.getCell(0).getStringCellValue
-        codeCellFormat = dataRow.getCell(2).getCellStyle.getDataFormatString
-        validationCount = sheet.getDataValidations.size()
-      } finally wb.close()
-      Array[String]("competencyframework/xlsx/terms.xlsx", "https://cdn.example.com/competencyframework/xlsx/terms.xlsx")
+      val parser = CSVParser.parse(f, StandardCharsets.UTF_8, CSVFormat.DEFAULT)
+      try records = parser.getRecords.asScala.toList finally parser.close()
+      Array[String]("competencyframework/csv/terms.csv", "https://cdn.example.com/competencyframework/csv/terms.csv")
     })
 
     val request = new Request()
@@ -824,12 +835,44 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     request.put("framework", "fw1")
 
     val response = Await.result(TermBulkManager.downloadTerms(request), 10.seconds)
-    response.getResult.get("fileUrl") shouldBe "https://cdn.example.com/competencyframework/xlsx/terms.xlsx"
+    response.getResult.get("fileUrl") shouldBe "https://cdn.example.com/competencyframework/csv/terms.csv"
     response.getResult.get("ttl") shouldBe "86400"
 
-    headerValues shouldBe TermSheetReader.REQUIRED_HEADERS
-    categoryCellValue shouldBe "competency"
-    codeCellFormat shouldBe "@"
-    validationCount should be > 0
+    records.head.asScala.toList shouldBe TermSheetReader.REQUIRED_HEADERS
+    val dataRow = records(1).asScala.toList
+    dataRow(0) shouldBe "competency"
+    dataRow(2) shouldBe "cm1"
+  }
+
+  it should "upload a .csv with one placeholder row per attached category (Category filled in, everything else blank) when the framework has zero terms" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    implicit val ss: StorageService = mock[StorageService]
+
+    stubFrameworkNode(graphDB, "Live", List("cat_competency", "cat_skill"))
+    val catCompetency = categoryInstanceNodeWithCode("cat_competency", "competency")
+    val catSkill = categoryInstanceNodeWithCode("cat_skill", "skill")
+    // activeTerms is intentionally left at its default (empty) -- this is the empty-framework case.
+    stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catCompetency, catSkill))
+
+    var records: List[CSVRecord] = null
+    (ss.uploadFile(_: String, _: File, _: Option[Boolean])).expects(*, *, *).onCall((_: String, f: File, _: Option[Boolean]) => {
+      val parser = CSVParser.parse(f, StandardCharsets.UTF_8, CSVFormat.DEFAULT)
+      try records = parser.getRecords.asScala.toList finally parser.close()
+      Array[String]("competencyframework/csv/terms.csv", "https://cdn.example.com/competencyframework/csv/terms.csv")
+    })
+
+    val request = new Request()
+    request.setContext(new util.HashMap[String, AnyRef]() { { put("graph_id", "domain") } })
+    request.put("framework", "fw1")
+
+    Await.result(TermBulkManager.downloadTerms(request), 10.seconds)
+
+    records.head.asScala.toList shouldBe TermSheetReader.REQUIRED_HEADERS
+    records.tail.map(_.asScala.toList) shouldBe List(
+      List("competency", "", "", "", ""),
+      List("skill", "", "", "", "")
+    )
   }
 }

@@ -40,22 +40,22 @@ class FrameworkTermControllerTest extends FlatSpec with Matchers with BeforeAndA
     (controller, termProbe)
   }
 
-  private def tempXlsxFilePart(fileName: String = "terms.xlsx"): FilePart[TemporaryFile] = {
-    val path = Files.createTempFile("upload", ".xlsx")
-    Files.write(path, "not a real workbook, just bytes for the multipart part".getBytes("UTF-8"))
+  private def tempCsvFilePart(fileName: String = "terms.csv"): FilePart[TemporaryFile] = {
+    val path = Files.createTempFile("upload", ".csv")
+    Files.write(path, "not a real csv, just bytes for the multipart part".getBytes("UTF-8"))
     FilePart("file", fileName, None, SingletonTemporaryFileCreator.create(path))
   }
 
   "FrameworkTermController.bulkValidateTerm" should "invoke termActor with BULK_VALIDATE_TERM op, carrying the framework field and the uploaded file" in {
     val (controller, termProbe) = newController()
-    val multipartBody = MultipartFormData(Map("framework" -> Seq("fw1")), Seq(tempXlsxFilePart()), Seq[BadPart]())
+    val multipartBody = MultipartFormData(Map("framework" -> Seq("fw1")), Seq(tempCsvFilePart()), Seq[BadPart]())
     controller.bulkValidateTerm().apply(FakeRequest().withMultipartFormDataBody(multipartBody))
     val req = termProbe.expectMsgType[SbRequest]
     termProbe.reply(successResponse())
     req.getOperation shouldBe Constants.BULK_VALIDATE_TERM
     req.getRequest.get("framework") shouldBe "fw1"
     req.getRequest.get("file") shouldBe a[File]
-    req.getRequest.get("fileName") shouldBe "terms.xlsx"
+    req.getRequest.get("fileName") shouldBe "terms.csv"
   }
 
   it should "throw ERR_INVALID_DATA when no file part is present" in {
@@ -69,7 +69,7 @@ class FrameworkTermControllerTest extends FlatSpec with Matchers with BeforeAndA
 
   "FrameworkTermController.bulkCommitTerm" should "invoke termActor with BULK_COMMIT_TERM op, carrying the framework field and the uploaded file" in {
     val (controller, termProbe) = newController()
-    val multipartBody = MultipartFormData(Map("framework" -> Seq("fw1")), Seq(tempXlsxFilePart()), Seq[BadPart]())
+    val multipartBody = MultipartFormData(Map("framework" -> Seq("fw1")), Seq(tempCsvFilePart()), Seq[BadPart]())
     controller.bulkCommitTerm().apply(FakeRequest().withMultipartFormDataBody(multipartBody))
     val req = termProbe.expectMsgType[SbRequest]
     termProbe.reply(successResponse())
@@ -87,10 +87,9 @@ class FrameworkTermControllerTest extends FlatSpec with Matchers with BeforeAndA
     thrown.getErrCode shouldBe "ERR_INVALID_DATA"
   }
 
-  "FrameworkTermController.bulkDownloadTerm" should "invoke termActor with BULK_DOWNLOAD_TERM op using a plain JSON body, no file" in {
+  "FrameworkTermController.bulkDownloadTerm" should "invoke termActor with BULK_DOWNLOAD_TERM op using the framework path param, no body" in {
     val (controller, termProbe) = newController()
-    val body = Json.parse("""{"request":{"framework":"fw1"}}""")
-    controller.bulkDownloadTerm().apply(FakeRequest().withJsonBody(body))
+    controller.bulkDownloadTerm("fw1").apply(FakeRequest())
     val req = termProbe.expectMsgType[SbRequest]
     termProbe.reply(successResponse())
     req.getOperation shouldBe Constants.BULK_DOWNLOAD_TERM

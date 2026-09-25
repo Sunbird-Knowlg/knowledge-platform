@@ -1,10 +1,8 @@
 package org.sunbird.managers
 
+import org.apache.commons.csv.{CSVFormat, CSVPrinter}
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
-import org.apache.poi.ss.usermodel.DataValidation
-import org.apache.poi.ss.util.CellRangeAddressList
-import org.apache.poi.xssf.usermodel.{XSSFDataValidationHelper, XSSFWorkbook}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -17,7 +15,8 @@ import org.sunbird.graph.service.common.DACErrorCodeConstants
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.TaxonomyUtil
 
-import java.io.{File, FileOutputStream}
+import java.io.{File, FileOutputStream, OutputStreamWriter}
+import java.nio.charset.StandardCharsets
 import java.util
 import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
@@ -254,6 +253,32 @@ object TermBulkManager {
     }
   }
 
+  private[managers] def fetchRetiredTermKeys(graphId: String, frameworkId: String, categories: Set[String])
+                                             (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Set[(String, String)]] = {
+    if (categories.isEmpty) Future(Set.empty)
+    else {
+      val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {
+        {
+          add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN, new util.ArrayList[String]() {{ add("Term") }}))
+          add(new Filter("category", SearchConditions.OP_IN, new util.ArrayList[String](categories.asJavaCollection)))
+          add(new Filter("status", SearchConditions.OP_EQUAL, "Retired"))
+        }
+      })
+      val criteria = new SearchCriteria {
+        {
+          addMetadata(mc); setCountQuery(false); setGraphId(graphId)
+        }
+      }
+      oec.graphService.getNodeByUniqueIds(graphId, criteria).map { nodes =>
+        val prefix = frameworkId.toLowerCase(Locale.ROOT) + "_"
+        nodes.asScala.filter(n => Option(n.getIdentifier).exists(_.toLowerCase(Locale.ROOT).startsWith(prefix))).map { n =>
+          val md = n.getMetadata
+          normKey(md.getOrDefault("category", "").asInstanceOf[String], md.getOrDefault("code", "").asInstanceOf[String])
+        }.toSet
+      }
+    }
+  }
+
   private[managers] def hasPendingReview(graphId: String, frameworkId: String)
                                          (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Boolean] = {
     val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {
@@ -301,6 +326,7 @@ object TermBulkManager {
 
   private[managers] def classifyAndValidate(frameworkId: String, rows: List[TermSheetReader.SheetRow],
                                              activeTerms: List[ActiveTerm], attachedCategories: Set[String],
+                                             retiredKeys: Set[(String, String)] = Set.empty,
                                              skippedHeaderRows: List[Int] = Nil): ClassificationResult = {
     val attachedLower = attachedCategories.map(_.toLowerCase(Locale.ROOT))
     val activeByKey: Map[(String, String), ActiveTerm] = activeTerms.map(t => normKey(t.category, t.code) -> t).toMap
@@ -322,6 +348,8 @@ object TermBulkManager {
         errs += "ERR_TERM_CODE_REQUIRED" -> "Unique code is required for Term"
       if (isDup)
         errs += "ERR_DUPLICATE_CODE" -> s"Duplicate row for '${row.category}:${row.code}' in sheet."
+      if (rowType == "create" && row.code.nonEmpty && retiredKeys.contains(k))
+        errs += "ERR_DUPLICATE_CODE" -> s"Code '${row.category}:${row.code}' was previously used and retired -- codes are never reusable, even after retirement."
       row.rowErrors.foreach(ri => if (!errs.contains(ri.code)) errs += ri.code -> ri.msg)
 
       Prelim(row, rowType, matched, errs.keys.toList, errs.toMap)
@@ -405,8 +433,7 @@ object TermBulkManager {
 
     val unintendedByCreateIndex: Map[Int, ActiveTerm] = retireList.flatMap { retired =>
       finalized.map(_._1).find(p => p.rowType == "create" && p.errors.isEmpty &&
-        p.row.category.equalsIgnoreCase(retired.category) && p.row.name.equalsIgnoreCase(retired.name) &&
-        p.row.description.equalsIgnoreCase(retired.description)
+        p.row.name.equalsIgnoreCase(retired.name) && p.row.description.equalsIgnoreCase(retired.description)
       ).map(p => p.row.index -> retired)
     }.toMap
 
@@ -414,7 +441,7 @@ object TermBulkManager {
       val errCode = p.errors.headOption
       val unintended = unintendedByCreateIndex.get(p.row.index).map(retired =>
         RowIssue("WARN_POSSIBLE_UNINTENDED_CODE_CHANGE",
-          s"'${p.row.category}:${p.row.code}' shares its name with retiring '${retired.category}:${retired.code}' -- verify this isn't an unintended code change."))
+          s"'${p.row.category}:${p.row.code}' shares its name with retiring '${retired.category}:${retired.code}' -- verify this isn't an unintended code or category change."))
       RowOutcome(p.row.index, p.rowType, p.row.category, p.row.code, if (errCode.isDefined) "FAILED" else "OK",
         errCode, errCode.map(c => p.errMsgs.getOrElse(c, "")), rowWarnings(p, ids) ++ unintended.toList)
     }
@@ -543,8 +570,10 @@ object TermBulkManager {
       readSheetOrThrow(request) match {
         case TermSheetReader.ParseSuccess(rows, skippedHeaderRows) =>
           fetchAttachedCategories(graphId, frameworkId).flatMap { attachedCategories =>
-            fetchActiveTerms(graphId, frameworkId, attachedCategories).map { activeTerms =>
-              buildValidateResponse(classifyAndValidate(frameworkId, rows, activeTerms, attachedCategories, skippedHeaderRows))
+            fetchActiveTerms(graphId, frameworkId, attachedCategories).flatMap { activeTerms =>
+              fetchRetiredTermKeys(graphId, frameworkId, attachedCategories).map { retiredKeys =>
+                buildValidateResponse(classifyAndValidate(frameworkId, rows, activeTerms, attachedCategories, retiredKeys, skippedHeaderRows))
+              }
             }
           }
       }
@@ -562,9 +591,11 @@ object TermBulkManager {
           case TermSheetReader.ParseSuccess(rows, skippedHeaderRows) =>
             fetchAttachedCategories(graphId, frameworkId).flatMap { attachedCategories =>
               fetchActiveTerms(graphId, frameworkId, attachedCategories).flatMap { activeTerms =>
-                val result = classifyAndValidate(frameworkId, rows, activeTerms, attachedCategories, skippedHeaderRows)
-                if (!result.valid) Future(buildCommitFailureResponse(result))
-                else commitClassification(request, graphId, frameworkId, result)
+                fetchRetiredTermKeys(graphId, frameworkId, attachedCategories).flatMap { retiredKeys =>
+                  val result = classifyAndValidate(frameworkId, rows, activeTerms, attachedCategories, retiredKeys, skippedHeaderRows)
+                  if (!result.valid) Future(buildCommitFailureResponse(result))
+                  else commitClassification(request, graphId, frameworkId, result)
+                }
               }
             }
         }
@@ -660,63 +691,49 @@ object TermBulkManager {
     if (frameworkId.isEmpty) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide a valid framework identifier")
     fetchAttachedCategories(graphId, frameworkId).flatMap { attachedCategories =>
       fetchActiveTerms(graphId, frameworkId, attachedCategories).flatMap { activeTerms =>
-        val byIdentifier: Map[String, ActiveTerm] = activeTerms.map(t => t.identifier -> t).toMap
-        val rows = activeTerms.map { t =>
-          val tokens = t.associations.flatMap(byIdentifier.get).map(target => s"${target.category}:${target.code}")
-          (t, tokens)
-        }
-        val xlsxFile = buildDownloadWorkbook(frameworkId, attachedCategories, rows)
+        val rows: List[List[String]] =
+          if (activeTerms.nonEmpty) {
+            val byIdentifier: Map[String, ActiveTerm] = activeTerms.map(t => t.identifier -> t).toMap
+            activeTerms.sortBy(t => (t.category, t.code)).map { t =>
+              val tokens = t.associations.flatMap(byIdentifier.get).map(target => s"${target.category}:${target.code}")
+              List(t.category, t.name, t.code, tokens.mkString(","), t.description)
+            }
+          } else {
+            attachedCategories.toList.sorted.map(category => List(category, "", "", "", ""))
+          }
+        val csvFile = buildDownloadCsv(frameworkId, rows)
         try {
-          val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/xlsx")
-          val uploaded = ss.uploadFile(folder, xlsxFile)
+          val folder = Platform.getString("cloud_storage.competencyframework.folder", "competencyframework/csv")
+          val uploaded = ss.uploadFile(folder, csvFile)
           Future.successful(ResponseHandler.OK.put("fileUrl", uploaded(1))
             .put("ttl", Platform.getString("cloud_storage.upload.url.ttl", "86400")))
         } finally {
-          FileUtils.deleteQuietly(xlsxFile)
+          FileUtils.deleteQuietly(csvFile)
         }
       }
     }
   }
 
-  private def buildDownloadWorkbook(frameworkId: String, attachedCategories: Set[String], rows: List[(ActiveTerm, List[String])]): File = {
-    val workbook = new XSSFWorkbook()
+  private def buildDownloadCsv(frameworkId: String, rows: List[List[String]]): File = {
+    val tempDir = new File(Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework"))
+    tempDir.mkdirs()
+    val file = new File(tempDir, s"$frameworkId.csv")
+    var fos: FileOutputStream = null
+    var out: OutputStreamWriter = null
+    var csvPrinter: CSVPrinter = null
     try {
-      val sheet = workbook.createSheet("Terms")
-      val headerRow = sheet.createRow(0)
-      TermSheetReader.REQUIRED_HEADERS.zipWithIndex.foreach { case (h, i) => headerRow.createCell(i).setCellValue(h) }
-
-      val textFormatStyle = workbook.createCellStyle()
-      textFormatStyle.setDataFormat(workbook.createDataFormat().getFormat("@")) // Code column stays Text -- see §4.9
-
-      rows.sortBy(t => (t._1.category, t._1.code)).zipWithIndex.foreach { case ((term, assocTokens), i) =>
-        val row = sheet.createRow(i + 1)
-        row.createCell(0).setCellValue(term.category)
-        row.createCell(1).setCellValue(term.name)
-        val codeCell = row.createCell(2)
-        codeCell.setCellStyle(textFormatStyle)
-        codeCell.setCellValue(term.code)
-        row.createCell(3).setCellValue(assocTokens.mkString(","))
-        row.createCell(4).setCellValue(term.description)
+      fos = new FileOutputStream(file)
+      out = new OutputStreamWriter(fos, StandardCharsets.UTF_8)
+      csvPrinter = new CSVPrinter(out, CSVFormat.DEFAULT)
+      csvPrinter.printRecord(TermSheetReader.REQUIRED_HEADERS.asJava)
+      rows.foreach(row => csvPrinter.printRecord(row.asJava))
+    } finally {
+      if (csvPrinter != null) csvPrinter.close()
+      else {
+        if (out != null) out.close()
+        if (fos != null) fos.close()
       }
-
-      if (attachedCategories.nonEmpty) {
-        val dvHelper = new XSSFDataValidationHelper(sheet)
-        val constraint = dvHelper.createExplicitListConstraint(attachedCategories.toArray)
-        // Rows 1..1000: a generous range so new rows a user adds while editing also get the dropdown.
-        val addressList = new CellRangeAddressList(1, 1000, 0, 0)
-        val validation = dvHelper.createValidation(constraint, addressList)
-        validation.setErrorStyle(DataValidation.ErrorStyle.STOP)
-        validation.setShowErrorBox(true)
-        validation.createErrorBox("Invalid Category", "Please choose a category from the dropdown list.")
-        sheet.addValidationData(validation)
-      }
-
-      val tempDir = new File(Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework"))
-      tempDir.mkdirs()
-      val file = new File(tempDir, s"$frameworkId.xlsx")
-      val fos = new FileOutputStream(file)
-      try workbook.write(fos) finally fos.close()
-      file
-    } finally workbook.close()
+    }
+    file
   }
 }
