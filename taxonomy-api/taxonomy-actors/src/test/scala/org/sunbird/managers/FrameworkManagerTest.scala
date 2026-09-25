@@ -197,6 +197,31 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     assert(!result)
   }
 
+  "FrameworkManager.retireImageNode" should "soft-retire fw1.img via updateNodes with status=Retired" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("fw1.img"), *)
+      .onCall((_: String, ids: util.List[String], metadata: util.Map[String, AnyRef]) => {
+        assert(ids.contains("fw1.img"))
+        assert("Retired".equals(metadata.get("status")))
+        Future(new util.HashMap[String, Node]())
+      })
+    Await.result(FrameworkManager.retireImageNode("domain", "fw1"), 10.seconds)
+  }
+
+  it should "still call updateNodes for fw1.img even when it doesn't exist (silently skipped downstream)" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("fw1.img"), *)
+      .returns(Future(new util.HashMap[String, Node]()))
+    val result = Await.result(FrameworkManager.retireImageNode("domain", "fw1"), 10.seconds)
+    assert(result.isEmpty)
+  }
+
   "FrameworkManager.publishFramework" should "promote .img's metadata onto the live node but never copy identifier/status/objectType/versionKey/prevStatus/isImageNodeCreated" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]

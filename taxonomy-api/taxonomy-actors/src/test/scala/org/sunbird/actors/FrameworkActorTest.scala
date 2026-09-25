@@ -194,15 +194,11 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     node.setObjectType("Framework")
-    // Argument-matched (not wildcard): retire()'s new deleteImageNodeIfExists probe for ".img" must
-    // miss, while DataNode.update's own fetch of the base id must hit -- a single wildcard stub can no
-    // longer stand in for both calls.
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
-      .expects(*, "framework_test.img", *, *)
-      .returns(Future.failed(new java.util.concurrent.CompletionException(
-        new org.sunbird.common.exception.ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .returns(Future(new util.HashMap[String, Node]()))
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 
     val nodes: util.List[Node] = getFrameworkNode()
@@ -216,7 +212,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
-  it should "retire with an existing .img: delete it before/alongside the retire update" in {
+  it should "retire with an existing .img: soft-retire it (status=Retired) instead of deleting it" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -225,10 +221,13 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val imgNode = getValidNode()
     imgNode.setIdentifier("framework_test.img")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
-      .expects(*, "framework_test.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
-    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "framework_test.img", *).returns(Future(true))
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .onCall((_: String, _: util.List[String], metadata: util.Map[String, AnyRef]) => {
+        assert("Retired".equals(metadata.get("status")))
+        Future(new util.HashMap[String, Node]() {{ put("framework_test.img", imgNode) }})
+      })
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
@@ -241,19 +240,17 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
-  it should "retire with no .img: clean no-op, no exception surfaces, no deleteNode call" in {
+  it should "retire with no .img: clean no-op, updateNodes call for '.img' resolves to an empty map" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     node.setObjectType("Framework")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
-      .expects(*, "framework_test.img", *, *)
-      .returns(Future.failed(new java.util.concurrent.CompletionException(
-        new org.sunbird.common.exception.ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
-    // graphDB.deleteNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .returns(Future(new util.HashMap[String, Node]()))
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
