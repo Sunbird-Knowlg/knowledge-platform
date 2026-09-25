@@ -45,6 +45,11 @@ object FrameworkManager {
     }
   }
 
+  def retireImageNode(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, Node]] = {
+    oec.graphService.updateNodes(graphId, Collections.singletonList(frameworkId + IMAGE_SUFFIX),
+      new util.HashMap[String, AnyRef]() {{ put("status", "Retired") }})
+  }
+
   private val PROMOTE_EXCLUDE_FIELDS: Set[String] =
     Set("identifier", "status", "objectType", "versionKey", "prevStatus", "isImageNodeCreated")
 

@@ -156,7 +156,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     request.getRequest.put("status", "Retired")
     request.getContext.put("versioning", "disabled")
-    FrameworkManager.deleteImageNodeIfExists(graphId, frameworkId).flatMap(_ =>
+    FrameworkManager.retireImageNode(graphId, frameworkId).flatMap(_ =>
       DataNode.update(request).map(node => {
         ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
       })
