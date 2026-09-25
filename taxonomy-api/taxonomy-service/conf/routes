@@ -43,7 +43,7 @@ POST      /competency-framework/v3/reject/:identifier                taxonomy.co
 POST      /competency-framework/v3/term/bulk/update                  taxonomy.controllers.v3.FrameworkTermController.bulkUpdateTerm()
 POST      /competency-framework/v3/term/bulk/validate                taxonomy.controllers.v3.FrameworkTermController.bulkValidateTerm()
 POST      /competency-framework/v3/term/bulk/commit                  taxonomy.controllers.v3.FrameworkTermController.bulkCommitTerm()
-POST      /competency-framework/v3/term/bulk/download                taxonomy.controllers.v3.FrameworkTermController.bulkDownloadTerm()
+GET       /competency-framework/v3/term/bulk/download/:framework     taxonomy.controllers.v3.FrameworkTermController.bulkDownloadTerm(framework:String)
 
 # Object Category API's
 POST      /object/category/v4/create                           taxonomy.controllers.v4.ObjectCategoryController.create()
