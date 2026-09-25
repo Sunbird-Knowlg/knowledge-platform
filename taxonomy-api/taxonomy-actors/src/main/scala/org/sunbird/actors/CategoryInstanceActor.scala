@@ -9,6 +9,7 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.utils.NodeUtil
+import org.sunbird.managers.TermBulkManager
 import org.sunbird.utils.Constants
 import org.sunbird.utils.taxonomy.{RequestUtil, TaxonomyUtil}
 
@@ -41,8 +42,12 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {{
       putAll(request.getContext)
     }})
-    getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
-    getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
+    val frameworkObjectType = request.getRequest.getOrDefault(Constants.FRAMEWORK_OBJECT_TYPE, Constants.FRAMEWORK).asInstanceOf[String]
+    val (frameworkSchemaName, frameworkSchemaVersion) = if (StringUtils.equalsIgnoreCase(frameworkObjectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME))
+      (Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION)
+    else (Constants.FRAMEWORK_SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_VERSION)
+    getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, frameworkSchemaName)
+    getFrameworkReq.getContext.put(Constants.VERSION, frameworkSchemaVersion)
     getFrameworkReq.put("disableCache", Option(true))
     getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
     DataNode.read(getFrameworkReq).map(node => {
@@ -58,7 +63,10 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
           DataNode.create(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
               .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
-          })
+          }) recover {
+            case e: ClientException if TermBulkManager.isDuplicateCode(e) =>
+              throw new ClientException("ERR_DUPLICATE_CODE", s"CategoryInstance with code '$code' already exists")
+          }
         }).flatten
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatten

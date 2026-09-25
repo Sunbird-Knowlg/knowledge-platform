@@ -5,10 +5,11 @@ import org.apache.pekko.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.{ResourceNotFoundException, ResponseCode}
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException, ResponseCode}
 import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
+import org.sunbird.graph.service.common.DACErrorCodeConstants
 import org.sunbird.utils.Constants
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -67,6 +68,98 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
     assert(response.get(Constants.IDENTIFIER) != null)
     assert(response.get("versionKey") != null)
+  }
+
+  it should "resolve the parent framework under the competencyframework schema when frameworkObjectType is set" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("CF1")
+    node.setObjectType("CompetencyFramework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "CF1");
+        put("objectType", "CompetencyFramework")
+        put("name", "CF1")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "CF1", *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val categoryNode = new Node()
+    categoryNode.setIdentifier("competency")
+    categoryNode.setObjectType("Category")
+    categoryNode.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "competency");
+        put("objectType", "Category")
+        put("name", "competency")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "competency", *, *).returns(Future(categoryNode)).anyNumberOfTimes()
+    val categoryNodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(categoryNodes)).anyNumberOfTimes()
+
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(getCategoryInstanceOfNode()))
+    val loopResult: util.Map[String, Object] = new util.HashMap[String, Object]()
+    loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
+    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
+    (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
+
+    val request = getCategoryInstanceRequest()
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "CF1", "code" -> "competency", "name" -> "Competency", "frameworkObjectType" -> "competencyframework").asJava)
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+
+  it should "translate an identifier collision on create into ERR_DUPLICATE_CODE" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("NCF")
+    node.setObjectType("Framework")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "NCF");
+        put("objectType", "Framework")
+        put("name", "NCF")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "NCF", *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val categoryNode = new Node()
+    categoryNode.setIdentifier("board")
+    categoryNode.setObjectType("Category")
+    categoryNode.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "board");
+        put("objectType", "Category")
+        put("name", "board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "board", *, *).returns(Future(categoryNode)).anyNumberOfTimes()
+    val categoryNodes: util.List[Node] = getCategoryNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(categoryNodes)).anyNumberOfTimes()
+
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future.failed(new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), "Node with this identifier already exists")))
+    val loopResult: util.Map[String, Object] = new util.HashMap[String, Object]()
+    loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
+    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
+
+    val request = getCategoryInstanceRequest()
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "NCF", "code" -> "board", "name" -> "Board").asJava)
+    request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
+    val response = callActor(request, Props(new CategoryInstanceActor()))
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErr == "ERR_DUPLICATE_CODE")
+    assert(response.getParams.getErrmsg == "CategoryInstance with code 'board' already exists")
   }
 
   it should "throw error if category does not belong to master category" in {

@@ -40,6 +40,14 @@ object Constants {
     val CHANNEL_SCHEMA_VERSION = "1.0";
     val PUBLISH_STATUS: String = "publishStatus"
 
+    // Constants For CompetencyFramework
+    val COMPETENCY_FRAMEWORK: String = "competencyFramework"
+    val COMPETENCY_FRAMEWORK_SCHEMA_VERSION = "1.0"
+    val COMPETENCY_FRAMEWORK_SCHEMA_NAME = "competencyframework"
+    val FRAMEWORK_OBJECT_TYPE: String = "frameworkObjectType"
+    val REVIEW_FRAMEWORK: String = "reviewFramework"
+    val REJECT_FRAMEWORK: String = "rejectFramework"
+
     val CATEGORY: String = "category";
     val CREATE_CATEGORY: String = "createCategory";
     val READ_CATEGORY: String = "readCategory"
@@ -64,6 +72,10 @@ object Constants {
     val RETIRE_TERM: String = "retireTerm"
     val TERM_SCHEMA_VERSION: String = "1.0";
     val TERM_SCHEMA_NAME: String = "term"
+    val BULK_UPDATE_TERM: String = "bulkUpdateTerm"
+    val BULK_VALIDATE_TERM: String = "bulkValidateTerm"
+    val BULK_COMMIT_TERM: String = "bulkCommitTerm"
+    val BULK_DOWNLOAD_TERM: String = "bulkDownloadTerm"
 
     // Constants For Lock
     val LOCK: String = "lock";

@@ -19,7 +19,8 @@
       "type": "hasSequenceMember",
       "direction": "in",
       "objects": [
-        "Framework"
+        "Framework",
+        "CompetencyFramework"
       ]
     },
     "channels": {

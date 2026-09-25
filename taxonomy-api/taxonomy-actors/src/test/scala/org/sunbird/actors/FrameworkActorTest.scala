@@ -140,13 +140,65 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
+  it should "return node_id with the .img suffix when updating a Live framework, without flipping the live node's own status" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val liveNode = getValidNode()
+    liveNode.getMetadata.put("status", "Live")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *)
+      .returns(Future.failed(new java.util.concurrent.CompletionException(
+        new org.sunbird.common.exception.ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))).anyNumberOfTimes()
+    val imgClone = getValidNode()
+    imgClone.setIdentifier("framework_test.img")
+    imgClone.setObjectType("FrameworkImage")
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(imgClone)) // becomes the .img clone
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(imgClone))
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.getContext.put("identifier", "framework_test")
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.setOperation(Constants.UPDATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.get("node_id").asInstanceOf[String].endsWith(".img"))
+  }
+
+  it should "write the base node in place when updating a Draft (never-published) framework" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getValidNode() // no "status" set -> not in statusList -> no .img clone
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.setOperation(Constants.UPDATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.get("node_id").equals("framework_test"))
+  }
+
   it should "return success response for 'retireCategory' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
     node.setObjectType("Framework")
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node))
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .returns(Future(new util.HashMap[String, Node]()))
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
 
     val nodes: util.List[Node] = getFrameworkNode()
@@ -154,6 +206,57 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
     val request = getFrameworkRequest()
     request.getContext.put("identifier", "framework_test");
+    request.getRequest.put("identifier", "framework_test")
+    request.setOperation(Constants.RETIRE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "retire with an existing .img: soft-retire it (status=Retired) instead of deleting it" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getValidNode()
+    node.setObjectType("Framework")
+    val imgNode = getValidNode()
+    imgNode.setIdentifier("framework_test.img")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .onCall((_: String, _: util.List[String], metadata: util.Map[String, AnyRef]) => {
+        assert("Retired".equals(metadata.get("status")))
+        Future(new util.HashMap[String, Node]() {{ put("framework_test.img", imgNode) }})
+      })
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.getContext.put("identifier", "framework_test")
+    request.getRequest.put("identifier", "framework_test")
+    request.setOperation(Constants.RETIRE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  it should "retire with no .img: clean no-op, updateNodes call for '.img' resolves to an empty map" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getValidNode()
+    node.setObjectType("Framework")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .returns(Future(new util.HashMap[String, Node]()))
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    val nodes: util.List[Node] = getFrameworkNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.getContext.put("identifier", "framework_test")
     request.getRequest.put("identifier", "framework_test")
     request.setOperation(Constants.RETIRE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
@@ -214,10 +317,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("ERR_FRAMEWORKID_CODE_MATCHES".equals(response.getParams.getErr))
   }
 
-  it should "return success response for 'publishFramework' operation" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+  private def getPublishChannelNode(): Node = {
     val node = new Node("domain", "DATA_NODE", "Channel")
     node.setIdentifier("sunbird")
     node.setObjectType("Channel")
@@ -228,7 +328,83 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
         put("name", "Channel")
       }
     })
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    node
+  }
+
+  private def notFoundFailure(): Future[Node] = Future.failed(new java.util.concurrent.CompletionException(
+    new org.sunbird.common.exception.ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))
+
+  it should "return success response for 'publishFramework' operation" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getPublishChannelNode()
+    val liveNode = getValidNode()
+    // Argument-matched: the new publishFramework() orchestration probes ".img" (miss, so no relation/
+    // metadata promote runs) and separately fetches the live framework node (with relations, getTags=true).
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "sunbird", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "framework_test", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    val subGraph = getSubGraphData()
+    (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(subGraph)).anyNumberOfTimes()
+    (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+
+    val request = getFrameworkRequest()
+    request.getContext.put(Constants.IDENTIFIER, "framework_test")
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "framework_test", "channel" -> "sunbird").asJava)
+    request.setOperation(Constants.PUBLISH_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.get("version") != null)
+    assert("Live".equals(response.get("status")))
+  }
+
+  it should "return success response for 'publishFramework' when context schemaName is competencyframework" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getPublishChannelNode()
+    val liveNode = getValidNode()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "sunbird", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "framework_test", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+    val subGraph = getSubGraphData()
+    (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(subGraph)).anyNumberOfTimes()
+    (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
+
+    val request = getFrameworkRequest()
+    request.getContext.put(Constants.SCHEMA_NAME, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
+    request.getContext.put(Constants.IDENTIFIER, "framework_test")
+    request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "framework_test", "channel" -> "sunbird").asJava)
+    request.setOperation(Constants.PUBLISH_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert(response.get("version") != null)
+    assert("Live".equals(response.get("status")))
+  }
+
+  it should "promote an in-progress .img edit onto the live node during publish" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = getPublishChannelNode()
+    val liveNode = getValidNode()
+    val imgNode = getValidNode()
+    imgNode.setIdentifier("framework_test.img")
+    imgNode.getMetadata.put("description", "draft edit")
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "sunbird", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "framework_test.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "framework_test", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "framework_test.img", *).returns(Future(true))
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      assert("draft edit".equals(n.getMetadata.get("description")))
+      Future(n)
+    })
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
     val subGraph = getSubGraphData()
     (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(subGraph)).anyNumberOfTimes()
     (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes
@@ -240,6 +416,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
   }
+
 
   it should "return success response for 'readFramework' operation" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
@@ -259,6 +436,103 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
+
+  private def stubFrameworkGate(graphDB: GraphService, status: String): Node = {
+    val node = getValidNode()
+    node.getMetadata.put("status", status)
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    node
+  }
+
+  private def reviewRequest(): Request = {
+    val request = getFrameworkRequest()
+    request.getRequest.put(Constants.IDENTIFIER, "framework_test")
+    request.setOperation(Constants.REVIEW_FRAMEWORK)
+    request
+  }
+
+  private def rejectRequest(): Request = {
+    val request = getFrameworkRequest()
+    request.getRequest.put(Constants.IDENTIFIER, "framework_test")
+    request.setOperation(Constants.REJECT_FRAMEWORK)
+    request
+  }
+
+  List("Draft", "Live").foreach { status =>
+    it should s"flip a $status framework to Review on review" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+        assert("Review".equals(n.getMetadata.get("status")))
+        Future(n)
+      })
+
+      val response = callActor(reviewRequest(), Props(new FrameworkActor()))
+      assert("successful".equals(response.getParams.getStatus))
+      assert("Review".equals(response.get("status")))
+    }
+  }
+
+  List("Review", "Processing", "Retired").foreach { status =>
+    it should s"reject review with ERR_INVALID_REQUEST naming the status when the framework is $status" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      // graphDB.upsertNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+      val response = callActor(reviewRequest(), Props(new FrameworkActor()))
+      assert("failed".equals(response.getParams.getStatus))
+      assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
+      assert(response.getParams.getErrmsg.contains(status))
+    }
+  }
+
+  it should "flip a Review framework back to Draft on reject, and sweep its own Review-status terms to Draft" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    stubFrameworkGate(graphDB, "Review")
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => {
+      assert("Draft".equals(n.getMetadata.get("status")))
+      Future(n)
+    })
+    val reviewTerm = new Node()
+    reviewTerm.setIdentifier("framework_test_term1")
+    reviewTerm.setObjectType("Term")
+    reviewTerm.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", "Review") } })
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(util.Arrays.asList(reviewTerm)))
+    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *)
+      .onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
+        assert(ids.contains("framework_test_term1"))
+        assert("Draft".equals(metadata.get("status")))
+        Future(new util.HashMap[String, Node]())
+      })
+
+    val response = callActor(rejectRequest(), Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+    assert("Draft".equals(response.get("status")))
+  }
+
+  List("Draft", "Live", "Processing", "Retired").foreach { status =>
+    it should s"reject 'reject' with ERR_INVALID_REQUEST naming the status when the framework is $status (not Review)" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      // graphDB.upsertNode/getNodeByUniqueIds/updateNodes are intentionally left un-stubbed.
+
+      val response = callActor(rejectRequest(), Props(new FrameworkActor()))
+      assert("failed".equals(response.getParams.getStatus))
+      assert("ERR_INVALID_REQUEST".equals(response.getParams.getErr))
+      assert(response.getParams.getErrmsg.contains(status))
+    }
+  }
 
   private def getFrameworkOfNode(): Node = {
     val node = new Node()
