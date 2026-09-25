@@ -40,6 +40,7 @@ object ApiId {
 	val UPDATE_QUESTION_SET = "api.questionset.update"
 	val REVIEW_QUESTION_SET = "api.questionset.review"
 	val PUBLISH_QUESTION_SET = "api.questionset.publish"
+	val REFRESH_BODY_QUESTION_SET = "api.questionset.refresh.body"
 	val RETIRE_QUESTION_SET = "api.questionset.retire"
 	val ADD_QUESTION_SET = "api.questionset.add"
 	val REMOVE_QUESTION_SET = "api.questionset.remove"

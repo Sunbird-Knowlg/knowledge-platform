@@ -418,16 +418,34 @@ object AssessmentV5Manager {
     })
   }
 
+  /** Minimal refresh-body event — only mid (Kafka key) + action + identifier + objectType, nothing the job doesn't actually read. */
+  def pushRefreshBodyEvent(identifier: String, objectType: String)(implicit oec: OntologyEngineContext): Unit = {
+    val cleanId = identifier.replace(".img", "")
+    val edata = new util.HashMap[String, AnyRef]() {{
+      put("action", "refresh-body")
+      put("metadata", new util.HashMap[String, AnyRef]() {{
+        put("identifier", cleanId)
+        put("objectType", objectType)
+      }})
+    }}
+    val reqMap = new util.HashMap[String, AnyRef]() {{
+      put("mid", s"LP.${System.currentTimeMillis()}.${UUID.randomUUID()}")
+      put("edata", edata)
+    }}
+    val topic: String = Platform.getString("kafka.publish.request.topic", "sunbirddev.knowlg.publish.job.request")
+    oec.kafkaClient.send(JsonUtils.serialize(reqMap), topic)
+  }
+
   @throws[Exception]
-  def pushInstructionEvent(identifier: String, node: Node, requestId: String, featureName: String)(implicit oec: OntologyEngineContext): Unit = {
-    val (actor, context, objData, eData) = generateInstructionEventMetadata(identifier.replace(".img", ""), node, requestId, featureName)
+  def pushInstructionEvent(identifier: String, node: Node, requestId: String, featureName: String, action: String = "publish")(implicit oec: OntologyEngineContext): Unit = {
+    val (actor, context, objData, eData) = generateInstructionEventMetadata(identifier.replace(".img", ""), node, requestId, featureName, action)
     val beJobRequestEvent: String = LogTelemetryEventUtil.logInstructionEvent(actor.asJava, context.asJava, objData.asJava, eData)
     val topic: String = Platform.getString("kafka.publish.request.topic", "sunbirddev.knowlg.publish.job.request")
     if (StringUtils.isBlank(beJobRequestEvent)) throw new ClientException("BE_JOB_REQUEST_EXCEPTION", "Event is not generated properly.")
     oec.kafkaClient.send(beJobRequestEvent, topic)
   }
 
-  def generateInstructionEventMetadata(identifier: String, node: Node, requestId: String, featureName: String): (Map[String, AnyRef], Map[String, AnyRef], Map[String, AnyRef], util.Map[String, AnyRef]) = {
+  def generateInstructionEventMetadata(identifier: String, node: Node, requestId: String, featureName: String, action: String = "publish"): (Map[String, AnyRef], Map[String, AnyRef], Map[String, AnyRef], util.Map[String, AnyRef]) = {
     val metadata: util.Map[String, AnyRef] = node.getMetadata
     val publishType = if (StringUtils.equalsIgnoreCase(metadata.getOrDefault("status", "").asInstanceOf[String], "Unlisted")) "unlisted" else "public"
     val eventMetadata = Map("identifier" -> identifier, "mimeType" -> metadata.getOrDefault("mimeType", ""), "objectType" -> node.getObjectType.replace("Image", ""), "pkgVersion" -> metadata.getOrDefault("pkgVersion", 0.asInstanceOf[AnyRef]), "lastPublishedBy" -> metadata.getOrDefault("lastPublishedBy", ""), "qumlVersion" -> node.getMetadata.getOrDefault("qumlVersion", 1.1.asInstanceOf[AnyRef]), "schemaVersion" -> node.getMetadata.getOrDefault("schemaVersion", "1.1").asInstanceOf[String])
@@ -436,7 +454,7 @@ object AssessmentV5Manager {
     val objData = Map("id" -> identifier, "ver" -> metadata.getOrDefault("versionKey", ""))
     val eData: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef] {
       {
-        put("action", "publish")
+        put("action", action)
         put("requestId", requestId)
         put("featureName", featureName)
         put("publish_type", publishType)
