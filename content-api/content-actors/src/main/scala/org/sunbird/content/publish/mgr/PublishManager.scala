@@ -70,13 +70,12 @@ object PublishManager {
 		}
 	}
 
-	/** Minimal refresh-body event — only mid (Kafka key) + action + identifier + objectType, nothing the job doesn't actually read. */
+	/** Minimal refresh-body event; keeps the ".img" suffix when present so edits land on the editable copy, not the live one. */
 	private def pushRefreshBodyEvent(identifier: String, objectType: String): Unit = {
-		val cleanId = identifier.replace(".img", "")
 		val edata = new util.HashMap[String, AnyRef]() {{
 			put(ContentConstants.ACTION, ContentConstants.REFRESH_BODY)
 			put(ContentConstants.METADATA, new util.HashMap[String, AnyRef]() {{
-				put(ContentConstants.IDENTIFIER, cleanId)
+				put(ContentConstants.IDENTIFIER, identifier)
 				put(ContentConstants.OBJECT_TYPE, objectType)
 			}})
 		}}

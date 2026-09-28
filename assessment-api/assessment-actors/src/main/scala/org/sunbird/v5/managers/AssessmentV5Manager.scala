@@ -418,13 +418,12 @@ object AssessmentV5Manager {
     })
   }
 
-  /** Minimal refresh-body event — only mid (Kafka key) + action + identifier + objectType, nothing the job doesn't actually read. */
+  /** Minimal refresh-body event; keeps the ".img" suffix when present so edits land on the editable copy, not the live one. */
   def pushRefreshBodyEvent(identifier: String, objectType: String)(implicit oec: OntologyEngineContext): Unit = {
-    val cleanId = identifier.replace(".img", "")
     val edata = new util.HashMap[String, AnyRef]() {{
       put("action", "refresh-body")
       put("metadata", new util.HashMap[String, AnyRef]() {{
-        put("identifier", cleanId)
+        put("identifier", identifier)
         put("objectType", objectType)
       }})
     }}
