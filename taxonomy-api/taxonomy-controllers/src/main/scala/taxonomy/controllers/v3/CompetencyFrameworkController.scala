@@ -41,60 +41,37 @@ class CompetencyFrameworkController @Inject()(
         getResult(ApiId.READ_COMPETENCY_FRAMEWORK, frameworkActor, readRequest)
     }
 
-    def retire(identifier: String) = Action.async { implicit request =>
+    private def dispatchFrameworkAction(identifier: String, operation: String, apiId: String, identifierInContext: Boolean)
+                                        (implicit request: play.api.mvc.Request[play.api.mvc.AnyContent]): Future[play.api.mvc.Result] = {
         val headers = commonHeaders()
         val body = requestBody()
         val framework = body.getOrDefault(Constants.COMPETENCY_FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
         framework.putAll(headers)
-        val frameworkRequest = getRequest(framework, headers, Constants.RETIRE_FRAMEWORK)
+        if (!identifierInContext) framework.putAll(Map("identifier" -> identifier).asJava)
+        val frameworkRequest = getRequest(framework, headers, operation)
         setRequestContext(frameworkRequest, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION, objectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        frameworkRequest.getContext.put(Constants.IDENTIFIER, identifier)
-        getResult(ApiId.RETIRE_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
+        if (identifierInContext) frameworkRequest.getContext.put(Constants.IDENTIFIER, identifier)
+        getResult(apiId, frameworkActor, frameworkRequest)
+    }
+
+    def retire(identifier: String) = Action.async { implicit request =>
+        dispatchFrameworkAction(identifier, Constants.RETIRE_FRAMEWORK, ApiId.RETIRE_COMPETENCY_FRAMEWORK, identifierInContext = true)
     }
 
     def updateCompetencyFramework(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.COMPETENCY_FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        val frameworkRequest = getRequest(framework, headers, Constants.UPDATE_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION, objectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        frameworkRequest.getContext.put(Constants.IDENTIFIER, identifier)
-        getResult(ApiId.UPDATE_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
+        dispatchFrameworkAction(identifier, Constants.UPDATE_FRAMEWORK, ApiId.UPDATE_COMPETENCY_FRAMEWORK, identifierInContext = true)
     }
 
     def publish(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.COMPETENCY_FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        framework.putAll(Map("identifier" -> identifier).asJava)
-        val frameworkRequest = getRequest(framework, headers, Constants.PUBLISH_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION, objectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.PUBLISH_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
+        dispatchFrameworkAction(identifier, Constants.PUBLISH_FRAMEWORK, ApiId.PUBLISH_COMPETENCY_FRAMEWORK, identifierInContext = false)
     }
 
-
     def review(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.COMPETENCY_FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        framework.putAll(Map("identifier" -> identifier).asJava)
-        val frameworkRequest = getRequest(framework, headers, Constants.REVIEW_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION, objectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.REVIEW_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
+        dispatchFrameworkAction(identifier, Constants.REVIEW_FRAMEWORK, ApiId.REVIEW_COMPETENCY_FRAMEWORK, identifierInContext = false)
     }
 
     def reject(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.COMPETENCY_FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        framework.putAll(Map("identifier" -> identifier).asJava)
-        val frameworkRequest = getRequest(framework, headers, Constants.REJECT_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.COMPETENCY_FRAMEWORK_SCHEMA_VERSION, objectType, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.REJECT_COMPETENCY_FRAMEWORK, frameworkActor, frameworkRequest)
+        dispatchFrameworkAction(identifier, Constants.REJECT_FRAMEWORK, ApiId.REJECT_COMPETENCY_FRAMEWORK, identifierInContext = false)
     }
 
 }

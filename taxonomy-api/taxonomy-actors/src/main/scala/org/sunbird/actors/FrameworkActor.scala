@@ -42,37 +42,48 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   private val REVIEW_ALLOWED_STATUSES: Set[String] = Set("Draft", "Live")
 
   @throws[Exception]
-  private def review(request: Request): Future[Response] = {
+  private def transitionFrameworkStatus(request: Request, allowedStatuses: Set[String], targetStatus: String,
+                                         invalidStatusMsg: String => String,
+                                         postStep: (String, String, Node) => Future[Unit] = (_, _, _) => Future.successful(())): Future[Response] = {
     val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
-    FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
-      val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
-      if (!REVIEW_ALLOWED_STATUSES.contains(status))
-        throw new ClientException("ERR_INVALID_REQUEST", s"Cannot send framework for review: current status is '$status'")
-      val updateReq = new Request(request)
-      updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
-      updateReq.getContext.put("versioning", "disabled")
-      updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("status", "Review") }})
-      DataNode.update(updateReq).map(_ => ResponseHandler.OK.put(Constants.IDENTIFIER, frameworkId).put("status", "Review"))
-    }
+    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
+    val getChannelReq = new Request()
+    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
+    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
+    getChannelReq.put(Constants.IDENTIFIER, channel)
+    DataNode.read(getChannelReq).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
+        FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
+          val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
+          if (!allowedStatuses.contains(status))
+            throw new ClientException("ERR_INVALID_REQUEST", invalidStatusMsg(status))
+          val updateReq = new Request(request)
+          updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
+          updateReq.getContext.put("versioning", "disabled")
+          updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("status", targetStatus) }})
+          DataNode.update(updateReq).flatMap(n => postStep(graphId, frameworkId, n))
+            .map(_ => ResponseHandler.OK.put(Constants.IDENTIFIER, frameworkId).put("status", targetStatus))
+        }
+      } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+    }).flatten
   }
 
   @throws[Exception]
-  private def reject(request: Request): Future[Response] = {
-    val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
-    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
-    FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
-      val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
-      if (!StringUtils.equals(status, "Review"))
-        throw new ClientException("ERR_INVALID_REQUEST", s"Cannot reject framework: current status is '$status', expected 'Review'")
-      val updateReq = new Request(request)
-      updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
-      updateReq.getContext.put("versioning", "disabled")
-      updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("status", "Draft") }})
-      DataNode.update(updateReq).flatMap(_ => FrameworkManager.rejectFrameworkTermsSweep(graphId, frameworkId))
-        .map(_ => ResponseHandler.OK.put(Constants.IDENTIFIER, frameworkId).put("status", "Draft"))
-    }
-  }
+  private def review(request: Request): Future[Response] =
+    transitionFrameworkStatus(request, REVIEW_ALLOWED_STATUSES, "Review",
+      status => s"Cannot send framework for review: current status is '$status'")
+
+  @throws[Exception]
+  private def reject(request: Request): Future[Response] =
+    transitionFrameworkStatus(request, Set("Review"), "Draft",
+      status => s"Cannot reject framework: current status is '$status', expected 'Review'",
+      (graphId, frameworkId, _) => FrameworkManager.rejectFrameworkTermsSweep(graphId, frameworkId).map(_ => ()))
 
 
   @throws[Exception]
@@ -145,9 +156,23 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def update(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
+    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
+    val getChannelReq = new Request()
+    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
     })
+    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
+    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
+    getChannelReq.put(Constants.IDENTIFIER, channel)
+    DataNode.read(getChannelReq).map(channelNode => {
+      if (null != channelNode && StringUtils.equalsAnyIgnoreCase(channelNode.getIdentifier, channel)) {
+        DataNode.update(request).map(node => {
+          ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
+        })
+      } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+    }).flatten
   }
 
   @throws[Exception]
