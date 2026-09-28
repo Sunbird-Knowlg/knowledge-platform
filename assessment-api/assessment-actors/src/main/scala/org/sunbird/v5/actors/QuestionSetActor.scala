@@ -16,6 +16,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.DefinitionNode
 import org.sunbird.managers.questionset.HierarchyManager.hierarchyPrefix
 import org.sunbird.managers.questionset.{CopyManager, HierarchyManager, UpdateHierarchyManager}
+import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.utils.AssessmentErrorCodes
 import org.sunbird.utils.questionset.RequestUtil
 import org.sunbird.v5.managers.AssessmentV5Manager
@@ -195,8 +196,12 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   // Deepest (highest-index) category code of the declared framework, e.g. "topic"/"skill"; falls back to "skill".
   private def resolveSkillCategoryField(framework: String): String = {
     if (framework.isBlank) return "skill"
+    if (!Platform.config.hasPath("taxonomy.framework.read.url")) {
+      TelemetryManager.error(s"resolveSkillCategoryField :: taxonomy.framework.read.url is not configured, falling back to 'skill' for framework=$framework")
+      return "skill"
+    }
     try {
-      val url = Platform.getString("taxonomy.framework.read.url", "http://localhost:9000/framework/v3/read/") + framework
+      val url = Platform.getString("taxonomy.framework.read.url", "") + framework
       val resp = Unirest.get(url).header("Content-Type", "application/json").asString()
       if (resp.getStatus != 200) return "skill"
       val body = JsonUtils.deserialize(resp.getBody, classOf[java.util.Map[String, AnyRef]])

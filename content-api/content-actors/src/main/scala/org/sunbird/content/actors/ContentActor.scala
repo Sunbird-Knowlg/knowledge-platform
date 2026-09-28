@@ -378,8 +378,12 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	// Deepest (highest-index) category code of the declared framework, e.g. "topic"/"skill"; falls back to "skill".
 	private def resolveSkillCategoryField(framework: String): String = {
 		if (framework.isBlank) return "skill"
+		if (!Platform.config.hasPath("taxonomy.framework.read.url")) {
+			TelemetryManager.error(s"resolveSkillCategoryField :: taxonomy.framework.read.url is not configured, falling back to 'skill' for framework=$framework")
+			return "skill"
+		}
 		try {
-			val url = Platform.getString("taxonomy.framework.read.url", "http://localhost:9000/framework/v3/read/") + framework
+			val url = Platform.getString("taxonomy.framework.read.url", "") + framework
 			val resp = httpUtil.get(url)
 			if (resp.status != 200) return "skill"
 			val body = JsonUtils.deserialize(resp.body, classOf[java.util.Map[String, AnyRef]])
