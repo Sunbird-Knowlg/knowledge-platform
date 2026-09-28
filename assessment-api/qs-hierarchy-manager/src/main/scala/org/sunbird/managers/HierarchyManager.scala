@@ -40,6 +40,18 @@ object HierarchyManager {
     val externalKeys: java.util.List[String] = if(Platform.config.hasPath("questionset.hierarchy.remove_external_props")) Platform.config.getStringList("questionset.hierarchy.remove_external_props")
     else List("hierarchy","outcomeDeclaration").asJava
     
+    /**
+     * childNodes is a multi-valued property, and its runtime shape depends on where the node came
+     * from: JanusGraph returns a java.util.List while serialized/cached copies still carry an
+     * Array[String]. Callers must not assume either, otherwise the cast blows up as a 500.
+     */
+    private def toIdList(value: AnyRef): List[String] = value match {
+        case null => List()
+        case arr: Array[String] => arr.toList
+        case list: util.List[_] => list.asInstanceOf[util.List[String]].asScala.toList
+        case other => throw new ServerException("ERR_INVALID_CHILD_NODES", s"Unsupported childNodes type: ${other.getClass.getName}")
+    }
+
     @throws[Exception]
     def addLeafNodesToHierarchy(request:Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request, "add")
@@ -52,10 +64,7 @@ object HierarchyManager {
                 throw new ClientException(HierarchyErrorCodes.ERR_HIERARCHY_UPDATE_DENIED, "QuestionSet not supported for this operation because it doesn't have data in QuML 1.1 format.")
             if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode, "add") else {
                 val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
-                val childNodes: List[String] = rootNodeMap.get("childNodes") match {
-                    case x: Array[String] => x.asInstanceOf[Array[String]].toList
-                    case y: util.List[String] => y.asInstanceOf[util.List[String]].asScala.toList
-                }
+                val childNodes: List[String] = toIdList(rootNodeMap.get("childNodes"))
                 if(!childNodes.contains(unitId)) {
                     Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
                 }else {
@@ -85,6 +94,11 @@ object HierarchyManager {
     @throws[Exception]
     def removeLeafNodesFromHierarchy(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
         validateRequest(request, "remove")
+        // Read the same copy that the write lands on. DataNode.update always resolves to the
+        // image (draft) node, so reading without "edit" mode picks up the published root node and
+        // published hierarchy, and writing those back silently drops everything that was added to
+        // the draft since the last publish. addLeafNodesToHierarchy does the same for this reason.
+        request.getRequest.put("mode", "edit")
         val rootNodeFuture = getRootNode(request)
         rootNodeFuture.map(rootNode => {
             val unitId = request.getRequest.getOrDefault("collectionId", "").asInstanceOf[String]
@@ -92,10 +106,7 @@ object HierarchyManager {
             request.getContext.put(HierarchyConstants.VERSION, schemaVersion)
             if (StringUtils.isBlank(unitId)) attachLeafToRootNode(request, rootNode, "remove") else {
                 val rootNodeMap =  NodeUtil.serialize(rootNode, java.util.Arrays.asList("childNodes", "originData"), schemaName, schemaVersion)
-                val childNodes: List[String] = rootNodeMap.get("childNodes") match {
-                    case x: Array[String] => x.asInstanceOf[Array[String]].toList
-                    case y: util.List[String] => y.asInstanceOf[util.List[String]].asScala.toList
-                }
+                val childNodes: List[String] = toIdList(rootNodeMap.get("childNodes"))
                 if(!childNodes.contains(unitId)) {
                     Future{ResponseHandler.ERROR(ResponseCode.RESOURCE_NOT_FOUND, ResponseCode.RESOURCE_NOT_FOUND.name(), "collectionId " + unitId + " does not exist")}
                 }else {
@@ -124,7 +135,7 @@ object HierarchyManager {
                         leafNodes.foreach(leafNode => {
                             val updatedBranching = operation match {
                                 case "remove" => removeBranching(leafNode.getIdentifier, branchingLogic)
-                                case "add" => addBranching(leafNode.getIdentifier, branchingLogic, request, rootNode.getMetadata.getOrDefault("childNodes", Array[String]()).asInstanceOf[Array[String]].toList)
+                                case "add" => addBranching(leafNode.getIdentifier, branchingLogic, request, toIdList(rootNode.getMetadata.get("childNodes")))
                             }
                             if (MapUtils.isNotEmpty(updatedBranching)) {
                                 rootNode.getMetadata.put(HierarchyConstants.BRANCHING_LOGIC, updatedBranching)
@@ -386,7 +397,7 @@ object HierarchyManager {
         val req = new Request(request)
         val leafNodes = request.get("children").asInstanceOf[java.util.List[String]]
         val childNodes = new java.util.ArrayList[String]()
-        childNodes.addAll(rootNode.getMetadata.getOrDefault("childNodes", Array[String]()).asInstanceOf[Array[String]].toList)
+        childNodes.addAll(toIdList(rootNode.getMetadata.get("childNodes")).asJava)
         if(operation.equalsIgnoreCase("add"))
             childNodes.addAll(leafNodes)
         if(operation.equalsIgnoreCase("remove"))
@@ -423,11 +434,7 @@ object HierarchyManager {
         val children =  hierarchy.get("children").asInstanceOf[java.util.List[java.util.Map[String, AnyRef]]]
         val leafNodeIds = request.get("children").asInstanceOf[java.util.List[String]]
         val childNodes = new java.util.ArrayList[String]()
-        val nodeChildNodes: List[String] = rootNode.getMetadata.getOrDefault("childNodes", Array[String]()) match {
-            case x: Array[String] => x.asInstanceOf[Array[String]].toList
-            case y: util.List[String] => y.asInstanceOf[util.List[String]].asScala.toList
-        }
-        childNodes.addAll(nodeChildNodes)
+        childNodes.addAll(toIdList(rootNode.getMetadata.get("childNodes")).asJava)
         if("add".equalsIgnoreCase(operation)){
             val leafNodesMap:java.util.List[java.util.Map[String, AnyRef]] = convertNodeToMap(leafNodes)
             addChildrenToUnit(children, unitId, leafNodesMap, leafNodeIds, request)
