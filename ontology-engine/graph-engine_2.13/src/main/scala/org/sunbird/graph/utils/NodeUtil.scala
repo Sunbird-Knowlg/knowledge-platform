@@ -142,13 +142,25 @@ object NodeUtil {
         relMap
     }
     
+    /**
+     * Property names whose String values must be serialized exactly as stored.
+     *
+     * The shape-based branch below parses any String that looks like a JSON
+     * array into a List, regardless of the field's declared type, so a field the
+     * schema declares as a String is returned as an array by the read API and
+     * then fails its own validation on the next update. Listing a field here
+     * opts it out. Same key and rationale as JanusGraphNodeUtil.
+     */
+    private lazy val stringOnlyFields: scala.List[String] =
+        Platform.getStringList("graph.string_only_fields", new util.ArrayList[String]()).asScala.toList
+
     def convertJsonProperties(entry: util.Map.Entry[String, AnyRef], jsonProps: scala.List[String]) = {
         val value = entry.getValue
         if(jsonProps.contains(entry.getKey)) {
             try {JsonUtils.deserialize(value.asInstanceOf[String], classOf[Object])} //.readTree(entry.getValue.toString)}
             catch { case e: Exception => value }
         }
-        else if(value.isInstanceOf[String] && value.asInstanceOf[String].startsWith("[") && value.asInstanceOf[String].endsWith("]")) {
+        else if(!stringOnlyFields.contains(entry.getKey) && value.isInstanceOf[String] && value.asInstanceOf[String].startsWith("[") && value.asInstanceOf[String].endsWith("]")) {
             try { JsonUtils.deserialize(value.asInstanceOf[String], classOf[util.List[Object]]) }
             catch { case e: Exception => value }
         }
