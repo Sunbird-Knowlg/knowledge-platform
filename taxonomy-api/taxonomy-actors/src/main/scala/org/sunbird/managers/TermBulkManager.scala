@@ -21,6 +21,7 @@ import java.util
 import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 object TermBulkManager {
 
@@ -197,86 +198,56 @@ object TermBulkManager {
   private def normKey(category: String, code: String): (String, String) =
     (category.trim.toLowerCase(Locale.ROOT), code.trim.toLowerCase(Locale.ROOT))
 
-  private[managers] def fetchActiveTerms(graphId: String, frameworkId: String, categories: Set[String])
-                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[ActiveTerm]] = {
-    if (categories.isEmpty) Future(List.empty)
+  private def queryFrameworkNodes(graphId: String, frameworkId: String, objectTypes: List[String], statusFilter: Filter,
+                                   categories: Option[Set[String]] = None)
+                                  (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[Node]] = {
+    if (categories.exists(_.isEmpty)) Future(List.empty)
     else {
-      val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {
-        {
-          add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN, new util.ArrayList[String]() {{ add("Term") }}))
-          add(new Filter("category", SearchConditions.OP_IN, new util.ArrayList[String](categories.asJavaCollection)))
-          add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
-        }
-      })
-      val criteria = new SearchCriteria {
-        {
-          addMetadata(mc); setCountQuery(false); setGraphId(graphId)
-        }
-      }
+      val filters = new util.ArrayList[Filter]()
+      filters.add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN, objectTypes.asJava))
+      categories.foreach(cats => filters.add(new Filter("category", SearchConditions.OP_IN, new util.ArrayList[String](cats.asJavaCollection))))
+      filters.add(statusFilter)
+      val mc = MetadataCriterion.create(filters)
+      val criteria = new SearchCriteria { { addMetadata(mc); setCountQuery(false); setGraphId(graphId) } }
       oec.graphService.getNodeByUniqueIds(graphId, criteria).map { nodes =>
         val prefix = frameworkId.toLowerCase(Locale.ROOT) + "_"
-        nodes.asScala.filter(n => Option(n.getIdentifier).exists(_.toLowerCase(Locale.ROOT).startsWith(prefix))).map { n =>
-          val md = n.getMetadata
-          ActiveTerm(
-            identifier = n.getIdentifier,
-            category = md.getOrDefault("category", "").asInstanceOf[String],
-            code = md.getOrDefault("code", "").asInstanceOf[String],
-            name = md.getOrDefault("name", "").asInstanceOf[String],
-            description = md.getOrDefault("description", "").asInstanceOf[String],
-            status = md.getOrDefault("status", "").asInstanceOf[String],
-            associations = Option(n.getOutRelations).map(_.asScala
-              .filter(r => StringUtils.equals(r.getRelationType, ASSOCIATION_RELATION))
-              .map(_.getEndNodeId).toList).getOrElse(Nil)
-          )
-        }.toList
+        nodes.asScala.filter(n => Option(n.getIdentifier).exists(_.toLowerCase(Locale.ROOT).startsWith(prefix))).toList
       }
     }
   }
+
+  private[managers] def fetchActiveTerms(graphId: String, frameworkId: String, categories: Set[String])
+                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[ActiveTerm]] =
+    queryFrameworkNodes(graphId, frameworkId, List("Term"), new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"), Some(categories)).map { nodes =>
+      nodes.map { n =>
+        val md = n.getMetadata
+        ActiveTerm(
+          identifier = n.getIdentifier,
+          category = md.getOrDefault("category", "").asInstanceOf[String],
+          code = md.getOrDefault("code", "").asInstanceOf[String],
+          name = md.getOrDefault("name", "").asInstanceOf[String],
+          description = md.getOrDefault("description", "").asInstanceOf[String],
+          status = md.getOrDefault("status", "").asInstanceOf[String],
+          associations = Option(n.getOutRelations).map(_.asScala
+            .filter(r => StringUtils.equals(r.getRelationType, ASSOCIATION_RELATION))
+            .map(_.getEndNodeId).toList).getOrElse(Nil)
+        )
+      }
+    }
 
   private[managers] def fetchRetiredTermKeys(graphId: String, frameworkId: String, categories: Set[String])
-                                             (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Set[(String, String)]] = {
-    if (categories.isEmpty) Future(Set.empty)
-    else {
-      val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {
-        {
-          add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN, new util.ArrayList[String]() {{ add("Term") }}))
-          add(new Filter("category", SearchConditions.OP_IN, new util.ArrayList[String](categories.asJavaCollection)))
-          add(new Filter("status", SearchConditions.OP_EQUAL, "Retired"))
-        }
-      })
-      val criteria = new SearchCriteria {
-        {
-          addMetadata(mc); setCountQuery(false); setGraphId(graphId)
-        }
-      }
-      oec.graphService.getNodeByUniqueIds(graphId, criteria).map { nodes =>
-        val prefix = frameworkId.toLowerCase(Locale.ROOT) + "_"
-        nodes.asScala.filter(n => Option(n.getIdentifier).exists(_.toLowerCase(Locale.ROOT).startsWith(prefix))).map { n =>
-          val md = n.getMetadata
-          normKey(md.getOrDefault("category", "").asInstanceOf[String], md.getOrDefault("code", "").asInstanceOf[String])
-        }.toSet
-      }
+                                             (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Set[(String, String)]] =
+    queryFrameworkNodes(graphId, frameworkId, List("Term"), new Filter("status", SearchConditions.OP_EQUAL, "Retired"), Some(categories)).map { nodes =>
+      nodes.map { n =>
+        val md = n.getMetadata
+        normKey(md.getOrDefault("category", "").asInstanceOf[String], md.getOrDefault("code", "").asInstanceOf[String])
+      }.toSet
     }
-  }
 
   private[managers] def hasPendingReview(graphId: String, frameworkId: String)
-                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Boolean] = {
-    val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {
-      {
-        add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_IN, new util.ArrayList[String]() {{ add("Term"); add("CategoryInstance") }}))
-        add(new Filter("status", SearchConditions.OP_EQUAL, "Review"))
-      }
-    })
-    val criteria = new SearchCriteria {
-      {
-        addMetadata(mc); setCountQuery(false); setGraphId(graphId)
-      }
-    }
-    oec.graphService.getNodeByUniqueIds(graphId, criteria).map { nodes =>
-      val prefix = frameworkId.toLowerCase(Locale.ROOT) + "_"
-      nodes.asScala.exists(n => Option(n.getIdentifier).exists(_.toLowerCase(Locale.ROOT).startsWith(prefix)))
-    }
-  }
+                                         (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Boolean] =
+    queryFrameworkNodes(graphId, frameworkId, List("Term", "CategoryInstance"), new Filter("status", SearchConditions.OP_EQUAL, "Review"))
+      .map(_.nonEmpty)
 
   private[managers] def fetchAttachedCategories(graphId: String, frameworkId: String)
                                                 (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Set[String]] = {
@@ -349,8 +320,8 @@ object TermBulkManager {
       val tokensOk = scala.collection.mutable.ListBuffer.empty[String]
       val dangling = scala.collection.mutable.ListBuffer.empty[RowIssue]
       row.associatedTermsRaw.foreach { token =>
-        val ci = token.indexOf(':')
-        val k = normKey(token.substring(0, ci), token.substring(ci + 1))
+        val parts = token.split(":", 2)
+        val k = normKey(parts(0), parts(1))
         val resolved = sheetIdentifiers.get(k)
           .orElse(activeByKey.get(k).filterNot(t => retiredIdSet.contains(t.identifier)).map(_.identifier))
         resolved match {
@@ -695,20 +666,12 @@ object TermBulkManager {
     val tempDir = new File(Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework"))
     tempDir.mkdirs()
     val file = new File(tempDir, s"$frameworkId.csv")
-    var fos: FileOutputStream = null
-    var out: OutputStreamWriter = null
-    var csvPrinter: CSVPrinter = null
-    try {
-      fos = new FileOutputStream(file)
-      out = new OutputStreamWriter(fos, StandardCharsets.UTF_8)
-      csvPrinter = new CSVPrinter(out, CSVFormat.DEFAULT)
-      csvPrinter.printRecord(TermSheetReader.REQUIRED_HEADERS.asJava)
-      rows.foreach(row => csvPrinter.printRecord(row.asJava))
-    } finally {
-      if (csvPrinter != null) csvPrinter.close()
-      else {
-        if (out != null) out.close()
-        if (fos != null) fos.close()
+    Using.resource(new FileOutputStream(file)) { fos =>
+      Using.resource(new OutputStreamWriter(fos, StandardCharsets.UTF_8)) { out =>
+        Using.resource(new CSVPrinter(out, CSVFormat.DEFAULT)) { csvPrinter =>
+          csvPrinter.printRecord(TermSheetReader.REQUIRED_HEADERS.asJava)
+          rows.foreach(row => csvPrinter.printRecord(row.asJava))
+        }
       }
     }
     file
