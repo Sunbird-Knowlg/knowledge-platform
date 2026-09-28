@@ -65,26 +65,6 @@ object TermBulkManager {
     }
   }
 
-  private def successRow(index: Int, code: String, identifier: String): util.Map[String, AnyRef] = {
-    val row = new util.HashMap[String, AnyRef]()
-    row.put("index", index.asInstanceOf[Integer])
-    row.put("code", code)
-    row.put("identifier", identifier)
-    row.put("status", "SUCCESS")
-    row
-  }
-
-  private def failureRow(index: Int, code: String, errCode: String, errMsg: String): util.Map[String, AnyRef] = {
-    val row = new util.HashMap[String, AnyRef]()
-    row.put("index", index.asInstanceOf[Integer])
-    row.put("code", code)
-    row.put("identifier", null)
-    row.put("status", "FAILED")
-    row.put("errCode", errCode)
-    row.put("errMsg", errMsg)
-    row
-  }
-
   private def successRowById(index: Int, identifier: String): util.Map[String, AnyRef] = {
     val row = new util.HashMap[String, AnyRef]()
     row.put("index", index.asInstanceOf[Integer])
@@ -140,7 +120,7 @@ object TermBulkManager {
 
   private[managers] def createRow(request: Request, categoryId: String, category: String, seqIndex: Int, reportIndex: Int,
                                    code: String, row: util.Map[String, AnyRef], dataModifier: Node => Node = (n => n))
-                                  (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
+                                  (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Either[(String, String), String]] = {
     val categoryList = new util.ArrayList[util.Map[String, AnyRef]]()
     val relationMap = new util.HashMap[String, AnyRef]()
     relationMap.put("identifier", categoryId)
@@ -153,13 +133,13 @@ object TermBulkManager {
     rowRequest.getRequest.put(Constants.IDENTIFIER, TaxonomyUtil.generateIdentifier(categoryId, code))
     rowRequest.put("categories", categoryList)
 
-    Future(rowRequest).flatMap(DataNode.create(_, dataModifier)).map(termNode => successRow(reportIndex, code, termNode.getIdentifier)) recover {
+    Future(rowRequest).flatMap(DataNode.create(_, dataModifier)).map(termNode => Right(termNode.getIdentifier)) recover {
       case e: ClientException if isDuplicateCode(e) =>
-        failureRow(reportIndex, code, "ERR_DUPLICATE_CODE", s"Term with code '$code' already exists")
+        Left("ERR_DUPLICATE_CODE" -> s"Term with code '$code' already exists")
       case e: ClientException =>
-        failureRow(reportIndex, code, "ERR_TERM_CODE_REQUIRED", "Unique code is required for Term")
+        Left("ERR_TERM_CODE_REQUIRED" -> "Unique code is required for Term")
       case e: Exception =>
-        failureRow(reportIndex, code, ResponseCode.SERVER_ERROR.name, "Internal Server Error")
+        Left(ResponseCode.SERVER_ERROR.name -> "Internal Server Error")
     }
   }
 
@@ -628,26 +608,24 @@ object TermBulkManager {
                                    (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
     val byCategory: Map[String, List[TermSheetReader.SheetRow]] = result.creates.map(_._1).groupBy(_.category)
 
-    val createFutures: Future[List[(TermSheetReader.SheetRow, util.Map[String, AnyRef])]] =
+    val createFutures: Future[List[(TermSheetReader.SheetRow, Either[(String, String), String])]] =
       sequentially(byCategory.toList) { case (category, categoryRows) =>
         val categoryId = TaxonomyUtil.generateIdentifier(frameworkId, category)
         validateCategoryInstance(frameworkId, category).flatMap { categoryNode =>
           val startIndex: Int = TaxonomyUtil.getNextSequenceIndex(categoryNode)
           sequentially(categoryRows.sortBy(_.index).zipWithIndex) { case (row, posInCategory) =>
             createRow(request, categoryId, category, startIndex + posInCategory, row.index, row.code, sheetRowToMap(row))
-              .map(m => (row, m))
+              .map(result => (row, result))
           }
         }
       }.map(_.flatten)
 
     createFutures.flatMap { createResults =>
       val createIdByRowIndex: Map[Int, String] = createResults.collect {
-        case (row, m) if m.get("identifier") != null => row.index -> m.get("identifier").asInstanceOf[String]
+        case (row, Right(identifier)) => row.index -> identifier
       }.toMap
       val createFailureByIndex: Map[Int, (String, String)] = createResults.collect {
-        case (row, m) if "FAILED".equals(m.get("status")) =>
-          row.index -> (Option(m.get("errCode")).map(_.toString).getOrElse("ERR_TERM_CODE_REQUIRED"),
-            Option(m.get("errMsg")).map(_.toString).getOrElse("Internal Server Error"))
+        case (row, Left(err)) => row.index -> err
       }.toMap
 
       if (createFailureByIndex.nonEmpty) {
