@@ -472,6 +472,18 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     assert("fw1".equals(result.getIdentifier))
   }
 
+  it should "fail with a plain ResourceNotFoundException (not CompletionException) when the framework itself doesn't exist" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(notFoundFailure())
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(notFoundFailure())
+    val thrown = intercept[ResourceNotFoundException] {
+      Await.result(FrameworkManager.getLiveEditNode("domain", "fw1"), 10.seconds)
+    }
+    assert("ERR_NODE_NOT_FOUND".equals(thrown.getErrCode))
+  }
+
   "FrameworkManager.assertFrameworkEditable" should "throw ERR_FRAMEWORK_REVIEW_IN_PROGRESS naming the status when the live-edit node is Review or Processing" in {
     List("Review", "Processing").foreach { status =>
       implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]

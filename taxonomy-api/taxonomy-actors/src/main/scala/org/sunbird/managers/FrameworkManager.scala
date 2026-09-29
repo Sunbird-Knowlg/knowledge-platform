@@ -138,6 +138,7 @@ object FrameworkManager {
     getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap {
       case Some(imgNode) => Future(imgNode)
       case None => oec.graphService.getNodeByUniqueId(graphId, frameworkId, true, new Request())
+        .recoverWith { case e: CompletionException => throw e.getCause }
     }
   }
 

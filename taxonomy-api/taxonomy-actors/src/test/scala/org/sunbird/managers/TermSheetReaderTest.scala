@@ -189,6 +189,24 @@ class TermSheetReaderTest extends FlatSpec with Matchers {
     result.asInstanceOf[TermSheetReader.ParseFailure].errCode shouldBe "ERR_INVALID_ENCODING"
   }
 
+  it should "tolerate a leading blank line before a comma-delimited header and parse normally" in {
+    val file = rawBytesFile(
+      "\nCategory,Name,Code,Associated Terms,Description\ncompetency,CM1,cm1,,desc\n".getBytes(StandardCharsets.UTF_8))
+    val result = TermSheetReader.read(file, "terms.csv")
+    result shouldBe a[TermSheetReader.ParseSuccess]
+    val rows = result.asInstanceOf[TermSheetReader.ParseSuccess].rows
+    rows should have size 1
+    rows.head.code shouldBe "cm1"
+  }
+
+  it should "fail with ERR_CSV_WRONG_DELIMITER, not ERR_MISSING_HEADER, for a semicolon-delimited file with a leading blank line" in {
+    val file = rawBytesFile(
+      "\nCategory;Name;Code;Associated Terms;Description\ncompetency;CM1;cm1;;desc\n".getBytes(StandardCharsets.UTF_8))
+    val result = TermSheetReader.read(file, "terms.csv")
+    result shouldBe a[TermSheetReader.ParseFailure]
+    result.asInstanceOf[TermSheetReader.ParseFailure].errCode shouldBe "ERR_CSV_WRONG_DELIMITER"
+  }
+
   it should "flag WARN_SUSPICIOUS_CODE_FORMAT for a date-shaped code (e.g. Google Sheets turning '1-2' into '2024-01-02')" in {
     val file = csvFile(rows = List(dataRow("competency", "CM1", "2024-01-02", "", "desc")))
     val result = TermSheetReader.read(file, "terms.csv").asInstanceOf[TermSheetReader.ParseSuccess]
