@@ -2,8 +2,10 @@ package org.sunbird.utils.taxonomy
 
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Slug
+import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.dac.enums.RelationTypes
 import org.sunbird.graph.dac.model.Node
+import org.sunbird.graph.service.common.DACErrorCodeConstants
 
 import scala.jdk.CollectionConverters._
 
@@ -12,6 +14,10 @@ import scala.jdk.CollectionConverters._
  * that were previously duplicated in each actor class.
  */
 object TaxonomyUtil {
+
+  /** True if `e` is the graph's unique-constraint violation (e.g. a duplicate term/category code). */
+  def isDuplicateCode(e: ClientException): Boolean =
+    StringUtils.equals(e.getErrCode, DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name())
 
   /**
    * Generates a slugified composite identifier from a scope (e.g. frameworkId or categoryId)

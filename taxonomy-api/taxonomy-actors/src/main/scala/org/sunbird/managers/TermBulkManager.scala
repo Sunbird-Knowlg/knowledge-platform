@@ -1,6 +1,5 @@
 package org.sunbird.managers
 
-import org.apache.commons.csv.{CSVFormat, CSVPrinter}
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
@@ -11,22 +10,16 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, SearchConditions, SearchCriteria}
 import org.sunbird.graph.nodes.DataNode
-import org.sunbird.graph.service.common.DACErrorCodeConstants
-import org.sunbird.utils.Constants
+import org.sunbird.utils.{Constants, CsvUtil}
 import org.sunbird.utils.taxonomy.TaxonomyUtil
 
-import java.io.{File, FileOutputStream, OutputStreamWriter}
-import java.nio.charset.StandardCharsets
+import java.io.File
 import java.util
 import java.util.Locale
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters._
-import scala.util.Using
 
 object TermBulkManager {
-
-  def isDuplicateCode(e: ClientException): Boolean =
-    StringUtils.equals(e.getErrCode, DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name())
 
   private def updateRows(rows: util.List[util.Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[util.Map[String, AnyRef]]] =
     Future.sequence(rows.asScala.zipWithIndex.map { case (row, i) => updateOneRow(row, i) }.toList)
@@ -134,7 +127,7 @@ object TermBulkManager {
     rowRequest.put("categories", categoryList)
 
     Future(rowRequest).flatMap(DataNode.create(_, dataModifier)).map(termNode => Right(termNode.getIdentifier)) recover {
-      case e: ClientException if isDuplicateCode(e) =>
+      case e: ClientException if TaxonomyUtil.isDuplicateCode(e) =>
         Left("ERR_DUPLICATE_CODE" -> s"Term with code '$code' already exists")
       case e: ClientException =>
         Left("ERR_TERM_CODE_REQUIRED" -> "Unique code is required for Term")
@@ -667,14 +660,6 @@ object TermBulkManager {
     val tempDir = new File(Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework"))
     tempDir.mkdirs()
     val file = new File(tempDir, s"$frameworkId.csv")
-    Using.resource(new FileOutputStream(file)) { fos =>
-      Using.resource(new OutputStreamWriter(fos, StandardCharsets.UTF_8)) { out =>
-        Using.resource(new CSVPrinter(out, CSVFormat.DEFAULT)) { csvPrinter =>
-          csvPrinter.printRecord(TermSheetReader.REQUIRED_HEADERS.asJava)
-          rows.foreach(row => csvPrinter.printRecord(row.asJava))
-        }
-      }
-    }
-    file
+    CsvUtil.writeCsv(file, TermSheetReader.REQUIRED_HEADERS, rows)
   }
 }
