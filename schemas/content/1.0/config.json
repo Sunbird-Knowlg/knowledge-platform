@@ -6,7 +6,7 @@
         "copy" : [
             "status"
         ],
-        "update": []
+        "update": ["artifactHash", "prevArtifactHash"]
     },
     "objectType": "Content",
     "external": {

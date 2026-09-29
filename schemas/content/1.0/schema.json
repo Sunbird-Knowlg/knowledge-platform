@@ -298,6 +298,14 @@
       "type": "string",
       "format": "url"
     },
+    "artifactHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "prevArtifactHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
     "previewUrl": {
       "type": "string",
       "format": "url"
