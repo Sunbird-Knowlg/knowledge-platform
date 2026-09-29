@@ -28,15 +28,14 @@ object TermBulkManager {
   def isDuplicateCode(e: ClientException): Boolean =
     StringUtils.equals(e.getErrCode, DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name())
 
-  def bulkUpdateTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
-    val rows: util.List[util.Map[String, AnyRef]] = getBulkRequestData(request, "terms")
-    val futures = rows.asScala.zipWithIndex.map { case (row, i) => updateOneRow(row, i) }
-    Future.sequence(futures.toList).map(results => buildResponse(results.asJava))
-  }
+  private def updateRows(rows: util.List[util.Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[List[util.Map[String, AnyRef]]] =
+    Future.sequence(rows.asScala.zipWithIndex.map { case (row, i) => updateOneRow(row, i) }.toList)
 
-  def associateTerms(rows: util.List[util.Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] = {
-    Future.sequence(rows.asScala.zipWithIndex.map { case (row, i) => updateOneRow(row, i) }.toList).map(_.asJava)
-  }
+  def bulkUpdateTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] =
+    updateRows(getBulkRequestData(request, "terms")).map(results => buildResponse(results.asJava))
+
+  def associateTerms(rows: util.List[util.Map[String, AnyRef]])(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.List[util.Map[String, AnyRef]]] =
+    updateRows(rows).map(_.asJava)
 
   private def updateOneRow(row: util.Map[String, AnyRef], index: Int)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[util.Map[String, AnyRef]] = {
     val identifier = row.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
@@ -460,6 +459,11 @@ object TermBulkManager {
     m
   }
 
+  private def withFileWarnings(response: Response, result: ClassificationResult): Response = {
+    if (result.fileWarnings.nonEmpty) response.put("fileWarnings", toJavaWarningList(result.fileWarnings))
+    response
+  }
+
   private def buildValidateResponse(result: ClassificationResult): Response = {
     val response =
       if (result.valid) ResponseHandler.OK
@@ -467,8 +471,7 @@ object TermBulkManager {
     response.put("valid", java.lang.Boolean.valueOf(result.valid))
       .put("summary", toJavaSummary(result.summary))
       .put("rows", result.rows.filter(r => r.errCode.isDefined || r.warnings.nonEmpty).map(r => toJavaRow(r)).asJava)
-    if (result.fileWarnings.nonEmpty) response.put("fileWarnings", toJavaWarningList(result.fileWarnings))
-    response
+    withFileWarnings(response, result)
   }
 
   private[managers] def buildCommitFailureResponse(result: ClassificationResult,
@@ -495,8 +498,7 @@ object TermBulkManager {
     }.asJava
     val response = ResponseHandler.ERROR(ResponseCode.CLIENT_ERROR, errCode, errMsg)
       .put("committed", java.lang.Boolean.FALSE).put("summary", summary).put("rows", rows)
-    if (result.fileWarnings.nonEmpty) response.put("fileWarnings", toJavaWarningList(result.fileWarnings))
-    response
+    withFileWarnings(response, result)
   }
 
   private[managers] def buildCommitSuccessResponse(result: ClassificationResult): Response = {
@@ -509,8 +511,7 @@ object TermBulkManager {
     summary.put("updated", result.updates.size.asInstanceOf[Integer])
     summary.put("retired", result.retireIdentifiers.size.asInstanceOf[Integer])
     val response = ResponseHandler.OK.put("committed", java.lang.Boolean.TRUE).put("summary", summary).put("rows", rows.asJava)
-    if (result.fileWarnings.nonEmpty) response.put("fileWarnings", toJavaWarningList(result.fileWarnings))
-    response
+    withFileWarnings(response, result)
   }
 
   def bulkValidateTerm(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {

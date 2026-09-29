@@ -42,46 +42,13 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   private val REVIEW_ALLOWED_STATUSES: Set[String] = Set("Draft", "Live")
 
   @throws[Exception]
-  private def transitionFrameworkStatus(request: Request, allowedStatuses: Set[String], targetStatus: String,
-                                         invalidStatusMsg: String => String,
-                                         postStep: (String, String, Node) => Future[Unit] = (_, _, _) => Future.successful(())): Future[Response] = {
-    val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
-    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
-    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
-    val getChannelReq = new Request()
-    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
-    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
-    getChannelReq.put(Constants.IDENTIFIER, channel)
-    DataNode.read(getChannelReq).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
-        FrameworkManager.getLiveEditNode(graphId, frameworkId).flatMap { node =>
-          val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
-          if (!allowedStatuses.contains(status))
-            throw new ClientException("ERR_INVALID_REQUEST", invalidStatusMsg(status))
-          val updateReq = new Request(request)
-          updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
-          updateReq.getContext.put("versioning", "disabled")
-          updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("status", targetStatus) }})
-          DataNode.update(updateReq).flatMap(n => postStep(graphId, frameworkId, n))
-            .map(_ => ResponseHandler.OK.put(Constants.IDENTIFIER, frameworkId).put("status", targetStatus))
-        }
-      } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    }).flatten
-  }
-
-  @throws[Exception]
   private def review(request: Request): Future[Response] =
-    transitionFrameworkStatus(request, REVIEW_ALLOWED_STATUSES, "Review",
+    FrameworkManager.transitionFrameworkStatus(request, REVIEW_ALLOWED_STATUSES, "Review",
       status => s"Cannot send framework for review: current status is '$status'")
 
   @throws[Exception]
   private def reject(request: Request): Future[Response] =
-    transitionFrameworkStatus(request, Set("Review"), "Draft",
+    FrameworkManager.transitionFrameworkStatus(request, Set("Review"), "Draft",
       status => s"Cannot reject framework: current status is '$status', expected 'Review'",
       (graphId, frameworkId, _) => FrameworkManager.rejectFrameworkTermsSweep(graphId, frameworkId).map(_ => ()))
 

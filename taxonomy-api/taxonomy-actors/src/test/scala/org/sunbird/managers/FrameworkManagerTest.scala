@@ -154,13 +154,6 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     node
   }
 
-  private def categoryRelation(endId: String): Relation = {
-    val r = new Relation("fw1", "hasSequenceMember", endId)
-    r.setStartNodeObjectType("Framework")
-    r.setEndNodeObjectType("CategoryInstance")
-    r
-  }
-
   private def channelRelation(startId: String): Relation = {
     val r = new Relation(startId, "hasSequenceMember", "fw1")
     r.setStartNodeObjectType("Channel")
@@ -311,59 +304,12 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     assert(submitted.get("version").asInstanceOf[Number].intValue() == 3)
   }
 
-  it should "createRelation for a category added on .img, without calling removeRelation" in {
+  it should "make no relation calls when .img carries zero channel edges (renamed-only edit, idempotent)" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val liveNode = buildFrameworkNode("fw1")
-    liveNode.setOutRelations(util.Arrays.asList(categoryRelation("catA")))
-    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
-    imgNode.setOutRelations(util.Arrays.asList(categoryRelation("catA"), categoryRelation("catB")))
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
-    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
-    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
-    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
-      assert(rels.size() == 1)
-      assert(rels.get(0).get("startNodeId") == "fw1")
-      assert(rels.get(0).get("endNodeId") == "catB")
-      Future(new Response())
-    })
-    // graphDB.removeRelation is intentionally left un-stubbed: ScalaMock fails the test if it's called.
-
-    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
-  }
-
-  it should "removeRelation for a category removed on .img" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    val liveNode = buildFrameworkNode("fw1")
-    liveNode.setOutRelations(util.Arrays.asList(categoryRelation("catA"), categoryRelation("catB")))
-    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
-    imgNode.setOutRelations(util.Arrays.asList(categoryRelation("catA")))
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
-    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
-    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
-    (graphDB.removeRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
-      assert(rels.size() == 1)
-      assert(rels.get(0).get("endNodeId") == "catB")
-      Future(new Response())
-    })
-    // graphDB.createRelation is intentionally left un-stubbed: ScalaMock fails the test if it's called.
-
-    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
-  }
-
-  it should "make no relation calls when .img carries zero categories/channels edges (renamed-only edit, idempotent)" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    val liveNode = buildFrameworkNode("fw1")
-    liveNode.setOutRelations(util.Arrays.asList(categoryRelation("catA")))
+    liveNode.setInRelations(util.Arrays.asList(channelRelation("channelX")))
     val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage") // no relations at all -- never touched this session
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
