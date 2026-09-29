@@ -66,7 +66,7 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServic
           DataNode.create(request).map(termNode =>
             identifier.add(termNode.getIdentifier)
           ) recover {
-            case e: ClientException if TermBulkManager.isDuplicateCode(e) =>
+            case e: ClientException if TaxonomyUtil.isDuplicateCode(e) =>
               codeError += 1
               duplicateCodeError += 1
             case e: ClientException =>
