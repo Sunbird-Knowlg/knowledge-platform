@@ -81,40 +81,27 @@ object FrameworkManager {
     m
   }
 
-  /** Diffs one relation type's desired (.img) vs current (live) target set and applies the delta on the
-    * LIVE node. Per-type skip rule (see plan discrepancy D2): if .img carries ZERO edges of this type,
-    * it means this edit session never touched that relation -- leave the live node's edges untouched,
-    * rather than misreading "never touched" as "wants zero".
-   */
-  private def promoteOneRelationType(graphId: String, liveId: String, liveIds: Set[String], imgIds: Set[String],
-                                      endpointIsTarget: Boolean)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] = {
-    if (imgIds.isEmpty) Future(())
-    else {
-      val toAdd = imgIds -- liveIds
-      val toRemove = liveIds -- imgIds
-      def maps(ids: Set[String]) = ids.map(id => if (endpointIsTarget) relationMap(liveId, id) else relationMap(id, liveId)).toList.asJava
-      val addF = if (toAdd.nonEmpty) oec.graphService.createRelation(graphId, maps(toAdd)) else Future(new Response())
-      addF.flatMap(_ => if (toRemove.nonEmpty) oec.graphService.removeRelation(graphId, maps(toRemove)) else Future(new Response())).map(_ => ())
-    }
-  }
-
-  private def promoteRelations(graphId: String, liveNode: Node, imgNodeOpt: Option[Node])
+  private def promoteChannelRelation(graphId: String, liveNode: Node, imgNodeOpt: Option[Node])
                                (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] = imgNodeOpt match {
     case None => Future(())
     case Some(imgNode) =>
-      val liveCategories = relationTargetIds(liveNode.getOutRelations, useEndSide = true, "CategoryInstance")
-      val imgCategories = relationTargetIds(imgNode.getOutRelations, useEndSide = true, "CategoryInstance")
       val liveChannels = relationTargetIds(liveNode.getInRelations, useEndSide = false, "Channel")
       val imgChannels = relationTargetIds(imgNode.getInRelations, useEndSide = false, "Channel")
-      promoteOneRelationType(graphId, liveNode.getIdentifier, liveCategories, imgCategories, endpointIsTarget = true)
-        .flatMap(_ => promoteOneRelationType(graphId, liveNode.getIdentifier, liveChannels, imgChannels, endpointIsTarget = false))
+      if (imgChannels.isEmpty) Future(())
+      else {
+        val toAdd = imgChannels -- liveChannels
+        val toRemove = liveChannels -- imgChannels
+        def maps(ids: Set[String]) = ids.map(id => relationMap(id, liveNode.getIdentifier)).toList.asJava
+        val addF = if (toAdd.nonEmpty) oec.graphService.createRelation(graphId, maps(toAdd)) else Future(new Response())
+        addF.flatMap(_ => if (toRemove.nonEmpty) oec.graphService.removeRelation(graphId, maps(toRemove)) else Future(new Response())).map(_ => ())
+      }
   }
 
   def publishFramework(request: Request, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap { imgNodeOpt =>
       oec.graphService.getNodeByUniqueId(graphId, frameworkId, true, new Request(request)).flatMap { liveNode =>
-        promoteRelations(graphId, liveNode, imgNodeOpt).flatMap { _ =>
+        promoteChannelRelation(graphId, liveNode, imgNodeOpt).flatMap { _ =>
           val currentVersion: Int = Option(liveNode.getMetadata.get("version"))
             .map(_.asInstanceOf[Number].intValue()).getOrElse(0)
           val updateMetadata: util.Map[String, AnyRef] =
@@ -172,6 +159,40 @@ object FrameworkManager {
         DataNode.bulkUpdate(bulkReq)
       }
     }
+  }
+
+  @throws[Exception]
+  def transitionFrameworkStatus(request: Request, allowedStatuses: Set[String], targetStatus: String,
+                                 invalidStatusMsg: String => String,
+                                 postStep: (String, String, Node) => Future[Unit] = (_, _, _) => Future.successful(()))
+                                (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Response] = {
+    val frameworkId = request.getRequest.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
+    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
+    val getChannelReq = new Request()
+    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
+      {
+        putAll(request.getContext)
+      }
+    })
+    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
+    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
+    getChannelReq.put(Constants.IDENTIFIER, channel)
+    DataNode.read(getChannelReq).map(node => {
+      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
+        getLiveEditNode(graphId, frameworkId).flatMap { node =>
+          val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
+          if (!allowedStatuses.contains(status))
+            throw new ClientException("ERR_INVALID_REQUEST", invalidStatusMsg(status))
+          val updateReq = new Request(request)
+          updateReq.getContext.put(Constants.IDENTIFIER, node.getIdentifier)
+          updateReq.getContext.put("versioning", "disabled")
+          updateReq.setRequest(new util.HashMap[String, AnyRef]() {{ put("status", targetStatus) }})
+          DataNode.update(updateReq).flatMap(n => postStep(graphId, frameworkId, n))
+            .map(_ => ResponseHandler.OK.put(Constants.IDENTIFIER, frameworkId).put("status", targetStatus))
+        }
+      } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+    }).flatten
   }
 
   def validateTranslationMap(request: Request) = {
