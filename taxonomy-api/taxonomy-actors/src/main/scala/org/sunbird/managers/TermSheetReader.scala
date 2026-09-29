@@ -52,6 +52,9 @@ object TermSheetReader {
 
   private val DATE_LIKE_RE = "^\\d{1,4}[-/]\\d{1,2}([-/]\\d{1,4})?$".r
 
+  private val INVALID_ENCODING_FAILURE = ParseFailure("ERR_INVALID_ENCODING",
+    "this file isn't valid UTF-8 -- in Excel, use 'CSV UTF-8 (Comma delimited)' when saving, not plain 'CSV'.")
+
   def read(file: File, originalFileName: String): ParseOutcome = {
     if (originalFileName == null || !originalFileName.toLowerCase(Locale.ROOT).endsWith(".csv"))
       ParseFailure("ERR_INVALID_FILE_TYPE", s"Unsupported file type for '$originalFileName' -- only .csv is supported.")
@@ -74,12 +77,14 @@ object TermSheetReader {
           .onUnmappableCharacter(CodingErrorAction.REPORT)
           .decode(ByteBuffer.wrap(bomStripped)).toString)
       } catch {
-        case _: CharacterCodingException =>
-          Left(ParseFailure("ERR_INVALID_ENCODING", "this file isn't valid UTF-8 -- in Excel, use 'CSV UTF-8 (Comma delimited)' when saving, not plain 'CSV'."))
+        case _: CharacterCodingException => Left(INVALID_ENCODING_FAILURE)
       }
 
     decodedOrFailure.flatMap { decoded =>
-      val firstLine = decoded.linesIterator.take(1).toList.headOption.getOrElse("")
+      // A leading blank line (title/notes row, stray editor newline, ...) is tolerated
+      // symmetrically with the blank-row leniency in readRows -- sniff the delimiter off the
+      // first non-blank line, not unconditionally line 1.
+      val firstLine = decoded.linesIterator.find(l => unicodeTrim(l).nonEmpty).getOrElse("")
       if (firstLine.contains(';') && !firstLine.contains(','))
         Left(ParseFailure("ERR_CSV_WRONG_DELIMITER", "this file appears to be semicolon-delimited -- please re-export as comma-delimited CSV."))
       else {
@@ -98,10 +103,13 @@ object TermSheetReader {
   }
 
   private def readRecords(records: Vector[CSVRecord]): ParseOutcome = {
-    if (records.isEmpty)
+    // Leading blank records (title/notes row above the real header, ...) get the same
+    // tolerance readRows already gives trailing/mid-file blank rows.
+    val headerIdx = records.indexWhere(r => (0 until r.size()).exists(i => unicodeTrim(r.get(i)).nonEmpty))
+    if (headerIdx < 0)
       ParseFailure("ERR_MISSING_HEADER", s"missing header: ${REQUIRED_HEADERS.mkString(", ")}")
     else {
-      val headerRecord = records.head
+      val headerRecord = records(headerIdx)
       val headerMap: Map[String, Int] = (0 until headerRecord.size()).flatMap { i =>
         val text = unicodeTrim(headerRecord.get(i))
         if (text.nonEmpty) Some(text.toLowerCase(Locale.ROOT) -> i) else None
@@ -116,7 +124,7 @@ object TermSheetReader {
         val codeIdx = headerMap(REQUIRED_HEADERS(2).toLowerCase(Locale.ROOT))
         val assocIdx = headerMap(REQUIRED_HEADERS(3).toLowerCase(Locale.ROOT))
         val descIdx = headerMap(REQUIRED_HEADERS(4).toLowerCase(Locale.ROOT))
-        readRows(records, catIdx, nameIdx, codeIdx, assocIdx, descIdx)
+        readRows(records, headerIdx, catIdx, nameIdx, codeIdx, assocIdx, descIdx)
       }
     }
   }
@@ -148,7 +156,7 @@ object TermSheetReader {
     (kept.toList, errors.toList)
   }
 
-  private def readRows(records: Vector[CSVRecord], catIdx: Int, nameIdx: Int, codeIdx: Int, assocIdx: Int, descIdx: Int): ParseOutcome = {
+  private def readRows(records: Vector[CSVRecord], headerIdx: Int, catIdx: Int, nameIdx: Int, codeIdx: Int, assocIdx: Int, descIdx: Int): ParseOutcome = {
     val maxRows = Platform.getInteger("competencyframework.bulk.max_rows", 10000)
     val rowsBuf = scala.collection.mutable.ListBuffer.empty[SheetRow]
     val skippedHeaderBuf = scala.collection.mutable.ListBuffer.empty[Int]
@@ -156,7 +164,7 @@ object TermSheetReader {
     var failure: Option[ParseFailure] = None
 
     breakable {
-      for (r <- 1 until records.size) {
+      for (r <- (headerIdx + 1) until records.size) {
         val record = records(r)
         val category = fieldText(record, catIdx)
         val name = fieldText(record, nameIdx)
