@@ -4,8 +4,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.janusgraph.core.JanusGraph;
 import org.janusgraph.core.JanusGraphEdge;
+import org.janusgraph.core.JanusGraphQuery;
 import org.janusgraph.core.JanusGraphTransaction;
 import org.janusgraph.core.JanusGraphVertex;
+import org.sunbird.common.Platform;
 import org.sunbird.common.dto.Property;
 import org.sunbird.common.dto.Request;
 import org.sunbird.common.exception.ClientException;
@@ -33,9 +35,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -252,6 +256,11 @@ public class SearchAsyncOperations {
             query.has(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), sc.getObjectType());
         }
 
+        // Callers that express objectType/nodeType as metadata filters rather than via
+        // setObjectType()/setNodeType() would otherwise leave the base query as a bare
+        // has("graphId", ...) - a predicate every node satisfies - forcing a full scan.
+        pushIndexedFilters(query, sc.getMetadata());
+
         // Execute Base Query
         Iterable<JanusGraphVertex> vertices;
         if (!ids.isEmpty()) {
@@ -305,6 +314,57 @@ public class SearchAsyncOperations {
         }
         int end = Math.min(start + size, nodeList.size());
         return new ArrayList<>(nodeList.subList(start, end));
+    }
+
+    /**
+     * Property keys backed by a JanusGraph composite index. Pushing a predicate on any other
+     * key gains nothing - JanusGraph would still scan - so the list is restricted to the keys
+     * the graph schema actually indexes. Configurable via {@code graph.native_search.indexed_keys};
+     * an empty list restores the previous (scan) behaviour.
+     */
+    private static final Set<String> INDEXED_KEYS = new HashSet<>(
+            Platform.getStringList("graph.native_search.indexed_keys", Arrays.asList(
+                    SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SystemProperties.IL_SYS_NODE_TYPE.name(),
+                    "code", "identifier", "channel", "framework", "mimeType", "contentType",
+                    "visibility", "status", "createdBy", "objectType", "primaryCategory",
+                    "resourceType", "mediaType", "name", "versionKey")));
+
+    /**
+     * Adds indexable equality predicates from the search metadata to the graph query so that
+     * JanusGraph can resolve them through a composite index instead of returning every vertex
+     * for {@link #matchesMetadata} to filter in memory - which lazy-loads each vertex's
+     * properties from the storage backend one round trip at a time.
+     *
+     * <p>Only conditions that must hold for every match are pushed down:
+     * <ul>
+     *   <li>criteria combined with OR are skipped - an OR branch need not be true, so pushing
+     *       it would exclude valid matches;</li>
+     *   <li>only {@link SearchConditions#OP_EQUAL} is pushed - a composite index cannot serve
+     *       {@code !=}, range or list predicates;</li>
+     *   <li>only keys in {@link #INDEXED_KEYS} with a String value are pushed.</li>
+     * </ul>
+     *
+     * <p>This narrows the candidate set only. In-memory filtering still runs over the result,
+     * so the returned nodes are unchanged.
+     */
+    private static void pushIndexedFilters(JanusGraphQuery query, List<MetadataCriterion> metadata) {
+        if (CollectionUtils.isEmpty(metadata) || INDEXED_KEYS.isEmpty())
+            return;
+        for (MetadataCriterion mc : metadata) {
+            if (null == mc || StringUtils.equalsIgnoreCase(SearchConditions.LOGICAL_OR, mc.getOp()))
+                continue;
+            if (CollectionUtils.isEmpty(mc.getFilters()))
+                continue;
+            for (Filter filter : mc.getFilters()) {
+                if (null == filter || !StringUtils.equals(SearchConditions.OP_EQUAL, filter.getOperator()))
+                    continue;
+                if (!INDEXED_KEYS.contains(filter.getProperty()))
+                    continue;
+                Object value = filter.getValue();
+                if (value instanceof String && StringUtils.isNotBlank((String) value))
+                    query.has(filter.getProperty(), value);
+            }
+        }
     }
 
     private static void extractIdsFromMetadata(List<MetadataCriterion> metadata, List<String> ids) {
