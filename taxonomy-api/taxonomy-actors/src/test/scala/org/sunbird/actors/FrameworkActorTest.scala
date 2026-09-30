@@ -496,7 +496,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     }
   }
 
-  it should "flip a Review framework back to Draft on reject, and sweep its own Review-status terms to Draft" in {
+  it should "flip a Review framework back to Draft on reject" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -505,17 +505,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
       assert("Draft".equals(n.getMetadata.get("status")))
       Future(n)
     })
-    val reviewTerm = new Node()
-    reviewTerm.setIdentifier("framework_test_term1")
-    reviewTerm.setObjectType("Term")
-    reviewTerm.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", "Review") } })
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(util.Arrays.asList(reviewTerm)))
-    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *)
-      .onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
-        assert(ids.contains("framework_test_term1"))
-        assert("Draft".equals(metadata.get("status")))
-        Future(new util.HashMap[String, Node]())
-      })
+    // graphDB.getNodeByUniqueIds/updateNodes are intentionally left un-stubbed: reject no longer sweeps term status.
 
     val response = callActor(rejectRequest(), Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))

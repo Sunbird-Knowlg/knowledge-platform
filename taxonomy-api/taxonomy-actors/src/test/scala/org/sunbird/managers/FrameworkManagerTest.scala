@@ -410,49 +410,4 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     }
   }
 
-  "FrameworkManager.rejectFrameworkTermsSweep" should "sweep exactly status==Review Term/CategoryInstance nodes under this framework to Draft, never touching Draft-status terms or another framework's nodes" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-
-    def statusNode(id: String, status: String, objectType: String = "Term"): Node = {
-      val n = new Node()
-      n.setIdentifier(id)
-      n.setObjectType(objectType)
-      n.setMetadata(new util.HashMap[String, AnyRef]() { { put("status", status) } })
-      n
-    }
-    val reviewTerm = statusNode("fw1_term_review", "Review")
-    val reviewCategoryInstance = statusNode("fw1_category_review", "Review", "CategoryInstance")
-    val otherFwReview = statusNode("otherfw_term_review", "Review")
-    val nodes: util.List[Node] = util.Arrays.asList(reviewTerm, reviewCategoryInstance, otherFwReview)
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes))
-
-    var capturedIds: util.List[String] = null
-    var capturedMetadata: util.Map[String, AnyRef] = null
-    (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).onCall((_: String, ids: java.util.List[String], metadata: java.util.Map[String, AnyRef]) => {
-      capturedIds = ids
-      capturedMetadata = metadata
-      Future(new util.HashMap[String, Node]())
-    })
-
-    Await.result(FrameworkManager.rejectFrameworkTermsSweep("domain", "fw1"), 10.seconds)
-    assert(capturedIds.size() == 2)
-    assert(capturedIds.contains("fw1_term_review"))
-    assert(capturedIds.contains("fw1_category_review"))
-    assert(!capturedIds.contains("otherfw_term_review"))
-    assert("Draft".equals(capturedMetadata.get("status")))
-  }
-
-  it should "make no bulkUpdate call when nothing under this framework is in Review" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]()))
-    // graphDB.updateNodes is intentionally left un-stubbed: ScalaMock fails the test if it's called.
-
-    val result = Await.result(FrameworkManager.rejectFrameworkTermsSweep("domain", "fw1"), 10.seconds)
-    assert(result.isEmpty)
-  }
-
   }
