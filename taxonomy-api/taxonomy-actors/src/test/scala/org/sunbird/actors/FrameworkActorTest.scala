@@ -5,7 +5,7 @@ import org.apache.pekko.actor.Props
 import org.apache.commons.lang3.StringUtils
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.common.dto.{Request, Response, ResponseParams}
+import org.sunbird.common.dto.{Request, Response, ResponseHandler, ResponseParams}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, Relation, SearchCriteria, SubGraph}
@@ -200,6 +200,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
       .expects(*, util.Collections.singletonList("framework_test.img"), *)
       .returns(Future(new util.HashMap[String, Node]()))
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(ResponseHandler.OK()))
 
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
@@ -229,6 +230,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
         Future(new util.HashMap[String, Node]() {{ put("framework_test.img", imgNode) }})
       })
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(ResponseHandler.OK()))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
@@ -252,6 +254,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
       .expects(*, util.Collections.singletonList("framework_test.img"), *)
       .returns(Future(new util.HashMap[String, Node]()))
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+    (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(ResponseHandler.OK()))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 

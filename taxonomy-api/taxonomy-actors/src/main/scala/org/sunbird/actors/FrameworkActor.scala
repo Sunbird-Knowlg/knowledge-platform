@@ -149,8 +149,17 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     request.getRequest.put("status", "Retired")
     request.getContext.put("versioning", "disabled")
     FrameworkManager.retireImageNode(graphId, frameworkId).flatMap(_ =>
-      DataNode.update(request).map(node => {
-        ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
+      DataNode.update(request).flatMap(node => {
+        val invalidatePublishedSnapshot: Future[Unit] = if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
+          request.put("identifier", frameworkId)
+          request.put("fields", List("hierarchy"))
+          request.put("values", List(""))
+          oec.graphService.updateExternalProps(request).map(_ => ())
+        } else Future(RedisCache.delete("fw:" + frameworkId))
+        invalidatePublishedSnapshot.map(_ => {
+          FrameworkCache.delete(frameworkId)
+          ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
+        })
       })
     )
   }
