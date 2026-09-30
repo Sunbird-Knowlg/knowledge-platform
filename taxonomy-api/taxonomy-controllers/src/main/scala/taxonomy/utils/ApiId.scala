@@ -16,6 +16,14 @@ object ApiId {
 	final val COPY_FRAMEWORK = "api.taxonomy.framework.copy"
 	final val PUBLISH_FRAMEWORK = "api.taxonomy.framework.publish"
 
+	final val CREATE_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.create"
+	final val READ_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.read"
+	final val UPDATE_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.update"
+	final val RETIRE_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.retire"
+	final val PUBLISH_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.publish"
+	final val REVIEW_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.review"
+	final val REJECT_COMPETENCY_FRAMEWORK = "api.taxonomy.competencyframework.reject"
+
 	final val CREATE_CATEGORY = "api.taxonomy.category.create"
 	final val READ_CATEGORY = "api.taxonomy.category.read"
 	final val UPDATE_CATEGORY = "api.taxonomy.category.update"
@@ -30,6 +38,10 @@ object ApiId {
 	final val READ_TERM = "api.taxonomy.term.read"
 	final val UPDATE_TERM = "api.taxonomy.term.update"
 	final val RETIRE_TERM = "api.taxonomy.term.retire"
+	final val BULK_UPDATE_TERM = "api.taxonomy.term.bulk.update"
+	final val BULK_VALIDATE_TERM = "api.taxonomy.term.bulk.validate"
+	final val BULK_COMMIT_TERM = "api.taxonomy.term.bulk.commit"
+	final val BULK_DOWNLOAD_TERM = "api.taxonomy.term.bulk.download"
 
 	final val CREATE_LOCK = "api.taxonomy.lock.create"
 	final val REFRESH_LOCK = "api.taxonomy.lock.refresh"
