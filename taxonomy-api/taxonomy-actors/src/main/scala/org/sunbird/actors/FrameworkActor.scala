@@ -122,45 +122,51 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def update(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
+    val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
-    val getChannelReq = new Request()
-    getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
-    getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
-    getChannelReq.put(Constants.IDENTIFIER, channel)
-    DataNode.read(getChannelReq).map(channelNode => {
-      if (null != channelNode && StringUtils.equalsAnyIgnoreCase(channelNode.getIdentifier, channel)) {
-        DataNode.update(request).map(node => {
-          ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
-        })
-      } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
-    }).flatten
+    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
+      val getChannelReq = new Request()
+      getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
+        {
+          putAll(request.getContext)
+        }
+      })
+      getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
+      getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
+      getChannelReq.put(Constants.IDENTIFIER, channel)
+      DataNode.read(getChannelReq).map(channelNode => {
+        if (null != channelNode && StringUtils.equalsAnyIgnoreCase(channelNode.getIdentifier, channel)) {
+          DataNode.update(request).map(node => {
+            ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
+          })
+        } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+      }).flatten
+    }
   }
 
   @throws[Exception]
   private def retire(request: Request): Future[Response] = {
     val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
-    request.getRequest.put("status", "Retired")
-    request.getContext.put("versioning", "disabled")
-    FrameworkManager.retireImageNode(graphId, frameworkId).flatMap(_ =>
-      DataNode.update(request).flatMap(node => {
-        val invalidatePublishedSnapshot: Future[Unit] = if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
-          request.put("identifier", frameworkId)
-          request.put("fields", List("hierarchy"))
-          request.put("values", List(""))
-          oec.graphService.updateExternalProps(request).map(_ => ())
-        } else Future(RedisCache.delete("fw:" + frameworkId))
-        invalidatePublishedSnapshot.map(_ => {
-          FrameworkCache.delete(frameworkId)
-          ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
+    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
+      request.getRequest.put("status", "Retired")
+      request.getContext.put("versioning", "disabled")
+      FrameworkManager.retireImageNode(graphId, frameworkId).flatMap(_ =>
+        DataNode.update(request).flatMap(node => {
+          val invalidatePublishedSnapshot: Future[Unit] = if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
+            request.put("identifier", frameworkId)
+            request.put("fields", List("hierarchy"))
+            request.put("values", List(""))
+            oec.graphService.updateExternalProps(request).map(_ => ())
+          } else Future(RedisCache.delete("fw:" + frameworkId))
+          invalidatePublishedSnapshot.map(_ => {
+            FrameworkCache.delete(frameworkId)
+            ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
+          })
         })
-      })
-    )
+      )
+    }
   }
 
 

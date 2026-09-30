@@ -71,17 +71,39 @@ object TermBulkManager {
         val associateFuture: Future[util.List[util.Map[String, AnyRef]]] =
           if (combinedRows.isEmpty) Future(new util.ArrayList[util.Map[String, AnyRef]]()) else associateTerms(combinedRows)
 
-        associateFuture.flatMap { _ =>
-          val retireFuture: Future[util.Map[String, Node]] =
-            if (result.retireIdentifiers.isEmpty) Future(new util.HashMap[String, Node]())
-            else {
-              val bulkReq = new Request()
-              bulkReq.setContext(new util.HashMap[String, AnyRef]() {{ put("graph_id", graphId) }})
-              bulkReq.put("identifiers", result.retireIdentifiers.asJava)
-              bulkReq.put("metadata", new util.HashMap[String, AnyRef]() {{ put("status", "Retired") }})
-              DataNode.bulkUpdate(bulkReq)
-            }
-          retireFuture.map(_ => TermSheetClassifier.buildCommitSuccessResponse(result))
+        val identifierToRowIndex: Map[String, Int] =
+          createIdByRowIndex.map { case (idx, id) => id -> idx } ++
+            result.updates.map { case (term, row, _) => term.identifier -> row.index }.toMap
+
+        associateFuture.flatMap { associateResults =>
+          val associateFailureByIndex: Map[Int, (String, String)] = associateResults.asScala.flatMap { row =>
+            if ("FAILED".equals(row.get("status")))
+              identifierToRowIndex.get(row.get("identifier").asInstanceOf[String])
+                .map(idx => idx -> (row.get("errCode").asInstanceOf[String], row.get("errMsg").asInstanceOf[String]))
+            else None
+          }.toMap
+
+          if (associateFailureByIndex.nonEmpty) {
+            val associateSuccessIndices: Set[Int] = associateResults.asScala.collect {
+              case row if "SUCCESS".equals(row.get("status")) => identifierToRowIndex.get(row.get("identifier").asInstanceOf[String])
+            }.flatten.toSet
+            Future(TermSheetClassifier.buildCommitFailureResponse(result, associateFailureByIndex,
+              createIdByRowIndex.keySet ++ associateSuccessIndices,
+              "ERR_ASSOCIATE_FAILED", "Commit aborted: one or more rows failed during metadata/association write. " +
+                "Any sibling rows that already wrote (creates, and other association updates) were left as-is " +
+                "(not rolled back) -- see each row's own errCode."))
+          } else {
+            val retireFuture: Future[util.Map[String, Node]] =
+              if (result.retireIdentifiers.isEmpty) Future(new util.HashMap[String, Node]())
+              else {
+                val bulkReq = new Request()
+                bulkReq.setContext(new util.HashMap[String, AnyRef]() {{ put("graph_id", graphId) }})
+                bulkReq.put("identifiers", result.retireIdentifiers.asJava)
+                bulkReq.put("metadata", new util.HashMap[String, AnyRef]() {{ put("status", "Retired") }})
+                DataNode.bulkUpdate(bulkReq)
+              }
+            retireFuture.map(_ => TermSheetClassifier.buildCommitSuccessResponse(result))
+          }
         }
       }
     }
