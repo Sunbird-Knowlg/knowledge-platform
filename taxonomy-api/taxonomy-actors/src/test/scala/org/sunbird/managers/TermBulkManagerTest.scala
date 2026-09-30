@@ -778,6 +778,42 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     order.lastIndexOf("associate") should be < order.indexOf("retire")
   }
 
+  it should "surface an update-row write failure during the associate phase, aborting before retire ever runs" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    stubFrameworkNode(graphDB, "Draft", List("cat_competency"))
+
+    val catNode = categoryInstanceNodeWithCode("cat_competency", "competency")
+    val existingUpdate = termNodeWithCategory("fw1_competency_cm1", "competency", "cm1", "Old CM1", "Live")
+    val existingRetire = termNodeWithCategory("fw1_competency_cm2", "competency", "cm2", "CM2", "Live")
+    stubGetNodeByUniqueIds(graphDB, categoryInstances = util.Arrays.asList(catNode), activeTerms = util.Arrays.asList(existingUpdate, existingRetire))
+
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "cat_competency", *, *).returns(Future(catNode)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1_competency", *, *).returns(Future(categoryInstanceNodeWithCode("fw1_competency", "competency"))).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1_competency_cm1", *, *)
+      .returns(Future.failed(new CompletionException(new ResourceNotFoundException("ERR_TERM_NOT_FOUND", "Term not found"))))
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1_competency_cm3", *, *).returns(Future(termNode("fw1_competency_cm3", "cm3"))).anyNumberOfTimes()
+
+    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(noLoop()).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).onCall((_: String, n: Node) => Future(termNode(n.getIdentifier, n.getIdentifier.split("_").last))).anyNumberOfTimes()
+    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).onCall((_: String, n: Node, _: Request) => Future(n)).anyNumberOfTimes()
+
+    val (file, name) = buildCsvFile(List(
+      List("competency", "New CM1", "cm1", "", "updated"), 
+      List("competency", "CM3", "cm3", "", "") 
+    ))
+    val response = Await.result(TermBulkManager.bulkCommitTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
+    response.getResponseCode shouldBe ResponseCode.CLIENT_ERROR
+    response.getResult.get("committed") shouldBe false
+    response.getParams.getErr shouldBe "ERR_ASSOCIATE_FAILED"
+
+    val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
+    val byCode = rows.asScala.map(r => r.get("code") -> r).toMap
+    byCode("cm1").get("errCode") shouldBe "RESOURCE_NOT_FOUND"
+  }
+
   "TermBulkManager.downloadTerms" should "upload a .csv file with the header row and one row per active term when the framework already has terms" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]

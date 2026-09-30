@@ -196,6 +196,8 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     node.setObjectType("Framework")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
     (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
       .expects(*, util.Collections.singletonList("framework_test.img"), *)
       .returns(Future(new util.HashMap[String, Node]()))
@@ -223,6 +225,8 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     imgNode.setIdentifier("framework_test.img")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
     (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
       .expects(*, util.Collections.singletonList("framework_test.img"), *)
       .onCall((_: String, _: util.List[String], metadata: util.Map[String, AnyRef]) => {
@@ -250,6 +254,8 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     node.setObjectType("Framework")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test", *, *).returns(Future(node)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
     (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
       .expects(*, util.Collections.singletonList("framework_test.img"), *)
       .returns(Future(new util.HashMap[String, Node]()))
@@ -257,6 +263,78 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(ResponseHandler.OK()))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+
+    val request = getFrameworkRequest()
+    request.getContext.put("identifier", "framework_test")
+    request.getRequest.put("identifier", "framework_test")
+    request.setOperation(Constants.RETIRE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  List("Review", "Processing").foreach { status =>
+    it should s"reject update with ERR_FRAMEWORK_REVIEW_IN_PROGRESS naming the status when the framework is $status" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      // graphDB.upsertNode is intentionally left un-stubbed: ScalaMock fails the test if it's called.
+
+      val request = getFrameworkRequest()
+      request.getContext.put("identifier", "framework_test")
+      request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+      request.setOperation(Constants.UPDATE_FRAMEWORK)
+      val response = callActor(request, Props(new FrameworkActor()))
+      assert("failed".equals(response.getParams.getStatus))
+      assert("ERR_FRAMEWORK_REVIEW_IN_PROGRESS".equals(response.getParams.getErr))
+      assert(response.getParams.getErrmsg.contains(status))
+    }
+  }
+
+  it should "allow update to proceed when the framework is Draft (not Review/Processing)" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    stubFrameworkGate(graphDB, "Draft")
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
+
+    val request = getFrameworkRequest()
+    request.getContext.put("identifier", "framework_test")
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.setOperation(Constants.UPDATE_FRAMEWORK)
+    val response = callActor(request, Props(new FrameworkActor()))
+    assert("successful".equals(response.getParams.getStatus))
+  }
+
+  List("Review", "Processing").foreach { status =>
+    it should s"reject retire with ERR_FRAMEWORK_REVIEW_IN_PROGRESS naming the status when the framework is $status" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, status)
+      // graphDB.updateNodes/upsertNode/updateExternalProps are intentionally left un-stubbed: ScalaMock fails the test if any is called.
+
+      val request = getFrameworkRequest()
+      request.getContext.put("identifier", "framework_test")
+      request.getRequest.put("identifier", "framework_test")
+      request.setOperation(Constants.RETIRE_FRAMEWORK)
+      val response = callActor(request, Props(new FrameworkActor()))
+      assert("failed".equals(response.getParams.getStatus))
+      assert("ERR_FRAMEWORK_REVIEW_IN_PROGRESS".equals(response.getParams.getErr))
+      assert(response.getParams.getErrmsg.contains(status))
+    }
+  }
+
+  it should "allow retire to proceed when the framework is Draft (not Review/Processing)" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    stubFrameworkGate(graphDB, "Draft")
+    (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String, AnyRef]))
+      .expects(*, util.Collections.singletonList("framework_test.img"), *)
+      .returns(Future(new util.HashMap[String, Node]()))
+    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
+    (graphDB.updateExternalProps(_: Request)).expects(*).returns(Future(ResponseHandler.OK()))
 
     val request = getFrameworkRequest()
     request.getContext.put("identifier", "framework_test")
