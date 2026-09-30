@@ -25,6 +25,7 @@ import org.sunbird.utils.Constants
 object FrameworkManager {
   val schemaVersion: String = "1.0"
   private val IMAGE_SUFFIX = ".img"
+  private val FRAMEWORK_EDIT_BLOCKED_STATUSES: Set[String] = Set("Review", "Processing")
 
   /** Fetches a node, tolerating ResourceNotFoundException as None (used for the optional `.img` shadow). */
   def getOptionalNode(graphId: String, identifier: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Option[Node]] = {
@@ -33,7 +34,7 @@ object FrameworkManager {
     }
   }
 
-  /** Hard-deletes `<frameworkId>.img` if it exists (in-progress uncommitted edit) — no-op otherwise. */
+  /** Hard-deletes `<frameworkId>.img` if it exists (when edit is merged) — no-op otherwise. */
   def deleteImageNodeIfExists(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Boolean] = {
     getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap {
       case Some(_) =>
@@ -59,63 +60,25 @@ object FrameworkManager {
     imgNode.getMetadata.asScala.foreach { case (k, v) => if (!PROMOTE_EXCLUDE_FIELDS.contains(k)) result.put(k, v) }
     result
   }
-
-  private val SEQUENCE_RELATION = "hasSequenceMember" // matches framework/competencyframework config.json
-
-  /** Distinct target ids of `rels` whose type/objectType match, stripping any lingering ".img" suffix. */
-  private def relationTargetIds(rels: util.List[Relation], useEndSide: Boolean, objectType: String): Set[String] = {
-    if (rels == null) Set.empty
-    else rels.asScala.filter(r =>
-        StringUtils.equals(r.getRelationType, SEQUENCE_RELATION) &&
-        StringUtils.equalsIgnoreCase(
-          (if (useEndSide) r.getEndNodeObjectType else r.getStartNodeObjectType).replace("Image", ""),
-          objectType))
-      .map(r => (if (useEndSide) r.getEndNodeId else r.getStartNodeId).replace(IMAGE_SUFFIX, ""))
-      .toSet
-  }
-
-  private def relationMap(startNodeId: String, endNodeId: String): util.Map[String, AnyRef] = {
-    val m = new util.HashMap[String, AnyRef]()
-    m.put("startNodeId", startNodeId); m.put("endNodeId", endNodeId)
-    m.put("relation", SEQUENCE_RELATION); m.put("relMetadata", new util.HashMap[String, AnyRef]())
-    m
-  }
-
-  private def promoteChannelRelation(graphId: String, liveNode: Node, imgNodeOpt: Option[Node])
-                               (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] = imgNodeOpt match {
-    case None => Future(())
-    case Some(imgNode) =>
-      val liveChannels = relationTargetIds(liveNode.getInRelations, useEndSide = false, "Channel")
-      val imgChannels = relationTargetIds(imgNode.getInRelations, useEndSide = false, "Channel")
-      if (imgChannels.isEmpty) Future(())
-      else {
-        val toAdd = imgChannels -- liveChannels
-        val toRemove = liveChannels -- imgChannels
-        def maps(ids: Set[String]) = ids.map(id => relationMap(id, liveNode.getIdentifier)).toList.asJava
-        val addF = if (toAdd.nonEmpty) oec.graphService.createRelation(graphId, maps(toAdd)) else Future(new Response())
-        addF.flatMap(_ => if (toRemove.nonEmpty) oec.graphService.removeRelation(graphId, maps(toRemove)) else Future(new Response())).map(_ => ())
-      }
-  }
+  
 
   def publishFramework(request: Request, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap { imgNodeOpt =>
       oec.graphService.getNodeByUniqueId(graphId, frameworkId, true, new Request(request)).flatMap { liveNode =>
-        promoteChannelRelation(graphId, liveNode, imgNodeOpt).flatMap { _ =>
-          val currentVersion: Int = Option(liveNode.getMetadata.get("version"))
-            .map(_.asInstanceOf[Number].intValue()).getOrElse(0)
-          val updateMetadata: util.Map[String, AnyRef] =
-            imgNodeOpt.map(filteredImageMetadata).getOrElse(new util.HashMap[String, AnyRef]())
-          updateMetadata.put("version", Integer.valueOf(currentVersion + 1)) // business publish-counter, not Constants.VERSION
-          updateMetadata.put("status", "Live")
+        val currentVersion: Int = Option(liveNode.getMetadata.get("version"))
+          .map(_.asInstanceOf[Number].intValue()).getOrElse(0)
+        val updateMetadata: util.Map[String, AnyRef] =
+          imgNodeOpt.map(filteredImageMetadata).getOrElse(new util.HashMap[String, AnyRef]())
+        updateMetadata.put("version", Integer.valueOf(currentVersion + 1)) // business publish-counter, not Constants.VERSION
+        updateMetadata.put("status", "Live")
 
-          val updateReq = new Request(request)
-          updateReq.getContext.put(Constants.IDENTIFIER, frameworkId)
-          updateReq.getContext.put("versioning", "disabled") // update the live node directly, never re-clone .img
-          updateReq.setRequest(updateMetadata)
-          DataNode.update(updateReq).flatMap { updatedLive =>
-            deleteImageNodeIfExists(graphId, frameworkId).map(_ => updatedLive)
-          }
+        val updateReq = new Request(request)
+        updateReq.getContext.put(Constants.IDENTIFIER, frameworkId)
+        updateReq.getContext.put("versioning", "disabled") // update the live node directly, never re-clone .img
+        updateReq.setRequest(updateMetadata)
+        DataNode.update(updateReq).flatMap { updatedLive =>
+          deleteImageNodeIfExists(graphId, frameworkId).map(_ => updatedLive)
         }
       }
     }
@@ -129,7 +92,6 @@ object FrameworkManager {
     }
   }
 
-  private val FRAMEWORK_EDIT_BLOCKED_STATUSES: Set[String] = Set("Review", "Processing")
 
   def assertFrameworkEditable(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] =
     getLiveEditNode(graphId, frameworkId).map { node =>

@@ -154,13 +154,6 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     node
   }
 
-  private def channelRelation(startId: String): Relation = {
-    val r = new Relation(startId, "hasSequenceMember", "fw1")
-    r.setStartNodeObjectType("Channel")
-    r.setEndNodeObjectType("Framework")
-    r
-  }
-
   private def publishRequest(): Request = {
     val request = new Request()
     request.setContext(new util.HashMap[String, AnyRef]() {
@@ -304,49 +297,6 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     assert(submitted.get("version").asInstanceOf[Number].intValue() == 3)
   }
 
-  it should "make no relation calls when .img carries zero channel edges (renamed-only edit, idempotent)" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    val liveNode = buildFrameworkNode("fw1")
-    liveNode.setInRelations(util.Arrays.asList(channelRelation("channelX")))
-    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage") // no relations at all -- never touched this session
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
-    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
-    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
-    // Neither graphDB.createRelation nor graphDB.removeRelation is stubbed: ScalaMock fails if either is called.
-
-    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
-  }
-
-  it should "diff the channels relation on the 'in' side (channel -> framework edge)" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    val liveNode = buildFrameworkNode("fw1")
-    liveNode.setInRelations(util.Arrays.asList(channelRelation("channelX")))
-    val imgNode = buildFrameworkNode("fw1.img", "FrameworkImage")
-    imgNode.setInRelations(util.Arrays.asList(channelRelation("channelY")))
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1.img", *, *).returns(Future(imgNode)).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "fw1", *, *).returns(Future(liveNode)).anyNumberOfTimes()
-    (graphDB.deleteNode(_: String, _: String, _: Request)).expects(*, "fw1.img", *).returns(Future(true))
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
-    (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(liveNode))
-    (graphDB.createRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
-      assert(rels.get(0).get("startNodeId") == "channelY")
-      assert(rels.get(0).get("endNodeId") == "fw1")
-      Future(new Response())
-    })
-    (graphDB.removeRelation(_: String, _: java.util.List[java.util.Map[String, AnyRef]])).expects(*, *).onCall((_: String, rels: java.util.List[java.util.Map[String, AnyRef]]) => {
-      assert(rels.get(0).get("startNodeId") == "channelX")
-      assert(rels.get(0).get("endNodeId") == "fw1")
-      Future(new Response())
-    })
-
-    Await.result(FrameworkManager.publishFramework(publishRequest(), "fw1"), 10.seconds)
-  }
 
   "FrameworkManager.getCompleteMetadata" should "exclude a Retired child from childHierarchy, keeping active children" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]

@@ -1,7 +1,11 @@
 package org.sunbird.managers
 
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVRecord}
+import org.apache.commons.io.FileUtils
 import org.sunbird.common.Platform
+import org.sunbird.common.dto.Request
+import org.sunbird.common.exception.ClientException
+import org.sunbird.utils.CsvUtil
 
 import java.io.{File, IOException}
 import java.nio.ByteBuffer
@@ -54,6 +58,20 @@ object TermSheetReader {
 
   private val INVALID_ENCODING_FAILURE = ParseFailure("ERR_INVALID_ENCODING",
     "this file isn't valid UTF-8 -- in Excel, use 'CSV UTF-8 (Comma delimited)' when saving, not plain 'CSV'.")
+
+  def readOrThrow(request: Request): ParseSuccess = {
+    val file = request.getRequest.get("file").asInstanceOf[File]
+    val fileName = request.getRequest.getOrDefault("fileName", "").asInstanceOf[String]
+    if (file == null) throw new ClientException("ERR_INVALID_DATA", "Please provide a valid file.")
+    try {
+      read(file, fileName) match {
+        case f: ParseFailure => throw new ClientException(f.errCode, f.errMsg)
+        case s: ParseSuccess => s
+      }
+    } finally {
+      FileUtils.deleteQuietly(file)
+    }
+  }
 
   def read(file: File, originalFileName: String): ParseOutcome = {
     if (originalFileName == null || !originalFileName.toLowerCase(Locale.ROOT).endsWith(".csv"))

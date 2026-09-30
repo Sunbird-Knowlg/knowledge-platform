@@ -201,13 +201,13 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
                         rowWarnings: List[TermSheetReader.RowIssue] = Nil): TermSheetReader.SheetRow =
     TermSheetReader.SheetRow(idx, category, name, code, description, assoc, rowErrors, rowWarnings)
 
-  private def activeTerm(id: String, category: String, code: String, name: String, status: String = "Live", description: String = ""): TermBulkManager.ActiveTerm =
-    TermBulkManager.ActiveTerm(id, category, code, name, description, status)
+  private def activeTerm(id: String, category: String, code: String, name: String, status: String = "Live", description: String = ""): TermSheetClassifier.ActiveTerm =
+    TermSheetClassifier.ActiveTerm(id, category, code, name, description, status)
 
-  "TermBulkManager.classifyAndValidate" should "classify a matched row as update, an unmatched row as create, and an unmentioned active term as retire" in {
+  "TermSheetClassifier.classifyAndValidate" should "classify a matched row as update, an unmatched row as create, and an unmentioned active term as retire" in {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "Old CM1"), activeTerm("fw1_competency_cm2", "competency", "cm2", "CM2"))
     val rows = List(sheetRow(0, "competency", "New CM1", "cm1"), sheetRow(1, "competency", "CM3", "cm3"))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency"))
     result.valid shouldBe true
     result.creates.map(_._1.code) shouldBe List("cm3")
     result.updates.map(_._2.code) shouldBe List("cm1")
@@ -218,7 +218,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   }
 
   it should "flag ERR_UNKNOWN_CATEGORY for a row whose category isn't attached to the framework, and never invent a create/update for it" in {
-    val result = TermBulkManager.classifyAndValidate("fw1", List(sheetRow(0, "unknown", "X", "x1")), Nil, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", List(sheetRow(0, "unknown", "X", "x1")), Nil, Set("competency"))
     result.valid shouldBe false
     result.rows.head.errCode shouldBe Some("ERR_UNKNOWN_CATEGORY")
     result.creates shouldBe empty
@@ -230,7 +230,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val originalLocale = java.util.Locale.getDefault
     java.util.Locale.setDefault(new java.util.Locale("tr", "TR"))
     try {
-      val result = TermBulkManager.classifyAndValidate("fw1", List(sheetRow(0, "SKILL", "X", "sk1")), Nil, Set("skill"))
+      val result = TermSheetClassifier.classifyAndValidate("fw1", List(sheetRow(0, "SKILL", "X", "sk1")), Nil, Set("skill"))
       result.rows.head.errCode shouldBe None
     } finally {
       java.util.Locale.setDefault(originalLocale)
@@ -238,27 +238,27 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   }
 
   it should "flag ERR_TERM_CODE_REQUIRED for a row with a blank code" in {
-    val result = TermBulkManager.classifyAndValidate("fw1", List(sheetRow(0, "competency", "X", "")), Nil, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", List(sheetRow(0, "competency", "X", "")), Nil, Set("competency"))
     result.rows.head.errCode shouldBe Some("ERR_TERM_CODE_REQUIRED")
   }
 
   it should "flag ERR_DUPLICATE_CODE on the second occurrence of an in-sheet (category,code) duplicate, leaving the first clean" in {
     val rows = List(sheetRow(0, "competency", "CM1", "cm1"), sheetRow(1, "competency", "CM1 dup", "cm1"))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, Nil, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, Nil, Set("competency"))
     result.rows(0).errCode shouldBe None
     result.rows(1).errCode shouldBe Some("ERR_DUPLICATE_CODE")
   }
 
   it should "flag ERR_DANGLING_ASSOCIATION when a token names a (category,code) absent from both sheet and framework" in {
     val rows = List(sheetRow(0, "competency", "CM1", "cm1", assoc = List("skill:doesnotexist")))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, Nil, Set("competency", "skill"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, Nil, Set("competency", "skill"))
     result.valid shouldBe false
     result.rows.head.errCode shouldBe Some("ERR_DANGLING_ASSOCIATION")
   }
 
   it should "carry forward a TermSheetReader-level row error (e.g. malformed association) as this row's errCode" in {
     val rows = List(sheetRow(0, "competency", "CM1", "cm1", rowErrors = List(TermSheetReader.RowIssue("ERR_MALFORMED_ASSOCIATION", "bad token"))))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, Nil, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, Nil, Set("competency"))
     result.rows.head.errCode shouldBe Some("ERR_MALFORMED_ASSOCIATION")
   }
 
@@ -267,14 +267,14 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
       sheetRow(0, "competency", "CM1", "cm1", assoc = List("competency:cm2")),
       sheetRow(1, "competency", "CM2", "cm2")
     )
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, Nil, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, Nil, Set("competency"))
     result.valid shouldBe true
     val cm2Identifier = TaxonomyUtil.generateIdentifier(TaxonomyUtil.generateIdentifier("fw1", "competency"), "cm2")
     result.creates.find(_._1.code == "cm1").get._2 shouldBe List(cm2Identifier)
   }
 
   it should "warn WARN_ORPHAN_TERM for a create row with no associations that no other row references" in {
-    val result = TermBulkManager.classifyAndValidate("fw1", List(sheetRow(0, "competency", "CM3", "cm3")), Nil, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", List(sheetRow(0, "competency", "CM3", "cm3")), Nil, Set("competency"))
     result.rows.head.warnings.map(_.code) should contain("WARN_ORPHAN_TERM")
   }
 
@@ -285,28 +285,28 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "CM1"), activeTerm("fw1_competency_cm2", "competency", "cm2", "CM2"))
     // cm2 isn't mentioned anywhere in the sheet -> retired by omission; cm1 still references it.
     val rows = List(sheetRow(0, "competency", "CM1", "cm1", assoc = List("competency:cm2")))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency"))
     result.retireIdentifiers should contain("fw1_competency_cm2")
     result.valid shouldBe false
     result.rows.head.errCode shouldBe Some("ERR_DANGLING_ASSOCIATION")
   }
 
   it should "warn WARN_SECOND_ORDER_ORPHAN (cross-reference case) when a sheet row's ONLY incoming reference came from a hub that is retired by omission -- the row itself carries no association of its own" in {
-    val t = TermBulkManager.ActiveTerm("fw1_competency_t", "competency", "t", "T", "", "Live")
+    val t = TermSheetClassifier.ActiveTerm("fw1_competency_t", "competency", "t", "T", "", "Live")
     // h references t but is never mentioned in the sheet -> retired by omission, so t's only incoming reference disappears.
-    val h = TermBulkManager.ActiveTerm("fw1_competency_h", "competency", "h", "H", "", "Live", associations = List("fw1_competency_t"))
+    val h = TermSheetClassifier.ActiveTerm("fw1_competency_h", "competency", "h", "H", "", "Live", associations = List("fw1_competency_t"))
     val rows = List(sheetRow(0, "competency", "T", "t")) // unchanged, no association of its own
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, List(t, h), Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, List(t, h), Set("competency"))
     result.retireIdentifiers should contain("fw1_competency_h")
     result.rows.head.warnings.map(_.code) should contain("WARN_SECOND_ORDER_ORPHAN")
   }
 
   it should "NOT warn WARN_SECOND_ORDER_ORPHAN when a retired hub's target still has another live referrer" in {
-    val t = TermBulkManager.ActiveTerm("fw1_competency_t", "competency", "t", "T", "", "Live")
-    val h = TermBulkManager.ActiveTerm("fw1_competency_h", "competency", "h", "H", "", "Live", associations = List("fw1_competency_t"))
+    val t = TermSheetClassifier.ActiveTerm("fw1_competency_t", "competency", "t", "T", "", "Live")
+    val h = TermSheetClassifier.ActiveTerm("fw1_competency_h", "competency", "h", "H", "", "Live", associations = List("fw1_competency_t"))
     // A second, sheet-mentioned row also references t -- t keeps an incoming reference even after h retires.
     val rows = List(sheetRow(0, "competency", "T", "t"), sheetRow(1, "competency", "OTHER", "o", assoc = List("competency:t")))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, List(t, h), Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, List(t, h), Set("competency"))
     result.retireIdentifiers should contain("fw1_competency_h")
     result.rows.find(_.code == "t").get.warnings.map(_.code) should not contain "WARN_SECOND_ORDER_ORPHAN"
   }
@@ -314,7 +314,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   it should "warn WARN_POSSIBLE_UNINTENDED_CODE_CHANGE when a retiring term and a same-category create row share an exact name" in {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "Infection Control"))
     val rows = List(sheetRow(0, "competency", "Infection Control", "cm1b")) // new code, same name+category as the retiring term
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency"))
     result.retireIdentifiers shouldBe List("fw1_competency_cm1")
     result.rows.head.warnings.map(_.code) should contain("WARN_POSSIBLE_UNINTENDED_CODE_CHANGE")
   }
@@ -322,16 +322,16 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   it should "warn WARN_POSSIBLE_UNINTENDED_CODE_CHANGE for a name+description match even when the create row's category differs from the retiring term's category" in {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "Infection Control"))
     val rows = List(sheetRow(0, "skill", "Infection Control", "sk1")) // different category, same name as the retiring term
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
     result.retireIdentifiers shouldBe List("fw1_competency_cm1")
     result.rows.head.warnings.map(_.code) should contain("WARN_POSSIBLE_UNINTENDED_CODE_CHANGE")
   }
 
   it should "report a real added/removed association diff for an update row, not the row's whole resolved list" in {
     val active = List(
-      TermBulkManager.ActiveTerm("fw1_competency_cm1", "competency", "cm1", "CM1", "", "Live", associations = List("fw1_skill_sk1")),
-      TermBulkManager.ActiveTerm("fw1_skill_sk1", "skill", "sk1", "SK1", "", "Live"),
-      TermBulkManager.ActiveTerm("fw1_skill_sk2", "skill", "sk2", "SK2", "", "Live")
+      TermSheetClassifier.ActiveTerm("fw1_competency_cm1", "competency", "cm1", "CM1", "", "Live", associations = List("fw1_skill_sk1")),
+      TermSheetClassifier.ActiveTerm("fw1_skill_sk1", "skill", "sk1", "SK1", "", "Live"),
+      TermSheetClassifier.ActiveTerm("fw1_skill_sk2", "skill", "sk2", "SK2", "", "Live")
     )
     // Row drops sk1 (still has its own row, just no longer referenced) and picks up sk2 -- a real
     // diff, not the full resolved list. sk1/sk2 each need their own sheet row too, or they'd be
@@ -342,7 +342,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
       sheetRow(1, "skill", "SK1", "sk1"),
       sheetRow(2, "skill", "SK2", "sk2")
     )
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
     result.valid shouldBe true
     val update = result.planUpdates.find(u => u.category == "competency" && u.code == "cm1").get
     update.changes.associationsAdded shouldBe List("skill:sk2")
@@ -351,8 +351,8 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
   it should "report no added/removed associations when a matched row's associations are unchanged from what's already live" in {
     val active = List(
-      TermBulkManager.ActiveTerm("fw1_competency_cm1", "competency", "cm1", "CM1", "", "Live", associations = List("fw1_skill_sk1")),
-      TermBulkManager.ActiveTerm("fw1_skill_sk1", "skill", "sk1", "SK1", "", "Live")
+      TermSheetClassifier.ActiveTerm("fw1_competency_cm1", "competency", "cm1", "CM1", "", "Live", associations = List("fw1_skill_sk1")),
+      TermSheetClassifier.ActiveTerm("fw1_skill_sk1", "skill", "sk1", "SK1", "", "Live")
     )
     // sk1 needs its own row too, or it would be retired-by-omission and cm1's reference to it
     // would become a dangling reference instead of an unchanged association.
@@ -360,7 +360,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
       sheetRow(0, "competency", "CM1", "cm1", assoc = List("skill:sk1")),
       sheetRow(1, "skill", "SK1", "sk1")
     )
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
     val update = result.planUpdates.find(u => u.category == "competency" && u.code == "cm1").get
     update.changes.associationsAdded shouldBe empty
     update.changes.associationsRemoved shouldBe empty
@@ -369,7 +369,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   it should "count a Review-status match under toUpdateDraft, not toUpdateLive, so toUpdateLive+toUpdateDraft never undercounts toUpdate" in {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "CM1", status = "Review"))
     val rows = List(sheetRow(0, "competency", "CM1 edited", "cm1"))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency"))
     result.summary("toUpdate") shouldBe 1
     result.summary("toUpdateLive") shouldBe 0
     result.summary("toUpdateDraft") shouldBe 1
@@ -380,7 +380,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     // warning of its own -- isolates the header-row warning's count/visibility.
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "CM1"))
     val rows = List(sheetRow(0, "competency", "CM1", "cm1"))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"), skippedHeaderRows = List(3))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency"), skippedHeaderRows = List(3))
     result.fileWarnings.map(_.code) shouldBe List("WARN_DUPLICATE_HEADER_ROW")
     result.rows.head.warnings shouldBe empty
     result.summary("warnings") shouldBe 1
@@ -389,7 +389,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   it should "NOT warn WARN_POSSIBLE_UNINTENDED_CODE_CHANGE when only the Name matches but the Description differs" in {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "Infection Control", description = "old desc"))
     val rows = List(sheetRow(0, "competency", "Infection Control", "cm1b", description = "a completely different description"))
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, active, Set("competency"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency"))
     result.rows.head.warnings.map(_.code) should not contain "WARN_POSSIBLE_UNINTENDED_CODE_CHANGE"
   }
 
@@ -403,7 +403,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
     val retiredKeys = Await.result(TermBulkManager.fetchRetiredTermKeys("domain", "fw1", Set("competency")), 10.seconds)
     val rows = List(sheetRow(0, "competency", "Brand New Name", "cm1")) // reuses the retired code as a create
-    val result = TermBulkManager.classifyAndValidate("fw1", rows, Nil, Set("competency"), retiredKeys)
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, Nil, Set("competency"), retiredKeys)
     result.valid shouldBe false
     result.rows.head.errCode shouldBe Some("ERR_DUPLICATE_CODE")
   }
@@ -413,21 +413,21 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   // function of a hand-built ClassificationResult, same testability reasoning as classifyAndValidate.
   // ===================================================================================
 
-  "TermBulkManager.buildCommitFailureResponse" should "drop the clean OK row and return only the FAILED one" in {
-    val okRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK")
-    val failedRow = TermBulkManager.RowOutcome(1, "create", "competency", "cm3", "FAILED", Some("ERR_DANGLING_ASSOCIATION"), Some("bad"))
-    val result = TermBulkManager.ClassificationResult(valid = false, Map("errors" -> 1, "warnings" -> 0), Nil, Nil, Nil, List(okRow, failedRow), Nil, Nil, Nil)
-    val response = TermBulkManager.buildCommitFailureResponse(result)
+  "TermSheetClassifier.buildCommitFailureResponse" should "drop the clean OK row and return only the FAILED one" in {
+    val okRow = TermSheetClassifier.RowOutcome(0, "update", "competency", "cm1", "OK")
+    val failedRow = TermSheetClassifier.RowOutcome(1, "create", "competency", "cm3", "FAILED", Some("ERR_DANGLING_ASSOCIATION"), Some("bad"))
+    val result = TermSheetClassifier.ClassificationResult(valid = false, Map("errors" -> 1, "warnings" -> 0), Nil, Nil, Nil, List(okRow, failedRow), Nil, Nil, Nil)
+    val response = TermSheetClassifier.buildCommitFailureResponse(result)
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
     rows.size shouldBe 1
     rows.get(0).get("status") shouldBe "FAILED"
   }
 
   it should "mark an already-written sibling row FAILED/ERR_COMMIT_PARTIAL_WRITE (not retired/rolled back), alongside the row that actually failed to write" in {
-    val alreadyWritten = TermBulkManager.RowOutcome(0, "create", "competency", "cm1", "OK")
-    val failed = TermBulkManager.RowOutcome(1, "create", "competency", "cm2", "OK")
-    val result = TermBulkManager.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil, List(alreadyWritten, failed), Nil, Nil, Nil)
-    val response = TermBulkManager.buildCommitFailureResponse(result, Map(1 -> ("ERR_DUPLICATE_CODE", "dup")), Set(0), "ERR_COMMIT_FAILED", "aborted")
+    val alreadyWritten = TermSheetClassifier.RowOutcome(0, "create", "competency", "cm1", "OK")
+    val failed = TermSheetClassifier.RowOutcome(1, "create", "competency", "cm2", "OK")
+    val result = TermSheetClassifier.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil, List(alreadyWritten, failed), Nil, Nil, Nil)
+    val response = TermSheetClassifier.buildCommitFailureResponse(result, Map(1 -> ("ERR_DUPLICATE_CODE", "dup")), Set(0), "ERR_COMMIT_FAILED", "aborted")
     response.getResponseCode shouldBe ResponseCode.CLIENT_ERROR
     response.getResult.get("committed") shouldBe false
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
@@ -437,14 +437,14 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     response.getResult.get("summary").asInstanceOf[util.Map[String, AnyRef]].get("errors") shouldBe 1
   }
 
-  "TermBulkManager.buildCommitSuccessResponse" should "report every row's status as SUCCESS (per api-reference.md's commit-success shape), not the classify-time OK -- but only for rows carrying a warning" in {
-    val updateRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK",
-      warnings = List(TermBulkManager.RowIssue("WARN_ORPHAN_TERM", "orphan")))
-    val createRow = TermBulkManager.RowOutcome(1, "create", "competency", "cm3", "OK",
-      warnings = List(TermBulkManager.RowIssue("WARN_ORPHAN_TERM", "orphan")))
-    val result = TermBulkManager.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil,
+  "TermSheetClassifier.buildCommitSuccessResponse" should "report every row's status as SUCCESS (per api-reference.md's commit-success shape), not the classify-time OK -- but only for rows carrying a warning" in {
+    val updateRow = TermSheetClassifier.RowOutcome(0, "update", "competency", "cm1", "OK",
+      warnings = List(TermSheetClassifier.RowIssue("WARN_ORPHAN_TERM", "orphan")))
+    val createRow = TermSheetClassifier.RowOutcome(1, "create", "competency", "cm3", "OK",
+      warnings = List(TermSheetClassifier.RowIssue("WARN_ORPHAN_TERM", "orphan")))
+    val result = TermSheetClassifier.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil,
       List(updateRow, createRow), List((sheetRow(1, "competency", "CM3", "cm3"), Nil)), Nil, Nil)
-    val response = TermBulkManager.buildCommitSuccessResponse(result)
+    val response = TermSheetClassifier.buildCommitSuccessResponse(result)
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
     rows.get(0).get("status") shouldBe "SUCCESS"
     rows.get(1).get("status") shouldBe "SUCCESS"
@@ -452,16 +452,16 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
   }
 
   it should "drop a clean row with no error and no warning entirely" in {
-    val cleanRow = TermBulkManager.RowOutcome(0, "update", "competency", "cm1", "OK")
-    val result = TermBulkManager.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil,
+    val cleanRow = TermSheetClassifier.RowOutcome(0, "update", "competency", "cm1", "OK")
+    val result = TermSheetClassifier.ClassificationResult(valid = true, Map("errors" -> 0, "warnings" -> 0), Nil, Nil, Nil,
       List(cleanRow), Nil, Nil, Nil)
-    val response = TermBulkManager.buildCommitSuccessResponse(result)
+    val response = TermSheetClassifier.buildCommitSuccessResponse(result)
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
     rows.size shouldBe 0
   }
 
   // ===================================================================================
-  // fetchActiveTerms / hasPendingReview / fetchAttachedCategories -- mocked GraphService
+  // fetchActiveTerms / fetchAttachedCategories -- mocked GraphService
   // ===================================================================================
 
   "TermBulkManager.fetchActiveTerms" should "return only Term nodes scoped to this framework (identifier-prefix filter), across every requested category in one query" in {
@@ -481,23 +481,6 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     // graphDB.getNodeByUniqueIds is intentionally left un-stubbed: this must short-circuit without a query.
     val result = Await.result(TermBulkManager.fetchActiveTerms("domain", "fw1", Set.empty), 10.seconds)
     result shouldBe empty
-  }
-
-  "TermBulkManager.hasPendingReview" should "return true when a Term/CategoryInstance under this framework is currently in Review" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    val reviewNode = termNodeWithCategory("fw1_competency_cm1", "competency", "cm1", "CM1", "Review")
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(util.Arrays.asList(reviewNode)))
-    Await.result(TermBulkManager.hasPendingReview("domain", "fw1"), 10.seconds) shouldBe true
-  }
-
-  it should "return false when there is no matching node" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]()))
-    Await.result(TermBulkManager.hasPendingReview("domain", "fw1"), 10.seconds) shouldBe false
   }
 
   "TermBulkManager.fetchAttachedCategories" should "resolve the framework's attached CategoryInstance codes via its live-edit node's hasSequenceMember relations" in {
@@ -678,21 +661,7 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     file.exists() shouldBe false
   }
 
-  "TermBulkManager.bulkCommitTerm" should "reject with ERR_PENDING_REVIEW_EXISTS when a Term/CategoryInstance under this framework is already in Review" in {
-    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
-    val graphDB = mock[GraphService]
-    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
-    stubFrameworkNode(graphDB, "Draft", Nil)
-    val pending = termNodeWithCategory("fw1_competency_cmR", "competency", "cmR", "R", "Review")
-    stubGetNodeByUniqueIds(graphDB, pendingReview = util.Arrays.asList(pending))
-    val (file, name) = buildCsvFile(Nil)
-    val thrown = intercept[ClientException] {
-      Await.result(TermBulkManager.bulkCommitTerm(bulkFileRequest("fw1", file, name)), 10.seconds)
-    }
-    thrown.getErrCode shouldBe "ERR_PENDING_REVIEW_EXISTS"
-  }
-
-  it should "abort with zero writes when the sheet has even one bad row (all-or-nothing)" in {
+  "TermBulkManager.bulkCommitTerm" should "abort with zero writes when the sheet has even one bad row (all-or-nothing)" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
