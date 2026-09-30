@@ -49,8 +49,7 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def reject(request: Request): Future[Response] =
     FrameworkManager.transitionFrameworkStatus(request, Set("Review"), "Draft",
-      status => s"Cannot reject framework: current status is '$status', expected 'Review'",
-      (graphId, frameworkId, _) => FrameworkManager.rejectFrameworkTermsSweep(graphId, frameworkId).map(_ => ()))
+      status => s"Cannot reject framework: current status is '$status', expected 'Review'")
 
 
   @throws[Exception]
