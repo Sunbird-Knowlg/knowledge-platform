@@ -34,6 +34,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'           # reuses the local Maven repository across runs
 
-      - uses: advanced-security/maven-dependency-submission-action@v4
+      - uses: advanced-security/maven-dependency-submission-action@v5
         # No extra config needed: the action discovers the root pom.xml,
         # resolves all profiles and submodules, and submits the full graph.
