@@ -16,7 +16,7 @@ jobs:
       should_build: ${{ steps.check.outputs.enabled }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Check if build is enabled
         id: check
@@ -41,7 +41,7 @@ jobs:
     steps:
       # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Step 2: Set up JDK 11 and Maven
       - name: Set up JDK 11 and Maven
