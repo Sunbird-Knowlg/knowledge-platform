@@ -91,7 +91,7 @@
 			<dependency>
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
-				<version>2.14.0</version>
+				<version>2.22.0</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-beanutils</groupId>
@@ -101,7 +101,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-configuration2</artifactId>
-				<version>2.15.0</version>
+				<version>2.15.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.ivy</groupId>
@@ -121,7 +121,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.18.0</version>
+				<version>3.20.0</version>
 			</dependency>
 			<!-- Security: reactor-netty CVE-2023-34054, CVE-2023-34062, CVE-2025-22227 -->
 			<dependency>
