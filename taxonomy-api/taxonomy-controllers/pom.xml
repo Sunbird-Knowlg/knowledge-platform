@@ -19,7 +19,7 @@
         <scala.maj.version>2.13</scala.maj.version>
         <scala.version>2.13.12</scala.version>
         <play2.version>3.0.5</play2.version>
-        <fasterxml.jackson.version>2.18.6</fasterxml.jackson.version>
+        <fasterxml.jackson.version>2.22.0</fasterxml.jackson.version>
     </properties>
 
     <dependencies>
