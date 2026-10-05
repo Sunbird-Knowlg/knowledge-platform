@@ -82,7 +82,9 @@ object TermSheetClassifier {
     }.toMap
 
     val mentionedKeys: Set[(String, String)] = rows.filter(_.code.nonEmpty).map(r => normKey(r.category, r.code)).toSet
-    val retireList: List[ActiveTerm] = activeByKey.keySet.diff(mentionedKeys).toList.map(activeByKey).sortBy(t => (t.category, t.code))
+    val sheetCategories: Set[String] = rows.map(_.category.trim.toLowerCase(Locale.ROOT)).toSet
+    val retireCandidates: Map[(String, String), ActiveTerm] = activeByKey.filter { case ((category, _), _) => sheetCategories.contains(category) }
+    val retireList: List[ActiveTerm] = retireCandidates.keySet.diff(mentionedKeys).toList.map(retireCandidates).sortBy(t => (t.category, t.code))
     val retiredIdSet: Set[String] = retireList.map(_.identifier).toSet
 
     def resolve(row: TermSheetReader.SheetRow): (List[String], List[String], List[RowIssue]) = {
@@ -126,8 +128,13 @@ object TermSheetClassifier {
       untouchedSurvivorEdges ++
         updates.map { case (term, _, ids) => term.identifier -> ids } ++
         creates.map { case (row, ids) => sheetIdentifiers(normKey(row.category, row.code)) -> ids }
-    def incomingCount(edges: Map[String, List[String]], target: String): Int = edges.values.count(_.contains(target))
-    val droppedToZero: Set[String] = postEdges.keySet.filter(id => incomingCount(preEdges, id) > 0 && incomingCount(postEdges, id) == 0)
+    def invertEdges(edges: Map[String, List[String]]): Map[String, Set[String]] =
+      edges.toList.flatMap { case (src, targets) => targets.map(_ -> src) }
+        .groupBy(_._1).map { case (target, srcs) => target -> srcs.map(_._2).toSet }
+    val preIncoming: Map[String, Set[String]] = invertEdges(preEdges)
+    val postIncoming: Map[String, Set[String]] = invertEdges(postEdges)
+    def incomingCount(inverted: Map[String, Set[String]], target: String): Int = inverted.getOrElse(target, Set.empty).size
+    val droppedToZero: Set[String] = postEdges.keySet.filter(id => incomingCount(preIncoming, id) > 0 && incomingCount(postIncoming, id) == 0)
     val updatedRowByIdentifier: Map[String, TermSheetReader.SheetRow] = updates.map { case (term, row, _) => term.identifier -> row }.toMap
     val createRowByIdentifier: Map[String, TermSheetReader.SheetRow] = creates.map { case (row, ids) => sheetIdentifiers(normKey(row.category, row.code)) -> row }.toMap
     val untouchedTermByIdentifier: Map[String, ActiveTerm] = activeTerms.filter(t => untouchedSurvivorEdges.contains(t.identifier)).map(t => t.identifier -> t).toMap
@@ -138,13 +145,13 @@ object TermSheetClassifier {
     val fileSecondOrderWarnings: List[RowIssue] = droppedToZero.flatMap(untouchedTermByIdentifier.get).toList.map(t =>
       RowIssue("WARN_SECOND_ORDER_ORPHAN", s"${t.category}:${t.code} (not in this sheet) loses its only incoming reference, retired by this commit."))
 
+    val allReferencedIds: Set[String] = finalized.flatMap(_._2).toSet
+
     def rowWarnings(p: Prelim, ids: List[String]): List[RowIssue] = {
       val base = p.row.rowWarnings.map(w => RowIssue(w.code, w.msg, w.token))
       val isCleanCreate = p.rowType == "create" && p.errors.isEmpty
       val selfKey = normKey(p.row.category, p.row.code)
-      val referencedElsewhere = finalized.exists { case (other, otherIds, _) =>
-        other.row.index != p.row.index && otherIds.contains(sheetIdentifiers.getOrElse(selfKey, ""))
-      }
+      val referencedElsewhere = allReferencedIds.contains(sheetIdentifiers.getOrElse(selfKey, ""))
       val orphan =
         if (isCleanCreate && ids.isEmpty && !referencedElsewhere)
           List(RowIssue("WARN_ORPHAN_TERM", s"${p.row.category}:${p.row.code} has no incoming or outgoing associations."))

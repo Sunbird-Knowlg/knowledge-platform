@@ -1,5 +1,6 @@
 package taxonomy.controllers.v3
 
+import org.apache.commons.io.FilenameUtils
 import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
@@ -83,7 +84,7 @@ class FrameworkTermController @Inject()(@Named(ActorNames.TERM_ACTOR) termActor:
         val filePart = multipartData.files.head
         val tempLocation = Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework")
         new File(tempLocation).mkdirs()
-        val safeName = filePart.filename
+        val safeName = FilenameUtils.getName(filePart.filename)
         val file = new File(tempLocation + File.separator + System.currentTimeMillis + "_" + safeName)
         filePart.ref.copyTo(file, replace = false)
         reqMap.put("file", file)

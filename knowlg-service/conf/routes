@@ -153,6 +153,8 @@ POST      /framework/v3/list                              taxonomy.controllers.v
 DELETE    /framework/v3/retire/:identifier                taxonomy.controllers.v3.FrameworkController.retire(identifier:String)
 POST      /framework/v3/copy/:identifier                  taxonomy.controllers.v3.FrameworkController.copyFramework(identifier:String)
 POST      /framework/v3/publish/:identifier               taxonomy.controllers.v3.FrameworkController.publish(identifier:String)
+POST      /framework/v3/review/:identifier                taxonomy.controllers.v3.FrameworkController.review(identifier:String)
+POST      /framework/v3/reject/:identifier                taxonomy.controllers.v3.FrameworkController.reject(identifier:String)
 
 # Category API's
 POST      /framework/v3/category/master/create                      taxonomy.controllers.v3.TaxonomyCategoryController.createCategory()
@@ -178,7 +180,7 @@ GET       /framework/v3/term/download/:framework     taxonomy.controllers.v3.Fra
 
 # CompetencyFramework API's
 POST      /competency-framework/v3/create                            taxonomy.controllers.v3.CompetencyFrameworkController.createCompetencyFramework()
-GET       /competency-framework/v3/read/:identifier                  taxonomy.controllers.v3.CompetencyFrameworkController.readCompetencyFramework(identifier:String, fields: Option[String],categories: Option[String])
+GET       /competency-framework/v3/read/:identifier                  taxonomy.controllers.v3.CompetencyFrameworkController.readCompetencyFramework(identifier:String, fields: Option[String], categories: Option[String])
 PATCH     /competency-framework/v3/update/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.updateCompetencyFramework(identifier:String)
 DELETE    /competency-framework/v3/retire/:identifier                taxonomy.controllers.v3.CompetencyFrameworkController.retire(identifier:String)
 POST      /competency-framework/v3/publish/:identifier               taxonomy.controllers.v3.CompetencyFrameworkController.publish(identifier:String)

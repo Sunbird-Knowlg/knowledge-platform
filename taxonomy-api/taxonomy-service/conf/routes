@@ -11,6 +11,8 @@ POST      /framework/v3/list                              taxonomy.controllers.v
 DELETE    /framework/v3/retire/:identifier                taxonomy.controllers.v3.FrameworkController.retire(identifier:String)
 POST      /framework/v3/copy/:identifier                  taxonomy.controllers.v3.FrameworkController.copyFramework(identifier:String)
 POST      /framework/v3/publish/:identifier               taxonomy.controllers.v3.FrameworkController.publish(identifier:String)
+POST      /framework/v3/review/:identifier                taxonomy.controllers.v3.FrameworkController.review(identifier:String)
+POST      /framework/v3/reject/:identifier                taxonomy.controllers.v3.FrameworkController.reject(identifier:String)
 
 # Category API's
 POST      /framework/v3/category/master/create                      taxonomy.controllers.v3.TaxonomyCategoryController.createCategory()

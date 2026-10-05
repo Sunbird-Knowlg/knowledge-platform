@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 // No controller-test harness exists anywhere else in this module (or in any other taxonomy/content/
 // assessment controllers module) to mirror, so this establishes its own lightweight one: the injected
-// actors are Pekko TestProbes standing in for the ScalaMock-based "mock the DI seam" convention used at
+// actor is a Pekko TestProbe standing in for the ScalaMock-based "mock the DI seam" convention used at
 // the actor layer, since a plain ActorRef can't be usefully mocked with ScalaMock.
 class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -32,15 +32,14 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
     response
   }
 
-  private def newController(): (CompetencyFrameworkController, TestProbe, TestProbe) = {
+  private def newController(): (CompetencyFrameworkController, TestProbe) = {
     val frameworkProbe = TestProbe()
-    val categoryProbe = TestProbe()
-    val controller = new CompetencyFrameworkController(frameworkProbe.ref, categoryProbe.ref, Helpers.stubControllerComponents(), system)
-    (controller, frameworkProbe, categoryProbe)
+    val controller = new CompetencyFrameworkController(frameworkProbe.ref, Helpers.stubControllerComponents(), system)
+    (controller, frameworkProbe)
   }
 
   "CompetencyFrameworkController" should "invoke frameworkActor with CREATE_FRAMEWORK op and CompetencyFramework schema context on createCompetencyFramework" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     val body = Json.parse("""{"request":{"competencyFramework":{"name":"CF1","code":"cf1","channel":"sunbird"}}}""")
     controller.createCompetencyFramework().apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]
@@ -50,7 +49,7 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
   }
 
   it should "invoke frameworkActor with READ_FRAMEWORK op on readCompetencyFramework" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     controller.readCompetencyFramework("cf1", None, None).apply(FakeRequest())
     val req = frameworkProbe.expectMsgType[SbRequest]
     frameworkProbe.reply(successResponse())
@@ -59,7 +58,7 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
   }
 
   it should "invoke frameworkActor with UPDATE_FRAMEWORK op and set identifier in context on updateCompetencyFramework" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     val body = Json.parse("""{"request":{"competencyFramework":{"description":"updated"}}}""")
     controller.updateCompetencyFramework("cf1").apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]
@@ -70,7 +69,7 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
   }
 
   it should "invoke frameworkActor with RETIRE_FRAMEWORK op on retire" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     val body = Json.parse("""{"request":{}}""")
     controller.retire("cf1").apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]
@@ -80,7 +79,7 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
   }
 
   it should "invoke frameworkActor with PUBLISH_FRAMEWORK op on publish" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     val body = Json.parse("""{"request":{}}""")
     controller.publish("cf1").apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]
@@ -90,7 +89,7 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
   }
 
   it should "invoke frameworkActor with REVIEW_FRAMEWORK op on review" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     val body = Json.parse("""{"request":{}}""")
     controller.review("cf1").apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]
@@ -99,7 +98,7 @@ class CompetencyFrameworkControllerTest extends FlatSpec with Matchers with Befo
   }
 
   it should "invoke frameworkActor with REJECT_FRAMEWORK op on reject" in {
-    val (controller, frameworkProbe, _) = newController()
+    val (controller, frameworkProbe) = newController()
     val body = Json.parse("""{"request":{}}""")
     controller.reject("cf1").apply(FakeRequest().withJsonBody(body))
     val req = frameworkProbe.expectMsgType[SbRequest]

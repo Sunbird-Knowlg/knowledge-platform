@@ -165,20 +165,8 @@ class TermActor @Inject()(implicit oec: OntologyEngineContext, ss: StorageServic
     val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Term ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for Term")
-    val categoryInstanceId = TaxonomyUtil.generateIdentifier(frameworkId, categoryId)
-    val getCategoryInstanceReq = new Request()
-    getCategoryInstanceReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getCategoryInstanceReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
-    getCategoryInstanceReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
-    getCategoryInstanceReq.put(Constants.IDENTIFIER, categoryInstanceId)
-    DataNode.read(getCategoryInstanceReq)(oec, ec).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
-      else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
-    })(ec)
+    TaxonomyUtil.validateCategoryInstance(frameworkId, categoryId,
+      "ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
   }
 
   private def getRequestData(request: Request): util.List[util.Map[String, AnyRef]] = {
