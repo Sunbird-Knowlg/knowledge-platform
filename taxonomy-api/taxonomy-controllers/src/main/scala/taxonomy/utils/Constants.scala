@@ -44,7 +44,6 @@ object Constants {
     val COMPETENCY_FRAMEWORK: String = "competencyFramework"
     val COMPETENCY_FRAMEWORK_SCHEMA_VERSION = "1.0"
     val COMPETENCY_FRAMEWORK_SCHEMA_NAME = "competencyframework"
-    val FRAMEWORK_OBJECT_TYPE: String = "frameworkObjectType"
     val REVIEW_FRAMEWORK: String = "reviewFramework"
     val REJECT_FRAMEWORK: String = "rejectFramework"
 

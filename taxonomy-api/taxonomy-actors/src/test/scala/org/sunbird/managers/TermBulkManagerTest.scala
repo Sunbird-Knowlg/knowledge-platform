@@ -321,10 +321,21 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
 
   it should "warn WARN_POSSIBLE_UNINTENDED_CODE_CHANGE for a name+description match even when the create row's category differs from the retiring term's category" in {
     val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "Infection Control"))
-    val rows = List(sheetRow(0, "skill", "Infection Control", "sk1")) // different category, same name as the retiring term
+    val rows = List(
+      sheetRow(0, "skill", "Infection Control", "sk1"), // different category, same name as the retiring term
+      sheetRow(1, "competency", "Unrelated", "cm9")
+    )
     val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
     result.retireIdentifiers shouldBe List("fw1_competency_cm1")
     result.rows.head.warnings.map(_.code) should contain("WARN_POSSIBLE_UNINTENDED_CODE_CHANGE")
+  }
+
+  it should "NOT retire an active term whose category is attached to the framework but never mentioned anywhere in the uploaded sheet" in {
+    val active = List(activeTerm("fw1_competency_cm1", "competency", "cm1", "CM1"))
+    val rows = List(sheetRow(0, "skill", "SK1", "sk1"))
+    val result = TermSheetClassifier.classifyAndValidate("fw1", rows, active, Set("competency", "skill"))
+    result.retireIdentifiers shouldBe empty
+    result.summary("toRetire") shouldBe 0
   }
 
   it should "report a real added/removed association diff for an update row, not the row's whole resolved list" in {

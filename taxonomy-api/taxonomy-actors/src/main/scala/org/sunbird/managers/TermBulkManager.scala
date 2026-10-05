@@ -30,7 +30,7 @@ object TermBulkManager {
     val byCategory: Map[String, List[TermSheetReader.SheetRow]] = result.creates.map(_._1).groupBy(_.category)
 
     val createFutures: Future[List[(TermSheetReader.SheetRow, Either[(String, String), String])]] =
-      FutureUtil.sequentially(byCategory.toList) { case (category, categoryRows) =>
+      Future.sequence(byCategory.toList.map { case (category, categoryRows) =>
         val categoryId = TaxonomyUtil.generateIdentifier(frameworkId, category)
         validateCategoryInstance(frameworkId, category).flatMap { categoryNode =>
           val startIndex: Int = TaxonomyUtil.getNextSequenceIndex(categoryNode)
@@ -43,7 +43,7 @@ object TermBulkManager {
               .map(result => (row, result))
           }
         }
-      }.map(_.flatten)
+      }).map(_.flatten)
 
     createFutures.flatMap { createResults =>
       val createIdByRowIndex: Map[Int, String] = createResults.collect {
@@ -213,21 +213,8 @@ object TermBulkManager {
                                                  (implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] = {
     if (frameworkId.isEmpty) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Term ")
     if (category.isEmpty) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${category}' for Term")
-    val categoryInstanceId = TaxonomyUtil.generateIdentifier(frameworkId, category)
-    val getCategoryInstanceReq = new Request()
-    getCategoryInstanceReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        put("graph_id", "domain")
-        put("objectType", "CategoryInstance")
-        put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
-        put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
-      }
-    })
-    getCategoryInstanceReq.put(Constants.IDENTIFIER, categoryInstanceId)
-    DataNode.read(getCategoryInstanceReq).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
-      else throw new ClientException("ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
-    })
+    TaxonomyUtil.validateCategoryInstance(frameworkId, category,
+      "ERR_CHANNEL_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
   }
 
   private def queryFrameworkNodes(graphId: String, frameworkId: String, objectTypes: List[String], statusFilter: Filter,
@@ -366,7 +353,7 @@ object TermBulkManager {
   private def buildDownloadCsv(frameworkId: String, rows: List[List[String]]): File = {
     val tempDir = new File(Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework"))
     tempDir.mkdirs()
-    val file = new File(tempDir, s"$frameworkId.csv")
+    val file = new File(tempDir, s"$frameworkId-${java.util.UUID.randomUUID()}.csv")
     CsvUtil.writeCsv(file, TermSheetReader.REQUIRED_HEADERS, rows)
   }
 }

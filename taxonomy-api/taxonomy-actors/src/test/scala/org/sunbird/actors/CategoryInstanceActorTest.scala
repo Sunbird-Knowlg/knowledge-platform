@@ -70,7 +70,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     assert(response.get("versionKey") != null)
   }
 
-  it should "resolve the parent framework under the competencyframework schema when frameworkObjectType is set" in {
+  it should "create a CategoryInstance under a CompetencyFramework parent" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
@@ -109,7 +109,7 @@ class CategoryInstanceActorTest extends BaseSpec with MockFactory {
     (graphDB.createRelation _).expects(*, *).returns(Future(new Response()))
 
     val request = getCategoryInstanceRequest()
-    request.putAll(mutable.Map[String, AnyRef]("framework" -> "CF1", "code" -> "competency", "name" -> "Competency", "frameworkObjectType" -> "competencyframework").asJava)
+    request.putAll(mutable.Map[String, AnyRef]("framework" -> "CF1", "code" -> "competency", "name" -> "Competency").asJava)
     request.setOperation(Constants.CREATE_CATEGORY_INSTANCE)
     val response = callActor(request, Props(new CategoryInstanceActor()))
     assert("successful".equals(response.getParams.getStatus))

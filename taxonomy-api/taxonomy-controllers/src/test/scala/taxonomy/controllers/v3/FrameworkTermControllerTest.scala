@@ -67,6 +67,18 @@ class FrameworkTermControllerTest extends FlatSpec with Matchers with BeforeAndA
     thrown.getErrCode shouldBe "ERR_INVALID_DATA"
   }
 
+  it should "sanitize a path-traversal filename so the destination file stays inside the temp dir" in {
+    val (controller, termProbe) = newController()
+    val multipartBody = MultipartFormData(Map("framework" -> Seq("fw1")), Seq(tempCsvFilePart("../../../etc/evil.csv")), Seq[BadPart]())
+    controller.bulkValidateTerm().apply(FakeRequest().withMultipartFormDataBody(multipartBody))
+    val req = termProbe.expectMsgType[SbRequest]
+    termProbe.reply(successResponse())
+    val tempLocation = new File(org.sunbird.common.Platform.getString("competencyframework.upload.temp_location", "/tmp/competencyframework")).getCanonicalPath
+    val destFile = req.getRequest.get("file").asInstanceOf[File]
+    destFile.getCanonicalPath should startWith(tempLocation)
+    req.getRequest.get("fileName") shouldBe "evil.csv"
+  }
+
   "FrameworkTermController.bulkCommitTerm" should "invoke termActor with BULK_COMMIT_TERM op, carrying the framework field and the uploaded file" in {
     val (controller, termProbe) = newController()
     val multipartBody = MultipartFormData(Map("framework" -> Seq("fw1")), Seq(tempCsvFilePart()), Seq[BadPart]())
