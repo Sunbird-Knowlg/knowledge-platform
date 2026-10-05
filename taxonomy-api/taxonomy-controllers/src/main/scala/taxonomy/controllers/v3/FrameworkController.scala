@@ -7,57 +7,30 @@ import org.apache.pekko.actor.{ActorRef, ActorSystem}
 import com.google.inject.Singleton
 import javax.inject.{Inject, Named}
 import play.api.mvc.ControllerComponents
-import scala.concurrent.{ExecutionContext,Future}
 import org.sunbird.common.dto.ResponseHandler
-import taxonomy.controllers.BaseController
 import taxonomy.utils.{ActorNames, ApiId, Constants, JavaJsonUtils}
 
 @Singleton
-class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) frameworkActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends BaseController(cc) {
+class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) frameworkActor: ActorRef, cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends FrameworkControllerBase(frameworkActor, cc) {
 
-    val objectType = "Framework"
-    def createFramework()= Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        val frameworkRequest = getRequest(framework, headers, Constants.CREATE_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.CREATE_FRAMEWORK, frameworkActor, frameworkRequest)
-    }
+    override protected val objectType = "Framework"
+    override protected val schemaName = Constants.FRAMEWORK_SCHEMA_NAME
+    override protected val bodyKey = Constants.FRAMEWORK
 
-    def readFramework(identifier: String, fields: Option[String], categories: Option[String]) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val framework = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        framework.putAll(Map(Constants.IDENTIFIER -> identifier, Constants.CATEGORIES -> categories.getOrElse("")).asJava )
-        val readRequest = getRequest(framework, headers, "readFramework")
-        setRequestContext(readRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.READ_FRAMEWORK, frameworkActor, readRequest)
-    }
-    
-    def retire(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        val frameworkRequest = getRequest(framework, headers, Constants.RETIRE_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
-        frameworkRequest.getContext.put(Constants.IDENTIFIER, identifier)
-        getResult(ApiId.RETIRE_FRAMEWORK, frameworkActor, frameworkRequest)
-    }
+    def createFramework() = doCreate(ApiId.CREATE_FRAMEWORK)
 
-    def updateFramework(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        val frameworkRequest = getRequest(framework, headers, Constants.UPDATE_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
-        frameworkRequest.getContext.put(Constants.IDENTIFIER, identifier)
-        getResult(ApiId.UPDATE_FRAMEWORK, frameworkActor, frameworkRequest)
-    }
-    
+    def readFramework(identifier: String, fields: Option[String], categories: Option[String]) = doRead(identifier, fields, categories, ApiId.READ_FRAMEWORK)
+
+    def updateFramework(identifier: String) = doUpdate(identifier, ApiId.UPDATE_FRAMEWORK)
+
+    def retire(identifier: String) = doDispatch(identifier, Constants.RETIRE_FRAMEWORK, ApiId.RETIRE_FRAMEWORK, identifierInContext = true)
+
+    def publish(identifier: String) = doDispatch(identifier, Constants.PUBLISH_FRAMEWORK, ApiId.PUBLISH_FRAMEWORK, identifierInContext = false)
+
+    def review(identifier: String) = doDispatch(identifier, Constants.REVIEW_FRAMEWORK, ApiId.REVIEW_FRAMEWORK, identifierInContext = false)
+
+    def reject(identifier: String) = doDispatch(identifier, Constants.REJECT_FRAMEWORK, ApiId.REJECT_FRAMEWORK, identifierInContext = false)
+
     def listFramework() = Action.async { implicit request =>
         val result = ResponseHandler.OK()
         val response = JavaJsonUtils.serialize(result)
@@ -71,19 +44,7 @@ class FrameworkController @Inject()(@Named(ActorNames.FRAMEWORK_ACTOR) framework
         framework.putAll(headers)
         framework.putAll(Map("identifier" -> identifier ).asJava)
         val frameworkRequest = getRequest(framework, headers, Constants.COPY_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
+        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, "Framework", Constants.FRAMEWORK_SCHEMA_NAME)
         getResult(ApiId.COPY_FRAMEWORK, frameworkActor, frameworkRequest)
-    }
-
-    def publish(identifier: String) = Action.async { implicit request =>
-        val headers = commonHeaders()
-        val body = requestBody()
-        val framework = body.getOrDefault(Constants.FRAMEWORK, new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
-        framework.putAll(headers)
-        framework.putAll(Map("identifier" -> identifier).asJava)
-        val frameworkRequest = getRequest(framework, headers, Constants.PUBLISH_FRAMEWORK)
-        setRequestContext(frameworkRequest, Constants.FRAMEWORK_SCHEMA_VERSION, objectType, Constants.FRAMEWORK_SCHEMA_NAME)
-        getResult(ApiId.PUBLISH_FRAMEWORK, frameworkActor, frameworkRequest)
-
     }
 }
