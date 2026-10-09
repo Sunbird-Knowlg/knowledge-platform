@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.leadpony.justify.api.JsonSchema;
 import org.sunbird.common.Platform;
+import org.sunbird.telemetry.logger.TelemetryManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -42,7 +43,7 @@ public class JsonSchemaValidator extends BaseSchemaValidator {
     }
 
     private void loadConfig() throws Exception {
-        System.out.println("Config path: " + basePath + "config.json");
+        TelemetryManager.log("Config path: " + basePath + "config.json");
         if(basePath.startsWith("http")){
             this.config = ConfigFactory.parseURL(new URL( basePath + "config.json"));
         } else {

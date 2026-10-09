@@ -50,7 +50,6 @@ class DialStore(keySpace: String, table: String, primaryKey: java.util.List[Stri
       })
     } catch {
       case e: Exception =>
-        e.printStackTrace()
         TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
         throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
     }

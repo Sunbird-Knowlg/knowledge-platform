@@ -1,6 +1,8 @@
 package org.sunbird.common.dto;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sunbird.common.exception.*;
 
 import java.util.ArrayList;
@@ -10,6 +12,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ResponseHandler {
+
+    // Note: TelemetryManager (platform-telemetry) is not usable here -- that module
+    // itself depends on platform-common, so a reverse dependency would be circular.
+    private static final Logger logger = LoggerFactory.getLogger(ResponseHandler.class);
 
     public static Response handleResponses(List<Response> responses) {
         ResponseCode responseCode = getResponseCode(responses);
@@ -154,10 +160,9 @@ public class ResponseHandler {
             params.setErr(mwException.getErrCode());
             response.put("messages", mwException.getMessages());
         } else {
-            e.printStackTrace();
+            logger.error("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage(), e);
             params.setErr("ERR_SYSTEM_EXCEPTION");
         }
-        System.out.println("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage());
         params.setErrmsg(setErrMessage(e));
         response.setParams(params);
         setResponseCode(response, e);

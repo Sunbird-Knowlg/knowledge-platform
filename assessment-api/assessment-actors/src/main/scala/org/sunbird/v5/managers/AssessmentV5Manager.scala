@@ -11,6 +11,7 @@ import org.sunbird.graph.nodes.DataNode
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition}
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.questionset.HierarchyManager
+import org.sunbird.telemetry.logger.TelemetryManager
 import org.sunbird.telemetry.util.LogTelemetryEventUtil
 import org.sunbird.utils.AssessmentErrorCodes
 import org.sunbird.utils.questionset.RequestUtil
@@ -582,7 +583,7 @@ object AssessmentV5Manager {
                 correctResp.put("value", correctKey.toInt.asInstanceOf[AnyRef])
               }
             } catch {
-              case e: NumberFormatException => e.printStackTrace()
+              case e: NumberFormatException => TelemetryManager.error("Failed to convert correctResponse value to integer", e)
             }
           }
           //update mapping — v1.0 only: mapping used {response, outcomes.score}; v1.1 uses {value, score} directly
@@ -651,7 +652,7 @@ object AssessmentV5Manager {
       } else data
     } catch {
       case e: Exception => {
-        e.printStackTrace()
+        TelemetryManager.error("Error Occurred While Converting Data To Quml Format for " + data.get("identifier"), e)
         throw new ServerException("ERR_QUML_DATA_TRANSFORM", s"Error Occurred While Converting Data To Quml 1.1 Format for ${data.get("identifier")}")
       }
     }
@@ -699,7 +700,7 @@ object AssessmentV5Manager {
       } else data
     } catch {
       case e: Exception => {
-        e.printStackTrace()
+        TelemetryManager.error("Error Occurred While Converting Data To Quml Format for " + data.get("identifier"), e)
         throw new ServerException("ERR_QUML_DATA_TRANSFORM", s"Error Occurred While Converting Data To Quml 1.1 Format for ${data.get("identifier")}")
       }
     }

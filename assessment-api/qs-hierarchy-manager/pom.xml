@@ -47,6 +47,10 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
+                    <groupId>net.jpountz.lz4</groupId>
+                    <artifactId>lz4</artifactId>
+                </exclusion>
+                <exclusion>
                     <artifactId>httpcore</artifactId>
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
@@ -55,6 +59,13 @@
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- drop-in (same net.jpountz.lz4 package) for the vulnerable net.jpountz.lz4:lz4
+             that cassandra-all pulls in; embedded Cassandra needs LZ4 at test runtime -->
+        <dependency>
+            <groupId>at.yawk.lz4</groupId>
+            <artifactId>lz4-java</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.mashape.unirest</groupId>

@@ -134,7 +134,7 @@ public class GraphAsyncOperations {
 
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
-			e.printStackTrace();
+			TelemetryManager.error("Error establishing graph connection", e);
 			if (!(e instanceof MiddlewareException)) {
 				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -199,7 +199,7 @@ public class GraphAsyncOperations {
 
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
-			e.printStackTrace();
+			TelemetryManager.error("Error establishing graph connection", e);
 			if (!(e instanceof MiddlewareException)) {
 				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
@@ -245,7 +245,7 @@ public class GraphAsyncOperations {
 
 			return FutureConverters.toScala(future);
 		} catch (Throwable e) {
-			e.printStackTrace();
+			TelemetryManager.error("Error establishing graph connection", e);
 			if (!(e instanceof MiddlewareException)) {
 				throw new ServerException(DACErrorCodeConstants.CONNECTION_PROBLEM.name(),
 						DACErrorMessageConstants.CONNECTION_PROBLEM + " | " + e.getMessage(), e);
