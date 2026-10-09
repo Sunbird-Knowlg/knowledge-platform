@@ -4,7 +4,7 @@ import org.apache.commons.collections4.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode}
+import org.sunbird.common.exception.{ClientException, ErrorCodes, ResponseCode, ServerException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.external.store.ExternalStoreFactory
 import org.sunbird.telemetry.logger.TelemetryManager
@@ -186,10 +186,16 @@ object RelationManager {
         dataMap          : Map[String, List[String]]
     )(implicit ec: ExecutionContext): Future[List[Response]] = {
         if (isRedisEnabled) {
-            dataMap.foreach { case (identifier, nodeIds) =>
-                HierarchyRelationCache.replaceSet(relationshipKey(rootId, identifier, relationshipType), nodeIds)
+            Future {
+                val failedKeys = dataMap.flatMap { case (identifier, nodeIds) =>
+                    val key = relationshipKey(rootId, identifier, relationshipType)
+                    if (HierarchyRelationCache.replaceSet(key, nodeIds)) None else Some(key)
+                }
+                if (failedKeys.nonEmpty)
+                    throw new ServerException("ERR_HIERARCHY_RELATION_CACHE",
+                        s"Failed to write $relationshipType relationships to Redis for ${failedKeys.size} key(s), e.g. ${failedKeys.head}")
+                List(ResponseHandler.OK)
             }
-            Future.successful(List(ResponseHandler.OK))
         } else {
             val store = ExternalStoreFactory.getExternalStore(
                 s"$relationCacheKeyspace.$relationCacheTable", primaryKey)
