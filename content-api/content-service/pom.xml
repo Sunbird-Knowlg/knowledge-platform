@@ -272,6 +272,14 @@
             <version>${play2.version}</version>
             <scope>test</scope>
             <exclusions>
+                <!-- Security (CVE-2023-26119): swap htmlunit-driver 4.13.0 (htmlunit 2.70, <3.0.0
+                     vulnerable) for htmlunit3-driver (htmlunit 4.x, org.htmlunit). Same
+                     org.openqa.selenium.htmlunit.HtmlUnitDriver class, which play-test's Helpers$
+                     needs to resolve at class-init. -->
+                <exclusion>
+                    <groupId>org.seleniumhq.selenium</groupId>
+                    <artifactId>htmlunit-driver</artifactId>
+                </exclusion>
                 <exclusion>
                     <artifactId>guava</artifactId>
                     <groupId>com.google.guava</groupId>
@@ -291,6 +299,11 @@
                     <groupId>io.fluentlenium</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>htmlunit3-driver</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.joda</groupId>

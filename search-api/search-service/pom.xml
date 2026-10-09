@@ -198,6 +198,14 @@
       <version>${play2.version}</version>
       <scope>test</scope>
       <exclusions>
+                <!-- Security (CVE-2023-26119): swap htmlunit-driver 4.13.0 (htmlunit 2.70, <3.0.0
+                     vulnerable) for htmlunit3-driver (htmlunit 4.x, org.htmlunit). Same
+                     org.openqa.selenium.htmlunit.HtmlUnitDriver class, which play-test's Helpers$
+                     needs to resolve at class-init. -->
+                <exclusion>
+                    <groupId>org.seleniumhq.selenium</groupId>
+                    <artifactId>htmlunit-driver</artifactId>
+                </exclusion>
         <!-- Security: fluentlenium-core drags in selenium-remote-driver ->
              io.appium:java-client, org.asynchttpclient:async-http-client
              (CVE-2024-53990), and eclipse jetty 9.4.50. Nothing in this module
@@ -214,6 +222,11 @@
         </exclusion>
       </exclusions>
     </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>htmlunit3-driver</artifactId>
+            <scope>test</scope>
+        </dependency>
     <dependency>
       <groupId>org.joda</groupId>
       <artifactId>joda-convert</artifactId>

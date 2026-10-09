@@ -260,16 +260,15 @@
 				<artifactId>kafka_2.13</artifactId>
 				<version>3.9.2</version>
 			</dependency>
-			<!-- Security: play-test's Helpers$ references org.openqa.selenium.htmlunit.HtmlUnitDriver
-			     as a static field default (WithBrowser support), so the class must resolve at
-			     Helpers$ class-init even though nothing here uses browser testing - fully
-			     excluding htmlunit-driver (as previously done) throws NoClassDefFoundError on
-			     every specs2 test that touches Helpers. Pin to 4.13.0 instead, which pulls the
-			     patched net.sourceforge.htmlunit:htmlunit 2.70.0 (fixes CVE-2023-26119, was <2.70.0). -->
+			<!-- Security: CVE-2023-26119 (htmlunit < 3.0.0). play-test's Helpers$ references
+			     org.openqa.selenium.htmlunit.HtmlUnitDriver as a static field default, so a driver must
+			     stay on the test classpath. The 4.13.0 htmlunit-driver bundles vulnerable htmlunit 2.70,
+			     so it is excluded from play-specs2 and replaced with htmlunit3-driver (same class, Java 11
+			     bytecode, htmlunit 4.x under org.htmlunit). -->
 			<dependency>
 				<groupId>org.seleniumhq.selenium</groupId>
-				<artifactId>htmlunit-driver</artifactId>
-				<version>4.13.0</version>
+				<artifactId>htmlunit3-driver</artifactId>
+				<version>4.32.0</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
