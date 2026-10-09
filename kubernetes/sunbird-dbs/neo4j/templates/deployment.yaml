@@ -13,7 +13,6 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
-      automountServiceAccountToken: false
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.image }}
@@ -28,9 +27,7 @@ spec:
               name: bolt-port-1
             - containerPort: 8687
               name: bolt-port-2
-          resources:
-{{ toYaml .Values.neo4j.resources | indent 12 }}
-
+          
 ---
 apiVersion: v1
 kind: Service

@@ -13,7 +13,6 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
-      automountServiceAccountToken: false
       containers:
         - name: {{ .Chart.Name }}
           image: {{ .Values.image }}
@@ -28,16 +27,12 @@ spec:
               name: bolt-port-1
             - containerPort: 8687
               name: bolt-port-2
-          resources:
-{{ toYaml .Values.neo4j.resources | indent 12 }}
           volumeMounts:
             - name: shared-data
               mountPath: /var/lib/neo4j/logs/plugins/txn-handler
         - name: logstash
           image: logstash:6.8.21
           imagePullPolicy: Always
-          resources:
-{{ toYaml .Values.logstash.resources | indent 12 }}
           volumeMounts:
             - name: config-volume
               mountPath: /usr/share/logstash/pipeline/logstash.conf
