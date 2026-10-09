@@ -58,6 +58,9 @@ makeProperty('artifactUrl',            String.class,  Cardinality.SINGLE)
 makeProperty('appId',                  String.class,  Cardinality.SINGLE)
 makeProperty('consumerId',             String.class,  Cardinality.SINGLE)
 makeProperty('mediaType',              String.class,  Cardinality.SINGLE)
+makeProperty('objectType',             String.class,  Cardinality.SINGLE)
+makeProperty('primaryCategory',        String.class,  Cardinality.SINGLE)
+makeProperty('resourceType',           String.class,  Cardinality.SINGLE)
 makeProperty('compatibilityLevel',     Integer.class, Cardinality.SINGLE)
 makeProperty('osId',                   String.class,  Cardinality.SINGLE)
 makeProperty('language',               String.class,  Cardinality.LIST)
@@ -83,6 +86,16 @@ indexDefs = [
     [name: 'byVisibility',          key: 'visibility',             unique: false],
     [name: 'byObjectTypeAndStatus', key: 'IL_FUNC_OBJECT_TYPE',    unique: false],
     [name: 'byNodeType',            key: 'IL_SYS_NODE_TYPE',       unique: false],
+    // Keys SearchAsyncOperations.INDEXED_KEYS pushes into native search queries; keep in
+    // sync with that list and with the helm chart schema_init.groovy.
+    [name: 'byStatus',              key: 'status',                 unique: false],
+    [name: 'byCreatedBy',           key: 'createdBy',              unique: false],
+    [name: 'byObjectType',          key: 'objectType',             unique: false],
+    [name: 'byPrimaryCategory',     key: 'primaryCategory',        unique: false],
+    [name: 'byResourceType',        key: 'resourceType',           unique: false],
+    [name: 'byMediaType',           key: 'mediaType',              unique: false],
+    [name: 'byName',                key: 'name',                   unique: false],
+    [name: 'byVersionKey',          key: 'versionKey',             unique: false],
 ]
 
 indexDefs.each { def idx ->

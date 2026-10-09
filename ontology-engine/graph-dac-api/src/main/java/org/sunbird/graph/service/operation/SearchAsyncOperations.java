@@ -318,8 +318,9 @@ public class SearchAsyncOperations {
 
     /**
      * Property keys backed by a JanusGraph composite index. Pushing a predicate on any other
-     * key gains nothing - JanusGraph would still scan - so the list is restricted to the keys
-     * the graph schema actually indexes. Configurable via {@code graph.native_search.indexed_keys};
+     * key gains nothing - JanusGraph would still scan - so the default list mirrors the composite
+     * indexes defined in the knowledgebb janusgraph helm chart's schema_init.groovy. A deployment
+     * whose schema indexes fewer keys should override {@code graph.native_search.indexed_keys};
      * an empty list restores the previous (scan) behaviour.
      */
     private static final Set<String> INDEXED_KEYS = new HashSet<>(
