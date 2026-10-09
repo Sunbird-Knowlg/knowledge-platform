@@ -72,6 +72,8 @@ object ContentConstants {
     val OBJECT_TYPE: String = "objectType"
     val ACTION: String = "action"
     val PUBLISH: String = "publish"
+    val REFRESH_BODY: String = "refresh-body"
+    val REVIEW_STATUS: String = "Review"
     val ENV: String = "env"
     val KAFKA_PUBLISH_TOPIC: String = "kafka.publish.request.topic"
     val PROCESSING: String = "Processing"
