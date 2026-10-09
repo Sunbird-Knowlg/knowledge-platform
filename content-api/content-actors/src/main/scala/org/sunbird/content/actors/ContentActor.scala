@@ -19,6 +19,7 @@ import org.sunbird.content.util._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.nodes.DataNode
+import org.sunbird.graph.service.common.DACConfigurationConstants
 import org.sunbird.graph.utils.NodeUtil
 import org.sunbird.managers.content.HierarchyManager
 import scala.jdk.CollectionConverters._
@@ -357,10 +358,28 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 				request.getContext.put(ContentConstants.SCHEMA_NAME, node.getObjectType.toLowerCase())
 			if (StringUtils.equalsAnyIgnoreCase(ContentConstants.PROCESSING, node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]))
 				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Refresh Body Operation Can't Be Applied On Node Under Processing State")
+			// The flag workflow owns flagged content's edit copy (AcceptFlagManager creates a FlagDraft one), so a refresh must not create a plain Draft copy alongside it.
+			if (StringUtils.equalsAnyIgnoreCase(node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String], ContentConstants.FLAGGED, ContentConstants.FLAG_DRAFT, "FlagReview"))
+				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Refresh Body Operation Can't Be Applied On Flagged Content")
 			validateSkillPoolCandidates(node)
-			node.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
-			PublishManager.refreshBody(request, node)
+			ensureEditableCopy(request, node).map(editable => {
+				editable.getMetadata.put(ContentConstants.LAST_PUBLISHED_BY, publisher)
+				PublishManager.refreshBody(request, editable)
+			}).flatten
 		}).flatten
+	}
+
+	// Generated questions must go through review (same as QuestionSet, whose /add writes to its edit copy), so published content gets its ".img" edit copy via the normal versioned update, like AcceptFlagManager.
+	private def ensureEditableCopy(request: Request, node: Node): Future[Node] = {
+		val status = node.getMetadata.getOrDefault(ContentConstants.STATUS, "").asInstanceOf[String]
+		if (node.getIdentifier.endsWith(".img") || !List(ContentConstants.LIVE, "Unlisted").contains(status)) Future(node)
+		else {
+			val req = new Request(request)
+			req.getContext.put(ContentConstants.IDENTIFIER, node.getIdentifier)
+			req.put(ContentConstants.IDENTIFIER, node.getIdentifier)
+			req.put(ContentConstants.VERSION_KEY, Platform.config.getString(DACConfigurationConstants.PASSPORT_KEY_BASE_PROPERTY))
+			DataNode.update(req)
+		}
 	}
 
 	// Rejects the refresh outright if any tagged skill's pool is below minCriteria x multiplier.
