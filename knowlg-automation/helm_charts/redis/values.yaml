@@ -3,3 +3,10 @@ replicaCount: 1
 network:
   port: 6379
   targetport: 6379
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1
+    memory: 1Gi

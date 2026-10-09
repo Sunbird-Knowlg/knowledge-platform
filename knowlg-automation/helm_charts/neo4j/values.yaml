@@ -7,8 +7,23 @@ network:
 neo4j:
   name: neo4j
   resources:
-    cpu: "0.5"
-    memory: "2Gi"
+    requests:
+      cpu: "0.5"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
+      ephemeral-storage: "5Gi"
+
+logstash:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+      ephemeral-storage: "2Gi"
 
 volumes:
   data:

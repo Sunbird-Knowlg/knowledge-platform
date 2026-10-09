@@ -357,7 +357,7 @@ public abstract class SearchBaseActor extends AbstractActor {
                 searchObj.setSemanticParams((Map<String, Object>) semanticObj);
             }
         } catch (ClassCastException e) {
-            e.printStackTrace();
+            TelemetryManager.error("Invalid semantic search params", e);
             throw new ClientException(SearchConstants.ERR_COMPOSITE_SEARCH_INVALID_PARAMS,
                     "Invalid Input.", e);
         }

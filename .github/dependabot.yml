@@ -47,11 +47,15 @@ updates:
           - "org.scalatest:*"
           - "org.scalamock:*"
     ignore:
-      # Netty is pinned in the root pom.xml BOM to a version that is
-      # compatible with the Play Framework Netty transport. Bumping it
-      # independently breaks the build. Only update Netty when upgrading
-      # Play Framework.
+      # Netty here is NOT a Play/Pekko dependency — Play 3.0.5 runs on
+      # play-pekko-http-server, and Pekko HTTP implements HTTP directly over
+      # pekko-stream TCP, not Netty. The actual Netty consumer is the DataStax
+      # Cassandra driver (platform-core/cassandra-connector) and cassandra-unit
+      # (content-api/hierarchy-manager, test scope). Patch releases on the
+      # 4.1.x line are binary-compatible per Netty's own guarantees and are
+      # allowed through; only the unvetted 4.2/5.x major jump is blocked.
       - dependency-name: "io.netty:*"
+        versions: [">=4.2"]
 
   # GitHub Actions — keeps CI workflow action versions current
   - package-ecosystem: "github-actions"

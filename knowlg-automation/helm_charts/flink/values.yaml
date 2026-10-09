@@ -15,6 +15,10 @@ jobmanager:
   ui_port: 8081
   prom_port: 9250
   heap_memory: 1024
+  cpu_requests: 0.3
+  memory_requests: 1700Mi
+  cpu_limits: 1
+  memory_limits: 2Gi
 
 rest_port: 80
 resttcp_port: 8081
@@ -27,6 +31,9 @@ taskmanager:
   heap_memory: 1024
   replicas: 1
   cpu_requests: 0.3
+  memory_requests: 1700Mi
+  cpu_limits: 1
+  memory_limits: 2Gi
 
 checkpoint_store_type: ""
 

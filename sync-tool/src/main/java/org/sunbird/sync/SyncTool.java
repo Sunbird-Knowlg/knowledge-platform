@@ -260,7 +260,7 @@ public class SyncTool {
 
     private static void log(String message) {
         String timestamp = LocalDateTime.now(ZoneOffset.UTC).format(LOG_FMT);
-        System.out.println("[" + timestamp + "] " + message);
+        logger.info("[" + timestamp + "] " + message);
     }
 
     static class BatchResult {

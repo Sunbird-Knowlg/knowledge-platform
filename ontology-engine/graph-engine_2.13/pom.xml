@@ -61,12 +61,10 @@
             <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.dimafeng</groupId>
-            <artifactId>testcontainers-scala_2.13</artifactId>
-            <version>0.39.5</version>
-            <scope>test</scope>
-        </dependency>
+        <!-- Security: com.dimafeng:testcontainers-scala_2.13 removed (CVE-2023-26119 htmlunit
+             chain via testcontainers-scala-scalatest-selenium, plus stale jetty/appium/async-http-client/okio).
+             Unused: no com.dimafeng.testcontainers.* imports anywhere in this module; tests only use
+             the plain-Java org.testcontainers API declared below. -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
