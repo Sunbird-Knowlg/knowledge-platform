@@ -159,6 +159,13 @@ public class ResponseHandler {
             MiddlewareException mwException = (MiddlewareException) e;
             params.setErr(mwException.getErrCode());
             response.put("messages", mwException.getMessages());
+            // Without this a 4xx/5xx from a MiddlewareException leaves no trace in the logs,
+            // only in the HTTP response body.
+            if (mwException.getResponseCode() == ResponseCode.SERVER_ERROR) {
+                logger.error("Request failed - " + mwException, mwException);
+            } else {
+                logger.warn("Request failed - " + mwException);
+            }
         } else {
             logger.error("Exception occurred - class :" + e.getClass().getName() + " with message :" + e.getMessage(), e);
             params.setErr("ERR_SYSTEM_EXCEPTION");
