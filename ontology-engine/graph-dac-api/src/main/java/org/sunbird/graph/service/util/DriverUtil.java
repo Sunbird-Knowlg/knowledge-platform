@@ -47,6 +47,10 @@ public class DriverUtil {
 	 * @param graphId the graph identifier
 	 * @return JanusGraph instance
 	 */
+	// Math.random() below has no security purpose -- it only avoids instance-id
+	// collisions between JanusGraph instances in the same JVM (see comment at its
+	// call site), so a non-cryptographic PRNG is intentional here.
+	@SuppressWarnings("java:S2245")
 	public static JanusGraph getJanusGraph(String graphId) {
 		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
 		JanusGraph graph = janusGraphMap.get(graphId);
