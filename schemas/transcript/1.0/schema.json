@@ -1,0 +1,85 @@
+{
+    "$id": "transcript-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Transcript",
+    "type": "object",
+    "required": [
+        "name",
+        "code",
+        "status",
+        "channel"
+    ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 1
+        },
+        "code": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "Draft",
+                "Processing",
+                "Review",
+                "Live",
+                "Failed"
+            ],
+            "default": "Draft"
+        },
+        "channel": {
+            "type": "string"
+        },
+        "languageCode": {
+            "type": "string",
+            "description": "ISO 639-1 language code, e.g. en, hi, ta"
+        },
+        "language": {
+            "type": "string",
+            "description": "Full language name, e.g. English. One Transcript node is always exactly one language."
+        },
+        "sourceLanguage": {
+            "type": "boolean",
+            "default": false,
+            "description": "true only for the auto-detected source language transcript"
+        },
+        "artifactUrl": {
+            "type": "string",
+            "description": "URL to transcript.json (segments + metadata)"
+        },
+        "captionsUrl": {
+            "type": "string",
+            "description": "URL to captions.vtt (WebVTT for video player)"
+        },
+        "generatedBy": {
+            "type": "string",
+            "description": "e.g. faster-whisper:large-v3-turbo, faster-whisper:large-v3-turbo + claude-3-5-sonnet, human-edited, human-uploaded"
+        },
+        "generatedOn": {
+            "type": "string",
+            "description": "ISO 8601 timestamp of when transcript was generated"
+        },
+        "createdOn": {
+            "type": "string"
+        },
+        "lastUpdatedOn": {
+            "type": "string"
+        },
+        "createdBy": {
+            "type": "string"
+        },
+        "lastUpdatedBy": {
+            "type": "string"
+        },
+        "errorMessage": {
+            "type": "string",
+            "description": "Set when job fails. Cleared on retry."
+        },
+        "autoApproved": {
+            "type": "boolean",
+            "default": false,
+            "description": "true if approved automatically by the job, false if approved by a human"
+        }
+    }
+}

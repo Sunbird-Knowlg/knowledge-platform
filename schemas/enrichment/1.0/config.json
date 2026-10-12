@@ -1,0 +1,29 @@
+{
+    "objectType": "Enrichment",
+    "version": "disable",
+    "versionCheckMode": "OFF",
+    "cacheEnabled": false,
+    "schema_restrict_api": false,
+    "frameworkCategories": [],
+    "restrictProps": {
+        "create": [],
+        "update": ["contentId", "channel"]
+    },
+    "relations": {
+        "usedByContent": {
+            "type": "associatedTo",
+            "direction": "in",
+            "objects": ["Content"]
+        },
+        "transcripts": {
+            "type": "associatedTo",
+            "direction": "out",
+            "objects": ["Transcript"]
+        }
+    },
+    "relationFields": [],
+    "PII_Fields": {
+        "user": { "createdBy": ["creator"] },
+        "org": {}
+    }
+}

@@ -6,8 +6,10 @@ import com.google.inject.Singleton
 import content.controllers.BaseController
 import content.utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
+import org.sunbird.common.Platform
+import org.sunbird.common.exception.ClientException
 import org.sunbird.models.UploadParams
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{AnyContent, ControllerComponents, Request}
 
 
 import scala.concurrent.ExecutionContext
@@ -46,12 +48,14 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
       * @param identifier Identifier of the content
       * @param mode Mode to read the data edit or published
       * @param fields List of fields to return in the response
+      * @param enrich Opt-in live Enrichment join: "all" or a comma list of
+      *               relation field names (e.g. "transcripts") 
       */
-    def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+    def read(identifier: String, mode: Option[String], fields: Option[String], enrich: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse(""), "enrich" -> enrich.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
         getResult(ApiId.READ_CONTENT, contentActor, readRequest, version = apiVersion)
@@ -170,6 +174,96 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.UPLOAD_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
+    // Generic object/{create,update,approve,reject} — the only entry points
+    // for any Enrichment child object (Transcript today; a future type e.g.
+    // Summary needs no new route, just its own EnrichmentObjectHandler).
+    // Every body is wrapped under "object" (not a per-type schema key, since
+    // this controller has no way to know the type's schema name up front)
+    // and must declare "objectType" so ContentActor's dispatch knows which
+    // handler to use.
+    def createObject(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content: java.util.Map[String, Object] =
+            if (request.body.asMultipartFormData.isDefined) requestObjectFormData(identifier)
+            else {
+                val body = requestBody()
+                body.getOrDefault("object", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+            }
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "createObject")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.CREATE_OBJECT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    private def requestObjectFormData(identifier: String)(implicit request: Request[AnyContent]): java.util.Map[String, Object] = {
+        val reqMap = new java.util.HashMap[String, Object]()
+        request.body.asMultipartFormData.foreach { multipartData =>
+            multipartData.asFormUrlEncoded.foreach { case (key, values) =>
+                if (values.nonEmpty) reqMap.put(key, values.head)
+            }
+            if (multipartData.files.nonEmpty) {
+                val filePart = multipartData.files.head
+                val tempLocation = Platform.getString("content.upload.temp_location", "/tmp/content")
+                val file = new java.io.File(tempLocation + java.io.File.separator + identifier + "_" + System.currentTimeMillis + "_" + filePart.filename)
+                filePart.ref.copyTo(file, replace = false)
+                reqMap.put("file", file)
+            }
+        }
+        if (reqMap.containsKey("file")) reqMap
+        else throw new ClientException("ERR_INVALID_DATA", "Please provide a valid file.")
+    }
+
+    def updateObject(identifier: String, objectIdentifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("object", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        content.put("objectIdentifier", objectIdentifier)
+        val contentRequest = getRequest(content, headers, "updateObject")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.UPDATE_OBJECT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def approveObject(identifier: String, objectIdentifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("object", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        content.put("objectIdentifier", objectIdentifier)
+        val contentRequest = getRequest(content, headers, "approveObject")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.APPROVE_OBJECT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def rejectObject(identifier: String, objectIdentifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("object", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        content.put("objectIdentifier", objectIdentifier)
+        val contentRequest = getRequest(content, headers, "rejectObject")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.REJECT_OBJECT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def readEnrichment(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
+        content.putAll(headers)
+        content.put("identifier", identifier)
+        val contentRequest = getRequest(content, headers, "readEnrichment")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier)
+        getResult(ApiId.READ_ENRICHMENT_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
 
     def copy(identifier: String, mode: Option[String], copyType: String) = Action.async { implicit request =>
         val headers = commonHeaders()

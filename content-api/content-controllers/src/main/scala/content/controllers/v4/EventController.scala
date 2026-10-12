@@ -29,11 +29,11 @@ class EventController @Inject()(@Named(ActorNames.EVENT_ACTOR) eventActor: Actor
         }
     }
 
-    override def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
+    override def read(identifier: String, mode: Option[String], fields: Option[String], enrich: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap[String, Object]()
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse(""), "enrich" -> enrich.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
         readRequest.getContext.put(Constants.RESPONSE_SCHEMA_NAME, schemaName);
