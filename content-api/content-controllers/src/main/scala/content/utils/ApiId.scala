@@ -5,17 +5,19 @@ object ApiId {
 	final val APPLICATION_HEALTH = "api.content.health"
 	final val APPLICATION_SERVICE_HEALTH = "api.content.service.health"
 
+	//EnrichmentObject APIs
+	val CREATE_ENRICHMENT_OBJECT = "api.enrichment.create"
+	val LIST_ENRICHMENT_OBJECT = "api.enrichment.list"
+	val UPDATE_ENRICHMENT_OBJECT = "api.enrichment.update"
+	val APPROVE_ENRICHMENT_OBJECT = "api.enrichment.approve"
+	val REJECT_ENRICHMENT_OBJECT = "api.enrichment.reject"
+
 	//Content APIs
 	val CREATE_CONTENT = "api.content.create"
 	val READ_CONTENT = "api.content.read"
 	val READ_PRIVATE_CONTENT = "api.content.private.read"
 	val UPDATE_CONTENT = "api.content.update"
 	val UPLOAD_CONTENT = "api.content.upload"
-	val CREATE_OBJECT_CONTENT = "api.content.object.create"
-	val UPDATE_OBJECT_CONTENT = "api.content.object.update"
-	val APPROVE_OBJECT_CONTENT = "api.content.object.approve"
-	val REJECT_OBJECT_CONTENT = "api.content.object.reject"
-	val READ_ENRICHMENT_CONTENT = "api.content.enrichment.read"
 	val RETIRE_CONTENT = "api.content.retire"
 	val COPY_CONTENT = "api.content.copy"
 	val UPLOAD_PRE_SIGNED_CONTENT = "api.content.upload.url"

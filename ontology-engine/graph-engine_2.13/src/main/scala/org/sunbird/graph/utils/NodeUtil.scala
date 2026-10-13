@@ -11,11 +11,9 @@ import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.dac.model.{Node, Relation}
 import org.sunbird.graph.schema.{DefinitionNode, ObjectCategoryDefinition, ObjectCategoryDefinitionMap}
-import org.sunbird.schema.SchemaValidatorFactory
 
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
-import scala.util.Try
 
 object NodeUtil {
     val mapper: ObjectMapper = new ObjectMapper()
@@ -23,7 +21,8 @@ object NodeUtil {
 
     def serialize(node: Node, fields: util.List[String], schemaName: String, schemaVersion: String, withoutRelations: Boolean = false)(implicit oec: OntologyEngineContext, ec: ExecutionContext): util.Map[String, AnyRef] = {
         val metadataMap = node.getMetadata
-        val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], node.getObjectType.toLowerCase().replace("image", ""), node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
+        val nodeSchema = node.getObjectType.toLowerCase().replace("image", "")
+        val objectCategoryDefinition: ObjectCategoryDefinition = DefinitionNode.getObjectCategoryDefinition(node.getMetadata.getOrDefault(DefinitionNode.categoryFieldName(nodeSchema, schemaVersion), "").asInstanceOf[String], nodeSchema, node.getMetadata.getOrDefault("channel","all").asInstanceOf[String])
         val jsonProps = DefinitionNode.fetchJsonProps(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition)
         val updatedMetadataMap:util.Map[String, AnyRef] = metadataMap.entrySet().asScala.filter(entry => null != entry.getValue).map((entry: util.Map.Entry[String, AnyRef]) => handleKeyNames(entry, fields) ->  convertJsonProperties(entry, jsonProps)).toMap.asJava
         val definitionMap = DefinitionNode.getRelationDefinitionMap(node.getGraphId, schemaVersion, node.getObjectType.toLowerCase().replace("image", ""), objectCategoryDefinition).asJava
@@ -157,18 +156,9 @@ object NodeUtil {
         else value
     }
 
+    // TODO: we should get the list from configuration.
     private def relationObjectAttributes(objectType: String): List[String] = {
-      val default = if (StringUtils.equalsAnyIgnoreCase("framework", objectType)) List("description", "status", "type") else List("description", "status")
-      // Reads relationFields from the related object type's config.json (e.g. Transcript, Enrichment).
-      // Falls back to the hardcoded default for any object type without relationFields defined, or
-      // if the schema fetch itself fails for any reason — must never break relation traversal for
-      // existing object types that predate this convention.
-      Try {
-        val validator = SchemaValidatorFactory.getInstance(objectType.toLowerCase, "1.0")
-        if (validator.getConfig.hasPath("relationFields"))
-          validator.getConfig.getStringList("relationFields").asScala.toList
-        else default
-      }.getOrElse(default)
+      if (StringUtils.equalsAnyIgnoreCase("framework", objectType)) List("description", "status", "type") else List("description", "status")
     }
 
     def populateRelationMaps(rel: Relation, direction: String): util.Map[String, AnyRef] = {

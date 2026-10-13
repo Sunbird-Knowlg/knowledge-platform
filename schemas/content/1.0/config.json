@@ -34,10 +34,10 @@
         "primaryKey": ["content_id"]
     },
     "relations": {
-        "enrichment": {
+        "enrichmentObjects": {
             "type": "associatedTo",
             "direction": "out",
-            "objects": ["Enrichment"]
+            "objects": ["EnrichmentObject"]
         },
         "concepts": {
             "type": "associatedTo",
