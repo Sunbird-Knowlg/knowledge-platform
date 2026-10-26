@@ -1,0 +1,83 @@
+{
+  "$id": "competencyframework-schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CompetencyFramework",
+  "type": "object",
+  "required": [
+    "name",
+    "code",
+    "type"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "K-12",
+        "TPD"
+      ],
+      "default": "K-12"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Live",
+        "Review",
+        "Processing",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "translations": {
+      "type": "object"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "createdOn": {
+      "type": "string"
+    },
+    "lastUpdatedBy": {
+      "type": "string"
+    },
+    "lastUpdatedOn": {
+      "type": "string"
+    },
+    "consumerId": {
+      "type": "string"
+    },
+    "appId": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "lastStatusChangedOn": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "systemDefault": {
+      "type": "string",
+      "enum": [
+        "Yes",
+        "No"
+      ],
+      "default": "No"
+    },
+    "version": {
+      "type": "number",
+      "default": 0
+    }
+  }
+}
