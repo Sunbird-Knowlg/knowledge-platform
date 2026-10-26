@@ -29,10 +29,13 @@
     "status": {
       "type": "string",
       "enum": [
+        "Draft",
         "Live",
+        "Review",
+        "Processing",
         "Retired"
       ],
-      "default": "Live"
+      "default": "Draft"
     },
     "translations": {
       "type": "object"
@@ -71,6 +74,10 @@
         "No"
       ],
       "default": "No"
+    },
+    "version": {
+      "type": "number",
+      "default": 0
     }
   }
 }

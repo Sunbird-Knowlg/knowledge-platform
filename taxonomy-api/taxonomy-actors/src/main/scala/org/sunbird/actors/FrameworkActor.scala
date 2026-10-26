@@ -33,9 +33,23 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
       case Constants.RETIRE_FRAMEWORK => retire(request)
       case Constants.PUBLISH_FRAMEWORK => publish(request)
       case Constants.COPY_FRAMEWORK => copy(request)
+      case Constants.REVIEW_FRAMEWORK => review(request)
+      case Constants.REJECT_FRAMEWORK => reject(request)
       case _ => ERROR(request.getOperation)
     }
   }
+
+  private val REVIEW_ALLOWED_STATUSES: Set[String] = Set("Draft", "Live")
+
+  @throws[Exception]
+  private def review(request: Request): Future[Response] =
+    FrameworkManager.transitionFrameworkStatus(request, REVIEW_ALLOWED_STATUSES, "Review",
+      status => s"Cannot send framework for review: current status is '$status'")
+
+  @throws[Exception]
+  private def reject(request: Request): Future[Response] =
+    FrameworkManager.transitionFrameworkStatus(request, Set("Review"), "Draft",
+      status => s"Cannot reject framework: current status is '$status', expected 'Review'")
 
 
   @throws[Exception]
@@ -108,17 +122,51 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   @throws[Exception]
   private def update(request: Request): Future[Response] = {
     RequestUtil.restrictProperties(request)
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
-    })
+    val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
+    val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
+    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
+      val getChannelReq = new Request()
+      getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
+        {
+          putAll(request.getContext)
+        }
+      })
+      getChannelReq.getContext.put(Constants.SCHEMA_NAME, Constants.CHANNEL_SCHEMA_NAME)
+      getChannelReq.getContext.put(Constants.VERSION, Constants.CHANNEL_SCHEMA_VERSION)
+      getChannelReq.put(Constants.IDENTIFIER, channel)
+      DataNode.read(getChannelReq).map(channelNode => {
+        if (null != channelNode && StringUtils.equalsAnyIgnoreCase(channelNode.getIdentifier, channel)) {
+          DataNode.update(request).map(node => {
+            ResponseHandler.OK.put("node_id", node.getIdentifier).put("versionKey", node.getMetadata.get("versionKey"))
+          })
+        } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
+      }).flatten
+    }
   }
 
   @throws[Exception]
   private def retire(request: Request): Future[Response] = {
-    request.getRequest.put("status", "Retired")
-    DataNode.update(request).map(node => {
-      ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
-    })
+    val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
+    val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
+    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
+      request.getRequest.put("status", "Retired")
+      request.getContext.put("versioning", "disabled")
+      FrameworkManager.retireImageNode(graphId, frameworkId).flatMap(_ =>
+        DataNode.update(request).flatMap(node => {
+          val invalidatePublishedSnapshot: Future[Unit] = if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
+            request.put("identifier", frameworkId)
+            request.put("fields", List("hierarchy"))
+            request.put("values", List(""))
+            oec.graphService.updateExternalProps(request).map(_ => ())
+          } else Future(RedisCache.delete("fw:" + frameworkId))
+          invalidatePublishedSnapshot.map(_ => {
+            FrameworkCache.delete(frameworkId)
+            ResponseHandler.OK.put("node_id", node.getIdentifier).put("identifier", node.getIdentifier)
+          })
+        })
+      )
+    }
   }
 
 
@@ -142,28 +190,37 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
         val description = node.getMetadata.getOrDefault("description", "").asInstanceOf[String]
         request.getRequest.putAll(Map("name" -> name, "description" -> description).asJava)
         if(StringUtils.isNotBlank(frameworkId)){
-          val getFrameworkReq = new Request()
-          getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {
-            {
-              putAll(request.getContext)
-            }
-          })
-          getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME)
-          getFrameworkReq.getContext.put(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION)
-          getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
-          val subGraph: Future[SubGraph] = DataSubGraph.read(getFrameworkReq)
-          subGraph.map(data => {
-            val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data, true)
-            CategoryCache.setFramework(frameworkId, frameworkHierarchy)
-            val hierarchy = ScalaJsonUtils.serialize(frameworkHierarchy)
-            if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
-              val req = new Request(request)
-              req.put("hierarchy", hierarchy)
-              req.put("identifier", frameworkId)
-              oec.graphService.saveExternalProps(req)
-            } else RedisCache.set("fw:"+frameworkId, hierarchy)
-            ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${frameworkId}' is pushed Successfully!")
-          })
+          val publishReq = new Request(request)
+          publishReq.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME))
+          publishReq.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION))
+
+          FrameworkManager.publishFramework(publishReq, frameworkId).flatMap { liveNode =>
+            val getFrameworkReq = new Request()
+            getFrameworkReq.setContext(new util.HashMap[String, AnyRef]() {
+              {
+                putAll(request.getContext)
+              }
+            })
+            getFrameworkReq.getContext.put(Constants.SCHEMA_NAME, request.getContext.getOrDefault(Constants.SCHEMA_NAME, Constants.FRAMEWORK_SCHEMA_NAME))
+            getFrameworkReq.getContext.put(Constants.VERSION, request.getContext.getOrDefault(Constants.VERSION, Constants.FRAMEWORK_SCHEMA_VERSION))
+            getFrameworkReq.put(Constants.IDENTIFIER, frameworkId)
+            val subGraph: Future[SubGraph] = DataSubGraph.read(getFrameworkReq)
+            subGraph.map(data => {
+              val frameworkHierarchy = FrameworkManager.getCompleteMetadata(frameworkId, data, true)
+              CategoryCache.setFramework(frameworkId, frameworkHierarchy)
+              val hierarchy = ScalaJsonUtils.serialize(frameworkHierarchy)
+              if (Platform.getBoolean("service.db.cassandra.enabled", true)) {
+                val req = new Request(request)
+                req.put("hierarchy", hierarchy)
+                req.put("identifier", frameworkId)
+                oec.graphService.saveExternalProps(req)
+              } else RedisCache.set("fw:"+frameworkId, hierarchy)
+              ResponseHandler.OK.put(Constants.PUBLISH_STATUS, s"Publish Event for Framework Id '${frameworkId}' is pushed Successfully!")
+                .put(Constants.IDENTIFIER, frameworkId)
+                .put("status", "Live")
+                .put("version", liveNode.getMetadata.get("version")) // business publish-counter, distinct from Constants.VERSION
+            })
+          }
         } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", "Please provide valid framework identifier")
       } else throw new ClientException("ERR_INVALID_CHANNEL_ID", "Please provide valid channel identifier")
     }).flatten

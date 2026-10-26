@@ -144,6 +144,41 @@ class ContentSpec extends BaseSpec {
     status(result) must equalTo(OK)
   }
 
+  "sanitize a path-traversal upload filename so the destination file stays inside the temp dir" in {
+    val controller = app.injector.instanceOf[ContentController]
+    val file = new File("test/resources/sample.pdf")
+    val files = Seq[FilePart[TemporaryFile]](FilePart("file", "../../../../tmp/evil_upload.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
+    val multipartBody = MultipartFormData(Map[String, Seq[String]](), files, Seq[BadPart]())
+    val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
+    val result = controller.upload("traversal01", None, None)(fakeRequest)
+    isOK(result)
+    status(result) must equalTo(OK)
+    val tempDir = new File("/tmp")
+    val created = tempDir.listFiles((_, name) => name.startsWith("traversal01_"))
+    (created != null) must beTrue
+    created.length must be_>(0)
+    val allSafe = created.forall(f => !f.getName.contains("..") && f.getCanonicalPath.startsWith(tempDir.getCanonicalPath))
+    allSafe must beTrue
+  }
+
+  "sanitize a path-traversal filename on createObject so the destination file stays inside the temp dir" in {
+    val controller = app.injector.instanceOf[ContentController]
+    val tempDir = new File("/tmp/content")
+    tempDir.mkdirs()
+    val file = new File("test/resources/sample.pdf")
+    val files = Seq[FilePart[TemporaryFile]](FilePart("file", "../../../../etc/evil_object.pdf", None, SingletonTemporaryFileCreator.create(file.toPath)))
+    val multipartBody = MultipartFormData(Map[String, Seq[String]]("objectType" -> Seq("Transcript")), files, Seq[BadPart]())
+    val fakeRequest = FakeRequest().withMultipartFormDataBody(multipartBody)
+    val result = controller.createObject("traversal02")(fakeRequest)
+    isOK(result)
+    status(result) must equalTo(OK)
+    val created = tempDir.listFiles((_, name) => name.startsWith("traversal02_"))
+    (created != null) must beTrue
+    created.length must be_>(0)
+    val allSafe = created.forall(f => !f.getName.contains("..") && f.getCanonicalPath.startsWith(tempDir.getCanonicalPath))
+    allSafe must beTrue
+  }
+
   "return success response for importContent API" in {
     val controller = app.injector.instanceOf[ContentController]
     val result = controller.importContent()(FakeRequest())
