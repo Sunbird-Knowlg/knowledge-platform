@@ -181,23 +181,33 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
     })
   }
 
-  // Rejects the refresh outright if any tagged skill's pool is below minCriteria x multiplier.
+  // Rejects a Dynamic QuestionSet's refresh outright if any selected skill's pool is below minCriteria x multiplier.
   private def validateSkillPoolCandidates(node: Node): Unit = {
-    val skills = node.getMetadata.getOrDefault("skill", new util.ArrayList[String]()).asInstanceOf[util.List[String]].asScala.toList
-    if (skills.isEmpty) return
+    if (!StringUtils.equals(node.getMetadata.getOrDefault("primaryCategory", "").asInstanceOf[String], "Dynamic QuestionSet")) return
     val framework = node.getMetadata.getOrDefault("framework", "").asInstanceOf[String]
-    val categoryField = resolveSkillCategoryField(framework)
+    // The selected skills are stored in the framework's deepest category field, the same field the pool is searched by.
+    val categoryField = resolveCategoryField(framework)
+    val skills = selectedSkills(node.getMetadata.get(categoryField))
+    if (skills.isEmpty) return
     val threshold = Platform.getInteger("dynamicassess.minCriteria", 2) * Platform.getInteger("dynamicassess.multiplier", 3)
     val insufficient = skills.filterNot(hasSufficientPoolCandidates(_, categoryField, "Question", threshold))
     if (insufficient.nonEmpty)
       throw new ClientException("ERR_SKILL_INSUFFICIENT_POOL", s"Fewer than $threshold Live questions found for skill(s): ${insufficient.mkString(", ")}")
   }
 
+  // A category field's terms as a list, whether the graph stored them as a list, an array or a single value.
+  private def selectedSkills(value: AnyRef): List[String] = value match {
+    case l: util.List[_] => l.asScala.map(String.valueOf).filter(StringUtils.isNotBlank).toList.distinct
+    case a: Array[_] => a.map(String.valueOf).filter(StringUtils.isNotBlank).toList.distinct
+    case s: String if StringUtils.isNotBlank(s) => List(s)
+    case _ => Nil
+  }
+
   // Deepest (highest-index) category code of the declared framework, e.g. "topic"/"skill"; falls back to "skill".
-  private def resolveSkillCategoryField(framework: String): String = {
+  private def resolveCategoryField(framework: String): String = {
     if (framework.isBlank) return "skill"
     if (!Platform.config.hasPath("taxonomy.framework.read.url")) {
-      TelemetryManager.error(s"resolveSkillCategoryField :: taxonomy.framework.read.url is not configured, falling back to 'skill' for framework=$framework")
+      TelemetryManager.error(s"resolveCategoryField :: taxonomy.framework.read.url is not configured, falling back to 'skill' for framework=$framework")
       return "skill"
     }
     try {
