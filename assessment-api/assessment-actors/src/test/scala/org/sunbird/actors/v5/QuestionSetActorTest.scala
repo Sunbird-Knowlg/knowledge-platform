@@ -146,6 +146,33 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
     response.getParams.getErrmsg shouldBe "visibility of test_id is private hence access denied"
   }
 
+  it should "store minCriteria and multiplier from config on a Dynamic QuestionSet it creates" in {
+    val response = createQuestionSet("Dynamic QuestionSet", Map("minCriteria" -> Integer.valueOf(9)),
+      node => node.getMetadata.get("minCriteria") == Integer.valueOf(2) && node.getMetadata.get("multiplier") == Integer.valueOf(2))
+    response.getParams.getStatus shouldBe "successful"
+  }
+
+  it should "not add minCriteria or multiplier to other question sets it creates (negative)" in {
+    val response = createQuestionSet("Practice Question Set", Map(),
+      node => !node.getMetadata.containsKey("minCriteria") && !node.getMetadata.containsKey("multiplier"))
+    response.getParams.getStatus shouldBe "successful"
+  }
+
+  // Creates a question set whose stored node must satisfy `stored`; any other addNode call fails the test.
+  private def createQuestionSet(primaryCategory: String, extra: Map[String, AnyRef], stored: Node => Boolean) = {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(where { (_: String, node: Node) => stored(node) }).returns(Future(getNode("QuestionSet", None))).once()
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(getCategoryNode())).anyNumberOfTimes()
+    val request = getQuestionSetRequest()
+    request.putAll((Map[String, AnyRef]("name" -> "qs", "visibility" -> "Default", "code" -> "qs-code",
+      "mimeType" -> "application/vnd.sunbird.questionset", "primaryCategory" -> primaryCategory) ++ extra).asJava)
+    request.setOperation("createQuestionSet")
+    callActor(request, Props(new QuestionSetActor()))
+  }
+
   private def getQuestionSetRequest(): Request = {
     val request = new Request()
     request.setContext(new java.util.HashMap[String, AnyRef]() {
