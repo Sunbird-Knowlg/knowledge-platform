@@ -148,7 +148,7 @@ class QuestionSetActorTest extends BaseSpec with MockFactory {
 
   it should "store minCriteria and multiplier from config on a Dynamic QuestionSet it creates" in {
     val response = createQuestionSet("Dynamic QuestionSet", Map("minCriteria" -> Integer.valueOf(9)),
-      node => node.getMetadata.get("minCriteria") == Integer.valueOf(2) && node.getMetadata.get("multiplier") == Integer.valueOf(3))
+      node => node.getMetadata.get("minCriteria") == Integer.valueOf(2) && node.getMetadata.get("multiplier") == Integer.valueOf(2))
     response.getParams.getStatus shouldBe "successful"
   }
 

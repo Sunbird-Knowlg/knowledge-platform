@@ -67,7 +67,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
         (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
         (graphDB.addNode(_: String, _: Node)).expects(where { (_: String, node: Node) =>
-            node.getMetadata.get("minCriteria") == Integer.valueOf(2) && node.getMetadata.get("multiplier") == Integer.valueOf(3)
+            node.getMetadata.get("minCriteria") == Integer.valueOf(2) && node.getMetadata.get("multiplier") == Integer.valueOf(2)
         }).returns(Future(getValidNode())).once()
         (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {{ add(getBoardNode()) }})).anyNumberOfTimes()
 

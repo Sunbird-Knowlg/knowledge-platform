@@ -189,7 +189,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
     val categoryField = resolveCategoryField(framework)
     val skills = selectedSkills(node.getMetadata.get(categoryField))
     if (skills.isEmpty) return
-    val threshold = dynamicAssessSetting(node, "minCriteria", 0, 2) * dynamicAssessSetting(node, "multiplier", 1, 3)
+    val threshold = dynamicAssessSetting(node, "minCriteria", 0, 2) * dynamicAssessSetting(node, "multiplier", 1, 2)
     val insufficient = skills.filterNot(hasSufficientPoolCandidates(_, categoryField, "Question", threshold))
     if (insufficient.nonEmpty)
       throw new ClientException("ERR_SKILL_INSUFFICIENT_POOL", s"Fewer than $threshold Live questions found for skill(s): ${insufficient.mkString(", ")}")
@@ -199,7 +199,7 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   private def withDynamicAssessSettings(request: Request): Request = {
     if (StringUtils.equals(String.valueOf(request.getRequest.getOrDefault("primaryCategory", "")), "Dynamic QuestionSet")) {
       request.put("minCriteria", Integer.valueOf(Platform.getInteger("dynamicassess.minCriteria", 2)))
-      request.put("multiplier", Integer.valueOf(Platform.getInteger("dynamicassess.multiplier", 3)))
+      request.put("multiplier", Integer.valueOf(Platform.getInteger("dynamicassess.multiplier", 2)))
     }
     request
   }
