@@ -76,6 +76,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request).flatMap(_ => {
 			RequestUtil.restrictProperties(request)
+			setDynamicAssessSettings(request)
 			DataNode.create(request, dataModifier).map(node => {
 				ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
 					.put("versionKey", node.getMetadata.get("versionKey"))
@@ -390,10 +391,24 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 		val categoryField = resolveCategoryField(framework)
 		val skills = selectedSkills(node.getMetadata.get(categoryField))
 		if (skills.isEmpty) return
-		val threshold = Platform.getInteger("dynamicassess.minCriteria", 2) * Platform.getInteger("dynamicassess.multiplier", 3)
+		val threshold = dynamicAssessSetting(node, "minCriteria", 0, 2) * dynamicAssessSetting(node, "multiplier", 1, 3)
 		val insufficient = skills.filterNot(hasSufficientPoolCandidates(_, categoryField, "AssessmentItem", threshold))
 		if (insufficient.nonEmpty)
 			throw new ClientException("ERR_SKILL_INSUFFICIENT_POOL", s"Fewer than $threshold Live questions found for skill(s): ${insufficient.mkString(", ")}")
+	}
+
+	// A Dynamic Course Assessment stores its own minCriteria and multiplier, from config for now, so the editors and the publish job enforce the same values.
+	private def setDynamicAssessSettings(request: Request): Unit = {
+		if (!StringUtils.equals(String.valueOf(request.getRequest.getOrDefault("primaryCategory", "")), "Dynamic Course Assessment")) return
+		request.put("minCriteria", Integer.valueOf(Platform.getInteger("dynamicassess.minCriteria", 2)))
+		request.put("multiplier", Integer.valueOf(Platform.getInteger("dynamicassess.multiplier", 3)))
+	}
+
+	// The node's own setting, or config's for content created before it was stored (or holding a value below `min`).
+	private def dynamicAssessSetting(node: Node, field: String, min: Int, default: Int): Int = node.getMetadata.get(field) match {
+		case n: Number if n.intValue >= min => n.intValue
+		case s: String if s.trim.toIntOption.exists(_ >= min) => s.trim.toInt
+		case _ => Platform.getInteger(s"dynamicassess.$field", default)
 	}
 
 	// A category field's terms as a list, whether the graph stored them as a list, an array or a single value.
