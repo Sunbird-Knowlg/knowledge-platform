@@ -78,8 +78,6 @@ trait FrameworkValidator extends IDefinition {
       graphId: String, framework: String, category: String
   )(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[String]] = {
     val mc = MetadataCriterion.create(new util.ArrayList[Filter]() {{
-      add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_EQUAL, "Term"))
-      add(new Filter(SystemProperties.IL_SYS_NODE_TYPE.name(), SearchConditions.OP_EQUAL, "DATA_NODE"))
       add(new Filter("category", SearchConditions.OP_EQUAL, category))
       add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
     }})
@@ -172,8 +170,6 @@ trait FrameworkValidator extends IDefinition {
   private def getMasterCategoryNodes(graphId: String, objectType: String)(implicit ec: ExecutionContext, oec: OntologyEngineContext):Future[util.List[Node]]={
     val mc: MetadataCriterion = MetadataCriterion.create(new util.ArrayList[Filter]() {
       {
-        add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_EQUAL, objectType))
-        add(new Filter(SystemProperties.IL_SYS_NODE_TYPE.name(), SearchConditions.OP_EQUAL, "DATA_NODE"))
         add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
       }
     })

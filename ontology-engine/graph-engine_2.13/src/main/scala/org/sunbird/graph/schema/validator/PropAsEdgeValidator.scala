@@ -6,7 +6,6 @@ import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Filter, MetadataCriterion, Node, SearchConditions, SearchCriteria}
-import org.sunbird.graph.common.enums.SystemProperties
 import org.sunbird.graph.schema.IDefinition
 
 import scala.collection.convert.ImplicitConversions._
@@ -60,8 +59,6 @@ trait PropAsEdgeValidator extends IDefinition {
         graphId: String, objectType: String
     )(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[List[String]] = {
         val mc = MetadataCriterion.create(new java.util.ArrayList[Filter]() {{
-            add(new Filter(SystemProperties.IL_FUNC_OBJECT_TYPE.name(), SearchConditions.OP_EQUAL, objectType))
-            add(new Filter(SystemProperties.IL_SYS_NODE_TYPE.name(), SearchConditions.OP_EQUAL, "DATA_NODE"))
             add(new Filter("status", SearchConditions.OP_EQUAL, "Live"))
         }})
         // objectType/nodeType must be set on the criteria itself: the Janus query is narrowed from these
