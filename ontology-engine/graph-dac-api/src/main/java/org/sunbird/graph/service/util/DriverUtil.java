@@ -12,12 +12,14 @@ import org.sunbird.graph.service.common.DACErrorMessageConstants;
 import org.sunbird.graph.service.common.GraphOperation;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DriverUtil {
 
 	private static Map<String, JanusGraph> janusGraphMap = new HashMap<>();
+	private static final SecureRandom RANDOM = new SecureRandom();
 
 	public static String getRoute(String graphId, GraphOperation graphOperation) {
 		// Checking Graph Id for 'null' or 'Empty'
@@ -47,10 +49,6 @@ public class DriverUtil {
 	 * @param graphId the graph identifier
 	 * @return JanusGraph instance
 	 */
-	// Math.random() below has no security purpose -- it only avoids instance-id
-	// collisions between JanusGraph instances in the same JVM (see comment at its
-	// call site), so a non-cryptographic PRNG is intentional here.
-	@SuppressWarnings("java:S2245")
 	public static JanusGraph getJanusGraph(String graphId) {
 		TelemetryManager.log("Get JanusGraph instance for Graph Id: " + graphId);
 		JanusGraph graph = janusGraphMap.get(graphId);
@@ -134,7 +132,7 @@ public class DriverUtil {
 		// JanusGraph expects a non-negative Short for this configuration.
 		// Using random helps avoid collisions with "zombie" instances from previous
 		// context reloads.
-		props.put("graph.unique-instance-id-suffix", (short) (Math.random() * Short.MAX_VALUE));
+		props.put("graph.unique-instance-id-suffix", (short) RANDOM.nextInt(Short.MAX_VALUE));
 
 		org.apache.commons.configuration2.MapConfiguration conf = new org.apache.commons.configuration2.MapConfiguration(
 				props);
