@@ -64,7 +64,14 @@ trait PropAsEdgeValidator extends IDefinition {
             add(new Filter(SystemProperties.IL_SYS_NODE_TYPE.name(), SearchConditions.OP_EQUAL, "DATA_NODE"))
             add(new Filter("status", SearchConditions.OP_EQUAL, "Live"))
         }})
-        val criteria = new SearchCriteria {{ addMetadata(mc); setCountQuery(false) }}
+        // objectType/nodeType must be set on the criteria itself: the Janus query is narrowed from these
+        // (index lookup), while metadata filters are applied afterwards, one database read per vertex.
+        val criteria = new SearchCriteria {{
+            addMetadata(mc)
+            setCountQuery(false)
+            setObjectType(objectType)
+            setNodeType("DATA_NODE")
+        }}
         oec.graphService.getNodeByUniqueIds(graphId, criteria).map { nodes =>
             nodes.asScala.flatMap { n =>
                 Option(n.getMetadata.get("name")).map(_.asInstanceOf[String])
