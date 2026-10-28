@@ -108,7 +108,7 @@ public class SearchManager {
 //				}
 //			});
         } catch (Exception e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to execute search request", e);
         }
         return res;
     }
@@ -187,9 +187,9 @@ public class SearchManager {
             }
             return response;
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to parse response content/collections variants", e);
         } catch (Exception e) {
-            e.printStackTrace();
+            TelemetryManager.error("Failed to build search result response", e);
         }
         return null;
     }

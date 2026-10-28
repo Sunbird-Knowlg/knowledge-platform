@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
@@ -68,7 +69,7 @@ trait LocalizeAssetProcessor extends IProcessor {
 		file
 	} catch {
 		case e: IOException => {
-			e.printStackTrace()
+			TelemetryManager.error("Failed to download file from URL: " + fileUrl, e)
 			throw new ClientException("ERR_INVALID_FILE_URL", "Please Provide Valid File Url!")
 		}
 	}

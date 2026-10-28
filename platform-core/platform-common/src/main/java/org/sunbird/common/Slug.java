@@ -3,6 +3,8 @@ package org.sunbird.common;
 import net.sf.junidecode.Junidecode;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLDecoder;
@@ -13,13 +15,11 @@ import java.util.regex.Pattern;
 
 public class Slug {
 
+    private static final Logger logger = LoggerFactory.getLogger(Slug.class);
+
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-\\.]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
     private static final Pattern DUPDASH = Pattern.compile("-+");
-
-    public static void main(String[] args) {
-        System.out.println(makeSlug("Cov-e*r+I/ma.ge.png", true));
-    }
 
     public static File createSlugFile(File f) {
         try {
@@ -34,7 +34,7 @@ public class Slug {
                 return newFile;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to create slug file for " + f.getAbsolutePath(), e);
         }
         return f;
     }

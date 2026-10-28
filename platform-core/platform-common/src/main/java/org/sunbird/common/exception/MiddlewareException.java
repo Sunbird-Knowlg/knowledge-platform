@@ -90,6 +90,11 @@ public class MiddlewareException extends RuntimeException {
         StringBuilder builder = new StringBuilder();
         builder.append(errCode).append(": ");
         builder.append(super.getMessage());
+        // Detailed per-field messages (e.g. schema validation failures) are only carried in
+        // this list; include them so logging the exception shows the actual reason.
+        if (messages != null && !messages.isEmpty()) {
+            builder.append(" ").append(messages);
+        }
         return builder.toString();
     }
 }

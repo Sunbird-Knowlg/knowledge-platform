@@ -89,7 +89,7 @@ public class LogTelemetryEventUtil {
 			String messageId = "LP:"+mid_val;
 			return messageId;
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			TelemetryManager.error("MD5 algorithm not available while generating message id", e);
 		}
 		return null;
 	}
