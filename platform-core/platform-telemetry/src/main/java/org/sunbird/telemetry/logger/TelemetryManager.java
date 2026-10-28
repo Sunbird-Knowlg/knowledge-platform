@@ -137,7 +137,7 @@ public class TelemetryManager {
 		if (e instanceof MiddlewareException) {
 			code = ((MiddlewareException) e).getErrCode();
 		}
-		String event = TelemetryGenerator.error(context, code, "system", stacktrace);
+		String event = TelemetryGenerator.error(context, code, "system", message, stacktrace, null, object);
 		telemetryHandler.send(event, Level.ERROR);
 	}
 	

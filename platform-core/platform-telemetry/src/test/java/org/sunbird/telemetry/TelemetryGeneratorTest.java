@@ -105,6 +105,23 @@ public class TelemetryGeneratorTest {
     }
 
     @Test
+    public void testErrorIncludesMessageWhenProvided() throws Exception {
+        String event = TelemetryGenerator.error(getContext(), "ERR_INVALID_DATA", "system",
+                "Failed to convert correctResponse value to integer", getStacktrace(), null, null);
+        Map<String, Object> edata = (Map<String, Object>) JsonUtils.deserialize(event, Map.class).get("edata");
+        Assert.assertEquals("Failed to convert correctResponse value to integer", edata.get("message"));
+        Assert.assertEquals("ERR_INVALID_DATA", edata.get("err"));
+        Assert.assertNotNull(edata.get("stacktrace"));
+    }
+
+    @Test
+    public void testErrorOmitsMessageWhenBlank() throws Exception {
+        String event = TelemetryGenerator.error(getContext(), "ERR_INVALID_DATA", Level.ERROR.name(), getStacktrace());
+        Map<String, Object> edata = (Map<String, Object>) JsonUtils.deserialize(event, Map.class).get("edata");
+        Assert.assertFalse(edata.containsKey("message"));
+    }
+
+    @Test
     public void testError_2() throws Exception {
         String event = TelemetryGenerator.error(getContext(), "ERR_INVALID_DATA",
                 Level.ERROR.name(), getStacktrace(), "1234", Arrays.asList("object"));

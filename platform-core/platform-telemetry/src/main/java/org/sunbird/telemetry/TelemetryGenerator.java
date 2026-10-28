@@ -113,11 +113,31 @@ public class TelemetryGenerator {
 	 */
 	public static String error(Map<String, String> context, String code, String type, String stacktrace, String pageid,
 			Object object) {
+		return error(context, code, type, null, stacktrace, pageid, object);
+	}
+
+	/**
+	 * To generate ERROR telemetry JSON string with all params, including a
+	 * human readable description of what failed.
+	 * 
+	 * @param context
+	 * @param code
+	 * @param type
+	 * @param message optional description of the failure; omitted from the event when blank
+	 * @param stacktrace
+	 * @param pageid
+	 * @param object
+	 * @return
+	 */
+	public static String error(Map<String, String> context, String code, String type, String message,
+			String stacktrace, String pageid, Object object) {
 		Actor actor = getActor(context);
 		Context eventContext = getContext(context);
 		Map<String, Object> edata = new HashMap<String, Object>();
 		edata.put("err", code);
 		edata.put("errtype", type);
+		if (StringUtils.isNotBlank(message))
+			edata.put("message", message);
 		edata.put("stacktrace", stacktrace);
 		if (StringUtils.isNotBlank(pageid))
 			edata.put("pageid", pageid);
