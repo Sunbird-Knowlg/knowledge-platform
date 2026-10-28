@@ -170,10 +170,14 @@ trait FrameworkValidator extends IDefinition {
         add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
       }
     })
+    // objectType/nodeType must be set on the criteria itself: the Janus query is narrowed from these
+    // (index lookup), while metadata filters are applied afterwards, one database read per vertex.
     val searchCriteria = new SearchCriteria {
       {
         addMetadata(mc)
         setCountQuery(false)
+        setObjectType(objectType)
+        setNodeType("DATA_NODE")
       }
     }
     try {
