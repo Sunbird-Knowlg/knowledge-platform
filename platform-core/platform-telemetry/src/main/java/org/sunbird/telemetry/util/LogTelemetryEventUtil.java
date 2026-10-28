@@ -9,6 +9,8 @@ import org.sunbird.telemetry.dto.TelemetryBEEvent;
 import org.sunbird.telemetry.dto.TelemetryBJREvent;
 import org.sunbird.telemetry.logger.TelemetryManager;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -70,4 +72,25 @@ public class LogTelemetryEventUtil {
 		return jsonMessage;
 	}
 	
+	public static String getMD5Hash(TelemetryBEEvent event, Map<String,Object> data){
+		MessageDigest digest = null;
+		try {
+			String id = (String)data.get("id");
+			String state = (String)data.get("state");
+			String prevstate = (String)data.get("prevstate");
+			String val = event.getEid()+event.getEts()+id+state+prevstate;
+			digest = MessageDigest.getInstance("MD5");
+			digest.update(val.getBytes());
+			byte[] digestMD5 = digest.digest();
+			StringBuffer mid_val = new StringBuffer();
+			for(byte bytes : digestMD5){
+				mid_val.append(String.format("%02x", bytes & 0xff));
+			}
+			String messageId = "LP:"+mid_val;
+			return messageId;
+		} catch (NoSuchAlgorithmException e) {
+			TelemetryManager.error("MD5 algorithm not available while generating message id", e);
+		}
+		return null;
+	}
 }
