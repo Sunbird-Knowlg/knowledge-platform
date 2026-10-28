@@ -83,7 +83,14 @@ trait FrameworkValidator extends IDefinition {
       add(new Filter("category", SearchConditions.OP_EQUAL, category))
       add(new Filter("status", SearchConditions.OP_NOT_EQUAL, "Retired"))
     }})
-    val criteria = new SearchCriteria {{ addMetadata(mc); setCountQuery(false) }}
+    // objectType/nodeType must be set on the criteria itself: the Janus query is narrowed from these
+    // (index lookup), while metadata filters are applied afterwards, one database read per vertex.
+    val criteria = new SearchCriteria {{
+      addMetadata(mc)
+      setCountQuery(false)
+      setObjectType("Term")
+      setNodeType("DATA_NODE")
+    }}
     oec.graphService.getNodeByUniqueIds(graphId, criteria).map { nodes =>
       nodes.asScala.filter { n =>
         val id = n.getIdentifier
