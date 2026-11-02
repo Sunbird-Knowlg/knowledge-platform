@@ -44,7 +44,12 @@ services:
       - "9600:9600"
     environment:
       - discovery.type=single-node
-      - plugins.security.disabled=true
+      # The entrypoint reads these, not plugins.security.disabled — without them it runs
+      # the security demo installer and exits demanding an admin password. Do not also
+      # pass plugins.security.disabled: the entrypoint writes it into opensearch.yml and
+      # OpenSearch rejects the setting being supplied twice.
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
     volumes:
       - es-data:/usr/share/opensearch/data
 

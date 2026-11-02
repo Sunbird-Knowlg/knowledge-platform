@@ -13,6 +13,7 @@ import scala.jdk.CollectionConverters._
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +32,7 @@ class DocumentMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeM
 				val tempFile = new File(basePath)
 				try FileUtils.moveFile(uploadFile, tempFile)
 				catch {
-					case e: IOException => e.printStackTrace()
+					case e: IOException => TelemetryManager.error("Failed to move epub file to " + basePath, e)
 				}
 				tempFile
 			} else uploadFile

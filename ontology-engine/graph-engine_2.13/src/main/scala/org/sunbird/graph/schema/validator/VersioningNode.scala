@@ -91,7 +91,18 @@ trait VersioningNode extends IDefinition {
                             node.getMetadata.put("status", "Draft")
                             node.getMetadata.put("prevStatus", status)
                             node.getMetadata.put(AuditProperties.lastStatusChangedOn.name, DateUtils.formatCurrentDate())
-                            oec.graphService.addNode(node.getGraphId, node).map(imgNode => {
+                            oec.graphService.addNode(node.getGraphId, node).flatMap(_ =>
+                                // addNode hands back the very node it was given, and it has
+                                // rewritten that node's Lists and Maps into JSON strings on the
+                                // way to the database. Validating against it then rejects every
+                                // array-typed field that has no default in the schema -- the
+                                // first edit of a published collection fails with
+                                // "Metadata <field> should be a/an Array value" while a second
+                                // attempt succeeds, because by then this branch is skipped.
+                                // Re-read instead, so both branches return the node in the same
+                                // shape the graph read produces.
+                                oec.graphService.getNodeByUniqueId(node.getGraphId, imageId, false, new Request())
+                            ).map(imgNode => {
                                 imgNode.getMetadata.put("isImageNodeCreated", "yes");
                                 copyExternalProps(identifier, node.getGraphId, imgNode.getObjectType.toLowerCase().replace("image", "")).map(response => {
                                     if(!ResponseHandler.checkError(response)) {

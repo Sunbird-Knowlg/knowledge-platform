@@ -11,6 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TestModule extends AbstractModule with PekkoGuiceSupport {
 	override def configure(): Unit = {
 		bindActor(classOf[TestActor], ActorNames.HEALTH_ACTOR)
+		bindActor(classOf[TestActor], ActorNames.ASSESSMENT_ITEM_ACTOR)
 		bindActor(classOf[TestActor], ActorNames.ITEM_SET_ACTOR)
 		bindActor(classOf[TestActor], ActorNames.QUESTION_ACTOR)
 		bindActor(classOf[TestActor], ActorNames.QUESTION_SET_ACTOR)

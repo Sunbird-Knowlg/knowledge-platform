@@ -58,6 +58,17 @@ public class StorageModule extends AbstractModule {
     @Provides
     @Singleton
     public IStorageService provideStorageService() {
+        return StorageServiceFactory.getStorageService(buildStorageConfig());
+    }
+
+    /**
+     * Builds the {@link StorageConfig} from Play config (with env-var fallback).
+     * Kept separate from {@link #provideStorageService()} so it can be tested without a
+     * CSP runtime jar on the classpath.
+     *
+     * @return the storage config for the configured CSP
+     */
+    StorageConfig buildStorageConfig() {
         String storageType = getConfigOrEnv("cloud_storage_type", "azure");
         String authTypeStr = getConfigOrEnv("cloud_storage_auth_type", "ACCESS_KEY").toUpperCase();
 
@@ -74,6 +85,15 @@ public class StorageModule extends AbstractModule {
             builder.region(region);
         }
 
+        // Endpoint: when set, the SDK addresses the bucket path-style and returns URLs as
+        // <endpoint>/<container>/<key> (e.g. https://s3.ap-south-1.amazonaws.com/<bucket>/...).
+        // Without it, AWS URLs are https://<bucket>.s3.amazonaws.com/<key>, which
+        // cloudstorage.write_base_path can never match, so relative-path storage is skipped.
+        String endPoint = getConfigOrEnv("cloud_storage_endpoint", "");
+        if (!endPoint.isEmpty()) {
+            builder.endPoint(endPoint);
+        }
+
         // The 'storageKey' (Azure Account Name) is required even for OIDC
         // to construct the correct service URL (e.g. https://<account_name>.blob.core.windows.net)
         String storageKey = getConfigOrEnv("cloud_storage_key", "");
@@ -87,7 +107,7 @@ public class StorageModule extends AbstractModule {
         // For OIDC / IAM: the Azure SDK resolves credentials automatically via Workload Identity
         // or Managed Identity — no static secret needed.
 
-        return StorageServiceFactory.getStorageService(builder.build());
+        return builder.build();
     }
 
     /**
