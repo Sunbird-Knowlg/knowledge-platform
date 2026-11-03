@@ -47,7 +47,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             })
         } catch {
             case e: Exception =>
-                e.printStackTrace()
                 TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
                 throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
         }
@@ -92,7 +91,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             })
         } catch {
             case e: Exception =>
-                e.printStackTrace()
                 TelemetryManager.error("Exception Occurred While Reading The Record. | Exception is : " + e.getMessage, e)
                 throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
         }
@@ -146,7 +144,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             })
         } catch {
             case e: Exception =>
-                e.printStackTrace()
                 TelemetryManager.error("Exception Occurred While Reading The Record. | Exception is : " + e.getMessage, e)
                 throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Reading The Record. Exception is : " + e.getMessage)
         }
@@ -177,7 +174,6 @@ class ExternalStore(keySpace: String , table: String , primaryKey: java.util.Lis
             })
         } catch {
             case e: Exception =>
-                e.printStackTrace()
                 TelemetryManager.error("Exception Occurred While Saving The Record. | Exception is : " + e.getMessage, e)
                 throw new ServerException(ErrorCodes.ERR_SYSTEM_EXCEPTION.name, "Exception Occurred While Saving The Record. Exception is : " + e.getMessage)
         }

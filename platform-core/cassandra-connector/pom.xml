@@ -51,6 +51,10 @@
 			<version>3.11.2.0</version>
 			<scope>test</scope>
 			<exclusions>
+                <exclusion>
+                    <groupId>net.jpountz.lz4</groupId>
+                    <artifactId>lz4</artifactId>
+                </exclusion>
 				<exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-codec</artifactId>
@@ -77,6 +81,13 @@
                     <artifactId>async-http-client</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- drop-in (same net.jpountz.lz4 package) for the vulnerable net.jpountz.lz4:lz4
+             that cassandra-all pulls in; embedded Cassandra needs LZ4 at test runtime -->
+        <dependency>
+            <groupId>at.yawk.lz4</groupId>
+            <artifactId>lz4-java</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.xerial.snappy</groupId>

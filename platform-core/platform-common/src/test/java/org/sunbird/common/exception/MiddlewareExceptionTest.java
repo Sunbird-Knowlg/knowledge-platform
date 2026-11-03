@@ -40,4 +40,18 @@ public class MiddlewareExceptionTest {
         Assert.assertEquals(null, exception.getMessages());
     }
 
+    @Test
+    public void testToStringIncludesValidationMessages() {
+        MiddlewareException exception = new ClientException(ResponseCode.CLIENT_ERROR.name(), "Validation Errors",
+                Arrays.asList("object: required property 'name' not found"));
+        Assert.assertEquals("CLIENT_ERROR: Validation Errors [object: required property 'name' not found]", exception.toString());
+        Assert.assertEquals("Validation Errors", exception.getMessage());
+    }
+
+    @Test
+    public void testToStringWithoutMessagesUnchanged() {
+        MiddlewareException exception = new MiddlewareException("ERR", "plain message");
+        Assert.assertEquals("ERR: plain message", exception.toString());
+    }
+
 }

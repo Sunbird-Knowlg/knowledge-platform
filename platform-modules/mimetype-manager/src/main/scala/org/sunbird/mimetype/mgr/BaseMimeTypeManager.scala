@@ -176,7 +176,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		try tika.detect(file)
 		catch {
 			case e: IOException => {
-				e.printStackTrace()
+				TelemetryManager.error("Failed to detect mime type for file: " + file.getAbsolutePath, e)
 				""
 			}
 		}

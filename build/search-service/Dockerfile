@@ -3,13 +3,10 @@ ARG DHI_IMAGE_RUNTIME=dhi.io/eclipse-temurin:11.0.31-debian13
 
 FROM --platform=linux/x86_64 dhi.io/busybox:1.38.0-alpine3.24 as shell
 
-# ---- prep stage: unzip/curl need apt + root, so use the dev variant here ----
 FROM --platform=linux/x86_64 ${DHI_IMAGE_DEV} AS build
-
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt-get update \
-    && apt-get upgrade -y -o Dpkg::Options::="--force-confold" \
-    && apt-get install -y unzip curl \
+RUN apt-get update \
+    && apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+    && apt-get install -y --no-install-recommends unzip curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
