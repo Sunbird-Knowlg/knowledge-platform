@@ -17,7 +17,7 @@ import org.sunbird.managers.questionset.HierarchyManager.hierarchyPrefix
 import org.sunbird.managers.questionset.{CopyManager, HierarchyManager, UpdateHierarchyManager}
 import org.sunbird.utils.AssessmentErrorCodes
 import org.sunbird.utils.questionset.RequestUtil
-import org.sunbird.v5.managers.AssessmentV5Manager
+import org.sunbird.v5.managers.{AssessmentV5Manager, DynamicAssessManager}
 
 import java.util
 import javax.inject.Inject
@@ -32,13 +32,14 @@ class QuestionSetActor @Inject()(implicit oec: OntologyEngineContext) extends Ab
   val defaultVersion = Platform.config.getNumber("v5_default_qumlVersion")
 
   def onReceive(request: Request): Future[Response] = request.getOperation match {
-    case "createQuestionSet" => AssessmentV5Manager.create(request)
+    case "createQuestionSet" => AssessmentV5Manager.create(DynamicAssessManager.withDynamicAssessSettings(request))
     case "readQuestionSet" => read(request)
     case "readPrivateQuestionSet" => privateRead(request)
     case "getHierarchy" => getHierarchy(request)
     case "reviewQuestionSet" => review(request)
     case "rejectQuestionSet" => reject(request)
     case "publishQuestionSet" => publish(request)
+    case "refreshBodyQuestionSet" => DynamicAssessManager.refreshBody(request)
     case "retireQuestionSet" => retire(request)
     case "updateQuestionSet" => update(request)
     case "addQuestion" => HierarchyManager.addLeafNodesToHierarchy(request)

@@ -18,6 +18,7 @@ POST     /content/v3/bundle                     content.controllers.v3.ContentCo
 POST     /content/v3/flag/accept/:identifier    content.controllers.v3.ContentController.acceptFlag(identifier:String)
 POST     /content/v3/flag/reject/:identifier    content.controllers.v3.ContentController.rejectFlag(identifier:String)
 POST     /content/v3/publish/:identifier        content.controllers.v3.ContentController.publish(identifier:String)
+POST     /content/v3/refresh/body/:identifier   content.controllers.v3.ContentController.refreshBody(identifier:String)
 POST     /content/v3/review/:identifier         content.controllers.v3.ContentController.review(identifier:String)
 DELETE   /content/v3/discard/:identifier        content.controllers.v3.ContentController.discard(identifier:String)
 DELETE   /content/v3/retire/:identifier         content.controllers.v3.ContentController.retire(identifier:String)

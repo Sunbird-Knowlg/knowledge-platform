@@ -10,6 +10,7 @@ import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.content.dial.DIALManager
+import org.sunbird.content.dynamicassess.mgr.DynamicAssessManager
 import org.sunbird.content.publish.mgr.PublishManager
 import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.content.upload.mgr.UploadManager
@@ -64,6 +65,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case "publishContent" => publishContent(request)
+			case "refreshBodyContent" => DynamicAssessManager.refreshBodyContent(request)
 			case "processStatus" => getProcessIdStatus(request)
 			case _ => ERROR(request.getOperation)
 		}
@@ -72,6 +74,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def create(request: Request): Future[Response] = {
 		populateDefaultersForCreation(request).flatMap(_ => {
 			RequestUtil.restrictProperties(request)
+			DynamicAssessManager.setDynamicAssessSettings(request)
 			DataNode.create(request, dataModifier).map(node => {
 				ResponseHandler.OK.put(ContentConstants.IDENTIFIER, node.getIdentifier).put("node_id", node.getIdentifier)
 					.put("versionKey", node.getMetadata.get("versionKey"))
