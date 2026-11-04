@@ -128,13 +128,16 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
+    // update() validates the channel from the request body before touching the framework, so the
+    // channel id has to resolve to a Channel node whose identifier matches it.
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "sunbird", *, *).returns(Future(getPublishChannelNode())).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode()))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "channel" -> "sunbird").asJava)
     request.setOperation(Constants.UPDATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -147,15 +150,26 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val liveNode = getValidNode()
     liveNode.getMetadata.put("status", "Live")
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
-      .expects(*, "framework_test", *, *).returns(Future(liveNode)).anyNumberOfTimes()
+      .expects(*, "sunbird", *, *).returns(Future(getPublishChannelNode())).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
-      .expects(*, "framework_test.img", *, *)
-      .returns(Future.failed(new java.util.concurrent.CompletionException(
-        new org.sunbird.common.exception.ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))).anyNumberOfTimes()
+      .expects(*, "framework_test", *, *).returns(Future(liveNode)).anyNumberOfTimes()
     val imgClone = getValidNode()
     imgClone.setIdentifier("framework_test.img")
     imgClone.setObjectType("FrameworkImage")
-    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(imgClone)) // becomes the .img clone
+    // VersioningNode.getEditableNode re-reads ".img" *after* addNode creates it, so this stub has to
+    // miss before the clone exists and hit afterwards -- a flat "always not found" makes that re-read
+    // fail and the update surfaces ERR_NODE_NOT_FOUND.
+    var imgCreated = false
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "framework_test.img", *, *)
+      .onCall((_: String, _: String, _: Boolean, _: Request) =>
+        if (imgCreated) Future(imgClone)
+        else Future.failed(new java.util.concurrent.CompletionException(
+          new org.sunbird.common.exception.ResourceNotFoundException("ERR_NODE_NOT_FOUND", "not found")))).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).onCall((_: String, _: Node) => {
+      imgCreated = true // becomes the .img clone
+      Future(imgClone)
+    })
     (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(imgClone))
     val nodes: util.List[Node] = getFrameworkNode()
@@ -163,7 +177,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
     val request = getFrameworkRequest()
     request.getContext.put("identifier", "framework_test")
-    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "channel" -> "sunbird").asJava)
     request.setOperation(Constants.UPDATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -175,13 +189,14 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode() // no "status" set -> not in statusList -> no .img clone
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, "sunbird", *, *).returns(Future(getPublishChannelNode())).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
     val nodes: util.List[Node] = getFrameworkNode()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
 
     val request = getFrameworkRequest()
-    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "channel" -> "sunbird").asJava)
     request.setOperation(Constants.UPDATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -300,7 +315,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
 
     val request = getFrameworkRequest()
     request.getContext.put("identifier", "framework_test")
-    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc").asJava)
+    request.putAll(mutable.Map[String, AnyRef]("description" -> "test desc", "channel" -> "sunbird").asJava)
     request.setOperation(Constants.UPDATE_FRAMEWORK)
     val response = callActor(request, Props(new FrameworkActor()))
     assert("successful".equals(response.getParams.getStatus))
@@ -521,6 +536,9 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
   private def stubFrameworkGate(graphDB: GraphService, status: String): Node = {
     val node = getValidNode()
     node.getMetadata.put("status", status)
+    // update/review/reject all resolve the request-body channel to a Channel node first.
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
+      .expects(*, "sunbird", *, *).returns(Future(getPublishChannelNode())).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
       .expects(*, "framework_test.img", *, *).returns(notFoundFailure()).anyNumberOfTimes()
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request))
@@ -531,6 +549,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
   private def reviewRequest(): Request = {
     val request = getFrameworkRequest()
     request.getRequest.put(Constants.IDENTIFIER, "framework_test")
+    request.getRequest.put(Constants.CHANNEL, "sunbird")
     request.setOperation(Constants.REVIEW_FRAMEWORK)
     request
   }
@@ -538,6 +557,7 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
   private def rejectRequest(): Request = {
     val request = getFrameworkRequest()
     request.getRequest.put(Constants.IDENTIFIER, "framework_test")
+    request.getRequest.put(Constants.CHANNEL, "sunbird")
     request.setOperation(Constants.REJECT_FRAMEWORK)
     request
   }

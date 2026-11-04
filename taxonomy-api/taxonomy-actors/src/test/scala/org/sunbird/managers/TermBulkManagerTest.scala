@@ -779,7 +779,10 @@ class TermBulkManagerTest extends FlatSpec with Matchers with MockFactory {
     summary.get("updated") shouldBe 1
     summary.get("retired") shouldBe 1
     val rows = response.getResult.get("rows").asInstanceOf[util.List[util.Map[String, AnyRef]]]
-    rows.size shouldBe 0
+    // cm3 is a clean create with no associations that no other row references, so it carries the
+    // documented WARN_ORPHAN_TERM; buildCommitSuccessResponse only surfaces rows that have warnings.
+    rows.size shouldBe 1
+    rows.get(0).get("code") shouldBe "cm3"
     // Phase ordering: every "create" precedes every "associate" (2 -- one for the fresh cm3, one
     // for cm1's own metadata/association patch), which precede the single "retire" bulkUpdate.
     order.count(_ == "create") shouldBe 1
