@@ -7,6 +7,7 @@ import java.util.UUID
 
 import org.apache.pekko.actor.ActorRef
 import org.apache.pekko.pattern.Patterns
+import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.common.{DateUtils, Platform}
 import org.sunbird.common.dto.{Response, ResponseHandler}
@@ -49,7 +50,8 @@ abstract class BaseController(protected val cc: ControllerComponents)(implicit e
                 }
             }
             if (null != multipartData.files && !multipartData.files.isEmpty) {
-                val file: File = new File("/tmp" + File.separator + identifier + "_" + System.currentTimeMillis + "_"+ request.body.asMultipartFormData.get.files.head.filename)
+                val safeName = FilenameUtils.getName(request.body.asMultipartFormData.get.files.head.filename)
+                val file: File = new File("/tmp" + File.separator + identifier + "_" + System.currentTimeMillis + "_"+ safeName)
                 val copiedFile: File = multipartData.files.head.ref.copyTo(file, false).toFile
                 reqMap.put("file", copiedFile)
             }

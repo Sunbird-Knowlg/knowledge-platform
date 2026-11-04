@@ -58,7 +58,10 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
           DataNode.create(request).map(node => {
             ResponseHandler.OK.put(Constants.IDENTIFIER, node.getIdentifier)
               .put(Constants.VERSION_KEY, node.getMetadata.get("versionKey"))
-          })
+          }) recover {
+            case e: ClientException if TaxonomyUtil.isDuplicateCode(e) =>
+              throw new ClientException("ERR_DUPLICATE_CODE", s"CategoryInstance with code '$code' already exists")
+          }
         }).flatten
       } else throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for Categoryinstance ")
     }).flatten
@@ -95,20 +98,8 @@ class CategoryInstanceActor @Inject()(implicit oec: OntologyEngineContext) exten
     val categoryId = request.getRequest.getOrDefault(Constants.CATEGORY, "").asInstanceOf[String]
     if (frameworkId.isEmpty()) throw new ClientException("ERR_INVALID_FRAMEWORK_ID", s"Invalid FrameworkId: '${frameworkId}' for CategoryInstance ")
     if (categoryId.isEmpty()) throw new ClientException("ERR_INVALID_CATEGORY_ID", s"Invalid CategoryId: '${categoryId}' for categoryInstance")
-    val categoryInstanceId = TaxonomyUtil.generateIdentifier(frameworkId, categoryId)
-    val getCategoryReq = new Request()
-    getCategoryReq.setContext(new util.HashMap[String, AnyRef]() {
-      {
-        putAll(request.getContext)
-      }
-    })
-    getCategoryReq.getContext.put(Constants.SCHEMA_NAME, Constants.CATEGORY_INSTANCE_SCHEMA_NAME)
-    getCategoryReq.getContext.put(Constants.VERSION, Constants.CATEGORY_INSTANCE_SCHEMA_VERSION)
-    getCategoryReq.put(Constants.IDENTIFIER, categoryInstanceId)
-    DataNode.read(getCategoryReq)(oec, ec).map(node => {
-      if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, categoryInstanceId)) node
-      else throw new ClientException("ERR_CATEGORY_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
-    })(ec)
+    TaxonomyUtil.validateCategoryInstance(frameworkId, categoryId,
+      "ERR_CATEGORY_NOT_FOUND/ ERR_FRAMEWORK_NOT_FOUND", s"Given channel/framework is not related to given category")
   }
 
   private def validateCategoryObject(request: Request)(implicit oec: OntologyEngineContext, ec: ExecutionContext) = {

@@ -3,11 +3,13 @@ package org.sunbird.actors
 import java.util
 import org.apache.pekko.actor.Props
 import org.scalamock.scalatest.MockFactory
+import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.dto.{Request, Response}
-import org.sunbird.common.exception.ResponseCode
+import org.sunbird.common.exception.{ClientException, ResponseCode}
 import org.sunbird.graph.common.enums.GraphDACParams
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 import org.sunbird.graph.dac.model.{Node, SearchCriteria}
+import org.sunbird.graph.service.common.DACErrorCodeConstants
 import org.sunbird.utils.Constants
 
 import scala.jdk.CollectionConverters._
@@ -19,11 +21,13 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   "TermActor" should "return failed response for 'unknown' operation" in {
     implicit val oec: OntologyEngineContext = new OntologyEngineContext
+    implicit val ss: StorageService = mock[StorageService]
     testUnknownOperation(Props(new TermActor()), getTermRequest())
   }
 
   it should "create a Term node and store it in neo4j" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
@@ -55,6 +59,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if categoryId and identifier are same" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
@@ -77,6 +82,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if identifier is null" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
@@ -99,6 +105,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if categoryId is null" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
@@ -121,6 +128,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if frameworkId is null" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
@@ -143,6 +151,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if code is not sent in the request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = new Node()
@@ -167,8 +176,41 @@ class TermActorTest extends BaseSpec with MockFactory{
     assert(response.getParams.getErrmsg == "Invalid Request! Please Provide Valid Request.")
   }
 
+  it should "translate an identifier collision on create into ERR_DUPLICATE_CODE" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val node = new Node()
+    node.setIdentifier("ncf_board")
+    node.setObjectType("CategoryInstance")
+    node.setMetadata(new util.HashMap[String, AnyRef]() {
+      {
+        put("identifier", "ncf_board");
+        put("objectType", "CategoryInstance")
+        put("name", "ncf_board")
+      }
+    })
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+    val nodes: util.List[Node] = getCategoryInstanceNode()
+    (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+    val loopResult: util.Map[String, Object] = new util.HashMap[String, Object]()
+    loopResult.put(GraphDACParams.loop.name, new java.lang.Boolean(false))
+    (graphDB.checkCyclicLoop _).expects(*, *, *, *).returns(loopResult).anyNumberOfTimes()
+    (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future.failed(new ClientException(DACErrorCodeConstants.CONSTRAINT_VALIDATION_FAILED.name(), "Node with this identifier already exists")))
+
+    val request = getTermRequest()
+    request.putAll(mutable.Map[String, AnyRef]("term" -> mutable.Map[String, AnyRef]("code" -> "class1", "name" -> "Class1", "description" -> "Class1").asJava, "framework" -> "NCF", "category" -> "board").asJava)
+    request.setOperation(Constants.CREATE_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErr == "ERR_DUPLICATE_CODE")
+    assert(response.getParams.getErrmsg == "Term code already exists")
+  }
+
   it should "return success response for 'readTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val categoryInstanceNode = getCategoryInstanceOfNode()
@@ -185,6 +227,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if identifier is empty for 'readTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val categoryInstanceNode = getCategoryInstanceOfNode()
@@ -214,6 +257,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if termId is empty for 'readTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val categoryInstanceNode = getCategoryInstanceOfNode()
@@ -229,6 +273,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'updateTerm'" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
@@ -247,6 +292,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "throw exception if identifier is sent in updateCategoryInstance request" in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
 
@@ -262,6 +308,7 @@ class TermActorTest extends BaseSpec with MockFactory{
 
   it should "return success response for 'retireTerm' " in {
     implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
     val graphDB = mock[GraphService]
     (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
     val node = getValidNode()
@@ -326,6 +373,41 @@ class TermActorTest extends BaseSpec with MockFactory{
     })
     request.setObjectType("Term")
     request
+  }
+
+  // Thin dispatch checks for the 3 new bulk csv operations -- full classify/commit/download logic
+  // is covered in TermBulkManagerTest. A blank framework identifier makes TermBulkManager's own
+  // orchestration methods throw ERR_INVALID_FRAMEWORK_ID before touching graphService at all, which
+  // is enough to prove the actor actually routed the operation to TermBulkManager (as opposed to
+  // falling through to ERROR(operation) for an unrecognized op) without needing any graph mocks.
+  it should "dispatch BULK_VALIDATE_TERM to TermBulkManager" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
+    val request = getTermRequest()
+    request.setOperation(Constants.BULK_VALIDATE_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErr == "ERR_INVALID_FRAMEWORK_ID")
+  }
+
+  it should "dispatch BULK_COMMIT_TERM to TermBulkManager" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
+    val request = getTermRequest()
+    request.setOperation(Constants.BULK_COMMIT_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErr == "ERR_INVALID_FRAMEWORK_ID")
+  }
+
+  it should "dispatch BULK_DOWNLOAD_TERM to TermBulkManager" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    implicit val ss: StorageService = mock[StorageService]
+    val request = getTermRequest()
+    request.setOperation(Constants.BULK_DOWNLOAD_TERM)
+    val response = callActor(request, Props(new TermActor()))
+    assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+    assert(response.getParams.getErr == "ERR_INVALID_FRAMEWORK_ID")
   }
 
   private def getCategoryInstanceOfNode(): Node = {
