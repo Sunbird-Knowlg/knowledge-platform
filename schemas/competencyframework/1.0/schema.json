@@ -5,8 +5,7 @@
   "type": "object",
   "required": [
     "name",
-    "code",
-    "type"
+    "code"
   ],
   "properties": {
     "name": {
@@ -17,14 +16,6 @@
     },
     "code": {
       "type": "string"
-    },
-    "type": {
-      "type": "string",
-      "enum": [
-        "K-12",
-        "TPD"
-      ],
-      "default": "K-12"
     },
     "status": {
       "type": "string",

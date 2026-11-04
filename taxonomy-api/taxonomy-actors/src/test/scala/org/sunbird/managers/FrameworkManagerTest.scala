@@ -97,7 +97,7 @@ class FrameworkManagerTest extends FlatSpec with Matchers with MockFactory{
     node.setIdentifier("cf_source")
     node.setGraphId("domain")
     node.setObjectType("CompetencyFramework")
-    node.setMetadata(new util.HashMap[String, AnyRef]() { { put("identifier", "cf_source"); put("objectType", "CompetencyFramework"); put("code", "cf_source"); put("name", "cf_source"); put("type", "K-12") } })
+    node.setMetadata(new util.HashMap[String, AnyRef]() { { put("identifier", "cf_source"); put("objectType", "CompetencyFramework"); put("code", "cf_source"); put("name", "cf_source") } })
     (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
     (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
     (graphDB.addNode(_: String, _: Node)).expects(*, *).returns(Future(node)).anyNumberOfTimes()
