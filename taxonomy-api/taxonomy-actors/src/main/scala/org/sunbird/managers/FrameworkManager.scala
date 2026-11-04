@@ -65,6 +65,7 @@ object FrameworkManager {
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     getOptionalNode(graphId, frameworkId + IMAGE_SUFFIX).flatMap { imgNodeOpt =>
       oec.graphService.getNodeByUniqueId(graphId, frameworkId, true, new Request(request)).flatMap { liveNode =>
+        assertObjectType(request.getContext.getOrDefault("objectType", "").asInstanceOf[String], liveNode.getObjectType, frameworkId)
         val currentVersion: Int = Option(liveNode.getMetadata.get("version"))
           .map(_.asInstanceOf[Number].intValue()).getOrElse(0)
         val updateMetadata: util.Map[String, AnyRef] =
@@ -92,11 +93,22 @@ object FrameworkManager {
   }
 
 
-  def assertFrameworkEditable(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Unit] =
+  // Ids are unique across object types, so without this /framework and /competency-framework act on
+  // each other's objects. Term APIs are deliberately type-agnostic and never call this.
+  def assertObjectType(expected: String, actual: String, frameworkId: String): Unit = {
+    val found = if (null == actual) "" else actual.replace("Image", "")
+    if (StringUtils.isNotBlank(expected) && !StringUtils.equalsIgnoreCase(found, expected))
+      throw new ResourceNotFoundException("ERR_FRAMEWORK_NOT_FOUND",
+        s"No $expected found with identifier: $frameworkId")
+  }
+
+  // Returns the node so callers that are type-specific can assert on it; term callers ignore it.
+  def assertFrameworkEditable(graphId: String, frameworkId: String)(implicit oec: OntologyEngineContext, ec: ExecutionContext): Future[Node] =
     getLiveEditNode(graphId, frameworkId).map { node =>
       val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
       if (FRAMEWORK_EDIT_BLOCKED_STATUSES.contains(status))
         throw new ClientException("ERR_FRAMEWORK_REVIEW_IN_PROGRESS", s"Cannot validate/commit terms: framework is in '$status'")
+      node
     }
 
   @throws[Exception]
@@ -119,6 +131,7 @@ object FrameworkManager {
     DataNode.read(getChannelReq).map(node => {
       if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, channel)) {
         getLiveEditNode(graphId, frameworkId).flatMap { node =>
+          assertObjectType(request.getContext.getOrDefault("objectType", "").asInstanceOf[String], node.getObjectType, frameworkId)
           val status = node.getMetadata.getOrDefault("status", "").asInstanceOf[String]
           if (!allowedStatuses.contains(status))
             throw new ClientException("ERR_INVALID_REQUEST", invalidStatusMsg(status))

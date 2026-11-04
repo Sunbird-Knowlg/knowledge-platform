@@ -532,6 +532,87 @@ class FrameworkActorTest extends BaseSpec with MockFactory {
     assert("successful".equals(response.getParams.getStatus))
   }
 
+  it should "return 404 when the graph node's objectType is not the requested one" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNode())).anyNumberOfTimes()
+
+    val response = callActor(competencyReadRequest(), Props(new FrameworkActor()))
+    assert(ResponseCode.RESOURCE_NOT_FOUND.equals(response.getResponseCode))
+    assert("ERR_FRAMEWORK_NOT_FOUND".equals(response.getParams.getErr))
+  }
+
+  // Both types share framework_hierarchy, keyed by identifier alone.
+  it should "return 404 when the stored hierarchy's objectType is not the requested one" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val hierarchyResponse = new Response()
+    hierarchyResponse.put("hierarchy",
+      """{"identifier":"framework_test","objectType":"Framework","name":"framework_test","categories":[]}""")
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(hierarchyResponse)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNode())).anyNumberOfTimes()
+
+    val response = callActor(competencyReadRequest(), Props(new FrameworkActor()))
+    assert(ResponseCode.RESOURCE_NOT_FOUND.equals(response.getResponseCode))
+    assert("ERR_FRAMEWORK_NOT_FOUND".equals(response.getParams.getErr))
+  }
+
+  it should "return 404 when the stored hierarchy carries no objectType at all" in {
+    implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+    val graphDB = mock[GraphService]
+    (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+    val hierarchyResponse = new Response()
+    hierarchyResponse.put("hierarchy",
+      """{"identifier":"framework_test","name":"framework_test","categories":[]}""")
+    (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(hierarchyResponse)).anyNumberOfTimes()
+    (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNode())).anyNumberOfTimes()
+
+    val response = callActor(competencyReadRequest(), Props(new FrameworkActor()))
+    assert(ResponseCode.RESOURCE_NOT_FOUND.equals(response.getResponseCode))
+    assert("ERR_FRAMEWORK_NOT_FOUND".equals(response.getParams.getErr))
+  }
+
+  // The write paths cannot be gated on the response -- by then the node is already mutated -- so
+  // each checks the node it loaded before touching it.
+  List(Constants.UPDATE_FRAMEWORK, Constants.RETIRE_FRAMEWORK, Constants.REVIEW_FRAMEWORK,
+    Constants.REJECT_FRAMEWORK, Constants.PUBLISH_FRAMEWORK).foreach { op =>
+    it should s"return 404 for '$op' when the stored node's objectType is not the requested one" in {
+      implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+      val graphDB = mock[GraphService]
+      (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+      stubFrameworkGate(graphDB, "Draft") // getValidNode -> objectType "Framework"
+      (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(getValidNode())).anyNumberOfTimes()
+      (graphDB.updateNodes(_: String, _: java.util.List[String], _: java.util.Map[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]())).anyNumberOfTimes()
+      (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]())).anyNumberOfTimes()
+      (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+      (graphDB.saveExternalProps(_: Request)).expects(*).returns(Future(getSuccessfulResponse())).anyNumberOfTimes()
+      (graphDB.getSubGraph(_: String, _: String, _: Int)).expects(*, *, *).returns(Future(getSubGraphData())).anyNumberOfTimes()
+
+      val request = getFrameworkRequest()
+      request.getContext.put(Constants.SCHEMA_NAME, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
+      request.getContext.put("objectType", "CompetencyFramework")
+      request.getContext.put(Constants.IDENTIFIER, "framework_test")
+      request.putAll(mutable.Map[String, AnyRef](Constants.IDENTIFIER -> "framework_test",
+        "channel" -> "sunbird", "description" -> "test desc").asJava)
+      request.setOperation(op)
+      val response = callActor(request, Props(new FrameworkActor()))
+      assert(ResponseCode.RESOURCE_NOT_FOUND.equals(response.getResponseCode))
+      assert("ERR_FRAMEWORK_NOT_FOUND".equals(response.getParams.getErr))
+    }
+  }
+
+  private def competencyReadRequest(): Request = {
+    val request = getFrameworkRequest()
+    request.getContext.put(Constants.SCHEMA_NAME, Constants.COMPETENCY_FRAMEWORK_SCHEMA_NAME)
+    request.getContext.put("objectType", "CompetencyFramework")
+    request.putAll(mutable.Map[String, AnyRef]("identifier" -> "framework_test", Constants.CATEGORIES -> "").asJava)
+    request.setOperation(Constants.READ_FRAMEWORK)
+    request
+  }
+
 
   private def stubFrameworkGate(graphDB: GraphService, status: String): Node = {
     val node = getValidNode()

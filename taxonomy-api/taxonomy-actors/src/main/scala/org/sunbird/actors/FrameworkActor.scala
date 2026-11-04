@@ -5,7 +5,7 @@ import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
 import org.sunbird.common.{JsonUtils, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.exception.{ClientException, ResourceNotFoundException}
 import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.{Node, SubGraph}
 import org.sunbird.graph.nodes.DataNode
@@ -81,42 +81,50 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   }
 
 
+  private def expectedObjectType(request: Request): String =
+    request.getContext.getOrDefault("objectType", "").asInstanceOf[String]
+
   @throws[Exception]
   private def read(request: Request): Future[Response] = {
     val frameworkId = request.get("identifier").asInstanceOf[String]
     val returnCategories: java.util.List[String] = request.get("categories").asInstanceOf[String].split(",").filter(category => StringUtils.isNotBlank(category) && !StringUtils.equalsIgnoreCase(category, "null")).toList.asJava
     request.getRequest.put("categories", returnCategories)
     if (StringUtils.isNotBlank(frameworkId)) {
-      val framework = FrameworkCache.get(frameworkId, returnCategories)
-      if(framework != null){
-        Future {
-          ResponseHandler.OK.put(Constants.FRAMEWORK, framework)
-        }
-      } else {
-        val frameworkData: Future[Map[String, AnyRef]] = if (Platform.getBoolean("service.db.cassandra.enabled", true))
-          FrameworkManager.getFrameworkHierarchy(request) else {
-          val frameworkStr = RedisCache.get("fw:"+frameworkId, (key: String) => "{}")
-          Future(JsonUtils.deserialize(frameworkStr, classOf[java.util.Map[String, AnyRef]]).asScala.toMap)
-        }
-        frameworkData.map(framework => {
-          if (framework.isEmpty) {
-            DataNode.read(request).map(node => {
-              if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId)) {
-                val framework = NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
-                ResponseHandler.OK.put(Constants.FRAMEWORK, framework)
-              } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
-            })
-          } else {
-            Future {
-              val filterFrameworkData: Map[String, AnyRef] = FrameworkManager.filterFrameworkCategories(framework.asJava, returnCategories)
-              FrameworkCache.save(filterFrameworkData, returnCategories)
-              val javaMap: java.util.Map[String, AnyRef] = filterFrameworkData.asJava
-              ResponseHandler.OK.put(Constants.FRAMEWORK, javaMap)
-            }
-          }
-        }).flatten
-      }
+      // Single gate, so no store -- present or future -- can answer without being type-checked.
+      resolveFramework(request, frameworkId, returnCategories).map(data => {
+        FrameworkManager.assertObjectType(expectedObjectType(request),
+          Option(data.get("objectType")).map(_.toString).orNull, frameworkId)
+        ResponseHandler.OK.put(Constants.FRAMEWORK, data)
+      })
     } else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
+  }
+
+  // Normalises cache / hierarchy / graph into one map shape for read() to validate.
+  private def resolveFramework(request: Request, frameworkId: String, returnCategories: util.List[String]): Future[util.Map[String, AnyRef]] = {
+    val cached = FrameworkCache.get(frameworkId, returnCategories)
+    if (null != cached) Future(cached)
+    else {
+      val frameworkData: Future[Map[String, AnyRef]] = if (Platform.getBoolean("service.db.cassandra.enabled", true))
+        FrameworkManager.getFrameworkHierarchy(request) else {
+        val frameworkStr = RedisCache.get("fw:" + frameworkId, (key: String) => "{}")
+        Future(JsonUtils.deserialize(frameworkStr, classOf[java.util.Map[String, AnyRef]]).asScala.toMap)
+      }
+      frameworkData.map(framework => {
+        if (framework.isEmpty) {
+          DataNode.read(request).map(node => {
+            if (null != node && StringUtils.equalsAnyIgnoreCase(node.getIdentifier, frameworkId))
+              NodeUtil.serialize(node, null, request.getContext.get(Constants.SCHEMA_NAME).asInstanceOf[String], request.getContext.get(Constants.VERSION).asInstanceOf[String])
+            else throw new ClientException("ERR_INVALID_REQUEST", "Invalid Request. Please Provide Required Properties!")
+          })
+        } else {
+          Future {
+            val filterFrameworkData: Map[String, AnyRef] = FrameworkManager.filterFrameworkCategories(framework.asJava, returnCategories)
+            FrameworkCache.save(filterFrameworkData, returnCategories)
+            filterFrameworkData.asJava
+          }
+        }
+      }).flatten
+    }
   }
 
   @throws[Exception]
@@ -125,7 +133,8 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
     val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
     val channel = request.getRequest.getOrDefault(Constants.CHANNEL, "").asInstanceOf[String]
-    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
+    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { node =>
+      FrameworkManager.assertObjectType(expectedObjectType(request), node.getObjectType, frameworkId)
       val getChannelReq = new Request()
       getChannelReq.setContext(new util.HashMap[String, AnyRef]() {
         {
@@ -149,7 +158,8 @@ class FrameworkActor @Inject()(implicit oec: OntologyEngineContext) extends Base
   private def retire(request: Request): Future[Response] = {
     val frameworkId = request.getContext.getOrDefault(Constants.IDENTIFIER, "").asInstanceOf[String]
     val graphId = request.getContext.getOrDefault("graph_id", "domain").asInstanceOf[String]
-    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { _ =>
+    FrameworkManager.assertFrameworkEditable(graphId, frameworkId).flatMap { node =>
+      FrameworkManager.assertObjectType(expectedObjectType(request), node.getObjectType, frameworkId)
       request.getRequest.put("status", "Retired")
       request.getContext.put("versioning", "disabled")
       FrameworkManager.retireImageNode(graphId, frameworkId).flatMap(_ =>
