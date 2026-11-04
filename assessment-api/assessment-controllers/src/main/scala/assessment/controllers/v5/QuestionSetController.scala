@@ -85,6 +85,17 @@ class QuestionSetController @Inject()(@Named(ActorNames.QUESTION_SET_V5_ACTOR) q
     getResult(ApiId.PUBLISH_QUESTION_SET, questionSetActor, questionSetRequest)
   }
 
+  def refreshBody(identifier: String) = Action.async { implicit request =>
+    val headers = commonHeaders()
+    val body = requestBody()
+    val questionSet = body.getOrDefault("questionset", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+    questionSet.putAll(headers)
+    val questionSetRequest = getRequest(questionSet, headers, QuestionSetOperations.refreshBodyQuestionSet.toString)
+    setRequestContext(questionSetRequest, defaultVersion, objectType, schemaName)
+    questionSetRequest.getContext.put("identifier", identifier)
+    getResult(ApiId.REFRESH_BODY_QUESTION_SET, questionSetActor, questionSetRequest)
+  }
+
   def retire(identifier: String) = Action.async { implicit request =>
     val headers = commonHeaders()
     val questionSet = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]

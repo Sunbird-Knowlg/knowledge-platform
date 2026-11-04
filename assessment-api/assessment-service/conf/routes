@@ -72,6 +72,7 @@ GET       /questionset/v5/private/read/:identifier   assessment.controllers.v5.Q
 PATCH     /questionset/v5/update/:identifier         assessment.controllers.v5.QuestionSetController.update(identifier:String)
 POST      /questionset/v5/review/:identifier         assessment.controllers.v5.QuestionSetController.review(identifier:String)
 POST      /questionset/v5/publish/:identifier        assessment.controllers.v5.QuestionSetController.publish(identifier:String)
+POST      /questionset/v5/refresh/body/:identifier   assessment.controllers.v5.QuestionSetController.refreshBody(identifier:String)
 DELETE    /questionset/v5/retire/:identifier         assessment.controllers.v5.QuestionSetController.retire(identifier:String)
 PATCH     /questionset/v5/add                        assessment.controllers.v5.QuestionSetController.add()
 DELETE    /questionset/v5/remove                     assessment.controllers.v5.QuestionSetController.remove()

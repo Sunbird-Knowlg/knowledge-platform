@@ -170,6 +170,18 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.PUBLISH_CONTENT_PUBLIC, contentActor, contentRequest)
     }
 
+    def refreshBody(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "refreshBodyContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("publish_type", "public");
+        getResult(ApiId.REFRESH_BODY_CONTENT, contentActor, contentRequest)
+    }
+
     def publishUnlisted(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()
