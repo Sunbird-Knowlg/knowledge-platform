@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
 import org.sunbird.content.actors.{AppActor, AssetActor, CollectionActor, ContentActor, EventActor, EventSetActor, HealthActor => ContentHealthActor, LicenseActor, ObjectActor}
+import org.sunbird.content.enrichmentobject.actors.EnrichmentObjectActor
 import org.sunbird.actors.{AssessmentItemActor, CategoryActor, CategoryInstanceActor, FrameworkActor, HealthActor => TaxonomyHealthActor, ItemSetActor, LockActor, ObjectCategoryActor, ObjectCategoryDefinitionActor, QuestionActor, QuestionSetActor, TermActor}
 import org.sunbird.v5.actors.{QuestionActor => QuestionV5Actor, QuestionSetActor => QuestionSetV5Actor}
 import play.api.libs.concurrent.PekkoGuiceSupport
@@ -27,7 +28,8 @@ class KnowlgModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[AppActor](ActorNames.APP_ACTOR)
         bindActor[ObjectActor](ActorNames.OBJECT_ACTOR)
         bindActor[CollectionCSVActor](ActorNames.COLLECTION_CSV_ACTOR)
-        
+        bindActor[EnrichmentObjectActor](ActorNames.ENRICHMENT_OBJECT_ACTOR)
+
         // Taxonomy actors from taxonomy-actors JAR
         bindActor[ObjectCategoryActor](ActorNames.OBJECT_CATEGORY_ACTOR)
         bindActor[ObjectCategoryDefinitionActor](ActorNames.OBJECT_CATEGORY_DEFINITION_ACTOR)
