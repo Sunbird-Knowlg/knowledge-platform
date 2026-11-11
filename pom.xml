@@ -16,7 +16,7 @@
 		<scala.version>2.13.12</scala.version>
 		<scalatest.version>3.0.8</scalatest.version>
 		<fasterxml.jackson.version>2.18.11</fasterxml.jackson.version>
-		<logback.version>1.5.38</logback.version>
+		<logback.version>1.6.6</logback.version>
 	</properties>
 	<profiles>
 		<profile>
