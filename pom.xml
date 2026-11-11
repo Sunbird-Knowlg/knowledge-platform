@@ -258,7 +258,7 @@
 			<dependency>
 				<groupId>org.apache.kafka</groupId>
 				<artifactId>kafka_2.13</artifactId>
-				<version>3.9.2</version>
+				<version>4.4.0</version>
 			</dependency>
 			<!-- Security: CVE-2023-26119 (htmlunit < 3.0.0). play-test's Helpers$ references
 			     org.openqa.selenium.htmlunit.HtmlUnitDriver as a static field default, so a driver must
