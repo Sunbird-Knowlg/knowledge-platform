@@ -264,7 +264,7 @@ jobs:
       issues: write
     steps:
       - name: Comment PR with SonarQube Results
-        uses: actions/github-script@00f12e3e20659f42342b1c0226afda7f7c042325 # v6
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6
         with:
           script: |
             const message = `### SonarCloud Analysis Results 🔍
