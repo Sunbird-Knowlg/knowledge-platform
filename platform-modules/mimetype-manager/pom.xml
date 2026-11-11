@@ -129,12 +129,24 @@
             <artifactId>play_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.lz4</groupId>
+                    <artifactId>lz4-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.playframework</groupId>
             <artifactId>play-guice_${scala.major.version}</artifactId>
             <version>${play2.version}</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.lz4</groupId>
+                    <artifactId>lz4-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

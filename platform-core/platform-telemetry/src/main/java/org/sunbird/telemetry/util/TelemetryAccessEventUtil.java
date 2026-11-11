@@ -125,7 +125,7 @@ public class TelemetryAccessEventUtil {
 			}
 			return requestStr;
 		} catch (Exception e) {
-			e.printStackTrace();
+			TelemetryManager.error("Failed to serialize request for telemetry event", e);
 		}
 		return null;
 	}

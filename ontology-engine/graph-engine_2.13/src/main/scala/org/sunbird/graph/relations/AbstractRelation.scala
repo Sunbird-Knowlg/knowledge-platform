@@ -9,6 +9,7 @@ import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.exception.GraphErrorCodes
 import org.sunbird.graph.schema.DefinitionFactory
 import org.sunbird.graph.service.operation.{JanusGraphOperations, GraphSearchOperations}
+import org.sunbird.telemetry.logger.TelemetryManager
 
 import scala.concurrent.ExecutionContext
 
@@ -59,10 +60,10 @@ abstract class AbstractRelation(graphId: String, startNode: Node, endNode: Node,
         }
     } catch {
         case ex: MiddlewareException =>
-            ex.printStackTrace()
+            TelemetryManager.error("Error occurred while validating the relation", ex)
             throw ex;
         case e: Exception =>
-            e.printStackTrace()
+            TelemetryManager.error("Error occurred while validating the relation", e)
             throw new ServerException(GraphErrorCodes.ERR_RELATION_VALIDATE.toString, "Error occurred while validating the relation", e)
     }
 }

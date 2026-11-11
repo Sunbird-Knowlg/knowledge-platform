@@ -40,15 +40,13 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
      * @param identifier
      * @param mode
      * @param fields
-     * @param enrich Opt-in live Enrichment join: "all" or a comma list of
-     *               relation field names (e.g. "transcripts")
      * @return
      */
-    def read(identifier: String, mode: Option[String], fields: Option[String], enrich: Option[String]) = Action.async { implicit request =>
+    def read(identifier: String, mode: Option[String], fields: Option[String]) = Action.async { implicit request =>
         val headers = commonHeaders()
         val content = new java.util.HashMap().asInstanceOf[java.util.Map[String, Object]]
         content.putAll(headers)
-        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse(""), "enrich" -> enrich.getOrElse("")).asJava)
+        content.putAll(Map("identifier" -> identifier, "mode" -> mode.getOrElse("read"), "fields" -> fields.getOrElse("")).asJava)
         val readRequest = getRequest(content, headers, "readContent")
         setRequestContext(readRequest, version, objectType, schemaName)
         getResult(ApiId.READ_CONTENT, contentActor, readRequest, true)
@@ -168,6 +166,18 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         contentRequest.getContext.put("identifier", identifier);
         contentRequest.getContext.put("publish_type", "public");
         getResult(ApiId.PUBLISH_CONTENT_PUBLIC, contentActor, contentRequest)
+    }
+
+    def refreshBody(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "refreshBodyContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        contentRequest.getContext.put("publish_type", "public");
+        getResult(ApiId.REFRESH_BODY_CONTENT, contentActor, contentRequest)
     }
 
     def publishUnlisted(identifier: String) = Action.async { implicit request =>

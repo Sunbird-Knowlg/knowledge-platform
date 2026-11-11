@@ -60,6 +60,44 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.get("versionKey") != null)
     }
 
+    it should "store minCriteria and multiplier from config on a Dynamic Course Assessment it creates" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        (graphDB.addNode(_: String, _: Node)).expects(where { (_: String, node: Node) =>
+            node.getMetadata.get("minCriteria") == Integer.valueOf(2) && node.getMetadata.get("multiplier") == Integer.valueOf(2)
+        }).returns(Future(getValidNode())).once()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {{ add(getBoardNode()) }})).anyNumberOfTimes()
+
+        val request = getContentRequest()
+        request.getRequest.putAll(Map[String, AnyRef]("channel" -> "in.ekstep", "name" -> "Dynamic", "code" -> "1234", "mimeType" -> "application/vnd.ekstep.ecml-archive",
+            "contentType" -> "Resource", "primaryCategory" -> "Dynamic Course Assessment", "license" -> "CBSE", "minCriteria" -> Integer.valueOf(9)).asJava)
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.get("identifier") != null)
+    }
+
+    it should "not add minCriteria or multiplier to other content it creates (negative)" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        (graphDB.addNode(_: String, _: Node)).expects(where { (_: String, node: Node) =>
+            !node.getMetadata.containsKey("minCriteria") && !node.getMetadata.containsKey("multiplier")
+        }).returns(Future(getValidNode())).once()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(new util.ArrayList[Node]() {{ add(getBoardNode()) }})).anyNumberOfTimes()
+
+        val request = getContentRequest()
+        request.getRequest.putAll(Map[String, AnyRef]("channel" -> "in.ekstep", "name" -> "New", "code" -> "1234", "mimeType" -> "application/vnd.ekstep.ecml-archive",
+            "contentType" -> "Resource", "primaryCategory" -> "Learning Resource", "license" -> "CBSE").asJava)
+        request.setOperation("createContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.get("identifier") != null)
+    }
+
     it should "create a plugin node and store it in the graph" in {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]

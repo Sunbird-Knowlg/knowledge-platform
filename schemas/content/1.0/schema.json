@@ -1421,6 +1421,12 @@
     },
     "migrationVersion": {
       "type": "number"
+    },
+    "enrichmentTypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }

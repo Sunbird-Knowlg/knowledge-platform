@@ -7,7 +7,7 @@ GET       /service/health                   content.controllers.HealthController
 # Content APIs.v3.ContentController
 POST      /content/v3/create                content.controllers.v3.ContentController.create()
 PATCH     /content/v3/update/:identifier    content.controllers.v3.ContentController.update(identifier:String)
-GET       /content/v3/read/:identifier      content.controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String], enrich:Option[String])
+GET       /content/v3/read/:identifier      content.controllers.v3.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 POST      /content/v3/upload/url/:identifier     content.controllers.v3.ContentController.uploadPreSigned(identifier:String, type: Option[String])
 POST      /content/v3/upload/:identifier         content.controllers.v3.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
 POST      /content/v3/copy/:identifier           content.controllers.v3.ContentController.copy(identifier:String, mode:Option[String], type:String ?= "deep")
@@ -18,6 +18,7 @@ POST     /content/v3/bundle                     content.controllers.v3.ContentCo
 POST     /content/v3/flag/accept/:identifier    content.controllers.v3.ContentController.acceptFlag(identifier:String)
 POST     /content/v3/flag/reject/:identifier    content.controllers.v3.ContentController.rejectFlag(identifier:String)
 POST     /content/v3/publish/:identifier        content.controllers.v3.ContentController.publish(identifier:String)
+POST     /content/v3/refresh/body/:identifier   content.controllers.v3.ContentController.refreshBody(identifier:String)
 POST     /content/v3/review/:identifier         content.controllers.v3.ContentController.review(identifier:String)
 DELETE   /content/v3/discard/:identifier        content.controllers.v3.ContentController.discard(identifier:String)
 DELETE   /content/v3/retire/:identifier         content.controllers.v3.ContentController.retire(identifier:String)
@@ -83,7 +84,7 @@ POST     /collection/v4/unlisted/publish/:identifier  content.controllers.v4.Col
 # Content v4 APIs
 POST      /content/v4/create                       content.controllers.v4.ContentController.create()
 PATCH     /content/v4/update/:identifier           content.controllers.v4.ContentController.update(identifier:String)
-GET       /content/v4/read/:identifier             content.controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String], enrich:Option[String])
+GET       /content/v4/read/:identifier             content.controllers.v4.ContentController.read(identifier:String, mode:Option[String], fields:Option[String])
 GET       /content/v4/private/read/:identifier     content.controllers.v4.ContentController.privateRead(identifier:String, mode:Option[String], fields:Option[String])
 POST      /content/v4/upload/url/:identifier       content.controllers.v4.ContentController.uploadPreSigned(identifier:String, type: Option[String])
 POST      /content/v4/upload/:identifier           content.controllers.v4.ContentController.upload(identifier:String, fileFormat: Option[String], validation: Option[String])
@@ -102,11 +103,6 @@ POST      /content/v4/dialcode/release/:identifier  content.controllers.v4.Conte
 POST      /content/v4/publish/:identifier           content.controllers.v4.ContentController.publish(identifier:String)
 POST      /content/v4/unlisted/publish/:identifier  content.controllers.v4.ContentController.publishUnlisted(identifier:String)
 GET      /content/v4/process/status/:processid     content.controllers.v4.ContentController.getProcessIdStatus(processid: String)
-POST      /content/v4/enrichment/object/create/:identifier    content.controllers.v4.ContentController.createObject(identifier:String)
-PATCH     /content/v4/enrichment/object/update/:identifier/:objectIdentifier    content.controllers.v4.ContentController.updateObject(identifier:String, objectIdentifier:String)
-POST      /content/v4/enrichment/object/approve/:identifier/:objectIdentifier   content.controllers.v4.ContentController.approveObject(identifier:String, objectIdentifier:String)
-POST      /content/v4/enrichment/object/reject/:identifier/:objectIdentifier    content.controllers.v4.ContentController.rejectObject(identifier:String, objectIdentifier:String)
-GET       /content/v4/enrichment/read/:identifier      content.controllers.v4.ContentController.readEnrichment(identifier:String)
 POST     /collection/v4/hierarchy/update/relation/:identifier  content.controllers.v4.CollectionController.updateHierarchyRelationships(identifier:String)
 
 # App v4 APIs
@@ -118,7 +114,7 @@ GET       /app/v4/read/:identifier                  content.controllers.v4.AppCo
 POST      /event/v4/create                          content.controllers.v4.EventController.create()
 PATCH     /event/v4/update/:identifier              content.controllers.v4.EventController.update(identifier:String)
 POST      /event/v4/publish/:identifier             content.controllers.v4.EventController.publish(identifier:String)
-GET       /event/v4/read/:identifier                content.controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String], enrich:Option[String])
+GET       /event/v4/read/:identifier                content.controllers.v4.EventController.read(identifier:String, mode:Option[String], fields:Option[String])
 DELETE    /event/v4/discard/:identifier             content.controllers.v4.EventController.discard(identifier:String)
 DELETE    /private/event/v4/retire/:identifier      content.controllers.v4.EventController.retire(identifier:String)
 
@@ -133,6 +129,13 @@ DELETE  /private/eventset/v4/retire/:identifier  content.controllers.v4.EventSet
 
 # Object v4 Api's
 GET     /object/v4/read/:identifier              content.controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
+
+# EnrichmentObject v4 Api's
+POST    /object/enrichment/v4/create             content.controllers.v4.EnrichmentObjectController.create()
+POST    /object/enrichment/v4/list               content.controllers.v4.EnrichmentObjectController.list()
+PATCH   /object/enrichment/v4/update/:identifier  content.controllers.v4.EnrichmentObjectController.update(identifier:String)
+POST    /object/enrichment/v4/approve/:identifier content.controllers.v4.EnrichmentObjectController.approve(identifier:String)
+POST    /object/enrichment/v4/reject/:identifier  content.controllers.v4.EnrichmentObjectController.reject(identifier:String)
 
 
 # Collection V4 APIs
@@ -257,6 +260,7 @@ GET       /questionset/v5/private/read/:identifier   assessment.controllers.v5.Q
 PATCH     /questionset/v5/update/:identifier         assessment.controllers.v5.QuestionSetController.update(identifier:String)
 POST      /questionset/v5/review/:identifier         assessment.controllers.v5.QuestionSetController.review(identifier:String)
 POST      /questionset/v5/publish/:identifier        assessment.controllers.v5.QuestionSetController.publish(identifier:String)
+POST      /questionset/v5/refresh/body/:identifier   assessment.controllers.v5.QuestionSetController.refreshBody(identifier:String)
 DELETE    /questionset/v5/retire/:identifier         assessment.controllers.v5.QuestionSetController.retire(identifier:String)
 PATCH     /questionset/v5/add                        assessment.controllers.v5.QuestionSetController.add()
 DELETE    /questionset/v5/remove                     assessment.controllers.v5.QuestionSetController.remove()
