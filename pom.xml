@@ -180,7 +180,7 @@
 			<dependency>
 				<groupId>io.opentelemetry</groupId>
 				<artifactId>opentelemetry-api</artifactId>
-				<version>1.62.0</version>
+				<version>1.67.0</version>
 			</dependency>
 			<!-- Security: jbcrypt CVE-2015-0886 (forces 0.4 over 0.3m from cassandra-all) -->
 			<dependency>
