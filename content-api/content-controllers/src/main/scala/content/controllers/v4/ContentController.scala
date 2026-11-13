@@ -6,6 +6,7 @@ import com.google.inject.Singleton
 import content.controllers.BaseController
 import content.utils.{ActorNames, ApiId}
 import javax.inject.{Inject, Named}
+import org.apache.commons.io.FilenameUtils
 import org.sunbird.common.Platform
 import org.sunbird.common.exception.ClientException
 import org.sunbird.models.UploadParams
