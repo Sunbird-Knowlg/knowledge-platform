@@ -33,7 +33,8 @@
         "Asset",
         "ItemSet",
         "Question",
-        "QuestionSet"
+        "QuestionSet",
+        "EnrichmentObject"
       ]
     },
     "channel": {

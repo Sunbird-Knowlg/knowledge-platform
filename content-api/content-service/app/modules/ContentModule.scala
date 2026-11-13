@@ -5,6 +5,7 @@ import content.utils.ActorNames
 import org.sunbird.channel.actors.ChannelActor
 import org.sunbird.collectioncsv.actors.CollectionCSVActor
 import org.sunbird.content.actors._
+import org.sunbird.content.enrichmentobject.actors.EnrichmentObjectActor
 import play.api.libs.concurrent.PekkoGuiceSupport
 
 class ContentModule extends AbstractModule with PekkoGuiceSupport {
@@ -23,7 +24,8 @@ class ContentModule extends AbstractModule with PekkoGuiceSupport {
         bindActor[AppActor](ActorNames.APP_ACTOR)
         bindActor[ObjectActor](ActorNames.OBJECT_ACTOR)
         bindActor[CollectionCSVActor](ActorNames.COLLECTION_CSV_ACTOR)
-        
+        bindActor[EnrichmentObjectActor](ActorNames.ENRICHMENT_OBJECT_ACTOR)
+
         println("Initialized application actors...")
         // $COVERAGE-ON
     }
