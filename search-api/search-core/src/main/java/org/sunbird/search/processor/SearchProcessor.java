@@ -14,6 +14,9 @@ import org.opensearch.index.query.Operator;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.index.query.RangeQueryBuilder;
+import org.opensearch.index.query.TermsSetQueryBuilder;
+import org.opensearch.script.Script;
+import org.opensearch.script.ScriptType;
 import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder.FilterFunctionBuilder;
 import org.opensearch.index.query.functionscore.ScoreFunctionBuilders;
@@ -43,6 +46,7 @@ import scala.runtime.AbstractFunction0;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -433,6 +437,11 @@ public class SearchProcessor {
 				queryBuilder = checkNestedProperty(queryBuilder, propertyName);
 				break;
 			}
+			case SearchConstants.SEARCH_OPERATION_SUBSET_OF: {
+				queryBuilder = getSubsetOfQuery(propertyName, values);
+				queryBuilder = checkNestedProperty(queryBuilder, propertyName);
+				break;
+			}
 			case SearchConstants.SEARCH_OPERATION_ENDS_WITH: {
 				queryBuilder = getRegexQuery(propertyName, values);
 				queryBuilder = checkNestedProperty(queryBuilder, propertyName);
@@ -614,6 +623,11 @@ public class SearchProcessor {
 						getNotInQuery(propertyName, values), ScoreFunctionBuilders.weightFactorFunction(weight)));
 				break;
 			}
+			case SearchConstants.SEARCH_OPERATION_SUBSET_OF: {
+				filterFunctionBuilder.add(new FilterFunctionBuilder(
+						getSubsetOfQuery(propertyName, values), ScoreFunctionBuilders.weightFactorFunction(weight)));
+				break;
+			}
 			case SearchConstants.SEARCH_OPERATION_GREATER_THAN: {
 				filterFunctionBuilder.add(new FilterFunctionBuilder(
 						getRangeQuery(propertyName, values, SearchConstants.SEARCH_OPERATION_GREATER_THAN),
@@ -789,6 +803,13 @@ public class SearchProcessor {
 	 * @param values
 	 * @return
 	 */
+	/** Documents whose values in the field are all in {@code values}, with at least one. */
+	QueryBuilder getSubsetOfQuery(String propertyName, List<Object> values) {
+		Script ownValueCount = new Script(ScriptType.INLINE, Script.DEFAULT_SCRIPT_LANG,
+				"Math.max(1, doc[params.field].size())", Collections.singletonMap("field", propertyName));
+		return new TermsSetQueryBuilder(propertyName, values).setMinimumShouldMatchScript(ownValueCount);
+	}
+
 	private QueryBuilder getNotInQuery(String propertyName, List<Object> values) {
 		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 		queryBuilder

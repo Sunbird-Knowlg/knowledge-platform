@@ -1261,4 +1261,28 @@ public class SearchActorTest extends SearchBaseActorTest {
         Assert.assertTrue(content2.get("medium") instanceof List);
     }
 
+
+    @Test
+    public void testSubsetOfWithEmptyListIsAClientError() {
+        Request request = getSearchRequest();
+        Map<String, Object> filters = new HashMap<String, Object>();
+        Map<String, Object> skill = new HashMap<String, Object>();
+        skill.put("subsetOf", new ArrayList<String>());
+        filters.put("skill", skill);
+        request.put("filters", filters);
+        Response response = getSearchResponse(request);
+        Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), response.getResponseCode().code());
+    }
+
+    @Test
+    public void testSubsetOfWithAStringIsAClientError() {
+        Request request = getSearchRequest();
+        Map<String, Object> filters = new HashMap<String, Object>();
+        Map<String, Object> skill = new HashMap<String, Object>();
+        skill.put("subsetOf", "s1");
+        filters.put("skill", skill);
+        request.put("filters", filters);
+        Response response = getSearchResponse(request);
+        Assert.assertEquals(ResponseCode.CLIENT_ERROR.code(), response.getResponseCode().code());
+    }
 }

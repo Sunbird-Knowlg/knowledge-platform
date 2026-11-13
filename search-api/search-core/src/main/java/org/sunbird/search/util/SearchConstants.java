@@ -45,6 +45,8 @@ public class SearchConstants {
     public static final String DIAL_CODE_METRICS_INDEX_TYPE = "dcm";
     public static final String SEARCH_OPERATION_NOT_IN_OPERATOR = "notIn";
     public static final String SEARCH_OPERATION_NOT_IN = "NT_IN";
+    public static final String SEARCH_OPERATION_SUBSET_OF_OPERATOR = "subsetOf";
+    public static final String SEARCH_OPERATION_SUBSET_OF = "SUBSET_OF";
     public static final String SEARCH_OPERATION_CONTAINS_OPERATOR = "contains";
     public static final String SEARCH_OPERATION_AND_TEXT_LOWERCASE = "and";
     public static final String SEARCH_OPERATION_AND_OPERATOR = "&";

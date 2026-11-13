@@ -535,6 +535,13 @@ public abstract class SearchBaseActor extends AbstractActor {
                                     property.put(SearchConstants.operation,
                                             SearchConstants.SEARCH_OPERATION_NOT_IN);
                                     break;
+                                case SearchConstants.SEARCH_OPERATION_SUBSET_OF_OPERATOR:
+                                    if (!(filterEntry.getValue() instanceof List) || ((List<?>) filterEntry.getValue()).isEmpty())
+                                        throw new ClientException(SearchConstants.ERR_COMPOSITE_SEARCH_INVALID_PARAMS,
+                                                "subsetOf on " + entry.getKey() + " needs a non-empty list of values.");
+                                    property.put(SearchConstants.operation,
+                                            SearchConstants.SEARCH_OPERATION_SUBSET_OF);
+                                    break;
                                 case SearchConstants.SEARCH_OPERATION_GREATER_THAN:
                                 case SearchConstants.SEARCH_OPERATION_GREATER_THAN_EQUALS:
                                 case SearchConstants.SEARCH_OPERATION_LESS_THAN_EQUALS:
